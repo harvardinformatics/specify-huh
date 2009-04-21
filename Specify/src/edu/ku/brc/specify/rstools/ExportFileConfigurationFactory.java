@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureCSV;
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureExternalDataIFace;
+import edu.ku.brc.specify.tasks.subpane.wb.ConfigureXML;
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureXLS;
 
 /**
@@ -36,7 +37,8 @@ public class ExportFileConfigurationFactory
 {
     public static String XLS_MIME_TYPE = "binary/xls";
     public static String CSV_MIME_TYPE = "text/csv";
-    
+    public static String XML_MIME_TYPE = "text/xml";
+
     // This should be a WeakReference somday
     protected static Vector<ExportableType> exportTypes = null;
     
@@ -51,6 +53,11 @@ public class ExportFileConfigurationFactory
         {
             return new ConfigureXLS(props);
         }
+        else if (props.getProperty("mimetype", XML_MIME_TYPE) == XML_MIME_TYPE)
+        {
+            return new ConfigureXML(props);
+        }
+        
         return new ConfigureCSV(props);
     }
     
@@ -66,6 +73,7 @@ public class ExportFileConfigurationFactory
             exportTypes = new Vector<ExportableType>();
             exportTypes.add(factory.new ExportableType("Excel", XLS_MIME_TYPE, "xls"));
             exportTypes.add(factory.new ExportableType("CSV", CSV_MIME_TYPE, "csv"));
+            exportTypes.add(factory.new ExportableType("XML", XML_MIME_TYPE, "xml"));
         }
 
         return exportTypes;

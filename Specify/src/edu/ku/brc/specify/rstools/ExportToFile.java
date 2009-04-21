@@ -30,8 +30,10 @@ import org.apache.commons.io.FilenameUtils;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.tasks.subpane.wb.CSVExport;
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureCSV;
+import edu.ku.brc.specify.tasks.subpane.wb.ConfigureXML;
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureXLS;
 import edu.ku.brc.specify.tasks.subpane.wb.DataExport;
+import edu.ku.brc.specify.tasks.subpane.wb.XMLExport;
 import edu.ku.brc.specify.tasks.subpane.wb.XLSExport;
 import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.UIRegistry;
@@ -56,7 +58,7 @@ public class ExportToFile implements RecordSetToolsIFace
      * @param reqParams
      * @return
      */
-    protected DataExport buildExporter(Properties reqParams)
+    protected DataExport buildExporter(Properties reqParams) throws Exception
     {
         String mimeType = reqParams.getProperty("mimetype");
         if (mimeType == ExportFileConfigurationFactory.XLS_MIME_TYPE)
@@ -66,6 +68,12 @@ public class ExportToFile implements RecordSetToolsIFace
         } else if (mimeType == ExportFileConfigurationFactory.CSV_MIME_TYPE)
         {
              return new CSVExport(new ConfigureCSV(reqParams));
+        } else if (mimeType == ExportFileConfigurationFactory.XML_MIME_TYPE)
+        {
+            // MMK: buildExporter is only called in one place (processDataList
+            // in this class) so I changed its signature to declare the
+            // exceptions that might be raised here
+            return new XMLExport(new ConfigureXML(reqParams));
         }
         return null;
     }

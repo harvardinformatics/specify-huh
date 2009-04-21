@@ -105,13 +105,19 @@ import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
+import edu.ku.brc.specify.rstools.ExportDataSet;
+import edu.ku.brc.specify.rstools.ExportField;
 import edu.ku.brc.specify.rstools.ExportFileConfigurationFactory;
+import edu.ku.brc.specify.rstools.ExportRow;
 import edu.ku.brc.specify.rstools.ExportToFile;
+import edu.ku.brc.specify.rstools.RelatableWorkbench;
+import edu.ku.brc.specify.rstools.WorkbenchRelation;
 import edu.ku.brc.specify.tasks.subpane.wb.ConfigureExternalDataIFace;
 import edu.ku.brc.specify.tasks.subpane.wb.DataImportIFace;
 import edu.ku.brc.specify.tasks.subpane.wb.ImageFrame;
 import edu.ku.brc.specify.tasks.subpane.wb.ImportColumnInfo;
 import edu.ku.brc.specify.tasks.subpane.wb.ImportDataFileInfo;
+import edu.ku.brc.specify.tasks.subpane.wb.RelationEditor;
 import edu.ku.brc.specify.tasks.subpane.wb.SelectNewOrExistingDlg;
 import edu.ku.brc.specify.tasks.subpane.wb.TemplateEditor;
 import edu.ku.brc.specify.tasks.subpane.wb.WorkbenchBackupMgr;
@@ -1018,8 +1024,8 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
     public boolean getExportInfo(final Properties props)
     {
         String extension = "";
-        //String fileTypeCaption = "";
-        if (true)
+        String fileTypeCaption = "";
+        if (false) // MMK: this was orignally set to 'if (true)'
         {
             for (ExportFileConfigurationFactory.ExportableType type : ExportFileConfigurationFactory.getExportList())
             {
@@ -1027,7 +1033,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 {
                     props.setProperty("mimetype", type.getMimeType());
                     extension = type.getExtension();
-                    //fileTypeCaption = type.getCaption();
+                    fileTypeCaption = type.getCaption();
                     break;
                 }
             }
@@ -1169,15 +1175,24 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
            {
                session.attach(workbench);
                workbench.forceLoad();
-               List<?> rowData = workbench.getWorkbenchRowsAsList();
-               List<Object> exportData = new Vector<Object>(rowData.size() + 1);
-               exportData.add(workbench.getWorkbenchTemplate());
-               exportData.addAll(rowData);
-               command.setData(exportData);
+               
+               // MMK: we used to do command.setData(List<WorkbenchRow>), now it's List<ExportRow>
+               // and I'm getting the rows from the dataset chooser gui.
+               List<Workbench> workbenchList = getWorkbenchList(session);                   
 
+               RelatableWorkbench rwb = selectRelatedWorkbenches(workbench, workbenchList);
+               if (rwb == null)
+               {
+                   // TODO: this is like the following call to getExportInfo; if the user cancelled the
+                   // previous dialog created by selectRelatedWorkbenches, rwb is null, but this is not the
+                   // right way to handle it
+                   return; 
+               }
+               command.setData(RelatableWorkbench.createExportDataSet(rwb).getExportRows());
+               
                Properties props = new Properties();
 
-               if (!getExportInfo(props))
+               if (!getExportInfo(props)) // get "mimetype" and "fileName"; will be false if file dialog is cancelled
                {
                    return;
                }
@@ -1202,6 +1217,13 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                }
            }
        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Workbench> getWorkbenchList(DataProviderSessionIFace session)
+    {
+        List<Workbench> dataList = (List<Workbench>)session.getDataList("From Workbench where SpecifyUserID = "+AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId()+" order by name");
+        return dataList;
     }
     
     /**
@@ -2424,6 +2446,46 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
             }
         }
         return workbench;
+    }
+
+    // MMK: show the related data set chooser gui and get the chosen relations from it; store that info in a
+    // RelatableWorkbench and return it
+    
+    /**
+     * Show the related data set chooser gui and retrieve the chosen workbench relations
+     * @param workbench the workbench to which relations will be made
+     * @param otherWorkbenches a list of candidate workbenches for relating (may contain main workbench)
+     * @return a RelatableWorkbench with the workbench relations saved in it
+     */
+    private RelatableWorkbench selectRelatedWorkbenches(Workbench workbench, List<Workbench> otherWorkbenches)
+    {
+        RelationEditor mapper = null;
+        RelatableWorkbench rwb = null;
+        
+        if (workbench != null)
+        {
+            rwb = new RelatableWorkbench(workbench);
+
+            // TODO: "WB_MAPPING_EDITOR" should be changed to something more appropriate
+            mapper = new RelationEditor((Frame)UIRegistry.get(UIRegistry.FRAME), getResourceString("WB_MAPPING_EDITOR"), workbench, otherWorkbenches);
+
+            UIHelper.centerAndShow(mapper);
+            if (!mapper.isCancelled())
+            {
+                for (WorkbenchRelation relation : mapper.getRelations())
+                {
+                    if (workbench.equals(relation.getWorkbench()))
+                    {
+                        rwb.relate(relation.getKeyColumn(), relation.getRelatedWorkbench(), relation.getForeignKeyColumn());
+                    }
+                }
+            }
+            else {
+                rwb = null;
+            }
+            mapper.dispose();
+        }
+        return rwb;
     }
 
     /**

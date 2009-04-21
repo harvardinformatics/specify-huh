@@ -24,7 +24,7 @@ import java.util.List;
 
 import com.csvreader.CsvWriter;
 
-import edu.ku.brc.specify.datamodel.WorkbenchRow;
+import edu.ku.brc.specify.rstools.ExportRow;
 
 /**
  * @author timbo
@@ -93,11 +93,16 @@ public class CSVExport implements DataExport
         }
         for (int r = 0; r < data.size(); r++)
         {
-            WorkbenchRow row = (WorkbenchRow) data.get(r);
-            record = new String[row.getWorkbenchDataItems().size()];
-            for (int c = 0; c < row.getWorkbenchDataItems().size(); c++)
+            // MMK: since edu.ku.brc.specify.tasks.WorkbenchTask#exportWorkbench(final CommandAction cmdAction)
+            // now sets the command action's data to List<ExportRow> rather than List<WorkbenchRow>,
+            // I had to change this slightly.  ExportRow implements the same "interface" as the set of
+            // methods that CSVExport calls on WorkbenchRow.
+
+            ExportRow row = (ExportRow) data.get(r);
+            record = new String[row.getExportFields().size()];
+            for (int c = 0; c < row.getExportFields().size(); c++)
             {
-                record[c] = row.getData(c);
+                record[c] = row.getExportFields().get(c).getData();
             }
             try
             {

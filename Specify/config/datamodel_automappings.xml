@@ -9,9 +9,20 @@
 
 	<!-- CollectingEvent table -->
 	<mapping>
+	    <regex>^[Cc]ollection[Ss]tart[Dd]ate[Pp]recision</regex>
+	    <class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
+	    <field>startDatePrecision</field>
+	</mapping>
+	<mapping>
+	    <regex>^[Cc]ollection[Ee]nd[Dd]ate[Pp]recision</regex>
+	    <class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
+	    <field>endDatePrecision</field>
+	</mapping>
+	<mapping>
 		<regex>.*?collected.*</regex>
 		<regex>[Dd]ate</regex>
 		<regex>[Ss]tart</regex>
+		<regex>^[Cc]ollection[Ss]tart[Dd]ate</regex>
 		<class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
 		<field>startDate</field>
 	</mapping>
@@ -20,12 +31,49 @@
 		<class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
 		<field>endDate</field>
 	</mapping>
-
+	<mapping>
+		<regex>^[Cc]ollection[Vv]erbatim[Dd]ate</regex>
+		<class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
+		<field>verbatimDate</field>
+	</mapping>
+	<mapping>
+		<regex>^[Cc]ollectors</regex>
+		<class>edu.ku.brc.specify.datamodel.CollectingEvent</class>
+		<field>collectorLastName1</field>
+	</mapping>
+	
 	<!-- Accession table -->
 	<mapping>
 		<regex>.*?[Aa]ccession.*</regex>
 		<class>edu.ku.brc.specify.datamodel.Accession</class>
 		<field>number</field>
+	</mapping>
+	
+	<!-- Determination table -->
+	<mapping>
+		<regex>^[Is][Ss]torage</regex>
+		<class>edu.ku.brc.specify.datamodel.Determination</class>
+		<field>yesNo1</field>
+	</mapping>
+	<mapping>
+		<regex>^[Dd]etermined[Vv]erbatim[Dd]ate</regex>
+		<class>edu.ku.brc.specify.datamodel.Determination</class>
+		<field>determinedVerbatimDate</field>
+	</mapping>
+	<mapping>
+	    <regex>^[Dd]etermined[Dd]ate[Pp]recision</regex>
+	    <class>edu.ku.brc.specify.datamodel.Determination</class>
+	    <field>determinedDatePrecision</field>
+	</mapping>
+	<mapping>
+		<regex>^[Qq]ualifier</regex>
+		<class>edu.ku.brc.specify.datamodel.Determination</class>
+		<field>qualifier</field>
+	</mapping>
+	<mapping>
+		<regex>^[Pp]lant[Nn]ame[Cc]ode</regex>
+		<class>edu.ku.brc.specify.datamodel.Determination</class>
+		<field>plantNameCode</field>
 	</mapping>
 	
 	<!-- Locality table -->
@@ -44,6 +92,7 @@
 	<mapping>
 		<regex>^[Ff]ield\s*[Nn]o.*</regex>
 		<regex>^[Ff]ield\s*[Nn]um.*</regex>
+		<regex>^[Cc]ollector[Nn]umber</regex>
 		<class>edu.ku.brc.specify.datamodel.CollectionObject</class>
 		<field>fieldNumber</field>
 	</mapping>
@@ -65,5 +114,16 @@
 		<class>edu.ku.brc.specify.datamodel.CollectionObject</class>
 		<field>catalogNumber</field>
 	</mapping>
+	<mapping>
+		<regex>^[Cc]oll[Oo]bj[Mm]od[Dd]ate</regex>
+		<class>edu.ku.brc.specify.datamodel.CollectionObject</class>
+		<field>collectionObjectText1</field>
+	</mapping>
 	
+	<!--  Geography table -->
+	<mapping>
+		<regex>[Cc]ountry[Cc]ode</regex>
+		<class>edu.ku.brc.specify.datamodel.Geography</class>
+		<field>geographyCode</field>
+	</mapping>
 </automappings>

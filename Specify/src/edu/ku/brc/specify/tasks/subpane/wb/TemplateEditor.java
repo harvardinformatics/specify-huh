@@ -988,9 +988,12 @@ public class TemplateEditor extends CustomDialog
                 TableFieldPair tblFldPair = mapping.second;
                 //fieldInfo = new FieldInfo(tblFldPair.getTableinfo(),tblFldPair.getFieldInfo());
                 //System.out.println("["+fieldInfo.hashCode()+"]["+tblFldPair.getTableinfo().hashCode()+"]["+tblFldPair.getFieldInfo().hashCode()+"]");
-                log.debug("Mapping incoming column name '" + fieldNameArg +
+
+                // TODO: removed this log message instead of tracking down why it's throwing an exception --mmk
+                /*                log.debug("Mapping incoming column name '" + fieldNameArg +
                         "' to " + tblFldPair.getTableinfo().getName() +
-                        "." + tblFldPair.getFieldInfo().getName());
+                        "." + tblFldPair.getFieldInfo().getName());*/
+
                 for (int i=0;i<tableModel.size();i++)
                 {
                     TableInfo tblInfo = tableModel.getElementAt(i);

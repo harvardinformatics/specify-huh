@@ -41,6 +41,8 @@ import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
+import edu.ku.brc.specify.rstools.ExportRow;
+import edu.ku.brc.specify.rstools.ExportField;
 import edu.ku.brc.specify.tasks.WorkbenchTask;
 
 /**
@@ -139,6 +141,15 @@ public class XLSExport implements DataExport
         // java.util.Date
         // java.lang.BigDecimal
 
+        return getColType(dataType);
+    }
+    
+    // MMK -- pulled this out of getColType(WorkbenchTemplateMappingItem), where it
+    // translates the value returned from WorkbenchTask#getDataType(WorkbenchTemplateMappingItem),
+    // so that I could use it in writeData(List<?> data) to translate the value from
+    // ExportRow#getType() which is the same thing
+    private int getColType(final Class<?> dataType)
+    {
         if (dataType == java.lang.Long.class
                 || dataType == java.lang.Float.class
                 || dataType == java.lang.Byte.class
@@ -192,6 +203,21 @@ public class XLSExport implements DataExport
         dsi.setCustomProperties(cps);
         return dsi;
     }
+    
+    // MMK: this method is analogous to writeMappings(WorkbenchTemplate); the assumption here
+    // is that all the rows in a data set have the same columns in the same order, but this
+    // assumption is made throughout these exporter classes (and is currently true 2008-12-09)
+    protected DocumentSummaryInformation writeMappings(final ExportRow row)
+    {
+        DocumentSummaryInformation dsi = PropertySetFactory.newDocumentSummaryInformation();
+        CustomProperties cps = new CustomProperties();
+        for (ExportField field : row.getExportFields())
+        {
+            cps.put(field.getCaption(), field.getTableName() + "\t" + field.getFieldName());
+        }
+        dsi.setCustomProperties(cps);
+        return dsi;
+    }
     /*
      * (non-Javadoc)
      * 
@@ -199,6 +225,11 @@ public class XLSExport implements DataExport
      */
     public void writeData(final List<?> data) throws Exception
     {
+        // MMK: since edu.ku.brc.specify.tasks.WorkbenchTask#exportWorkbench(final CommandAction cmdAction)
+        // now sets the command action's data to List<ExportRow> rather than List<WorkbenchRow>,
+        // I had to change this quite a bit.  Together, ExportRow and ExportField implement the same "interface"
+        // as the set of methods that XLSExport calls on WorkbenchRow/WorkbenchTemplateMappingItem.
+        
         HSSFWorkbook workBook  = new HSSFWorkbook();
         HSSFSheet    workSheet = workBook.createSheet();
         DocumentSummaryInformation mappings = null;
@@ -216,81 +247,53 @@ public class XLSExport implements DataExport
                 workSheet.setColumnWidth(i, (short)(StringUtils.isNotEmpty(headers[i]) ? (256 * headers[i].length()) : 2560));
             }
             
-            //first row should always be the template
-            mappings = writeMappings((WorkbenchTemplate)data.get(0));
+            if (data.get(0).getClass().equals(WorkbenchTemplate.class))
+            {
+                mappings = writeMappings((WorkbenchTemplate)data.get(0));
+            }
+            else
+            {
+                // MMK: the assumption previously was that if it isn't a WorkbenchTemplate it's a WorkbenchRow.
+                // Now the assumption is that it's an ExportRow.
+                mappings = writeMappings(((ExportRow)data.get(0)));
+            }
         }
         
-        if (data.size() > 1)
-		{
-			int[] disciplinees;
-			disciplinees = bldColTypes((WorkbenchTemplate) data.get(0));
-			WorkbenchRow wbRow = (WorkbenchRow) data.get(1);
-			Workbench workBench = wbRow.getWorkbench();
-			WorkbenchTemplate template = workBench.getWorkbenchTemplate();
-			short numCols = (short) template.getWorkbenchTemplateMappingItems()
-					.size();
-			short geoDataCol = -1;
-			Vector<Short> imgCols = new Vector<Short>();
+        if (data.size() > 0)
+        {
+            if (data.get(0).getClass().equals(WorkbenchTemplate.class))
+            {
+                int[] disciplinees = bldColTypes((WorkbenchTemplate) data.get(0));
+                // now set up cell types and formats for a bunch of empty rows....
+            }
+            else
+            {
 
-			disciplinees = bldColTypes(template);
-			for (Object rowObj : data)
-			{
-				if (rowObj instanceof WorkbenchTemplate)
-				{
-					continue;
-				}
+                ExportRow row = (ExportRow) data.get(0);
+                
+                for (Object obj : data)
+                {
+                    row  = (ExportRow) obj;
 
-				WorkbenchRow row = (WorkbenchRow) rowObj;
-				HSSFRow hssfRow = workSheet.createRow(rowNum++);
-				short colNum;
-				boolean rowHasGeoData = false;
+                    HSSFRow hssfRow = workSheet.createRow(rowNum++);
+                    
+                    for (int i = 0; i < row.getExportFields().size(); i++)
+                    {
+                        ExportField field = row.getExportFields().get(i);
+                        HSSFCell cell = hssfRow.createCell(i);
+                        cell.setCellType(getColType(field.getType()));
+                        setCellValue(cell, field.getData());
+                    }
 
-				for (colNum = 0; colNum < numCols; colNum++)
-				{
-					HSSFCell cell = hssfRow.createCell(colNum);
-					cell.setCellType(disciplinees[colNum]);
-					setCellValue(cell, row.getData(colNum));
-				}
+                    // MMK: previously, more fields were tacked on here (and their headers, too)
+                    // in the case of biogeomancer results or images being present.  I am assuming
+                    // that those columns appear as workbench columns just like any others, and
+                    // can be handled as such, but maybe that needs to be checked.
+                    // TODO: check that biogeomancer results and images are handled correctly
 
-				if (row.getBioGeomancerResults() != null
-						&& !row.getBioGeomancerResults().equals(""))
-				{
-					geoDataCol = colNum;
-					rowHasGeoData = true;
-					HSSFCell cell = hssfRow.createCell(colNum++);
-					cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-					setCellValue(cell, row.getBioGeomancerResults());
-				}
-
-				// if (row.getCardImage() != null)
-				if (row.getRowImage(0) != null)
-				{
-					if (!rowHasGeoData)
-					{
-						colNum++;
-					}
-					int imgIdx = 0;
-					WorkbenchRowImage img = row.getRowImage(imgIdx++);
-					while (img != null)
-					{
-						if (imgCols.indexOf(colNum) < 0)
-						{
-							imgCols.add(colNum);
-						}
-						HSSFCell cell = hssfRow.createCell(colNum++);
-						cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-						setCellValue(cell, img.getCardImageFullPath());
-						img = row.getRowImage(imgIdx++);
-					}
-				}
-
-			}
-			if (imgCols.size() > 0 || geoDataCol != -1)
-			{
-				writeExtraHeaders(workSheet, imgCols, geoDataCol);
-			}
-
-		}
+                }
+            }
+        }
         try
         {
             //write the workbook

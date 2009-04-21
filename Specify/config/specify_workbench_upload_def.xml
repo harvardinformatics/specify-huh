@@ -169,6 +169,7 @@
     <field table="Determination" name="determinedDate1" actualname="determinedDate" onetomanysequence="0" relationshipname="collectionObject"/>
     <field table="Determination" name="determinerLastName1" onetomanysequence="0" relationshipname="determiner" relatedfieldname="lastName"/>
     <field table="Determination" name="determinerFirstName1" onetomanysequence="0" relationshipname="determiner" relatedfieldname="firstName"/>
+    <field table="Determination" name="determinedVerbatimDate1" actualname="text1" onetomanysequence="0" relationshipname="collectionObject"/>
     <field table="Determination" name="isCurrent1" actualname="isCurrent" onetomanysequence="0" relationshipname="collectionObject"/>
     <field table="Determination" name="genus1" onetomanysequence="0" treename="taxon" maptofield="name" rankid="180"/>
     <field table="Determination" name="species1" onetomanysequence="0" treename="taxon" maptofield="name" rankid="220"/>
@@ -179,10 +180,15 @@
     <field table="Determination" name="subspeciesAuthor1" onetomanysequence="0" treename="taxon" maptofield="author" rankid="230"/>
     <field table="Determination" name="varietyAuthor1" onetomanysequence="0" treename="taxon" maptofield="author" rankid="240"/>
     <field table="Determination" name="typeStatusName1" actualname="typeStatusName" onetomanysequence="0" relationshipname="collectionObject"/>
+    <field table="Determination" name="isStorage1" actualname="yesNo1" onetomanysequence="0" relationshipname="collectionObject"/>
+    <field table="Determination" name="remarks1" actualname="remarks" onetomanysequence="0" relationshipname="collectionObject"/>
+    <field table="Determination" name="qualifier1" actualname="qualifier" onetomanysequence="0" relationshipname="collectionObject"/>
+    <field table="Determination" name="plantNameCode1" actualname="text2" onetomanysequence="0" relationshipname="collectionObject"/>
     
     <field table="Determination" name="determinedDate2" actualname="determinedDate" onetomanysequence="1" relationshipname="collectionObject"/>
     <field table="Determination" name="determinerLastName2" onetomanysequence="1" relationshipname="determiner" relatedfieldname="lastName"/>
     <field table="Determination" name="determinerFirstName2" onetomanysequence="1" relationshipname="determiner" relatedfieldname="firstName"/>
+    <field table="Determination" name="determinedVerbatimDate2" actualname="text1" onetomanysequence="1" relationshipname="collectionObject"/>
     <field table="Determination" name="isCurrent2" actualname="isCurrent" onetomanysequence="1" relationshipname="collectionObject"/>
     <field table="Determination" name="genus2" onetomanysequence="1" treename="taxon" maptofield="name" rankid="180"/>
     <field table="Determination" name="species2" onetomanysequence="1" treename="taxon" maptofield="name" rankid="220"/>
@@ -193,12 +199,17 @@
     <field table="Determination" name="subspeciesAuthor2" onetomanysequence="1" treename="taxon" maptofield="author" rankid="230"/>
     <field table="Determination" name="varietyAuthor2" onetomanysequence="1" treename="taxon" maptofield="author" rankid="240"/>
     <field table="Determination" name="typeStatusName2" actualname="typeStatusName" onetomanysequence="1" relationshipname="collectionObject"/> 
- 
+	<field table="Determination" name="isStorage2" actualname="yesNo1" onetomanysequence="1" relationshipname="collectionObject"/>
+    <field table="Determination" name="remarks2" actualname="remarks" onetomanysequence="1" relationshipname="collectionObject"/>
+    <field table="Determination" name="qualifier2" actualname="qualifier" onetomanysequence="1" relationshipname="collectionObject"/>
+    <field table="Determination" name="plantNameCode2" actualname="text2" onetomanysequence="1" relationshipname="collectionObject"/>
+     
     <!-- geography -->
     <field table="Geography" name="continent" treename="geography" maptofield="name" rankid="100"/>
     <field table="Geography" name="country" treename="geography" maptofield="name" rankid="200"/>
     <field table="Geography" name="state" treename="geography" maptofield="name" rankid="300"/>
     <field table="Geography" name="county" treename="geography" maptofield="name" rankid="400"/>
+    <field table="Geography" name="countryCode" maptofield="geographyCode"/>
     
     <!-- geologictimeperied -->
     <field table="GeologicTimePeriod" name="geologicTimePeriodRemarks" actualname="Remarks" />
