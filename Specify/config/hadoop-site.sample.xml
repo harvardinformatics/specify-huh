@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+
+  <!-- fs.default.name is is required for communication with the hadoop network. -->
+  <!-- This must match the property of the same name in one of the hadoop        -->
+  <!-- master nodes' hadoop-site.xml configuration file.                         -->
+  <property>
+    <name>fs.default.name</name>
+    <value>hdfs://jujube:8002</value>
+  </property>
+ 
+  <!-- mapred.job.tracker is required for communication with the hadoop network. -->
+  <!-- This must match the property of the same name in one of the hadoop        -->
+  <!-- master nodes' hadoop-site.xml configuration file.                         -->
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>jujube:8001</value>
+  </property>
+
+  <!-- filteredpush.scope defines the set of database connections that are       -->
+  <!-- queried.  Connection names should be separated by commas (no whitespace)  -->
+  <!-- and for each name there must be properties in the hadoop slave nodes'     -->
+  <!-- hadoop-site.xml configuration file named:                                 -->
+  <!-- filteredpush.connection.{name}                                            -->
+  <!-- filteredpush.connection.{name}.dbusr                                      -->
+  <!-- filteredpush.connection.{name}.passwd                                     -->
+  <property>
+  	<name>filteredpush.scope</name>
+  	<value>jujube</value>
+  </property>
+
+  <!-- filteredpush.jar defines the path to the jar containing the hadoop map-   -->
+  <!-- reduce code that the master nodes distribute to the slave nodes; this     -->
+  <!-- code defines the operations to be performed in the hadoop job generated   -->
+  <!-- by the filtered push query.                                               -->
+  <property>
+  	<name>filteredpush.jar</name>
+  	<value>/home/maureen/workspace/FilteredPush/dist/h.jar</value>
+  </property>
+
+</configuration>

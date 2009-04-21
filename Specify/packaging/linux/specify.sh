@@ -14,9 +14,9 @@ do
   fi
 done
 
-# mmk: added ./Specify/libs so that hadoop-site.xml will be found here instead of inside h.jar
+# mmk: added ./Specify/config so that hadoop-site.xml will be found here instead of inside h.jar
 #      this needs a different permanent home, though
-SPECIFY_CLASSPATH=./Specify/libs/:$SPECIFY_CLASSPATH
+SPECIFY_CLASSPATH=./Specify/config/:$SPECIFY_CLASSPATH
 
 #DIRLIBS=${EXEDIR}/Specify/lib/*.zip
 #for i in ${DIRLIBS}
