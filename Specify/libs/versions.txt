@@ -75,6 +75,16 @@ Spell Check
 jazzy-swing                             0.5.2
 jazzy-core                              0.5.2
 
+# Needed for Filtered Push (all of these come from their project svn repository)
+h.jar                                   revision 28
+    commons-cli-2.0-SNAPSHOT.jar
+    hadoop-0.18.2-ant.jar
+    hadoop-0.18.2-core.jar
+    hbase-0.18.1.jar
+    message.jar
+    xbean.jar
+    xmltypes.jar
+    
 Missing information:
 --------------------
 

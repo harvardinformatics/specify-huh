@@ -138,11 +138,17 @@ import edu.ku.brc.services.biogeomancer.GeoCoordDataIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordGeoLocateProvider;
 import edu.ku.brc.services.biogeomancer.GeoCoordProviderListenerIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordServiceProviderIFace;
+import edu.ku.brc.services.filteredpush.FilteredPushProviderListenerIFace;
+import edu.ku.brc.services.filteredpush.FilteredPushServiceProvider;
+import edu.ku.brc.services.filteredpush.FilteredPushServiceProviderIFace;
+import edu.ku.brc.services.filteredpush.SpecifyFPRecord;
 import edu.ku.brc.services.mapping.LocalityMapper;
 import edu.ku.brc.services.mapping.SimpleMapLocation;
 import edu.ku.brc.services.mapping.LocalityMapper.MapLocationIFace;
 import edu.ku.brc.services.mapping.LocalityMapper.MapperListener;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;
@@ -229,6 +235,11 @@ public class WorkbenchPaneSS extends BaseSubPane
     protected JButton               controlPropsBtn        = null;
     protected JButton               exportKmlBtn           = null;
     protected JButton               biogeomancerBtn        = null;
+    
+    // begin Filtered Push
+    protected JButton               filteredPushBtn        = null;
+    // end Filtered Push
+    
     protected JButton               convertGeoRefFormatBtn = null;
     protected JButton               exportExcelCsvBtn      = null;
     protected JButton               uploadDatasetBtn       = null;
@@ -597,6 +608,44 @@ public class WorkbenchPaneSS extends BaseSubPane
             }
         }
         
+        // begin Filtered Push
+        if (isReadOnly)
+        {
+            filteredPushBtn = null;
+        }
+        else
+        {
+            filteredPushBtn = createIconBtn("FP", IconManager.IconSize.NonStd,  // TODO: change from biogeomancer to fp
+                    "WB_DO_FILTEREDPUSH_LOOKUP", false, new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent ae)
+                        {
+                            spreadSheet.clearSorter();
+                            doFilteredPushQuery(new FilteredPushServiceProvider());
+                        }
+                    });
+            
+            // only enable it if the workbench has the proper columns in it
+            String[] missingColumnsForFP = getMissingButRequiredColumnsForFilteredPush();
+            if (missingColumnsForFP.length > 0)
+            {
+                filteredPushBtn.setEnabled(false);
+                String ttText = "<p>" + getResourceString("WB_ADDITIONAL_FIELDS_REQD") + ":<ul>";
+                for (String reqdField : missingColumnsForFP)
+                {
+                    ttText += "<li>" + reqdField + "</li>";
+                }
+                ttText += "</ul>";
+                String origTT = filteredPushBtn.getToolTipText();
+                filteredPushBtn.setToolTipText("<html>" + origTT + ttText);
+            }
+            else
+            {
+                filteredPushBtn.setEnabled(true);
+            }
+        }
+        // end Filtered Push
+        
         if (isReadOnly)
         {
             convertGeoRefFormatBtn = null;
@@ -736,7 +785,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         // start putting together the visible UI
         CellConstraints cc = new CellConstraints();
 
-        JComponent[] allComps      = {addRowsBtn, deleteRowsBtn, clearCellsBtn, showMapBtn, exportKmlBtn, biogeomancerBtn, convertGeoRefFormatBtn, exportExcelCsvBtn, uploadDatasetBtn};
+        JComponent[] allComps      = {addRowsBtn, deleteRowsBtn, clearCellsBtn, showMapBtn, exportKmlBtn, biogeomancerBtn, convertGeoRefFormatBtn, filteredPushBtn, exportExcelCsvBtn, uploadDatasetBtn};
         Vector<JComponent> availableComps = new Vector<JComponent>(allComps.length);
         for (JComponent c : allComps)
         {
@@ -800,7 +849,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         
         // This works
         setLayout(new BorderLayout());
-        JComponent[] ctrlCompArray = {toggleImageFrameBtn, carryForwardBtn, sep1, saveBtn, sep2, ssFormSwitcher};
+        JComponent[] ctrlCompArray = {filteredPushBtn, toggleImageFrameBtn, carryForwardBtn, sep1, saveBtn, sep2, ssFormSwitcher};
         Vector<Pair<JComponent, Integer>> ctrlComps = new Vector<Pair<JComponent, Integer>>();
         for (JComponent c : ctrlCompArray)
         {
@@ -2509,6 +2558,38 @@ public class WorkbenchPaneSS extends BaseSubPane
         return reqdFields;
     }
     
+    // begin FilteredPush
+    protected String[] getMissingButRequiredColumnsForFilteredPush()
+    {
+        List<String> missingCols = new Vector<String>();
+        
+        // check for collector name
+        int collectingEventTableId = DBTableIdMgr.getInstance().getIdByClassName(CollectingEvent.class.getName());
+        
+        if (workbench.getColumnIndex(collectingEventTableId, "Collectors") == -1)
+        {
+            missingCols.add("Collectors"); // i18n
+        }
+        
+        // check for collector number
+        int collectionObjectId = DBTableIdMgr.getInstance().getIdByClassName(CollectionObject.class.getName());
+
+        if (workbench.getColumnIndex(collectionObjectId, "CollectorNumber") == -1)
+        {
+            missingCols.add("CollectorNumber"); // i18n
+        }
+        
+        // convert to a String[]  (toArray() converts to a Object[])
+        String[] reqdFields = new String[missingCols.size()];
+        for (int i = 0; i < missingCols.size(); ++i)
+        {
+            String s = missingCols.get(i);
+            reqdFields[i] = s;
+        }
+        return reqdFields;
+    }
+    // end Filtered Push
+    
     protected String[] getMissingGeoRefFields()
     {
         List<String> missingCols = new Vector<String>();
@@ -2563,6 +2644,45 @@ public class WorkbenchPaneSS extends BaseSubPane
         return selectedRows;
     }
     
+    // begin Filtered Push
+    /**
+     * @return the selected rows form the workbench
+     */
+    protected List<WorkbenchRow> getSelectedRowsFromViewForFP()
+    {
+        // gather all of the WorkbenchRows into a vector
+        List<WorkbenchRow> selectedRows = new Vector<WorkbenchRow>();
+
+        // implicitly select the row displayed in the form view if that's where we are
+        if (currentPanelType == PanelType.Form) {
+            currentRow = getCurrentIndexFromFormOrSS();
+            spreadSheet.setRowSelectionInterval(currentRow, currentRow);
+        }
+
+        // get the indexes into the model for all of the selected rows
+        int[] selection = spreadSheet.getSelectedRowModelIndexes();
+        if (selection.length == 0)
+        {
+            // if none are selected, map all of them
+            int rowCnt = spreadSheet.getRowCount();
+            selection = new int[rowCnt];
+            for (int i = 0; i < rowCnt; ++i)
+            {
+                selection[i]=spreadSheet.convertRowIndexToModel(i);
+            }
+        }
+
+
+        List<WorkbenchRow> rows = workbench.getWorkbenchRowsAsList();
+        for (int i: selection)
+        {
+            selectedRows.add(rows.get(i));
+        }
+
+        return selectedRows;
+    }
+    // end Filtered Push
+    
     /**
      * @param geoRefService
      * @param trackId
@@ -2602,6 +2722,50 @@ public class WorkbenchPaneSS extends BaseSubPane
             return;
         }
     }
+    
+    // begin Filtered Push
+    protected void doFilteredPushQuery(final FilteredPushServiceProviderIFace fpService)
+    {
+        // TODO: implement
+        log.info("Performing Filtered Push query of selected records: ");
+        List<WorkbenchRow> selectedWBRows = getSelectedRowsFromViewForFP();
+        if (selectedWBRows != null)
+        {
+            if (currentPanelType == PanelType.Form) {
+                formPane.copyDataFromForm();
+            }
+
+            fpService.processFilteredPushData(selectedWBRows, new FilteredPushProviderListenerIFace()
+            {
+                public void aboutToDisplayResults()
+                {
+                    if (imageFrame != null)
+                    {
+                        imageFrame.setAlwaysOnTop(false);
+                    }
+                }
+                
+                public void complete(final int itemsUpdated)
+                {
+                    if (itemsUpdated > 0)
+                    {                        
+                        setChanged(true);
+                        model.fireDataChanged();
+
+                        if (currentPanelType == PanelType.Form) {
+                            formPane.copyDataToForm();
+                        }
+                        else if (currentPanelType == PanelType.Spreadsheet)
+                        {
+                            spreadSheet.repaint();
+                        }
+                    }
+                }
+            }, "WorkbenchSpecialTools");
+        }
+        return;
+    }
+    // end FilteredPush
     
     /**
      * Set that there has been a change.

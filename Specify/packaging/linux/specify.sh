@@ -14,6 +14,10 @@ do
   fi
 done
 
+# mmk: added ./Specify/libs so that hadoop-site.xml will be found here instead of inside h.jar
+#      this needs a different permanent home, though
+SPECIFY_CLASSPATH=./Specify/libs/:$SPECIFY_CLASSPATH
+
 #DIRLIBS=${EXEDIR}/Specify/lib/*.zip
 #for i in ${DIRLIBS}
 #do
@@ -32,4 +36,6 @@ echo $SPECIFY_HOME
 
 JAVA_HOME=${EXEDIR}/jre
 
-java -Xmx512m -classpath "$SPECIFY_CLASSPATH:$CLASSPATH" -Dappdir=$SPECIFY_HOME/Specify -Dappdatadir=$SPECIFY_HOME -Djavadbdir=$SPECIFY_HOME/DerbyDatabases edu.ku.brc.specify.Specify "$@"
+# mmk: added sun.java2d.pmoffscreen=false as a workaround for very slow performance over ssh
+# see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4488401 
+java -Dsun.java2d.pmoffscreen=false -Xmx512m -classpath "$SPECIFY_CLASSPATH:$CLASSPATH" -Dappdir=$SPECIFY_HOME/Specify -Dappdatadir=$SPECIFY_HOME -Djavadbdir=$SPECIFY_HOME/DerbyDatabases edu.ku.brc.specify.Specify "$@"

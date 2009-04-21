@@ -116,6 +116,11 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
     protected Vector<InputPanel> uiComps           = new Vector<InputPanel>();
     protected boolean            isInImageMode     = false;
     protected JButton            controlPropsBtn   = null;
+    
+    // begin Filtered Push
+    protected JButton            filteredPushBtn   = null;
+    // end Filtered Push
+
     protected Component          firstComp         = null;
     
     protected boolean            ignoreChanges     = false;
@@ -880,6 +885,66 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
         ignoreChanges = false;
     }
+    
+    // begin Filtered Push
+    /**
+     * Copies the data from the row into the form.
+     */
+    public void copyDataToForm()
+    {
+        copyDataToForm(currentIndex);
+    }
+    
+    /**
+     * Copies the data from the row into the form.
+     * @param index the index of the row
+     */
+    protected void copyDataToForm(final int index)
+    {
+        // TODO: I have no idea if I have implemented this correctly.
+        
+        ignoreChanges = true;
+                
+        WorkbenchRow wbRow = workbench.getWorkbenchRowsAsList().get(index);
+        for (InputPanel p : uiComps)
+        {
+            short col = p.getWbtmi().getViewOrder();
+            
+            if (p.getComp() instanceof JTextComponent)
+            {
+                String data     = ((JTextComponent)p.getComp()).getText();
+                String cellData = wbRow.getData(col);
+                if (StringUtils.isNotEmpty(data) || cellData != null)
+                {
+                    ((JTextComponent) p.getComp()).setText(cellData == null ? "" : cellData);
+                }
+                
+            } else if (p.getComp() instanceof GetSetValueIFace)
+            {
+                Object data     = ((GetSetValueIFace)p.getComp()).getValue();
+                String cellData = wbRow.getData(col);
+                if (StringUtils.isNotEmpty(data.toString()) || cellData != null)
+                {
+                    ((GetSetValueIFace)p.getComp()).setValue(cellData == null ? "" : cellData, "");
+                }
+                
+            } else if (p.getComp() instanceof JScrollPane)
+            {
+                JScrollPane sc   = (JScrollPane)p.getComp();
+                Component   comp = sc.getViewport().getView();
+                String cellData = wbRow.getData(col);
+                if (comp instanceof JTextArea)
+                {
+                    ((JTextArea) p.getComp()).setText(cellData == null ? "" : cellData);
+                }
+            } else
+            {
+               log.error("Can't get data from control["+p.getLabelText()+"]");
+            }
+        }
+        ignoreChanges = false;
+    }
+    // end Filtered Push
     
     /* (non-Javadoc)
      * @see javax.swing.JComponent#setVisible(boolean)
