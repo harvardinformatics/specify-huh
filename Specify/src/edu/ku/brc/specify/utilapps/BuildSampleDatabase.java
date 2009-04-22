@@ -134,6 +134,11 @@ import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertBlue;
 import com.thoughtworks.xstream.XStream;
 
+import edu.harvard.huh.asa.Asa;
+import edu.harvard.huh.asa.GeoUnit;
+import edu.harvard.huh.asa2specify.GeoUnitConverter;
+import edu.harvard.huh.asa2specify.TaxonConverter;
+
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
@@ -150,6 +155,7 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
@@ -260,10 +266,13 @@ public class BuildSampleDatabase
 {
     private static final Logger  log      = Logger.getLogger(BuildSampleDatabase.class);
     
+    private static String[] Colls       = { "Gray Herbarium", "Oakes Ames Orchid Herbarium", "Arnold Arboretum", "Farlow Herbarium", "New England Botanical Club", "Economic Botany Herbarium" };
+    private static String[] CollAbbrevs = { "G",              "AMES",                        "A",                "FH",               "NEBC",                       "ECON"                      };
+
     //                                                  0                   1                  2                 3                   4                     5                   6                   7                     8
     private static String[] TaxonIndexNames = {"family common name", "species author", "species source", "species lsid", "species common name", "subspecies author", "subspecies source", "subspecies lsid", "subspecies common name"};
     private static String[] TaxonFieldNames = {"CommonName",         "Author",         "Source",         "GUID",         "CommonName",          "Author",            "Source",            "GUID",            "CommonName"};
-    
+
     private static int FAMILY_COMMON_NAME     = 0;
     private static int SPECIES_AUTHOR         = 1;
     private static int SPECIES_SOURCE         = 2;
@@ -7430,7 +7439,7 @@ public class BuildSampleDatabase
             
             if (hideFrame) System.out.println("Creating Empty Database");
             
-            createEmptyInstitution(props);
+            createHUH(props); // createEmptyInstitution(props)
 
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -8851,4 +8860,832 @@ public class BuildSampleDatabase
         return newGeo;
     }
 
+    /**
+     * Creates a single disciplineType collection.
+     * @param disciplineName the name of the Discipline to use
+     * @param disciplineName the disciplineType name
+     * @return the entire list of DB object to be persisted
+     */
+    @SuppressWarnings("unchecked")
+    public boolean createHUH(final Properties props)
+    {
+        AppContextMgr.getInstance().setHasContext(true);
+        
+        createStep = 0;    
+        
+        if (frame != null) frame.setProcess(0, 10);
+        
+        if (frame != null) frame.setProcess(++createStep);
+        
+        ////////////////////////////////
+        // Create the really high-level stuff
+        ////////////////////////////////        
+        startTx();
+        
+        ////////////////////////////////
+        // Institution
+        ////////////////////////////////
+        Institution institution = null;
+        institution = createInstitution(props.getProperty("instName"));
+        institution.setCode(props.getProperty("instAbbrev"));
+        institution.setIsAccessionsGlobal((Boolean)props.get("accglobal"));
+        
+        Address instAddress = new Address();
+        instAddress.initialize();
+        instAddress.setAddress(props.getProperty("addr1"));
+        instAddress.setAddress2(props.getProperty("addr2"));
+        instAddress.setCity(props.getProperty("city"));
+        instAddress.setCountry(props.getProperty("country"));
+        instAddress.setState(props.getProperty("state"));
+        instAddress.setPostalCode(props.getProperty("zip"));
+        instAddress.setPhone1(props.getProperty("phone"));
+        
+        institution.setAddress(instAddress);
+        instAddress.getInsitutions().add(institution);
+        
+        institution.setIsSecurityOn((Boolean)props.get("security_on"));
+        
+        ////////////////////////////////
+        // StorageTree
+        ////////////////////////////////
+        if (stgTreeDef == null)
+        {
+            stgTreeDef = createStorageTreeDef("Storage");
+            institution.setStorageTreeDef(stgTreeDef);
+            persist(stgTreeDef);
+        }
+        
+        String       storXML  = props.getProperty("StorageTreeDef.treedefs");
+        List<Object> storages = new Vector<Object>();
+        createStorageDefFromXML(storages, stgTreeDef, storXML );
+        persist(storages);
+        
+        ////////////////////////////////
+        // DataType
+        ////////////////////////////////
+        
+        dataType = createDataType("Biota");
+
+        ////////////////////////////////
+        // Admin User and Group
+        ////////////////////////////////
+        SpPrincipal adminGroup = DataBuilder.createAdminGroup(session, institution);
+        
+        String email    = props.getProperty("email");
+        String userType = props.getProperty("userType"); // SpecifyUserTypes.UserType.Manager.toString()
+        String username = props.getProperty("usrUsername");
+        String password = props.getProperty("usrPassword");
+
+        String encrypted = Encryption.encrypt(password, password);
+
+        System.out.println("----- User Agent -----");
+        System.out.println("Userame:   "+username);
+                
+        SpecifyUser specifyAdminUser = DataBuilder.createSpecifyUserInGroup(session, username, email, encrypted, userType, adminGroup);
+        persist(institution);  
+        persist(dataType);
+        persist(specifyAdminUser);
+        
+        commitTx();
+        
+        AppContextMgr.getInstance().setClassObject(Institution.class, institution);
+        AppContextMgr.getInstance().setClassObject(SpecifyUser.class, specifyAdminUser);
+        
+        if (frame != null) frame.setProcess(++createStep);
+
+        ////////////////////////////////
+        // Division
+        ////////////////////////////////
+        DisciplineType disciplineType = (DisciplineType)props.get("disciplineType");   
+        Division division = createEmptyDivision(institution, disciplineType, props, false);
+
+        // create an agent for the specify user and associate it with the new division
+        startTx();
+        Agent userAgent = createAgent("Ms.", "Maureen", "M", "Kelly", "", email, division, null);
+        specifyAdminUser.addReference(userAgent, "agents");
+        persist(specifyAdminUser);
+        commitTx();
+
+        //////////////////////////////////////////////////
+        // Discipline
+        //////////////////////////////////////////////////
+        log.debug("In createEmptyDiscipline - createStep: "+createStep);
+
+        Discipline discipline = createEmptyDiscipline(division, props, disciplineType);
+
+        // add agent to discipline
+        startTx();
+        userAgent.getDisciplines().add(discipline);
+        discipline.getAgents().add(userAgent);
+        persist(userAgent);
+        commitTx();
+
+        ////////////////////////////////
+        // Autonumbering schemes
+        ////////////////////////////////
+        frame.setProcess(0, 17);
+        frame.setProcess(++createStep);
+        frame.setDesc("Loading Schema...");
+
+        Pair<AutoNumberingScheme, AutoNumberingScheme> pair = localizeDisciplineSchema(discipline, props);
+        AutoNumberingScheme catAutoNumScheme = pair.first;
+        AutoNumberingScheme accAutoNumScheme = pair.second;
+
+        makeFieldVisible(null, discipline);
+        makeFieldVisible(disciplineType.getName(), discipline);
+
+        frame.setProcess(0, 17);
+        frame.setProcess(++createStep);
+
+        // add accession AutoNumberingScheme to division
+        startTx();
+
+        if (accAutoNumScheme != null)
+        {
+            division.addReference(accAutoNumScheme, "numberingSchemes");
+            persist(division);
+        }
+
+        commitTx();
+
+        ////////////////////////////////
+        // Collections
+        ////////////////////////////////
+        frame.setProcess(++createStep);
+        frame.setDesc("Creating collections");
+
+        for (int i = 0; i < Colls.length; i++)
+        {
+            Collection collection = createEmptyCollection(discipline, 
+                    Colls[i], 
+                    CollAbbrevs[i],
+                    catAutoNumScheme,
+                    accAutoNumScheme,
+                    disciplineType.isEmbeddedCollecingEvent());
+
+            startTx();
+            
+            // set collection discipline
+            collection.setDiscipline(discipline);        
+            persist(collection);
+
+            ///////////////////////////////////////
+            // Default user groups and users
+            ///////////////////////////////////////
+
+            Map<String, SpPrincipal> groupMap = DataBuilder.createStandardGroups(session, collection);
+
+            // add the administrator as a Collections Manager in this group
+            specifyAdminUser.addUserToSpPrincipalGroup(groupMap.get(SpecifyUserTypes.UserType.Manager.toString()));
+
+            // set collection technical contact, and content contact
+            collection.getTechnicalContacts().add(userAgent);
+            collection.getContentContacts().add(userAgent);
+
+            commitTx();
+
+            ////////////////////////////////
+            // PrepTypes
+            ////////////////////////////////
+            persist(loadPrepTypes(discipline.getType(), collection, userAgent));
+
+            ////////////////////////////////
+            // Picklists
+            ////////////////////////////////
+
+            log.info("Creating picklists");
+            frame.setDesc("Creating Common PickLists...");
+
+            //frame.setProcess(++createStep);
+
+            createPickLists(session, null, false, collection);
+
+            //frame.setProcess(++createStep);
+
+            frame.setDesc("Creating PickLists...");
+            createPickLists(session, discipline, false, collection);
+
+            //frame.setProcess(++createStep);
+
+            log.debug("Out createEmptyCollection - createStep: "+createStep);
+        }
+
+        frame.setProcess(++createStep);
+
+        ////////////////////////////////
+        // Export Schema
+        ////////////////////////////////
+        buildDarwinCoreSchema(discipline); // creates own DataProviderSessionIFace
+
+        log.debug("Out createEmptyDisciplineAndCollection - createStep: "+createStep);
+
+        frame.incOverall();
+        
+        return true;
+    }
+    
+    /**
+     * @param institution
+     * @param disciplineType
+     * @param props
+     * @return
+     */
+    public Division createEmptyDivision(final Institution    institution, 
+                                        final DisciplineType disciplineType,
+                                        final Properties     props,
+                                        final boolean        doSetProgressRange)
+    {
+        if (doSetProgressRange)
+        {
+            frame.setProcess(0, 19);
+        }
+        
+        startTx();
+
+        Division division = createDivision(institution, 
+                                          disciplineType.getName(), 
+                                          props.getProperty("divName"), 
+                                          props.getProperty("divAbbrev"), 
+                                          null); //props.getProperty("divTitle");
+        
+        frame.incOverall();
+        
+        //AppContextMgr.getInstance().setClassObject(Division.class, division);   // Needed for creating an Agent
+        persist(division);
+
+        commitTx();
+        
+        return division;
+    }
+    
+    /**
+     * @param division
+     * @param props
+     * @param disciplineType
+     * @return
+     */
+    public Discipline createEmptyDiscipline(final Division       division, 
+                                            final Properties     props, 
+                                            final DisciplineType disciplineType)
+    {
+        String dispName = props.getProperty("dispName");
+        if (StringUtils.isEmpty(dispName))
+        {
+            dispName = disciplineType.getTitle();
+        }
+        
+        boolean preLoadTaxon = (Boolean)props.get("preloadtaxon");
+        
+        String taxonXML = props.getProperty("TaxonTreeDef.treedefs");
+        String geoXML   = props.getProperty("GeographyTreeDef.treedefs");
+        
+        frame.incOverall();
+
+        Discipline discipline = createEmptyDiscipline(division, dispName, disciplineType,
+                                                      preLoadTaxon, taxonXML, geoXML);
+
+        return discipline;
+    }
+    
+    /**
+     * @param division
+     * @param dispTitle
+     * @param disciplineType
+     * @param userAgent
+     * @param preLoadTaxon
+     * @param taxonXML
+     * @param geoXML
+     * @return
+     */
+    public Discipline createEmptyDiscipline(final Division       division,
+                                            final String         dispTitle,
+                                            final DisciplineType disciplineType,
+                                            final boolean        preLoadTaxon, 
+                                            final String         taxonXML, 
+                                            final String         geoXML)
+    {
+        log.debug("In createEmptyDiscipline - createStep: "+createStep);
+
+        startTx();
+        
+        // create tree defs (later we will make the definition items and nodes)
+        TaxonTreeDef              taxonTreeDef      = createTaxonTreeDef("Taxon");
+        GeographyTreeDef          geoTreeDef        = createGeographyTreeDef("Geography");
+        GeologicTimePeriodTreeDef gtpTreeDef        = createGeologicTimePeriodTreeDef("Chronos Stratigraphy");
+        LithoStratTreeDef         lithoStratTreeDef = createLithoStratTreeDef("LithoStrat");
+        
+        frame.incOverall();
+        
+        Discipline discipline = createDiscipline(division, 
+                                                 disciplineType.getName(), 
+                                                 dispTitle, 
+                                                 dataType, 
+                                                 taxonTreeDef, 
+                                                 geoTreeDef, 
+                                                 gtpTreeDef, 
+                                                 lithoStratTreeDef);
+        
+        persist(division);
+        persist(discipline);
+        
+        //commitTx();
+        
+        frame.incOverall();
+        
+        //startTx();
+
+        frame.setProcess(++createStep);
+        
+        ////////////////////////////////
+        // build the tree def items and nodes
+        ////////////////////////////////
+        frame.setDesc("Building Trees...");
+        Vector<Object> taxa = new Vector<Object>();
+        
+        // Create Tree Definition
+        taxonTreeDef.setDiscipline(discipline);
+        taxa.add(taxonTreeDef);
+
+        commitTx();
+        
+        frame.setProcess(++createStep);
+
+        boolean isPaleo = disciplineType.getDisciplineType() == DisciplineType.STD_DISCIPLINES.paleobotany ||
+                          disciplineType.getDisciplineType() == DisciplineType.STD_DISCIPLINES.vertpaleo ||
+                          disciplineType.getDisciplineType() == DisciplineType.STD_DISCIPLINES.invertpaleo;
+        
+        if (isPaleo)
+        {
+            startTx();
+            
+            LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
+            LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
+            LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
+            LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
+            LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
+            @SuppressWarnings("unused")
+            LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
+            persist(earth);
+            
+            // setup the root Geography record (planet Earth)
+            LithoStrat earthNode = new LithoStrat();
+            earthNode.initialize();
+            earthNode.setName("Earth");
+            earthNode.setFullName("Earth");
+            earthNode.setNodeNumber(1);
+            earthNode.setHighestChildNodeNumber(1);
+            earthNode.setRankId(0);
+            earthNode.setDefinition(lithoStratTreeDef);
+            earthNode.setDefinitionItem(earth);
+            earth.getTreeEntries().add(earthNode);
+            persist(earthNode);
+            
+            commitTx();
+            
+            convertChronoStratFromXLS(gtpTreeDef); // does commits
+        }
+        
+        frame.incOverall();
+        
+        List<Object> geos        = new Vector<Object>();
+        //List<Object> lithoStrats = isPaleo ? createSimpleLithoStrat(lithoStratTreeDef, false) : null;
+        
+        String fileName = null;
+        switch (DisciplineType.getByName(discipline.getType()).getDisciplineType())
+        {
+            case fish         : fileName = "col2008_fishes.xls"; break;
+            case herpetology  : fileName = "col2008_herps.xls"; break;
+            case paleobotany  : break;
+            case invertpaleo  : break;
+            case vertpaleo    : break;
+            case bird         : fileName = "col2008_aves.xls"; break;
+            case mammal       : fileName = "col2008_mammalia.xls"; break;
+            case insect       : fileName = "col2008_orthoptera.xls"; break;
+            case botany       : fileName = "col2008_poales.xls"; break;
+            case invertebrate : fileName = "col2008_inverts.xls"; break;
+            //case fungi        : fileName = "col2008_mycology.xls"; break;
+            default: break;
+        }
+        
+        startTx();
+        
+        boolean taxonWasBuilt = false;
+        if (!isPaleo)
+        {
+            Hashtable<String, Boolean> colNameHash = getColumnNamesFromXLS(fileName);
+            if (colNameHash != null)
+            {
+                taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonXML);
+            }
+        }
+        
+        frame.incOverall();
+        
+        log.debug(" taxonWasBuilt "+taxonWasBuilt);
+        if (!taxonWasBuilt)
+        {
+            TaxonTreeDefItem ttdi = new TaxonTreeDefItem();
+            ttdi.initialize();
+            ttdi.setTreeDef(taxonTreeDef);
+            taxonTreeDef.getTreeDefItems().add(ttdi);
+            ttdi.setName("Root");
+            ttdi.setRankId(0);
+            ttdi.setParent(null);
+            ttdi.setFullNameSeparator(null);
+            ttdi.setIsEnforced(true);
+            ttdi.setIsInFullName(false);
+            
+            Taxon tx = new Taxon();
+            tx.initialize();
+            tx.setDefinition(taxonTreeDef);
+            tx.setDefinitionItem(ttdi);
+            ttdi.getTreeEntries().add(tx);
+            tx.setName("Life"); // I18N
+            
+            persist(ttdi);
+            persist(tx);
+        }
+        
+        frame.setProcess(++createStep);
+        frame.incOverall();
+        
+        createGeographyDefFromXML(geos, geoTreeDef, geoXML);
+        
+        frame.setProcess(++createStep);
+        
+        persist(taxa);
+        persist(geos);
+        
+        commitTx();
+        
+        frame.setProcess(++createStep);
+        frame.incOverall();
+        
+        log.debug(" preLoadTaxon ["+preLoadTaxon+"]");
+        log.debug(" fileName     ["+fileName+"]");
+        if (preLoadTaxon && fileName != null)
+        {
+            convertTaxonFromAsa(taxonTreeDef); // this does a startTx() / commitTx()
+        }
+        
+        frame.setProcess(++createStep);
+        frame.incOverall();
+
+//        startTx();
+//        
+//        if (lithoStrats != null)
+//        {
+//            persist(lithoStrats);
+//            
+//        } 
+//        
+//        commitTx();
+        
+        frame.setProcess(++createStep);
+        
+        convertGeographyFromAsa(geoTreeDef);  // this does a startTx() / commitTx()
+        
+        frame.setProcess(++createStep);
+        frame.incOverall();
+        
+        log.debug("Out createEmptyDiscipline - createStep: "+createStep);
+        
+        return discipline;
+    }
+    /**
+     * @param discipline
+     * @param collPrefix
+     * @param collName
+     * @param catNumScheme
+     * @param accANS
+     * @param isEmbeddedCE
+     * @return
+     */
+    public Collection createEmptyCollection(final Discipline         discipline, 
+                                            final String             collPrefix, 
+                                            final String             collName,
+                                            final AutoNumberingScheme catNumScheme,
+                                            final AutoNumberingScheme accANS,
+                                            final boolean             isEmbeddedCE)
+    {
+        log.debug("In createEmptyCollection - createStep: "+createStep);
+        
+        frame.setProcess(++createStep);
+        
+        startTx();
+
+        ////////////////////////////////
+        // Create Collection
+        ////////////////////////////////
+        log.info("Creating a Collection");
+        frame.setDesc("Creating a Collection");
+        
+        Collection collection = createCollection(collPrefix, 
+                                                 collName, 
+                                                 catNumScheme.getFormatName(),  // Catalog Format Name
+                                                 catNumScheme,                  // Catalog Number Schema
+                                                 discipline, 
+                                                 isEmbeddedCE);
+                        
+        commitTx();
+
+        return collection;
+    }
+    
+    public Taxon convertTaxonFromAsa(final TaxonTreeDef treeDef)
+    {
+        frame.setDesc("Building Taxonomy Tree...");
+
+        Asa asa                           = new Asa();
+        TaxonConverter taxonConverter = new TaxonConverter(asa, null);
+
+        TaxonTreeDefItem rootTreeDefItem = treeDef.getDefItemByRank(0);
+        Set<Taxon>       rootKids        = rootTreeDefItem.getTreeEntries();
+        Taxon            life            = rootKids.iterator().next();
+        
+        try {
+
+            if (frame != null)
+            {
+                final int mx = asa.countTaxonRecords();
+
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        frame.setProcess(0, mx);
+                    }
+                });
+            }
+            
+            Connection conn = DBConnection.getInstance().createConnection();
+            Statement stmt = conn.createStatement();
+            
+            Iterator<edu.harvard.huh.asa.Taxon> rootTaxa = asa.getTestTaxa().iterator();
+            
+            while (rootTaxa.hasNext())
+            {
+                convert(asa, taxonConverter, rootTaxa.next(), conn, stmt, life.getId(), life.getRankId(), treeDef);
+            }
+            
+            conn.close();
+            //life = (Taxon)session.createQuery("FROM Taxon WHERE id = "+life.getId()).list().get(0);
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
+        NodeNumberer<Taxon,TaxonTreeDef,TaxonTreeDefItem> nodeNumberer = new NodeNumberer<Taxon,TaxonTreeDef,TaxonTreeDefItem>(life.getDefinition());
+        nodeNumberer.doInBackground();
+        
+        log.info("Converted " + life.getHighestChildNodeNumber() + " Taxon records");
+        
+        return life;
+    }
+    
+    private Taxon convert(final Asa asa,
+                          final TaxonConverter converter,
+                          final edu.harvard.huh.asa.Taxon asaTaxon,
+                          final Connection conn,
+                          final Statement stmt,
+                          final int parentId,
+                          final int parentRankId,
+                          final TaxonTreeDef taxonTreeDef)
+    {
+        Taxon taxon = converter.convertRecord(asaTaxon, parentRankId);
+        int rankId = taxon.getRankId();
+        int taxonId = -1;
+
+        try {
+            taxonId = createTaxonNode(conn,
+                                      stmt,
+                                      taxon.getName(),
+                                      taxon.getFullName(),
+                                      taxon.getAuthor(),
+                                      taxon.getCitesStatus(),
+                                      taxon.getTaxonomicSerialNumber(),
+                                      taxon.getRemarks(),
+                                      taxonTreeDef.getId(),
+                                      taxonTreeDef.getDefItemByRank(rankId).getId(),
+                                      rankId,
+                                      parentId);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Iterator<edu.harvard.huh.asa.Taxon> children = asa.getChildren(asaTaxon).iterator();
+        
+        while (children.hasNext())
+        {
+            convert(asa, converter, children.next(), conn, stmt, taxonId, rankId, taxonTreeDef);
+
+        }
+        
+        //asa.evict(asaTaxon);
+        return taxon;
+    }
+    
+    /**
+     * @param conn
+     * @param stmt
+     * @param name
+     * @param txTreeDefId
+     * @param tdi
+     * @param parentId
+     * @param fullName
+     * @return
+     * @throws SQLException
+     */
+    protected Integer createTaxonNode(final Connection conn,
+                                      final Statement  stmt,
+                                      String           name,
+                                      String           fullName,
+                                      String           author,
+                                      String           citesStatus,
+                                      String           taxonomicSerialNumber,
+                                      String           remarks,
+                                      int              taxonTreeDefId,
+                                      int              taxonTreeDefItemId,
+                                      int              rankId,
+                                      int              parentId) throws SQLException
+    {
+        gSQLStr.setLength(0);
+        gSQLStr.append("INSERT INTO taxon (Name, FullName, Author, CitesStatus,  TaxonomicSerialNumber, Remarks, TaxonTreeDefID, TaxonTreeDefItemID, RankID, ParentID, TimestampCreated, Version");
+        gSQLStr.append(") VALUES (");
+
+        gSQLStr.append("\"");
+        gSQLStr.append(sqlEscape(name, '"'));
+        gSQLStr.append("\",");
+        
+        gSQLStr.append("'");
+        gSQLStr.append(sqlEscape(fullName, '"'));
+        gSQLStr.append("',");
+        
+        gSQLStr.append("\"");
+        gSQLStr.append(author == null ? "NULL" : sqlEscape(author, '"'));
+        gSQLStr.append("\",");
+        
+        gSQLStr.append("\"");
+        gSQLStr.append(citesStatus == null ? "NULL" : sqlEscape(citesStatus, '"'));
+        gSQLStr.append("\",");
+        
+        gSQLStr.append("\"");
+        gSQLStr.append(taxonomicSerialNumber);
+        gSQLStr.append("\",");
+        
+        gSQLStr.append("\"");
+        gSQLStr.append(remarks == null ? "NULL" : sqlEscape(remarks, '"'));
+        gSQLStr.append("\",");
+        
+        gSQLStr.append(taxonTreeDefId);
+        gSQLStr.append(',');
+        
+        gSQLStr.append(taxonTreeDefItemId);
+        gSQLStr.append(',');
+        
+        gSQLStr.append(rankId);
+        gSQLStr.append(',');
+        
+        gSQLStr.append(parentId);
+        gSQLStr.append(',');
+        
+        gSQLStr.append(nowStr);
+        gSQLStr.append(",1");
+        gSQLStr.append(")");
+
+        
+        //System.out.println(sb.toString());
+        stmt.executeUpdate(gSQLStr.toString());
+        
+        Integer newId = BasicSQLUtils.getInsertedId(stmt);
+        if (newId == null)
+        {
+            throw new RuntimeException("Couldn't get the Taxon's inserted ID");
+        }
+        
+        return newId;
+    }
+    
+    private String sqlEscape(String string, char c)
+    {
+        String chr = String.valueOf(c);
+        switch (c)
+        {
+            case '\'' :
+            case '"'  :
+                return string.replaceAll(chr, "\\\\" + chr);
+            default :
+                throw new IllegalArgumentException("Can't escape '" + c + "'");
+        }
+    }
+    
+    public Geography convertGeographyFromAsa(final GeographyTreeDef treeDef)
+    {
+        frame.setDesc("Building Geography Tree...");
+        
+        Asa asa                       = new Asa();
+        GeoUnit asaRoot               = asa.getRootGeoUnit();
+        GeoUnitConverter geoConverter = new GeoUnitConverter(asa, null);
+
+        int nextNodeNumber = 1;
+
+        Geography root = geoConverter.convertRecord(asaRoot, -1);
+        root.setNodeNumber(nextNodeNumber);
+        root.setDefinition(treeDef);
+        root.setDefinitionItem(treeDef.getDefItemByRank(0));
+        
+        nextNodeNumber++;
+
+        try {
+            
+            startTx();
+            
+            persist(root);
+
+            if (frame != null)
+            {
+                final int mx = asa.countGeoRecords();
+
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        frame.setProcess(0, mx);
+                    }
+                });
+            }
+            
+            Iterator<GeoUnit> children = asa.getChildren(asaRoot).iterator();
+
+            while (children.hasNext())
+            {
+                Geography child = convert(asa, geoConverter, children.next(), root, treeDef, nextNodeNumber);
+                root.addChild(child);
+
+                int highestChildNodeNumber = child.getHighestChildNodeNumber();
+                root.setHighestChildNodeNumber(highestChildNodeNumber);
+
+                nextNodeNumber = highestChildNodeNumber + 1;
+            }
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
+
+        root.setHighestChildNodeNumber(nextNodeNumber);
+        
+        commitTx();
+        
+        log.info("Converted " + (nextNodeNumber - 1) + " Geography records");
+        return root;
+    }
+    
+    private Geography convert(final Asa asa,
+                              final GeoUnitConverter converter,
+                              final GeoUnit geoUnit,
+                              final Geography parent,
+                              final GeographyTreeDef treeDef,
+                              int nextNodeNumber)
+    {
+        if ((nextNodeNumber - 1) % 100 == 0)
+        {
+            if (frame != null) frame.setProcess(nextNodeNumber - 1);
+            log.info("Converted " + (nextNodeNumber -1) + " Geography records");
+        }
+        
+        int parentRank = parent.getRankId();
+
+        Geography geography = converter.convertRecord(geoUnit, parentRank);
+        int rank = geography.getRankId();
+
+        geography.setParent(parent);
+        geography.setNodeNumber(nextNodeNumber);
+        geography.setHighestChildNodeNumber(nextNodeNumber);
+        geography.setDefinition(treeDef);
+        geography.setDefinitionItem(treeDef.getDefItemByRank(rank));
+        
+        nextNodeNumber++;
+
+        Iterator<GeoUnit> children = asa.getChildren(geoUnit).iterator();
+
+        while (children.hasNext())
+        {
+            Geography child = convert(asa, converter, children.next(), geography, treeDef, nextNodeNumber);
+            geography.addChild(child);
+            
+            int highestChildNodeNumber = child.getHighestChildNodeNumber();
+            geography.setHighestChildNodeNumber(highestChildNodeNumber);
+
+            nextNodeNumber = highestChildNodeNumber + 1;
+            break; // TODO: this is just to limit the tree for testing purposes
+        }
+        
+        persist(geography);
+
+        return geography;
+    }
 }

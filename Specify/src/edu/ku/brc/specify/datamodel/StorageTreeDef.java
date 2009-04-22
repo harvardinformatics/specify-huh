@@ -355,4 +355,13 @@ public class StorageTreeDef extends BaseTreeDef<Storage, StorageTreeDef, Storage
     {
         return getIdentityTitle();
     }
+
+    /**
+     * @param levelRank
+     * @return
+     */
+    public static boolean isStdRequiredLevel(int levelRank)
+    {
+        return false;
+    }
 }

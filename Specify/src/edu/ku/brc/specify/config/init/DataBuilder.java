@@ -2429,6 +2429,52 @@ public class DataBuilder
         return usergroup;    
     }
     
+    /**
+     * Creates the administration group under the institution provided as argument. 
+     * 
+     * @param institution
+
+     * @return
+     */
+    public static SpPrincipal createAdminGroup(final Session     sessionArg,
+                                               final Institution institution) 
+    {
+        SpPrincipal adminGroup = createAdminGroup("Administrator", institution);
+        sessionArg.saveOrUpdate(adminGroup);
+        return adminGroup;
+    }
+    
+    /**
+     * Creates a Specify user with the given name, email, password, and type, and
+     * adds the user to the given group.  Also creates a user-group with the same
+     * name and adds the user to that group as well.
+     * 
+     * @param username
+     * @param email
+     * @param password
+     * @param userType
+     * @param adminGroup
+     * @return
+     */
+    public static SpecifyUser createSpecifyUserInGroup(final Session     sessionArg,
+                                                       final String      username,
+                                                       final String      email, 
+                                                       final String      password, 
+                                                       final String      userType,
+                                                       final SpPrincipal group) 
+    {
+        
+        SpecifyUser specifyAdminUser = createSpecifyUser(username, email, password, userType);
+        sessionArg.saveOrUpdate(specifyAdminUser);
+
+        specifyAdminUser.addUserToSpPrincipalGroup(group);
+        
+        SpPrincipal spPrin = createUserPrincipal(specifyAdminUser);
+        sessionArg.saveOrUpdate(spPrin);
+        
+        return specifyAdminUser;
+    }
+    
     public static SpPrincipal createAdminGroup(final String name, final UserGroupScope scope)
     {
         SpPrincipal groupPrincipal = new SpPrincipal();

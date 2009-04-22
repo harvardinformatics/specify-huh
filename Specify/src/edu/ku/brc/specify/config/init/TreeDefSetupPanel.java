@@ -242,15 +242,23 @@ public class TreeDefSetupPanel extends BaseSetupPanel implements SetupPanelIFace
                     if (rank > -1)
                     {
                         boolean required = false;
+                        boolean included = false;
                         if (classType == TaxonTreeDef.class)
                         {
                             required = TaxonTreeDef.isStdRequiredLevel(rank) || rank == 0;
-                        } else
+                            included = true;
+                        }
+                        else if (classType == GeographyTreeDef.class)
                         {
                             required = GeographyTreeDef.isStdRequiredLevel(rank) || rank == 0;
+                            included = required;
+                        }
+                        else {
+                            required = StorageTreeDef.isStdRequiredLevel(rank) || rank == 0;
+                            included = required;
                         }
                         String sep = classType == TaxonTreeDef.class ? " " : ", ";
-                        treeDefList.add(new TreeDefRow(name, rank, required, enforced, required && isInFullName, required || rank == 0, sep));
+                        treeDefList.add(new TreeDefRow(name, rank, included, enforced, required && isInFullName, required || rank == 0, sep));
                     }
                 }
             } catch (Exception ex)

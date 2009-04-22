@@ -2,23 +2,26 @@
 <tree>
 
 	<treedef>
-        <level name="Life" enforced="true" infullname="false" rank="0"/>
-        <level name="Kingdom" enforced="true" infullname="false" rank="10"/>
-        <level name="Subkingdom" enforced="false" infullname="false" rank="20"/>
-        <level name="Division" enforced="true" infullname="false" rank="30"/>
-        <level name="Subdivision" enforced="false" infullname="false" rank="40"/> 
-        <level name="Class" enforced="true" infullname="false" rank="60"/>
-        <level name="Subclass" enforced="false" infullname="false" rank="70"/>         
-        <level name="Order" enforced="true" infullname="false" rank="100"/>
-        <level name="Suborder" enforced="false" infullname="false" rank="110"/>
-        <level name="Family" enforced="true" infullname="false" rank="140"/>
-        <level name="Genus"  enforced="true" infullname="true" rank="180"/>
-        <level name="Species" enforced="true" infullname="true" rank="220"/>
-        <level name="subspecies" enforced="false" infullname="true" rank="230"/>       
-        <level name="variety" enforced="false" infullname="true" rank="240"/>       
-        <level name="subvariety" enforced="false" infullname="true" rank="250"/>       
-        <level name="forma" enforced="false" infullname="true" rank="260"/>       
-        <level name="subforma" enforced="false" infullname="true" rank="270"/>       
+        <level name="Life"         enforced="false" infullname="false" rank="0"/>
+        <level name="Kingdom"      enforced="false" infullname="false" rank="10"/>
+        <level name="Major Group"  enforced="false" infullname="false" rank="20"/>
+        <level name="Division"     enforced="false" infullname="false" rank="30"/>
+        <level name="Class"        enforced="false" infullname="false" rank="60"/>
+        <level name="Order"        enforced="false" infullname="false" rank="100"/>
+        <level name="Family"       enforced="true" infullname="false" rank="140"/>
+        <level name="Genus"        enforced="true" infullname="true" rank="180"/>
+        <level name="Subgenus"     enforced="false" infullname="false" rank="190"/>
+    	<level name="Species"      enforced="true" infullname="true" rank="220"/>
+    	<level name="Subspecies"   enforced="false" infullname="true" rank="230"/>
+		<level name="Variety"      enforced="false" infullname="true" rank="240"/>
+		<level name="Nothovariety" enforced="false" infullname="true" rank="242"/>
+		<level name="Nothomorph"   enforced="false" infullname="true" rank="244"/>
+		<level name="Subvariety"   enforced="false" infullname="true" rank="250"/>
+		<level name="Forma"        enforced="false" infullname="true" rank="260"/>
+		<level name="Subforma"     enforced="false" infullname="true" rank="270"/>
+		<level name="Lusus"        enforced="false" infullname="true" rank="280"/>
+		<level name="Modification" enforced="false" infullname="true" rank="290"/>
+		<level name="Prolus"       enforced="false" infullname="true" rank="300"/>    
     </treedef>
 	
 	<nodes/>

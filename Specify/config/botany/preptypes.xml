@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <vector>
-      <preptype name="Dried" isloanable="true"/>
-      <preptype name="Boxed" isloanable="true"/>
-      <preptype name="Fluid" isloanable="true"/>
-	  <preptype name="Sheet" isloanable="true"/>
+      <preptype name="On sheet"            isloanable="true"/>
+      <preptype name="In packet"           isloanable="true"/>
+      <preptype name="In bag"              isloanable="true"/>
+      <preptype name="Wood"                isloanable="true"/>
+      <preptype name="Drawing"             isloanable="true"/>
+      <preptype name="On microscope slide" isloanable="true"/>
+      <preptype name="In box"              isloanable="true"/>
+      <preptype name="In jar"              isloanable="true"/>
+      <preptype name="In spirit medium"    isloanable="true"/>
+      <preptype name="Protolog on sheet"   isloanable="true"/>
+      <preptype name="Other"               isloanable="true"/>
 </vector>

@@ -166,41 +166,41 @@ public class SpecifyDBSetupWizard extends JPanel
         
         btnBar = bbpb.getPanel();
 
-        boolean doTesting = AppPreferences.getLocalPrefs().getBoolean("wizard.defaults", false);
+        boolean doTesting = AppPreferences.getLocalPrefs().getBoolean("wizard.defaults", true);
         if (doTesting)
         {
             props.put("hostName",   "localhost");
-            props.put("dbName",     "testfish");
+            props.put("dbName",     "specify");
             props.put("dbUserName", "Specify");
             props.put("dbPassword", "Specify");
             
-            props.put("saUserName", "Master");
-            props.put("saPassword", "Master");
+            props.put("saUserName", "Specify");
+            props.put("saPassword", "Specify");
             
-            props.put("firstName", "Test");
-            props.put("lastName",  "User");
-            props.put("middleInitial", "a");
-            props.put("email", "tester@ku.edu");
-            props.put("usrUsername", "testuser");
-            props.put("usrPassword", "testuser");
+            props.put("firstName", "Maureen");
+            props.put("lastName",  "Kelly");
+            props.put("middleInitial", "M");
+            props.put("email", "mkelly@oeb.harvard.edu");
+            props.put("usrUsername", "maureen");
+            props.put("usrPassword", "maureen");
     
-            props.put("instName", "KU natural History Museum");
-            props.put("instAbbrev", "KU-NHM");
+            props.put("instName", "Harvard University Herbaria");
+            props.put("instAbbrev", "HUH");
     
-            props.put("divName", "Fish");
-            props.put("divAbbrev", "IT");
+            props.put("divName", "Botany");
+            props.put("divAbbrev", "bot");
     
-            props.put("collName", "Fish");
-            props.put("collPrefix", "KUFSH");
+            props.put("collName", "Gray Herbarium");
+            props.put("collPrefix", "GH");
             
             // Address
-            props.put("addr1", "1345 Jayhawk Blvd");
-            props.put("addr2", "606 Dyche Hall");
-            props.put("city", "Lawrence");
-            props.put("state", "KS");
+            props.put("addr1", "22 DivinityAve");
+            props.put("addr2", "");
+            props.put("city", "Cambridge");
+            props.put("state", "MA");
             props.put("country", "USA");
-            props.put("zip", "66044");
-            props.put("phone", "785-864-5555");
+            props.put("zip", "02138");
+            props.put("phone", "617-714-2365");
             
             props.put("addtaxon",   true);
         }

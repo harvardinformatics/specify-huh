@@ -1,11 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tree>
 	<treedef>
-		<level name="Earth"     enforced="true"  infullname="false" rank="0"/>
-		<level name="Continent" enforced="true"  infullname="false" rank="100"/>
-		<level name="Country"   enforced="true"  infullname="false" rank="200"/>
-		<level name="State"     enforced="true"  infullname="false" rank="300" /> 
-		<level name="County"    enforced="true"  infullname="false" rank="400" /> 		
+		<level name="root"                   enforced="true" infullname="false" rank="0"/>
+		<level name="continent"              enforced="true"  infullname="false" rank="100"/>
+		<level name="region"                 enforced="true"  infullname="false" rank="150"/>
+		<level name="archipelago"            enforced="false" infullname="false" rank="160"/>
+		<level name="country"                enforced="false" infullname="true" rank="200"/>
+		<level name="land"                   enforced="false" infullname="false" rank="210"/>
+		<level name="territory"              enforced="false" infullname="false" rank="220"/>
+		<level name="subcontinent island(s)" enforced="false" infullname="false" rank="230"/>
+		<level name="continent subregion"    enforced="false" infullname="false" rank="250"/>
+		<level name="country subregion"      enforced="false" infullname="false" rank="260"/>
+		<level name="straights"              enforced="false" infullname="false" rank="270"/>
+		<level name="subcountry island(s)"   enforced="false" infullname="false" rank="280"/>
+		<level name="state / province"       enforced="false" infullname="false" rank="300"/>
+		<level name="peninsula"              enforced="false" infullname="false" rank="310"/>
+		<level name="substate island(s)"     enforced="false" infullname="false" rank="320"/>
+		<level name="coast"                  enforced="false" infullname="false" rank="330"/>
+		<level name="other"                  enforced="false" infullname="false" rank="360"/>
+		<level name="state subregion"        enforced="false" infullname="false" rank="380"/>
+		<level name="county"                 enforced="false" infullname="false" rank="400"/>
+		<level name="mountain(s)"            enforced="false" infullname="false" rank="410"/>
+		<level name="river"                  enforced="false" infullname="false" rank="420"/>
+		<level name="forest"                 enforced="false" infullname="false" rank="430"/>
+		<level name="valley"                 enforced="false" infullname="false" rank="440"/>
+		<level name="island(s)"              enforced="false" infullname="false" rank="450"/>
+		<level name="hill(s)"                enforced="false" infullname="false" rank="460"/>
+		<level name="canyon"                 enforced="false" infullname="false" rank="470"/>
+		<level name="lake"                   enforced="false" infullname="false" rank="480"/>
+		<level name="county subregion"       enforced="false" infullname="false" rank="490"/>
+		<level name="city / town"            enforced="false" infullname="false" rank="500"/>
+		<level name="city subregion"         enforced="false" infullname="false" rank="510"/>		
     </treedef>
 	<nodes/>
 </tree>

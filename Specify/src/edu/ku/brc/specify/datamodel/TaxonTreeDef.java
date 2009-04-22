@@ -156,12 +156,12 @@ public class TaxonTreeDef extends BaseTreeDef<Taxon, TaxonTreeDef, TaxonTreeDefI
      */
     public static boolean isStdRequiredLevel(int levelRank)
     {
-        return levelRank == KINGDOM
+        return /*levelRank == KINGDOM
             || levelRank == DIVISION
             || levelRank == PHYLUM
             || levelRank == CLASS
             || levelRank == ORDER
-            || levelRank == FAMILY
+            || */levelRank == FAMILY
             || levelRank == GENUS
             || levelRank == SPECIES;
     }
