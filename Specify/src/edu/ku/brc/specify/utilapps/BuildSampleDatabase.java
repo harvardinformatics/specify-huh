@@ -334,6 +334,7 @@ public class BuildSampleDatabase
     protected LinkedList<Pair<String, Integer>> recycler = new LinkedList<Pair<String, Integer>>();
     protected StringBuilder gSQLStr = new StringBuilder();
 
+    private static int nextTaxonNodeNumber = 1;
     
     /**
      * 
@@ -452,7 +453,7 @@ public class BuildSampleDatabase
         
         createStep = 0;    
         
-        frame.setProcess(0, 10);
+        frame.setProcess(0, 15);
         
         frame.setProcess(++createStep);
         
@@ -9377,8 +9378,8 @@ public class BuildSampleDatabase
         ////////////////////////////////
         // Create Collection
         ////////////////////////////////
-        log.info("Creating a Collection");
-        frame.setDesc("Creating a Collection");
+        log.info("Creating " + collName + " Collection");
+        frame.setDesc("Creating " + collName + " Collection");
         
         Collection collection = createCollection(collPrefix, 
                                                  collName, 
@@ -9395,15 +9396,18 @@ public class BuildSampleDatabase
     public Taxon convertTaxonFromAsa(final TaxonTreeDef treeDef)
     {
         frame.setDesc("Building Taxonomy Tree...");
-
-        Asa asa                           = new Asa();
-        TaxonConverter taxonConverter = new TaxonConverter(asa, null);
-
+        nextTaxonNodeNumber = 1;
+        
         TaxonTreeDefItem rootTreeDefItem = treeDef.getDefItemByRank(0);
         Set<Taxon>       rootKids        = rootTreeDefItem.getTreeEntries();
         Taxon            life            = rootKids.iterator().next();
         
         try {
+            
+            Connection conn = DBConnection.getInstance().createConnection();
+            Statement stmt = conn.createStatement();
+            
+            Asa asa  = new Asa();
 
             if (frame != null)
             {
@@ -9418,26 +9422,58 @@ public class BuildSampleDatabase
                 });
             }
             
-            Connection conn = DBConnection.getInstance().createConnection();
-            Statement stmt = conn.createStatement();
-            
-            Iterator<edu.harvard.huh.asa.Taxon> rootTaxa = asa.getTestTaxa().iterator();
-            
-            while (rootTaxa.hasNext())
+            List<edu.harvard.huh.asa.Taxon> rootTaxa = asa.getRootTaxa();
+            Vector<Integer> rootTaxaIds = new Vector<Integer>();
+            for (edu.harvard.huh.asa.Taxon  rootTaxon: rootTaxa)
             {
-                convert(asa, taxonConverter, rootTaxa.next(), conn, stmt, life.getId(), life.getRankId(), treeDef);
+                rootTaxaIds.add(rootTaxon.getId());
             }
+            asa.clear();
+            asa.close();
             
+            Iterator<Integer> rootTaxaIterator = rootTaxaIds.iterator();
+            while (rootTaxaIterator.hasNext())
+            {
+                asa = new Asa();
+                TaxonConverter taxonConverter = new TaxonConverter(asa, null);
+                
+                edu.harvard.huh.asa.Taxon rootTaxon = asa.getTaxonById(rootTaxaIterator.next());
+                
+                convert(asa, taxonConverter, rootTaxon, conn, stmt, life.getId(), life.getRankId(), treeDef);
+                
+                asa.clear();
+                asa.close();
+            }
+
+            frame.setDesc("Numbering Taxonomy Tree...");
+
+            String resetHighestChildNodeNumber = "update taxon set HighestChildNodeNumber=null";
+            stmt.executeUpdate(resetHighestChildNodeNumber);
+            
+            String createTableLikeTaxon = "create table reftaxon like taxon";
+            stmt.execute(createTableLikeTaxon);
+            
+            String copyTaxonTable = "insert into reftaxon select * from taxon";
+            stmt.executeUpdate(copyTaxonTable);
+            
+            String updateLeafNodes = "update taxon a set a.HighestChildNodeNumber=a.NodeNumber where not exists (select null from reftaxon b where a.TaxonID=b.ParentID)";
+            int updatedNodes = stmt.executeUpdate(updateLeafNodes);
+            
+            String updateReftaxon = "update reftaxon a set a.HighestChildNodeNumber=(select b.HighestChildNodeNumber from taxon b where b.TaxonID=a.TaxonID)";
+            stmt.executeUpdate(updateReftaxon);
+
+            String updateNextLevel = "update taxon a set a.HighestChildNodeNumber=(select max(b.HighestChildNodeNumber) from reftaxon b where b.ParentID=a.TaxonID) where  a.TaxonID in (select c.ParentID from reftaxon c where c.HighestChildNodeNumber is not null) order by a.TaxonID desc";
+
+            while (updatedNodes > 0) {               
+                updatedNodes = stmt.executeUpdate(updateNextLevel);
+                stmt.executeUpdate(updateReftaxon);
+            }
             conn.close();
-            //life = (Taxon)session.createQuery("FROM Taxon WHERE id = "+life.getId()).list().get(0);
             
         } catch (Exception ex)
         {
             ex.printStackTrace();
         }
-        
-        NodeNumberer<Taxon,TaxonTreeDef,TaxonTreeDefItem> nodeNumberer = new NodeNumberer<Taxon,TaxonTreeDef,TaxonTreeDefItem>(life.getDefinition());
-        nodeNumberer.doInBackground();
         
         log.info("Converted " + life.getHighestChildNodeNumber() + " Taxon records");
         
@@ -9475,6 +9511,13 @@ public class BuildSampleDatabase
             e.printStackTrace();
         }
 
+        if (nextTaxonNodeNumber % 100 == 0)
+        {
+            if (frame != null) frame.setProcess(nextTaxonNodeNumber);
+            log.info("Converted " + nextTaxonNodeNumber + " Taxon records");
+        }
+        nextTaxonNodeNumber++;
+        
         Iterator<edu.harvard.huh.asa.Taxon> children = asa.getChildren(asaTaxon).iterator();
         
         while (children.hasNext())
@@ -9483,7 +9526,7 @@ public class BuildSampleDatabase
 
         }
         
-        //asa.evict(asaTaxon);
+        asa.evict(asaTaxon);
         return taxon;
     }
     
@@ -9519,9 +9562,9 @@ public class BuildSampleDatabase
         gSQLStr.append(sqlEscape(name, '"'));
         gSQLStr.append("\",");
         
-        gSQLStr.append("'");
+        gSQLStr.append("\"");
         gSQLStr.append(sqlEscape(fullName, '"'));
-        gSQLStr.append("',");
+        gSQLStr.append("\",");
         
         gSQLStr.append("\"");
         gSQLStr.append(author == null ? "NULL" : sqlEscape(author, '"'));
@@ -9681,7 +9724,7 @@ public class BuildSampleDatabase
             geography.setHighestChildNodeNumber(highestChildNodeNumber);
 
             nextNodeNumber = highestChildNodeNumber + 1;
-            break; // TODO: this is just to limit the tree for testing purposes
+            //break; // TODO: this is just to limit the tree for testing purposes
         }
         
         persist(geography);
