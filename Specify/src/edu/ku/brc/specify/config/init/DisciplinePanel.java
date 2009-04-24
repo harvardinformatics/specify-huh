@@ -92,10 +92,10 @@ public class DisciplinePanel extends BaseSetupPanel
         
         disciplines = createComboBox(dispList);
         
-        // Select Fish as the default
+        // Select Botany as the default
         for (DisciplineType disciplineType : dispList)
         {
-            if (disciplineType.getName().equals("fish"))
+            if (disciplineType.getName().equals("botany"))
             {
                 disciplines.setSelectedItem(disciplineType);
             }
