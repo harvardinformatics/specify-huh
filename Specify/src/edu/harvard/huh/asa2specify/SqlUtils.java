@@ -129,6 +129,10 @@ public class SqlUtils
         return "\"" + sqlEscape(s) + "\"";
     }
 
+    public static String sqlString(Byte b) {
+        return "\"" + String.valueOf(b) + "\"";
+    }
+    
     public static String sqlString(Integer i) {
         return "\"" + String.valueOf(i) + "\"";
     }

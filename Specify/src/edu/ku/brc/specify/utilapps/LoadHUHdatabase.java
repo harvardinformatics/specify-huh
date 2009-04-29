@@ -37,8 +37,10 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 import edu.harvard.huh.asa.Botanist;
+import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.BotanistConverter;
+import edu.harvard.huh.asa2specify.BotanistNameConverter;
 import edu.harvard.huh.asa2specify.CsvToSqlMgr;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SiteConverter;
@@ -50,6 +52,7 @@ import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.dbsupport.SpecifyDeleteHelper;
@@ -167,7 +170,8 @@ public class LoadHUHdatabase
 
             loadLocalities(discipline);
             loadBotanists();
-
+            loadBotanistNames();
+            
             SwingUtilities.invokeLater(new Runnable()
             {
                 public void run()
@@ -391,9 +395,110 @@ public class LoadHUHdatabase
         return counter;
     }
     
+    private int loadBotanistNames() throws LocalException
+    {
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist_name.csv");
+        int records = csvToSqlMgr.countRecords();
+        
+        // initialize progress frame
+        if (frame != null)
+        {
+            final int mx = records;
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.setProcess(0, mx);
+                }
+            });
+        }
+
+        // iterate over lines, creating locality objects for each via sql
+        int counter = 0;
+
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
+            if (frame != null) {
+                if (counter % 100 == 0)
+                {
+                    frame.setProcess(counter);
+                    log.info("Converted " + counter + " records");
+                }
+            }
+
+            BotanistName botanistName = null;
+            try {
+                botanistName = parseBotanistNameRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+            // find the matching agent record
+            Integer agentId = null;
+            Integer botanistId = botanistName.getBotanistId();
+
+            if (botanistId != null)
+            {
+                Botanist botanist = new Botanist();
+                botanist.setId(botanistId);
+
+                String guid = SqlUtils.sqlString(botanist.getGuid());
+
+                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+                agentId = csvToSqlMgr.queryForId(sql);
+
+                if (agentId == null)
+                {
+                    log.error("Couldn't find AgentID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // get a converter
+            BotanistNameConverter botanistNameConverter = BotanistNameConverter.getInstance();
+
+            // convert BotanistName into AgentVariant
+            AgentVariant agentVariant = botanistNameConverter.convert(botanistName);
+
+            Agent agent = new Agent();
+            agent.setAgentId(agentId);
+            
+            agentVariant.setAgent(agent);
+
+            // convert agentvariant to sql and insert
+            try {
+                String sql = getInsertSql(agentVariant);
+                
+                csvToSqlMgr.insert(sql);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert agentvariant record for line " + counter, e);
+                continue;
+            }
+        }
+
+        return counter;
+    }
+    
+    // id, geo_unit_id, locality, latlong_method, latitude_a, longitude_a, latitude_b, longitude_b, elev_from, elev_to, elev_method
     private Site parseSiteRecord(String line) throws LocalException
     {
-        // id, geo_unit_id, locality, latlong_method, latitude_a, longitude_a, latitude_b, longitude_b, elev_from, elev_to, elev_method
         String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
         if (columns.length < 11)
         {
@@ -527,6 +632,51 @@ public class LoadHUHdatabase
         return botanist;
     }
     
+    // botanistId, nameType, name
+    private BotanistName parseBotanistNameRecord(String line) throws LocalException
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+        if (columns.length < 3)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+
+        // assign values to Botanist object
+        BotanistName botanistName = new BotanistName();
+        
+        try {
+            botanistName.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+            
+            String type = StringUtils.trimToNull( columns[1] );
+            if (type == null) throw new LocalException("No type found in record " + line );
+
+            BotanistName.TYPE nameType;
+
+            if      (type.equals("author name")   ) nameType = BotanistName.TYPE.Author;
+            else if (type.equals("author abbrev") ) nameType = BotanistName.TYPE.AuthorAbbrev;
+            else if (type.equals("collector name")) nameType = BotanistName.TYPE.Collector;
+            else if (type.equals("variant")       ) nameType = BotanistName.TYPE.Variant;
+            
+            else throw new LocalException("Unrecognized botanist name type: " + type);
+
+            botanistName.setType(nameType);
+
+            String name = StringUtils.trimToNull( columns[2] );
+            if (name != null)
+            {
+                botanistName.setName( name );
+            }
+            else {
+                throw new LocalException( "No name found in record " + line );
+            }
+        }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return botanistName;
+    }
+    
     private String getInsertSql(Locality locality) throws LocalException
     {
         String fieldNames =
@@ -575,6 +725,20 @@ public class LoadHUHdatabase
         values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8( agent.getRemarks())));
     
         return SqlUtils.getInsertSql("agent", fieldNames, values);
+    }
+    
+    private String getInsertSql(AgentVariant agentVariant)
+    {
+        String fieldNames = "AgentID, VarType, Name, TimestampCreated";
+        
+        List<String> values = new ArrayList<String>(4);
+        
+        values.add(String.valueOf(agentVariant.getAgent().getId()));
+        values.add(SqlUtils.sqlString(agentVariant.getVarType()));
+        values.add(SqlUtils.sqlString(agentVariant.getName()));
+        values.add("now()" );
+        
+        return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }
     
     // From BuildSampleDatabase.
