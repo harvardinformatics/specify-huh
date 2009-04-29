@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -35,14 +36,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Site;
+import edu.harvard.huh.asa2specify.BotanistConverter;
+import edu.harvard.huh.asa2specify.CsvToSqlMgr;
+import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SiteConverter;
+import edu.harvard.huh.asa2specify.SqlUtils;
 
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.dbsupport.SpecifyDeleteHelper;
@@ -151,13 +158,15 @@ public class LoadHUHdatabase
                 {
                     frame.getProcessProgress().setIndeterminate(true);
                     frame.getProcessProgress().setString("");
-                    frame.setDesc("Loading localities ....");
+                    frame.setDesc("Loading localities and botanists....");
                     frame.setOverall(steps++);
                 }
             });
             
             Discipline discipline = null;
+
             loadLocalities(discipline);
+            loadBotanists();
 
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -192,57 +201,15 @@ public class LoadHUHdatabase
     
     // see BuildSampleDatabase.convertLithoStratFromCSV
     @SuppressWarnings("unchecked")
-    private int loadLocalities(Discipline discipline)
+    private int loadLocalities(Discipline discipline) throws LocalException
     {
-        
-        // set up a database connection for direct sql
-        Connection conn = null;
-        Statement  stmt = null;
-        
-        try {
-            conn = DBConnection.getInstance().createConnection();
-            stmt = conn.createStatement();
-        }
-        catch (SQLException e)
-        {
-            log.error("Couldn't create database connection");
-            return 0;
-        }
-
-        // get file to load from
-        File file = new File("demo_files/sites.csv");
-        if (file == null || !file.exists())
-        {
-            log.error("Couldn't file[" + file.getAbsolutePath() + "]");
-            return 0;
-        }
-        
-        // count the lines in the file and set up an iterator for them
-        LineIterator lines = null;
-        int lastLine = 0;
-        try
-        {
-            lines = FileUtils.lineIterator(file);
-            
-            while (lines.hasNext()) {
-                lastLine++;
-                lines.nextLine();
-            }
-            
-            LineIterator.closeQuietly(lines);
-            
-            lines = FileUtils.lineIterator(file);
-            
-        } catch (IOException e)
-        {
-            log.error(e);
-        }
-
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/sites.csv");
+        int records = csvToSqlMgr.countRecords();
         
         // initialize progress frame
         if (frame != null)
         {
-            final int mx = lastLine;
+            final int mx = records;
             SwingUtilities.invokeLater(new Runnable()
             {
                 public void run()
@@ -255,7 +222,21 @@ public class LoadHUHdatabase
         // iterate over lines, creating locality objects for each via sql
         int counter = 0;
 
-        while (lines.hasNext()) {
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
             if (frame != null) {
                 if (counter % 100 == 0)
                 {
@@ -263,135 +244,339 @@ public class LoadHUHdatabase
                     log.info("Converted " + counter + " records");
                 }
             }
+
+            Site site = null;
             try {
-                // read values for next record
-                String line = lines.nextLine();
-                counter++;
+                site = parseSiteRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+            // skip this record if it only has SRE initial values set
+            if (! site.hasData()) continue;
+
+            // get a converter
+            SiteConverter siteConverter = SiteConverter.getInstance();
+
+            // convert site into locality
+            Locality locality = siteConverter.convert(site);
+            locality.setSrcLatLongUnit(srcLatLongUnit);
+            locality.setDiscipline(discipline);
+
+            // convert locality to sql and insert
+            Integer id = null;
+            try {
+                String sql = getInsertSql(locality);
                 
-                loadLocalityRecord(line, stmt, srcLatLongUnit, discipline);
+                id = csvToSqlMgr.insert(sql);
             }
-            catch (Exception e)
+            catch (LocalException e) {
+                log.error("Couldn't insert locality record for line " + counter, e);
+                continue;
+            }
+
+            // update locality with geography
+            Integer geoUnitId = site.getGeoUnitId();
+            try {
+                if (geoUnitId != null)
+                {
+                    String guid = SqlUtils.sqlString(geoUnitId);
+
+                    String sql = SqlUtils.getQueryIdByFieldSql("geography", "GeographyID", "GUID", guid);
+
+                    Integer geographyId = csvToSqlMgr.queryForId(sql);
+
+                    if (geographyId != null)
+                    {
+
+                        sql = SqlUtils.getUpdateSql("locality",
+                                "GeographyID",
+                                String.valueOf(geographyId),
+                                "LocalityID",
+                                String.valueOf(id));
+
+                        if (! csvToSqlMgr.update(sql))
+                        {
+                            log.error("Couldn't set GeographyID for LocalityID " + id);
+                        }
+                    }
+                    else
+                    {
+                        log.warn("Couldn't find GeographyID with GUID " + geoUnitId);
+                    }
+                }
+            }
+            catch (LocalException e)
             {
-                log.info(e.getMessage()); // skip that line
+                log.error("Couldn't set GeographyID for LocalityID " + id, e);
             }
         }
+
+        return counter;
+    }
+
+    private int loadBotanists() throws LocalException
+    {
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist.csv");
+        int records = csvToSqlMgr.countRecords();
         
-        try {
-            conn.close();
-        }
-        catch (SQLException e)
+        // initialize progress frame
+        if (frame != null)
         {
-            log.error("Couldn't close connection");
+            final int mx = records;
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.setProcess(0, mx);
+                }
+            });
         }
-        LineIterator.closeQuietly(lines);
         
+        // iterate over lines, creating locality objects for each via sql
+        int counter = 0;
+
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
+            if (frame != null) {
+                if (counter % 100 == 0)
+                {
+                    frame.setProcess(counter);
+                    log.info("Converted " + counter + " records");
+                }
+            }
+
+            Botanist botanist = null;
+            try {
+                botanist = parseBotanistRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+
+            // get a converter
+            BotanistConverter botanistConverter = BotanistConverter.getInstance();
+
+            // convert botanist into agent ...
+            Agent agent = botanistConverter.convert( botanist );
+
+            // convert locality to sql and insert
+            try {
+                String sql = getInsertSql(agent);
+
+                csvToSqlMgr.insert(sql);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert agent record for line " + counter, e);
+                continue;
+            }
+        }
         return counter;
     }
     
-    private void loadLocalityRecord(String line, Statement stmt, byte srcLatLongUnit, Discipline discipline) throws SQLException
+    private Site parseSiteRecord(String line) throws LocalException
     {
         // id, geo_unit_id, locality, latlong_method, latitude_a, longitude_a, latitude_b, longitude_b, elev_from, elev_to, elev_method
         String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
         if (columns.length < 11)
         {
-            log.error("Skipping[" + line + "]");
-            return;
+            throw new LocalException("Wrong number of columns");
         }
 
         // assign values to Site object
         Site site = new Site();
-        site.setId(Integer.parseInt(StringUtils.trimToNull(columns[0])));
-        
-        Integer geoUnitId = Integer.parseInt(StringUtils.trimToNull(columns[1]));
-        site.setGeoUnitId(geoUnitId);
-        
-        site.setLocality(StringUtils.trimToNull(columns[2]));
-        site.setMethod(StringUtils.trimToNull(columns[3]));
-        
-        String lat1Str = StringUtils.trimToNull(columns[4]);
-        if (lat1Str != null) {
-            site.setLatitudeA(BigDecimal.valueOf(Double.parseDouble(lat1Str)));
-        }
-        
-        String long1Str = StringUtils.trimToNull(columns[5]);
-        if (long1Str != null) {
-            site.setLongitudeA(BigDecimal.valueOf(Double.parseDouble(long1Str)));
-        }
 
-        String lat2Str = StringUtils.trimToNull(columns[6]);
-        if (lat2Str != null) {
-            site.setLatitudeB(BigDecimal.valueOf(Double.parseDouble(lat2Str)));
-        }
+        try {
+            site.setId(Integer.parseInt(StringUtils.trimToNull(columns[0])));
 
-        String long2Str = StringUtils.trimToNull(columns[7]);
-        if (long2Str != null) {
-            site.setLongitudeB(BigDecimal.valueOf(Double.parseDouble(long2Str)));
-        }
+            Integer geoUnitId = Integer.parseInt(StringUtils.trimToNull(columns[1]));
+            site.setGeoUnitId(geoUnitId);
 
-        String elevFromStr = StringUtils.trimToNull(columns[8]);
-        if (elevFromStr != null) {
-            site.setElevFrom(Integer.parseInt(elevFromStr));
-        }
-        
-        String elevToStr = StringUtils.trimToNull(columns[9]);
-        if (elevToStr != null) {
-            site.setElevTo(Integer.parseInt(elevToStr));
-        }
+            site.setLocality(StringUtils.trimToNull(columns[2]));
+            site.setMethod(StringUtils.trimToNull(columns[3]));
 
-        site.setElevMethod(StringUtils.trimToNull(columns[10]));
-
-        // skip this record if it only has SRE initial values set
-        if (! site.hasData())
-        {
-            return;
-        }
-        
-        // get a converter
-        SiteConverter siteConverter = SiteConverter.getInstance();
-        
-        // convert site into locality ...
-        Locality locality = siteConverter.convert(site);
-        locality.setSrcLatLongUnit(srcLatLongUnit);
-        locality.setDiscipline(discipline);
-        
-        // insert new locality
-        String sql = siteConverter.getInsertSql(locality);
-        stmt.executeUpdate(sql);
-
-        // get new locality id
-        Integer newId = BasicSQLUtils.getInsertedId(stmt);
-        if (newId == null)
-        {
-            throw new RuntimeException("Couldn't get the Locality's inserted ID");
-        }
-        
-        // update locality with geography
-        if (geoUnitId != null)
-        {
-            int geographyId = 0;
-
-            sql = "select GeographyID from geography where GUID=\"" + geoUnitId + "\"";
-            ResultSet result = stmt.executeQuery(sql);
-
-            if (! result.next()) {
-                log.warn("Didn't find referenced geography (id " + geoUnitId + ")");
-                return;
+            String lat1Str = StringUtils.trimToNull(columns[4]);
+            if (lat1Str != null) {
+                site.setLatitudeA(BigDecimal.valueOf(Double.parseDouble(lat1Str)));
             }
 
-            geographyId = result.getInt(1);
-
-            if (geographyId > 0)
-            {
-                sql = "update locality set GeographyID=" + geographyId + " where LocalityID=" + newId;
-                int success = stmt.executeUpdate(sql);
-                if (success != 1)
-                {
-                    log.error("Couldn't set geography for [" + line + "]");
-                }
+            String long1Str = StringUtils.trimToNull(columns[5]);
+            if (long1Str != null) {
+                site.setLongitudeA(BigDecimal.valueOf(Double.parseDouble(long1Str)));
             }
+
+            String lat2Str = StringUtils.trimToNull(columns[6]);
+            if (lat2Str != null) {
+                site.setLatitudeB(BigDecimal.valueOf(Double.parseDouble(lat2Str)));
+            }
+
+            String long2Str = StringUtils.trimToNull(columns[7]);
+            if (long2Str != null) {
+                site.setLongitudeB(BigDecimal.valueOf(Double.parseDouble(long2Str)));
+            }
+
+            String elevFromStr = StringUtils.trimToNull(columns[8]);
+            if (elevFromStr != null) {
+                site.setElevFrom(Integer.parseInt(elevFromStr));
+            }
+
+            String elevToStr = StringUtils.trimToNull(columns[9]);
+            if (elevToStr != null) {
+                site.setElevTo(Integer.parseInt(elevToStr));
+            }
+
+            site.setElevMethod(StringUtils.trimToNull(columns[10]));
         }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return site;
     }
 
+    // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
+    private Botanist parseBotanistRecord(String line) throws LocalException
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+        if (columns.length < 10)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+
+        // assign values to Botanist object
+        Botanist botanist = new Botanist();
+        try {
+            botanist.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+
+            String isTeamStr = StringUtils.trimToNull( columns[1] );
+            boolean isTeam = isTeamStr != null && isTeamStr.equals( "true" );
+            botanist.setTeam( isTeam );
+
+            String isCorporateStr = StringUtils.trimToNull( columns[2] );
+            boolean isCorporate = isCorporateStr != null && isCorporateStr.equals( "true" );
+            botanist.setCorporate( isCorporate );
+
+            String name = StringUtils.trimToNull( columns[3] );
+            if (name != null)
+            {
+                botanist.setName( name );
+            }
+            else {
+                throw new LocalException( "No name found in record " + line );
+            }
+
+            // no place to put this at the moment: birth/death, flourished, collected, received specimens
+            String datesType = StringUtils.trimToNull( columns[4] );
+            if ( datesType != null )
+            {
+                botanist.setDatesType( datesType );
+            }
+
+            String startYearStr = StringUtils.trimToNull( columns[5] );
+            if ( startYearStr != null )
+            {
+                botanist.setStartYear( Integer.parseInt( startYearStr ) );
+            }
+
+            // doing nothing with this at the moment: ?, circa; null means default, exact
+            String startPrecision = StringUtils.trimToNull( columns[6] );
+            if ( startPrecision != null )
+            {
+                botanist.setStartPrecision( startPrecision );
+            }
+
+            String endYearStr = StringUtils.trimToNull( columns[7] );
+            if ( endYearStr != null )
+            {
+                botanist.setEndYear( Integer.parseInt( endYearStr ) );
+            }
+
+            // no place to put this at the moment: ?, circa; null means default, exact
+            String endPrecision = StringUtils.trimToNull( columns[8] );
+            if ( endPrecision != null ) {
+                botanist.setEndPrecision( startPrecision );
+            }
+
+            String remarks = StringUtils.trimToNull( columns[9] );
+            if ( remarks != null )
+            {
+                botanist.setRemarks( remarks );
+            }
+        }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+
+        return botanist;
+    }
+    
+    private String getInsertSql(Locality locality) throws LocalException
+    {
+        String fieldNames =
+            "ElevationMethod, GUID, LatLongMethod, Lat1Text, Lat2Text, Latitude1, Latitude2, " +
+            "Long1Text, Long2Text, Longitude1, Longitude2, LocalityName, MaxElevation, " +
+            "MinElevation, SrcLatLongUnit, DisciplineID, TimestampCreated, Remarks";
+
+        List<String> values = new ArrayList<String>(18);
+
+        values.add(SqlUtils.sqlString(locality.getElevationMethod()    ));
+        values.add(SqlUtils.sqlString(locality.getGuid()               ));
+        values.add(SqlUtils.sqlString(locality.getLatLongMethod()      ));
+        values.add(SqlUtils.sqlString(locality.getLat1text()           ));
+        values.add(SqlUtils.sqlString(locality.getLat2text()           ));
+        values.add(    String.valueOf(locality.getLat1()               ));
+        values.add(    String.valueOf(locality.getLat2()               ));
+        values.add(SqlUtils.sqlString(locality.getLong1text()          ));
+        values.add(SqlUtils.sqlString(locality.getLong2text()          ));
+        values.add(    String.valueOf(locality.getLong1()              ));
+        values.add(    String.valueOf(locality.getLong2()              ));
+        values.add(SqlUtils.sqlString(locality.getLocalityName()       ));
+        values.add(    String.valueOf(locality.getMaxElevation()       ));
+        values.add(    String.valueOf(locality.getMinElevation()       ));
+        values.add(    String.valueOf(locality.getSrcLatLongUnit()     ));
+        values.add(    String.valueOf(locality.getDiscipline().getId() ));
+        values.add("now()");
+        values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8(locality.getRemarks())));
+        
+        return SqlUtils.getInsertSql("locality", fieldNames, values);
+    }
+
+    private String getInsertSql(Agent agent) throws LocalException
+    {
+        String fieldNames = 
+            "AgentType, GUID, DateOfBirth, DateOfDeath, FirstName, LastName, TimestampCreated, Remarks";
+
+        List<String> values = new ArrayList<String>(7);
+        
+        values.add(    String.valueOf(agent.getAgentType()   ));
+        values.add(SqlUtils.sqlString(agent.getGuid()        ));
+        values.add(SqlUtils.sqlString(agent.getDateOfBirth() ));
+        values.add(SqlUtils.sqlString(agent.getDateOfBirth() ));
+        values.add(SqlUtils.sqlString(agent.getFirstName()   ));
+        values.add(SqlUtils.sqlString(agent.getLastName()    ));
+        values.add("now()" );
+        values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8( agent.getRemarks())));
+    
+        return SqlUtils.getInsertSql("agent", fieldNames, values);
+    }
+    
     // From BuildSampleDatabase.
     public ProgressFrame createProgressFrame(final String title)
     {

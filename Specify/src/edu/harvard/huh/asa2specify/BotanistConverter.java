@@ -1,7 +1,6 @@
 package edu.harvard.huh.asa2specify;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,7 +9,7 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.Botanist;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class BotanistConverter extends Converter {
+public class BotanistConverter {
 
     private static final Logger log           = Logger.getLogger( BotanistConverter.class );
     
@@ -49,12 +48,26 @@ public class BotanistConverter extends Converter {
 		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
 		agent.setGuid( botanist.getGuid() );
 
-		// Remarks
-		String remarks = botanist.getRemarks();
-		if ( remarks != null ) {
-		    agent.setRemarks( this.iso8859toUtf8( remarks ) );
+		// DateOfBirth: this is going to hold start dates no matter what the type for the time being
+		Integer startYear = botanist.getStartYear();
+		if (startYear != null) {
+		    Calendar c = Calendar.getInstance();
+		    c.clear();
+		    c.set(Calendar.YEAR, startYear);
+		    
+		    agent.setDateOfBirth(c);
 		}
-
+		
+		// DateOfDeath: this is going to hold end dates no matter what the type for the time being
+        Integer endYear = botanist.getEndYear();
+        if (endYear != null) {
+            Calendar c = Calendar.getInstance();
+            c.clear();
+            c.set(Calendar.YEAR, endYear);
+            
+            agent.setDateOfDeath(c);
+        }
+        
 		// LastName
 		String lastName = null;
 		
@@ -84,42 +97,18 @@ public class BotanistConverter extends Converter {
 		    // otherwise, put the whole thing into last name
 		    if ( fullName.length() > 50 ) {
 		        log.warn( "truncating last name" );
-		        lastName = fullName.substring( 0, 50 );
+		        fullName = fullName.substring( 0, 50 );
 		    }
-		    agent.setLastName( lastName );
+		    agent.setLastName( fullName );
 		}
-		
-		return agent;
+	    // Remarks
+        String remarks = botanist.getRemarks();
+        if ( remarks != null ) {
+            agent.setRemarks( remarks );
+        }
+
+        return agent;
 	}
-
-    public String getInsertSql( Agent agent ) {
-
-        List<String> fieldNames = new ArrayList<String>(7);
-        List<String>     values = new ArrayList<String>(7);
-        
-        fieldNames.add( "AgentType" );
-        values.add( String.valueOf( agent.getAgentType() ) );
-
-        fieldNames.add( "DateOfBirth" );
-        values.add( String.format( SqlDateFormat, agent.getDateOfBirth() ) );
-        
-        fieldNames.add( "DateOfDeath" );
-        values.add( String.format( SqlDateFormat, agent.getDateOfBirth() ) );
-        
-        fieldNames.add( "FirstName" );
-        values.add( sqlEscape( agent.getFirstName(), '"' ) );
-
-        fieldNames.add( "LastName" );
-        values.add( sqlEscape( agent.getLastName(), '"' ) );
-        
-        fieldNames.add( "Remarks" );
-        values.add( sqlEscape( iso8859toUtf8( agent.getRemarks() ), '"' ) );
-        
-        fieldNames.add( "TimestampCreated" );
-        values.add( "now()" );
-        
-        return getInsertSql( "agent", fieldNames, values );
-    }
 
     private boolean isGroup( String name ) {
 		
