@@ -22,7 +22,7 @@ public class Site {
 		 
 	public int getId() { return id; }
 	
-	public int getGeoUnitId() { return geoUnitId; }
+	public Integer getGeoUnitId() { return geoUnitId; }
 	
 	public String getLocality() { return locality; }
 	
