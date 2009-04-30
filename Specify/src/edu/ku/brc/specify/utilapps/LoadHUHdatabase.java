@@ -205,7 +205,7 @@ public class LoadHUHdatabase
     
     // see BuildSampleDatabase.convertLithoStratFromCSV
     @SuppressWarnings("unchecked")
-    private int loadLocalities(Discipline discipline) throws LocalException
+    protected int loadLocalities(Discipline discipline) throws LocalException
     {
         CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/sites.csv");
         int records = csvToSqlMgr.countRecords();
@@ -321,7 +321,7 @@ public class LoadHUHdatabase
         return counter;
     }
 
-    private int loadBotanists() throws LocalException
+    protected int loadBotanists() throws LocalException
     {
         CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist.csv");
         int records = csvToSqlMgr.countRecords();
@@ -395,7 +395,7 @@ public class LoadHUHdatabase
         return counter;
     }
     
-    private int loadBotanistNames() throws LocalException
+    protected int loadBotanistNames() throws LocalException
     {
         CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist_name.csv");
         int records = csvToSqlMgr.countRecords();
