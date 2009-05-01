@@ -1,36 +1,17 @@
 package edu.ku.brc.specify.utilapps;
-import java.math.BigDecimal;
+
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
-import javax.swing.SwingUtilities;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa.Botanist;
-import edu.harvard.huh.asa.BotanistName;
-import edu.harvard.huh.asa.Site;
-import edu.harvard.huh.asa2specify.BotanistConverter;
-import edu.harvard.huh.asa2specify.BotanistNameConverter;
-import edu.harvard.huh.asa2specify.CsvToSqlMgr;
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.harvard.huh.asa2specify.SiteConverter;
-import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
-import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.Discipline;
-import edu.ku.brc.specify.datamodel.Locality;
-import edu.ku.brc.specify.utilapps.LoadHUHdatabase;
-import edu.ku.brc.util.LatLonConverter.FORMAT;
 
 
 /* This library is free software; you can redistribute it and/or
@@ -53,9 +34,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
     private static final Logger log = Logger.getLogger(LoadHUHdatabase.class);
 
     protected static Vector<DatabaseDriverInfo> driverList;
-    private static final byte srcLatLongUnit = (byte) FORMAT.DDDDDD.ordinal();
-    
-
+   
     /**
      * @param args
      */
@@ -72,15 +51,16 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         LoadHUHdatabaseTester test = new LoadHUHdatabaseTester();
         test.setUpConnection();
 
+        int records = 0;
         try
         {
-            test.loadBotanistSpecialties();
+            records = test.loadPublAuthors();
         } catch (LocalException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
+        System.out.println("Processed " + records + records);
     }
 
     void setUpConnection() {
