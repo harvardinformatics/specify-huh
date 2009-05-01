@@ -41,6 +41,7 @@ public class BotanistNameConverter
         String name = botanistName.getName();
         if (name.length() > 255) {
             log.warn("Truncating botanist name variant: " + name);
+            name = name.substring(0, 255);
         }
         variant.setName(botanistName.getName());
         
