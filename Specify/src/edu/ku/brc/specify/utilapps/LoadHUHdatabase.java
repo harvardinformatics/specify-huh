@@ -38,9 +38,13 @@ import org.hibernate.Session;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistName;
+import edu.harvard.huh.asa.BotanistRoleCountry;
+import edu.harvard.huh.asa.BotanistRoleSpecialty;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.BotanistConverter;
 import edu.harvard.huh.asa2specify.BotanistNameConverter;
+import edu.harvard.huh.asa2specify.BotanistRoleCountryConverter;
+import edu.harvard.huh.asa2specify.BotanistRoleSpecialtyConverter;
 import edu.harvard.huh.asa2specify.CsvToSqlMgr;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SiteConverter;
@@ -52,8 +56,11 @@ import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AgentGeography;
+import edu.ku.brc.specify.datamodel.AgentSpecialty;
 import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.dbsupport.SpecifyDeleteHelper;
 import edu.ku.brc.ui.IconManager;
@@ -78,6 +85,36 @@ public class LoadHUHdatabase
      */
     public LoadHUHdatabase()
     {
+        super();
+    }
+    
+    
+    // From BuildSampleDatabase.
+    public ProgressFrame createProgressFrame(final String title)
+    {
+        if (frame == null)
+        {
+            frame = new ProgressFrame(title, "SpecifyLargeIcon");
+            frame.pack();
+        } 
+        return frame;
+    }
+    
+    /**
+     * Pack and then sets the width to 500px.
+     */
+    public void adjustProgressFrame()
+    {
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        frame.pack();
+        Dimension size = frame.getSize();
+        size.width = Math.max(size.width, 500);
+        frame.setSize(size);
+    }
+    
+    public void setSession(Session s)
+    {
+        session = s;
     }
     
     /** 
@@ -171,6 +208,8 @@ public class LoadHUHdatabase
             loadLocalities(discipline);
             loadBotanists();
             loadBotanistNames();
+            loadBotanistCountries();
+            loadBotanistSpecialties();
             
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -211,17 +250,7 @@ public class LoadHUHdatabase
         int records = csvToSqlMgr.countRecords();
         
         // initialize progress frame
-        if (frame != null)
-        {
-            final int mx = records;
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    frame.setProcess(0, mx);
-                }
-            });
-        }
+        initializeProgressFrame(records);
 
         // iterate over lines, creating locality objects for each via sql
         int counter = 0;
@@ -241,13 +270,7 @@ public class LoadHUHdatabase
 
             if (line == null) break;
 
-            if (frame != null) {
-                if (counter % 100 == 0)
-                {
-                    frame.setProcess(counter);
-                    log.info("Converted " + counter + " records");
-                }
-            }
+            updateProgressFrame(counter);
 
             Site site = null;
             try {
@@ -327,17 +350,7 @@ public class LoadHUHdatabase
         int records = csvToSqlMgr.countRecords();
         
         // initialize progress frame
-        if (frame != null)
-        {
-            final int mx = records;
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    frame.setProcess(0, mx);
-                }
-            });
-        }
+        initializeProgressFrame(records);
         
         // iterate over lines, creating locality objects for each via sql
         int counter = 0;
@@ -357,13 +370,7 @@ public class LoadHUHdatabase
 
             if (line == null) break;
 
-            if (frame != null) {
-                if (counter % 100 == 0)
-                {
-                    frame.setProcess(counter);
-                    log.info("Converted " + counter + " records");
-                }
-            }
+            updateProgressFrame(counter);
 
             Botanist botanist = null;
             try {
@@ -401,17 +408,7 @@ public class LoadHUHdatabase
         int records = csvToSqlMgr.countRecords();
         
         // initialize progress frame
-        if (frame != null)
-        {
-            final int mx = records;
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    frame.setProcess(0, mx);
-                }
-            });
-        }
+        initializeProgressFrame(records);
 
         // iterate over lines, creating locality objects for each via sql
         int counter = 0;
@@ -431,13 +428,7 @@ public class LoadHUHdatabase
 
             if (line == null) break;
 
-            if (frame != null) {
-                if (counter % 100 == 0)
-                {
-                    frame.setProcess(counter);
-                    log.info("Converted " + counter + " records");
-                }
-            }
+            updateProgressFrame(counter);
 
             BotanistName botanistName = null;
             try {
@@ -489,6 +480,211 @@ public class LoadHUHdatabase
             }
             catch (LocalException e) {
                 log.error("Couldn't insert agentvariant record for line " + counter, e);
+                continue;
+            }
+        }
+
+        return counter;
+    }
+    
+    protected int loadBotanistCountries() throws LocalException
+    {
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist_role_country.csv");
+        int records = csvToSqlMgr.countRecords();
+        
+        // initialize progress frame
+        initializeProgressFrame(records);
+
+        // iterate over lines, creating agentgeography objects for each via sql
+        int counter = 0;
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
+            updateProgressFrame(counter);
+
+            BotanistRoleCountry botanistRoleCountry = null;
+            try {
+                botanistRoleCountry = parseBotanistRoleCountryRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+            // find the matching agent record
+            Integer agentId = null;
+            Integer botanistId = botanistRoleCountry.getBotanistId();
+
+            if (botanistId != null)
+            {
+                Botanist botanist = new Botanist();
+                botanist.setId(botanistId);
+
+                String guid = SqlUtils.sqlString(botanist.getGuid());
+
+                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+                agentId = csvToSqlMgr.queryForId(sql);
+
+                if (agentId == null)
+                {
+                    log.error("Couldn't find AgentID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // find the matching geography record
+            Integer geographyId = null;
+            Integer geoUnitId = botanistRoleCountry.getGeoUnitId();
+
+            if (geoUnitId != null)
+            {
+                String guid = String.valueOf(geoUnitId);
+                String  sql = SqlUtils.getQueryIdByFieldSql("geography", "GeographyID", "GUID", guid);
+
+                geographyId = csvToSqlMgr.queryForId(sql);
+
+                if (geographyId == null)
+                {
+                    log.error("Couldn't find GeographyID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // get a converter
+            BotanistRoleCountryConverter botanistRoleCountryConverter =
+                BotanistRoleCountryConverter.getInstance();
+
+            // convert BotanistRoleCountry into AgentGeography
+            AgentGeography agentGeography = botanistRoleCountryConverter.convert(botanistRoleCountry);
+
+            Agent agent = new Agent();
+            agent.setAgentId(agentId);
+            
+            agentGeography.setAgent(agent);
+            
+            Geography geography = new Geography();
+            geography.setGeographyId(geographyId);
+            
+            agentGeography.setGeography(geography);
+
+            // convert agentgeography to sql and insert
+            try {
+                String sql = getInsertSql(agentGeography);
+                
+                csvToSqlMgr.insert(sql);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert agentvariant record for line " + counter, e);
+                continue;
+            }
+        }
+
+        return counter;
+    }
+
+    protected int loadBotanistSpecialties() throws LocalException
+    {
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/botanist_role_specialty.csv");
+        int records = csvToSqlMgr.countRecords();
+        
+        // initialize progress frame
+        initializeProgressFrame(records);
+
+        // iterate over lines, creating locality objects for each via sql
+        int counter = 0;
+        int lastAgentId = 0;
+        int orderNumber = 1;
+
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
+            updateProgressFrame(counter);
+
+            BotanistRoleSpecialty botanistRoleSpecialty = null;
+            try {
+                botanistRoleSpecialty = parseBotanistRoleSpecialtyRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+            // find the matching agent record
+            Integer agentId = null;
+            Integer botanistId = botanistRoleSpecialty.getBotanistId();
+
+            if (botanistId != null)
+            {
+                Botanist botanist = new Botanist();
+                botanist.setId(botanistId);
+
+                String guid = SqlUtils.sqlString(botanist.getGuid());
+
+                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+                agentId = csvToSqlMgr.queryForId(sql);
+
+                if (agentId == null)
+                {
+                    log.error("Couldn't find AgentID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // get a converter
+            BotanistRoleSpecialtyConverter botanistRoleSpecialtyConverter =
+                BotanistRoleSpecialtyConverter.getInstance();
+
+            // convert BotanistRoleCountry into AgentGeography
+            AgentSpecialty agentSpecialty = botanistRoleSpecialtyConverter.convert(botanistRoleSpecialty);
+
+            Agent agent = new Agent();
+            agent.setAgentId(agentId);
+            
+            agentSpecialty.setAgent(agent);
+            
+            if (agentId != lastAgentId) {
+                orderNumber = 1;
+                lastAgentId = agentId;
+            }
+            else {
+                orderNumber ++;
+            }
+            agentSpecialty.setOrderNumber(orderNumber);
+
+            // convert agentspecialty to sql and insert
+            try {
+                String sql = getInsertSql(agentSpecialty);
+                
+                csvToSqlMgr.insert(sql);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert agentspecialty record for line " + counter, e);
                 continue;
             }
         }
@@ -677,6 +873,65 @@ public class LoadHUHdatabase
         return botanistName;
     }
     
+    private BotanistRoleCountry parseBotanistRoleCountryRecord(String line) throws LocalException
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+
+        if (columns.length < 4)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+        
+        BotanistRoleCountry botanistRoleCountry = new BotanistRoleCountry();
+        try {
+            botanistRoleCountry.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+            
+            String role = StringUtils.trimToNull( columns[1] );
+            if (role == null) throw new LocalException("No type found in record " + line );
+
+            botanistRoleCountry.setRole(role);
+
+            botanistRoleCountry.setGeoUnitId(Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
+            
+            botanistRoleCountry.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[3] ) ) );
+        }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return botanistRoleCountry;
+    }
+
+    private BotanistRoleSpecialty parseBotanistRoleSpecialtyRecord(String line) throws LocalException
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+
+        if (columns.length < 4)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+        
+        BotanistRoleSpecialty botanistRoleSpecialty = new BotanistRoleSpecialty();
+        try {
+            botanistRoleSpecialty.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+            
+            String role = StringUtils.trimToNull( columns[1] );
+            if (role == null) throw new LocalException("No type found in record " + line );
+
+            botanistRoleSpecialty.setRole(role);
+
+            String specialty = StringUtils.trimToNull( columns[2] );
+            botanistRoleSpecialty.setSpecialty(specialty);
+            
+            botanistRoleSpecialty.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[3] ) ) );
+        }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return botanistRoleSpecialty;
+    }
+
     private String getInsertSql(Locality locality) throws LocalException
     {
         String fieldNames =
@@ -741,32 +996,60 @@ public class LoadHUHdatabase
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }
     
-    // From BuildSampleDatabase.
-    public ProgressFrame createProgressFrame(final String title)
+    private String getInsertSql(AgentGeography agentGeography)
     {
-        if (frame == null)
+        String fieldNames = "AgentId, GeographyID, Role, Remarks, TimestampCreated";
+        
+        List<String> values = new ArrayList<String>(5);
+        
+        values.add(String.valueOf(agentGeography.getAgent().getAgentId()));
+        values.add(String.valueOf(agentGeography.getGeography().getGeographyId()));
+        values.add(SqlUtils.sqlString(agentGeography.getRole()));
+        values.add(SqlUtils.sqlString(agentGeography.getRemarks()));
+        values.add("now()" );
+        
+        return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
+    }
+    
+    private String getInsertSql(AgentSpecialty agentSpecialty)
+    {
+        String fieldNames = "AgentId, SpecialtyName, OrderNumber, TimestampCreated";
+        
+        List<String> values = new ArrayList<String>(4);
+        
+        String agentId = String.valueOf(agentSpecialty.getAgent().getAgentId());
+
+        values.add(agentId);
+        values.add(SqlUtils.sqlString(agentSpecialty.getSpecialtyName()));
+        values.add(SqlUtils.sqlString(agentSpecialty.getOrderNumber()));
+        values.add("now()" );
+        
+        return SqlUtils.getInsertSql("agentspecialty", fieldNames, values);
+    }
+    
+    private void initializeProgressFrame(final int records)
+    {
+        if (frame != null)
         {
-            frame = new ProgressFrame(title, "SpecifyLargeIcon");
-            frame.pack();
-        } 
-        return frame;
+            final int mx = records;
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.setProcess(0, mx);
+                }
+            });
+        }
     }
     
-    /**
-     * Pack and then sets the width to 500px.
-     */
-    public void adjustProgressFrame()
+    private void updateProgressFrame(final int counter)
     {
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.pack();
-        Dimension size = frame.getSize();
-        size.width = Math.max(size.width, 500);
-        frame.setSize(size);
+        if (frame != null) {
+            if (counter % 100 == 0)
+            {
+                frame.setProcess(counter);
+                log.info("Converted " + counter + " records");
+            }
+        }
     }
-    
-    public void setSession(Session s)
-    {
-        session = s;
-    }
-    
 }

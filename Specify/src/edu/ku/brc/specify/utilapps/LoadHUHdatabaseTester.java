@@ -74,30 +74,13 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
 
         try
         {
-            test.loadBotanistNames();
+            test.loadBotanistSpecialties();
         } catch (LocalException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        try
-        {
-            test.loadBotanists();
-        } catch (LocalException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        Discipline botanyDiscipline = test.getBotanyDiscipline();
-        try
-        {
-            test.loadLocalities(botanyDiscipline);
-        } catch (LocalException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
     }
 
     void setUpConnection() {
