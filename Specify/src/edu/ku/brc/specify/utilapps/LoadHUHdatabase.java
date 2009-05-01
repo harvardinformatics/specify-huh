@@ -40,6 +40,7 @@ import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistRoleCountry;
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
+import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa.Publication;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.BotanistConverter;
@@ -48,6 +49,7 @@ import edu.harvard.huh.asa2specify.BotanistRoleCountryConverter;
 import edu.harvard.huh.asa2specify.BotanistRoleSpecialtyConverter;
 import edu.harvard.huh.asa2specify.CsvToSqlMgr;
 import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.PublAuthorConverter;
 import edu.harvard.huh.asa2specify.PublicationConverter;
 import edu.harvard.huh.asa2specify.SiteConverter;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -61,6 +63,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentGeography;
 import edu.ku.brc.specify.datamodel.AgentSpecialty;
 import edu.ku.brc.specify.datamodel.AgentVariant;
+import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Journal;
@@ -784,7 +787,7 @@ public class LoadHUHdatabase
 
             Publication publication = null;
             try {
-                publication = parsePublicationRefWorkRecord(line);
+                publication = parsePublicationJournalRecord(line);
             }
             catch (LocalException e) {
                 log.error("Couldn't parse line", e);
@@ -821,6 +824,126 @@ public class LoadHUHdatabase
             }
             catch (LocalException e) {
                 log.error("Couldn't insert referencework record for line " + counter, e);
+                continue;
+            }
+        }
+
+        return counter;
+    }
+    
+    protected int loadPublAuthors() throws LocalException
+    {
+        CsvToSqlMgr csvToSqlMgr = new CsvToSqlMgr("demo_files/publ_author.csv");
+        int records = csvToSqlMgr.countRecords();
+        
+        // initialize progress frame
+        initializeProgressFrame(records);
+
+        // iterate over lines, creating locality objects for each via sql
+        int       counter = 0;
+        int lastRefWorkId = 0;
+        int   orderNumber = 1;
+
+        while (true)
+        {
+            counter++;
+
+            String line = null;
+            try {
+                line = csvToSqlMgr.getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
+
+            if (line == null) break;
+
+            updateProgressFrame(counter);
+
+            PublAuthor publAuthor = null;
+            try {
+                publAuthor = parsePublAuthorRecord(line);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't parse line", e);
+                continue;
+            }
+
+            // find the matching agent record
+            Integer agentId = null;
+            Integer authorId = publAuthor.getAuthorId();
+
+            if (authorId != null)
+            {
+                Botanist botanist = new Botanist();
+                botanist.setId(authorId);
+
+                String guid = SqlUtils.sqlString(botanist.getGuid());
+
+                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+                agentId = csvToSqlMgr.queryForId(sql);
+
+                if (agentId == null)
+                {
+                    log.error("Couldn't find AgentID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // find the matching referencework record
+            Integer refWorkId = null;
+            Integer publicationId = publAuthor.getPublicationId();
+
+            if (publicationId != null)
+            {
+                String guid = SqlUtils.sqlString(String.valueOf(publicationId));
+
+                String sql = SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid);
+
+                refWorkId = csvToSqlMgr.queryForId(sql);
+
+                if (refWorkId == null)
+                {
+                    log.error("Couldn't find ReferenceWorkID with GUID " + guid);
+                    continue;
+                }
+            }
+            
+            // get a converter
+            PublAuthorConverter publAuthorConverter = PublAuthorConverter.getInstance();
+
+            // convert BotanistRoleCountry into AgentGeography
+            Author author = publAuthorConverter.convert(publAuthor);
+
+            Agent agent = new Agent();
+            agent.setAgentId(agentId);
+            
+            author.setAgent(agent);
+            
+            ReferenceWork referenceWork = new ReferenceWork();
+            referenceWork.setReferenceWorkId(refWorkId);
+            
+            author.setReferenceWork(referenceWork);
+            
+            if (refWorkId != lastRefWorkId) {
+                orderNumber = 1;
+                lastRefWorkId = refWorkId;
+            }
+            else {
+                orderNumber ++;
+            }
+            author.setOrderNumber((short) orderNumber);
+
+            // convert agentspecialty to sql and insert
+            try {
+                String sql = getInsertSql(author);
+                
+                csvToSqlMgr.insert(sql);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert author record for line " + counter, e);
                 continue;
             }
         }
@@ -1161,6 +1284,28 @@ public class LoadHUHdatabase
         return publication;
     }
 
+    private PublAuthor parsePublAuthorRecord(String line) throws LocalException
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+
+        if (columns.length < 3)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+        
+        PublAuthor publAuthor = new PublAuthor();
+        try {
+            publAuthor.setPublicationId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+            publAuthor.setAuthorId(Integer.parseInt(StringUtils.trimToNull( columns[1] ) ) );
+            publAuthor.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
+        }
+        catch (NumberFormatException e) {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return publAuthor;
+    }
+    
     private String getInsertSql(Locality locality) throws LocalException
     {
         String fieldNames =
@@ -1295,6 +1440,20 @@ public class LoadHUHdatabase
         values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8(referenceWork.getRemarks())));
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);    
+    }
+    
+    private String getInsertSql(Author author)
+    {
+        String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
+        
+        List<String> values = new ArrayList<String>(4);
+        
+        values.add(String.valueOf(author.getAgent().getId()));
+        values.add(String.valueOf(author.getReferenceWork().getId()));
+        values.add(String.valueOf(author.getOrderNumber()));
+        values.add("now()");
+        
+        return SqlUtils.getInsertSql("author", fieldNames, values);
     }
 
     private void initializeProgressFrame(final int records)
