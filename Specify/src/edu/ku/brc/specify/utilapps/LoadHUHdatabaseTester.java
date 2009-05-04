@@ -1,14 +1,17 @@
 package edu.ku.brc.specify.utilapps;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Vector;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.loader.LocalException;
+import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.specify.datamodel.Discipline;
@@ -51,11 +54,26 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         LoadHUHdatabaseTester test = new LoadHUHdatabaseTester();
         test.setUpConnection();
 
+        // set up a database connection for direct sql TODO: manage statement, connection?
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DBConnection.getInstance().createConnection();
+            statement  = connection.createStatement();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Couldn't create Statement: " + e.getMessage());
+            return;
+        }
+        
         int records = 0;
         try
         {
-            records = test.loadPublAuthors();
-        } catch (LocalException e)
+        	PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File("demo_files/publ_author.csv"), statement);
+            records = publAuthorLoader.loadRecords();
+        }
+        catch (LocalException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
