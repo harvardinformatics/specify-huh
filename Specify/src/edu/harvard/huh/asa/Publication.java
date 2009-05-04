@@ -18,16 +18,17 @@ public class Publication
 {
     private Integer id;
  
-    private String isbn;
-    private String pubPlace;
-    private String pubDate;
-    private String publisher;
-    private String url;
-    private String title;
-    private String issn;
-    private String bph;
-    private String abbreviation;
-    private String remarks;
+    private  String isbn;
+    private  String pubPlace;
+    private  String pubDate;
+    private  String publisher;
+    private  String url;
+    private  String title;
+    private Boolean isJournal;
+    private  String issn;
+    private  String bph;
+    private  String abbreviation;
+    private  String remarks;
  
     public Publication() {
         ;
@@ -46,6 +47,8 @@ public class Publication
     public String getUrl() { return this.url; }
     
     public String getTitle() { return this.title; }
+    
+    public Boolean isJournal() { return this.isJournal; }
     
     public String getIssn() { return this.issn; }
     
@@ -68,6 +71,8 @@ public class Publication
     public void setUrl(String url) { this.url = url; }
     
     public void setTitle(String title) { this.title = title; }
+    
+    public void setJournal(Boolean isJournal) { this.isJournal = isJournal; }
     
     public void setBph(String bph) { this.bph = bph; }
     

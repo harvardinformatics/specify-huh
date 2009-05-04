@@ -9,13 +9,11 @@ public class BDate {
 	private Integer startYear;
 	private Integer startMonth;
 	private Integer startDay;
-	private Integer startTime;
-	private StLookup startPrecision;
+	private String startPrecision;
 	private Integer endYear;
 	private Integer endMonth;
 	private Integer endDay;
-	private Integer endTime;
-	private StLookup endPrecision;
+	private String endPrecision;
 	private String text;
 	
 	public BDate() { ; }
@@ -28,9 +26,7 @@ public class BDate {
 	
 	public Integer getStartDay() { return startDay; }
 	
-	public Integer getStartTime() { return startTime; }
-	
-	public StLookup getStartPrecision() { return startPrecision; }
+	public String getStartPrecision() { return startPrecision; }
 	
 	public Integer getEndYear() { return endYear; }
 	
@@ -38,9 +34,7 @@ public class BDate {
 	
 	public Integer getEndDay() { return endDay; }
 	
-	public Integer getEndTime() { return endTime; }
-	
-	public StLookup getEndPrecision() { return endPrecision; }
+	public String getEndPrecision() { return endPrecision; }
 	
 	public String getText() { return text; }
 	
@@ -52,9 +46,7 @@ public class BDate {
 	
 	public void setStartDay(Integer startDay) { this.startDay = startDay; }
 	
-	public void setStartTime(Integer startTime) { this.startTime = startTime; }
-	
-	public void setStartPrecision(StLookup startPrecision) { this.startPrecision = startPrecision; }
+	public void setStartPrecision(String startPrecision) { this.startPrecision = startPrecision; }
 	
 	public void setEndYear(Integer endYear) { this.endYear = endYear; }
 	
@@ -62,7 +54,7 @@ public class BDate {
 	
 	public void setEndDay(Integer endDay) { this.endDay = endDay; }
 	
-	public void setEndPrecision(StLookup endPrecision) { this.endPrecision = endPrecision; }
+	public void setEndPrecision(String endPrecision) { this.endPrecision = endPrecision; }
 	
 	public void setText(String text) { this.text = text; }
 		
