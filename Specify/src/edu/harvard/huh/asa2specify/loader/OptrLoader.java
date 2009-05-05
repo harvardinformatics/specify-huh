@@ -35,7 +35,7 @@ public class OptrLoader extends CsvToSqlLoader {
 
 	private Optr parseOptrRecord(String[] columns) throws LocalException
 	{
-		if (columns.length < 4)
+		if (columns.length < 3)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
@@ -44,10 +44,9 @@ public class OptrLoader extends CsvToSqlLoader {
 		Optr optr = new Optr();
 
 		try {
-		    optr.setId(           Integer.parseInt(StringUtils.trimToNull(columns[0])));
-		    optr.setUserName(                       StringUtils.trimToNull(columns[1]));
-		    optr.setFullName(                       StringUtils.trimToNull(columns[2]));
-		    optr.setRemarks(SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[3])));
+		    optr.setId(            Integer.parseInt(StringUtils.trimToNull(columns[0])));
+		    optr.setFullName(                       StringUtils.trimToNull(columns[1]));
+		    optr.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[2])));
 		}
 		catch (NumberFormatException e) {
 			throw new LocalException("Couldn't parse numeric field", e);
