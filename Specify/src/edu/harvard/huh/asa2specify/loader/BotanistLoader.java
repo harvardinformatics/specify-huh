@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -16,9 +14,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends CsvToSqlLoader {
     private final Logger log = Logger.getLogger(BotanistLoader.class);
-    
-    private final Pattern groupPattern = Pattern.compile("&|et al| and ");
-    private final Pattern orgPattern   = Pattern.compile("Bureau of|Commission|Committee|Consortium|Department|Expedition|Group|Herbarium|Missionaries|Museum|National|Nurseries|Nursery|Program|Research|School|Scientific|Service|Society|Survey|University");
 
 	public BotanistLoader(File csvFile, Statement sqlStatement)
 	{
@@ -119,16 +114,10 @@ public class BotanistLoader extends CsvToSqlLoader {
 		// NOTE: as of 11:46 am Feb 27 2009, each botanist record that lacks a full name
 		// has both an author name and collector name and they are equal; further, the
 		// author/collector name contains an ampersand (and a positive team flag)
-		String fullName = botanist.getName();
 		
 		// AgentType
-		// TODO: some groups are not marked as such; handle that somehow
-		boolean isCorporate = botanist.isCorporate() || isOrg( fullName );
-		boolean isGroup = botanist.isTeam() || isGroup( fullName );
-		boolean isPerson = !isCorporate && !isGroup;
-		
-		if ( isCorporate ) agent.setAgentType( Agent.ORG );
-		else if ( isGroup ) agent.setAgentType( Agent.GROUP );
+		if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
+		else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
 		else agent.setAgentType( Agent.PERSON );
 
 		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
@@ -155,39 +144,22 @@ public class BotanistLoader extends CsvToSqlLoader {
         }
         
 		// LastName
-		String lastName = null;
-		
-		if ( isPerson && fullName.contains( "," ) ) {
+		String lastName = botanist.getLastName();
+		if ( lastName.length() > 50 ) {
+            log.warn( "truncating last name" );
+            lastName = lastName.substring( 0, 50 );
+        }
+        agent.setLastName( lastName );
+        
+        // FirstName
+		String firstName = botanist.getFirstName();
+		if ( firstName.length() > 50 ) {
+            log.warn( "truncating last name" );
+            firstName = firstName.substring( 0, 50 );
+        }
+        agent.setFirstName( firstName );
 
-		    int commaIndex = fullName.indexOf( ',' );
-
-		    // If there's at least one comma, put the first bit until the comma into last name
-
-		    lastName = fullName.substring( 0, commaIndex ).trim();
-
-		    if ( lastName.length() > 50 ) {
-		        log.warn( "truncating last name" );
-		        lastName = lastName.substring( 0, 50 );
-		    }
-		    agent.setLastName( lastName );
-
-		    String firstName = fullName.substring( commaIndex + 1 ).trim();
-		    if ( firstName.length() > 50 ) {
-		        log.warn( "truncating last name" );
-		        firstName = firstName.substring( 0, 50 );
-		    }
-		    agent.setFirstName( firstName );
-		}
-
-		else {
-		    // otherwise, put the whole thing into last name
-		    if ( fullName.length() > 50 ) {
-		        log.warn( "truncating last name" );
-		        fullName = fullName.substring( 0, 50 );
-		    }
-		    agent.setLastName( fullName );
-		}
-	    // Remarks
+		// Remarks
         String remarks = botanist.getRemarks();
         if ( remarks != null ) {
             agent.setRemarks( remarks );
@@ -196,16 +168,6 @@ public class BotanistLoader extends CsvToSqlLoader {
         return agent;
 	}
 
-    private boolean isGroup( String name ) {
-		
-		Matcher m = groupPattern.matcher( name );
-		return m.matches();
-	}
-	
-	private boolean isOrg( String name ) {
-	    Matcher m = orgPattern.matcher( name );
-	    return m.matches();
-	}
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{

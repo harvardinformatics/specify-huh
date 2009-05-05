@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 import edu.harvard.huh.asa2specify.loader.AccessionLoader;
+import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistNameLoader;
@@ -38,6 +39,7 @@ import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
 import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
 import edu.harvard.huh.asa2specify.loader.LocalException;
 import edu.harvard.huh.asa2specify.loader.LocalityLoader;
+import edu.harvard.huh.asa2specify.loader.OptrLoader;
 import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
 import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
 import edu.harvard.huh.asa2specify.loader.PublicationLoader;
@@ -231,6 +233,14 @@ public class LoadHUHdatabase
             BotanistLoader botanistLoader = new BotanistLoader(new File("demo_files/botanist.csv"), statement);
             botanistLoader.setFrame(frame);
             int botanistRecords = botanistLoader.loadRecords();
+            
+            OptrLoader optrLoader = new OptrLoader(new File("demo_files/optr.csv"), statement);
+            optrLoader.setFrame(frame);
+            int optrRecords = optrLoader.loadRecords();
+            
+            AffiliateLoader affiliateLoader = new AffiliateLoader(new File("demo_files/affiliate.csv"), statement, division);
+            affiliateLoader.setFrame(frame);
+            int affiliateRecords = affiliateLoader.loadRecords();
             
             BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File("demo_files/botanist_name.csv"), statement);
             botanistNameLoader.setFrame(frame);
