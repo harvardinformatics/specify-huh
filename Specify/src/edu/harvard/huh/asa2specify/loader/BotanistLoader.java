@@ -110,20 +110,11 @@ public class BotanistLoader extends CsvToSqlLoader {
             botanist.setCorporate( isCorporate );
 
             String name = StringUtils.trimToNull( columns[3] );
-            if (name != null)
-            {
-                botanist.setName( name );
-            }
-            else {
-                throw new LocalException( "No name found in record ");
-            }
+            botanist.setName( name );
 
             // no place to put this at the moment: birth/death, flourished, collected, received specimens
             String datesType = StringUtils.trimToNull( columns[4] );
-            if ( datesType != null )
-            {
-                botanist.setDatesType( datesType );
-            }
+            botanist.setDatesType( datesType );
 
             String startYearStr = StringUtils.trimToNull( columns[5] );
             if ( startYearStr != null )
@@ -151,10 +142,7 @@ public class BotanistLoader extends CsvToSqlLoader {
             }
 
             String remarks = StringUtils.trimToNull( columns[9] );
-            if ( remarks != null )
-            {
-                botanist.setRemarks(SqlUtils.iso8859toUtf8(remarks));
-            }
+            botanist.setRemarks(SqlUtils.iso8859toUtf8(remarks));
             
             Integer optrId = Integer.parseInt(StringUtils.trimToNull( columns[10] ));
             botanist.setCreatedById(optrId);
