@@ -209,11 +209,13 @@ public class SqlUtils
     
     public static Date parseDate(String dateString) throws LocalException
     {
+        if (dateString == null) return null;
+        
         Date date = null;
         try
         {
             date = formatter.parse(dateString);
-            }
+        }
         catch (ParseException e)
         {
             throw new LocalException("Couldn't parse date", e);
