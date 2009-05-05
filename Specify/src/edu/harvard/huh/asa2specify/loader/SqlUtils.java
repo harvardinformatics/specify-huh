@@ -15,14 +15,17 @@
 package edu.harvard.huh.asa2specify.loader;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
 public class SqlUtils
 {
-    public static final String SqlDateFormat = "yyyy-mm-dd";
+    public static final String SqlDateFormat = "yyyy-MM-dd hh:mm:ss";
     
     private static final SimpleDateFormat formatter = new SimpleDateFormat(SqlDateFormat);
 
@@ -72,6 +75,26 @@ public class SqlUtils
         return sb.toString();
     }
     
+    public static String getInsertSql(String tableName, String fieldNameList, String[] values) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append( "insert into " );
+        sb.append( tableName );
+        sb.append( "(" );
+        sb.append( fieldNameList );
+        sb.append( ") values (" );
+
+        for ( String value : values ) {
+            sb.append( value );
+            sb.append( ", " );
+        }
+        sb.delete( sb.length() - 2, sb.length() );
+
+        sb.append( ")" );
+
+        return sb.toString();
+    }
+    
     public static String getQueryIdByFieldSql(String tableName, String idFieldName, String fieldName, String value)
     {
         StringBuilder sb = new StringBuilder();
@@ -101,6 +124,7 @@ public class SqlUtils
         
         return sb.toString();
     }
+    
     public static String getUpdateSql(String tableName, String setField, String setValue, String whereField, String whereValue) {
         StringBuilder sb = new StringBuilder();
         
@@ -118,6 +142,30 @@ public class SqlUtils
         return sb.toString();
     }
 
+    public static String getUpdateSql(String tableName, String[] fields, String[] values, String whereField, String whereValue) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append( "update " );
+        sb.append( tableName );
+        sb.append( " set " );
+
+
+        for ( int i = 0; i < fields.length; i++ ) {
+            sb.append( fields[ i ] );
+            sb.append( "= " );
+            sb.append( values[ i ] );
+            sb.append( ", " );
+        }
+        sb.delete( sb.length() - 2, sb.length() );
+
+        sb.append(" where ");
+        sb.append(whereField);
+        sb.append("=");
+        sb.append(whereValue);
+
+        return sb.toString();
+    }
+    
     public static String sqlEscape(String string, char c) {
         if (string == null) return null;
 
@@ -155,6 +203,24 @@ public class SqlUtils
         return "\"" + formatter.format(c.getTime()) + "\"";
     }
 
+    public static String sqlString(Timestamp t) {
+        return "\"" + formatter.format(t.getTime()) + "\"";
+    }
+    
+    public static Date parseDate(String dateString) throws LocalException
+    {
+        Date date = null;
+        try
+        {
+            date = formatter.parse(dateString);
+            }
+        catch (ParseException e)
+        {
+            throw new LocalException("Couldn't parse date", e);
+        }
+        return date;
+    }
+    
     public static String iso8859toUtf8( String string ) throws LocalException
     {
         if (string != null) {

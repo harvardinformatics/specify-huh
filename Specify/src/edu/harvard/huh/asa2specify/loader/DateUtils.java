@@ -1,6 +1,8 @@
 package edu.harvard.huh.asa2specify.loader;
 
+import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 import edu.harvard.huh.asa.BDate;
@@ -13,6 +15,10 @@ public class DateUtils {
 	private static final String[] MONTHS =
 		{ "January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December" };
+	
+	public static Timestamp toTimestamp(Date date) {
+	    return new Timestamp(date.getTime());
+	}
 	
 	/**
 	 * Return a string representation in the format "mmm dd, yyyy - mmm dd, yyyy"

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
 
@@ -13,13 +14,17 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader {
 
 	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
+	private static Hashtable<Integer, Agent> agentsByOptrId = new Hashtable<Integer, Agent>();
+	
 	private LineIterator lineIterator;
 	private File csvFile;
 	private Statement sqlStatement;
@@ -116,6 +121,27 @@ public abstract class CsvToSqlLoader {
 		{
 			throw new LocalException("Problem numbering nodes", e);
 		}
+	}
+
+	protected Agent getAgentByOptrId(Integer optrId) throws LocalException
+	{
+	    Agent agent = agentsByOptrId.get(optrId);
+
+	    if (agent == null)
+	    {
+	        Optr optr = new Optr();
+	        optr.setId(optrId);
+
+	        String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", optr.getGuid());
+
+	        Integer agentId = queryForId(sql);
+
+	        agent = new Agent();
+	        agent.setAgentId(agentId);
+	        agentsByOptrId.put(optrId, agent);
+	    } 
+	    
+        return agent;
 	}
 
 	public void setFrame(ProgressFrame frame)

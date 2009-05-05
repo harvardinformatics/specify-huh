@@ -2,22 +2,61 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Date;
+import java.util.Hashtable;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
+import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends CsvToSqlLoader {
     private final Logger log = Logger.getLogger(BotanistLoader.class);
-
-	public BotanistLoader(File csvFile, Statement sqlStatement)
+    
+    private static Hashtable<Integer, Integer> optrIdsByBotanistId = new Hashtable<Integer, Integer>();
+	
+    public BotanistLoader(File csvFile, Statement sqlStatement)
 	{
 		super(csvFile, sqlStatement);
+		
+        optrIdsByBotanistId.put(Botanist.BFRANZONE,  Optr.BFRANZONE);
+        optrIdsByBotanistId.put(Botanist.BRACH,      Optr.BRACH);
+        optrIdsByBotanistId.put(Botanist.BTAN,       Optr.BTAN);
+        optrIdsByBotanistId.put(Botanist.CBEANS,     Optr.CBEANS);
+        optrIdsByBotanistId.put(Botanist.DBOUFFORD,  Optr.DBOUFFORD);
+        optrIdsByBotanistId.put(Botanist.DPFISTER,   Optr.DPFISTER);
+        optrIdsByBotanistId.put(Botanist.EPFISTER,   Optr.EPFISTER);
+        optrIdsByBotanistId.put(Botanist.ESHAW1,     Optr.ESHAW);
+        optrIdsByBotanistId.put(Botanist.ESHAW2,     Optr.ESHAW);
+        optrIdsByBotanistId.put(Botanist.EWOOD,      Optr.EWOOD);
+        optrIdsByBotanistId.put(Botanist.EZACHARIAS, Optr.EZACHARIAS);
+        optrIdsByBotanistId.put(Botanist.GLEWISG,    Optr.GLEWISG);
+        optrIdsByBotanistId.put(Botanist.HALLING,    Optr.HALLING);
+        optrIdsByBotanistId.put(Botanist.HKESNER,    Optr.HKESNER);
+        optrIdsByBotanistId.put(Botanist.IHAY,       Optr.IHAY);
+        optrIdsByBotanistId.put(Botanist.JCACAVIO,   Optr.JCACAVIO);
+        optrIdsByBotanistId.put(Botanist.JDOLAN,     Optr.JDOLAN);
+        optrIdsByBotanistId.put(Botanist.JMACKLIN,   Optr.JMACKLIN);
+        optrIdsByBotanistId.put(Botanist.KGANDHI,    Optr.KGANDHI);
+        optrIdsByBotanistId.put(Botanist.KITTREDGE,  Optr.KITTREDGE);
+        optrIdsByBotanistId.put(Botanist.LLUKAS,     Optr.LLUKAS);
+        optrIdsByBotanistId.put(Botanist.MACKLILN,   Optr.MACKLILN);
+        optrIdsByBotanistId.put(Botanist.MPETERS,    Optr.MPETERS);
+        optrIdsByBotanistId.put(Botanist.MSCHMULL,   Optr.MSCHMULL);
+        optrIdsByBotanistId.put(Botanist.PWHITE,     Optr.PWHITE);
+        optrIdsByBotanistId.put(Botanist.ROMERO,     Optr.ROMERO);
+        optrIdsByBotanistId.put(Botanist.SDAVIES,    Optr.SDAVIES);
+        optrIdsByBotanistId.put(Botanist.SHULTZ1,    Optr.SHULTZ);
+        optrIdsByBotanistId.put(Botanist.SHULTZ2,    Optr.SHULTZ);
+        optrIdsByBotanistId.put(Botanist.SKELLEY,    Optr.SKELLEY);
+        optrIdsByBotanistId.put(Botanist.SLAGRECA,   Optr.SLAGRECA); 
+        optrIdsByBotanistId.put(Botanist.SLINDSAY,   Optr.SLINDSAY);
+        optrIdsByBotanistId.put(Botanist.SZABEL,     Optr.SZABEL);
+        optrIdsByBotanistId.put(Botanist.THIERS,     Optr.THIERS);
+        optrIdsByBotanistId.put(Botanist.ZANONI,     Optr.ZANONI);
 	}
 
 	public void loadRecord(String[] columns) throws LocalException {
@@ -25,17 +64,34 @@ public class BotanistLoader extends CsvToSqlLoader {
 		Botanist botanist = parseBotanistRecord(columns);
 
         // convert botanist into agent ...
-        Agent agent = convert( botanist );
+        Agent botanistAgent = convert( botanist );
 
-        // convert agent to sql and insert
-        String sql = getInsertSql(agent);
-        insert(sql);
+        // find matching record creator
+        Integer creatorOptrId = botanist.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        botanistAgent.setCreatedByAgent(createdByAgent);
+        
+        // convert agent to sql and insert or update (if there was an optr record for this botanist)
+        Integer botanistOptrId = optrIdsByBotanistId.get(botanist.getId());
+        if (botanistOptrId == null)
+        {
+            String sql = getInsertSql(botanistAgent);
+            insert(sql);
+        }
+        else
+        {
+            Optr botanistOptr = new Optr();
+            botanistOptr.setId(botanistOptrId);
+
+            String sql = getUpdateSql(botanistAgent, botanistOptr.getGuid());
+            update(sql);
+        }
 	}
 
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
     private Botanist parseBotanistRecord(String[] columns) throws LocalException
     {
-        if (columns.length < 10)
+        if (columns.length < 12)
         {
             throw new LocalException("Wrong number of columns");
         }
@@ -43,7 +99,7 @@ public class BotanistLoader extends CsvToSqlLoader {
         // assign values to Botanist object
         Botanist botanist = new Botanist();
         try {
-            botanist.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+            botanist.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] )));
 
             String isTeamStr = StringUtils.trimToNull( columns[1] );
             boolean isTeam = isTeamStr != null && isTeamStr.equals( "true" );
@@ -99,6 +155,13 @@ public class BotanistLoader extends CsvToSqlLoader {
             {
                 botanist.setRemarks(SqlUtils.iso8859toUtf8(remarks));
             }
+            
+            Integer optrId = Integer.parseInt(StringUtils.trimToNull( columns[10] ));
+            botanist.setCreatedById(optrId);
+            
+            String createDateString = StringUtils.trimToNull( columns[11] );
+            Date createDate = SqlUtils.parseDate(createDateString);
+            botanist.setDateCreated(createDate);
         }
         catch (NumberFormatException e) {
             throw new LocalException("Couldn't parse numeric field", e);
@@ -107,8 +170,8 @@ public class BotanistLoader extends CsvToSqlLoader {
         return botanist;
     }
 
-    public Agent convert( Botanist botanist ) {
-        
+    public Agent convert( Botanist botanist ) throws LocalException
+    {    
 		Agent agent = new Agent();
 
 		// NOTE: as of 11:46 am Feb 27 2009, each botanist record that lacks a full name
@@ -145,25 +208,36 @@ public class BotanistLoader extends CsvToSqlLoader {
         
 		// LastName
 		String lastName = botanist.getLastName();
-		if ( lastName.length() > 50 ) {
-            log.warn( "truncating last name" );
-            lastName = lastName.substring( 0, 50 );
+		if (lastName == null)
+		{
+		    throw new LocalException("No last name in botanist record");
+		}
+
+		if (lastName.length() > 50)
+		{
+            log.warn("truncating last name");
+            lastName = lastName.substring(0, 50);
         }
-        agent.setLastName( lastName );
+        agent.setLastName(lastName);
         
         // FirstName
 		String firstName = botanist.getFirstName();
-		if ( firstName.length() > 50 ) {
-            log.warn( "truncating last name" );
-            firstName = firstName.substring( 0, 50 );
+		if (firstName != null && firstName.length() > 50) {
+            log.warn("truncating last name");
+            firstName = firstName.substring(0, 50);
         }
-        agent.setFirstName( firstName );
+        agent.setFirstName(firstName);
 
 		// Remarks
         String remarks = botanist.getRemarks();
-        if ( remarks != null ) {
-            agent.setRemarks( remarks );
+        if (remarks != null)
+        {
+            agent.setRemarks(remarks);
         }
+
+        // TimestampCreated
+        Date dateCreated = botanist.getDateCreated();
+        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 
         return agent;
 	}
@@ -172,19 +246,41 @@ public class BotanistLoader extends CsvToSqlLoader {
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, GUID, DateOfBirth, DateOfDeath, FirstName, LastName, TimestampCreated, Remarks";
+			"AgentType, GUID, DateOfBirth, DateOfDeath, FirstName, LastName, Remarks, CreatedByAgentID, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(8);
+		String[] values = new String[9];
 
-		values.add(    String.valueOf(agent.getAgentType()   ));
-		values.add(SqlUtils.sqlString(agent.getGuid()        ));
-		values.add(SqlUtils.sqlString(agent.getDateOfBirth() ));
-		values.add(SqlUtils.sqlString(agent.getDateOfDeath() ));
-		values.add(SqlUtils.sqlString(agent.getFirstName()   ));
-		values.add(SqlUtils.sqlString(agent.getLastName()    ));
-		values.add("now()" );
-		values.add(SqlUtils.sqlString(agent.getRemarks()     ));
+		values[0] =     String.valueOf(agent.getAgentType());
+		values[1] = SqlUtils.sqlString(agent.getGuid());
+		values[2] = SqlUtils.sqlString(agent.getDateOfBirth());
+		values[3] = SqlUtils.sqlString(agent.getDateOfDeath());
+		values[4] = SqlUtils.sqlString(agent.getFirstName());
+		values[5] = SqlUtils.sqlString(agent.getLastName());
+	    values[6] = SqlUtils.sqlString(agent.getRemarks());
+	    values[7] =     String.valueOf(agent.getCreatedByAgent().getId());
+		values[8] = SqlUtils.sqlString(agent.getTimestampCreated());
+
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
+
+	   private String getUpdateSql(Agent agent, String agentGuid) throws LocalException
+	    {
+	        String[] fieldNames = { "AgentType", "GUID", "DateOfBirth", "DateOfDeath", "FirstName", 
+	                                "LastName", "Remarks", "CreatedByAgentID", "TimestampCreated" };
+
+	        String[] values = new String[9];
+
+	        values[0] =     String.valueOf(agent.getAgentType());
+	        values[1] = SqlUtils.sqlString(agent.getGuid());
+	        values[2] = SqlUtils.sqlString(agent.getDateOfBirth());
+	        values[3] = SqlUtils.sqlString(agent.getDateOfDeath());
+	        values[4] = SqlUtils.sqlString(agent.getFirstName());
+	        values[5] = SqlUtils.sqlString(agent.getLastName());
+	        values[6] = SqlUtils.sqlString(agent.getRemarks());
+	        values[7] =     String.valueOf(agent.getCreatedByAgent().getId());
+	        values[8] = SqlUtils.sqlString(agent.getTimestampCreated());
+
+	        return SqlUtils.getUpdateSql("agent", fieldNames, values, "GUID", agentGuid);
+	    }
 }

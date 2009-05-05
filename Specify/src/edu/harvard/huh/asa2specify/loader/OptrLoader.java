@@ -25,7 +25,7 @@ public class OptrLoader extends CsvToSqlLoader {
 	{
 		Optr optr = parseOptrRecord(columns);
 
-		// convert organization into agent ...
+		// convert optr into agent ...
 		Agent agent = convert(optr);
 
 		// convert organization to sql and insert
