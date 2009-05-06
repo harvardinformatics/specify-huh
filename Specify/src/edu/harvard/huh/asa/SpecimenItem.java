@@ -1,13 +1,14 @@
 package edu.harvard.huh.asa;
 
 import java.util.Calendar;
+import java.util.Date;
 
 public class SpecimenItem {
 	
 	private  Integer id;
 	private  Integer specimenId;
 	private  Integer barcode;
-	private  Integer botanistId;
+	private  Integer collectorId;
 	private   String collectorNo;
 	private   String herbariumCode;
 	private  Integer siteId;
@@ -23,13 +24,15 @@ public class SpecimenItem {
 	private   String reproStatus;
 	private   String sex;
 	private   String accessionNo;
+	private   String accessionStatus;
 	private   String note; // specimen_item.note
 	private   String reference;
 	private   String description;
 	private   String habitat;
 	private   String substrate;
-	private Calendar catalogedDate;
-	private   String createdBy;	
+	private   String container;
+	private     Date catalogedDate;
+	private  Integer catalogedById;	
 	private    BDate collDate;
 	
 	public SpecimenItem() {
@@ -42,7 +45,7 @@ public class SpecimenItem {
 	
 	public Integer getBarcode() { return this.barcode; }
 	
-	public Integer getBotanistId() { return this.botanistId; }
+	public Integer getCollectorId() { return this.collectorId; }
 	
 	public String getCollectorNo() { return this.collectorNo; }
 
@@ -72,6 +75,8 @@ public class SpecimenItem {
 	
 	public String getAccessionNo() { return this.accessionNo; }
 	
+	public String getAccessionStatus() { return this.accessionStatus; }
+	
 	public String getNote() { return this.note; }
 	
 	public String getReference() { return this.reference; }
@@ -82,13 +87,15 @@ public class SpecimenItem {
 	
 	public String getSubstrate() { return this.substrate; }
 	
-	public Calendar getCatalogedDate() { return this.catalogedDate; }
+	public String getContainer() { return this.container; }
+	
+	public Date getCatalogedDate() { return this.catalogedDate; }
 	
 	public Integer getSeriesId() { return this.seriesId; }
 	
 	public String getSeriesNo() { return this.seriesNo; }
 	
-	public String getCreatedBy() { return this.createdBy; }
+	public Integer getCatalogedById() { return this.catalogedById; }
 
 	public void setId(Integer id) { this.id = id; }
 	
@@ -96,7 +103,7 @@ public class SpecimenItem {
 	
 	public void setBarcode(Integer barcode) { this.barcode = barcode; }
 	
-	public void setBotanistId(Integer botanistId) { this.botanistId = botanistId; }
+	public void setCollectorId(Integer collectorId) { this.collectorId = collectorId; }
 
 	public void setCollectorNo(String collectorNo) { this.collectorNo = collectorNo; }
 	
@@ -126,6 +133,8 @@ public class SpecimenItem {
 	
 	public void setAccessionNo(String accessionNo) { this.accessionNo = accessionNo; }
 	
+	public void setAccessionStatus(String accessionStatus) { this.accessionStatus = accessionStatus; }
+	   
 	public void setNote(String note) { this.note = note; }
 	
 	public void setReference(String reference) { this.reference = reference; }
@@ -136,11 +145,13 @@ public class SpecimenItem {
 	
 	public void setSubstrate(String substrate) { this.substrate = substrate; }
 	
-	public void setCatalogedDate(Calendar catalogedDate) { this.catalogedDate = catalogedDate; }
+	public void setContainer(String container) { this.container = container; }
+	
+	public void setCatalogedDate(Date catalogedDate) { this.catalogedDate = catalogedDate; }
 	
 	public void setSeriesId(Integer seriesId) { this.seriesId = seriesId; }
 	
 	public void setSeriesNo(String seriesNo) { this.seriesNo = seriesNo; }
 	
-	public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+	public void setCatalogedById(Integer catalogedById) { this.catalogedById = catalogedById; }
 }
