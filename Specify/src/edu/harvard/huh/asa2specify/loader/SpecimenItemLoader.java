@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Locality;
@@ -31,23 +33,21 @@ import edu.ku.brc.specify.datamodel.Preparation;
 public class SpecimenItemLoader extends CsvToSqlLoader {
 
 	private final Logger log = Logger.getLogger(SpecimenItemLoader.class);
-	private Discipline discipline;
 
+	private Discipline discipline;
+	private Division   division;
+	
 	// initialize collection code to id hashtable
 	private Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
 
 	// initialize prep type hashtable
 	private Hashtable<String, PrepType> prepTypesByName = new Hashtable<String, PrepType>();
 	
-	// initialize cataloger hashtable
-	private Hashtable<String, Agent> catalogersByName = new Hashtable<String, Agent>();
-
-	public SpecimenItemLoader(File csvFile, Statement sqlStatement, Discipline discipline) {
+	public SpecimenItemLoader(File csvFile, Statement sqlStatement, Discipline discipline, Division division) {
 		super(csvFile, sqlStatement);
 		
 		this.discipline = discipline;
-		
-		// TODO: initialize catalogersByName with botanist-optrs; write OptrLoader
+		this.division   = division;
 	}
 
 	@Override
@@ -70,21 +70,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 			collection = new Collection();
 			collection.setCollectionId(collectionId);
 			collectionsByCode.put(herbariumCode, collection);
-		}
-
-		// find the matching accession record
-		Accession accession = new Accession();
-		String accessionNumber = specimenItem.getAccessionNo();
-
-		if (accessionNumber != null) {
-			sql = SqlUtils.getQueryIdByFieldSql("accession", "AccessionID", "AccessionNumber", accessionNumber);
-
-			Integer accessionId = queryForId(sql);
-
-			if (accessionId != null)
-			{
-				accession.setAccessionId(accessionId);
-			}
 		}
 		
 		// find the matching series record
@@ -126,7 +111,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		
 		// find the matching collector
 		Agent agent = new Agent();
-		Integer botanistId = specimenItem.getBotanistId();
+		Integer botanistId = specimenItem.getCollectorId();
 		
 		if (botanistId != null)
 		{
@@ -145,23 +130,9 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		}
 		
 		// find the matching cataloger
-		String createdBy = specimenItem.getCreatedBy();
-		Agent cataloger = catalogersByName.get(createdBy);
-		if (cataloger == null)
-		{
-			sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", createdBy);
-			Integer catalogerId = queryForId(sql);
+		Integer createdById = specimenItem.getCatalogedById();
+		Agent cataloger = this.getAgentByOptrId(createdById);
 
-			if (catalogerId == null) {
-				throw new LocalException("Didn't find cataloger for name " + createdBy);
-			}
-
-			cataloger = new Agent();
-			cataloger.setAgentId(catalogerId);
-			catalogersByName.put(createdBy, cataloger);
-		}
-
-		
 		// find the matching prep type
 		String format = specimenItem.getFormat();
 		PrepType prepType = prepTypesByName.get(format);
@@ -185,7 +156,18 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		// from which we get the CollectionObject
 		CollectionObject collectionObject = preparation.getCollectionObject();
 		
-		// from which we get the CollectingEvent
+	    // and from which we might get an Accession
+        Accession accession = collectionObject.getAccession();
+        if (accession.getAccessionNumber() != null)
+        {
+            // insert Accession
+            sql = getInsertSql(accession);
+            Integer accessionId = insert(sql);
+            accession.setAccessionId(accessionId);
+            accession.setDivision(division);
+        }
+            
+		// also from CollectionObject we get the CollectingEvent
 		CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
 		collectingEvent.setDiscipline(discipline);
 		collectingEvent.setLocality(locality);
@@ -204,13 +186,14 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		collector.setOrderNumber(1);
 		
 		sql = getInsertSql(collector);
-		
+				
 		// insert CollectionObject
 		collectionObject.setCollectingEvent(collectingEvent);
 		collectionObject.setCollection(collection);
 		collectionObject.setCollectionMemberId(collection.getCollectionId());
 		collectionObject.setAccession(accession);
 		collectionObject.setCataloger(cataloger);
+		collectionObject.setCreatedByAgent(cataloger);
 		
 		sql = getInsertSql(collectionObject);
 		Integer collectionObjectId = insert(sql);
@@ -227,6 +210,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		if (exsiccata.getExsiccataId() != null)
 		{
 			ExsiccataItem exsiccataItem = new ExsiccataItem();
+			exsiccataItem.setNumber(specimenItem.getSeriesNo());
 			exsiccataItem.setCollectionObject(collectionObject);
 			exsiccataItem.setExsiccata(exsiccata);
 			
@@ -235,19 +219,74 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		}
 	}
 
-	public SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
+	private SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
 	{
-		if (columns.length < 35) //TODO: implement
+		if (columns.length < 36)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
 
 		SpecimenItem specimenItem = new SpecimenItem();
 
-		return specimenItem;
+		try {
+		    specimenItem.setId(      Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+		    specimenItem.setBarcode( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
+		    specimenItem.setCollectorNo(               StringUtils.trimToNull( columns[2] ));
+		    
+            String createDateString = StringUtils.trimToNull( columns[3] );
+            Date createDate = SqlUtils.parseDate(createDateString);
+            specimenItem.setCatalogedDate(createDate);
+            
+            String isCultivated = StringUtils.trimToNull( columns[4] );
+            specimenItem.setCultivated( isCultivated != null && isCultivated.equals("true") ? true : false);
+            
+            specimenItem.setDescription(     StringUtils.trimToNull( columns[5]  ));
+            specimenItem.setHabitat(         StringUtils.trimToNull( columns[6]  ));
+            specimenItem.setSubstrate(       StringUtils.trimToNull( columns[7]  ));
+            specimenItem.setReproStatus(     StringUtils.trimToNull( columns[8]  ));
+            specimenItem.setSex(             StringUtils.trimToNull( columns[9]  ));
+            specimenItem.setRemarks(         StringUtils.trimToNull( columns[10] ));
+            specimenItem.setAccessionNo(     StringUtils.trimToNull( columns[11] ));
+            specimenItem.setProvenance(      StringUtils.trimToNull( columns[12] ));
+            specimenItem.setAccessionStatus( StringUtils.trimToNull( columns[13] ));
+            
+            BDate bdate = new BDate();
+            
+            bdate.setStartYear(           Integer.parseInt(  StringUtils.trimToNull( columns[14] )));
+            bdate.setStartMonth(          Integer.parseInt(  StringUtils.trimToNull( columns[15] )));
+            bdate.setStartDay(            Integer.parseInt(  StringUtils.trimToNull( columns[16] )));
+            bdate.setStartPrecision(                         StringUtils.trimToNull( columns[17] ));
+            bdate.setEndYear(              Integer.parseInt( StringUtils.trimToNull( columns[18] )));
+            bdate.setEndMonth(             Integer.parseInt( StringUtils.trimToNull( columns[19] )));
+            bdate.setEndDay(               Integer.parseInt( StringUtils.trimToNull( columns[20] )));
+            bdate.setEndPrecision(                           StringUtils.trimToNull( columns[21] ));
+            bdate.setText(                                   StringUtils.trimToNull( columns[22] ));            
+            specimenItem.setItemNo(        Integer.parseInt( StringUtils.trimToNull( columns[23] )));
+            
+            String isOversize = StringUtils.trimToNull( columns[24] );
+            specimenItem.setOversize( isOversize != null && isOversize.equals("true") ? true : false);
+            
+            specimenItem.setVoucher(                         StringUtils.trimToNull( columns[25] ));
+            specimenItem.setReference(                       StringUtils.trimToNull( columns[26] ));
+            specimenItem.setNote(                            StringUtils.trimToNull( columns[27] ));
+            specimenItem.setHerbariumCode(                   StringUtils.trimToNull( columns[28] ));
+            specimenItem.setSeriesId(      Integer.parseInt( StringUtils.trimToNull( columns[29] )));
+            specimenItem.setSiteId(        Integer.parseInt( StringUtils.trimToNull( columns[30] )));
+            specimenItem.setCollectorId(   Integer.parseInt( StringUtils.trimToNull( columns[31] )));
+            specimenItem.setCatalogedById( Integer.parseInt( StringUtils.trimToNull( columns[32] )));
+            specimenItem.setFormat(                          StringUtils.trimToNull( columns[33] ));
+            specimenItem.setSeriesNo(                        StringUtils.trimToNull( columns[34] ));
+            specimenItem.setContainer(                       StringUtils.trimToNull( columns[35] ));
+		}
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+
+        return specimenItem;
 	}
 
-	public Preparation convert(SpecimenItem specimenItem) {
+	private Preparation convert(SpecimenItem specimenItem) {
 
 		CollectionObject collectionObject = new CollectionObject();
 
@@ -265,13 +304,14 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		collectionObject.setFieldNumber(collectorNo);
 
 		// TODO: countAmt: do we need to preserve this?  I'm not importing it at the moment.
-
-		collectionObject.setCatalogedDate( specimenItem.getCatalogedDate() );
+		// TODO: container: this should go somewhere, but I don't know where.
+		
+		// TimestampCreated
+        Date dateCreated = specimenItem.getCatalogedDate();
+        collectionObject.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 		collectionObject.setCatalogedDatePrecision( (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal() );
 
 		collectionObject.setYesNo1(specimenItem.isCultivated()); // TODO: implement
-
-		StringBuilder sb = new StringBuilder();
 
 		String description = specimenItem.getDescription();
 		if (description != null && description.length() > 255)
@@ -284,6 +324,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		String habitat = specimenItem.getHabitat();
 		collectionObject.setText1(habitat);
 
+	    StringBuilder sb = new StringBuilder();
+	      
 		String substrate = specimenItem.getSubstrate();
 		if (substrate != null) {
 			sb.append("SUBSTRATE: ");
@@ -311,12 +353,30 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		String remarks = specimenItem.getRemarks();
 		collectionObject.setRemarks(remarks);
 		
+	    // Accession
+        Accession accession = new Accession();
+        String accessionNumber = specimenItem.getAccessionNo();
+        String provenance = specimenItem.getProvenance();
+        String status = specimenItem.getAccessionStatus();
+        
+        if (provenance != null && accessionNumber == null)
+        {
+            accessionNumber = "N/A";
+        }
+        if (accessionNumber != null)
+        {
+            accession.setAccessionNumber(accessionNumber);
+            accession.setRemarks(provenance);
+            accession.setStatus(status);
+        }
+		collectionObject.setAccession(accession);
+        
 		CollectingEvent collectingEvent = new CollectingEvent();
 		BDate bdate = specimenItem.getCollDate();
 
-		Integer startYear = bdate.getStartYear();
+		Integer startYear  = bdate.getStartYear();
 		Integer startMonth = bdate.getStartMonth();
-		Integer startDay = bdate.getStartDay();
+		Integer startDay   = bdate.getStartDay();
 
 		if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) ) {
 			collectingEvent.setStartDate( DateUtils.getSpecifyStartDate( bdate ) );
@@ -335,11 +395,11 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		}
 
 		// StartDatePrecision
-		// TODO: find out what the options are
+		// TODO: start/end date precision: find out what the options are
 
-		Integer endYear = bdate.getEndYear();
+		Integer endYear  = bdate.getEndYear();
 		Integer endMonth = bdate.getEndMonth();
-		Integer endDay = bdate.getEndDay();
+		Integer endDay   = bdate.getEndDay();
 
 		if ( DateUtils.isValidSpecifyDate( endYear, endMonth, endDay ) ) {
 			collectingEvent.setEndDate( DateUtils.getSpecifyEndDate( bdate ) );
@@ -377,103 +437,119 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 		return preparation;
 	}
+	   
+    private String getInsertSql(Accession accession)
+    {
+        String fieldNames = "AccessionNumber, AccessionStatus, Remarks, DivisionID, TimestampCreated";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( accession.getAccessionNumber()  );
+        values[1] = SqlUtils.sqlString( accession.getStatus()           );
+        values[2] = SqlUtils.sqlString( accession.getRemarks()          );
+        values[3] =     String.valueOf( accession.getDivision().getId() );
+        values[4] = "now()";
+        
+        return SqlUtils.getInsertSql("accession", fieldNames, values);
+    }
 
-	public String getInsertSql(CollectionObject collectionObject) throws LocalException
+    private String getInsertSql(CollectingEvent collectingEvent) throws LocalException
+    {
+        String fieldNames = "EndDate, EndDatePrecision, EndDateVerbatim, StartDate, StartDatePrecision, " +
+                            "StartDateVerbatim, VerbatimDate, DisciplineID, LocalityID, TimestampCreated";
+
+        String[] values = new String[10];
+        
+        values[0] = SqlUtils.sqlString( collectingEvent.getEndDate()                      );
+        values[1] =     String.valueOf( collectingEvent.getEndDatePrecision()             );
+        values[2] = SqlUtils.sqlString( collectingEvent.getEndDateVerbatim()              );
+        values[3] = SqlUtils.sqlString( collectingEvent.getStartDate()                    );
+        values[4] =     String.valueOf( collectingEvent.getStartDatePrecision()           );
+        values[5] = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim()            );
+        values[6] = SqlUtils.sqlString( collectingEvent.getVerbatimDate()                 );
+        values[7] =     String.valueOf( collectingEvent.getDiscipline().getDisciplineId() );
+        values[8] =     String.valueOf( collectingEvent.getLocality().getLocalityId()     );
+        values[9] = "now()";
+
+        return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
+    }
+
+    private String getInsertSql(Collector collector)
+    {
+        String fieldNames = "CollectionMemberID, IsPrimary, OrderNumber, AgentID, CollectingEventID, TimestampCreated";
+        
+        String[] values = new String[6];
+        
+        values[0] = String.valueOf( collector.getCollectionMemberId()                     );
+        values[1] = String.valueOf( collector.getIsPrimary()                              );
+        values[2] = String.valueOf( collector.getOrderNumber()                            );
+        values[3] = String.valueOf( collector.getAgent().getAgentId()                     );
+        values[4] = String.valueOf( collector.getCollectingEvent().getCollectingEventId() );
+        values[5] = "now()";
+        
+        return SqlUtils.getInsertSql("collector", fieldNames, values);
+    }
+    
+	private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
 		String fieldNames = "AccessionID, CollectionID, CollectionMemberID, CatalogerID, CatalogNumber, " +
 							"CatalogedDate, CatalogedDatePrecision, CollectingEventID, Description, " +
-							"FieldNumber, GUID, Text1, Text2, YesNo1, Remarks, TimestampCreated";
+							"FieldNumber, GUID, Text1, Text2, YesNo1, Remarks, CreatedByAgentID, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(16);
+		String[] values = new String[17];
 		
-		values.add(    String.valueOf(collectionObject.getAccession().getAccessionId()            ));
-		values.add(    String.valueOf(collectionObject.getCollection().getCollectionId()          ));
-		values.add(    String.valueOf(collectionObject.getCollectionMemberId()                    ));
-		values.add(    String.valueOf(collectionObject.getCataloger().getAgentId()                ));
-		values.add(SqlUtils.sqlString(collectionObject.getCatalogNumber()                         ));
-		values.add(SqlUtils.sqlString(collectionObject.getCatalogedDate()                         ));
-		values.add(    String.valueOf(collectionObject.getCatalogedDatePrecision()                ));
-		values.add(    String.valueOf(collectionObject.getCollectingEvent().getCollectingEventId()));
-		values.add(SqlUtils.sqlString(collectionObject.getDescription()                           ));
-		values.add(SqlUtils.sqlString(collectionObject.getFieldNumber()                           ));
-		values.add(SqlUtils.sqlString(collectionObject.getGuid()                                  ));
-		values.add(SqlUtils.sqlString(collectionObject.getText1()                                 ));
-		values.add(SqlUtils.sqlString(collectionObject.getText2()                                 ));
-		values.add(    String.valueOf(collectionObject.getYesNo1()                                ));
-		values.add(SqlUtils.sqlString(collectionObject.getRemarks()                               ));
-		values.add("now()");
+		values[0]  =     String.valueOf( collectionObject.getAccession().getAccessionId()             );
+		values[1]  =     String.valueOf( collectionObject.getCollection().getCollectionId()           );
+		values[2]  =     String.valueOf( collectionObject.getCollectionMemberId()                     );
+		values[3]  =     String.valueOf( collectionObject.getCataloger().getAgentId()                 );
+		values[4]  = SqlUtils.sqlString( collectionObject.getCatalogNumber()                          );
+		values[5]  = SqlUtils.sqlString( collectionObject.getCatalogedDate()                          );
+		values[6]  =     String.valueOf( collectionObject.getCatalogedDatePrecision()                 );
+		values[7]  =     String.valueOf( collectionObject.getCollectingEvent().getCollectingEventId() );
+		values[8]  = SqlUtils.sqlString( collectionObject.getDescription()                            );
+		values[9]  = SqlUtils.sqlString( collectionObject.getFieldNumber()                            );
+		values[10] = SqlUtils.sqlString( collectionObject.getGuid()                                   );
+		values[11] = SqlUtils.sqlString( collectionObject.getText1()                                  );
+		values[12] = SqlUtils.sqlString( collectionObject.getText2()                                  );
+		values[13] =     String.valueOf( collectionObject.getYesNo1()                                 );
+		values[14] = SqlUtils.sqlString( collectionObject.getRemarks()                                );
+		values[15] =     String.valueOf( collectionObject.getCreatedByAgent().getId()                 );
+		values[16] = SqlUtils.sqlString( collectionObject.getTimestampCreated()                       );
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
-
-	public String getInsertSql(CollectingEvent collectingEvent) throws LocalException
-	{
-		String fieldNames = "EndDate, EndDatePrecision, EndDateVerbatim, StartDate, StartDatePrecision, " +
-				            "StartDateVerbatim, VerbatimDate, DisciplineID, LocalityID, TimestampCreated";
-
-		List<String> values = new ArrayList<String>(10);
-		
-		values.add(SqlUtils.sqlString(collectingEvent.getEndDate()                     ));
-		values.add(    String.valueOf(collectingEvent.getEndDatePrecision()            ));
-		values.add(SqlUtils.sqlString(collectingEvent.getEndDateVerbatim()             ));
-		values.add(SqlUtils.sqlString(collectingEvent.getStartDate()                   ));
-		values.add(    String.valueOf(collectingEvent.getStartDatePrecision()          ));
-		values.add(SqlUtils.sqlString(collectingEvent.getStartDateVerbatim()           ));
-		values.add(SqlUtils.sqlString(collectingEvent.getVerbatimDate()                ));
-		values.add(    String.valueOf(collectingEvent.getDiscipline().getDisciplineId()));
-		values.add(    String.valueOf(collectingEvent.getLocality().getLocalityId()    ));
-		values.add("now()");
-
-		return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
-	}
-
-	public String getInsertSql(Collector collector)
-	{
-		String fieldNames = "CollectionMemberID, IsPrimary, OrderNumber, AgentID, CollectingEventID, TimestampCreated";
-		
-		List<String> values = new ArrayList<String>(6);
-		
-		values.add(String.valueOf(collector.getCollectionMemberId()                    ));
-		values.add(String.valueOf(collector.getIsPrimary()                             ));
-		values.add(String.valueOf(collector.getOrderNumber()                           ));
-		values.add(String.valueOf(collector.getAgent().getAgentId()                    ));
-		values.add(String.valueOf(collector.getCollectingEvent().getCollectingEventId()));
-		values.add("now()");
-		
-		return SqlUtils.getInsertSql("collector", fieldNames, values);
-	}
 	
-	public String getInsertSql(Preparation preparation) throws LocalException
+    private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, PrepTypeID, " +
-				            "Number1, YesNo1, Text1, Text2, TimestampCreated, Remarks";
+				            "Number1, YesNo1, Text1, Text2, Remarks, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(9);
+		String[] values = new String[9];
 		
-		values.add(    String.valueOf(preparation.getCollectionMemberId()                      ));
-		values.add(    String.valueOf(preparation.getCollectionObject().getCollectionObjectId()));
-		values.add(    String.valueOf(preparation.getPrepType().getPrepTypeId()                ));
-		values.add(    String.valueOf(preparation.getNumber1()                                 ));
-		values.add(    String.valueOf(preparation.getYesNo1()                                  ));
-		values.add(SqlUtils.sqlString(preparation.getText1()                                   ));
-		values.add(SqlUtils.sqlString(preparation.getText2()                                   ));
-		values.add("now()");
-		values.add(SqlUtils.sqlString(preparation.getRemarks()                                 ));
-
+		values[0] =     String.valueOf( preparation.getCollectionMemberId()                       );
+		values[1] =     String.valueOf( preparation.getCollectionObject().getCollectionObjectId() );
+		values[2] =     String.valueOf( preparation.getPrepType().getPrepTypeId()                 );
+		values[3] =     String.valueOf( preparation.getNumber1()                                  );
+		values[4] =     String.valueOf( preparation.getYesNo1()                                   );
+		values[5] = SqlUtils.sqlString( preparation.getText1()                                    );
+		values[6] = SqlUtils.sqlString( preparation.getText2()                                    );
+		values[7] = SqlUtils.sqlString( preparation.getRemarks()                                  );
+        values[8] = "now()";
+        
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
 
-	public String getInsertSql(ExsiccataItem exsiccataItem) throws LocalException
+    private String getInsertSql(ExsiccataItem exsiccataItem) throws LocalException
 	{
 		String fieldNames = "Fascicle, Number, ExsiccataID, CollectionObjectID, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(5);
+		String[] values = new String[5];
 
-		values.add(SqlUtils.sqlString(exsiccataItem.getFascicle()                ));
-		values.add(SqlUtils.sqlString(exsiccataItem.getNumber()                  ));
-		values.add(    String.valueOf(exsiccataItem.getExsiccata().getId()       ));
-		values.add(    String.valueOf(exsiccataItem.getCollectionObject().getId()));
-		values.add("now");
+		values[0] = SqlUtils.sqlString( exsiccataItem.getFascicle()                 );
+		values[1] = SqlUtils.sqlString( exsiccataItem.getNumber()                   );
+		values[2] =     String.valueOf( exsiccataItem.getExsiccata().getId()        );
+		values[3] =     String.valueOf( exsiccataItem.getCollectionObject().getId() );
+		values[4] ="now";
 
 		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
 	}

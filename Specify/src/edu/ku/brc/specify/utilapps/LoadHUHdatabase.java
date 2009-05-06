@@ -208,6 +208,17 @@ public class LoadHUHdatabase
             TaxonTreeDef taxonTreeDef = null; // TODO: implement
             GeographyTreeDef geoTreeDef = null; // TODO: implement
             
+            // This will load agent records with GUID="{optr.id} optr"
+            OptrLoader optrLoader = new OptrLoader(new File("demo_files/optr.csv"), statement);
+            optrLoader.setFrame(frame);
+            int optrRecords = optrLoader.loadRecords();
+            
+            // This will load agent records with GUID="{botanist.id} botanist".
+            // Pre-existing agent records for people who have both optr and botanist entries will be updated.
+            BotanistLoader botanistLoader = new BotanistLoader(new File("demo_files/botanist.csv"), statement);
+            botanistLoader.setFrame(frame);
+            int botanistRecords = botanistLoader.loadRecords();
+            
             TaxonLoader taxonLoader = new TaxonLoader(new File("demo_files/taxon.csv"), statement, taxonTreeDef);
             taxonLoader.setFrame(frame);
             int taxonRecords = taxonLoader.loadRecords(); 
@@ -229,14 +240,6 @@ public class LoadHUHdatabase
             OrganizationLoader organizationLoader = new OrganizationLoader(new File("demo_files/organizations.csv"), statement);
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
-            
-            BotanistLoader botanistLoader = new BotanistLoader(new File("demo_files/botanist.csv"), statement);
-            botanistLoader.setFrame(frame);
-            int botanistRecords = botanistLoader.loadRecords();
-            
-            OptrLoader optrLoader = new OptrLoader(new File("demo_files/optr.csv"), statement);
-            optrLoader.setFrame(frame);
-            int optrRecords = optrLoader.loadRecords();
             
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File("demo_files/affiliate.csv"), statement, division);
             affiliateLoader.setFrame(frame);
@@ -274,7 +277,7 @@ public class LoadHUHdatabase
             accessionLoader.setFrame(frame);
             int accessionRecords = accessionLoader.loadRecords();
             
-            SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File("demo_files/specimen_item.csv"), statement, discipline);
+            SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File("demo_files/specimen_item.csv"), statement, discipline, division);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
             

@@ -190,7 +190,7 @@ public class SqlUtils
         
         return "\"" + sqlEscape(s) + "\"";
     }
-
+    
     public static String sqlString(Byte b) {
         return "\"" + String.valueOf(b) + "\"";
     }
