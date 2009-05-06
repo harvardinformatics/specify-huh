@@ -29,7 +29,6 @@ import javax.swing.WindowConstants;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
-import edu.harvard.huh.asa2specify.loader.AccessionLoader;
 import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistLoader;
@@ -272,11 +271,7 @@ public class LoadHUHdatabase
             SeriesLoader seriesLoader = new SeriesLoader(new File("demo_files/series.csv"), statement);
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
-            
-            AccessionLoader accessionLoader = new AccessionLoader(new File("demo_files/accession.csv"), statement, division);
-            accessionLoader.setFrame(frame);
-            int accessionRecords = accessionLoader.loadRecords();
-            
+                        
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File("demo_files/specimen_item.csv"), statement, discipline, division);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
