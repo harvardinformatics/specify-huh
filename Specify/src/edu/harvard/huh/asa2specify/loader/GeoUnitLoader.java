@@ -3,11 +3,14 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.GeoUnit;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
@@ -182,7 +185,8 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		}
 
 		geography.setRankId( rankId );
-		if ( parent != null && rankId <= parent.getRankId() ) {
+		if ( parent != null && rankId <= parent.getRankId() )
+		{
 			log.warn("Parent rank is greater or equal");
 		}
 
@@ -193,8 +197,33 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 			throw new LocalException("No tree def item for rank " + rankId);
 		}
 		geography.setDefinitionItem(defItem);
+		
+        // find matching record creator
+        Integer creatorOptrId = geoUnit.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        geography.setCreatedByAgent(createdByAgent);
+        
 		sql = getInsertSql(geography);
-		insert(sql);
+		Integer geographyId = insert(sql);
+		geography.setGeographyId(geographyId);
+
+		// variant names
+		for (String variantName : geoUnit.getVariantNames())
+		{
+		    Geography synonym = new Geography();
+
+		    synonym.setName(variantName);
+		    synonym.setIsAccepted(false);
+		    synonym.setAcceptedGeography(geography);
+		    synonym.setAcceptedParent(parent);
+		    synonym.setDefinition(treeDef);
+		    synonym.setDefinitionItem(defItem);
+		    synonym.setRankId(rankId);
+		    synonym.setCreatedByAgent(new Agent());
+
+		    sql = getInsertSql(synonym);
+		    insert(sql);
+		}
 	}
 
 	public void numberNodes() throws LocalException
@@ -204,9 +233,45 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	private GeoUnit parseGeoUnitRecord(String[] columns) throws LocalException
 	{
-		GeoUnit geoUnit = new GeoUnit();  // TODO: implement
+	    if (columns.length < 15)
+	    {
+	        throw new LocalException("Wrong number of columns");
+	    }
 
-		return geoUnit;
+	    GeoUnit geoUnit = new GeoUnit();
+
+	    try {
+	        geoUnit.setParentId(      Integer.parseInt(StringUtils.trimToNull(columns[0])));
+	        geoUnit.setId(            Integer.parseInt(StringUtils.trimToNull(columns[1])));
+	        geoUnit.setRank(                           StringUtils.trimToNull(columns[2]));
+	        geoUnit.setIsoCode(                        StringUtils.trimToNull(columns[3]));
+	        geoUnit.setDisplayQualifier(               StringUtils.trimToNull(columns[4]));
+	        geoUnit.setName(                           StringUtils.trimToNull(columns[5]));
+	        geoUnit.setVernacularName(                 StringUtils.trimToNull(columns[6]));
+	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[7])));
+	        geoUnit.setCreatedById(   Integer.parseInt(StringUtils.trimToNull(columns[8])));
+	        geoUnit.setDateCreated( SqlUtils.parseDate(StringUtils.trimToNull(columns[9])));
+	        
+	        String variant1 = StringUtils.trimToNull(columns[10]);
+	        if (variant1 != null) geoUnit.addVariantName(variant1);
+	        
+	        String variant2 = StringUtils.trimToNull(columns[11]);
+	        if (variant2 != null) geoUnit.addVariantName(variant2);
+	        
+	        String variant3 = StringUtils.trimToNull(columns[12]);
+	        if (variant3 != null) geoUnit.addVariantName(variant3);
+	        
+	        String variant4 = StringUtils.trimToNull(columns[13]);
+	        if (variant4 != null) geoUnit.addVariantName(variant4);
+	        
+	        String variant5 = StringUtils.trimToNull(columns[14]);
+	        if (variant5 != null) geoUnit.addVariantName(variant5);
+	    }
+	    catch (NumberFormatException e) {
+	        throw new LocalException("Couldn't parse numeric field", e);
+	    }
+
+	    return geoUnit;
 	}
 
 	private Geography convert(GeoUnit geoUnit) throws LocalException
@@ -236,7 +301,8 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 		// Name
 		String name = geoUnit.getName();
-		if ( name == null ) {
+		if ( name == null )
+		{
 			throw new LocalException("No name");
 		}
 		if (name.length() > 64) {
@@ -246,62 +312,82 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		geography.setName(name);
 
 		// FullName
-		String qualifiedName = geoUnit.getQualifiedName();
-		if (qualifiedName == null)
+		String displayQualifier = geoUnit.getDisplayQualifier();
+		if (displayQualifier != null)
 		{
-			throw new LocalException("No qualified name");
+		    String qualifiedName = name + " (" + displayQualifier + ")";
+		    if (qualifiedName.length() > 255)
+		    {
+		        log.warn("Truncating qualified name");
+		        qualifiedName = qualifiedName.substring(0, 255);
+		    }
+		    geography.setFullName(qualifiedName);
 		}
-		if (qualifiedName.length() > 255)
-		{
-			log.warn("Truncating qualified name");
-			qualifiedName = qualifiedName.substring(0, 255);
-		}
-		geography.setFullName(qualifiedName);
 
 		// GeographyCode
 		String isoCode = geoUnit.getIsoCode();
-		if (isoCode != null && isoCode.length() > 8) {
+		if (isoCode != null && isoCode.length() > 8)
+		{
 			log.warn("Truncating iso code");
 			isoCode = isoCode.substring(0, 8);
 		}
 		geography.setGeographyCode(isoCode);
 
+		// IsAccepted
+		geography.setIsAccepted(true);
+		
 		// Remarks
 		String remarks = geoUnit.getRemarks();
 		geography.setRemarks(remarks);
 
-		// Text1 = variant names TODO: synonymize?
-		//List <String> variantNames = geoUnit.getVariantNames();
-		//String variantNamesList = join( "; ", variantNames );
-		//if ( variantNamesList != null && variantNamesList.trim().length() > 0 ) {
-		//    geography.setText1( substring( variantNamesList.trim(), 32, "variant name" ) );
-		//}
-
+		// TimestampCreated
+        Date dateCreated = geoUnit.getDateCreated();
+        geography.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
 		return geography;
 	}
 
 	private String getInsertSql(Geography geography)
 	{
-		String fieldNames = ""; // TODO: implement
+	    String fieldNames = "GUID, Abbreviation, CommonName, Name, FullName, GeographyCode, " +
+	                        "IsAccepted, AcceptedID, GeographyTreeDefID, GeographyTreeDefItemID, " +
+	                        "RankID, ParentID, Remarks, CreatedByAgentID, TimestampCreated, Version";
 
-		List<String> values = new ArrayList<String>();
+	    String[] values = new String[16];
 
-		return SqlUtils.getInsertSql("geography", fieldNames, values);
+	    values[0]  = SqlUtils.sqlString(geography.getGuid());
+	    values[1]  = SqlUtils.sqlString(geography.getAbbrev());
+	    values[2]  = SqlUtils.sqlString(geography.getCommonName());
+	    values[3]  = SqlUtils.sqlString(geography.getName());
+	    values[4]  = SqlUtils.sqlString(geography.getFullName());
+	    values[5]  = SqlUtils.sqlString(geography.getGeographyCode());
+	    values[6]  =     String.valueOf(geography.getIsAccepted());
+	    values[7]  =     String.valueOf(geography.getAcceptedGeography().getId());
+	    values[8]  =     String.valueOf(geography.getDefinition().getId());
+	    values[9]  =     String.valueOf(geography.getDefinitionItem().getId());
+	    values[10] =     String.valueOf(geography.getRankId());
+	    values[11] =     String.valueOf(geography.getAcceptedParent().getId());
+	    values[12] = SqlUtils.sqlString(geography.getRemarks());
+	    values[13] = SqlUtils.sqlString(geography.getCreatedByAgent().getId());
+	    values[14] = SqlUtils.sqlString(geography.getTimestampCreated());
+	    values[15] = "1";
+
+	    return SqlUtils.getInsertSql("geography", fieldNames, values);
 	}
 
-	public Integer getGeoTreeDefItem( String name, String type, Integer parentRank) {
+	private Integer getGeoTreeDefItem( String name, String type, Integer parentRank) {
 
 		if (parentRank == null) return ROOT_RANK;
 
 		if ( parentRank == REGION_RANK && type.equals( OTHER_TYPE ) ) {
-			if ( name.indexOf( "archipelago") >= 0 ) return ARCHIPELAGO_RANK;
+			if ( name.indexOf( "archipelago" ) >= 0 ) return ARCHIPELAGO_RANK;
 			else if ( name.indexOf( "Island" ) >= 0 ) return SUBCONTINENT_ISL_RANK;
-			else if ( name.indexOf( "Lake" ) >= 0 ) return LAKE_RANK;
-			else if ( name.indexOf( "Land" ) >= 0 ) return LAND_RANK;
+			else if ( name.indexOf( "Lake" ) >= 0 )   return LAKE_RANK;
+			else if ( name.indexOf( "Land" ) >= 0 )   return LAND_RANK;
 			else return CONTINENT_SUBREGION_RANK;
 		}
 		else if ( parentRank == ARCHIPELAGO_RANK  ) {
-			if ( name.indexOf( "Straight" ) >= 0 ) return STRAIGHTS_RANK;
+			if ( name.indexOf( "Straight" ) >= 0 )      return STRAIGHTS_RANK;
 			else if ( name.indexOf( "Estrecho" ) >= 0 ) return STRAIGHTS_RANK;
 		}
 		else if ( parentRank == LAND_RANK  ) {
@@ -321,7 +407,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 			else return COUNTRY_SUBREGION_RANK;
 		}
 		else if ( parentRank == SUBCOUNTRY_ISL_RANK ) {
-			if ( type.equals( COUNTY_TYPE ) ) return COUNTRY_RANK;
+			if ( type.equals( COUNTY_TYPE ) )     return COUNTRY_RANK;
 			else if ( type.equals( STATE_TYPE ) ) return STATE_RANK;
 			else if ( type.equals( OTHER_TYPE ) ) return COUNTRY_SUBREGION_RANK;
 		}
@@ -329,35 +415,35 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 			if ( name.indexOf( "Island" ) >= 0 ) return SUBCOUNTRY_ISL_RANK;
 		}
 		else if ( parentRank == COUNTRY_SUBREGION_RANK ) {
-			if ( type.equals( STATE_TYPE ) ) return STATE_RANK;
-			else if ( type.equals( CITY_TYPE ) ) return CITY_RANK;
+			if ( type.equals( STATE_TYPE ) )      return STATE_RANK;
+			else if ( type.equals( CITY_TYPE ) )  return CITY_RANK;
 			else if ( type.equals( OTHER_TYPE ) ) return OTHER_RANK;
 		}
 		else if ( parentRank == STATE_RANK && 
 				( type.equals( OTHER_TYPE ) || type.equals( STATE_TYPE ) ) ) {
-			if ( name.indexOf( "Coast" ) >= 0 ) return COAST_RANK;
-			else if ( name.indexOf( "Hills" ) >= 0 ) return HILL_RANK;
-			else if ( name.indexOf( "Island" ) >= 0 ) return SUBSTATE_ISL_RANK;
-			else if ( name.indexOf( "Mountain" ) >= 0 ) return MOUNTAIN_RANK;
+			if ( name.indexOf( "Coast" ) >= 0 )          return COAST_RANK;
+			else if ( name.indexOf( "Hills" ) >= 0 )     return HILL_RANK;
+			else if ( name.indexOf( "Island" ) >= 0 )    return SUBSTATE_ISL_RANK;
+			else if ( name.indexOf( "Mountain" ) >= 0 )  return MOUNTAIN_RANK;
 			else if ( name.indexOf( "Peninsula" ) >= 0 ) return PENINSULA_RANK;
-			else if ( name.indexOf( "River" ) >= 0 ) return RIVER_RANK;
-			else if ( name.indexOf( "Valley" ) >= 0 ) return VALLEY_RANK;
+			else if ( name.indexOf( "River" ) >= 0 )     return RIVER_RANK;
+			else if ( name.indexOf( "Valley" ) >= 0 )    return VALLEY_RANK;
 			else return STATE_SUBREGION_RANK;
 		}
 		else if ( parentRank == SUBSTATE_ISL_RANK  ) {
-			if ( type.equals( COUNTY_TYPE ) ) return COUNTY_RANK;
+			if ( type.equals( COUNTY_TYPE ) )         return COUNTY_RANK;
 			else if ( name.indexOf( "Island" ) >= 0 ) return ISLAND_RANK;
 		}
 		else if ( parentRank == STATE_SUBREGION_RANK ) {
-			if ( name.indexOf( "Island" ) >= 0 ) return ISLAND_RANK;
+			if ( name.indexOf( "Island" ) >= 0 )   return ISLAND_RANK;
 			else if ( type.equals( COUNTY_TYPE ) ) return COUNTY_RANK;
 		}
 		else if ( parentRank == COUNTY_RANK && 
 				( type.equals( OTHER_TYPE ) || type.equals( COUNTY_TYPE ) ) ) {
-			if ( name.indexOf( "Canyon" ) >= 0 ) return CANYON_RANK;
-			else if ( name.indexOf( "Forest" ) >= 0 ) return FOREST_RANK;
-			else if ( name.indexOf( "Island" ) >= 0 ) return ISLAND_RANK;
-			else if ( name.indexOf( "Lake" ) >= 0 ) return LAKE_RANK;
+			if ( name.indexOf( "Canyon" ) >= 0 )        return CANYON_RANK;
+			else if ( name.indexOf( "Forest" ) >= 0 )   return FOREST_RANK;
+			else if ( name.indexOf( "Island" ) >= 0 )   return ISLAND_RANK;
+			else if ( name.indexOf( "Lake" ) >= 0 )     return LAKE_RANK;
 			else if ( name.indexOf( "Mountain" ) >= 0 ) return MOUNTAIN_RANK;
 			else return COUNTY_SUBREGION_RANK;
 		}
