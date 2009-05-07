@@ -1009,6 +1009,18 @@ public class UploadTable implements Comparable<UploadTable>
     }
     
     /**
+     * @param ufld
+     * @return true if ufld represents a geoCoord field.
+     * 
+     * Assumes the field's type has already been determined BigDecimal.
+     */
+    protected boolean isDatePrecisionFld(final UploadField ufld)
+    {
+        String name = ufld.getField().getName();
+        return name.toLowerCase().contains("dateprecision");
+    }
+    
+    /**
      * @param fld
      * @return true if 
      */
@@ -1137,6 +1149,58 @@ public class UploadTable implements Comparable<UploadTable>
                     	}
                     }
                     arg[0] = new BigDecimal(fldStr);
+                }
+            }
+            else if (fldClass == Byte.class)
+            {
+                if (fldStr == null || fldStr.equals(""))
+                {
+                    arg[0] = null;
+                }
+                else {
+                    if (isDatePrecisionFld(ufld))
+                    {
+                        boolean gotANumber = true;
+                        try
+                        {
+                            new Byte(fldStr);
+                        }
+                        catch(NumberFormatException ex)
+                        {
+                            gotANumber = false;
+                        }
+                        if (!gotANumber)
+                        {
+                            try
+                            {
+                                // see brc.specify.plugins.PartialDateUI.java
+                                if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_FULL")))
+                                {
+                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+                                }
+                                else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_MONTH")))
+                                {
+                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Month.ordinal());
+                                }
+                                else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_YEAR")))
+                                {
+                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Year.ordinal());
+                                }
+                                else
+                                {
+                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.None.ordinal());
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new UploaderException(ex, UploaderException.INVALID_DATA);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        arg[0] = new Byte(fldStr);
+                    }
                 }
             }
             else if (fldClass == Boolean.class)
