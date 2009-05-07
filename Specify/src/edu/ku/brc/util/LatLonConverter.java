@@ -710,8 +710,34 @@ public class LatLonConverter
         }
         
         StringBuilder sb = new StringBuilder();
+        String format;
         
-        sb.append(String.format("%"+decimalLen+"."+decimalLen+"f", bd.abs()));
+        if (decimalLen == 0)
+        {
+        	double d = bd.abs().doubleValue();
+
+        	if (d < 1 && d > 0)
+        	{
+        		int n = 0;
+        		
+        		while (d < 1)
+        		{
+        			d = 10*d;
+        			n++;
+        		}
+        		format = "%"+n+"."+n+"f";
+        	}
+        	else
+        	{
+        		format = "%1.0f";
+        	}
+        }
+        else
+        {
+        	format = "%"+decimalLen+"."+decimalLen+"f";
+        }
+        
+        sb.append(String.format(format, bd.abs()));
         
         if (degreesFMT == DEGREES_FORMAT.Symbol)
         {
