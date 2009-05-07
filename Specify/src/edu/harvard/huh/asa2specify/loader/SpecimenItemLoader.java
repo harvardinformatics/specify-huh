@@ -4,7 +4,9 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -35,6 +37,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	private Discipline discipline;
 	private Division   division;
 	
+	private Set<CollectionObject> lastCollectionObjects;
+	
 	// initialize collection code to id hashtable
 	private Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
 
@@ -48,13 +52,144 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		this.division   = division;
 	}
 
+	private boolean areEqual(CollectionObject co1, CollectionObject co2)
+	{
+	    return false; // TODO: implement
+	}
+
+	private boolean isEmpty(Accession accession)
+	{
+	    return accession.getAccessionNumber() != null;
+	}
+
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
 		String sql;
 		
 		SpecimenItem specimenItem = parseSpecimenItemRecord(columns);
 		
-		// find the matching collection
+	    // find the matching prep type
+        String format = specimenItem.getFormat();
+        PrepType prepType = prepTypesByName.get(format);
+        if (prepType == null) {
+            sql = SqlUtils.getQueryIdByFieldSql("preptype", "PrepTypeID", "Name", format);
+            Integer prepTypeId = queryForId(sql);
+
+            if (prepTypeId == null)
+            {
+                throw new LocalException("Didn't find prep type for name " + format);
+            }
+
+            prepType = new PrepType();
+            prepType.setPrepTypeId(prepTypeId);
+            prepTypesByName.put(format, prepType);
+        }
+        
+	    // convert SpecimenItem into Preparation
+        Preparation preparation = convert(specimenItem);
+
+        // from which we get the CollectionObject
+        CollectionObject collectionObject = preparation.getCollectionObject();
+        
+        // if this preparation shares the same collection object with the previously
+        // inserted one, re-use it TODO: this is probably mostly correct, but should analyze.
+        for (CollectionObject lastCollectionObject : lastCollectionObjects)
+        {
+            // if the asa.specimen.ids are different, then it is a different collection object
+            if (lastCollectionObject.getGuid() != collectionObject.getGuid())
+            {
+                lastCollectionObjects = new HashSet<CollectionObject>();
+                lastCollectionObjects.add(collectionObject);
+                break;
+            }
+
+            if (areEqual(collectionObject, lastCollectionObject))
+            {
+                preparation.setCollectionObject(lastCollectionObject);
+
+                // insert Preparation
+                preparation.setCollectionMemberId(collectionObject.getCollectionMemberId());
+                preparation.setPrepType(prepType);
+
+                sql = getInsertSql(preparation);
+                insert(sql);
+
+                return;
+            }
+            else
+            {
+                // they differ in sex, repro status, or accession no
+                
+                // they all still belong to the same collecting event, collection, cataloger, creator, series
+                collectionObject.setCollectingEvent(lastCollectionObject.getCollectingEvent());
+                collectionObject.setCollection(lastCollectionObject.getCollection());
+                collectionObject.setCollectionMemberId(lastCollectionObject.getCollectionMemberId());
+                collectionObject.setCataloger(lastCollectionObject.getCataloger());
+                collectionObject.setCreatedByAgent(lastCollectionObject.getCreatedByAgent());
+                
+                if (specimenItem.getSeriesId() != null)
+                {
+                    // look up the exsiccata and insert an exsiccata item TODO: finish implementation
+                    Exsiccata exsiccata = new Exsiccata();
+                    
+                    Series series =  new Series();
+                    
+                    String guid = SqlUtils.sqlString(series.getGuid());
+                    
+                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+                    
+                    sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
+                    
+                    Integer exsiccataId = queryForId(sql);
+                    
+                    if (exsiccataId == null)
+                    {
+                        throw new LocalException("Couldn't find exsiccata id for " + guid);
+                    }
+                    
+                    exsiccata.setExsiccataId(exsiccataId);
+                    
+                    ExsiccataItem exsiccataItem = new ExsiccataItem();
+                    
+                    exsiccataItem.setExsiccata(exsiccata);
+                    exsiccataItem.setNumber(specimenItem.getSeriesNo());
+                    exsiccataItem.setCollectionObject(collectionObject);
+                    
+                    sql = getInsertSql(exsiccataItem);
+                    insert(sql);
+                }
+                
+                // if there was an accession inserted, insert another
+                Accession accession = collectionObject.getAccession();
+                if (! isEmpty(accession))
+                {
+                    // insert accession
+                    sql = getInsertSql(accession);
+                    Integer accessionId = insert(sql);
+                    accession.setAccessionId(accessionId);
+                    collectionObject.setAccession(accession);
+                }
+
+                // insert the collectionobject
+                sql = getInsertSql(collectionObject);
+                Integer collectionObjectId = insert(sql);
+                collectionObject.setCollectionObjectId(collectionObjectId);
+                
+                // add the collectionobject to the set
+                lastCollectionObjects.add(collectionObject);
+                
+                // insert the preparation
+                preparation.setCollectionMemberId(lastCollectionObject.getCollectionMemberId());
+                preparation.setPrepType(prepType);
+                
+                sql = getInsertSql(preparation);
+                insert(sql);
+
+                return;
+            }
+        }
+        
+        // find the matching collection
 		String herbariumCode = specimenItem.getHerbariumCode();
 		Collection collection = collectionsByCode.get(herbariumCode);
 		if (collection == null) {
@@ -130,33 +265,10 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		// find the matching cataloger
 		Integer createdById = specimenItem.getCatalogedById();
 		Agent cataloger = this.getAgentByOptrId(createdById);
-
-		// find the matching prep type
-		String format = specimenItem.getFormat();
-		PrepType prepType = prepTypesByName.get(format);
-		if (prepType == null) {
-			sql = SqlUtils.getQueryIdByFieldSql("preptype", "PrepTypeID", "Name", format);
-			Integer prepTypeId = queryForId(sql);
-
-			if (prepTypeId == null)
-			{
-				throw new LocalException("Didn't find prep type for name " + format);
-			}
-
-			prepType = new PrepType();
-			prepType.setPrepTypeId(prepTypeId);
-			prepTypesByName.put(format, prepType);
-		}
-
-		// convert SpecimenItem into Preparation
-		Preparation preparation = convert(specimenItem);
-
-		// from which we get the CollectionObject
-		CollectionObject collectionObject = preparation.getCollectionObject();
 		
 	    // and from which we might get an Accession
         Accession accession = collectionObject.getAccession();
-        if (accession.getAccessionNumber() != null)
+        if (! isEmpty(accession))
         {
             // insert Accession
             sql = getInsertSql(accession);
@@ -196,6 +308,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		sql = getInsertSql(collectionObject);
 		Integer collectionObjectId = insert(sql);
 		collectionObject.setCollectionObjectId(collectionObjectId);
+		lastCollectionObjects.add(collectionObject);
 		
 		// insert Preparation
 		preparation.setCollectionMemberId(collection.getCollectionId());
@@ -284,11 +397,12 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         return specimenItem;
 	}
 
+	// TODO: oops, I'm creating a new collectionobject for each preparation.
 	private Preparation convert(SpecimenItem specimenItem) {
 
 		CollectionObject collectionObject = new CollectionObject();
 
-		collectionObject.setGuid(String.valueOf(specimenItem.getId()));
+		collectionObject.setGuid(String.valueOf(specimenItem.getSpecimenId()));
 
 		Integer barcode = specimenItem.getBarcode();
 		String catalogNumber = (new DecimalFormat( "000000000" ) ).format( String.valueOf(barcode) );
