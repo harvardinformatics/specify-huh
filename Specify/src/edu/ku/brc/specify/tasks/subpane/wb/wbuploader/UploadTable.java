@@ -1171,30 +1171,7 @@ public class UploadTable implements Comparable<UploadTable>
                         }
                         if (!gotANumber)
                         {
-                            try
-                            {
-                                // see brc.specify.plugins.PartialDateUI.java
-                                if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_FULL")))
-                                {
-                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-                                }
-                                else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_MONTH")))
-                                {
-                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Month.ordinal());
-                                }
-                                else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_YEAR")))
-                                {
-                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.Year.ordinal());
-                                }
-                                else
-                                {
-                                    arg[0] = Byte.valueOf((byte) UIFieldFormatterIFace.PartialDateEnum.None.ordinal());
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new UploaderException(ex, UploaderException.INVALID_DATA);
-                            }
+                            arg[0] = Byte.valueOf((byte) parseDatePrecision(fldStr).ordinal());
                         }
                     }
                     else
@@ -1950,7 +1927,10 @@ public class UploadTable implements Comparable<UploadTable>
                 	// We could adjust the date string to match the precision string, or
                 	// we could change this method.  There is logic elsewhere that should be
                 	// addressed as well (getArgForSetter(final UploadField ufld))
-                    fld.getSecond().invoke(rec, (byte )getDatePrecision(fld.getFirst()).ordinal());
+                    if (! isDateWithPrecision(fld.getFirst().getField().getFieldInfo()) )
+                    {
+                        fld.getSecond().invoke(rec, (byte )getDatePrecision(fld.getFirst()).ordinal());
+                    }
                 }
                 catch (InvocationTargetException ex)
                 {
@@ -1968,6 +1948,31 @@ public class UploadTable implements Comparable<UploadTable>
         }
     }
     
+    protected UIFieldFormatterIFace.PartialDateEnum parseDatePrecision(String fldStr) throws ParseException
+    {
+        // see brc.specify.plugins.PartialDateUI.java
+        if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_FULL")))
+        {
+            return UIFieldFormatterIFace.PartialDateEnum.Full;
+        }
+        else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_MONTH")))
+        {
+            return UIFieldFormatterIFace.PartialDateEnum.Month;
+        }
+        else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_YEAR")))
+        {
+            return UIFieldFormatterIFace.PartialDateEnum.Year;
+        }
+        else if (fldStr.equalsIgnoreCase(UIRegistry.getResourceString("PARTIAL_DATE_NONE")))
+        {
+            return UIFieldFormatterIFace.PartialDateEnum.None;
+        }
+        else
+        {
+            throw new ParseException("Unrecognized date precision '" + fldStr + "'", 0); // TODO: i18n
+        }
+    }
+
     /**
      * @param fld
      * @return the date precision for the current value of fld.
@@ -1975,16 +1980,8 @@ public class UploadTable implements Comparable<UploadTable>
      */
     protected UIFieldFormatterIFace.PartialDateEnum getDatePrecision(final UploadField fld) throws ParseException
     {
-    	DBFieldInfo dbFieldInfo = fld.getField().getFieldInfo();
-    	
-    	if (isDateWithPrecision(dbFieldInfo))
-    	{
-    		return getDatePrecisionFld(dbFieldInfo).getFormatter().getPartialDateType();
-    	}
-    	else
-    	{
-    		return dateConverter.getDatePrecision(fld.getValue());
-    	}
+
+        return dateConverter.getDatePrecision(fld.getValue());
     }
     
     protected UploadField findUploadField(final String name, int seq)
