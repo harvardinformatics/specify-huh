@@ -1946,6 +1946,10 @@ public class UploadTable implements Comparable<UploadTable>
             {
                 try
                 {
+                	// TODO: here is where the user-defined date precision field is ignored.
+                	// We could adjust the date string to match the precision string, or
+                	// we could change this method.  There is logic elsewhere that should be
+                	// addressed as well (getArgForSetter(final UploadField ufld))
                     fld.getSecond().invoke(rec, (byte )getDatePrecision(fld.getFirst()).ordinal());
                 }
                 catch (InvocationTargetException ex)
@@ -1971,7 +1975,16 @@ public class UploadTable implements Comparable<UploadTable>
      */
     protected UIFieldFormatterIFace.PartialDateEnum getDatePrecision(final UploadField fld) throws ParseException
     {
-        return dateConverter.getDatePrecision(fld.getValue());
+    	DBFieldInfo dbFieldInfo = fld.getField().getFieldInfo();
+    	
+    	if (isDateWithPrecision(dbFieldInfo))
+    	{
+    		return getDatePrecisionFld(dbFieldInfo).getFormatter().getPartialDateType();
+    	}
+    	else
+    	{
+    		return dateConverter.getDatePrecision(fld.getValue());
+    	}
     }
     
     protected UploadField findUploadField(final String name, int seq)
