@@ -20,12 +20,15 @@ public class TaxonLoader extends CsvToSqlLoader {
 
 	private TaxonTreeDef treeDef;
 	
-	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer> ();
+	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
 
-	public TaxonLoader(File csvFile, Statement sqlStatement, TaxonTreeDef treeDef) {
+	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
+	
+	public TaxonLoader(File csvFile, Statement sqlStatement) throws LocalException
+	{
 		super(csvFile, sqlStatement);
 
-		this.treeDef = treeDef;
+		this.treeDef = getTaxonTreeDef();
 		
 		taxonRankIdsByType.put("life",             0);
 		taxonRankIdsByType.put("kingdom",         10);
@@ -49,6 +52,37 @@ public class TaxonLoader extends CsvToSqlLoader {
 		taxonRankIdsByType.put("prolus",         300);
 	}
 
+	protected TaxonTreeDef getTaxonTreeDef() throws LocalException
+	{
+	    TaxonTreeDef t = new TaxonTreeDef();
+
+	    String sql = SqlUtils.getQueryIdByFieldSql("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
+
+	    Integer taxonTreeDefId = queryForId(sql);
+	    t.setTaxonTreeDefId(taxonTreeDefId);
+
+	    return t;
+	}
+
+	protected TaxonTreeDefItem getTreeDefItemByRankId(Integer rankId) throws LocalException
+	{
+	    TaxonTreeDefItem treeDefItem = taxonDefItemsByRank.get(rankId);
+
+	    if (treeDefItem == null)
+	    {
+
+	        String sql = SqlUtils.getQueryIdByFieldSql("taxontreedefitem", "TaxonTreeDefID", "RankID", String.valueOf(rankId));
+
+	        Integer taxonTreeDefItemId = queryForId(sql);
+
+	        treeDefItem = new TaxonTreeDefItem();
+	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
+	        taxonDefItemsByRank.put(rankId, treeDefItem);
+	    } 
+
+	    return treeDefItem;
+	}
+
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
 		AsaTaxon asaTaxon = parseTaxonRecord(columns);
@@ -66,7 +100,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 		
 		taxon.setDefinition(treeDef);
 		
-		TaxonTreeDefItem defItem = treeDef.getDefItemByRank(rankId);
+		TaxonTreeDefItem defItem = getTreeDefItemByRankId(rankId);
 		if (defItem == null)
 		{
 			throw new LocalException("No tree def item for rank " + rankId);

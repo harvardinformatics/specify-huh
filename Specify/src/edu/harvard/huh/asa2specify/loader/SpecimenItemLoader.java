@@ -5,9 +5,7 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -30,7 +28,6 @@ import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
-import edu.ku.brc.util.Pair;
 
 public class SpecimenItemLoader extends CsvToSqlLoader {
 
@@ -48,11 +45,12 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	// initialize prep type hashtable
 	private Hashtable<String, PrepType> prepTypesByName = new Hashtable<String, PrepType>();
 	
-	public SpecimenItemLoader(File csvFile, Statement sqlStatement, Discipline discipline, Division division) {
+	public SpecimenItemLoader(File csvFile, Statement sqlStatement) throws LocalException 
+	{
 		super(csvFile, sqlStatement);
 		
-		this.discipline = discipline;
-		this.division   = division;
+		this.discipline = getBotanyDiscipline();
+		this.division   = getBotanyDivision();
 		
 		this.collObjByAccessionIdentifier = new HashMap<String, CollectionObject>();
 	}

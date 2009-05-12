@@ -17,6 +17,10 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.GeographyTreeDef;
+import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader {
@@ -142,6 +146,28 @@ public abstract class CsvToSqlLoader {
 	    } 
 	    
         return agent;
+	}
+	
+	protected Discipline getBotanyDiscipline() throws LocalException
+	{
+	    Discipline d = new Discipline();
+	    String sql = SqlUtils.getQueryIdByFieldSql("discipline", "DisciplineID", "Name", "Botany");
+
+        Integer disciplineId = queryForId(sql);
+        d.setDisciplineId(disciplineId);
+
+        return d;
+	}
+
+	protected Division getBotanyDivision() throws LocalException
+	{
+	    Division d = new Division();
+	    String sql = SqlUtils.getQueryIdByFieldSql("division", "DivisionID", "Name", "Botany");
+
+	    Integer divisionId = queryForId(sql);
+	    d.setDivisionId(divisionId);
+
+	    return d;
 	}
 
 	public void setFrame(ProgressFrame frame)

@@ -28,10 +28,10 @@ public class LocalityLoader extends CsvToSqlLoader
 	// set a default srcLatLongUnit
 	private static final byte srcLatLongUnit = (byte) FORMAT.DDDDDD.ordinal();
 
-	public LocalityLoader(File asaCsvFile, Statement specifySqlStatement, Discipline discipline)
+	public LocalityLoader(File asaCsvFile, Statement specifySqlStatement) throws LocalException
 	{
 		super(asaCsvFile, specifySqlStatement);
-		this.discipline = discipline;
+		this.discipline = getBotanyDiscipline();
 	}
 
 	public void loadRecord(String[] columns) throws LocalException

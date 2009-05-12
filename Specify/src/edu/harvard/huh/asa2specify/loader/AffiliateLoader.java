@@ -19,11 +19,11 @@ public class AffiliateLoader extends CsvToSqlLoader {
 
 	private Division division;
 	
-	public AffiliateLoader(File csvFile, Statement specifySqlStatement, Division division)
+	public AffiliateLoader(File csvFile, Statement specifySqlStatement) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
 		
-		this.division = division;
+		this.division = getBotanyDivision();
 	}
 
 	@Override

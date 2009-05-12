@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -14,6 +15,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
+import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
 public class GeoUnitLoader extends CsvToSqlLoader {
 
@@ -141,10 +143,43 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	private GeographyTreeDef treeDef;
 
-	public GeoUnitLoader(File csvFile, Statement sqlStatement, GeographyTreeDef geoTreeDef)
+	private HashMap <Integer, GeographyTreeDefItem> geoDefItemsByRank = new HashMap<Integer, GeographyTreeDefItem>();
+	
+	public GeoUnitLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
 		super(csvFile, sqlStatement);
-		this.treeDef = geoTreeDef;
+		this.treeDef = getGeoTreeDef();
+	}
+
+    protected GeographyTreeDef getGeoTreeDef() throws LocalException
+    {
+        GeographyTreeDef g = new GeographyTreeDef();
+
+        String sql = SqlUtils.getQueryIdByFieldSql("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
+
+        Integer geoTreeDefId = queryForId(sql);
+        g.setGeographyTreeDefId(geoTreeDefId);
+
+        return g;
+    }
+    
+	protected GeographyTreeDefItem getTreeDefItemByRankId(Integer rankId) throws LocalException
+	{
+	    GeographyTreeDefItem treeDefItem = geoDefItemsByRank.get(rankId);
+
+	    if (treeDefItem == null)
+	    {
+
+	        String sql = SqlUtils.getQueryIdByFieldSql("geographytreedefitem", "GeographyTreeDefID", "RankID", String.valueOf(rankId));
+
+	        Integer geoTreeDefItemId = queryForId(sql);
+
+	        treeDefItem = new GeographyTreeDefItem();
+	        treeDefItem.setGeographyTreeDefItemId(geoTreeDefItemId);
+	        geoDefItemsByRank.put(rankId, treeDefItem);
+	    } 
+
+	    return treeDefItem;
 	}
 
 	@Override
