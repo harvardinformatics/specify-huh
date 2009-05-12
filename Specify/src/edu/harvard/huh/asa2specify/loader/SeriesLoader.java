@@ -81,19 +81,11 @@ public class SeriesLoader extends CsvToSqlLoader {
     	Series series = new Series();
 
     	try {
-    		series.setId(Integer.parseInt(StringUtils.trimToNull(columns[0])));
-    		
-    		String name = StringUtils.trimToNull(columns[1]);
-    		if (name == null) {
-    			throw new LocalException("No series name found in record");
-    		}
-    		series.setName(name);
-    		
-    		series.setAbbreviation(StringUtils.trimToNull(columns[2]));
-    		
-    		series.setInstitutionId(Integer.parseInt(StringUtils.trimToNull(columns[3])));
-    		
-    		series.setNote(StringUtils.trimToNull(columns[4]));
+    		series.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+    		series.setName(                            StringUtils.trimToNull( columns[1] ));
+    		series.setAbbreviation(                    StringUtils.trimToNull( columns[2] ));
+    		series.setInstitutionId( Integer.parseInt( StringUtils.trimToNull( columns[3] )));
+    		series.setNote(                            StringUtils.trimToNull( columns[4] ));
     	}
     	catch (NumberFormatException e) {
     		throw new LocalException("Couldn't parse numeric field", e);
@@ -112,7 +104,8 @@ public class SeriesLoader extends CsvToSqlLoader {
 		referenceWork.setGuid(series.getGuid());
 		
 		String title = series.getName();
-		if (title == null) {
+		if (title == null)
+		{
 			throw new LocalException("No title");
 		}
 		referenceWork.setTitle(title);
