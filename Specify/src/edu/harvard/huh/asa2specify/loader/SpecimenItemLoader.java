@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -29,6 +30,7 @@ import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.util.Pair;
 
 public class SpecimenItemLoader extends CsvToSqlLoader {
 
@@ -37,7 +39,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	private Discipline discipline;
 	private Division   division;
 	
-	private Set<CollectionObject> lastCollectionObjects;
+	private Integer lastSpecimenId;
+	private HashMap<String, CollectionObject> collObjByAccessionIdentifier;
 	
 	// initialize collection code to id hashtable
 	private Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
@@ -50,11 +53,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		
 		this.discipline = discipline;
 		this.division   = division;
-	}
-
-	private boolean areEqual(CollectionObject co1, CollectionObject co2)
-	{
-	    return false; // TODO: implement
+		
+		this.collObjByAccessionIdentifier = new HashMap<String, CollectionObject>();
 	}
 
 	private boolean isEmpty(Accession accession)
@@ -93,19 +93,17 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         
         // if this preparation shares the same collection object with the previously
         // inserted one, re-use it TODO: this is probably mostly correct, but should analyze.
-        for (CollectionObject lastCollectionObject : lastCollectionObjects)
-        {
-            // if the asa.specimen.ids are different, then it is a different collection object
-            if (lastCollectionObject.getGuid() != collectionObject.getGuid())
-            {
-                lastCollectionObjects = new HashSet<CollectionObject>();
-                lastCollectionObjects.add(collectionObject);
-                break;
-            }
+        Integer specimenId = specimenItem.getSpecimenId();
+        Accession accession = collectionObject.getAccession();
+        String accessionIdentifier = accession.getAccessionNumber() + accession.getRemarks();
 
-            if (areEqual(collectionObject, lastCollectionObject))
+        if (specimenId.equals(lastSpecimenId))
+        {
+            // if the two specimen items don't have different accession numbers they 
+            // share a collection object; just create a different preparation
+            if (collObjByAccessionIdentifier.containsKey(accessionIdentifier))
             {
-                preparation.setCollectionObject(lastCollectionObject);
+                preparation.setCollectionObject(collObjByAccessionIdentifier.get(accessionIdentifier));
 
                 // insert Preparation
                 preparation.setCollectionMemberId(collectionObject.getCollectionMemberId());
@@ -118,20 +116,43 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
             }
             else
             {
-                // they differ in sex, repro status, or accession no
+                collObjByAccessionIdentifier.put(accessionIdentifier, collectionObject);
                 
-                // they all still belong to the same collecting event, collection, cataloger, creator, series
-                collectionObject.setCollectingEvent(lastCollectionObject.getCollectingEvent());
-                collectionObject.setCollection(lastCollectionObject.getCollection());
-                collectionObject.setCollectionMemberId(lastCollectionObject.getCollectionMemberId());
-                collectionObject.setCataloger(lastCollectionObject.getCataloger());
-                collectionObject.setCreatedByAgent(lastCollectionObject.getCreatedByAgent());
+                // different collection object but same collecting event, collection, cataloger, creator, exsiccata
+                CollectionObject previousCollectionObject =
+                    collObjByAccessionIdentifier.get(collObjByAccessionIdentifier.values().iterator().next());
+
+                collectionObject.setCollectingEvent(previousCollectionObject.getCollectingEvent());
+                collectionObject.setCollection(previousCollectionObject.getCollection());
+                collectionObject.setCollectionMemberId(previousCollectionObject.getCollectionMemberId());
+                collectionObject.setCataloger(previousCollectionObject.getCataloger());
+                collectionObject.setCreatedByAgent(previousCollectionObject.getCreatedByAgent());
                 
+                // insert an accession if necessary
+                
+                if (! isEmpty(accession))
+                {
+                    sql = getInsertSql(accession);
+                    Integer accessionId = insert(sql);
+                    accession.setAccessionId(accessionId);
+                    collectionObject.setAccession(accession);
+                }
+
+                // insert the collectionobject
+                sql = getInsertSql(collectionObject);
+                Integer collectionObjectId = insert(sql);
+                collectionObject.setCollectionObjectId(collectionObjectId);
+                
+                // insert the preparation
+                preparation.setCollectionMemberId(previousCollectionObject.getCollectionMemberId());
+                preparation.setPrepType(prepType);
+                
+                sql = getInsertSql(preparation);
+                insert(sql);
+
+                // insert new exsiccata item if necessary
                 if (specimenItem.getSeriesId() != null)
                 {
-                    // look up the exsiccata and insert an exsiccata item TODO: finish implementation
-                    Exsiccata exsiccata = new Exsiccata();
-                    
                     Series series =  new Series();
                     
                     String guid = SqlUtils.sqlString(series.getGuid());
@@ -147,6 +168,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                         throw new LocalException("Couldn't find exsiccata id for " + guid);
                     }
                     
+                    Exsiccata exsiccata = new Exsiccata();
                     exsiccata.setExsiccataId(exsiccataId);
                     
                     ExsiccataItem exsiccataItem = new ExsiccataItem();
@@ -158,36 +180,20 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                     sql = getInsertSql(exsiccataItem);
                     insert(sql);
                 }
-                
-                // if there was an accession inserted, insert another
-                Accession accession = collectionObject.getAccession();
-                if (! isEmpty(accession))
+                else if (specimenItem.getSeriesNo() != null)
                 {
-                    // insert accession
-                    sql = getInsertSql(accession);
-                    Integer accessionId = insert(sql);
-                    accession.setAccessionId(accessionId);
-                    collectionObject.setAccession(accession);
+                    log.warn("Null series and non-null series_no");
                 }
-
-                // insert the collectionobject
-                sql = getInsertSql(collectionObject);
-                Integer collectionObjectId = insert(sql);
-                collectionObject.setCollectionObjectId(collectionObjectId);
                 
-                // add the collectionobject to the set
-                lastCollectionObjects.add(collectionObject);
-                
-                // insert the preparation
-                preparation.setCollectionMemberId(lastCollectionObject.getCollectionMemberId());
-                preparation.setPrepType(prepType);
-                
-                sql = getInsertSql(preparation);
-                insert(sql);
-
                 return;
             }
         }
+
+        // if we made it here, the asa.specimen.ids are different, so we have a different collection object entirely
+
+        lastSpecimenId = specimenId;
+        collObjByAccessionIdentifier.clear();
+        collObjByAccessionIdentifier.put(accessionIdentifier, collectionObject);
         
         // find the matching collection
 		String herbariumCode = specimenItem.getHerbariumCode();
@@ -209,7 +215,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		Exsiccata exsiccata = new Exsiccata();
 		Integer seriesId = specimenItem.getSeriesId();
 		
-		if (seriesId != null) {
+		if (seriesId != null)
+		{
 			Series series =  new Series();
 			
 			String guid = SqlUtils.sqlString(series.getGuid());
@@ -227,6 +234,10 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 			
 			exsiccata.setExsiccataId(exsiccataId);
 		}
+        else if (specimenItem.getSeriesNo() != null)
+        {
+            log.warn("Null series and non-null series_no");
+        }
 		
 		// find the matching locality record
 		Locality locality = new Locality();
@@ -267,7 +278,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		Agent cataloger = this.getAgentByOptrId(createdById);
 		
 	    // and from which we might get an Accession
-        Accession accession = collectionObject.getAccession();
         if (! isEmpty(accession))
         {
             // insert Accession
@@ -308,7 +318,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		sql = getInsertSql(collectionObject);
 		Integer collectionObjectId = insert(sql);
 		collectionObject.setCollectionObjectId(collectionObjectId);
-		lastCollectionObjects.add(collectionObject);
 		
 		// insert Preparation
 		preparation.setCollectionMemberId(collection.getCollectionId());
@@ -332,7 +341,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 	private SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
 	{
-		if (columns.length < 36)
+		if (columns.length < 37)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
@@ -340,54 +349,55 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		SpecimenItem specimenItem = new SpecimenItem();
 
 		try {
-		    specimenItem.setId(      Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-		    specimenItem.setBarcode( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-		    specimenItem.setCollectorNo(               StringUtils.trimToNull( columns[2] ));
+		    specimenItem.setId(         Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+		    specimenItem.setSpecimenId( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
+		    specimenItem.setBarcode(    Integer.parseInt( StringUtils.trimToNull( columns[2] )));
+		    specimenItem.setCollectorNo(                  StringUtils.trimToNull( columns[3] ));
 		    
-            String createDateString = StringUtils.trimToNull( columns[3] );
+            String createDateString = StringUtils.trimToNull( columns[4] );
             Date createDate = SqlUtils.parseDate(createDateString);
             specimenItem.setCatalogedDate(createDate);
             
-            String isCultivated = StringUtils.trimToNull( columns[4] );
+            String isCultivated = StringUtils.trimToNull( columns[5] );
             specimenItem.setCultivated( isCultivated != null && isCultivated.equals("true") ? true : false);
             
-            specimenItem.setDescription(     StringUtils.trimToNull( columns[5]  ));
-            specimenItem.setHabitat(         StringUtils.trimToNull( columns[6]  ));
-            specimenItem.setSubstrate(       StringUtils.trimToNull( columns[7]  ));
-            specimenItem.setReproStatus(     StringUtils.trimToNull( columns[8]  ));
-            specimenItem.setSex(             StringUtils.trimToNull( columns[9]  ));
-            specimenItem.setRemarks(         StringUtils.trimToNull( columns[10] ));
-            specimenItem.setAccessionNo(     StringUtils.trimToNull( columns[11] ));
-            specimenItem.setProvenance(      StringUtils.trimToNull( columns[12] ));
-            specimenItem.setAccessionStatus( StringUtils.trimToNull( columns[13] ));
+            specimenItem.setDescription(     StringUtils.trimToNull( columns[6]  ));
+            specimenItem.setHabitat(         StringUtils.trimToNull( columns[7]  ));
+            specimenItem.setSubstrate(       StringUtils.trimToNull( columns[8]  ));
+            specimenItem.setReproStatus(     StringUtils.trimToNull( columns[9]  ));
+            specimenItem.setSex(             StringUtils.trimToNull( columns[10] ));
+            specimenItem.setRemarks(         StringUtils.trimToNull( columns[11] ));
+            specimenItem.setAccessionNo(     StringUtils.trimToNull( columns[12] ));
+            specimenItem.setProvenance(      StringUtils.trimToNull( columns[13] ));
+            specimenItem.setAccessionStatus( StringUtils.trimToNull( columns[14] ));
             
             BDate bdate = new BDate();
             
-            bdate.setStartYear(           Integer.parseInt(  StringUtils.trimToNull( columns[14] )));
-            bdate.setStartMonth(          Integer.parseInt(  StringUtils.trimToNull( columns[15] )));
-            bdate.setStartDay(            Integer.parseInt(  StringUtils.trimToNull( columns[16] )));
-            bdate.setStartPrecision(                         StringUtils.trimToNull( columns[17] ));
-            bdate.setEndYear(              Integer.parseInt( StringUtils.trimToNull( columns[18] )));
-            bdate.setEndMonth(             Integer.parseInt( StringUtils.trimToNull( columns[19] )));
-            bdate.setEndDay(               Integer.parseInt( StringUtils.trimToNull( columns[20] )));
-            bdate.setEndPrecision(                           StringUtils.trimToNull( columns[21] ));
-            bdate.setText(                                   StringUtils.trimToNull( columns[22] ));            
-            specimenItem.setItemNo(        Integer.parseInt( StringUtils.trimToNull( columns[23] )));
+            bdate.setStartYear(           Integer.parseInt(  StringUtils.trimToNull( columns[15] )));
+            bdate.setStartMonth(          Integer.parseInt(  StringUtils.trimToNull( columns[16] )));
+            bdate.setStartDay(            Integer.parseInt(  StringUtils.trimToNull( columns[17] )));
+            bdate.setStartPrecision(                         StringUtils.trimToNull( columns[18] ));
+            bdate.setEndYear(              Integer.parseInt( StringUtils.trimToNull( columns[19] )));
+            bdate.setEndMonth(             Integer.parseInt( StringUtils.trimToNull( columns[20] )));
+            bdate.setEndDay(               Integer.parseInt( StringUtils.trimToNull( columns[21] )));
+            bdate.setEndPrecision(                           StringUtils.trimToNull( columns[22] ));
+            bdate.setText(                                   StringUtils.trimToNull( columns[23] ));            
+            specimenItem.setItemNo(        Integer.parseInt( StringUtils.trimToNull( columns[24] )));
             
-            String isOversize = StringUtils.trimToNull( columns[24] );
+            String isOversize = StringUtils.trimToNull( columns[25] );
             specimenItem.setOversize( isOversize != null && isOversize.equals("true") ? true : false);
             
-            specimenItem.setVoucher(                         StringUtils.trimToNull( columns[25] ));
-            specimenItem.setReference(                       StringUtils.trimToNull( columns[26] ));
-            specimenItem.setNote(                            StringUtils.trimToNull( columns[27] ));
-            specimenItem.setHerbariumCode(                   StringUtils.trimToNull( columns[28] ));
-            specimenItem.setSeriesId(      Integer.parseInt( StringUtils.trimToNull( columns[29] )));
-            specimenItem.setSiteId(        Integer.parseInt( StringUtils.trimToNull( columns[30] )));
-            specimenItem.setCollectorId(   Integer.parseInt( StringUtils.trimToNull( columns[31] )));
-            specimenItem.setCatalogedById( Integer.parseInt( StringUtils.trimToNull( columns[32] )));
-            specimenItem.setFormat(                          StringUtils.trimToNull( columns[33] ));
-            specimenItem.setSeriesNo(                        StringUtils.trimToNull( columns[34] ));
-            specimenItem.setContainer(                       StringUtils.trimToNull( columns[35] ));
+            specimenItem.setVoucher(                         StringUtils.trimToNull( columns[26] ));
+            specimenItem.setReference(                       StringUtils.trimToNull( columns[27] ));
+            specimenItem.setNote(                            StringUtils.trimToNull( columns[28] ));
+            specimenItem.setHerbariumCode(                   StringUtils.trimToNull( columns[29] ));
+            specimenItem.setSeriesId(      Integer.parseInt( StringUtils.trimToNull( columns[30] )));
+            specimenItem.setSiteId(        Integer.parseInt( StringUtils.trimToNull( columns[31] )));
+            specimenItem.setCollectorId(   Integer.parseInt( StringUtils.trimToNull( columns[32] )));
+            specimenItem.setCatalogedById( Integer.parseInt( StringUtils.trimToNull( columns[33] )));
+            specimenItem.setFormat(                          StringUtils.trimToNull( columns[34] ));
+            specimenItem.setSeriesNo(                        StringUtils.trimToNull( columns[35] ));
+            specimenItem.setContainer(                       StringUtils.trimToNull( columns[36] ));
 		}
         catch (NumberFormatException e)
         {
@@ -433,34 +443,11 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		}
 		collectionObject.setDescription(description);
 
-		String habitat = specimenItem.getHabitat();
-		collectionObject.setText1(habitat);
-
-	    StringBuilder sb = new StringBuilder();
+		String reproStatus = specimenItem.getReproStatus();
+		collectionObject.setText1(reproStatus);
 	      
 		String substrate = specimenItem.getSubstrate();
-		if (substrate != null) {
-			sb.append("SUBSTRATE: ");
-			sb.append(substrate);
-		}
-
-		String reproStatus = specimenItem.getReproStatus();
-		if (substrate != null) {
-			if (sb.length() > 0) sb.append("; ");
-			sb.append("REPRO. STATUS: ");
-			sb.append(reproStatus);
-		}
-
-		String sex = specimenItem.getSex();
-		if (sex != null) {
-			if (sb.length() > 0) sb.append("; ");
-			sb.append("SEX: ");
-			sb.append(sex);
-		}
-
-		if (sb.length() > 0) {
-			collectionObject.setText2(sb.toString());
-		}
+		collectionObject.setText2(substrate);
 
 		String remarks = specimenItem.getRemarks();
 		collectionObject.setRemarks(remarks);
@@ -526,15 +513,32 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 			collectingEvent.setStartDateVerbatim(endDateVerbatim);
 		}
 
+	    String habitat = specimenItem.getHabitat();
+	    collectingEvent.setRemarks(habitat);
+	    
 		collectionObject.setCollectingEvent(collectingEvent);
 
 		Preparation preparation = new Preparation();
-
+		preparation.setSampleNumber(String.valueOf(barcode));
+		
 		Integer itemNo = specimenItem.getItemNo();
 		preparation.setNumber1((float) itemNo);
 
 		Boolean isOversize = specimenItem.isOversize();
 		preparation.setYesNo1(isOversize);
+		
+		String sex = specimenItem.getSex();
+		if (sex != null)
+		{
+		    if (sex.equals("male"))
+		    {
+		        preparation.setYesNo2(true);
+		    }
+		    else if (sex.equals("female"))
+		    {
+		        preparation.setYesNo3(true);
+		    }
+		}
 
 		String voucher = specimenItem.getVoucher(); // TODO: investigate
 		preparation.setText1(voucher);
