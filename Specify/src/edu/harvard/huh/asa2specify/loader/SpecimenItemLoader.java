@@ -62,6 +62,57 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	    return accession.getAccessionNumber() != null;
 	}
 
+	private void processSeries(Integer seriesId, String seriesNo, CollectionObject collectionObject) throws LocalException
+	{
+	    if (seriesId != null)
+        {
+            Series series =  new Series();
+            series.setId(seriesId);
+            String guid = SqlUtils.sqlString(series.getGuid());
+            
+            String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+            
+            String sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
+            
+            Integer exsiccataId = queryForId(sql);
+            
+            if (exsiccataId == null)
+            {
+                throw new LocalException("Couldn't find exsiccata id for " + guid);
+            }
+            
+            Exsiccata exsiccata = new Exsiccata();
+            exsiccata.setExsiccataId(exsiccataId);
+            
+            ExsiccataItem exsiccataItem = new ExsiccataItem();
+            
+            exsiccataItem.setExsiccata(exsiccata);
+            exsiccataItem.setNumber(seriesNo);
+            exsiccataItem.setCollectionObject(collectionObject);
+            
+            sql = getInsertSql(exsiccataItem);
+            insert(sql);
+        }
+        else if (seriesNo != null)
+        {
+            log.warn("Null series and non-null series_no");
+        }
+	}
+
+	private void processAccession(Accession accession) throws LocalException
+	{
+        if (! isEmpty(accession))
+        {
+            // insert Accession
+            accession.setDivision(division);
+            String sql = getInsertSql(accession);
+            
+            // update accession with id
+            Integer accessionId = insert(sql);
+            accession.setAccessionId(accessionId);
+        }
+	}
+
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
 		String sql;
@@ -92,15 +143,15 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         CollectionObject collectionObject = preparation.getCollectionObject();
         
         // if this preparation shares the same collection object with the previously
-        // inserted one, re-use it TODO: this is probably mostly correct, but should analyze.
+        // inserted one, re-use it
         Integer specimenId = specimenItem.getSpecimenId();
         Accession accession = collectionObject.getAccession();
         String accessionIdentifier = accession.getAccessionNumber() + accession.getRemarks();
 
         if (specimenId.equals(lastSpecimenId))
         {
-            // if the two specimen items don't have different accession numbers they 
-            // share a collection object; just create a different preparation
+            // if the two specimen items don't have different accession numbers or provenance
+            // then they share a collection object; just create a different preparation
             if (collObjByAccessionIdentifier.containsKey(accessionIdentifier))
             {
                 preparation.setCollectionObject(collObjByAccessionIdentifier.get(accessionIdentifier));
@@ -128,17 +179,10 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 collectionObject.setCataloger(previousCollectionObject.getCataloger());
                 collectionObject.setCreatedByAgent(previousCollectionObject.getCreatedByAgent());
                 
-                // insert an accession if necessary
-                
-                if (! isEmpty(accession))
-                {
-                    sql = getInsertSql(accession);
-                    Integer accessionId = insert(sql);
-                    accession.setAccessionId(accessionId);
-                    collectionObject.setAccession(accession);
-                }
+                // maybe insert a new accession
+                processAccession(accession);
 
-                // insert the collectionobject
+                // insert the new collectionobject
                 sql = getInsertSql(collectionObject);
                 Integer collectionObjectId = insert(sql);
                 collectionObject.setCollectionObjectId(collectionObjectId);
@@ -150,40 +194,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 sql = getInsertSql(preparation);
                 insert(sql);
 
-                // insert new exsiccata item if necessary
-                if (specimenItem.getSeriesId() != null)
-                {
-                    Series series =  new Series();
-                    
-                    String guid = SqlUtils.sqlString(series.getGuid());
-                    
-                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
-                    
-                    sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
-                    
-                    Integer exsiccataId = queryForId(sql);
-                    
-                    if (exsiccataId == null)
-                    {
-                        throw new LocalException("Couldn't find exsiccata id for " + guid);
-                    }
-                    
-                    Exsiccata exsiccata = new Exsiccata();
-                    exsiccata.setExsiccataId(exsiccataId);
-                    
-                    ExsiccataItem exsiccataItem = new ExsiccataItem();
-                    
-                    exsiccataItem.setExsiccata(exsiccata);
-                    exsiccataItem.setNumber(specimenItem.getSeriesNo());
-                    exsiccataItem.setCollectionObject(collectionObject);
-                    
-                    sql = getInsertSql(exsiccataItem);
-                    insert(sql);
-                }
-                else if (specimenItem.getSeriesNo() != null)
-                {
-                    log.warn("Null series and non-null series_no");
-                }
+                // maybe insert a new exsiccata item
+                processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
                 
                 return;
             }
@@ -210,34 +222,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 			collection.setCollectionId(collectionId);
 			collectionsByCode.put(herbariumCode, collection);
 		}
-		
-		// find the matching series record
-		Exsiccata exsiccata = new Exsiccata();
-		Integer seriesId = specimenItem.getSeriesId();
-		
-		if (seriesId != null)
-		{
-			Series series =  new Series();
-			
-			String guid = SqlUtils.sqlString(series.getGuid());
-			
-			String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
-			
-			sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
-			
-			Integer exsiccataId = queryForId(sql);
-			
-			if (exsiccataId == null)
-			{
-				throw new LocalException("Couldn't find exsiccata id for " + guid);
-			}
-			
-			exsiccata.setExsiccataId(exsiccataId);
-		}
-        else if (specimenItem.getSeriesNo() != null)
-        {
-            log.warn("Null series and non-null series_no");
-        }
 		
 		// find the matching locality record
 		Locality locality = new Locality();
@@ -277,17 +261,10 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		Integer createdById = specimenItem.getCatalogedById();
 		Agent cataloger = this.getAgentByOptrId(createdById);
 		
-	    // and from which we might get an Accession
-        if (! isEmpty(accession))
-        {
-            // insert Accession
-            sql = getInsertSql(accession);
-            Integer accessionId = insert(sql);
-            accession.setAccessionId(accessionId);
-            accession.setDivision(division);
-        }
+	    // maybe insert an accession
+		processAccession(accession);
             
-		// also from CollectionObject we get the CollectingEvent
+		// from CollectionObject we get the CollectingEvent
 		CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
 		collectingEvent.setDiscipline(discipline);
 		collectingEvent.setLocality(locality);
@@ -326,17 +303,9 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		sql = getInsertSql(preparation);
 		insert(sql);
 		
-		// and possibly into an ExsiccataItem
-		if (exsiccata.getExsiccataId() != null)
-		{
-			ExsiccataItem exsiccataItem = new ExsiccataItem();
-			exsiccataItem.setNumber(specimenItem.getSeriesNo());
-			exsiccataItem.setCollectionObject(collectionObject);
-			exsiccataItem.setExsiccata(exsiccata);
-			
-			sql = getInsertSql(exsiccataItem);
-			insert(sql);
-		}
+		// maybe insert a new exsiccata item
+		processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
+
 	}
 
 	private SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
