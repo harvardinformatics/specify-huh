@@ -96,9 +96,13 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 		// Abbreviation
 		String abbreviation = organization.getAcronym();
-		if (abbreviation.length() > 50) {
-			log.warn("truncating acronym");
-			abbreviation = abbreviation.substring(0, 50);
+		if (abbreviation != null && abbreviation.charAt(0) != '*')
+		{
+		    if (abbreviation.length() > 50)
+		    {
+		        log.warn("truncating acronym");
+		        abbreviation = abbreviation.substring(0, 50);
+		    }
 		}
 		agent.setAbbreviation(abbreviation);
 
@@ -112,7 +116,7 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 		// URL
 		String url = organization.getUri();
-		if (url.length() > 255) {
+		if (url != null && url.length() > 255) {
 			log.warn("truncating acronym");
 			url = url.substring(0, 255);
 		}
