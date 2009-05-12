@@ -49,14 +49,14 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
 
         String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", teamGuid);
 
-        Integer agentId = queryForId(sql);
+        Integer groupAgentId = queryForId(sql);
 
-        if (agentId == null)
+        if (groupAgentId == null)
         {
         	throw new LocalException("Couldn't find AgentID with GUID " + teamGuid);
         }
 
-        team.setAgentId(agentId);
+        team.setAgentId(groupAgentId);
         groupPerson.setGroup(team);
         
         // find the matching agent record for the member
@@ -74,21 +74,21 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
 
         sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
-        agentId = queryForId(sql);
+        Integer personAgentId = queryForId(sql);
 
-        if (agentId == null)
+        if (personAgentId == null)
         {
         	throw new LocalException("Couldn't find AgentID with GUID " + guid);
         }
         member.setAgentId(botanistId);
         groupPerson.setMember(member);
         
-        if (agentId != lastAgentId) {
+        if (groupAgentId != lastAgentId) {
             orderNumber = 1;
-            lastAgentId = agentId;
+            lastAgentId = groupAgentId;
         }
         else {
-            orderNumber ++;
+            orderNumber++;
         }
         groupPerson.setOrderNumber((short) orderNumber);  // TODO: check sequencing
 
