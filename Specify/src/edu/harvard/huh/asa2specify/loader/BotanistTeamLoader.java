@@ -43,7 +43,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
         Botanist teamBotanist = new Botanist();
         teamBotanist.setId(teamId);
 
-        String teamGuid = SqlUtils.sqlString(teamBotanist.getGuid());
+        String teamGuid = teamBotanist.getGuid();
 
         String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", teamGuid);
 
@@ -68,7 +68,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
         Botanist botanist = new Botanist();
         botanist.setId(botanistId);
 
-        String guid = SqlUtils.sqlString(botanist.getGuid());
+        String guid = botanist.getGuid();
 
         sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
@@ -78,18 +78,24 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
         {
         	throw new LocalException("Couldn't find AgentID with GUID " + guid);
         }
-        member.setAgentId(botanistId);
+        member.setAgentId(personAgentId);
         groupPerson.setMember(member);
         
-        if (groupAgentId != lastAgentId) {
+        if (groupAgentId != lastAgentId)
+        {
             orderNumber = 1;
             lastAgentId = groupAgentId;
         }
-        else {
+        else
+        {
             orderNumber++;
         }
         groupPerson.setOrderNumber((short) orderNumber);  // TODO: check sequencing
 
+        // CollectionMemberID  TODO: this is a problem; (see botanist id 152426, e.g.)
+        // we have more than one group with specimens in no fewer than five different collections
+        groupPerson.setCollectionMemberId(Integer.valueOf(0));
+        
         // convert agentspecialty to sql and insert
         sql = getInsertSql(groupPerson);
         insert(sql);
@@ -97,19 +103,21 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
 
     private BotanistTeamMember parseBotanistTeamRecord(String[] columns) throws LocalException
     {
-        if (columns.length < 4)
+        if (columns.length < 3)
         {
             throw new LocalException("Wrong number of columns");
         }
         
         BotanistTeamMember botanistTeamMember = new BotanistTeamMember();
         
-        try {
+        try
+        {
         	botanistTeamMember.setTeamId(    Integer.parseInt(StringUtils.trimToNull(columns[0])));
         	botanistTeamMember.setBotanistId(Integer.parseInt(StringUtils.trimToNull(columns[1])));
         	botanistTeamMember.setOrdinal(   Integer.parseInt(StringUtils.trimToNull(columns[2])));
         }
-        catch (NumberFormatException e) {
+        catch (NumberFormatException e)
+        {
             throw new LocalException("Couldn't parse numeric field", e);
         }
         
