@@ -30,7 +30,7 @@ public class BotanistNameLoader extends CsvToSqlLoader {
         AgentVariant agentVariant = convert(botanistName);
         
         // find the matching agent record
-        Agent agent = null;
+        Agent agent = new Agent();
         Integer botanistId = botanistName.getBotanistId();
 
         if (botanistId == null) {
@@ -40,7 +40,7 @@ public class BotanistNameLoader extends CsvToSqlLoader {
         Botanist botanist = new Botanist();
         botanist.setId(botanistId);
 
-        String guid = SqlUtils.sqlString(botanist.getGuid());
+        String guid = botanist.getGuid();
 
         String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
@@ -108,8 +108,9 @@ public class BotanistNameLoader extends CsvToSqlLoader {
         AgentVariant variant = new AgentVariant();
         
         String name = botanistName.getName();
-        if (name.length() > 255) {
-            log.warn("Truncating botanist name variant: " + name);
+        if (name.length() > 255)
+        {
+            warn("Truncating botanist name variant", null, name);
             name = name.substring(0, 255);
         }
         variant.setName(botanistName.getName());
