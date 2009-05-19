@@ -44,7 +44,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader {
 		Botanist botanist = new Botanist();
 		botanist.setId(botanistId);
 
-		String guid = SqlUtils.sqlString(botanist.getGuid());
+		String guid = botanist.getGuid();
 
 		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
@@ -108,8 +108,9 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader {
 		String specialty = botanistRoleSpecialty.getSpecialty();
 
 		String specialtyName = specialty + " (" + role + ")";
-		if (specialtyName.length() > 64) {
-			log.warn("Truncating botanist specialty: " + specialtyName);
+		if (specialtyName.length() > 64)
+		{
+			warn("Truncating botanist specialty", botanistRoleSpecialty.getBotanistId(), specialtyName);
 			specialtyName = specialtyName.substring(0, 64);
 		}
 		agentSpecialty.setSpecialtyName(specialtyName);

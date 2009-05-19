@@ -280,13 +280,13 @@ public class LoadHUHdatabase
             BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"), statement);
             botanistCountryLoader.setFrame(frame);
             int botanistCountryRecords = botanistCountryLoader.loadRecords();
-            log.info("Loaded " + botanistCountryRecords + " botanist_role_country records");
+            log.info("Loaded " + botanistCountryRecords + " botanist_country records");
             
             frame.setDesc("Loading botanist_role_specialty...");
             BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"), statement);
             botanistSpecialtyLoader.setFrame(frame);
             int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
-            log.info("Loaded " + botanistSpecialtyRecords + " botanist_role_specialty records");
+            log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
             
             frame.setDesc("Loading publication...");
             PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"), statement);
