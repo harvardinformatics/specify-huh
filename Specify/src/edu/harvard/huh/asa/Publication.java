@@ -14,6 +14,8 @@
  */
 package edu.harvard.huh.asa;
 
+import java.util.Date;
+
 public class Publication
 {
     private Integer id;
@@ -28,6 +30,8 @@ public class Publication
     private  String issn;
     private  String bph;
     private  String abbreviation;
+    private Integer createdById;
+    private    Date dateCreated;
     private  String remarks;
  
     public Publication() {
@@ -56,6 +60,10 @@ public class Publication
     
     public String getAbbreviation() { return this.abbreviation; }
     
+    public Integer getCreatedById() { return createdById; }
+
+    public Date getDateCreated() { return dateCreated; }
+    
     public String getRemarks() { return this.remarks; }
     
     public void setId(Integer id) { this.id = id; }
@@ -79,6 +87,10 @@ public class Publication
     public void setAbbreviation(String abbreviation) { this.abbreviation = abbreviation; }
     
     public void setIssn(String issn) { this.issn = issn; }
+    
+    public void setCreatedById(Integer createdById) { this.createdById = createdById; }
+    
+    public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
 }
