@@ -7,6 +7,7 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Organization;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -15,9 +16,12 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 	private final Logger log  = Logger.getLogger(OrganizationLoader.class);
 
-	public OrganizationLoader(File csvFile, Statement specifySqlStatement)
+	private BotanistMatcher organizations;
+	
+	public OrganizationLoader(File csvFile, Statement specifySqlStatement, File organizationBotanists) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
+		this.organizations = new BotanistMatcher(organizationBotanists);
 	}
 
 	@Override
@@ -33,10 +37,36 @@ public class OrganizationLoader extends CsvToSqlLoader {
         Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
         agent.setCreatedByAgent(createdByAgent);
         
-		// convert organization to sql and insert
-		String sql = getInsertSql(agent);
-		Integer agentId = insert(sql);
-		agent.setAgentId(agentId);
+        // find matching botanist
+        Integer organizationAgentId = null;
+        Integer botanistId = getBotanistId(organization.getId());
+        
+        if (botanistId != null)
+        {
+            Botanist botanist = new Botanist();
+            botanist.setId(botanistId);
+            String guid = botanist.getGuid();
+
+            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+            organizationAgentId = queryForId(sql);
+        }
+        
+        if (organizationAgentId == null)
+        {
+            String sql = getInsertSql(agent);
+            organizationAgentId = insert(sql);
+            agent.setAgentId(organizationAgentId);
+        }
+        else
+        {
+            if (agent.getRemarks() != null)
+            {
+                warn("Ignoring remarks", organization.getId(), agent.getRemarks());
+            }
+            String sql = getUpdateSql(agent, organizationAgentId);
+            update(sql);
+        }
 
 		String city = organization.getCity();
 		String state = organization.getState();
@@ -50,8 +80,9 @@ public class OrganizationLoader extends CsvToSqlLoader {
 			address.setCountry(country);
 			address.setAgent(agent);
 
-			try {
-				sql = getInsertSql(address);
+			try
+			{
+				String sql = getInsertSql(address);
 				insert(sql);
 			}
 			catch (LocalException e) {
@@ -60,6 +91,11 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		}
 	}
 
+	private Integer getBotanistId(Integer organizationId)
+	{
+	    return organizations.getBotanistId(organizationId);
+	}
+	   
 	private Organization parseOrganizationRecord(String[] columns) throws LocalException
 	{
 		if (columns.length < 10)
@@ -95,7 +131,7 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		return organization;
 	}
 
-	public Agent convert(Organization organization) throws LocalException
+	private Agent convert(Organization organization) throws LocalException
 	{
 
 		Agent agent = new Agent();
@@ -147,7 +183,7 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		return agent;
 	}
 
-	public String getInsertSql(Agent agent) throws LocalException
+	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
 			"AgentType, GUID, Abbreviation, LastName, CreatedByAgentID, TimestampCreated, Remarks";
@@ -165,7 +201,18 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
-    public String getInsertSql(Address address) throws LocalException
+	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
+	{
+        String[] fieldNames = { "Abbreviation" };
+
+        String[] values = new String[1];
+
+        values[0] = SqlUtils.sqlString( agent.getAbbreviation());
+
+        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", String.valueOf(agentId));
+	}
+
+	private String getInsertSql(Address address) throws LocalException
     {
     	String fieldNames = "City, State, Country, AgentID, TimestampCreated";
     	
