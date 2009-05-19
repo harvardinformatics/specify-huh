@@ -38,14 +38,14 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 		Agent agent = new Agent();
 		Integer authorId = publAuthor.getAuthorId();
 
-		if (authorId != null)
+		if (authorId == null)
 		{
 			throw new LocalException("No author id");
 		}
 		Botanist botanist = new Botanist();
 		botanist.setId(authorId);
 
-		String guid = SqlUtils.sqlString(botanist.getGuid());
+		String guid = botanist.getGuid();
 		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
 		Integer agentId = queryForId(sql);
@@ -61,11 +61,11 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 		ReferenceWork referenceWork = new ReferenceWork();
 		Integer publicationId = publAuthor.getPublicationId();
 
-		if (publicationId != null)
+		if (publicationId == null)
 		{
 			throw new LocalException("No publication id");
 		}
-		guid = SqlUtils.sqlString(String.valueOf(publicationId));
+		guid = String.valueOf(publicationId);
 		sql = SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid);
 
 		Integer refWorkId = queryForId(sql);
@@ -77,11 +77,13 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 		referenceWork.setReferenceWorkId(refWorkId);        
 		author.setReferenceWork(referenceWork);
 
-		if (refWorkId != lastRefWorkId) {
+		if (refWorkId != lastRefWorkId)
+		{
 			orderNumber = 1;
 			lastRefWorkId = refWorkId;
 		}
-		else {
+		else
+		{
 			orderNumber ++;
 		}
 		author.setOrderNumber((short) orderNumber);
@@ -99,12 +101,14 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 		}
 
 		PublAuthor publAuthor = new PublAuthor();
-		try {
-			publAuthor.setPublicationId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
-			publAuthor.setAuthorId(Integer.parseInt(StringUtils.trimToNull( columns[1] ) ) );
-			publAuthor.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
+		try
+		{
+			publAuthor.setPublicationId( Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+			publAuthor.setAuthorId(      Integer.parseInt(StringUtils.trimToNull( columns[1] ) ) );
+			publAuthor.setOrdinal(       Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
 
