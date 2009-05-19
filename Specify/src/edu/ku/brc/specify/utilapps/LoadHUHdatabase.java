@@ -259,7 +259,7 @@ public class LoadHUHdatabase
             log.info("Loaded " + organizationRecords + " organization records");
 
             frame.setDesc("Loading affiliate...");
-            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement);
+            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement, new File(dir, "affiliate_botanist.csv"));
             affiliateLoader.setFrame(frame);
             int affiliateRecords = affiliateLoader.loadRecords();
             log.info("Loaded " + affiliateRecords + " affiliate records");

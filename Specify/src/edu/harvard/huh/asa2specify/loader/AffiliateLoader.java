@@ -20,12 +20,14 @@ public class AffiliateLoader extends CsvToSqlLoader {
 	private final Logger log  = Logger.getLogger(AffiliateLoader.class);
 
 	private Division division;
+	private BotanistMatcher affiliates;
 	
-	public AffiliateLoader(File csvFile, Statement specifySqlStatement) throws LocalException
+	public AffiliateLoader(File csvFile, Statement specifySqlStatement, File affiliateBotanists) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
 		
 		this.division = getBotanyDivision();
+		this.affiliates = new BotanistMatcher(affiliateBotanists);
 	}
 
 	@Override
@@ -43,8 +45,7 @@ public class AffiliateLoader extends CsvToSqlLoader {
         
         // find matching botanist
         Integer affiliateAgentId = null;
-        
-        Integer botanistId = null; // TODO: get from BotanistUtils
+        Integer botanistId = getBotanistId(affiliate.getId());
         
         if (botanistId != null)
         {
@@ -64,6 +65,11 @@ public class AffiliateLoader extends CsvToSqlLoader {
         }
         else
         {
+            if (agent.getRemarks() != null)
+            {
+                warn("Ignoring remarks", affiliate.getId(), agent.getRemarks());
+            }
+
             String sql = getUpdateSql(agent, affiliateAgentId);
             update(sql);
         }
@@ -77,6 +83,11 @@ public class AffiliateLoader extends CsvToSqlLoader {
 		    String sql = getInsertSql(address);
 		    insert(sql);
 		}
+	}
+
+	private Integer getBotanistId(Integer affiliateId)
+	{
+	    return affiliates.getBotanistId(affiliateId);
 	}
 
 	private Affiliate parseAffiliateRecord(String[] columns) throws LocalException
@@ -236,7 +247,7 @@ public class AffiliateLoader extends CsvToSqlLoader {
     
     private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
     {
-        String[] fieldNames = { "Position", "Email" };
+        String[] fieldNames = { "JobTitle", "Email" };
 
         String[] values = new String[2];
 
