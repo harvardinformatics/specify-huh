@@ -14,6 +14,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -28,7 +29,7 @@ public abstract class CsvToSqlLoader {
 	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
 	private static Hashtable<Integer, Agent> agentsByOptrId = new Hashtable<Integer, Agent>();
-	
+
 	private LineIterator lineIterator;
 	private File csvFile;
 	private Statement sqlStatement;
@@ -43,6 +44,7 @@ public abstract class CsvToSqlLoader {
 	public int loadRecords() throws LocalException
 	{
 		int records = countRecords();
+		log.info(records + " records");
 
 		// initialize progress frame
 		initializeProgressFrame(records);
@@ -72,7 +74,7 @@ public abstract class CsvToSqlLoader {
 				loadRecord(columns);
 			}
 			catch (LocalException e) {
-				log.error("Couldn't insert record for line " + counter, e);
+				log.error("Couldn't insert record for line " + counter + "\n" + line, e);
 				continue;
 			}
 		}
@@ -120,6 +122,10 @@ public abstract class CsvToSqlLoader {
 				updatedNodes = sqlStatement.executeUpdate(updateNextLevel);
 				sqlStatement.executeUpdate(updateReftaxon);
 			}
+			
+			String dropTempTable = "drop table " + tempTableName;
+			sqlStatement.execute(dropTempTable);
+			
 		}
 		catch (SQLException e)
 		{
@@ -147,7 +153,7 @@ public abstract class CsvToSqlLoader {
 	    
         return agent;
 	}
-	
+
 	protected Discipline getBotanyDiscipline() throws LocalException
 	{
 	    Discipline d = new Discipline();
@@ -251,6 +257,8 @@ public abstract class CsvToSqlLoader {
 
 	protected Integer insert(String sql) throws LocalException
 	{
+	    log.debug(sql);
+	    
 		try
 		{
 			sqlStatement.executeUpdate(sql);
@@ -271,7 +279,9 @@ public abstract class CsvToSqlLoader {
 
 	protected Integer queryForId(String sql) throws LocalException
 	{
-		ResultSet result = null;
+	    log.debug(sql);
+
+	    ResultSet result = null;
 		Integer id = null;
 		try
 		{
@@ -292,6 +302,8 @@ public abstract class CsvToSqlLoader {
 
 	protected boolean update(String sql) throws LocalException
 	{
+	    log.debug(sql);
+	    
 		try {
 			int success = sqlStatement.executeUpdate(sql);
 			if (success != 1)
@@ -307,4 +319,8 @@ public abstract class CsvToSqlLoader {
 		return true;
 	} 
 
+	protected void warn(String message, Integer id, String item)
+	{
+	    log.warn(message + " " + id + " " + item);
+	}
 }

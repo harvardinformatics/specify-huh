@@ -28,52 +28,6 @@ public class SqlUtils
     public static final String SqlDateFormat = "yyyy-MM-dd hh:mm:ss";
     
     private static final SimpleDateFormat formatter = new SimpleDateFormat(SqlDateFormat);
-
-    public static String getInsertSql(String tableName, List<String> fieldNames, List<String> values) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append( "insert into " );
-        sb.append( tableName );
-        sb.append( "(" );
-
-        for ( String fieldName : fieldNames ) {
-            sb.append( fieldName );
-            sb.append( ", " );
-        }
-        sb.delete( sb.length() - 2, sb.length() );
-
-        sb.append( ") values (" );
-
-        for ( String value : values ) {
-            sb.append( value );
-            sb.append( ", " );
-        }
-        sb.delete( sb.length() - 2, sb.length() );
-
-        sb.append( ")" );
-
-        return sb.toString();
-    }
-    
-    public static String getInsertSql(String tableName, String fieldNameList, List<String> values) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append( "insert into " );
-        sb.append( tableName );
-        sb.append( "(" );
-        sb.append( fieldNameList );
-        sb.append( ") values (" );
-
-        for ( String value : values ) {
-            sb.append( value );
-            sb.append( ", " );
-        }
-        sb.delete( sb.length() - 2, sb.length() );
-
-        sb.append( ")" );
-
-        return sb.toString();
-    }
     
     public static String getInsertSql(String tableName, String fieldNameList, String[] values) {
         StringBuilder sb = new StringBuilder();
@@ -106,7 +60,7 @@ public class SqlUtils
         sb.append(" where ");
         sb.append(fieldName);
         sb.append("=");
-        sb.append(value);
+        sb.append(SqlUtils.sqlString(value));
         
         return sb.toString();
     }
@@ -137,7 +91,7 @@ public class SqlUtils
         sb.append(" where ");
         sb.append(whereField);
         sb.append("=");
-        sb.append(whereValue);
+        sb.append(SqlUtils.sqlString(whereValue));
 
         return sb.toString();
     }
@@ -171,6 +125,8 @@ public class SqlUtils
 
         String chr = String.valueOf(c);
         
+        string = string.replaceAll("\\\\", "\\\\\\\\");
+
         switch (c)
         {
             case '\'' :
@@ -192,18 +148,23 @@ public class SqlUtils
     }
     
     public static String sqlString(Byte b) {
+        if (b == null) return "null";
         return "\"" + String.valueOf(b) + "\"";
     }
     
     public static String sqlString(Integer i) {
+        if (i == null) return "null";
         return "\"" + String.valueOf(i) + "\"";
     }
     
     public static String sqlString(Calendar c) {
+        if (c == null) return "null";
+
         return "\"" + formatter.format(c.getTime()) + "\"";
     }
 
     public static String sqlString(Timestamp t) {
+        if (t == null) return "null";
         return "\"" + formatter.format(t.getTime()) + "\"";
     }
     

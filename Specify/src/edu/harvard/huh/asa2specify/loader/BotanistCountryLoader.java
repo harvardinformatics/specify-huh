@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -129,13 +127,13 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "AgentId, GeographyID, Role, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(5);
+		String[] values = new String[5];
 
-		values.add(    String.valueOf(agentGeography.getAgent().getAgentId()        ));
-		values.add(    String.valueOf(agentGeography.getGeography().getGeographyId()));
-		values.add(SqlUtils.sqlString(agentGeography.getRole()                      ));
-		values.add("now()" );
-		values.add(SqlUtils.sqlString(agentGeography.getRemarks())); 
+		values[0] =     String.valueOf( agentGeography.getAgent().getAgentId());
+		values[1] =     String.valueOf( agentGeography.getGeography().getGeographyId());
+		values[2] = SqlUtils.sqlString( agentGeography.getRole());
+		values[3] = "now()";
+		values[4] = SqlUtils.sqlString( agentGeography.getRemarks()); 
 
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}

@@ -166,10 +166,7 @@ public class BotanistLoader extends CsvToSqlLoader {
 		// has both an author name and collector name and they are equal; further, the
 		// author/collector name contains an ampersand (and a positive team flag)
 		
-		// AgentType
-		if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
-		else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
-		else agent.setAgentType( Agent.PERSON );
+
 
 		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
 		agent.setGuid( botanist.getGuid() );
@@ -198,12 +195,12 @@ public class BotanistLoader extends CsvToSqlLoader {
 		String lastName = botanist.getLastName();
 		if (lastName == null)
 		{
-		    throw new LocalException("No last name in botanist record");
+		    throw new LocalException("No last name in botanist record " + botanist.getId());
 		}
 
 		if (lastName.length() > 50)
 		{
-            log.warn("truncating last name");
+		    log.warn( "truncating last name " + botanist.getId() + " " + lastName );
             lastName = lastName.substring(0, 50);
         }
         agent.setLastName(lastName);
@@ -211,11 +208,16 @@ public class BotanistLoader extends CsvToSqlLoader {
         // FirstName
 		String firstName = botanist.getFirstName();
 		if (firstName != null && firstName.length() > 50) {
-            log.warn("truncating last name");
+		    log.warn( "truncating first name" + botanist.getId() + " " + firstName );
             firstName = firstName.substring(0, 50);
         }
         agent.setFirstName(firstName);
 
+        // AgentType
+        if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
+        else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
+        else agent.setAgentType( Agent.PERSON );
+        
 		// Remarks
         String remarks = botanist.getRemarks();
         if (remarks != null)
@@ -238,37 +240,37 @@ public class BotanistLoader extends CsvToSqlLoader {
 
 		String[] values = new String[9];
 
-		values[0] =     String.valueOf(agent.getAgentType());
-		values[1] = SqlUtils.sqlString(agent.getGuid());
-		values[2] = SqlUtils.sqlString(agent.getDateOfBirth());
-		values[3] = SqlUtils.sqlString(agent.getDateOfDeath());
-		values[4] = SqlUtils.sqlString(agent.getFirstName());
-		values[5] = SqlUtils.sqlString(agent.getLastName());
-	    values[6] = SqlUtils.sqlString(agent.getRemarks());
-	    values[7] =     String.valueOf(agent.getCreatedByAgent().getId());
-		values[8] = SqlUtils.sqlString(agent.getTimestampCreated());
+		values[0] =     String.valueOf( agent.getAgentType());
+		values[1] = SqlUtils.sqlString( agent.getGuid());
+		values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
+		values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
+		values[4] = SqlUtils.sqlString( agent.getFirstName());
+		values[5] = SqlUtils.sqlString( agent.getLastName());
+	    values[6] = SqlUtils.sqlString( agent.getRemarks());
+	    values[7] =     String.valueOf( agent.getCreatedByAgent().getId());
+		values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 
-	   private String getUpdateSql(Agent agent, String agentGuid) throws LocalException
-	    {
-	        String[] fieldNames = { "AgentType", "GUID", "DateOfBirth", "DateOfDeath", "FirstName", 
-	                                "LastName", "Remarks", "CreatedByAgentID", "TimestampCreated" };
+	private String getUpdateSql(Agent agent, String agentGuid) throws LocalException
+	{
+	    String[] fieldNames = { "AgentType", "GUID", "DateOfBirth", "DateOfDeath", "FirstName", 
+	            "LastName", "Remarks", "CreatedByAgentID", "TimestampCreated" };
 
-	        String[] values = new String[9];
+	    String[] values = new String[9];
 
-	        values[0] =     String.valueOf(agent.getAgentType());
-	        values[1] = SqlUtils.sqlString(agent.getGuid());
-	        values[2] = SqlUtils.sqlString(agent.getDateOfBirth());
-	        values[3] = SqlUtils.sqlString(agent.getDateOfDeath());
-	        values[4] = SqlUtils.sqlString(agent.getFirstName());
-	        values[5] = SqlUtils.sqlString(agent.getLastName());
-	        values[6] = SqlUtils.sqlString(agent.getRemarks());
-	        values[7] =     String.valueOf(agent.getCreatedByAgent().getId());
-	        values[8] = SqlUtils.sqlString(agent.getTimestampCreated());
+	    values[0] =     String.valueOf( agent.getAgentType());
+	    values[1] = SqlUtils.sqlString( agent.getGuid());
+	    values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
+	    values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
+	    values[4] = SqlUtils.sqlString( agent.getFirstName());
+	    values[5] = SqlUtils.sqlString( agent.getLastName());
+	    values[6] = SqlUtils.sqlString( agent.getRemarks());
+	    values[7] =     String.valueOf( agent.getCreatedByAgent().getId());
+	    values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
-	        return SqlUtils.getUpdateSql("agent", fieldNames, values, "GUID", agentGuid);
-	    }
+	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "GUID", SqlUtils.sqlString(agentGuid));
+	}
 }

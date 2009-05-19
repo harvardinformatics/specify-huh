@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -136,13 +134,13 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
     {
     	String fieldNames = "GroupID, MemberID, OrderNumber, CollectionMemberID, TimestampCreated";
     	
-    	List<String> values = new ArrayList<String>(5);
+    	String[] values = new String[5];
     	
-    	values.add(String.valueOf(groupPerson.getGroup().getId()     ));
-    	values.add(String.valueOf(groupPerson.getMember().getId()    ));
-    	values.add(String.valueOf(groupPerson.getOrderNumber()       ));
-    	values.add(String.valueOf(groupPerson.getCollectionMemberId()));
-    	values.add("now()");
+    	values[0] = String.valueOf( groupPerson.getGroup().getId());
+    	values[1] = String.valueOf( groupPerson.getMember().getId());
+    	values[2] = String.valueOf( groupPerson.getOrderNumber());
+    	values[3] = String.valueOf( groupPerson.getCollectionMemberId());
+    	values[4] = "now()";
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }

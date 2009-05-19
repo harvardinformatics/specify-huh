@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -124,12 +122,12 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(4);
+		String[] values = new String[4];
 
-		values.add(String.valueOf(author.getAgent().getId()        ));
-		values.add(String.valueOf(author.getReferenceWork().getId()));
-		values.add(String.valueOf(author.getOrderNumber()          ));
-		values.add("now()");
+		values[0] = String.valueOf( author.getAgent().getId());
+		values[1] = String.valueOf( author.getReferenceWork().getId());
+		values[2] = String.valueOf( author.getOrderNumber());
+		values[3] = "now()";
 
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

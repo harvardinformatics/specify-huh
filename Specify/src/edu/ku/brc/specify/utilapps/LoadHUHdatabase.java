@@ -209,9 +209,11 @@ public class LoadHUHdatabase
                 throw new LocalException("Couldn't create Statement", e);
             }
             
+            File dir = new File("/home/maureen/load");
+            
             // This will load agent records with GUID="{optr.id} optr"
             frame.setDesc("Loading optr...");
-            OptrLoader optrLoader = new OptrLoader(new File("demo_files/optr.csv"), statement);
+            OptrLoader optrLoader = new OptrLoader(new File(dir, "optr.csv"), statement);
             optrLoader.setFrame(frame);
             int optrRecords = optrLoader.loadRecords();
             log.info("Loaded " + optrRecords + " optr records");
@@ -219,13 +221,13 @@ public class LoadHUHdatabase
             // This will load agent records with GUID="{botanist.id} botanist".
             // Pre-existing agent records for people who have both optr and botanist entries will be updated.
             frame.setDesc("Loading botanist...");
-            BotanistLoader botanistLoader = new BotanistLoader(new File("demo_files/botanist.csv"), statement);
+            BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"), statement);
             botanistLoader.setFrame(frame);
             int botanistRecords = botanistLoader.loadRecords();
             log.info("Loaded " + botanistRecords + " botanist records");
             
             frame.setDesc("Loading taxon...");
-            TaxonLoader taxonLoader = new TaxonLoader(new File("demo_files/taxon.csv"), statement);
+            TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"), statement);
             taxonLoader.setFrame(frame);
             int taxonRecords = taxonLoader.loadRecords(); 
             log.info("Loaded " + taxonRecords + " taxonRecords");
@@ -235,7 +237,7 @@ public class LoadHUHdatabase
             log.info("Numbered taxon tree");
             
             frame.setDesc("Loading geo_unit...");
-            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File("demo_files/geo_unit.csv"), statement);
+            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
             geoUnitLoader.setFrame(frame);
             int geoUnitRecords = geoUnitLoader.loadRecords();
             log.info("Loaded " + geoUnitRecords + " geo_unit records");
@@ -245,79 +247,79 @@ public class LoadHUHdatabase
             log.info("Numbered geography tree");
             
             frame.setDesc("Loading site...");
-            LocalityLoader localityLoader = new LocalityLoader(new File("demo_files/site.csv"), statement);
+            LocalityLoader localityLoader = new LocalityLoader(new File(dir, "site.csv"), statement);
             localityLoader.setFrame(frame);
             int localityRecords = localityLoader.loadRecords();
             log.info("Loaded " + localityRecords + " site records");
             
             frame.setDesc("Loading organization...");
-            OrganizationLoader organizationLoader = new OrganizationLoader(new File("demo_files/organizations.csv"), statement);
+            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organizations.csv"), statement);
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
             log.info("Loaded " + organizationRecords + " organization records");
 
             frame.setDesc("Loading affiliate...");
-            AffiliateLoader affiliateLoader = new AffiliateLoader(new File("demo_files/affiliate.csv"), statement);
+            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement);
             affiliateLoader.setFrame(frame);
             int affiliateRecords = affiliateLoader.loadRecords();
             log.info("Loaded " + affiliateRecords + " affiliate records");
             
             frame.setDesc("Loading botanist_name...");
-            BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File("demo_files/botanist_name.csv"), statement);
+            BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File(dir, "botanist_name.csv"), statement);
             botanistNameLoader.setFrame(frame);
             int botanistNameRecords = botanistNameLoader.loadRecords();
             log.info("Loaded " + botanistNameRecords + " botanist_name records");
             
             frame.setDesc("Loading botanist_team...");
-            BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File("demo_files/botanist_team.csv"), statement);
+            BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"), statement);
             botanistTeamLoader.setFrame(frame);
             int botanistTeamRecords = botanistTeamLoader.loadRecords();
             log.info("Loaded " + botanistTeamRecords + " botanist_team records");
             
             frame.setDesc("Loading botanist_role_country...");
-            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File("demo_files/botanist_country.csv"), statement);
+            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"), statement);
             botanistCountryLoader.setFrame(frame);
             int botanistCountryRecords = botanistCountryLoader.loadRecords();
             log.info("Loaded " + botanistCountryRecords + " botanist_role_country records");
             
             frame.setDesc("Loading botanist_role_specialty...");
-            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File("demo_files/botanist_specialty.csv"), statement);
+            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"), statement);
             botanistSpecialtyLoader.setFrame(frame);
             int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
             log.info("Loaded " + botanistSpecialtyRecords + " botanist_role_specialty records");
             
             frame.setDesc("Loading publication...");
-            PublicationLoader publicationLoader = new PublicationLoader(new File("demo_files/publication.csv"), statement);
+            PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"), statement);
             publicationLoader.setFrame(frame);
             int publicationRecords = publicationLoader.loadRecords();
             log.info("Loaded " + publicationRecords + " publication records");
             
             frame.setDesc("Loading publ_author...");
-            PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File("demo_files/publ_author.csv"), statement);
+            PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"), statement);
             publAuthorLoader.setFrame(frame);
             int publAuthorRecords = publAuthorLoader.loadRecords();
             log.info("Loaded " + publAuthorRecords + " publ_author records");
             
             frame.setDesc("Loading series...");
-            SeriesLoader seriesLoader = new SeriesLoader(new File("demo_files/series.csv"), statement);
+            SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement);
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
             log.info("Loaded " + seriesRecords + " series records");
             
             frame.setDesc("Loading specimen_item and specimen...");
-            SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File("demo_files/specimen_item.csv"), statement);
+            SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"), statement);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
             log.info("Loaded " + specimenItemRecords + " specimen_item records");
             
             frame.setDesc("Loading determination and type_specimen...");
-            DeterminationLoader determinationLoader = new DeterminationLoader(new File("demo_files/determination.csv"), statement);
+            DeterminationLoader determinationLoader = new DeterminationLoader(new File(dir, "determination.csv"), statement);
             determinationLoader.setFrame(frame);
             int determinationRecords = determinationLoader.loadRecords();
             log.info("Loaded " + determinationRecords + " determination records");
             
             frame.setDesc("Loading agent...");
-            AgentLoader agentLoader = new AgentLoader(new File("demo_files/agent.csv"), statement);
+            AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"), statement);
             agentLoader.setFrame(frame);
             int agentRecords = agentLoader.loadRecords();
             log.info("Loaded " + agentRecords + " agent records");

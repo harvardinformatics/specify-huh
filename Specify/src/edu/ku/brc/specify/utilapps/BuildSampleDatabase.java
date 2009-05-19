@@ -825,6 +825,7 @@ public class BuildSampleDatabase
         
         createGeographyDefFromXML(geos, geoTreeDef, geoXML);
         
+        
         frame.setProcess(++createStep);
         
         persist(taxa);
@@ -9335,6 +9336,24 @@ public class BuildSampleDatabase
 //        commitTx();
         
         frame.setProcess(++createStep);
+        
+        // setup the root Geography record (planet Earth)
+        Geography earth = new Geography();
+        earth.initialize();
+        earth.setName("Earth");
+        earth.setFullName("Earth");
+        earth.setNodeNumber(1);
+        earth.setHighestChildNodeNumber(1);
+        earth.setRankId(0);
+        earth.setDefinition(geoTreeDef);
+        GeographyTreeDefItem defItem = geoTreeDef.getDefItemByRank(0);
+        earth.setDefinitionItem(defItem);
+        
+        startTx();
+        
+        persist(earth);
+        
+        commitTx();
         
         log.debug(" skipping geography load");
         

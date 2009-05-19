@@ -94,39 +94,56 @@ public class TaxonLoader extends CsvToSqlLoader {
 		Integer rankId = taxonRankIdsByType.get(rank);
 		if (rankId == null)
 		{
-			throw new LocalException("No rank id for " + rank);
+			throw new LocalException("No rank id for " + asaTaxon.getId() + " " + rank);
 		}
 		taxon.setRankId(rankId);
 		
+		if (rankId <= taxonRankIdsByType.get("family"))
+		{
+		    log.info("Processing " + taxon.getName());
+		    if (frame != null)
+		    {
+		        frame.setDesc("Loading " + taxon.getName() + "...");
+		    }
+		}
+
 		taxon.setDefinition(treeDef);
 		
 		TaxonTreeDefItem defItem = getTreeDefItemByRankId(rankId);
 		if (defItem == null)
 		{
-			throw new LocalException("No tree def item for rank " + rankId);
+			throw new LocalException("No tree def item for rank " + asaTaxon.getId() + " " + rankId);
 		}
 		taxon.setDefinitionItem(defItem);
 		
 		// find matching parent
 		Taxon parent = new Taxon();
 		Integer parentId = asaTaxon.getParentId();
-		String taxSerNum = SqlUtils.sqlString(String.valueOf(parentId));
+		if (parentId != null)
+		{
+		    String taxSerNum = String.valueOf(parentId);
 
-        String sql = SqlUtils.getQueryIdByFieldSql("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
+		    String sql = SqlUtils.getQueryIdByFieldSql("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
 
-        parentId = queryForId(sql);
-        if (parentId == null)
-        {
-        	throw new LocalException("No parent found with taxonomic serial number " + taxSerNum);
-        }
+		    parentId = queryForId(sql);
+		    if (parentId == null)
+		    {
+		        throw new LocalException("No parent found for " + asaTaxon.getId() + " with taxonomic serial number " + taxSerNum);
+		    }
+		}
+		else
+		{
+		    parentId = Integer.valueOf(1); // TODO: this only just happens to work.
+		}
 		parent.setTaxonId(parentId);
+		taxon.setParent(parent);
 		
         // find matching record creator
         Integer creatorOptrId = asaTaxon.getCreatedById();
         Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
         taxon.setCreatedByAgent(createdByAgent);
         
-		sql = getInsertSql(taxon);
+		String sql = getInsertSql(taxon);
 		insert(sql);
 	}
 
@@ -137,7 +154,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 	
 	private AsaTaxon parseTaxonRecord(String[] columns) throws LocalException
 	{
-	    if (columns.length < 8)
+	    if (columns.length < 10)
 	    {
 	        throw new LocalException("Wrong number of columns");
 	    }
@@ -145,14 +162,21 @@ public class TaxonLoader extends CsvToSqlLoader {
 		AsaTaxon taxon = new AsaTaxon();
 
 		try {
-		    taxon.setParentId(      Integer.parseInt(StringUtils.trimToNull(columns[0])));
+		    String parentId = StringUtils.trimToNull(columns[0]);
+		    if (parentId != null)
+		    {
+		        taxon.setParentId(Integer.parseInt(parentId));
+		    }
+
 		    taxon.setId(            Integer.parseInt(StringUtils.trimToNull(columns[1])));
 		    taxon.setAuthor(                         StringUtils.trimToNull(columns[2]));
-		    taxon.setFullName(                       StringUtils.trimToNull(columns[3]));
-		    taxon.setName(                           StringUtils.trimToNull(columns[4]));
-		    taxon.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[5])));
-		    taxon.setCreatedById(   Integer.parseInt(StringUtils.trimToNull(columns[6])));
-		    taxon.setDateCreated( SqlUtils.parseDate(StringUtils.trimToNull(columns[7])));
+		    taxon.setCitesStatus(                    StringUtils.trimToNull(columns[3]));
+		    taxon.setFullName(                       StringUtils.trimToNull(columns[4]));
+		    taxon.setName(                           StringUtils.trimToNull(columns[5]));
+		    taxon.setRank(                           StringUtils.trimToNull(columns[6]));
+		    taxon.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[7])));
+		    taxon.setCreatedById(   Integer.parseInt(StringUtils.trimToNull(columns[8])));
+		    taxon.setDateCreated( SqlUtils.parseDate(StringUtils.trimToNull(columns[9])));
 		}
 		catch (NumberFormatException e) {
 		    throw new LocalException("Couldn't parse numeric field", e);
@@ -179,7 +203,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 		String fullName = asaTaxon.getFullName();
 		if (fullName != null && fullName.length() > 255)
 		{
-			log.warn("truncating full name");
+			log.warn("truncating full name " + asaTaxon.getId() + " " + fullName);
 			fullName = fullName.substring(0, 255);
 		}
 		specifyTaxon.setFullName(fullName);
@@ -188,7 +212,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 		String name = asaTaxon.getName();
 		if (name == null)
 		{
-		    throw new LocalException("No name in taxon record");
+		    throw new LocalException("No name in taxon record " + asaTaxon.getId() + " " + name);
 		}
 		if (name.length() > 64)
 		{

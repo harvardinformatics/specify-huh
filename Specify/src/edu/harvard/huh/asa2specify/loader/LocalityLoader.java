@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -85,9 +83,15 @@ public class LocalityLoader extends CsvToSqlLoader
 
 		try {
 			site.setId(       Integer.parseInt(StringUtils.trimToNull(columns[0])));
-			site.setGeoUnitId(Integer.parseInt(StringUtils.trimToNull(columns[1])));
-			site.setLocality(                  StringUtils.trimToNull(columns[2]));
-			site.setMethod(                    StringUtils.trimToNull(columns[3]));
+			
+			String geoUnitIdStr = StringUtils.trimToNull(columns[1]);
+			if (geoUnitIdStr != null)
+			{
+			    site.setGeoUnitId(Integer.parseInt(geoUnitIdStr));
+			}
+			
+			site.setLocality( StringUtils.trimToNull(columns[2]));
+			site.setMethod( StringUtils.trimToNull(columns[3]));
 
 			String lat1Str = StringUtils.trimToNull(columns[4]);
 			if (lat1Str != null)
@@ -116,13 +120,13 @@ public class LocalityLoader extends CsvToSqlLoader
 			String elevFromStr = StringUtils.trimToNull(columns[8]);
 			if (elevFromStr != null)
 			{
-				site.setElevFrom(Integer.parseInt(elevFromStr));
+				site.setElevFrom(BigDecimal.valueOf(Double.parseDouble(elevFromStr)));
 			}
 
 			String elevToStr = StringUtils.trimToNull(columns[9]);
 			if (elevToStr != null)
 			{
-				site.setElevTo(Integer.parseInt(elevToStr));
+				site.setElevTo(BigDecimal.valueOf(Double.parseDouble(elevToStr)));
 			}
 
 			site.setElevMethod(StringUtils.trimToNull(columns[10]));
@@ -144,7 +148,7 @@ public class LocalityLoader extends CsvToSqlLoader
 		{
 			if (elevMethod.length() > 50)
 			{
-				log.warn("truncating elev method");
+				warn("Truncating elev method", site.getId(), elevMethod);
 				elevMethod = elevMethod.substring(0, 50);
 			}
 			locality.setElevationMethod( elevMethod );
@@ -175,7 +179,7 @@ public class LocalityLoader extends CsvToSqlLoader
 		{
 			if (method.length() > 50)
 			{
-				log.warn("truncating lat/long method");
+				warn("Truncating lat/long method", site.getId(), method);
 				method = method.substring(0, 50);
 			}
 			locality.setLatLongMethod(method);
@@ -201,14 +205,14 @@ public class LocalityLoader extends CsvToSqlLoader
 		}
 
 		// MaxElevation TODO: validity checks?
-		Integer elevTo = site.getElevTo();
+		BigDecimal elevTo = site.getElevTo();
 		if (elevTo != null)
 		{
 			locality.setMaxElevation(elevTo.doubleValue());
 		}
 
 		// MinElevation
-		Integer elevFrom = site.getElevFrom();
+		BigDecimal elevFrom = site.getElevFrom();
 		if (elevFrom != null)
 		{
 			locality.setMinElevation(elevFrom.doubleValue());
@@ -231,26 +235,26 @@ public class LocalityLoader extends CsvToSqlLoader
 			"Long1Text, Long2Text, Longitude1, Longitude2, LocalityName, MaxElevation, " +
 			"MinElevation, SrcLatLongUnit, DisciplineID, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(18);
+		String[] values = new String[18];
 
-		values.add(SqlUtils.sqlString(locality.getElevationMethod()    ));
-		values.add(SqlUtils.sqlString(locality.getGuid()               ));
-		values.add(SqlUtils.sqlString(locality.getLatLongMethod()      ));
-		values.add(SqlUtils.sqlString(locality.getLat1text()           ));
-		values.add(SqlUtils.sqlString(locality.getLat2text()           ));
-		values.add(    String.valueOf(locality.getLat1()               ));
-		values.add(    String.valueOf(locality.getLat2()               ));
-		values.add(SqlUtils.sqlString(locality.getLong1text()          ));
-		values.add(SqlUtils.sqlString(locality.getLong2text()          ));
-		values.add(    String.valueOf(locality.getLong1()              ));
-		values.add(    String.valueOf(locality.getLong2()              ));
-		values.add(SqlUtils.sqlString(locality.getLocalityName()       ));
-		values.add(    String.valueOf(locality.getMaxElevation()       ));
-		values.add(    String.valueOf(locality.getMinElevation()       ));
-		values.add(    String.valueOf(locality.getSrcLatLongUnit()     ));
-		values.add(    String.valueOf(locality.getDiscipline().getId() ));
-		values.add("now()");
-		values.add(SqlUtils.sqlString(locality.getRemarks()            ));
+		values[0]  = SqlUtils.sqlString( locality.getElevationMethod());
+		values[1]  = SqlUtils.sqlString( locality.getGuid());
+		values[2]  = SqlUtils.sqlString( locality.getLatLongMethod());
+		values[3]  = SqlUtils.sqlString( locality.getLat1text());
+		values[4]  = SqlUtils.sqlString( locality.getLat2text());
+		values[5]  =     String.valueOf( locality.getLat1());
+		values[6]  =     String.valueOf( locality.getLat2());
+		values[7]  = SqlUtils.sqlString( locality.getLong1text());
+		values[8]  = SqlUtils.sqlString( locality.getLong2text());
+		values[9]  =     String.valueOf( locality.getLong1());
+		values[10] =     String.valueOf( locality.getLong2());
+		values[11] = SqlUtils.sqlString( locality.getLocalityName());
+		values[12] =     String.valueOf( locality.getMaxElevation());
+		values[13] =     String.valueOf( locality.getMinElevation());
+		values[14] =     String.valueOf( locality.getSrcLatLongUnit());
+		values[15] =     String.valueOf( locality.getDiscipline().getId());
+		values[16] = "now()";
+		values[17] = SqlUtils.sqlString( locality.getRemarks());
 
 		return SqlUtils.getInsertSql("locality", fieldNames, values);
 	}

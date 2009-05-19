@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -85,7 +83,7 @@ public class PublicationLoader extends CsvToSqlLoader {
 			String abbreviation = StringUtils.trimToNull(columns[10]);
 			publication.setAbbreviation(abbreviation);
 
-			String remarks = StringUtils.trimToNull(columns[11]);
+			String remarks = SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[11]));
 			publication.setRemarks(remarks);
 		}
 		catch (NumberFormatException e) {
@@ -175,14 +173,14 @@ public class PublicationLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "GUID, ISSN, JournalAbbreviation, JournalName, Text1, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(6);
+		String[] values = new String[6];
 
-		values.add(SqlUtils.sqlString(journal.getGuid()               ));
-		values.add(SqlUtils.sqlString(journal.getIssn()               ));
-		values.add(SqlUtils.sqlString(journal.getJournalAbbreviation()));
-		values.add(SqlUtils.sqlString(journal.getJournalName()        ));
-		values.add(SqlUtils.sqlString(journal.getText1()              ));
-		values.add("now()");
+		values[0] = SqlUtils.sqlString( journal.getGuid());
+		values[1] = SqlUtils.sqlString( journal.getIssn());
+		values[2] = SqlUtils.sqlString( journal.getJournalAbbreviation());
+		values[3] = SqlUtils.sqlString( journal.getJournalName());
+		values[4] = SqlUtils.sqlString( journal.getText1());
+		values[5] = "now()";
 
 		return SqlUtils.getInsertSql("journal", fieldNames, values);
 	}
@@ -192,19 +190,19 @@ public class PublicationLoader extends CsvToSqlLoader {
 		String fieldNames = "GUID, ISBN, PlaceOfPublication, Publisher, ReferenceWorkType, " +
 		"Title, URL, WorkDate, JournalID, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(11);
+		String[] values = new String[11];
 
-		values.add(SqlUtils.sqlString(referenceWork.getGuid()              ));
-		values.add(SqlUtils.sqlString(referenceWork.getIsbn()              ));
-		values.add(SqlUtils.sqlString(referenceWork.getPlaceOfPublication()));
-		values.add(SqlUtils.sqlString(referenceWork.getPublisher()         ));
-		values.add(    String.valueOf(referenceWork.getReferenceWorkType() ));
-		values.add(SqlUtils.sqlString(referenceWork.getTitle()             ));
-		values.add(SqlUtils.sqlString(referenceWork.getUrl()               ));
-		values.add(SqlUtils.sqlString(referenceWork.getWorkDate()          ));
-		values.add(String.valueOf(referenceWork.getJournal().getJournalId()));
-		values.add("now()");
-		values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8(referenceWork.getRemarks())));
+		values[0]  = SqlUtils.sqlString( referenceWork.getGuid());
+		values[1]  = SqlUtils.sqlString( referenceWork.getIsbn());
+		values[2]  = SqlUtils.sqlString( referenceWork.getPlaceOfPublication());
+		values[3]  = SqlUtils.sqlString( referenceWork.getPublisher());
+		values[4]  =     String.valueOf( referenceWork.getReferenceWorkType());
+		values[5]  = SqlUtils.sqlString( referenceWork.getTitle());
+		values[6]  = SqlUtils.sqlString( referenceWork.getUrl());
+		values[7]  = SqlUtils.sqlString( referenceWork.getWorkDate());
+		values[8]  =     String.valueOf( referenceWork.getJournal().getJournalId());
+		values[9]  = "now()";
+		values[10] = SqlUtils.sqlString( referenceWork.getRemarks());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}

@@ -13,8 +13,8 @@ public class Site {
 	private BigDecimal  longitudeA;
 	private BigDecimal  latitudeB;
 	private BigDecimal  longitudeB;
-	private Integer     elevFrom;
-	private Integer     elevTo;
+	private BigDecimal  elevFrom;
+	private BigDecimal  elevTo;
 	private String      elevMethod; // not in test asa
 	private Integer     disciplineId;
 	
@@ -43,9 +43,9 @@ public class Site {
 	
 	public BigDecimal getLongitudeB() { return longitudeB; }
 	
-	public Integer getElevFrom() { return elevFrom; }
+	public BigDecimal getElevFrom() { return elevFrom; }
 	
-	public Integer getElevTo() { return elevTo; }
+	public BigDecimal getElevTo() { return elevTo; }
 	
 	public String getElevMethod() {
 	    if (elevTo == null && elevFrom == null) {
@@ -84,9 +84,9 @@ public class Site {
 	
 	public void setLongitudeB(BigDecimal longitudeB) { this.longitudeB = longitudeB; }
 	
-	public void setElevFrom(Integer elevFrom) { this.elevFrom = elevFrom; }
+	public void setElevFrom(BigDecimal elevFrom) { this.elevFrom = elevFrom; }
 	
-	public void setElevTo(Integer elevTo) { this.elevTo = elevTo; }
+	public void setElevTo(BigDecimal elevTo) { this.elevTo = elevTo; }
 	
 	public void setElevMethod(String elevMethod) { this.elevMethod = elevMethod; }
 	

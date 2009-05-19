@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -135,12 +133,12 @@ public class BotanistNameLoader extends CsvToSqlLoader {
     {
         String fieldNames = "AgentID, VarType, Name, TimestampCreated";
         
-        List<String> values = new ArrayList<String>(4);
+        String[] values = new String[4];
         
-        values.add(    String.valueOf(agentVariant.getAgent().getId()));
-        values.add(SqlUtils.sqlString(agentVariant.getVarType()      ));
-        values.add(SqlUtils.sqlString(agentVariant.getName()         ));
-        values.add("now()" );
+        values[0] =     String.valueOf(agentVariant.getAgent().getId());
+        values[1] = SqlUtils.sqlString(agentVariant.getVarType());
+        values[2] = SqlUtils.sqlString(agentVariant.getName());
+        values[3] = "now()";
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }

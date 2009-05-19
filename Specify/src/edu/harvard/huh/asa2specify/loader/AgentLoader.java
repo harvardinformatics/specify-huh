@@ -2,13 +2,10 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa.AsaAgent;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -112,7 +109,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		// LastName
 		String lastName = asaAgent.getName();
 		if (lastName.length() > 50) {
-			log.warn( "truncating last name" );
+		    warn("Truncating last name", asaAgent.getId(), lastName);
 			lastName = lastName.substring( 0, 50);
 		}
 		agent.setLastName(lastName);
@@ -120,7 +117,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		// FirstName TODO: parse name?
 		String firstName = asaAgent.getName();
 		if (firstName != null && firstName.length() > 50 ) {
-		    log.warn( "truncating first name" );
+		    warn("Truncating first name", asaAgent.getId(), firstName);
 		    firstName = firstName.substring( 0, 50);
 		}
 		agent.setFirstName(firstName);
@@ -129,7 +126,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		String position = asaAgent.getTitle();
 		if (position != null && position.length() > 50)
 		{
-		    log.warn( "truncating job title" );
+		    warn("Truncating job title", asaAgent.getId(), position);
 		    firstName = position.substring( 0, 50);
 		}
 		agent.setJobTitle(position);
@@ -138,7 +135,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		String email = asaAgent.getEmail();
 		if (email != null && email.length() > 50)
 		{
-		    log.warn("Truncating email");
+		    warn("Truncating email", asaAgent.getId(), email);
 		    email = email.substring(0, 50);
 		}
 		agent.setEmail(email);
@@ -151,7 +148,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		String specialty = asaAgent.getSpecialty();
 		if (specialty != null && specialty.length() > 255)
 		{
-		    log.warn("Truncating specialty");
+		    warn("Truncating specialty", asaAgent.getId(), specialty);
 		    specialty = specialty.substring(0, 255);
 		}
 		agent.setInterests(specialty);
@@ -160,7 +157,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		String prefix = asaAgent.getPrefix();
 		if (prefix != null && prefix.length() > 50)
 		{
-		    log.warn("Truncating prefix");
+		    warn("Truncating prefix", asaAgent.getId(), prefix);
 		    prefix = prefix.substring(0, 50);
 		}
 		agent.setTitle(prefix);
@@ -182,7 +179,7 @@ public class AgentLoader extends CsvToSqlLoader {
         String phone = asaAgent.getPhone();
         if (phone != null && phone.length() > 50)
         {
-            log.warn("Truncating phone 1");
+            warn("Truncating phone number", asaAgent.getId(), phone);
             phone = phone.substring(0, 50);
         }
         address.setPhone1(phone);
@@ -191,7 +188,7 @@ public class AgentLoader extends CsvToSqlLoader {
         String addressString = asaAgent.getCorrespAddress();
         if (addressString != null && addressString.length() > 255)
         {
-            log.warn("Truncating address");
+            warn("Truncating correspondence address", asaAgent.getId(), addressString);
             addressString = addressString.substring(0, 255);
         }
         address.setAddress(addressString);
@@ -207,7 +204,7 @@ public class AgentLoader extends CsvToSqlLoader {
 	    String addressString = asaAgent.getShippingAddress();
 	    if (addressString != null && addressString.length() > 255)
 	    {
-	        log.warn("Truncating address");
+	        warn("Truncating shipping address", asaAgent.getId(), addressString);
 	        addressString = addressString.substring(0, 255);
 	    }
 	    address.setAddress(addressString);
@@ -220,15 +217,15 @@ public class AgentLoader extends CsvToSqlLoader {
 		String fieldNames = 
 			"AgentType, GUID, FirstName, LastName, DivisionID, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(6);
+		String[] values = new String[7];
 
-		values.add(    String.valueOf(agent.getAgentType()               ));
-		values.add(SqlUtils.sqlString(agent.getGuid()                    ));
-		values.add(SqlUtils.sqlString(agent.getFirstName()               ));
-		values.add(SqlUtils.sqlString(agent.getLastName()                ));
-		values.add(    String.valueOf(agent.getDivision().getDivisionId()));
-		values.add("now()" );
-		values.add(SqlUtils.sqlString(agent.getRemarks()                 ));
+		values[0] =     String.valueOf( agent.getAgentType());
+		values[1] = SqlUtils.sqlString( agent.getGuid());
+		values[2] = SqlUtils.sqlString( agent.getFirstName());
+		values[3] = SqlUtils.sqlString( agent.getLastName());
+		values[4] =     String.valueOf( agent.getDivision().getDivisionId());
+		values[5] = "now()";
+		values[6] = SqlUtils.sqlString( agent.getRemarks());
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

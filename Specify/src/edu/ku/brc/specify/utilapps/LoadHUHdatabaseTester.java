@@ -10,8 +10,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa2specify.loader.LocalException;
-import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
+import edu.harvard.huh.asa2specify.loader.*;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.specify.datamodel.Discipline;
@@ -70,19 +69,45 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         int records = 0;
         try
         {
-        	PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File("demo_files/publ_author.csv"), statement);
-            records = publAuthorLoader.loadRecords();
+            File dir = new File("/home/maureen/load");
+            
+            //TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"), statement);
+            //records += taxonLoader.loadRecords();
+
+            //System.out.println("Numbering Taxonomy Tree...");
+            //taxonLoader.numberNodes();
+            //log.info("Numbered taxon tree");
+
+            //GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
+            //records = geoUnitLoader.loadRecords();
+            //System.out.println("Numbering Geography Tree...");
+            //geoUnitLoader.numberNodes();
+            //log.info("Numbered geography tree");
+
+            //LocalityLoader siteLoader = new LocalityLoader(new File(dir, "site.csv"), statement);
+            //records += siteLoader.loadRecords();
+            
+            //OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization_test.csv"), statement);
+            //records += organizationLoader.loadRecords();
+            
+            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement);
+            records += affiliateLoader.loadRecords();
+            
+            //PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File("demo_files/publ_author.csv"), statement);
+            //records = publAuthorLoader.loadRecords();
+            
+            log.info("Loaded " + records + " records");
         }
         catch (LocalException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        System.out.println("Processed " + records + records);
+        System.out.println("Processed " + records + " records");
     }
-
+    
     void setUpConnection() {
-        String dbName = "specifybeta";
+        String dbName = "specify";
 
         Vector<DatabaseDriverInfo> driverList = DatabaseDriverInfo.getDriversList();
         DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getInfoByName(driverList, "MySQL");

@@ -2,8 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -132,13 +130,13 @@ public class SeriesLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "GUID, ReferenceWorkType, Title, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(11);
+		String[] values = new String[5];
 
-		values.add(SqlUtils.sqlString(referenceWork.getGuid()              ));
-		values.add(    String.valueOf(referenceWork.getReferenceWorkType() ));
-		values.add(SqlUtils.sqlString(referenceWork.getTitle()             ));
-		values.add("now()");
-		values.add(SqlUtils.sqlString(SqlUtils.iso8859toUtf8(referenceWork.getRemarks())));
+		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
+		values[1] =     String.valueOf( referenceWork.getReferenceWorkType());
+		values[2] = SqlUtils.sqlString( referenceWork.getTitle());
+		values[3] = "now()";
+		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
@@ -147,11 +145,11 @@ public class SeriesLoader extends CsvToSqlLoader {
     {
     	String fieldNames = "Title, ReferenceWorkID, TimestampCreated";
  
-    	List<String> values = new ArrayList<String>(3);
+    	String[] values = new String[3];
     	
-    	values.add(SqlUtils.sqlString(exsiccata.getTitle()                            ));
-    	values.add(    String.valueOf(exsiccata.getReferenceWork().getReferenceWorkId()));
-    	values.add("now()");
+    	values[0] = SqlUtils.sqlString( exsiccata.getTitle());
+    	values[1] =     String.valueOf( exsiccata.getReferenceWork().getReferenceWorkId());
+    	values[2] = "now()";
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }
@@ -160,12 +158,12 @@ public class SeriesLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
 
-		List<String> values = new ArrayList<String>(4);
+		String[] values = new String[4];
 
-		values.add(String.valueOf(author.getAgent().getId()        ));
-		values.add(String.valueOf(author.getReferenceWork().getId()));
-		values.add(String.valueOf(author.getOrderNumber()          ));
-		values.add("now()");
+		values[0] = String.valueOf(author.getAgent().getId());
+		values[1] = String.valueOf(author.getReferenceWork().getId());
+		values[2] = String.valueOf(author.getOrderNumber());
+		values[3] = "now()";
 
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

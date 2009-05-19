@@ -2,8 +2,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -29,6 +28,11 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		// convert organization into agent ...
 		Agent agent = convert(organization);
 
+        // find matching record creator
+        Integer creatorOptrId = organization.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        agent.setCreatedByAgent(createdByAgent);
+        
 		// convert organization to sql and insert
 		String sql = getInsertSql(agent);
 		Integer agentId = insert(sql);
@@ -51,14 +55,14 @@ public class OrganizationLoader extends CsvToSqlLoader {
 				insert(sql);
 			}
 			catch (LocalException e) {
-				log.warn("Couldn't insert address record", e);
+				warn("Couldn't insert address record", organization.getId(), e.getMessage());
 			}
 		}
 	}
 
 	private Organization parseOrganizationRecord(String[] columns) throws LocalException
 	{
-		if (columns.length < 8)
+		if (columns.length < 10)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
@@ -67,14 +71,22 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		Organization organization = new Organization();
 
 		try {
-			organization.setId(Integer.parseInt(StringUtils.trimToNull(columns[0])));
-			organization.setName(               StringUtils.trimToNull(columns[1]));
-			organization.setAcronym(            StringUtils.trimToNull(columns[2]));
-			organization.setCity(               StringUtils.trimToNull(columns[3]));
-			organization.setState(              StringUtils.trimToNull(columns[4]));
-			organization.setCountry(            StringUtils.trimToNull(columns[5]));
-			organization.setUri(                StringUtils.trimToNull(columns[6]));
-			organization.setRemarks(            StringUtils.trimToNull(columns[7]));
+			organization.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] )));
+			organization.setName(               StringUtils.trimToNull( columns[1] ));
+			organization.setAcronym(            StringUtils.trimToNull( columns[2] ));
+			organization.setCity(               StringUtils.trimToNull( columns[3] ));
+			organization.setState(              StringUtils.trimToNull( columns[4] ));
+			organization.setCountry(            StringUtils.trimToNull( columns[5] ));
+			organization.setUri(                StringUtils.trimToNull( columns[6] ));
+			
+            Integer optrId =   Integer.parseInt(StringUtils.trimToNull( columns[7] ));
+            organization.setCreatedById(optrId);
+            
+            String createDateString =           StringUtils.trimToNull( columns[8] );
+            Date createDate = SqlUtils.parseDate(createDateString);
+            organization.setDateCreated(createDate);
+            
+			organization.setRemarks(            StringUtils.trimToNull (columns[9] ));
 		}
 		catch (NumberFormatException e) {
 			throw new LocalException("Couldn't parse numeric field", e);
@@ -96,20 +108,20 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 		// Abbreviation
 		String abbreviation = organization.getAcronym();
-		if (abbreviation != null && abbreviation.charAt(0) != '*')
+		if (abbreviation != null && !abbreviation.startsWith("*"))
 		{
 		    if (abbreviation.length() > 50)
 		    {
-		        log.warn("truncating acronym");
+		        warn("Truncating acronym", organization.getId(), abbreviation);
 		        abbreviation = abbreviation.substring(0, 50);
 		    }
+		      agent.setAbbreviation(abbreviation);
 		}
-		agent.setAbbreviation(abbreviation);
 
 		// LastName
 		String lastName = organization.getName();
 		if ( lastName.length() > 50 ) {
-			log.warn( "truncating last name" );
+		    warn("Truncating last name", organization.getId(), lastName);
 			lastName = lastName.substring( 0, 50);
 		}
 		agent.setLastName(lastName);
@@ -117,7 +129,7 @@ public class OrganizationLoader extends CsvToSqlLoader {
 		// URL
 		String url = organization.getUri();
 		if (url != null && url.length() > 255) {
-			log.warn("truncating acronym");
+		    warn("Truncating url", organization.getId(), url);
 			url = url.substring(0, 255);
 		}
 		agent.setUrl(url);
@@ -128,37 +140,42 @@ public class OrganizationLoader extends CsvToSqlLoader {
 			agent.setRemarks(SqlUtils.iso8859toUtf8(remarks));
 		}
 
+        // TimestampCreated
+        Date dateCreated = organization.getDateCreated();
+        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
 		return agent;
 	}
 
 	public String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, GUID, Abbreviation, LastName, TimestampCreated, Remarks";
+			"AgentType, GUID, Abbreviation, LastName, CreatedByAgentID, TimestampCreated, Remarks";
 
-		List<String> values = new ArrayList<String>(6);
+		String[] values = new String[7];
 
-		values.add(    String.valueOf(agent.getAgentType()   ));
-		values.add(SqlUtils.sqlString(agent.getGuid()        ));
-		values.add(SqlUtils.sqlString(agent.getAbbreviation()));
-		values.add(SqlUtils.sqlString(agent.getLastName()    ));
-		values.add("now()" );
-		values.add(SqlUtils.sqlString(agent.getRemarks()     ));
+		values[0] =     String.valueOf( agent.getAgentType());
+		values[1] = SqlUtils.sqlString( agent.getGuid());
+		values[2] = SqlUtils.sqlString( agent.getAbbreviation());
+		values[3] = SqlUtils.sqlString( agent.getLastName());
+		values[4] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[5] = SqlUtils.sqlString( agent.getTimestampCreated());
+		values[6] = SqlUtils.sqlString( agent.getRemarks());
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
     public String getInsertSql(Address address) throws LocalException
     {
-    	String fieldNames = "City, State, Country, AgentID";
+    	String fieldNames = "City, State, Country, AgentID, TimestampCreated";
     	
-    	List<String> values = new ArrayList<String>(5);
+    	String[] values = new String[5];
     	
-    	values.add(SqlUtils.sqlString(address.getCity()));
-    	values.add(SqlUtils.sqlString(address.getState()));
-    	values.add(SqlUtils.sqlString(address.getCountry()));
-    	values.add(    String.valueOf(address.getAgent().getAgentId()));
-    	values.add("now");
+    	values[0] = SqlUtils.sqlString( address.getCity());
+    	values[1] = SqlUtils.sqlString( address.getState());
+    	values[2] = SqlUtils.sqlString( address.getCountry());
+    	values[3] =     String.valueOf( address.getAgent().getAgentId());
+    	values[4] = "now()";
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }
