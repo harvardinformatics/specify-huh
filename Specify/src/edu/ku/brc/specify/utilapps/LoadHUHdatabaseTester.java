@@ -93,8 +93,14 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement, new File(dir, "affiliate_botanist.csv"));
             //records += affiliateLoader.loadRecords();
             
-            BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File(dir, "botanist_name.csv"), statement);
-            records += botanistNameLoader.loadRecords();
+            //BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File(dir, "botanist_name.csv"), statement);
+            //records += botanistNameLoader.loadRecords();
+            
+            //BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"), statement);
+            //records += botanistTeamLoader.loadRecords();
+            
+            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"), statement);
+            records += botanistCountryLoader.loadRecords();
             
             //PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File("demo_files/publ_author.csv"), statement);
             //records = publAuthorLoader.loadRecords();

@@ -39,7 +39,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 		Botanist botanist = new Botanist();
 		botanist.setId(botanistId);
 
-		String guid = SqlUtils.sqlString(botanist.getGuid());
+		String guid = botanist.getGuid();
 
 		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
@@ -86,7 +86,8 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 		}
 
 		BotanistRoleCountry botanistRoleCountry = new BotanistRoleCountry();
-		try {
+		try
+		{
 			botanistRoleCountry.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
 
 			String role = StringUtils.trimToNull( columns[1] );
@@ -98,7 +99,8 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 
 			botanistRoleCountry.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[3] ) ) );
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
 
@@ -111,8 +113,9 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 		AgentGeography agentGeography = new AgentGeography();
 
 		String role = botanistRoleCountry.getRole();
-		if (role.length() > 64) {
-			log.warn("Truncating botanist role: " + role);
+		if (role.length() > 64)
+		{
+			warn("Truncating botanist role", botanistRoleCountry.getBotanistId(), role);
 			role = role.substring(0, 64);
 		}
 		agentGeography.setRole(role);
