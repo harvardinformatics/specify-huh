@@ -161,7 +161,7 @@ public class Botanist {
 	
 	public boolean isPerson()
 	{
-	    return !isCorporate && !isTeam;
+	    return !isOrganization() && !isGroup();
 	}
 	
     private boolean isGroup( String name ) {
