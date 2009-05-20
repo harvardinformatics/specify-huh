@@ -262,7 +262,7 @@ public class BuildSampleDatabase
     private static final Logger  log      = Logger.getLogger(BuildSampleDatabase.class);
     
     private static String[] Colls       = { "Gray Herbarium", "Oakes Ames Orchid Herbarium", "Arnold Arboretum", "Farlow Herbarium", "New England Botanical Club", "Economic Botany Herbarium" };
-    private static String[] CollAbbrevs = { "G",              "AMES",                        "A",                "FH",               "NEBC",                       "ECON"                      };
+    private static String[] CollAbbrevs = { "GH",              "AMES",                        "A",                "FH",               "NEBC",                       "ECON"                      };
 
     //                                                  0                   1                  2                 3                   4                     5                   6                   7                     8
     private static String[] TaxonIndexNames = {"family common name", "species author", "species source", "species lsid", "species common name", "subspecies author", "subspecies source", "subspecies lsid", "subspecies common name"};
