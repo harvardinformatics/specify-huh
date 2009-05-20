@@ -5,25 +5,22 @@ import java.sql.Statement;
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Publication;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Journal;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
-public class PublicationLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(PublicationLoader.class);
-
-	public PublicationLoader(File csvFile, Statement sqlStatement)
+public class PublicationLoader extends CsvToSqlLoader
+{
+    public PublicationLoader(File csvFile, Statement sqlStatement)
 	{
 		super(csvFile, sqlStatement);
 	}
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
-		Publication publication = parsePublicationRecord(columns);
+		Publication publication = parse(columns);
 
         // convert Publication into ReferenceWork
         ReferenceWork referenceWork = convertToReferenceWork(publication);
@@ -49,7 +46,7 @@ public class PublicationLoader extends CsvToSqlLoader {
          insert(sql);
 	}
 
-	private Publication parsePublicationRecord(String[] columns) throws LocalException
+	private Publication parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 14)
 		{
@@ -231,11 +228,11 @@ public class PublicationLoader extends CsvToSqlLoader {
 		values[1]  = SqlUtils.sqlString( referenceWork.getIsbn());
 		values[2]  = SqlUtils.sqlString( referenceWork.getPlaceOfPublication());
 		values[3]  = SqlUtils.sqlString( referenceWork.getPublisher());
-		values[4]  =     String.valueOf( referenceWork.getReferenceWorkType());
+		values[4]  = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
 		values[5]  = SqlUtils.sqlString( referenceWork.getTitle());
 		values[6]  = SqlUtils.sqlString( referenceWork.getUrl());
 		values[7]  = SqlUtils.sqlString( referenceWork.getWorkDate());
-		values[8]  =     String.valueOf( referenceWork.getJournal().getJournalId());
+		values[8]  = SqlUtils.sqlString( referenceWork.getJournal().getJournalId());
 		values[9]  = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
         values[10] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
 		values[11] = SqlUtils.sqlString( referenceWork.getRemarks());

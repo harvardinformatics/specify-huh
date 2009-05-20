@@ -7,15 +7,13 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class BotanistLoader extends CsvToSqlLoader {
-    private final Logger log = Logger.getLogger(BotanistLoader.class);
-    
+public class BotanistLoader extends CsvToSqlLoader
+{
     private static Hashtable<Integer, Integer> optrIdsByBotanistId = new Hashtable<Integer, Integer>();
 	
     public BotanistLoader(File csvFile, Statement sqlStatement)
@@ -61,7 +59,7 @@ public class BotanistLoader extends CsvToSqlLoader {
 
 	public void loadRecord(String[] columns) throws LocalException {
 
-		Botanist botanist = parseBotanistRecord(columns);
+		Botanist botanist = parse(columns);
 
         // convert botanist into agent ...
         Agent botanistAgent = convert( botanist );
@@ -89,7 +87,7 @@ public class BotanistLoader extends CsvToSqlLoader {
 	}
 
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
-    private Botanist parseBotanistRecord(String[] columns) throws LocalException
+    private Botanist parse(String[] columns) throws LocalException
     {
         if (columns.length < 12)
         {
@@ -158,15 +156,13 @@ public class BotanistLoader extends CsvToSqlLoader {
         return botanist;
     }
 
-    public Agent convert( Botanist botanist ) throws LocalException
+    private Agent convert( Botanist botanist ) throws LocalException
     {    
 		Agent agent = new Agent();
 
 		// NOTE: as of 11:46 am Feb 27 2009, each botanist record that lacks a full name
 		// has both an author name and collector name and they are equal; further, the
 		// author/collector name contains an ampersand (and a positive team flag)
-		
-
 
 		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
 		agent.setGuid( botanist.getGuid() );
@@ -206,7 +202,7 @@ public class BotanistLoader extends CsvToSqlLoader {
 
 		if (lastName.length() > 50)
 		{
-		    log.warn( "truncating last name " + botanist.getId() + " " + lastName );
+		    warn("Truncating last name", botanist.getId(), lastName);
             lastName = lastName.substring(0, 50);
         }
         agent.setLastName(lastName);
@@ -215,7 +211,7 @@ public class BotanistLoader extends CsvToSqlLoader {
 		String firstName = botanist.getFirstName();
 		if (firstName != null && firstName.length() > 50)
 		{
-		    log.warn( "truncating first name" + botanist.getId() + " " + firstName );
+		    warn("Truncating first name", botanist.getId(), firstName);
             firstName = firstName.substring(0, 50);
         }
         agent.setFirstName(firstName);
@@ -238,7 +234,6 @@ public class BotanistLoader extends CsvToSqlLoader {
 
         return agent;
 	}
-
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
@@ -247,14 +242,14 @@ public class BotanistLoader extends CsvToSqlLoader {
 
 		String[] values = new String[9];
 
-		values[0] =     String.valueOf( agent.getAgentType());
+		values[0] = SqlUtils.sqlString( agent.getAgentType());
 		values[1] = SqlUtils.sqlString( agent.getGuid());
 		values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
 		values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
 		values[4] = SqlUtils.sqlString( agent.getFirstName());
 		values[5] = SqlUtils.sqlString( agent.getLastName());
 	    values[6] = SqlUtils.sqlString( agent.getRemarks());
-	    values[7] =     String.valueOf( agent.getCreatedByAgent().getId());
+	    values[7] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
 		values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
 
@@ -268,14 +263,14 @@ public class BotanistLoader extends CsvToSqlLoader {
 
 	    String[] values = new String[9];
 
-	    values[0] =     String.valueOf( agent.getAgentType());
+	    values[0] = SqlUtils.sqlString( agent.getAgentType());
 	    values[1] = SqlUtils.sqlString( agent.getGuid());
 	    values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
 	    values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
 	    values[4] = SqlUtils.sqlString( agent.getFirstName());
 	    values[5] = SqlUtils.sqlString( agent.getLastName());
 	    values[6] = SqlUtils.sqlString( agent.getRemarks());
-	    values[7] =     String.valueOf( agent.getCreatedByAgent().getId());
+	    values[7] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
 	    values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
 	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "GUID", SqlUtils.sqlString(agentGuid));

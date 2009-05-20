@@ -3,37 +3,32 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
-import java.util.Hashtable;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa.Botanist;
-import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Division;
 
-public class AffiliateLoader extends CsvToSqlLoader {
-
-	private final Logger log  = Logger.getLogger(AffiliateLoader.class);
-
+public class AffiliateLoader extends CsvToSqlLoader
+{
 	private Division division;
-	private BotanistMatcher affiliates;
+	private AsaIdMapper affiliates;
 	
 	public AffiliateLoader(File csvFile, Statement specifySqlStatement, File affiliateBotanists) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
 		
 		this.division = getBotanyDivision();
-		this.affiliates = new BotanistMatcher(affiliateBotanists);
+		this.affiliates = new AsaIdMapper(affiliateBotanists);
 	}
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		Affiliate affiliate = parseAffiliateRecord(columns);
+		Affiliate affiliate = parse(columns);
 
 		// convert organization into agent ...
 		Agent agent = convert(affiliate);
@@ -87,10 +82,10 @@ public class AffiliateLoader extends CsvToSqlLoader {
 
 	private Integer getBotanistId(Integer affiliateId)
 	{
-	    return affiliates.getBotanistId(affiliateId);
+	    return affiliates.map(affiliateId);
 	}
 
-	private Affiliate parseAffiliateRecord(String[] columns) throws LocalException
+	private Affiliate parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 10)
 		{
@@ -125,7 +120,7 @@ public class AffiliateLoader extends CsvToSqlLoader {
 		return affiliate;
 	}
 
-	public Agent convert(Affiliate affiliate) throws LocalException
+	private Agent convert(Affiliate affiliate) throws LocalException
 	{
 
 		Agent agent = new Agent();
@@ -219,11 +214,11 @@ public class AffiliateLoader extends CsvToSqlLoader {
 
 		String[] values = new String[8];
 
-		values[0] =     String.valueOf( agent.getAgentType());
+		values[0] = SqlUtils.sqlString( agent.getAgentType());
 		values[1] = SqlUtils.sqlString( agent.getGuid());
 		values[2] = SqlUtils.sqlString( agent.getFirstName());
 		values[3] = SqlUtils.sqlString( agent.getLastName());
-		values[4] =     String.valueOf( agent.getDivision().getDivisionId());
+		values[4] = SqlUtils.sqlString( agent.getDivision().getDivisionId());
         values[5] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
         values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
 		values[7] = SqlUtils.sqlString( agent.getRemarks());
@@ -237,10 +232,10 @@ public class AffiliateLoader extends CsvToSqlLoader {
         
         String[] values = new String[4];
         
-        values[0] = SqlUtils.sqlString(address.getAddress());
-        values[1] = SqlUtils.sqlString(address.getPhone1());
-        values[2] =     String.valueOf(address.getAgent().getAgentId());
-        values[3] = "now()";
+        values[0] = SqlUtils.sqlString( address.getAddress());
+        values[1] = SqlUtils.sqlString( address.getPhone1());
+        values[2] = SqlUtils.sqlString( address.getAgent().getAgentId());
+        values[3] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistRoleCountry;
@@ -12,18 +11,17 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentGeography;
 import edu.ku.brc.specify.datamodel.Geography;
 
-public class BotanistCountryLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(BotanistCountryLoader.class);
-
+public class BotanistCountryLoader extends CsvToSqlLoader
+{
 	public BotanistCountryLoader(File csvFile, Statement sqlStatement)
 	{
 		super(csvFile, sqlStatement);
 	}
 
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
-		BotanistRoleCountry botanistRoleCountry = parseBotanistRoleCountryRecord(columns);
+	public void loadRecord(String[] columns) throws LocalException
+	{
+		BotanistRoleCountry botanistRoleCountry = parse(columns);
 
 		// convert BotanistRoleCountry into AgentGeography
 		AgentGeography agentGeography = convert(botanistRoleCountry);
@@ -78,7 +76,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 		insert(sql);
 	}
 
-	private BotanistRoleCountry parseBotanistRoleCountryRecord(String[] columns) throws LocalException
+	private BotanistRoleCountry parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 4)
 		{
@@ -132,10 +130,10 @@ public class BotanistCountryLoader extends CsvToSqlLoader {
 
 		String[] values = new String[5];
 
-		values[0] =     String.valueOf( agentGeography.getAgent().getAgentId());
-		values[1] =     String.valueOf( agentGeography.getGeography().getGeographyId());
+		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getAgentId());
+		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getGeographyId());
 		values[2] = SqlUtils.sqlString( agentGeography.getRole());
-		values[3] = "now()";
+		values[3] = SqlUtils.now();
 		values[4] = SqlUtils.sqlString( agentGeography.getRemarks()); 
 
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);

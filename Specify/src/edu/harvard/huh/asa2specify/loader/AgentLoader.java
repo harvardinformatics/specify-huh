@@ -4,17 +4,14 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.AsaAgent;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Division;
 
-public class AgentLoader extends CsvToSqlLoader {
-
-	private final Logger log  = Logger.getLogger(AgentLoader.class);
-
+public class AgentLoader extends CsvToSqlLoader
+{
 	private Division division;
 	
 	public AgentLoader(File csvFile, Statement specifySqlStatement) throws LocalException
@@ -27,7 +24,7 @@ public class AgentLoader extends CsvToSqlLoader {
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		AsaAgent asaAgent = parseAgentRecord(columns);
+		AsaAgent asaAgent = parse(columns);
 
 		// convert organization into agent ...
 		Agent agent = convert(asaAgent);
@@ -59,7 +56,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		}
 	}
 
-	private AsaAgent parseAgentRecord(String[] columns) throws LocalException
+	private AsaAgent parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 14)
 		{
@@ -92,7 +89,7 @@ public class AgentLoader extends CsvToSqlLoader {
 		return agent;
 	}
 
-	public Agent convert(AsaAgent asaAgent) throws LocalException
+	private Agent convert(AsaAgent asaAgent) throws LocalException
 	{
 
 		Agent agent = new Agent();
@@ -219,12 +216,12 @@ public class AgentLoader extends CsvToSqlLoader {
 
 		String[] values = new String[7];
 
-		values[0] =     String.valueOf( agent.getAgentType());
+		values[0] = SqlUtils.sqlString( agent.getAgentType());
 		values[1] = SqlUtils.sqlString( agent.getGuid());
 		values[2] = SqlUtils.sqlString( agent.getFirstName());
 		values[3] = SqlUtils.sqlString( agent.getLastName());
-		values[4] =     String.valueOf( agent.getDivision().getDivisionId());
-		values[5] = "now()";
+		values[4] = SqlUtils.sqlString( agent.getDivision().getDivisionId());
+		values[5] = SqlUtils.now();
 		values[6] = SqlUtils.sqlString( agent.getRemarks());
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
@@ -237,11 +234,11 @@ public class AgentLoader extends CsvToSqlLoader {
         String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
-        values[1] =     String.valueOf( address.getIsShipping());
+        values[1] = SqlUtils.sqlString( address.getIsShipping());
         values[2] = SqlUtils.sqlString( address.getPhone1());
         values[3] = SqlUtils.sqlString( address.getFax());
-        values[4] =     String.valueOf( address.getAgent().getAgentId());
-        values[5] = "now";
+        values[4] = SqlUtils.sqlString( address.getAgent().getAgentId());
+        values[5] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

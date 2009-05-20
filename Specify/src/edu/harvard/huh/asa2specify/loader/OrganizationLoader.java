@@ -5,29 +5,26 @@ import java.sql.Statement;
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Organization;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class OrganizationLoader extends CsvToSqlLoader {
-
-	private final Logger log  = Logger.getLogger(OrganizationLoader.class);
-
-	private BotanistMatcher organizations;
+public class OrganizationLoader extends CsvToSqlLoader
+{
+    private AsaIdMapper orgMapper;
 	
-	public OrganizationLoader(File csvFile, Statement specifySqlStatement, File organizationBotanists) throws LocalException
+	public OrganizationLoader(File csvFile, Statement specifySqlStatement, File orgToBotanist) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-		this.organizations = new BotanistMatcher(organizationBotanists);
+		this.orgMapper = new AsaIdMapper(orgToBotanist);
 	}
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		Organization organization = parseOrganizationRecord(columns);
+		Organization organization = parse(columns);
 
 		// convert organization into agent ...
 		Agent agent = convert(organization);
@@ -93,10 +90,10 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 	private Integer getBotanistId(Integer organizationId)
 	{
-	    return organizations.getBotanistId(organizationId);
+	    return orgMapper.map(organizationId);
 	}
 	   
-	private Organization parseOrganizationRecord(String[] columns) throws LocalException
+	private Organization parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 10)
 		{
@@ -133,7 +130,6 @@ public class OrganizationLoader extends CsvToSqlLoader {
 
 	private Agent convert(Organization organization) throws LocalException
 	{
-
 		Agent agent = new Agent();
 
 		// AgentType
@@ -221,8 +217,8 @@ public class OrganizationLoader extends CsvToSqlLoader {
     	values[0] = SqlUtils.sqlString( address.getCity());
     	values[1] = SqlUtils.sqlString( address.getState());
     	values[2] = SqlUtils.sqlString( address.getCountry());
-    	values[3] =     String.valueOf( address.getAgent().getAgentId());
-    	values[4] = "now()";
+    	values[3] = SqlUtils.sqlString( address.getAgent().getAgentId());
+    	values[4] = SqlUtils.now();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }

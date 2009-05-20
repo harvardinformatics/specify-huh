@@ -2,10 +2,8 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -15,7 +13,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
-import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
 public class GeoUnitLoader extends CsvToSqlLoader {
 
@@ -155,7 +152,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		nullIdGeography.setGeographyId(null);
 	}
 
-    protected GeographyTreeDef getGeoTreeDef() throws LocalException
+    private GeographyTreeDef getGeoTreeDef() throws LocalException
     {
         GeographyTreeDef g = new GeographyTreeDef();
 
@@ -167,7 +164,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
         return g;
     }
     
-	protected GeographyTreeDefItem getTreeDefItemByRankId(Integer rankId) throws LocalException
+	private GeographyTreeDefItem getTreeDefItemByRankId(Integer rankId) throws LocalException
 	{
 	    GeographyTreeDefItem treeDefItem = geoDefItemsByRank.get(rankId);
 
@@ -190,7 +187,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	public void loadRecord(String[] columns) throws LocalException {
 		// TODO Auto-generated method stub
 
-		GeoUnit geoUnit = parseGeoUnitRecord(columns);
+		GeoUnit geoUnit = parse(columns);
 
 		Geography geography = convert(geoUnit);
 
@@ -293,7 +290,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		numberNodes("geography", "GeographyID");
 	}
 
-	private GeoUnit parseGeoUnitRecord(String[] columns) throws LocalException
+	private GeoUnit parse(String[] columns) throws LocalException
 	{
 	    if (columns.length < 15)
 	    {
@@ -403,7 +400,10 @@ public class GeoUnitLoader extends CsvToSqlLoader {
         Date dateCreated = geoUnit.getDateCreated();
         geography.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
-		return geography;
+        // Version
+        geography.setVersion(1);
+
+        return geography;
 	}
 
 	private String getQualifiedName(String name, String displayQualifier)
@@ -426,22 +426,22 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	    String[] values = new String[16];
 
-	    values[0]  = SqlUtils.sqlString(geography.getGuid());
-	    values[1]  = SqlUtils.sqlString(geography.getAbbrev());
-	    values[2]  = SqlUtils.sqlString(geography.getCommonName());
-	    values[3]  = SqlUtils.sqlString(geography.getName());
-	    values[4]  = SqlUtils.sqlString(geography.getFullName());
-	    values[5]  = SqlUtils.sqlString(geography.getGeographyCode());
-	    values[6]  =     String.valueOf(geography.getIsAccepted());
-	    values[7]  =     String.valueOf(geography.getAcceptedGeography().getId());
-	    values[8]  =     String.valueOf(geography.getDefinition().getId());
-	    values[9]  =     String.valueOf(geography.getDefinitionItem().getId());
-	    values[10] =     String.valueOf(geography.getRankId());
-	    values[11] =     String.valueOf(geography.getParent().getId());
-	    values[12] = SqlUtils.sqlString(geography.getRemarks());
-	    values[13] = SqlUtils.sqlString(geography.getCreatedByAgent().getId());
-	    values[14] = SqlUtils.sqlString(geography.getTimestampCreated());
-	    values[15] = "1";
+	    values[0]  = SqlUtils.sqlString( geography.getGuid());
+	    values[1]  = SqlUtils.sqlString( geography.getAbbrev());
+	    values[2]  = SqlUtils.sqlString( geography.getCommonName());
+	    values[3]  = SqlUtils.sqlString( geography.getName());
+	    values[4]  = SqlUtils.sqlString( geography.getFullName());
+	    values[5]  = SqlUtils.sqlString( geography.getGeographyCode());
+	    values[6]  = SqlUtils.sqlString( geography.getIsAccepted());
+	    values[7]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
+	    values[8]  = SqlUtils.sqlString( geography.getDefinition().getId());
+	    values[9]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
+	    values[10] = SqlUtils.sqlString( geography.getRankId());
+	    values[11] = SqlUtils.sqlString( geography.getParent().getId());
+	    values[12] = SqlUtils.sqlString( geography.getRemarks());
+	    values[13] = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
+	    values[14] = SqlUtils.sqlString( geography.getTimestampCreated());
+	    values[15] = SqlUtils.sqlString( geography.getVersion());
 
 	    return SqlUtils.getInsertSql("geography", fieldNames, values);
 	}

@@ -4,17 +4,14 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistTeamMember;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.GroupPerson;
 
-public class BotanistTeamLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(BotanistLoader.class);
-	
+public class BotanistTeamLoader extends CsvToSqlLoader
+{
 	private int lastAgentId;
 	private int orderNumber;
 	
@@ -27,7 +24,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
-		BotanistTeamMember botanistTeamMember = parseBotanistTeamRecord(columns);
+		BotanistTeamMember botanistTeamMember = parse(columns);
 
 		// convert botanist_team to groupperson
         GroupPerson groupPerson = convert(botanistTeamMember);
@@ -101,7 +98,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
         insert(sql);
 	}
 
-    private BotanistTeamMember parseBotanistTeamRecord(String[] columns) throws LocalException
+    private BotanistTeamMember parse(String[] columns) throws LocalException
     {
         if (columns.length < 3)
         {
@@ -124,7 +121,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
         return botanistTeamMember;
     }
     
-    public GroupPerson convert(BotanistTeamMember botanistTeamMember)
+    private GroupPerson convert(BotanistTeamMember botanistTeamMember)
     {
         GroupPerson groupPerson = new GroupPerson();
         
@@ -144,11 +141,11 @@ public class BotanistTeamLoader extends CsvToSqlLoader {
     	
     	String[] values = new String[5];
     	
-    	values[0] = String.valueOf( groupPerson.getGroup().getId());
-    	values[1] = String.valueOf( groupPerson.getMember().getId());
-    	values[2] = String.valueOf( groupPerson.getOrderNumber());
-    	values[3] = String.valueOf( groupPerson.getCollectionMemberId());
-    	values[4] = "now()";
+    	values[0] = SqlUtils.sqlString( groupPerson.getGroup().getId());
+    	values[1] = SqlUtils.sqlString( groupPerson.getMember().getId());
+    	values[2] = SqlUtils.sqlString( groupPerson.getOrderNumber());
+    	values[3] = SqlUtils.sqlString( groupPerson.getCollectionMemberId());
+    	values[4] = SqlUtils.now();
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }

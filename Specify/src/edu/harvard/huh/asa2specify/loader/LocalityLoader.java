@@ -34,7 +34,7 @@ public class LocalityLoader extends CsvToSqlLoader
 
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		Site site = parseSiteRecord(columns);
+		Site site = parse(columns);
 
 		// skip this record if it only has SRE initial values set
 		if (! site.hasData()) return;
@@ -71,7 +71,7 @@ public class LocalityLoader extends CsvToSqlLoader
 	}
 
 	// id, geo_unit_id, locality, latlong_method, latitude_a, longitude_a, latitude_b, longitude_b, elev_from, elev_to, elev_method
-	private Site parseSiteRecord(String[] columns) throws LocalException
+	private Site parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 11)
 		{
@@ -242,18 +242,18 @@ public class LocalityLoader extends CsvToSqlLoader
 		values[2]  = SqlUtils.sqlString( locality.getLatLongMethod());
 		values[3]  = SqlUtils.sqlString( locality.getLat1text());
 		values[4]  = SqlUtils.sqlString( locality.getLat2text());
-		values[5]  =     String.valueOf( locality.getLat1());
-		values[6]  =     String.valueOf( locality.getLat2());
+		values[5]  = SqlUtils.sqlString( locality.getLat1());
+		values[6]  = SqlUtils.sqlString( locality.getLat2());
 		values[7]  = SqlUtils.sqlString( locality.getLong1text());
 		values[8]  = SqlUtils.sqlString( locality.getLong2text());
-		values[9]  =     String.valueOf( locality.getLong1());
-		values[10] =     String.valueOf( locality.getLong2());
+		values[9]  = SqlUtils.sqlString( locality.getLong1());
+		values[10] = SqlUtils.sqlString( locality.getLong2());
 		values[11] = SqlUtils.sqlString( locality.getLocalityName());
-		values[12] =     String.valueOf( locality.getMaxElevation());
-		values[13] =     String.valueOf( locality.getMinElevation());
-		values[14] =     String.valueOf( locality.getSrcLatLongUnit());
-		values[15] =     String.valueOf( locality.getDiscipline().getId());
-		values[16] = "now()";
+		values[12] = SqlUtils.sqlString( locality.getMaxElevation());
+		values[13] = SqlUtils.sqlString( locality.getMinElevation());
+		values[14] = SqlUtils.sqlString( locality.getSrcLatLongUnit());
+		values[15] = SqlUtils.sqlString( locality.getDiscipline().getId());
+		values[16] = SqlUtils.now();
 		values[17] = SqlUtils.sqlString( locality.getRemarks());
 
 		return SqlUtils.getInsertSql("locality", fieldNames, values);

@@ -4,17 +4,14 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentSpecialty;
 
-public class BotanistSpecialtyLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(BotanistSpecialtyLoader.class);
-
+public class BotanistSpecialtyLoader extends CsvToSqlLoader
+{
 	private int lastAgentId;
 	private int orderNumber;
 
@@ -28,7 +25,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader {
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		BotanistRoleSpecialty botanistRoleSpecialty = parseBotanistRoleSpecialtyRecord(columns);
+		BotanistRoleSpecialty botanistRoleSpecialty = parse(columns);
 
 		// convert BotanistRoleCountry into AgentSpecialty
 		AgentSpecialty agentSpecialty = convert(botanistRoleSpecialty);
@@ -72,7 +69,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader {
 		insert(sql);
 	}
 
-	private BotanistRoleSpecialty parseBotanistRoleSpecialtyRecord(String[] columns) throws LocalException
+	private BotanistRoleSpecialty parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 4)
 		{
@@ -127,10 +124,10 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader {
 
 		String[] values = new String[4];
 
-		values[0] =     String.valueOf( agentSpecialty.getAgent().getAgentId());
+		values[0] = SqlUtils.sqlString( agentSpecialty.getAgent().getAgentId());
 		values[1] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
 		values[2] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
-		values[3] = "now()";
+		values[3] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("agentspecialty", fieldNames, values);
 	}

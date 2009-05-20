@@ -14,8 +14,8 @@ import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
-public class TaxonLoader extends CsvToSqlLoader {
-
+public class TaxonLoader extends CsvToSqlLoader
+{
 	private final Logger log = Logger.getLogger(TaxonLoader.class);
 
 	private TaxonTreeDef treeDef;
@@ -85,7 +85,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
-		AsaTaxon asaTaxon = parseTaxonRecord(columns);
+		AsaTaxon asaTaxon = parse(columns);
 		
 		Taxon taxon = convert(asaTaxon);
 		
@@ -152,7 +152,7 @@ public class TaxonLoader extends CsvToSqlLoader {
 		numberNodes("taxon", "TaxonID");
 	}
 	
-	private AsaTaxon parseTaxonRecord(String[] columns) throws LocalException
+	private AsaTaxon parse(String[] columns) throws LocalException
 	{
 	    if (columns.length < 10)
 	    {
@@ -232,6 +232,9 @@ public class TaxonLoader extends CsvToSqlLoader {
         Date dateCreated = asaTaxon.getDateCreated();
         specifyTaxon.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 
+        // Version
+        specifyTaxon.setVersion(1);
+
         // return converted taxon record
 		return specifyTaxon;
 	}
@@ -244,19 +247,19 @@ public class TaxonLoader extends CsvToSqlLoader {
 
 		String[] values = new String[13];
 
-		values[0]  = SqlUtils.sqlString(taxon.getName());
-		values[1]  = SqlUtils.sqlString(taxon.getFullName());
-		values[2]  = SqlUtils.sqlString(taxon.getAuthor());
-		values[3]  = SqlUtils.sqlString(taxon.getCitesStatus());
-		values[4]  = SqlUtils.sqlString(taxon.getTaxonomicSerialNumber());
-		values[5]  =     String.valueOf(taxon.getDefinition().getId());
-		values[6]  =     String.valueOf(taxon.getDefinitionItem().getId());
-		values[7]  =     String.valueOf(taxon.getRankId());
-		values[8]  =     String.valueOf(taxon.getParent().getId());
-	    values[9]  = SqlUtils.sqlString(taxon.getRemarks());
-		values[10] = SqlUtils.sqlString(taxon.getCreatedByAgent().getId());
-		values[11] = SqlUtils.sqlString(taxon.getTimestampCreated());
-		values[12] = "1";
+		values[0]  = SqlUtils.sqlString( taxon.getName());
+		values[1]  = SqlUtils.sqlString( taxon.getFullName());
+		values[2]  = SqlUtils.sqlString( taxon.getAuthor());
+		values[3]  = SqlUtils.sqlString( taxon.getCitesStatus());
+		values[4]  = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
+		values[5]  = SqlUtils.sqlString( taxon.getDefinition().getId());
+		values[6]  = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
+		values[7]  = SqlUtils.sqlString( taxon.getRankId());
+		values[8]  = SqlUtils.sqlString( taxon.getParent().getId());
+	    values[9]  = SqlUtils.sqlString( taxon.getRemarks());
+		values[10] = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
+		values[11] = SqlUtils.sqlString( taxon.getTimestampCreated());
+		values[12] = SqlUtils.sqlString( taxon.getVersion());
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}

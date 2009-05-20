@@ -4,7 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistName;
@@ -12,10 +11,8 @@ import edu.harvard.huh.asa.BotanistName.TYPE;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentVariant;
 
-public class BotanistNameLoader extends CsvToSqlLoader {
-
-	private final Logger log  = Logger.getLogger(BotanistNameLoader.class);
-
+public class BotanistNameLoader extends CsvToSqlLoader
+{
 	public BotanistNameLoader(File csvFile, Statement sqlStatement)
 	{
 		super(csvFile, sqlStatement);
@@ -24,7 +21,7 @@ public class BotanistNameLoader extends CsvToSqlLoader {
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		BotanistName botanistName = parseBotanistNameRecord(columns);
+		BotanistName botanistName = parse(columns);
 
         // convert BotanistName into AgentVariant
         AgentVariant agentVariant = convert(botanistName);
@@ -60,7 +57,7 @@ public class BotanistNameLoader extends CsvToSqlLoader {
 	}
 	
     // botanistId, nameType, name
-    private BotanistName parseBotanistNameRecord(String[] columns) throws LocalException
+    private BotanistName parse(String[] columns) throws LocalException
     {
         if (columns.length < 3)
         {
@@ -136,10 +133,10 @@ public class BotanistNameLoader extends CsvToSqlLoader {
         
         String[] values = new String[4];
         
-        values[0] =     String.valueOf(agentVariant.getAgent().getId());
-        values[1] = SqlUtils.sqlString(agentVariant.getVarType());
-        values[2] = SqlUtils.sqlString(agentVariant.getName());
-        values[3] = "now()";
+        values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
+        values[1] = SqlUtils.sqlString( agentVariant.getVarType());
+        values[2] = SqlUtils.sqlString( agentVariant.getName());
+        values[3] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }

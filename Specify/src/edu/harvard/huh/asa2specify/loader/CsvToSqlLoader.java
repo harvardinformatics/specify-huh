@@ -14,21 +14,22 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa.Optr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
-import edu.ku.brc.specify.datamodel.GeographyTreeDef;
-import edu.ku.brc.specify.datamodel.TaxonTreeDef;
+import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.ui.ProgressFrame;
 
-public abstract class CsvToSqlLoader {
-
+public abstract class CsvToSqlLoader
+{
 	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
-	private static Hashtable<Integer, Agent> agentsByOptrId = new Hashtable<Integer, Agent>();
+	private static Hashtable<Integer, Agent>        agentsByOptrId = new Hashtable<Integer, Agent>();
+    private static Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
+	private static Hashtable<String, PrepType>     prepTypesByName = new Hashtable<String, PrepType>();
 
 	private LineIterator lineIterator;
 	private File csvFile;
@@ -159,6 +160,43 @@ public abstract class CsvToSqlLoader {
         return agent;
 	}
 
+	protected PrepType getPrepType(String format) throws LocalException
+	{
+        PrepType prepType = prepTypesByName.get(format);
+        if (prepType == null) {
+            String sql = SqlUtils.getQueryIdByFieldSql("preptype", "PrepTypeID", "Name", format);
+            Integer prepTypeId = queryForId(sql);
+
+            if (prepTypeId == null)
+            {
+                throw new LocalException("Didn't find prep type for name " + format);
+            }
+
+            prepType = new PrepType();
+            prepType.setPrepTypeId(prepTypeId);
+            prepTypesByName.put(format, prepType);
+        }
+        return prepType;
+	}
+	
+	protected Collection getCollection(String code) throws LocalException
+	{
+	    Collection collection = collectionsByCode.get(code);
+	    if (collection == null) {
+	        String sql = SqlUtils.getQueryIdByFieldSql("collection", "CollectionID", "Code", code);
+	        Integer collectionId = queryForId(sql);
+
+	        if (collectionId == null) {
+	            throw new LocalException("Didn't find collection for code " + code);
+	        }
+
+	        collection = new Collection();
+	        collection.setCollectionId(collectionId);
+	        collectionsByCode.put(code, collection);
+	    }
+	    return collection;
+	}
+	
 	protected Discipline getBotanyDiscipline() throws LocalException
 	{
 	    Discipline d = new Discipline();

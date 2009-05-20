@@ -141,25 +141,48 @@ public class SqlUtils
         return sqlEscape(string, '"');
     }
 
+    public static String now() {
+        return "now()";
+    }
+
     public static String sqlString(String s) {
         if (s == null) return "null";
         
         return "\"" + sqlEscape(s) + "\"";
     }
+
+    public static String sqlString(Boolean b) {
+        if (b == null) return "null";
+        return String.valueOf(b);
+    }
     
     public static String sqlString(Byte b) {
         if (b == null) return "null";
-        return "\"" + String.valueOf(b) + "\"";
+        return String.valueOf(b);
+    }
+    
+    public static String sqlString(Short s) {
+        if (s == null) return "null";
+        return String.valueOf(s);
     }
     
     public static String sqlString(Integer i) {
         if (i == null) return "null";
-        return "\"" + String.valueOf(i) + "\"";
+        return String.valueOf(i);
+    }
+    
+    public static String sqlString(Float f) {
+        if (f == null) return "null";
+        return String.valueOf(f);
+    }
+    
+    public static String sqlString(Double d) {
+        if (d == null) return "null";
+        return String.valueOf(d);
     }
     
     public static String sqlString(Calendar c) {
         if (c == null) return "null";
-
         return "\"" + formatter.format(c.getTime()) + "\"";
     }
 

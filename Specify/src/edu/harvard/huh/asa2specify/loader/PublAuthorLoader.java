@@ -4,7 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.PublAuthor;
@@ -12,10 +11,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
-public class PublAuthorLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(PublAuthorLoader.class);
-
+public class PublAuthorLoader extends CsvToSqlLoader
+{
 	private int lastRefWorkId;
 	private int orderNumber;
 	
@@ -29,7 +26,7 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
-		PublAuthor publAuthor = parsePublAuthorRecord(columns);
+		PublAuthor publAuthor = parse(columns);
 
 		// convert BotanistRoleCountry into AgentGeography
 		Author author = convert(publAuthor);
@@ -93,7 +90,7 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 		insert(sql);
 	}
 
-	private PublAuthor parsePublAuthorRecord(String[] columns) throws LocalException
+	private PublAuthor parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 3)
 		{
@@ -128,10 +125,10 @@ public class PublAuthorLoader extends CsvToSqlLoader {
 
 		String[] values = new String[4];
 
-		values[0] = String.valueOf( author.getAgent().getId());
-		values[1] = String.valueOf( author.getReferenceWork().getId());
-		values[2] = String.valueOf( author.getOrderNumber());
-		values[3] = "now()";
+		values[0] = SqlUtils.sqlString( author.getAgent().getId());
+		values[1] = SqlUtils.sqlString( author.getReferenceWork().getId());
+		values[2] = SqlUtils.sqlString( author.getOrderNumber());
+		values[3] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}
