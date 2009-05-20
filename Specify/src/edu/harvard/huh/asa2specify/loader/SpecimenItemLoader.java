@@ -282,7 +282,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		collector.setOrderNumber(1);
 		
 		sql = getInsertSql(collector);
-				
+		insert(sql);
+
 		// insert CollectionObject
 		collectionObject.setCollectingEvent(collectingEvent);
 		collectionObject.setCollection(collection);
