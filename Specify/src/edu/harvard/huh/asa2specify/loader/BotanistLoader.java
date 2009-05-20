@@ -191,7 +191,13 @@ public class BotanistLoader extends CsvToSqlLoader {
             agent.setDateOfDeath(c);
         }
         
-		// LastName
+        String name = botanist.getName();
+        if (name == null)
+        {
+            throw new LocalException("Name is null");
+        }
+
+        // LastName
 		String lastName = botanist.getLastName();
 		if (lastName == null)
 		{
@@ -207,7 +213,8 @@ public class BotanistLoader extends CsvToSqlLoader {
         
         // FirstName
 		String firstName = botanist.getFirstName();
-		if (firstName != null && firstName.length() > 50) {
+		if (firstName != null && firstName.length() > 50)
+		{
 		    log.warn( "truncating first name" + botanist.getId() + " " + firstName );
             firstName = firstName.substring(0, 50);
         }
