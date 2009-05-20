@@ -155,7 +155,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 preparation.setCollectionObject(collObjByAccessionIdentifier.get(accessionIdentifier));
 
                 // insert Preparation
-                preparation.setCollectionMemberId(collectionObject.getCollectionMemberId());
+                preparation.setCollectionMemberId(preparation.getCollectionObject().getCollectionMemberId());
                 preparation.setPrepType(prepType);
 
                 sql = getInsertSql(preparation);
