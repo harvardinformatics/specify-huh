@@ -253,7 +253,7 @@ public class LoadHUHdatabase
             log.info("Loaded " + localityRecords + " site records");
             
             frame.setDesc("Loading organization...");
-            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organizations.csv"), statement);
+            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organizations.csv"), statement, new File(dir, "organization_botanist.csv"));
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
             log.info("Loaded " + organizationRecords + " organization records");
@@ -300,11 +300,11 @@ public class LoadHUHdatabase
             int publAuthorRecords = publAuthorLoader.loadRecords();
             log.info("Loaded " + publAuthorRecords + " publ_author records");
             
-            frame.setDesc("Loading series...");
+/*            frame.setDesc("Loading series...");
             SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement);
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
-            log.info("Loaded " + seriesRecords + " series records");
+            log.info("Loaded " + seriesRecords + " series records");*/
             
             frame.setDesc("Loading specimen_item and specimen...");
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"), statement);
@@ -312,7 +312,7 @@ public class LoadHUHdatabase
             int specimenItemRecords = specimenItemLoader.loadRecords();
             log.info("Loaded " + specimenItemRecords + " specimen_item records");
             
-            frame.setDesc("Loading determination and type_specimen...");
+/*            frame.setDesc("Loading determination and type_specimen...");
             DeterminationLoader determinationLoader = new DeterminationLoader(new File(dir, "determination.csv"), statement);
             determinationLoader.setFrame(frame);
             int determinationRecords = determinationLoader.loadRecords();
@@ -322,7 +322,7 @@ public class LoadHUHdatabase
             AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"), statement);
             agentLoader.setFrame(frame);
             int agentRecords = agentLoader.loadRecords();
-            log.info("Loaded " + agentRecords + " agent records");
+            log.info("Loaded " + agentRecords + " agent records");*/
             
             
             SwingUtilities.invokeLater(new Runnable()
