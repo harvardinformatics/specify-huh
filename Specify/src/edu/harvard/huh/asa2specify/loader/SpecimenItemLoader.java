@@ -57,7 +57,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 	private boolean isEmpty(Accession accession)
 	{
-	    return accession.getAccessionNumber() != null;
+	    return accession.getAccessionNumber() == null;
 	}
 
 	private void processSeries(Integer seriesId, String seriesNo, CollectionObject collectionObject) throws LocalException
@@ -66,7 +66,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         {
             Series series =  new Series();
             series.setId(seriesId);
-            String guid = SqlUtils.sqlString(series.getGuid());
+            String guid = series.getGuid();
             
             String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
             
@@ -93,7 +93,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         }
         else if (seriesNo != null)
         {
-            log.warn("Null series and non-null series_no");
+            warn("Null series and non-null series_no", null, seriesNo);
         }
 	}
 
@@ -192,8 +192,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 sql = getInsertSql(preparation);
                 insert(sql);
 
-                // maybe insert a new exsiccata item
-                processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
+                // maybe insert a new exsiccata item TODO: untangle series/subcollection
+                //processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
                 
                 return;
             }
@@ -242,7 +242,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		if (botanistId != null)
 		{
 			Botanist botanist = new Botanist();
-			String guid = SqlUtils.sqlString(botanist.getGuid());
+			botanist.setId(botanistId);
+			String guid = botanist.getGuid();
 			
 			sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 			
@@ -257,7 +258,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		
 		// find the matching cataloger
 		Integer createdById = specimenItem.getCatalogedById();
-		Agent cataloger = this.getAgentByOptrId(createdById);
+		Agent cataloger = getAgentByOptrId(createdById);
 		
 	    // maybe insert an accession
 		processAccession(accession);
@@ -301,9 +302,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		sql = getInsertSql(preparation);
 		insert(sql);
 		
-		// maybe insert a new exsiccata item
-		processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
-
+		// maybe insert a new exsiccata item TODO: untangle series/subcollection
+		//processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
 	}
 
 	private SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
@@ -318,8 +318,14 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		try {
 		    specimenItem.setId(         Integer.parseInt( StringUtils.trimToNull( columns[0] )));
 		    specimenItem.setSpecimenId( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-		    specimenItem.setBarcode(    Integer.parseInt( StringUtils.trimToNull( columns[2] )));
-		    specimenItem.setCollectorNo(                  StringUtils.trimToNull( columns[3] ));
+		    
+		    String barcodeStr = StringUtils.trimToNull( columns[2] );
+		    if (barcodeStr != null)
+		    {
+		        specimenItem.setBarcode( Integer.parseInt( barcodeStr ));
+		    }
+		    
+		    specimenItem.setCollectorNo( StringUtils.trimToNull( columns[3] ));
 		    
             String createDateString = StringUtils.trimToNull( columns[4] );
             Date createDate = SqlUtils.parseDate(createDateString);
@@ -339,17 +345,55 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
             specimenItem.setAccessionStatus( StringUtils.trimToNull( columns[14] ));
             
             BDate bdate = new BDate();
+            specimenItem.setCollDate( bdate );
+
+            String startYearStr = StringUtils.trimToNull( columns[15] );
+            if (startYearStr != null)
+            {
+                bdate.setStartYear( Integer.parseInt( startYearStr ));
+            }
+
+            String startMonthStr = StringUtils.trimToNull( columns[16] );
+            if (startMonthStr != null)
+            {
+                bdate.setStartMonth( Integer.parseInt( startMonthStr ));
+            }
             
-            bdate.setStartYear(           Integer.parseInt(  StringUtils.trimToNull( columns[15] )));
-            bdate.setStartMonth(          Integer.parseInt(  StringUtils.trimToNull( columns[16] )));
-            bdate.setStartDay(            Integer.parseInt(  StringUtils.trimToNull( columns[17] )));
-            bdate.setStartPrecision(                         StringUtils.trimToNull( columns[18] ));
-            bdate.setEndYear(              Integer.parseInt( StringUtils.trimToNull( columns[19] )));
-            bdate.setEndMonth(             Integer.parseInt( StringUtils.trimToNull( columns[20] )));
-            bdate.setEndDay(               Integer.parseInt( StringUtils.trimToNull( columns[21] )));
-            bdate.setEndPrecision(                           StringUtils.trimToNull( columns[22] ));
-            bdate.setText(                                   StringUtils.trimToNull( columns[23] ));            
-            specimenItem.setItemNo(        Integer.parseInt( StringUtils.trimToNull( columns[24] )));
+            String startDayStr = StringUtils.trimToNull( columns[17] );
+            if (startDayStr != null)
+            {
+                bdate.setStartDay( Integer.parseInt( startDayStr ));
+            }
+            
+            bdate.setStartPrecision( StringUtils.trimToNull( columns[18] ));
+            
+            String endYearStr = StringUtils.trimToNull( columns[19] );
+            if (endYearStr != null)
+            {
+                bdate.setEndYear( Integer.parseInt( endYearStr ));
+            }
+
+            String endMonthStr = StringUtils.trimToNull( columns[20] );
+            if (endMonthStr != null)
+            {
+                bdate.setEndMonth( Integer.parseInt( endMonthStr ));
+            }
+            
+            String endDayStr =            StringUtils.trimToNull( columns[21] );
+            if (endDayStr != null)
+            {
+                bdate.setEndDay( Integer.parseInt( endDayStr ));
+            }
+
+            bdate.setEndPrecision( StringUtils.trimToNull( columns[22] ));
+
+            bdate.setText( StringUtils.trimToNull( columns[23] ));  
+            
+            String itemNoStr = StringUtils.trimToNull( columns[24] );
+            if (itemNoStr != null)
+            {
+                specimenItem.setItemNo( Integer.parseInt( itemNoStr ));
+            }
             
             String isOversize = StringUtils.trimToNull( columns[25] );
             specimenItem.setOversize( isOversize != null && isOversize.equals("true") ? true : false);
@@ -358,9 +402,25 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
             specimenItem.setReference(                       StringUtils.trimToNull( columns[27] ));
             specimenItem.setNote(                            StringUtils.trimToNull( columns[28] ));
             specimenItem.setHerbariumCode(                   StringUtils.trimToNull( columns[29] ));
-            specimenItem.setSeriesId(      Integer.parseInt( StringUtils.trimToNull( columns[30] )));
-            specimenItem.setSiteId(        Integer.parseInt( StringUtils.trimToNull( columns[31] )));
-            specimenItem.setCollectorId(   Integer.parseInt( StringUtils.trimToNull( columns[32] )));
+            
+            String seriesIdStr = StringUtils.trimToNull( columns[30] );
+            if (seriesIdStr != null)
+            {
+                specimenItem.setSeriesId( Integer.parseInt( seriesIdStr ));
+            }
+            
+            String siteIdStr = StringUtils.trimToNull( columns[31] );
+            if (siteIdStr != null)
+            {
+                specimenItem.setSiteId( Integer.parseInt( siteIdStr ));
+            }
+
+            String collectorIdStr = StringUtils.trimToNull( columns[32] );
+            if (collectorIdStr != null)
+            {
+                specimenItem.setCollectorId( Integer.parseInt( collectorIdStr ));
+            }
+
             specimenItem.setCatalogedById( Integer.parseInt( StringUtils.trimToNull( columns[33] )));
             specimenItem.setFormat(                          StringUtils.trimToNull( columns[34] ));
             specimenItem.setSeriesNo(                        StringUtils.trimToNull( columns[35] ));
@@ -374,20 +434,32 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         return specimenItem;
 	}
 
-	// TODO: oops, I'm creating a new collectionobject for each preparation.
-	private Preparation convert(SpecimenItem specimenItem) {
-
+	private Preparation convert(SpecimenItem specimenItem) throws LocalException
+	{
 		CollectionObject collectionObject = new CollectionObject();
 
 		collectionObject.setGuid(String.valueOf(specimenItem.getSpecimenId()));
 
 		Integer barcode = specimenItem.getBarcode();
-		String catalogNumber = (new DecimalFormat( "000000000" ) ).format( String.valueOf(barcode) );
-		collectionObject.setCatalogNumber(catalogNumber);
+		if (barcode == null)
+		{
+		    throw new LocalException("Null barcode");
+		}
+
+		try
+		{
+		    String catalogNumber = (new DecimalFormat( "000000000" ) ).format( barcode );
+		    collectionObject.setCatalogNumber(catalogNumber);
+		}
+		catch (IllegalArgumentException e)
+		{
+		    throw new LocalException("Couldn't parse barcode");
+		}
 
 		String collectorNo = specimenItem.getCollectorNo();
-		if (collectorNo != null && collectorNo.length() > 50) {
-			log.warn("truncating collector number");
+		if (collectorNo != null && collectorNo.length() > 50)
+		{
+			warn("Truncating collector number", specimenItem.getSpecimenId(), collectorNo);
 			collectorNo = collectorNo.substring(0, 50);
 		}
 		collectionObject.setFieldNumber(collectorNo);
@@ -405,7 +477,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		String description = specimenItem.getDescription();
 		if (description != null && description.length() > 255)
 		{
-			log.warn("Truncating description");
+			warn("Truncating description", specimenItem.getSpecimenId(), description);
 			description = description.substring(0, 255);
 		}
 		collectionObject.setDescription(description);
@@ -444,20 +516,24 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		Integer startMonth = bdate.getStartMonth();
 		Integer startDay   = bdate.getStartDay();
 
-		if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) ) {
+		if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) )
+		{
 			collectingEvent.setStartDate( DateUtils.getSpecifyStartDate( bdate ) );
 			collectingEvent.setStartDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
 		}
-		else if ( DateUtils.isValidCollectionDate( startYear, startMonth, startDay ) ) {
+		else if ( DateUtils.isValidCollectionDate( startYear, startMonth, startDay ) )
+		{
 			String startDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );
-			if (startDateVerbatim != null && startDateVerbatim.length() > 50) {
-				log.warn("truncating start date verbatim");
+			if (startDateVerbatim != null && startDateVerbatim.length() > 50)
+			{
+				warn("Truncating start date verbatim", specimenItem.getSpecimenId(), startDateVerbatim);
 				startDateVerbatim = startDateVerbatim.substring(0, 50);
 			}
 			collectingEvent.setStartDateVerbatim(startDateVerbatim);
 		}
 		else {
-			log.warn( "Invalid start date" );
+			warn("Invalid start date", specimenItem.getSpecimenId(),
+			        String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
 		}
 
 		// StartDatePrecision
@@ -467,17 +543,20 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		Integer endMonth = bdate.getEndMonth();
 		Integer endDay   = bdate.getEndDay();
 
-		if ( DateUtils.isValidSpecifyDate( endYear, endMonth, endDay ) ) {
+		if ( DateUtils.isValidSpecifyDate( endYear, endMonth, endDay ) )
+		{
 			collectingEvent.setEndDate( DateUtils.getSpecifyEndDate( bdate ) );
 			collectingEvent.setEndDatePrecision( DateUtils.getDatePrecision( endYear, endMonth, endDay ) );
 		}
-		else if ( DateUtils.isValidCollectionDate( endYear, endMonth, endDay ) ) {
+		else if ( DateUtils.isValidCollectionDate( endYear, endMonth, endDay ) )
+		{
 			String endDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );
-			if (endDateVerbatim != null && endDateVerbatim.length() > 50) {
-				log.warn("truncating end date verbatim");
+			if (endDateVerbatim != null && endDateVerbatim.length() > 50)
+			{
+				warn("Truncating end date verbatim", specimenItem.getSpecimenId(), endDateVerbatim);
 				endDateVerbatim = endDateVerbatim.substring(0, 50);
 			}
-			collectingEvent.setStartDateVerbatim(endDateVerbatim);
+			collectingEvent.setEndDateVerbatim(endDateVerbatim);
 		}
 
 	    String habitat = specimenItem.getHabitat();
@@ -523,7 +602,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	   
     private String getInsertSql(Accession accession)
     {
-        String fieldNames = "AccessionNumber, AccessionStatus, Remarks, DivisionID, TimestampCreated";
+        String fieldNames = "AccessionNumber, Status, Remarks, DivisionID, TimestampCreated";
         
         String[] values = new String[5];
         
@@ -636,5 +715,4 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
 	}
-
 }
