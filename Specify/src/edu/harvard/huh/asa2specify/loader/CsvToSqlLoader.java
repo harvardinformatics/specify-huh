@@ -79,7 +79,7 @@ public abstract class CsvToSqlLoader {
 				loadRecord(columns);
 			}
 			catch (LocalException e) {
-				log.error("Couldn't insert record for line " + counter + "\n" + line, e);
+				log.error("Couldn't insert record for line " + counter + "\n" + line);
 				continue;
 			}
 		}
