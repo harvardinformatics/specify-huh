@@ -207,7 +207,6 @@ public abstract class CsvToSqlLoader {
 			if (counter % 100 == 0)
 			{
 				frame.setProcess(counter);
-				log.info("Converted " + counter + " records");
 			}
 		}
 	}
