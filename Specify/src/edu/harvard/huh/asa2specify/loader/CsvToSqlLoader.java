@@ -54,13 +54,6 @@ public abstract class CsvToSqlLoader {
 
 		while (true)
 		{
-			counter++;
-			
-			if (counter % 1000 == 0)
-			{
-			    log.info("Processed " + counter + " records");
-			}
-
 			String line = null;
 			try {
 				line = getNextLine();
@@ -71,6 +64,13 @@ public abstract class CsvToSqlLoader {
 			}
 
 			if (line == null) break;
+
+			counter++;
+
+			if (counter % 1000 == 0)
+			{
+			    log.info("Processed " + counter + " records");
+			}
 
 			updateProgressFrame(counter);
 
