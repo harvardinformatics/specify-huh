@@ -14,6 +14,7 @@ public class SpecimenItem {
 	private  Integer siteId;
 	private  Integer seriesId;
 	private   String seriesNo;
+	private   String seriesAbbrev;
 	private   String format;
 	private  Integer itemNo;
 	private   String remarks; // specimen.remarks
@@ -31,6 +32,7 @@ public class SpecimenItem {
 	private   String habitat;
 	private   String substrate;
 	private   String container;
+	private  Integer subcollectionId;
 	private     Date catalogedDate;
 	private  Integer catalogedById;	
 	private    BDate collDate;
@@ -95,6 +97,10 @@ public class SpecimenItem {
 	
 	public String getSeriesNo() { return this.seriesNo; }
 	
+	public String getSeriesAbbrev() { return this.seriesAbbrev; }
+	
+	public Integer getSubcollectionId() { return this.subcollectionId; }
+	
 	public Integer getCatalogedById() { return this.catalogedById; }
 
 	public void setId(Integer id) { this.id = id; }
@@ -153,5 +159,9 @@ public class SpecimenItem {
 	
 	public void setSeriesNo(String seriesNo) { this.seriesNo = seriesNo; }
 	
+	public void setSeriesAbbrev(String seriesAbbrev) { this.seriesAbbrev = seriesAbbrev; }
+	
 	public void setCatalogedById(Integer catalogedById) { this.catalogedById = catalogedById; }
+	
+	public void setSubcollectionId(Integer subcollectionId) { this.subcollectionId = subcollectionId; }
 }
