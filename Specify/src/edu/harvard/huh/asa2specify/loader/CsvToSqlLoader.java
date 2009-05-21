@@ -342,6 +342,29 @@ public abstract class CsvToSqlLoader
 		return id;
 	}
 
+	protected String queryForString(String sql) throws LocalException
+	{
+	    log.debug(sql);
+
+	    ResultSet result = null;
+	    String string = null;
+	    try
+	    {
+	        result = sqlStatement.executeQuery(sql);
+
+	        if (result.next())
+	        {
+	            string = result.getString(1);
+	        }
+
+	    } catch (SQLException e)
+	    {
+	        throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
+	    }
+
+	    return string;
+	}
+	   
 	protected boolean update(String sql) throws LocalException
 	{
 	    log.debug(sql);
