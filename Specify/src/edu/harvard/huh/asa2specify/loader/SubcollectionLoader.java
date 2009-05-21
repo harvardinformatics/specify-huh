@@ -17,8 +17,8 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
 
-public class SubcollectionLoader extends CsvToSqlLoader {
-
+public class SubcollectionLoader extends CsvToSqlLoader
+{
     private AsaIdMapper subcollMapper;
     
 	public SubcollectionLoader(File csvFile, Statement sqlStatement, File subcollToBotanist) throws LocalException
@@ -312,7 +312,7 @@ public class SubcollectionLoader extends CsvToSqlLoader {
 		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
 		values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
 		values[2] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[3] = "now()";
+		values[3] = SqlUtils.now();
 		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    

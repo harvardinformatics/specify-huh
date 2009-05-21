@@ -4,74 +4,99 @@ import java.io.File;
 import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Series;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Author;
-import edu.ku.brc.specify.datamodel.Exsiccata;
-import edu.ku.brc.specify.datamodel.Journal;
-import edu.ku.brc.specify.datamodel.ReferenceWork;
 
-public class SeriesLoader extends CsvToSqlLoader {
-
-	public SeriesLoader(File csvFile, Statement sqlStatement) {
-		super(csvFile, sqlStatement);	}
-
-	private final Logger log = Logger.getLogger(SeriesLoader.class);
+public class SeriesLoader extends CsvToSqlLoader
+{
+    private AsaIdMapper seriesToBotanistMapper;
+    private AsaIdMapper seriesToOrgMapper;
+    
+    public SeriesLoader(File csvFile, Statement sqlStatement, File seriesToBotanist, File seriesToOrg) throws LocalException
+	{
+		super(csvFile, sqlStatement);
+		
+		this.seriesToBotanistMapper = new AsaIdMapper(seriesToBotanist);
+		this.seriesToOrgMapper = new AsaIdMapper(seriesToOrg);
+	}
 	
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
-		Series series = parseSeriesRecord(columns);
+	public void loadRecord(String[] columns) throws LocalException
+	{
+		Series series = parse(columns);
 
-        // convert series into referencework ...
-        ReferenceWork referenceWork = convertToReferenceWork(series);
-        referenceWork.setJournal(new Journal());
+        // convert series into agent, type=org ...
+        Agent agent = convert(series);
 
-        // convert referencework to sql and insert
-        String sql = getInsertSql(referenceWork);
-        Integer referenceWorkId = insert(sql);
-        referenceWork.setReferenceWorkId(referenceWorkId);
+        // find matching botanist
+        Integer seriesAgentId = null;
+        Integer botanistId = getBotanistId(series.getId());
+        Integer organizationId = getOrganizationId(series.getId());
         
-        // create an exsiccata
-        Exsiccata exsiccata = convertToExsiccata(series);
-        exsiccata.setReferenceWork(referenceWork);
-        sql = getInsertSql(exsiccata);
-        insert(sql);
-        
-        // find matching agent for author
-        Integer institutionId = series.getInstitutionId();
-        Author author = new Author();
+        if (botanistId != null)
+        {
+            Botanist botanist = new Botanist();
+            botanist.setId(botanistId);
+            String guid = botanist.getGuid();
 
-        if (institutionId != null) {
-        	
-        	Organization organization = new Organization();
-        	organization.setId(institutionId);
-        	
-        	String guid = organization.getGuid();
-        	
-        	sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
-        	Integer agentId = queryForId(sql);
-
-        	if (agentId != null)
-        	{
-        		Agent agent = new Agent();
-        		agent.setAgentId(agentId);
-        		author.setAgent(agent);
-        		author.setReferenceWork(referenceWork);
-        		author.setOrderNumber((short) 1);
-                getInsertSql(author);
-
-                insert(sql);
-        	}
+            seriesAgentId = queryForId(sql);
         }
+        else
+        {
+            if (organizationId != null)
+            {
+                Organization organization = new Organization();
+                organization.setId(organizationId);
+                String guid = organization.getGuid();
+                
+                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+
+                seriesAgentId = queryForId(sql);
+            }
+        }
+        
+        if (seriesAgentId == null)
+        {
+            String sql = getInsertSql(agent);
+            seriesAgentId = insert(sql);
+            agent.setAgentId(seriesAgentId);
+        }
+        else
+        {
+            if (botanistId != null)
+            {
+                if (agent.getRemarks() != null)
+                {
+                    warn("Ignoring remarks", series.getId(), agent.getRemarks());
+                }
+                String sql = getUpdateSql(agent, seriesAgentId);
+                update(sql);
+            }
+            else if (organizationId != null)
+            {
+                warn("Series already present as organization", series.getId(), "org id: " + organizationId);
+            }
+        }        
 	}
 
-    private Series parseSeriesRecord(String[] columns) throws LocalException
+	private Integer getBotanistId(Integer seriesId)
+	{
+	    return seriesToBotanistMapper.map(seriesId);
+	}
+	
+	private Integer getOrganizationId(Integer seriesId)
+	{
+	    return seriesToOrgMapper.map(seriesId);
+	}
+
+    private Series parse(String[] columns) throws LocalException
     {
-    	if (columns.length < 5) // TODO: 
+    	if (columns.length < 5)
     	{
     		throw new LocalException("Wrong number of columns");
     	}
@@ -82,7 +107,13 @@ public class SeriesLoader extends CsvToSqlLoader {
     		series.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
     		series.setName(                            StringUtils.trimToNull( columns[1] ));
     		series.setAbbreviation(                    StringUtils.trimToNull( columns[2] ));
-    		series.setInstitutionId( Integer.parseInt( StringUtils.trimToNull( columns[3] )));
+    		
+    		String instIdStr =                         StringUtils.trimToNull( columns[3] );
+    		if (instIdStr != null)
+    		{
+    		    series.setInstitutionId(Integer.parseInt(instIdStr));
+    		}
+
     		series.setNote(                            StringUtils.trimToNull( columns[4] ));
     	}
     	catch (NumberFormatException e) {
@@ -93,78 +124,52 @@ public class SeriesLoader extends CsvToSqlLoader {
     }
     
 
-    private ReferenceWork convertToReferenceWork(Series series) throws LocalException {
+    private Agent convert(Series series) throws LocalException {
         
-		ReferenceWork referenceWork = new ReferenceWork();
+        Agent agent = new Agent();
 		
-		referenceWork.setReferenceWorkType(ReferenceWork.BOOK);
+        agent.setAgentType(Agent.ORG);
 
-		referenceWork.setGuid(series.getGuid());
+        agent.setGuid(series.getGuid());
 		
 		String title = series.getName();
 		if (title == null)
 		{
 			throw new LocalException("No title");
 		}
-		referenceWork.setTitle(title);
+		agent.setLastName(title);
 		
-		String note = series.getNote();
-		referenceWork.setRemarks(note);
+		agent.setAbbreviation(series.getAbbreviation());
+
+		agent.setRemarks(series.getNote());
 		
-		return referenceWork;
+		return agent;
 	}
     
-    private Exsiccata convertToExsiccata(Series series) throws LocalException {
-    	Exsiccata exsiccata = new Exsiccata();
-    	
-    	String title = series.getName();
-		if (title == null) {
-			throw new LocalException("No title");
-		}
-		exsiccata.setTitle(title);
-		
-		return exsiccata;
-    }
-    
-    private String getInsertSql(ReferenceWork referenceWork) throws LocalException
+    private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "GUID, ReferenceWorkType, Title, TimestampCreated, Remarks";
+		String fieldNames = "GUID, AgentType, LastName, Abbreviation, TimestampCreated, Remarks";
 
-		String[] values = new String[5];
+		String[] values = new String[6];
 
-		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
-		values[1] =     String.valueOf( referenceWork.getReferenceWorkType());
-		values[2] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[3] = "now()";
-		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[0] = SqlUtils.sqlString( agent.getGuid());
+		values[1] = SqlUtils.sqlString( agent.getAgentType());
+		values[2] = SqlUtils.sqlString( agent.getLastName());
+		values[3] = SqlUtils.sqlString( agent.getAbbreviation());
+		values[4] = SqlUtils.now();
+		values[5] = SqlUtils.sqlString( agent.getRemarks());
 
-		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
+		return SqlUtils.getInsertSql("agent", fieldNames, values);    
 	}
     
-    private String getInsertSql(Exsiccata exsiccata) throws LocalException
+    private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
     {
-    	String fieldNames = "Title, ReferenceWorkID, TimestampCreated";
- 
-    	String[] values = new String[3];
-    	
-    	values[0] = SqlUtils.sqlString( exsiccata.getTitle());
-    	values[1] =     String.valueOf( exsiccata.getReferenceWork().getReferenceWorkId());
-    	values[2] = "now()";
-    	
-    	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
+        String[] fieldNames = { "Abbreviation" };
+
+        String[] values = new String[1];
+
+        values[0] = SqlUtils.sqlString( agent.getAbbreviation());
+
+        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", String.valueOf(agentId));
     }
-    
-    private String getInsertSql(Author author)
-	{
-		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
-
-		String[] values = new String[4];
-
-		values[0] = String.valueOf(author.getAgent().getId());
-		values[1] = String.valueOf(author.getReferenceWork().getId());
-		values[2] = String.valueOf(author.getOrderNumber());
-		values[3] = "now()";
-
-		return SqlUtils.getInsertSql("author", fieldNames, values);
-	}
 }
