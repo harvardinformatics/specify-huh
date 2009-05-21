@@ -33,8 +33,10 @@ select si.id,
        b.id as cataloged_by_id,
        s.created_by_id,
        (select name from st_lookup where id=si.format_id) as format,
+       (select abbreviation from series where id=s.series_id) as series_abbrev,
        regexp_replace(s.series_no, '[[:space:]]+', ' ') as series_number,
-       regexp_replace(si.container, '[[:space:]]+', ' ') as container
+       regexp_replace(si.container, '[[:space:]]+', ' ') as container,
+       si.subcollection_id
 from
        specimen_item si,
        specimen s,
