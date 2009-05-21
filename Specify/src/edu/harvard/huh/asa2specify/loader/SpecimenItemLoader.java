@@ -5,15 +5,15 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.Botanist;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Series;
 import edu.harvard.huh.asa.SpecimenItem;
+import edu.harvard.huh.asa.Subcollection;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -21,29 +21,23 @@ import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
+import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 
-public class SpecimenItemLoader extends CsvToSqlLoader {
-
-	private final Logger log = Logger.getLogger(SpecimenItemLoader.class);
-
+public class SpecimenItemLoader extends CsvToSqlLoader
+{
 	private Discipline discipline;
 	private Division   division;
 	
 	private Integer lastSpecimenId;
 	private HashMap<String, CollectionObject> collObjByAccessionIdentifier;
-	
-	// initialize collection code to id hashtable
-	private Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
-
-	// initialize prep type hashtable
-	private Hashtable<String, PrepType> prepTypesByName = new Hashtable<String, PrepType>();
 	
 	public SpecimenItemLoader(File csvFile, Statement sqlStatement) throws LocalException 
 	{
@@ -60,23 +54,18 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	    return accession.getAccessionNumber() == null;
 	}
 
-	private void processSeries(Integer seriesId, String seriesNo, CollectionObject collectionObject) throws LocalException
+	// TODO: implement proper sharing of series/subcollection, container/exsiccata
+	private void processSubcollection(Integer subcollectionId, CollectionObject collectionObject) throws LocalException
 	{
-	    if (seriesId != null)
-        {
-            Series series =  new Series();
-            series.setId(seriesId);
-            String guid = series.getGuid();
-            
-            String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
-            
-            String sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
-            
+	    if (subcollectionId != null)
+        {            
+            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
+                        
             Integer exsiccataId = queryForId(sql);
             
             if (exsiccataId == null)
             {
-                throw new LocalException("Couldn't find exsiccata id for " + guid);
+                throw new LocalException("Couldn't find exsiccata id for ");
             }
             
             Exsiccata exsiccata = new Exsiccata();
@@ -85,15 +74,10 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
             ExsiccataItem exsiccataItem = new ExsiccataItem();
             
             exsiccataItem.setExsiccata(exsiccata);
-            exsiccataItem.setNumber(seriesNo);
             exsiccataItem.setCollectionObject(collectionObject);
             
             sql = getInsertSql(exsiccataItem);
             insert(sql);
-        }
-        else if (seriesNo != null)
-        {
-            warn("Null series and non-null series_no", null, seriesNo);
         }
 	}
 
@@ -115,24 +99,11 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	public void loadRecord(String[] columns) throws LocalException {
 		String sql;
 		
-		SpecimenItem specimenItem = parseSpecimenItemRecord(columns);
+		SpecimenItem specimenItem = parse(columns);
 		
 	    // find the matching prep type
         String format = specimenItem.getFormat();
-        PrepType prepType = prepTypesByName.get(format);
-        if (prepType == null) {
-            sql = SqlUtils.getQueryIdByFieldSql("preptype", "PrepTypeID", "Name", format);
-            Integer prepTypeId = queryForId(sql);
-
-            if (prepTypeId == null)
-            {
-                throw new LocalException("Didn't find prep type for name " + format);
-            }
-
-            prepType = new PrepType();
-            prepType.setPrepTypeId(prepTypeId);
-            prepTypesByName.put(format, prepType);
-        }
+        PrepType prepType = getPrepType(format);
         
 	    // convert SpecimenItem into Preparation
         Preparation preparation = convert(specimenItem);
@@ -167,7 +138,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
             {
                 collObjByAccessionIdentifier.put(accessionIdentifier, collectionObject);
                 
-                // different collection object but same collecting event, collection, cataloger, creator, exsiccata
+                // different collection object but same collecting event, collection, cataloger, creator, exsiccata, container
                 CollectionObject previousCollectionObject =
                     collObjByAccessionIdentifier.get(collObjByAccessionIdentifier.values().iterator().next());
 
@@ -176,7 +147,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 collectionObject.setCollectionMemberId(previousCollectionObject.getCollectionMemberId());
                 collectionObject.setCataloger(previousCollectionObject.getCataloger());
                 collectionObject.setCreatedByAgent(previousCollectionObject.getCreatedByAgent());
-                
+                collectionObject.setContainer(previousCollectionObject.getContainer());
+
                 // maybe insert a new accession
                 processAccession(accession);
 
@@ -193,7 +165,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 insert(sql);
 
                 // maybe insert a new exsiccata item TODO: untangle series/subcollection
-                //processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
+                processSubcollection(specimenItem.getSubcollectionId(), collectionObject);
                 
                 return;
             }
@@ -207,19 +179,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         
         // find the matching collection
 		String herbariumCode = specimenItem.getHerbariumCode();
-		Collection collection = collectionsByCode.get(herbariumCode);
-		if (collection == null) {
-			sql = SqlUtils.getQueryIdByFieldSql("collection", "CollectionID", "Code", herbariumCode);
-			Integer collectionId = queryForId(sql);
-
-			if (collectionId == null) {
-				throw new LocalException("Didn't find collection for code " + herbariumCode);
-			}
-
-			collection = new Collection();
-			collection.setCollectionId(collectionId);
-			collectionsByCode.put(herbariumCode, collection);
-		}
+		Collection collection = this.getCollection(herbariumCode);
 		
 		// find the matching locality record
 		Locality locality = new Locality();
@@ -248,14 +208,20 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 			sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 			
 			Integer agentId = queryForId(sql);
-			
-			if (agentId == null)
-			{
-				throw new LocalException("Couldn't find agent with guid " + guid);
-			}
 			agent.setAgentId(agentId);
 		}
 		
+		// find a matching container
+		Container container = new Container();
+		Integer subcollectionId = specimenItem.getSubcollectionId();
+		if (subcollectionId != null)
+		{            
+		    sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
+
+		    Integer containerId = queryForId(sql);
+	        container.setContainerId(containerId);
+		}
+		        
 		// find the matching cataloger
 		Integer createdById = specimenItem.getCatalogedById();
 		Agent cataloger = getAgentByOptrId(createdById);
@@ -291,7 +257,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		collectionObject.setAccession(accession);
 		collectionObject.setCataloger(cataloger);
 		collectionObject.setCreatedByAgent(cataloger);
-		
+		collectionObject.setContainer(container);
+
 		sql = getInsertSql(collectionObject);
 		Integer collectionObjectId = insert(sql);
 		collectionObject.setCollectionObjectId(collectionObjectId);
@@ -305,11 +272,46 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 		
 		// maybe insert a new exsiccata item TODO: untangle series/subcollection
 		//processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
+		
+	    // TODO: connect series (organization) agent as collector?
+        // find a matching series (series was converted to agent w/ type org & guid "id organization"
+        OtherIdentifier otherId = new OtherIdentifier();
+
+        Integer seriesId = specimenItem.getSeriesId();
+        String seriesNo = specimenItem.getSeriesNo();
+        String seriesAbbrev = specimenItem.getSeriesAbbrev();
+
+        if (seriesId != null && seriesNo != null)
+        {
+            Organization organization = new Organization();
+            organization.setId(seriesId);
+            String guid = organization.getGuid();
+
+            sql = SqlUtils.getQueryIdByFieldSql("agent", "LastName", "GUID", guid);
+
+            String institution = queryForString(sql);
+            
+            otherId.setCollectionMemberId(collection.getId());
+            otherId.setInstitution(institution);
+            otherId.setIdentifier( (seriesAbbrev == null ? "" : seriesAbbrev + " ") + seriesNo );
+            otherId.setRemarks("Created by SpecimenItemLoader from series id " + seriesId);
+            
+            sql = getInsertSql(otherId);
+            insert(sql);
+        }
+        else if (seriesNo != null)
+        {
+            warn("Series number and no series id", specimenItem.getId(), seriesNo);
+        }
+        else if (seriesId != null)
+        {
+            warn("Series id and no series number", specimenItem.getId(), String.valueOf(seriesId));
+        }
 	}
 
-	private SpecimenItem parseSpecimenItemRecord(String[] columns) throws LocalException
+	private SpecimenItem parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 37)
+		if (columns.length < 39)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
@@ -422,10 +424,12 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
                 specimenItem.setCollectorId( Integer.parseInt( collectorIdStr ));
             }
 
-            specimenItem.setCatalogedById( Integer.parseInt( StringUtils.trimToNull( columns[33] )));
-            specimenItem.setFormat(                          StringUtils.trimToNull( columns[34] ));
-            specimenItem.setSeriesNo(                        StringUtils.trimToNull( columns[35] ));
-            specimenItem.setContainer(                       StringUtils.trimToNull( columns[36] ));
+            specimenItem.setCatalogedById( Integer.parseInt(   StringUtils.trimToNull( columns[33] )));
+            specimenItem.setFormat(                            StringUtils.trimToNull( columns[34] ));
+            specimenItem.setSeriesAbbrev(                      StringUtils.trimToNull( columns[35] ));
+            specimenItem.setSeriesNo(                          StringUtils.trimToNull( columns[36] ));
+            specimenItem.setContainer(                         StringUtils.trimToNull( columns[37] ));
+            specimenItem.setSubcollectionId( Integer.parseInt( StringUtils.trimToNull( columns[38] )));
 		}
         catch (NumberFormatException e)
         {
@@ -610,8 +614,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         values[0] = SqlUtils.sqlString( accession.getAccessionNumber()  );
         values[1] = SqlUtils.sqlString( accession.getStatus()           );
         values[2] = SqlUtils.sqlString( accession.getRemarks()          );
-        values[3] =     String.valueOf( accession.getDivision().getId() );
-        values[4] = "now()";
+        values[3] = SqlUtils.sqlString( accession.getDivision().getId() );
+        values[4] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
@@ -624,15 +628,15 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         String[] values = new String[10];
         
         values[0] = SqlUtils.sqlString( collectingEvent.getEndDate()                      );
-        values[1] =     String.valueOf( collectingEvent.getEndDatePrecision()             );
+        values[1] = SqlUtils.sqlString( collectingEvent.getEndDatePrecision()             );
         values[2] = SqlUtils.sqlString( collectingEvent.getEndDateVerbatim()              );
         values[3] = SqlUtils.sqlString( collectingEvent.getStartDate()                    );
-        values[4] =     String.valueOf( collectingEvent.getStartDatePrecision()           );
+        values[4] = SqlUtils.sqlString( collectingEvent.getStartDatePrecision()           );
         values[5] = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim()            );
         values[6] = SqlUtils.sqlString( collectingEvent.getVerbatimDate()                 );
-        values[7] =     String.valueOf( collectingEvent.getDiscipline().getDisciplineId() );
-        values[8] =     String.valueOf( collectingEvent.getLocality().getLocalityId()     );
-        values[9] = "now()";
+        values[7] = SqlUtils.sqlString( collectingEvent.getDiscipline().getDisciplineId() );
+        values[8] = SqlUtils.sqlString( collectingEvent.getLocality().getLocalityId()     );
+        values[9] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }
@@ -643,12 +647,12 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
         
         String[] values = new String[6];
         
-        values[0] = String.valueOf( collector.getCollectionMemberId()                     );
-        values[1] = String.valueOf( collector.getIsPrimary()                              );
-        values[2] = String.valueOf( collector.getOrderNumber()                            );
-        values[3] = String.valueOf( collector.getAgent().getAgentId()                     );
-        values[4] = String.valueOf( collector.getCollectingEvent().getCollectingEventId() );
-        values[5] = "now()";
+        values[0] = SqlUtils.sqlString( collector.getCollectionMemberId()                     );
+        values[1] = SqlUtils.sqlString( collector.getIsPrimary()                              );
+        values[2] = SqlUtils.sqlString( collector.getOrderNumber()                            );
+        values[3] = SqlUtils.sqlString( collector.getAgent().getAgentId()                     );
+        values[4] = SqlUtils.sqlString( collector.getCollectingEvent().getCollectingEventId() );
+        values[5] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("collector", fieldNames, values);
     }
@@ -657,27 +661,29 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 	{
 		String fieldNames = "AccessionID, CollectionID, CollectionMemberID, CatalogerID, CatalogNumber, " +
 							"CatalogedDate, CatalogedDatePrecision, CollectingEventID, Description, " +
-							"FieldNumber, GUID, Text1, Text2, YesNo1, Remarks, CreatedByAgentID, TimestampCreated";
+							"FieldNumber, GUID, Text1, Text2, YesNo1, Remarks, CreatedByAgentID, ContainerID," +
+							"TimestampCreated";
 
-		String[] values = new String[17];
+		String[] values = new String[18];
 		
-		values[0]  =     String.valueOf( collectionObject.getAccession().getAccessionId()             );
-		values[1]  =     String.valueOf( collectionObject.getCollection().getCollectionId()           );
-		values[2]  =     String.valueOf( collectionObject.getCollectionMemberId()                     );
-		values[3]  =     String.valueOf( collectionObject.getCataloger().getAgentId()                 );
-		values[4]  = SqlUtils.sqlString( collectionObject.getCatalogNumber()                          );
-		values[5]  = SqlUtils.sqlString( collectionObject.getCatalogedDate()                          );
-		values[6]  =     String.valueOf( collectionObject.getCatalogedDatePrecision()                 );
-		values[7]  =     String.valueOf( collectionObject.getCollectingEvent().getCollectingEventId() );
-		values[8]  = SqlUtils.sqlString( collectionObject.getDescription()                            );
-		values[9]  = SqlUtils.sqlString( collectionObject.getFieldNumber()                            );
-		values[10] = SqlUtils.sqlString( collectionObject.getGuid()                                   );
-		values[11] = SqlUtils.sqlString( collectionObject.getText1()                                  );
-		values[12] = SqlUtils.sqlString( collectionObject.getText2()                                  );
-		values[13] =     String.valueOf( collectionObject.getYesNo1()                                 );
-		values[14] = SqlUtils.sqlString( collectionObject.getRemarks()                                );
-		values[15] =     String.valueOf( collectionObject.getCreatedByAgent().getId()                 );
-		values[16] = SqlUtils.sqlString( collectionObject.getTimestampCreated()                       );
+		values[0]  = SqlUtils.sqlString( collectionObject.getAccession().getId()       );
+		values[1]  = SqlUtils.sqlString( collectionObject.getCollection().getId()      );
+		values[2]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId()      );
+		values[3]  = SqlUtils.sqlString( collectionObject.getCataloger().getAgentId()  );
+		values[4]  = SqlUtils.sqlString( collectionObject.getCatalogNumber()           );
+		values[5]  = SqlUtils.sqlString( collectionObject.getCatalogedDate()           );
+		values[6]  = SqlUtils.sqlString( collectionObject.getCatalogedDatePrecision()  );
+		values[7]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId() );
+		values[8]  = SqlUtils.sqlString( collectionObject.getDescription()             );
+		values[9]  = SqlUtils.sqlString( collectionObject.getFieldNumber()             );
+		values[10] = SqlUtils.sqlString( collectionObject.getGuid()                    );
+		values[11] = SqlUtils.sqlString( collectionObject.getText1()                   );
+		values[12] = SqlUtils.sqlString( collectionObject.getText2()                   );
+		values[13] = SqlUtils.sqlString( collectionObject.getYesNo1()                  );
+		values[14] = SqlUtils.sqlString( collectionObject.getRemarks()                 );
+		values[15] = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId()  );
+		values[16] = SqlUtils.sqlString( collectionObject.getContainer().getId()       );
+		values[17] = SqlUtils.sqlString( collectionObject.getTimestampCreated()        );
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
@@ -689,15 +695,15 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 		String[] values = new String[9];
 		
-		values[0] =     String.valueOf( preparation.getCollectionMemberId()                       );
-		values[1] =     String.valueOf( preparation.getCollectionObject().getCollectionObjectId() );
-		values[2] =     String.valueOf( preparation.getPrepType().getPrepTypeId()                 );
-		values[3] =     String.valueOf( preparation.getNumber1()                                  );
-		values[4] =     String.valueOf( preparation.getYesNo1()                                   );
+		values[0] = SqlUtils.sqlString( preparation.getCollectionMemberId()                       );
+		values[1] = SqlUtils.sqlString( preparation.getCollectionObject().getCollectionObjectId() );
+		values[2] = SqlUtils.sqlString( preparation.getPrepType().getPrepTypeId()                 );
+		values[3] = SqlUtils.sqlString( preparation.getNumber1()                                  );
+		values[4] = SqlUtils.sqlString( preparation.getYesNo1()                                   );
 		values[5] = SqlUtils.sqlString( preparation.getText1()                                    );
 		values[6] = SqlUtils.sqlString( preparation.getText2()                                    );
 		values[7] = SqlUtils.sqlString( preparation.getRemarks()                                  );
-        values[8] = "now()";
+        values[8] = SqlUtils.now();
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
@@ -710,10 +716,20 @@ public class SpecimenItemLoader extends CsvToSqlLoader {
 
 		values[0] = SqlUtils.sqlString( exsiccataItem.getFascicle()                 );
 		values[1] = SqlUtils.sqlString( exsiccataItem.getNumber()                   );
-		values[2] =     String.valueOf( exsiccataItem.getExsiccata().getId()        );
-		values[3] =     String.valueOf( exsiccataItem.getCollectionObject().getId() );
-		values[4] ="now";
+		values[2] = SqlUtils.sqlString( exsiccataItem.getExsiccata().getId()        );
+		values[3] = SqlUtils.sqlString( exsiccataItem.getCollectionObject().getId() );
+		values[4] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
 	}
+    
+    // TODO: implement OtherIdentifier
+    private String getInsertSql(OtherIdentifier otherIdentifer)
+    {
+        String fieldNames = "";
+        
+        String[] values = new String[0];
+        
+        return SqlUtils.getInsertSql("otheridentifier", fieldNames, values);
+    }
 }
