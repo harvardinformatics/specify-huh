@@ -10,5 +10,6 @@
       <preptype name="In jar"              isloanable="true"/>
       <preptype name="In spirit medium"    isloanable="true"/>
       <preptype name="Protolog on sheet"   isloanable="true"/>
+      <preptype name="Photograph"          isloanable="true"/>
       <preptype name="Other"               isloanable="true"/>
 </vector>
