@@ -44,7 +44,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader
 
         String teamGuid = teamBotanist.getGuid();
 
-        Integer groupAgentId = getIdByField("agent", "AgentID", "GUID", teamGuid);
+        Integer groupAgentId = getIntByField("agent", "AgentID", "GUID", teamGuid);
 
         team.setAgentId(groupAgentId);
         groupPerson.setGroup(team);
@@ -62,7 +62,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader
 
         String guid = botanist.getGuid();
 
-        Integer personAgentId = getIdByField("agent", "AgentID", "GUID", guid);
+        Integer personAgentId = getIntByField("agent", "AgentID", "GUID", guid);
 
         member.setAgentId(personAgentId);
         groupPerson.setMember(member);

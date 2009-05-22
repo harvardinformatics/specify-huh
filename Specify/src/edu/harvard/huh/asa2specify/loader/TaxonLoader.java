@@ -59,7 +59,7 @@ public class TaxonLoader extends CsvToSqlLoader
 	{
 	    TaxonTreeDef t = new TaxonTreeDef();
 
-	    Integer taxonTreeDefId = getIdByField("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
+	    Integer taxonTreeDefId = getIntByField("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
 	    t.setTaxonTreeDefId(taxonTreeDefId);
 
 	    return t;
@@ -71,7 +71,7 @@ public class TaxonLoader extends CsvToSqlLoader
 
 	    if (treeDefItem == null)
 	    {
-	        Integer taxonTreeDefItemId = getIdByField("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
+	        Integer taxonTreeDefItemId = getIntByField("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new TaxonTreeDefItem();
 	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
@@ -121,7 +121,7 @@ public class TaxonLoader extends CsvToSqlLoader
 		{
 		    String taxSerNum = String.valueOf(parentId);
 
-		    parentId = getIdByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
+		    parentId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
 		}
 		else
 		{

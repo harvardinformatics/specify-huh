@@ -159,7 +159,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
     {
         GeographyTreeDef g = new GeographyTreeDef();
 
-        Integer geoTreeDefId = getIdByField("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
+        Integer geoTreeDefId = getIntByField("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
 
         g.setGeographyTreeDefId(geoTreeDefId);
 
@@ -172,7 +172,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	    if (treeDefItem == null)
 	    {
-	        Integer geoTreeDefItemId = getIdByField("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
+	        Integer geoTreeDefItemId = getIntByField("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new GeographyTreeDefItem();
 	        treeDefItem.setGeographyTreeDefItemId(geoTreeDefItemId);
@@ -203,13 +203,13 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		{
 		    String guid = String.valueOf(parentId);
 
-		    parentId = getIdByField("geography", "GeographyID", "GUID", guid);
+		    parentId = getIntByField("geography", "GeographyID", "GUID", guid);
 		}
 		parent.setGeographyId(parentId);
 		geography.setParent(parent);
 
 		// find parent's rank id
-		Integer parentRankId = getIdByField("geography", "RankID", "GeographyID", parentId);
+		Integer parentRankId = getIntByField("geography", "RankID", "GeographyID", parentId);
 
 		// RankId
 		String rank = geoUnit.getRank();

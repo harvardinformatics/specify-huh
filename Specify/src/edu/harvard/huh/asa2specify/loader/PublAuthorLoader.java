@@ -46,7 +46,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 
 		String guid = botanist.getGuid();
 
-		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
+		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
 
 		agent.setAgentId(agentId);
 		author.setAgent(agent);
@@ -61,7 +61,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		}
 		guid = String.valueOf(publicationId);
 		
-		Integer refWorkId = getIdByField("referencework", "ReferenceWorkID", "GUID", guid);
+		Integer refWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
 
 		referenceWork.setReferenceWorkId(refWorkId);        
 		author.setReferenceWork(referenceWork);

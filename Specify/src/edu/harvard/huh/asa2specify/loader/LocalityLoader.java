@@ -48,7 +48,7 @@ public class LocalityLoader extends CsvToSqlLoader
 		{
 			String guid = String.valueOf(geoUnitId);
 
-			Integer geographyId = getIdByField("geography", "GeographyID", "GUID", guid);
+			Integer geographyId = getIntByField("geography", "GeographyID", "GUID", guid);
 
 			geography.setGeographyId(geographyId);
 		}

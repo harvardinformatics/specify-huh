@@ -428,7 +428,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             botanist.setId(botanistId);
             String guid = botanist.getGuid();
             
-            Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
+            Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
 
             agent.setAgentId(agentId);
         }
@@ -641,7 +641,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
         if (subcollectionId != null)
         {            
-            Integer containerId = getIdByField("container", "ContainerID", "Number", subcollectionId);
+            Integer containerId = getIntByField("container", "ContainerID", "Number", subcollectionId);
 
             container.setContainerId(containerId);    
             
@@ -701,8 +701,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             organization.setId(seriesId);
             String guid = organization.getGuid();
 
-            String sql = SqlUtils.getQueryIdByFieldSql("agent", "LastName", "GUID", guid);
-            String institution = queryForString(sql);
+            String institution = getStringByField("agent", "LastName", "GUID", guid);
             
             // Institution (series-organization)
             series.setInstitution(institution);
@@ -751,7 +750,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         
         String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
                 
-        Integer exsiccataId = getIdByField("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
+        Integer exsiccataId = getIntByField("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
 
 	    exsiccata.setExsiccataId(exsiccataId);
 	    exsiccataItem.setExsiccata(exsiccata);

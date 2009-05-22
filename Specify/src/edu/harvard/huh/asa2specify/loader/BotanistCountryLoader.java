@@ -41,7 +41,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 
 		String guid = botanist.getGuid();
 
-		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
+		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
 
 		agent.setAgentId(agentId);
 		agentGeography.setAgent(agent);
@@ -56,7 +56,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		}
 		guid = String.valueOf(geoUnitId);
 
-		Integer geographyId = getIdByField("geography", "GeographyID", "GUID", guid);
+		Integer geographyId = getIntByField("geography", "GeographyID", "GUID", guid);
 
 		geography.setGeographyId(geographyId);
 		agentGeography.setGeography(geography);

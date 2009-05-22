@@ -45,7 +45,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 
 		String guid = botanist.getGuid();
 
-		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
+		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
 
 		agent.setAgentId(agentId);
 		agentSpecialty.setAgent(agent);

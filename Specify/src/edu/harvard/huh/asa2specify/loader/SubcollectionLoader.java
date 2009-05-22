@@ -67,7 +67,7 @@ public class SubcollectionLoader extends CsvToSqlLoader
             {
                 String taxonSerNumber = String.valueOf(taxonGroupId);
                 
-                Integer taxonId = getIdByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
+                Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
 
                 Taxon taxon = new Taxon();
                 taxon.setTaxonId(taxonId);
@@ -96,7 +96,7 @@ public class SubcollectionLoader extends CsvToSqlLoader
                 
                 String guid = botanist.getGuid();
 
-                Integer authorAgentId = getIdByField("agent", "AgentID", "GUID", guid);
+                Integer authorAgentId = getIntByField("agent", "AgentID", "GUID", guid);
 
                 authorAgent.setAgentId(authorAgentId);
             }

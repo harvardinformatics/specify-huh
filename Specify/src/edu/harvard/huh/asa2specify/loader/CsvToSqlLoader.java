@@ -150,7 +150,7 @@ public abstract class CsvToSqlLoader
 	        Optr optr = new Optr();
 	        optr.setId(optrId);
 
-	        Integer agentId = getIdByField("agent", "AgentID", "GUID", optr.getGuid());
+	        Integer agentId = getIntByField("agent", "AgentID", "GUID", optr.getGuid());
 	        
 	        agent = new Agent();
 	        agent.setAgentId(agentId);
@@ -165,7 +165,7 @@ public abstract class CsvToSqlLoader
         PrepType prepType = prepTypesByName.get(format);
         if (prepType == null)
         {
-            Integer prepTypeId = getIdByField("preptype", "PrepTypeID", "Name", format);
+            Integer prepTypeId = getIntByField("preptype", "PrepTypeID", "Name", format);
 
             prepType = new PrepType();
             prepType.setPrepTypeId(prepTypeId);
@@ -179,7 +179,7 @@ public abstract class CsvToSqlLoader
 	    Collection collection = collectionsByCode.get(code);
 	    if (collection == null)
 	    {
-	        Integer collectionId = getIdByField("collection", "CollectionID", "Code", code);
+	        Integer collectionId = getIntByField("collection", "CollectionID", "Code", code);
 
 	        collection = new Collection();
 	        collection.setCollectionId(collectionId);
@@ -192,7 +192,7 @@ public abstract class CsvToSqlLoader
 	{
 	    Discipline d = new Discipline();
 	    
-        Integer disciplineId = getIdByField("discipline", "DisciplineID", "Name", "Botany");
+        Integer disciplineId = getIntByField("discipline", "DisciplineID", "Name", "Botany");
 
         d.setDisciplineId(disciplineId);
 
@@ -203,7 +203,7 @@ public abstract class CsvToSqlLoader
 	{
 	    Division d = new Division();
 
-	    Integer divisionId = getIdByField("division", "DivisionID", "Name", "Botany");
+	    Integer divisionId = getIntByField("division", "DivisionID", "Name", "Botany");
         
 	    d.setDivisionId(divisionId);
 
@@ -333,46 +333,87 @@ public abstract class CsvToSqlLoader
 		return id;
 	}
 
-	protected Integer queryForInt(String table, String idField, String field, String value)
+	/**
+     * Compose and execute a query to return an Integer.  Returns null if not found.
+     * @throws LocalException
+     */
+	protected Integer queryForInt(String table, String intField, String field, String value)
 	    throws LocalException
 	{
-	    String sql = SqlUtils.getQueryIdByFieldSql(table, idField, field, value);
+	    String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, value);
 	    
 	    Integer id = queryForInt(sql);
 	    
 	    return id;
 	}
 
-	protected Integer queryForInt(String table, String idField, String field, Integer value)
+	/**
+	 * Compose and execute a query to return an Integer.  Returns null if not found.
+	 * @throws LocalException
+	 */
+	protected Integer queryForInt(String table, String intField, String field, Integer value)
 	    throws LocalException
 	{
-	    String sql = SqlUtils.getQueryIdByFieldSql(table, idField, field, String.valueOf(value));
+	    String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, String.valueOf(value));
 
 	    Integer id = queryForInt(sql);
 
 	    return id;
 	}
 
-	protected Integer getIdByField(String table, String idField, String field, String value)
+	/**
+     * Compose and execute a query to return an Integer.  Throws exception if not found.
+     * @throws LocalException
+     */
+	protected Integer getIntByField(String table, String intField, String field, String value)
 	    throws LocalException
 	{
-	    Integer id = queryForInt(table, idField, field, value);
+	    Integer id = queryForInt(table, intField, field, value);
 	    
 	    if (id == null)
 	    {
-	        throw new LocalException("Couldn't find " + idField + " for " + field + "=" + value);
+	        throw new LocalException("Couldn't find " + intField + " for " + field + "=" + value);
 	    }
 	    
 	    return id;
 	}
 	
-	protected Integer getIdByField(String table, String idField, String field, Integer value)
+	/**
+     * Compose and execute a query to return an Integer.  Throws exception if not found.
+     * @throws LocalException
+     */
+	protected Integer getIntByField(String table, String intField, String field, Integer value)
 	    throws LocalException
 	{
-	    return getIdByField(table, idField, field, String.valueOf(value));
+	    return getIntByField(table, intField, field, String.valueOf(value));
 	}
 
-	protected String queryForString(String sql) throws LocalException
+	/**
+     * Compose and execute a query to return an String.  Throws exception if not found.
+     * @throws LocalException
+     */
+	protected String getStringByField(String table, String returnField, String matchField, String value)
+	    throws LocalException
+	{
+	    String string = queryForString(table, returnField, matchField, value);
+	    
+	    if (string == null)
+	    {
+	        throw new LocalException("Couldn't find " + returnField + " for " + matchField + "=" + value);
+	    }
+	    
+	    return string;
+	}
+
+	private String queryForString(String table, String returnField, String matchField, String value)
+	    throws LocalException
+	{
+	    String sql = SqlUtils.getQueryIdByFieldSql(table, returnField, matchField, value);
+	    
+	    return queryForString(sql);
+	}
+
+	private String queryForString(String sql) throws LocalException
 	{
 	    log.debug(sql);
 
