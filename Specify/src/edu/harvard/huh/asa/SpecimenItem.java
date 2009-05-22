@@ -43,6 +43,7 @@ public class SpecimenItem {
 	private     Date catalogedDate;
 	private  Integer catalogedById;	
 	private    BDate collDate;
+	private  Boolean hasExsiccata;
 	
 	public SpecimenItem() {
 	    ;
@@ -109,6 +110,8 @@ public class SpecimenItem {
 	public Integer getSubcollectionId() { return this.subcollectionId; }
 	
 	public Integer getCatalogedById() { return this.catalogedById; }
+	
+	public Boolean hasExsiccata() { return this.hasExsiccata; }
 
 	public void setId(Integer id) { this.id = id; }
 	
@@ -171,4 +174,6 @@ public class SpecimenItem {
 	public void setCatalogedById(Integer catalogedById) { this.catalogedById = catalogedById; }
 	
 	public void setSubcollectionId(Integer subcollectionId) { this.subcollectionId = subcollectionId; }
+	
+	public void setHasExsiccata(Boolean hasExsiccata) { this.hasExsiccata = hasExsiccata; }
 }
