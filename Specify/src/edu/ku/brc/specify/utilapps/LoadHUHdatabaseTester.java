@@ -10,6 +10,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.*;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
@@ -90,6 +91,9 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization_test.csv"), statement);
             //records += organizationLoader.loadRecords();
             
+            SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement, new File(dir, "series_botanist.csv"), new File(dir, "series_organization.csv"));
+            records += seriesLoader.loadRecords();
+            
             //AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement, new File(dir, "affiliate_botanist.csv"));
             //records += affiliateLoader.loadRecords();
             
@@ -108,8 +112,11 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"), statement);
             //records += publicationLoader.loadRecords();
             
-            PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"), statement);
-            records = publAuthorLoader.loadRecords();
+            //PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"), statement);
+            //records = publAuthorLoader.loadRecords();
+            
+            SpecimenItemLoader specimenLoader = new SpecimenItemLoader(new File(dir, "specimen_item_small.csv"), statement);
+            records = specimenLoader.loadRecords();
             
             log.info("Loaded " + records + " records");
         }

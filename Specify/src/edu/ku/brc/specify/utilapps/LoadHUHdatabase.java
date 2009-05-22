@@ -29,6 +29,7 @@ import javax.swing.WindowConstants;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.AgentLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
@@ -38,7 +39,6 @@ import edu.harvard.huh.asa2specify.loader.BotanistSpecialtyLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
 import edu.harvard.huh.asa2specify.loader.DeterminationLoader;
 import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
-import edu.harvard.huh.asa2specify.loader.LocalException;
 import edu.harvard.huh.asa2specify.loader.LocalityLoader;
 import edu.harvard.huh.asa2specify.loader.OptrLoader;
 import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
@@ -253,7 +253,7 @@ public class LoadHUHdatabase
             log.info("Loaded " + localityRecords + " site records");
             
             frame.setDesc("Loading organization...");
-            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organizations.csv"), statement, new File(dir, "organization_botanist.csv"));
+            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"), statement, new File(dir, "organization_botanist.csv"));
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
             log.info("Loaded " + organizationRecords + " organization records");
@@ -300,11 +300,11 @@ public class LoadHUHdatabase
             int publAuthorRecords = publAuthorLoader.loadRecords();
             log.info("Loaded " + publAuthorRecords + " publ_author records");
             
-/*            frame.setDesc("Loading series...");
-            SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement);
+            frame.setDesc("Loading series...");
+            SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement, new File(dir, "series_botanist.csv"), new File(dir, "series_organization.csv"));
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
-            log.info("Loaded " + seriesRecords + " series records");*/
+            log.info("Loaded " + seriesRecords + " series records");
             
             frame.setDesc("Loading specimen_item and specimen...");
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"), statement);
