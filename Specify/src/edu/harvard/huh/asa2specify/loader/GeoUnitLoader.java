@@ -156,9 +156,8 @@ public class GeoUnitLoader extends CsvToSqlLoader {
     {
         GeographyTreeDef g = new GeographyTreeDef();
 
-        String sql = SqlUtils.getQueryIdByFieldSql("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
+        Integer geoTreeDefId = getIdByField("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
 
-        Integer geoTreeDefId = queryForId(sql);
         g.setGeographyTreeDefId(geoTreeDefId);
 
         return g;
@@ -170,10 +169,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	    if (treeDefItem == null)
 	    {
-
-	        String sql = SqlUtils.getQueryIdByFieldSql("geographytreedefitem", "GeographyTreeDefID", "RankID", String.valueOf(rankId));
-
-	        Integer geoTreeDefItemId = queryForId(sql);
+	        Integer geoTreeDefItemId = getIdByField("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new GeographyTreeDefItem();
 	        treeDefItem.setGeographyTreeDefItemId(geoTreeDefItemId);
@@ -204,20 +200,13 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		{
 		    String guid = String.valueOf(parentId);
 
-		    String sql = SqlUtils.getQueryIdByFieldSql("geography", "GeographyID", "GUID", guid);
-
-		    parentId = queryForId(sql);
-		    if (parentId == null)
-		    {
-		        throw new LocalException("No parent found with guid " + guid);
-		    }
+		    parentId = getIdByField("geography", "GeographyID", "GUID", guid);
 		}
 		parent.setGeographyId(parentId);
 		geography.setParent(parent);
 
 		// find parent's rank id
-		String sql = SqlUtils.getQueryRankByIdSql("geography", "GeographyID", parentId);
-		Integer parentRankId = queryForId(sql);
+		Integer parentRankId = getIdByField("geography", "RankID", "GeographyID", parentId);
 
 		// RankId
 		String rank = geoUnit.getRank();
@@ -261,7 +250,7 @@ public class GeoUnitLoader extends CsvToSqlLoader {
         Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
         geography.setCreatedByAgent(createdByAgent);
         
-		sql = getInsertSql(geography);
+		String sql = getInsertSql(geography);
 		Integer geographyId = insert(sql);
 		geography.setGeographyId(geographyId);
 		

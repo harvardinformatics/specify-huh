@@ -48,9 +48,7 @@ public class AffiliateLoader extends CsvToSqlLoader
             botanist.setId(botanistId);
             String guid = botanist.getGuid();
 
-            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
-
-            affiliateAgentId = queryForId(sql);
+            affiliateAgentId = queryForInt("agent", "AgentID", "GUID", guid);
         }
         
         if (affiliateAgentId == null)

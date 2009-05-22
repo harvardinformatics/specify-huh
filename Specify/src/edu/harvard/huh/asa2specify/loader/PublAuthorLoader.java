@@ -43,14 +43,9 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		botanist.setId(authorId);
 
 		String guid = botanist.getGuid();
-		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
-		Integer agentId = queryForId(sql);
+		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
 
-		if (agentId == null)
-		{
-			throw new LocalException("Couldn't find AgentID with GUID " + guid);
-		}
 		agent.setAgentId(agentId);
 		author.setAgent(agent);
 
@@ -63,14 +58,9 @@ public class PublAuthorLoader extends CsvToSqlLoader
 			throw new LocalException("No publication id");
 		}
 		guid = String.valueOf(publicationId);
-		sql = SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid);
+		
+		Integer refWorkId = getIdByField("referencework", "ReferenceWorkID", "GUID", guid);
 
-		Integer refWorkId = queryForId(sql);
-
-		if (refWorkId == null)
-		{
-			throw new LocalException("Couldn't find ReferenceWorkID with GUID " + guid);
-		}
 		referenceWork.setReferenceWorkId(refWorkId);        
 		author.setReferenceWork(referenceWork);
 
@@ -86,7 +76,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		author.setOrderNumber((short) orderNumber);
 
 		// convert agentspecialty to sql and insert
-		sql = getInsertSql(author);
+		String sql = getInsertSql(author);
 		insert(sql);
 	}
 

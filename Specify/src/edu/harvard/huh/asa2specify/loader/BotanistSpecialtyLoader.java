@@ -43,13 +43,8 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 
 		String guid = botanist.getGuid();
 
-		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
 
-		Integer agentId = queryForId(sql);
-		if (agentId == null)
-		{
-			throw new LocalException("Couldn't find AgentID with GUID " + guid);
-		}
 		agent.setAgentId(agentId);
 		agentSpecialty.setAgent(agent);
 
@@ -65,7 +60,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		agentSpecialty.setOrderNumber(orderNumber);
 
 		// convert agentspecialty to sql and insert
-		sql = getInsertSql(agentSpecialty);
+		String sql = getInsertSql(agentSpecialty);
 		insert(sql);
 	}
 

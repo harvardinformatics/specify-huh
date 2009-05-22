@@ -56,9 +56,7 @@ public class TaxonLoader extends CsvToSqlLoader
 	{
 	    TaxonTreeDef t = new TaxonTreeDef();
 
-	    String sql = SqlUtils.getQueryIdByFieldSql("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
-
-	    Integer taxonTreeDefId = queryForId(sql);
+	    Integer taxonTreeDefId = getIdByField("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
 	    t.setTaxonTreeDefId(taxonTreeDefId);
 
 	    return t;
@@ -70,10 +68,7 @@ public class TaxonLoader extends CsvToSqlLoader
 
 	    if (treeDefItem == null)
 	    {
-
-	        String sql = SqlUtils.getQueryIdByFieldSql("taxontreedefitem", "TaxonTreeDefID", "RankID", String.valueOf(rankId));
-
-	        Integer taxonTreeDefItemId = queryForId(sql);
+	        Integer taxonTreeDefItemId = getIdByField("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new TaxonTreeDefItem();
 	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
@@ -123,13 +118,7 @@ public class TaxonLoader extends CsvToSqlLoader
 		{
 		    String taxSerNum = String.valueOf(parentId);
 
-		    String sql = SqlUtils.getQueryIdByFieldSql("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
-
-		    parentId = queryForId(sql);
-		    if (parentId == null)
-		    {
-		        throw new LocalException("No parent found for " + asaTaxon.getId() + " with taxonomic serial number " + taxSerNum);
-		    }
+		    parentId = getIdByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
 		}
 		else
 		{

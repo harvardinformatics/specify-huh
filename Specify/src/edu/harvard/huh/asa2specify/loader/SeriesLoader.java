@@ -42,9 +42,7 @@ public class SeriesLoader extends CsvToSqlLoader
             botanist.setId(botanistId);
             String guid = botanist.getGuid();
 
-            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
-
-            seriesAgentId = queryForId(sql);
+            seriesAgentId = queryForInt("agent", "AgentID", "GUID", guid);
         }
         else
         {
@@ -53,10 +51,8 @@ public class SeriesLoader extends CsvToSqlLoader
                 Organization organization = new Organization();
                 organization.setId(organizationId);
                 String guid = organization.getGuid();
-                
-                String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
 
-                seriesAgentId = queryForId(sql);
+                seriesAgentId = queryForInt("agent", "AgentID", "GUID", guid);
             }
         }
         

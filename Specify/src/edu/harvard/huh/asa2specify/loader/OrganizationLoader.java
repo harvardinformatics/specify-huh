@@ -44,9 +44,7 @@ public class OrganizationLoader extends CsvToSqlLoader
             botanist.setId(botanistId);
             String guid = botanist.getGuid();
 
-            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
-
-            organizationAgentId = queryForId(sql);
+            organizationAgentId = queryForInt("agent", "AgentID", "GUID", guid);
         }
         
         if (organizationAgentId == null)

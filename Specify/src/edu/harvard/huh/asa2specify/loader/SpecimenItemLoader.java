@@ -51,17 +51,15 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException {
-		String sql;
 		
 		SpecimenItem specimenItem = parse(columns);
+		String specimenId = String.valueOf(specimenItem.getSpecimenId());
 
-        // Preparation
+		// Preparation
         Preparation preparation = getPreparation(specimenItem);
 
         // if this preparation shares the same collection object
         // with the previously inserted one, re-use it
-        String specimenId = String.valueOf(specimenItem.getSpecimenId());
-
         if (collectionObject != null && specimenId.equals(collectionObject.getGuid()))
         {
             Integer collectionMemberId = collectionObject.getCollectionMemberId();
@@ -82,7 +80,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             {
                 series.setCollectionObject(collectionObject);
                 series.setCollectionMemberId(collectionMemberId);
-                otherIdentifiers.add(series);
+                addOtherIdentifier(series);
             }
 
             // TODO: create accessions from provenance?
@@ -91,7 +89,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             {
                 accession.setCollectionObject(collectionObject);
                 accession.setCollectionMemberId(collectionMemberId);
-                otherIdentifiers.add(accession);
+                addOtherIdentifier(accession);
             }
             
             // ExsiccataItem
@@ -99,7 +97,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             if (exsiccataItem != null)
             {
                 exsiccataItem.setCollectionObject(collectionObject);
-                exsiccataItems.add(exsiccataItem);
+                addExsiccataItem(exsiccataItem);
             }
         }
 
@@ -152,9 +150,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 		{
 			String guid = SqlUtils.sqlString(String.valueOf(siteId));
 
-			sql = SqlUtils.getQueryIdByFieldSql("locality", "LocalityID", "GUID", guid);
-
-			Integer localityId = queryForId(sql);
+			// not checking for null; many localities were empty and not loaded
+			Integer localityId = queryForInt("locality", "LocalityID", "GUID", guid);			 
 			locality.setLocalityId(localityId);
 		}
 		collectingEvent.setLocality(locality);
@@ -428,9 +425,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             botanist.setId(botanistId);
             String guid = botanist.getGuid();
             
-            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
-            
-            Integer agentId = queryForId(sql);
+            Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
+
             agent.setAgentId(agentId);
         }
 
@@ -642,9 +638,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
         if (subcollectionId != null)
         {            
-            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
+            Integer containerId = getIdByField("container", "ContainerID", "Number", subcollectionId);
 
-            Integer containerId = queryForId(sql);
             container.setContainerId(containerId);    
             
             if (specimenItem.getContainer() != null)
@@ -657,16 +652,16 @@ public class SpecimenItemLoader extends CsvToSqlLoader
             // TODO: normalizing of container and subcollection name strings.
             // Note that if the container string = subcollection.name for some subcollection (it does happen),
             // we are in effect adding that subcollection_id to the specimen_item_record
-            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Name", containerStr);
             
-            Integer containerId = queryForId(sql);
+            Integer containerId = queryForInt("container", "ContainerID", "Name", containerStr);
+            
             if (containerId == null)
             {
                 // insert new Container
                 container.setCollectionMemberId(collectionObject.getCollection().getId());
                 container.setName(containerStr);
                 
-                sql = getInsertSql(container);
+                String sql = getInsertSql(container);
                 containerId = insert(sql);
             }
             container.setContainerId(containerId);
@@ -752,15 +747,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         String guid = subcollection.getGuid();
         
         String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
-        
-        String sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
-        
-        Integer exsiccataId = queryForId(sql);
-        
-        if (exsiccataId == null)
-        {
-            throw new LocalException("Couldn't find exsiccata id for " + guid);
-        }
+                
+        Integer exsiccataId = getIdByField("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
 
 	    exsiccata.setExsiccataId(exsiccataId);
 	    exsiccataItem.setExsiccata(exsiccata);

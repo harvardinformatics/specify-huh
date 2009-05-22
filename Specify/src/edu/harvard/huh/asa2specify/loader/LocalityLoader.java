@@ -45,18 +45,10 @@ public class LocalityLoader extends CsvToSqlLoader
 		if (geoUnitId != null)
 		{
 			String guid = String.valueOf(geoUnitId);
-			String  sql = SqlUtils.getQueryIdByFieldSql("geography", "GeographyID", "GUID", guid);
 
-			Integer geographyId = queryForId(sql);
+			Integer geographyId = getIdByField("geography", "GeographyID", "GUID", guid);
 
-			if (geographyId == null)
-			{
-				log.error("Couldn't find GeographyID with GUID " + guid);
-			}
-			else
-			{
-				geography.setGeographyId(geographyId);
-			}
+			geography.setGeographyId(geographyId);
 		}
 
 		// convert site into locality

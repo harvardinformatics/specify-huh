@@ -39,14 +39,8 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 
 		String guid = botanist.getGuid();
 
-		String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+		Integer agentId = getIdByField("agent", "AgentID", "GUID", guid);
 
-		Integer agentId = queryForId(sql);
-
-		if (agentId == null)
-		{
-			throw new LocalException("Couldn't find AgentID with GUID " + guid);
-		}
 		agent.setAgentId(agentId);
 		agentGeography.setAgent(agent);
 
@@ -59,20 +53,14 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 			throw new LocalException("No geo unit id");
 		}
 		guid = String.valueOf(geoUnitId);
-		sql = SqlUtils.getQueryIdByFieldSql("geography", "GeographyID", "GUID", guid);
 
-		Integer geographyId = queryForId(sql);
-
-		if (geographyId == null)
-		{
-			throw new LocalException("Couldn't find GeographyID with GUID " + guid);
-		}
+		Integer geographyId = getIdByField("geography", "GeographyID", "GUID", guid);
 
 		geography.setGeographyId(geographyId);
 		agentGeography.setGeography(geography);
 
 		// convert agentgeography to sql and insert
-		sql = getInsertSql(agentGeography);
+		String sql = getInsertSql(agentGeography);
 		insert(sql);
 	}
 

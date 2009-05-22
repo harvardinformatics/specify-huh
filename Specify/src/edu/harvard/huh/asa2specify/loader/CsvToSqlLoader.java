@@ -148,10 +148,8 @@ public abstract class CsvToSqlLoader
 	        Optr optr = new Optr();
 	        optr.setId(optrId);
 
-	        String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", optr.getGuid());
-
-	        Integer agentId = queryForId(sql);
-
+	        Integer agentId = getIdByField("agent", "AgentID", "GUID", optr.getGuid());
+	        
 	        agent = new Agent();
 	        agent.setAgentId(agentId);
 	        agentsByOptrId.put(optrId, agent);
@@ -163,14 +161,9 @@ public abstract class CsvToSqlLoader
 	protected PrepType getPrepType(String format) throws LocalException
 	{
         PrepType prepType = prepTypesByName.get(format);
-        if (prepType == null) {
-            String sql = SqlUtils.getQueryIdByFieldSql("preptype", "PrepTypeID", "Name", format);
-            Integer prepTypeId = queryForId(sql);
-
-            if (prepTypeId == null)
-            {
-                throw new LocalException("Didn't find prep type for name " + format);
-            }
+        if (prepType == null)
+        {
+            Integer prepTypeId = getIdByField("preptype", "PrepTypeID", "Name", format);
 
             prepType = new PrepType();
             prepType.setPrepTypeId(prepTypeId);
@@ -182,13 +175,9 @@ public abstract class CsvToSqlLoader
 	protected Collection getCollection(String code) throws LocalException
 	{
 	    Collection collection = collectionsByCode.get(code);
-	    if (collection == null) {
-	        String sql = SqlUtils.getQueryIdByFieldSql("collection", "CollectionID", "Code", code);
-	        Integer collectionId = queryForId(sql);
-
-	        if (collectionId == null) {
-	            throw new LocalException("Didn't find collection for code " + code);
-	        }
+	    if (collection == null)
+	    {
+	        Integer collectionId = getIdByField("collection", "CollectionID", "Code", code);
 
 	        collection = new Collection();
 	        collection.setCollectionId(collectionId);
@@ -200,9 +189,9 @@ public abstract class CsvToSqlLoader
 	protected Discipline getBotanyDiscipline() throws LocalException
 	{
 	    Discipline d = new Discipline();
-	    String sql = SqlUtils.getQueryIdByFieldSql("discipline", "DisciplineID", "Name", "Botany");
+	    
+        Integer disciplineId = getIdByField("discipline", "DisciplineID", "Name", "Botany");
 
-        Integer disciplineId = queryForId(sql);
         d.setDisciplineId(disciplineId);
 
         return d;
@@ -211,9 +200,9 @@ public abstract class CsvToSqlLoader
 	protected Division getBotanyDivision() throws LocalException
 	{
 	    Division d = new Division();
-	    String sql = SqlUtils.getQueryIdByFieldSql("division", "DivisionID", "Name", "Botany");
 
-	    Integer divisionId = queryForId(sql);
+	    Integer divisionId = getIdByField("division", "DivisionID", "Name", "Botany");
+        
 	    d.setDivisionId(divisionId);
 
 	    return d;
@@ -319,7 +308,7 @@ public abstract class CsvToSqlLoader
 		return id;
 	}
 
-	protected Integer queryForId(String sql) throws LocalException
+	private Integer queryForInt(String sql) throws LocalException
 	{
 	    log.debug(sql);
 
@@ -340,6 +329,45 @@ public abstract class CsvToSqlLoader
 		}
 
 		return id;
+	}
+
+	protected Integer queryForInt(String table, String idField, String field, String value)
+	    throws LocalException
+	{
+	    String sql = SqlUtils.getQueryIdByFieldSql(table, idField, field, value);
+	    
+	    Integer id = queryForInt(sql);
+	    
+	    return id;
+	}
+
+	protected Integer queryForInt(String table, String idField, String field, Integer value)
+	    throws LocalException
+	{
+	    String sql = SqlUtils.getQueryIdByFieldSql(table, idField, field, String.valueOf(value));
+
+	    Integer id = queryForInt(sql);
+
+	    return id;
+	}
+
+	protected Integer getIdByField(String table, String idField, String field, String value)
+	    throws LocalException
+	{
+	    Integer id = queryForInt(table, idField, field, value);
+	    
+	    if (id == null)
+	    {
+	        throw new LocalException("Couldn't find " + idField + " for " + field + "=" + value);
+	    }
+	    
+	    return id;
+	}
+	
+	protected Integer getIdByField(String table, String idField, String field, Integer value)
+	    throws LocalException
+	{
+	    return getIdByField(table, idField, field, String.valueOf(value));
 	}
 
 	protected String queryForString(String sql) throws LocalException
