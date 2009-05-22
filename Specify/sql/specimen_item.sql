@@ -36,7 +36,8 @@ select si.id,
        (select abbreviation from series where id=s.series_id) as series_abbrev,
        regexp_replace(s.series_no, '[[:space:]]+', ' ') as series_number,
        regexp_replace(si.container, '[[:space:]]+', ' ') as container,
-       si.subcollection_id
+       si.subcollection_id,
+       decode((select author from subcollection where id=si.subcollection_id), null, '', 'true') as has_exsiccata
 from
        specimen_item si,
        specimen s,
