@@ -12,7 +12,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package edu.harvard.huh.asa2specify.loader;
+package edu.harvard.huh.asa2specify;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+
 
 public class AsaIdMapper
 {
@@ -74,7 +75,7 @@ public class AsaIdMapper
         toIds.clear();
     }
 
-    Integer map(Integer from)
+    public Integer map(Integer from)
     {
         return toIds.get(from);
     }

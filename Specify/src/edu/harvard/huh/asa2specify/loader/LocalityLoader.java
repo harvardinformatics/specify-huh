@@ -9,6 +9,8 @@ import org.apache.log4j.Logger;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Site;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;

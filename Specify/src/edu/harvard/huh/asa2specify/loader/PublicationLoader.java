@@ -7,6 +7,9 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.huh.asa.Publication;
+import edu.harvard.huh.asa2specify.DateUtils;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Journal;
 import edu.ku.brc.specify.datamodel.ReferenceWork;

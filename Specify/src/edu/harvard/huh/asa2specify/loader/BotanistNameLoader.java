@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistName.TYPE;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentVariant;
 

@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.AsaDetermination;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Determination;
 
 public class DeterminationLoader extends CsvToSqlLoader

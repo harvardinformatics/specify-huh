@@ -12,7 +12,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package edu.harvard.huh.asa2specify.loader;
+package edu.harvard.huh.asa2specify;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 
 
 public class SqlUtils

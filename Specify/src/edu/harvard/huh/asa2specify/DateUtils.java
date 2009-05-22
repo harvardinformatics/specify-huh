@@ -1,4 +1,4 @@
-package edu.harvard.huh.asa2specify.loader;
+package edu.harvard.huh.asa2specify;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
