@@ -198,7 +198,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, Confidence, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, TimestampCreated";
 
-        String[] values = new String[12];
+        String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
@@ -207,11 +207,12 @@ public class DeterminationLoader extends CsvToSqlLoader
         values[4]  = SqlUtils.sqlString( determination.getDeterminedDate());
         values[5]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
         values[6]  = SqlUtils.sqlString( determination.getIsCurrent());
-        values[7]  = SqlUtils.sqlString( determination.getText1());
-        values[8]  = SqlUtils.sqlString( determination.getText2());
-        values[9]  = SqlUtils.sqlString( determination.getNumber1());
-        values[10] = SqlUtils.sqlString( determination.getRemarks());
-        values[11] = SqlUtils.now();
+        values[7]  = SqlUtils.sqlString( determination.getYesNo1());
+        values[8]  = SqlUtils.sqlString( determination.getText1());
+        values[9]  = SqlUtils.sqlString( determination.getText2());
+        values[10] = SqlUtils.sqlString( determination.getNumber1());
+        values[11] = SqlUtils.sqlString( determination.getRemarks());
+        values[12] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }

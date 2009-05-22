@@ -75,7 +75,6 @@ public class SubcollectionLoader extends CsvToSqlLoader
                 TaxonCitation taxonCitation = new TaxonCitation();
                 taxonCitation.setReferenceWork(referenceWork);
                 taxonCitation.setTaxon(taxon);
-                taxonCitation.setRemarks("Created by SubcollectionLoader from asa subcollection id " + subcollection.getId());
                 
                 sql = getInsertSql(taxonCitation);
                 insert(sql);
@@ -367,14 +366,13 @@ public class SubcollectionLoader extends CsvToSqlLoader
     
     private String getInsertSql(TaxonCitation taxonCitation)
     {
-        String fieldNames = "TaxonID, ReferenceWorkID, Remarks, TimestampCreated";
+        String fieldNames = "TaxonID, ReferenceWorkID, TimestampCreated";
         
-        String[] values = new String[4];
+        String[] values = new String[3];
         
         values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
         values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[2] = SqlUtils.sqlString( taxonCitation.getRemarks());
-        values[3] = SqlUtils.now();
+        values[2] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }
