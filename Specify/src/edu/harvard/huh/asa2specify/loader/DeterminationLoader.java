@@ -17,10 +17,16 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.commons.lang.StringUtils;
+
 import edu.harvard.huh.asa.AsaDetermination;
+import edu.harvard.huh.asa.BDate;
+import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Taxon;
 
 public class DeterminationLoader extends CsvToSqlLoader
 {
@@ -28,13 +34,12 @@ public class DeterminationLoader extends CsvToSqlLoader
     public DeterminationLoader(File csvFile, Statement sqlStatement)
     {
         super(csvFile, sqlStatement);
-        // TODO Auto-generated constructor stub
     }
 
     @Override
     public void loadRecord(String[] columns) throws LocalException
     {
-        AsaDetermination asaDetermination = parseDeterminationRecord(columns);
+        AsaDetermination asaDetermination = parse(columns);
 
         Determination determination = convert(asaDetermination);
         
@@ -42,29 +47,166 @@ public class DeterminationLoader extends CsvToSqlLoader
         insert(sql);
     }
 
-    private AsaDetermination parseDeterminationRecord(String[] columns)
+    private AsaDetermination parse(String[] columns) throws LocalException
     {
+        if (columns.length < 13)
+        {
+            throw new LocalException("Wrong number of columns");
+        }
+        
         AsaDetermination determination = new AsaDetermination();
+        
+        try
+        {
+            determination.setId(         Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+            determination.setSpecimenId( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
+            determination.setTaxonId(    Integer.parseInt( StringUtils.trimToNull( columns[2] )));
+            determination.setQualifier(                    StringUtils.trimToNull( columns[3] ));
+            
+            BDate bdate = new BDate();
+            determination.setDate( bdate );
+
+            String startYearStr = StringUtils.trimToNull( columns[4] );
+            if (startYearStr != null)
+            {
+                bdate.setStartYear( Integer.parseInt( startYearStr ));
+            }
+
+            String startMonthStr = StringUtils.trimToNull( columns[5] );
+            if (startMonthStr != null)
+            {
+                bdate.setStartMonth( Integer.parseInt( startMonthStr ));
+            }
+            
+            String startDayStr = StringUtils.trimToNull( columns[6] );
+            if (startDayStr != null)
+            {
+                bdate.setStartDay( Integer.parseInt( startDayStr ));
+            }
+
+            determination.setCurrent(   Boolean.parseBoolean( StringUtils.trimToNull( columns[7]  )));
+            determination.setIsLabel(   Boolean.parseBoolean( StringUtils.trimToNull( columns[8]  )));
+            determination.setDeterminedBy(                    StringUtils.trimToNull( columns[9]  ));
+            determination.setLabelText(                       StringUtils.trimToNull( columns[10] ));
+            determination.setOrdinal(       Integer.parseInt( StringUtils.trimToNull( columns[11] )));
+            determination.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[12] )));
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
         
         return determination;
     }
     
-    private Determination convert(AsaDetermination asaDetermination)
+    private Determination convert(AsaDetermination asaDet) throws LocalException
     {
         Determination determination = new Determination();
         
+        // CollectionObject
+        Integer specimenId = asaDet.getSpecimenId();
+        if (specimenId == null)
+        {
+            throw new LocalException("No specimen id");
+        }
+        
+        String guid = String.valueOf(specimenId);
+        
+        Integer collectionObjectId = getIntByField("collectionobject", "CollectionObjectID", "GUID", guid);
+
+        CollectionObject collectionObject = new CollectionObject();
+        collectionObject.setCollectionObjectId(collectionObjectId);
+
+        determination.setCollectionObject(collectionObject);
+
+        // Taxon
+        Integer asaTaxonId = asaDet.getTaxonId();
+        if (asaTaxonId == null)
+        {
+            throw new LocalException("No taxon id");
+        }
+
+        String taxonSerNumber = String.valueOf(asaTaxonId);
+        
+        Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
+
+        Taxon taxon = new Taxon();
+        taxon.setTaxonId(taxonId);
+        
+        determination.setTaxon( taxon ); 
+        
+        // Confidence
+        String qualifier = asaDet.getQualifier();
+        if ( qualifier != null && qualifier.length() > 50 )
+        {
+            warn("Truncating confidence", asaDet.getId(), qualifier);
+        }
+        determination.setConfidence(qualifier);
+        
+        // DeterminedDate
+        BDate bdate = asaDet.getDate();
+
+        Integer startYear  = bdate.getStartYear();
+        Integer startMonth = bdate.getStartMonth();
+        Integer startDay   = bdate.getStartDay();
+
+        // DeterminedDate and DeterminedDatePrecision
+        if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) )
+        {
+            determination.setDeterminedDate( DateUtils.getSpecifyStartDate( bdate ) );
+            determination.setDeterminedDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
+        }
+        else
+        {
+            warn("Invalid start date", asaDet.getId(),
+                    String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
+        }
+
+        // IsCurrent
+        determination.setIsCurrent( asaDet.isCurrent() );
+        
+        // YesNo1 (isLabel)
+        determination.setYesNo1( asaDet.isLabel() );
+        
+        // Text1 (determinedBy) TODO: assign DeterminerID to collector if isLabel == true?
+        // Determiner TODO: Ugh.  We have a string.  They have a relation.  Putting it in Text1 for now.
+        String determinedBy = asaDet.getDeterminedBy();
+        determination.setText1( determinedBy );
+        
+        // Text2 (labelText)
+        String labelText = asaDet.getLabelText();
+        determination.setText2( labelText );
+        
+        // Number1 (ordinal)
+        Integer ordinal = asaDet.getOrdinal();
+        determination.setNumber1((float) ordinal);
+
+        // Remarks TODO: Maureen, check your notes on this field and label_text
+        String remarks = asaDet.getRemarks();
+        determination.setRemarks(remarks);
+
         return determination;
     }
     
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionMemberID, CollectionObjectID, TimestampCreated";
+        String fieldNames = "CollectionObjectID, TaxonID, Confidence, DeterminedDate, DeterminedDatePrecision, " +
+        		            "IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, CollectionMemberID, TimestampCreated";
 
-        String[] values = new String[3];
+        String[] values = new String[0];
         
-        values[0] = String.valueOf( determination.getCollectionMemberId() );
-        values[1] = String.valueOf( determination.getCollectionObject().getId() );
-        values[2] ="now";
+        values[0] = SqlUtils.sqlString( determination.getCollectionObject().getId());
+        values[0] = SqlUtils.sqlString( determination.getTaxon().getId());
+        values[0] = SqlUtils.sqlString( determination.getConfidence());
+        values[0] = SqlUtils.sqlString( determination.getDeterminedDate());
+        values[0] = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
+        values[0] = SqlUtils.sqlString( determination.getIsCurrent());
+        values[0] = SqlUtils.sqlString( determination.getText1());
+        values[0] = SqlUtils.sqlString( determination.getText2());
+        values[0] = SqlUtils.sqlString( determination.getNumber1());
+        values[0] = SqlUtils.sqlString( determination.getRemarks());
+        values[0] = SqlUtils.sqlString( determination.getCollectionMemberId());
+        values[0] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
