@@ -98,9 +98,9 @@ public class BotanistTeamLoader extends CsvToSqlLoader
         
         try
         {
-        	botanistTeamMember.setTeamId(    Integer.parseInt(StringUtils.trimToNull(columns[0])));
-        	botanistTeamMember.setBotanistId(Integer.parseInt(StringUtils.trimToNull(columns[1])));
-        	botanistTeamMember.setOrdinal(   Integer.parseInt(StringUtils.trimToNull(columns[2])));
+        	botanistTeamMember.setTeamId(     Integer.parseInt(StringUtils.trimToNull( columns[0] )));
+        	botanistTeamMember.setBotanistId( Integer.parseInt(StringUtils.trimToNull( columns[1] )));
+        	botanistTeamMember.setOrdinal(    Integer.parseInt(StringUtils.trimToNull( columns[2] )));
         }
         catch (NumberFormatException e)
         {

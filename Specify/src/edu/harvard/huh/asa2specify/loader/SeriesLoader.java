@@ -102,7 +102,8 @@ public class SeriesLoader extends CsvToSqlLoader
 
     	Series series = new Series();
 
-    	try {
+    	try
+    	{
     		series.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
     		series.setName(                            StringUtils.trimToNull( columns[1] ));
     		series.setAbbreviation(                    StringUtils.trimToNull( columns[2] ));
@@ -110,7 +111,7 @@ public class SeriesLoader extends CsvToSqlLoader
     		String instIdStr =                         StringUtils.trimToNull( columns[3] );
     		if (instIdStr != null)
     		{
-    		    series.setInstitutionId(Integer.parseInt(instIdStr));
+    		    series.setInstitutionId( Integer.parseInt( instIdStr ));
     		}
 
     		series.setNote(                            StringUtils.trimToNull( columns[4] ));

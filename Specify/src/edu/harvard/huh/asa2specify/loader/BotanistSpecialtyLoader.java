@@ -74,33 +74,32 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		}
 
 		BotanistRoleSpecialty botanistRoleSpecialty = new BotanistRoleSpecialty();
-		try {
-			botanistRoleSpecialty.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
-
-			String role = StringUtils.trimToNull( columns[1] );
-			if (role == null) throw new LocalException("No type found in record");
-
-			botanistRoleSpecialty.setRole(role);
-
-			String specialty = StringUtils.trimToNull( columns[2] );
-			botanistRoleSpecialty.setSpecialty(specialty);
-
-			botanistRoleSpecialty.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[3] ) ) );
+		try
+		{
+			botanistRoleSpecialty.setBotanistId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+			botanistRoleSpecialty.setRole(                         StringUtils.trimToNull( columns[1] ));
+			botanistRoleSpecialty.setSpecialty(                    StringUtils.trimToNull( columns[2] ));
+			botanistRoleSpecialty.setOrdinal(    Integer.parseInt( StringUtils.trimToNull( columns[3] )));
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
 
 		return botanistRoleSpecialty;
 	}
 
-	private AgentSpecialty convert(BotanistRoleSpecialty botanistRoleSpecialty) {
+	private AgentSpecialty convert(BotanistRoleSpecialty botanistRoleSpecialty) throws LocalException
+	{
 
 		AgentSpecialty agentSpecialty = new AgentSpecialty();
 
 		String role = botanistRoleSpecialty.getRole();
+        if (role == null) throw new LocalException("No role");
+        
 		String specialty = botanistRoleSpecialty.getSpecialty();
-
+		if (specialty == null) throw new LocalException("No specialty");
+		
 		String specialtyName = specialty + " (" + role + ")";
 		if (specialtyName.length() > 64)
 		{

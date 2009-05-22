@@ -76,54 +76,54 @@ public class LocalityLoader extends CsvToSqlLoader
 		Site site = new Site();
 
 		try {
-			site.setId(       Integer.parseInt(StringUtils.trimToNull(columns[0])));
+			site.setId(       Integer.parseInt( StringUtils.trimToNull( columns[0] )));
 			
-			String geoUnitIdStr = StringUtils.trimToNull(columns[1]);
+			String geoUnitIdStr =               StringUtils.trimToNull( columns[1] );
 			if (geoUnitIdStr != null)
 			{
 			    site.setGeoUnitId(Integer.parseInt(geoUnitIdStr));
 			}
 			
-			site.setLocality( StringUtils.trimToNull(columns[2]));
-			site.setMethod( StringUtils.trimToNull(columns[3]));
+			site.setLocality(                   StringUtils.trimToNull( columns[2] ));
+			site.setMethod(                     StringUtils.trimToNull( columns[3] ));
 
-			String lat1Str = StringUtils.trimToNull(columns[4]);
+			String lat1Str = StringUtils.trimToNull( columns[4] );
 			if (lat1Str != null)
 			{
-				site.setLatitudeA(BigDecimal.valueOf(Double.parseDouble(lat1Str)));
+				site.setLatitudeA( BigDecimal.valueOf( Double.parseDouble( lat1Str )));
 			}
 
-			String long1Str = StringUtils.trimToNull(columns[5]);
+			String long1Str = StringUtils.trimToNull( columns[5] );
 			if (long1Str != null)
 			{
-				site.setLongitudeA(BigDecimal.valueOf(Double.parseDouble(long1Str)));
+				site.setLongitudeA( BigDecimal.valueOf( Double.parseDouble( long1Str )));
 			}
 
-			String lat2Str = StringUtils.trimToNull(columns[6]);
+			String lat2Str = StringUtils.trimToNull( columns[6] );
 			if (lat2Str != null)
 			{
-				site.setLatitudeB(BigDecimal.valueOf(Double.parseDouble(lat2Str)));
+				site.setLatitudeB( BigDecimal.valueOf( Double.parseDouble( lat2Str )));
 			}
 
-			String long2Str = StringUtils.trimToNull(columns[7]);
+			String long2Str = StringUtils.trimToNull( columns[7] );
 			if (long2Str != null)
 			{
-				site.setLongitudeB(BigDecimal.valueOf(Double.parseDouble(long2Str)));
+				site.setLongitudeB( BigDecimal.valueOf( Double.parseDouble( long2Str )));
 			}
 
-			String elevFromStr = StringUtils.trimToNull(columns[8]);
+			String elevFromStr = StringUtils.trimToNull( columns[8] );
 			if (elevFromStr != null)
 			{
-				site.setElevFrom(BigDecimal.valueOf(Double.parseDouble(elevFromStr)));
+				site.setElevFrom( BigDecimal.valueOf( Double.parseDouble( elevFromStr )));
 			}
 
-			String elevToStr = StringUtils.trimToNull(columns[9]);
+			String elevToStr = StringUtils.trimToNull( columns[9] );
 			if (elevToStr != null)
 			{
-				site.setElevTo(BigDecimal.valueOf(Double.parseDouble(elevToStr)));
+				site.setElevTo( BigDecimal.valueOf( Double.parseDouble( elevToStr )));
 			}
 
-			site.setElevMethod(StringUtils.trimToNull(columns[10]));
+			site.setElevMethod( StringUtils.trimToNull( columns[10] ));
 		}
 		catch (NumberFormatException e)
 		{

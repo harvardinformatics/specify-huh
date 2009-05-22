@@ -154,21 +154,21 @@ public class TaxonLoader extends CsvToSqlLoader
 		AsaTaxon taxon = new AsaTaxon();
 
 		try {
-		    String parentId = StringUtils.trimToNull(columns[0]);
+		    String parentId = StringUtils.trimToNull( columns[0] );
 		    if (parentId != null)
 		    {
-		        taxon.setParentId(Integer.parseInt(parentId));
+		        taxon.setParentId( Integer.parseInt( parentId ));
 		    }
 
-		    taxon.setId(            Integer.parseInt(StringUtils.trimToNull(columns[1])));
-		    taxon.setAuthor(                         StringUtils.trimToNull(columns[2]));
-		    taxon.setCitesStatus(                    StringUtils.trimToNull(columns[3]));
-		    taxon.setFullName(                       StringUtils.trimToNull(columns[4]));
-		    taxon.setName(                           StringUtils.trimToNull(columns[5]));
-		    taxon.setRank(                           StringUtils.trimToNull(columns[6]));
-		    taxon.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[7])));
-		    taxon.setCreatedById(   Integer.parseInt(StringUtils.trimToNull(columns[8])));
-		    taxon.setDateCreated( SqlUtils.parseDate(StringUtils.trimToNull(columns[9])));
+		    taxon.setId(            Integer.parseInt( StringUtils.trimToNull( columns[1] )));
+		    taxon.setAuthor(                          StringUtils.trimToNull( columns[2] ));
+		    taxon.setCitesStatus(                     StringUtils.trimToNull( columns[3] ));
+		    taxon.setFullName(                        StringUtils.trimToNull( columns[4] ));
+		    taxon.setName(                            StringUtils.trimToNull( columns[5] ));
+		    taxon.setRank(                            StringUtils.trimToNull( columns[6] ));
+		    taxon.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7] )));
+		    taxon.setCreatedById(   Integer.parseInt( StringUtils.trimToNull( columns[8] )));
+		    taxon.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9] )));
 		}
 		catch (NumberFormatException e) {
 		    throw new LocalException("Couldn't parse numeric field", e);

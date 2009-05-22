@@ -76,16 +76,15 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		BotanistRoleCountry botanistRoleCountry = new BotanistRoleCountry();
 		try
 		{
-			botanistRoleCountry.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
+			botanistRoleCountry.setBotanistId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
 
-			String role = StringUtils.trimToNull( columns[1] );
+			String role =                                        StringUtils.trimToNull( columns[1] );
 			if (role == null) throw new LocalException("No type found in record ");
 
 			botanistRoleCountry.setRole(role);
 
-			botanistRoleCountry.setGeoUnitId(Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
-
-			botanistRoleCountry.setOrdinal(Integer.parseInt(StringUtils.trimToNull( columns[3] ) ) );
+			botanistRoleCountry.setGeoUnitId( Integer.parseInt( StringUtils.trimToNull( columns[2] )));
+			botanistRoleCountry.setOrdinal(   Integer.parseInt( StringUtils.trimToNull( columns[3] )));
 		}
 		catch (NumberFormatException e)
 		{

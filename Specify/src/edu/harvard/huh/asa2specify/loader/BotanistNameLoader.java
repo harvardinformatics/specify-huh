@@ -32,7 +32,8 @@ public class BotanistNameLoader extends CsvToSqlLoader
         Agent agent = new Agent();
         Integer botanistId = botanistName.getBotanistId();
 
-        if (botanistId == null) {
+        if (botanistId == null)
+        {
         	throw new LocalException("No botanist id");
         }
 
@@ -79,30 +80,31 @@ public class BotanistNameLoader extends CsvToSqlLoader
 
             botanistName.setType(nameType);
 
-            String name = StringUtils.trimToNull( columns[2] );
-            if (name != null)
-            {
-                botanistName.setName( name );
-            }
-            else {
-                throw new LocalException("No name found in record");
-            }
+            botanistName.setName( StringUtils.trimToNull( columns[2] ));
+
         }
-        catch (NumberFormatException e) {
+        catch (NumberFormatException e)
+        {
             throw new LocalException("Couldn't parse numeric field", e);
         }
         
         return botanistName;
     }
 
-    private AgentVariant convert(BotanistName botanistName) {
+    private AgentVariant convert(BotanistName botanistName) throws LocalException
+    {
 
         AgentVariant variant = new AgentVariant();
         
         String name = botanistName.getName();
+        if (name == null)
+        {
+            throw new LocalException("No name");
+        }
+
         if (name.length() > 255)
         {
-            warn("Truncating botanist name variant", null, name);
+            warn("Truncating botanist name variant", botanistName.getBotanistId(), name);
             name = name.substring(0, 255);
         }
         variant.setName(botanistName.getName());

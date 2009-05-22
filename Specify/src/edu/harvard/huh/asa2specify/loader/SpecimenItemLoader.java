@@ -193,7 +193,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 39)
+		if (columns.length < 40)
 		{
 			throw new LocalException("Wrong number of columns");
 		}
@@ -306,12 +306,13 @@ public class SpecimenItemLoader extends CsvToSqlLoader
                 specimenItem.setCollectorId( Integer.parseInt( collectorIdStr ));
             }
 
-            specimenItem.setCatalogedById( Integer.parseInt(   StringUtils.trimToNull( columns[33] )));
-            specimenItem.setFormat(                            StringUtils.trimToNull( columns[34] ));
-            specimenItem.setSeriesAbbrev(                      StringUtils.trimToNull( columns[35] ));
-            specimenItem.setSeriesNo(                          StringUtils.trimToNull( columns[36] ));
-            specimenItem.setContainer(                         StringUtils.trimToNull( columns[37] ));
-            specimenItem.setSubcollectionId( Integer.parseInt( StringUtils.trimToNull( columns[38] )));
+            specimenItem.setCatalogedById(  Integer.parseInt(   StringUtils.trimToNull( columns[33] )));
+            specimenItem.setFormat(                             StringUtils.trimToNull( columns[34] ));
+            specimenItem.setSeriesAbbrev(                       StringUtils.trimToNull( columns[35] ));
+            specimenItem.setSeriesNo(                           StringUtils.trimToNull( columns[36] ));
+            specimenItem.setContainer(                          StringUtils.trimToNull( columns[37] ));
+            specimenItem.setSubcollectionId(  Integer.parseInt( StringUtils.trimToNull( columns[38] )));
+            specimenItem.setHasExsiccata( Boolean.parseBoolean( StringUtils.trimToNull( columns[39] )));
 		}
         catch (NumberFormatException e)
         {
@@ -461,7 +462,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 			collectingEvent.setStartDate( DateUtils.getSpecifyStartDate( bdate ) );
 			collectingEvent.setStartDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
 		}
-		// StartDateVerbatime
+		// StartDateVerbatim
 		else if ( DateUtils.isValidCollectionDate( startYear, startMonth, startDay ) )
 		{
 			String startDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );

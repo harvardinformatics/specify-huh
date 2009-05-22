@@ -59,47 +59,24 @@ public class PublicationLoader extends CsvToSqlLoader
 		Publication publication = new Publication();
 		try
 		{
-			publication.setId(Integer.parseInt(StringUtils.trimToNull(columns[0])));
-
-			String isbn = StringUtils.trimToNull(columns[1]);
-			publication.setIsbn(isbn);
-
-			String pubPlace = StringUtils.trimToNull(columns[2]);
-			publication.setPubPlace(pubPlace);
-
-			String publisher = StringUtils.trimToNull(columns[3]);
-			publication.setPublisher(publisher);
-
-			String url = StringUtils.trimToNull(columns[4]);
-			publication.setUrl(url);
-
-			String title = StringUtils.trimToNull(columns[5]);
-			publication.setTitle(title);
-
-			String pubDate = StringUtils.trimToNull(columns[6]);
-			publication.setPubDate(pubDate);
-
-			String isJournal = StringUtils.trimToNull(columns[7]);
-			publication.setJournal(isJournal != null);
-			
-			String issn = StringUtils.trimToNull(columns[8]);
-			publication.setIsbn(issn);
-
-			String bph = StringUtils.trimToNull(columns[9]);
-			publication.setBph(bph);
-
-			String abbreviation = StringUtils.trimToNull(columns[10]);
-			publication.setAbbreviation(abbreviation);
-
-            Integer optrId =   Integer.parseInt(StringUtils.trimToNull( columns[11] ));
-            publication.setCreatedById(optrId);
+			publication.setId(Integer.parseInt(           StringUtils.trimToNull( columns[0] )));
+			publication.setIsbn(                          StringUtils.trimToNull( columns[1] ));
+			publication.setPubPlace(                      StringUtils.trimToNull( columns[2] ));
+			publication.setPublisher(                     StringUtils.trimToNull( columns[3] ));
+			publication.setUrl(                           StringUtils.trimToNull( columns[4] ));
+			publication.setTitle(                         StringUtils.trimToNull( columns[5] ));
+			publication.setPubDate(                       StringUtils.trimToNull( columns[6] ));
+			publication.setJournal( Boolean.parseBoolean( StringUtils.trimToNull( columns[7] )));
+			publication.setIsbn(                          StringUtils.trimToNull( columns[8] ));
+			publication.setBph(                           StringUtils.trimToNull( columns[9] ));
+			publication.setAbbreviation(                  StringUtils.trimToNull( columns[10] ));
+            publication.setCreatedById( Integer.parseInt( StringUtils.trimToNull( columns[11] )));
             
-            String createDateString =           StringUtils.trimToNull( columns[12] );
+            String createDateString = StringUtils.trimToNull( columns[12] );
             Date createDate = SqlUtils.parseDate(createDateString);
             publication.setDateCreated(createDate);
-            
-			String remarks = SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[13]));
-			publication.setRemarks(remarks);
+
+			publication.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[13] )));
 		}
 		catch (NumberFormatException e)
 		{

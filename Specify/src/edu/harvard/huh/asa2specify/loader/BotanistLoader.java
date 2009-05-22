@@ -100,59 +100,41 @@ public class BotanistLoader extends CsvToSqlLoader
         // assign values to Botanist object
         Botanist botanist = new Botanist();
         try {
-            botanist.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] )));
-
-            String isTeamStr = StringUtils.trimToNull( columns[1] );
-            boolean isTeam = isTeamStr != null && isTeamStr.equals( "true" );
-            botanist.setTeam( isTeam );
-
-            String isCorporateStr = StringUtils.trimToNull( columns[2] );
-            boolean isCorporate = isCorporateStr != null && isCorporateStr.equals( "true" );
-            botanist.setCorporate( isCorporate );
-
-            String name = StringUtils.trimToNull( columns[3] );
-            botanist.setName( name );
+            botanist.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+            botanist.setTeam(      Boolean.parseBoolean( StringUtils.trimToNull( columns[1] )));
+            botanist.setCorporate( Boolean.parseBoolean( StringUtils.trimToNull( columns[2] )));
+            botanist.setName(                            StringUtils.trimToNull( columns[3] ));
 
             // no place to put this at the moment: birth/death, flourished, collected, received specimens
-            String datesType = StringUtils.trimToNull( columns[4] );
-            botanist.setDatesType( datesType );
+            botanist.setDatesType(                       StringUtils.trimToNull( columns[4] ));
 
-            String startYearStr = StringUtils.trimToNull( columns[5] );
+            String startYearStr =                        StringUtils.trimToNull( columns[5] );
             if ( startYearStr != null )
             {
                 botanist.setStartYear( Integer.parseInt( startYearStr ) );
             }
 
             // doing nothing with this at the moment: ?, circa; null means default, exact
-            String startPrecision = StringUtils.trimToNull( columns[6] );
-            if ( startPrecision != null )
-            {
-                botanist.setStartPrecision( startPrecision );
-            }
+            botanist.setStartPrecision(                  StringUtils.trimToNull( columns[6] ));
 
-            String endYearStr = StringUtils.trimToNull( columns[7] );
+            String endYearStr =                          StringUtils.trimToNull( columns[7] );
             if ( endYearStr != null )
             {
                 botanist.setEndYear( Integer.parseInt( endYearStr ) );
             }
 
             // no place to put this at the moment: ?, circa; null means default, exact
-            String endPrecision = StringUtils.trimToNull( columns[8] );
-            if ( endPrecision != null ) {
-                botanist.setEndPrecision( startPrecision );
-            }
+            botanist.setEndPrecision(                    StringUtils.trimToNull( columns[8] ));
 
-            String remarks = StringUtils.trimToNull( columns[9] );
-            botanist.setRemarks(SqlUtils.iso8859toUtf8(remarks));
+            botanist.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9] )));
+            botanist.setCreatedById( Integer.parseInt(   StringUtils.trimToNull( columns[10] )));
             
-            Integer optrId = Integer.parseInt(StringUtils.trimToNull( columns[10] ));
-            botanist.setCreatedById(optrId);
-            
-            String createDateString = StringUtils.trimToNull( columns[11] );
+            String createDateString =                    StringUtils.trimToNull( columns[11] );
             Date createDate = SqlUtils.parseDate(createDateString);
             botanist.setDateCreated(createDate);
         }
-        catch (NumberFormatException e) {
+        catch (NumberFormatException e)
+        {
             throw new LocalException("Couldn't parse numeric field", e);
         }
 

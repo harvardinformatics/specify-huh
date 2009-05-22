@@ -105,16 +105,17 @@ public class OrganizationLoader extends CsvToSqlLoader
 		// assign values to Botanist object
 		Organization organization = new Organization();
 
-		try {
-			organization.setId(Integer.parseInt(StringUtils.trimToNull( columns[0] )));
-			organization.setName(               StringUtils.trimToNull( columns[1] ));
-			organization.setAcronym(            StringUtils.trimToNull( columns[2] ));
-			organization.setCity(               StringUtils.trimToNull( columns[3] ));
-			organization.setState(              StringUtils.trimToNull( columns[4] ));
-			organization.setCountry(            StringUtils.trimToNull( columns[5] ));
-			organization.setUri(                StringUtils.trimToNull( columns[6] ));
+		try
+		{
+			organization.setId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+			organization.setName(                 StringUtils.trimToNull( columns[1] ));
+			organization.setAcronym(              StringUtils.trimToNull( columns[2] ));
+			organization.setCity(                 StringUtils.trimToNull( columns[3] ));
+			organization.setState(                StringUtils.trimToNull( columns[4] ));
+			organization.setCountry(              StringUtils.trimToNull( columns[5] ));
+			organization.setUri(                  StringUtils.trimToNull( columns[6] ));
 			
-            Integer optrId =   Integer.parseInt(StringUtils.trimToNull( columns[7] ));
+            Integer optrId =   Integer.parseInt( StringUtils.trimToNull( columns[7] ));
             organization.setCreatedById(optrId);
             
             String createDateString =           StringUtils.trimToNull( columns[8] );
@@ -123,7 +124,8 @@ public class OrganizationLoader extends CsvToSqlLoader
             
 			organization.setRemarks(            StringUtils.trimToNull (columns[9] ));
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
 

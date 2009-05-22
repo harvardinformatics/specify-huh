@@ -292,33 +292,34 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	    GeoUnit geoUnit = new GeoUnit();
 
 	    try {
-	        geoUnit.setParentId(      Integer.parseInt(StringUtils.trimToNull(columns[0])));
-	        geoUnit.setId(            Integer.parseInt(StringUtils.trimToNull(columns[1])));
-	        geoUnit.setRank(                           StringUtils.trimToNull(columns[2]));
-	        geoUnit.setIsoCode(                        StringUtils.trimToNull(columns[3]));
-	        geoUnit.setDisplayQualifier(               StringUtils.trimToNull(columns[4]));
-	        geoUnit.setName(                           StringUtils.trimToNull(columns[5]));
-	        geoUnit.setVernacularName(                 StringUtils.trimToNull(columns[6]));
-	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8(StringUtils.trimToNull(columns[7])));
-	        geoUnit.setCreatedById(   Integer.parseInt(StringUtils.trimToNull(columns[8])));
-	        geoUnit.setDateCreated( SqlUtils.parseDate(StringUtils.trimToNull(columns[9])));
+	        geoUnit.setParentId(      Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+	        geoUnit.setId(            Integer.parseInt( StringUtils.trimToNull( columns[1] )));
+	        geoUnit.setRank(                            StringUtils.trimToNull( columns[2] ));
+	        geoUnit.setIsoCode(                         StringUtils.trimToNull( columns[3] ));
+	        geoUnit.setDisplayQualifier(                StringUtils.trimToNull( columns[4] ));
+	        geoUnit.setName(                            StringUtils.trimToNull( columns[5] ));
+	        geoUnit.setVernacularName(                  StringUtils.trimToNull( columns[6] ));
+	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7] )));
+	        geoUnit.setCreatedById(   Integer.parseInt( StringUtils.trimToNull( columns[8] )));
+	        geoUnit.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9] )));
 	        
-	        String variant1 = StringUtils.trimToNull(columns[10]);
+	        String variant1 =                           StringUtils.trimToNull( columns[10] );
 	        if (variant1 != null) geoUnit.addVariantName(variant1);
 	        
-	        String variant2 = StringUtils.trimToNull(columns[11]);
+	        String variant2 =                           StringUtils.trimToNull( columns[11] );
 	        if (variant2 != null) geoUnit.addVariantName(variant2);
 	        
-	        String variant3 = StringUtils.trimToNull(columns[12]);
+	        String variant3 =                           StringUtils.trimToNull( columns[12] );
 	        if (variant3 != null) geoUnit.addVariantName(variant3);
 	        
-	        String variant4 = StringUtils.trimToNull(columns[13]);
+	        String variant4 =                           StringUtils.trimToNull( columns[13] );
 	        if (variant4 != null) geoUnit.addVariantName(variant4);
 	        
-	        String variant5 = StringUtils.trimToNull(columns[14]);
+	        String variant5 =                           StringUtils.trimToNull( columns[14] );
 	        if (variant5 != null) geoUnit.addVariantName(variant5);
 	    }
-	    catch (NumberFormatException e) {
+	    catch (NumberFormatException e)
+	    {
 	        throw new LocalException("Couldn't parse numeric field", e);
 	    }
 
