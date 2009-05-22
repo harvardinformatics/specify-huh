@@ -37,15 +37,6 @@ public class SubcollectionLoader extends CsvToSqlLoader
 		String code = subcollection.getCollectionCode();
 		Collection collection = getCollection(code);
 
-		// get Container object
-		Container container = getContainer(subcollection);
-		container.setCollectionMemberId(collection.getId());
-
-		// convert container to sql and insert
-		String sql = getInsertSql(container);
-        Integer containerId = insert(sql);
-        container.setContainerId(containerId);
-
         // if this subcollection represents an exsiccata...
         String authorName = subcollection.getAuthor();
         if (authorName != null)
@@ -54,7 +45,7 @@ public class SubcollectionLoader extends CsvToSqlLoader
             ReferenceWork referenceWork = getReferenceWork(subcollection);
 
             // convert referencework to sql and insert
-            sql = getInsertSql(referenceWork);
+            String sql = getInsertSql(referenceWork);
             Integer referenceWorkId = insert(sql);
             referenceWork.setReferenceWorkId(referenceWorkId);
 
@@ -127,6 +118,17 @@ public class SubcollectionLoader extends CsvToSqlLoader
             getInsertSql(author);
 
             insert(sql);
+        }
+        else
+        {
+            // get Container object
+            Container container = getContainer(subcollection);
+            container.setCollectionMemberId(collection.getId());
+
+            // convert container to sql and insert
+            String sql = getInsertSql(container);
+            Integer containerId = insert(sql);
+            container.setContainerId(containerId);
         }
 	}
 

@@ -5,7 +5,14 @@ import java.util.Date;
 
 public class SpecimenItem {
 	
-	private  Integer id;
+    public static final String Fruit = "fruit";
+    public static final String Flower = "flower";
+    public static final String FlowerAndFruit = "flower and fruit";
+    public static final String Sterile = "sterile";
+    public static final String Sporophyte = "sporophyte";
+    public static final String NotDetermined = "not determined";
+
+    private  Integer id;
 	private  Integer specimenId;
 	private  Integer barcode;
 	private  Integer collectorId;

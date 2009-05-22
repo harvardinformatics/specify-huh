@@ -4,18 +4,17 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Organization;
-import edu.harvard.huh.asa.Series;
 import edu.harvard.huh.asa.SpecimenItem;
 import edu.harvard.huh.asa.Subcollection;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
-import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
@@ -23,7 +22,6 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Discipline;
-import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Locality;
@@ -34,65 +32,21 @@ import edu.ku.brc.specify.datamodel.Preparation;
 public class SpecimenItemLoader extends CsvToSqlLoader
 {
 	private Discipline discipline;
-	private Division   division;
 	
-	private Integer lastSpecimenId;
-	private HashMap<String, CollectionObject> collObjByAccessionIdentifier;
+	private CollectionObject     collectionObject = null;
+	private String               reproStatus      = null;
+	private Integer              subcollectionId  = null;
+	private Collector            collector        = null;
+	private CollectingEvent      collectingEvent  = null;
+	private Set<Preparation>     preparations     = new HashSet<Preparation>();
+	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
+	private ExsiccataItem        exsiccataItem    = null;
 	
 	public SpecimenItemLoader(File csvFile, Statement sqlStatement) throws LocalException 
 	{
 		super(csvFile, sqlStatement);
 		
 		this.discipline = getBotanyDiscipline();
-		this.division   = getBotanyDivision();
-		
-		this.collObjByAccessionIdentifier = new HashMap<String, CollectionObject>();
-	}
-
-	private boolean isEmpty(Accession accession)
-	{
-	    return accession.getAccessionNumber() == null;
-	}
-
-	// TODO: implement proper sharing of series/subcollection, container/exsiccata
-	private void processSubcollection(Integer subcollectionId, CollectionObject collectionObject) throws LocalException
-	{
-	    if (subcollectionId != null)
-        {            
-            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
-                        
-            Integer exsiccataId = queryForId(sql);
-            
-            if (exsiccataId == null)
-            {
-                throw new LocalException("Couldn't find exsiccata id for ");
-            }
-            
-            Exsiccata exsiccata = new Exsiccata();
-            exsiccata.setExsiccataId(exsiccataId);
-            
-            ExsiccataItem exsiccataItem = new ExsiccataItem();
-            
-            exsiccataItem.setExsiccata(exsiccata);
-            exsiccataItem.setCollectionObject(collectionObject);
-            
-            sql = getInsertSql(exsiccataItem);
-            insert(sql);
-        }
-	}
-
-	private void processAccession(Accession accession) throws LocalException
-	{
-        if (! isEmpty(accession))
-        {
-            // insert Accession
-            accession.setDivision(division);
-            String sql = getInsertSql(accession);
-            
-            // update accession with id
-            Integer accessionId = insert(sql);
-            accession.setAccessionId(accessionId);
-        }
 	}
 
 	@Override
@@ -100,88 +54,121 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 		String sql;
 		
 		SpecimenItem specimenItem = parse(columns);
-		
-	    // find the matching prep type
-        String format = specimenItem.getFormat();
-        PrepType prepType = getPrepType(format);
-        
-	    // convert SpecimenItem into Preparation
-        Preparation preparation = convert(specimenItem);
 
-        // from which we get the CollectionObject
-        CollectionObject collectionObject = preparation.getCollectionObject();
-        
+        // Preparation
+        Preparation preparation = getPreparation(specimenItem);
+
         // if this preparation shares the same collection object with the previously
         // inserted one, re-use it
-        Integer specimenId = specimenItem.getSpecimenId();
-        Accession accession = collectionObject.getAccession();
-        String accessionIdentifier = accession.getAccessionNumber() + accession.getRemarks();
+        String specimenId = String.valueOf(specimenItem.getSpecimenId());
 
-        if (specimenId.equals(lastSpecimenId))
+        if (collectionObject != null && specimenId.equals(collectionObject.getGuid()))
         {
-            // if the two specimen items don't have different accession numbers or provenance
-            // then they share a collection object; just create a different preparation
-            if (collObjByAccessionIdentifier.containsKey(accessionIdentifier))
+            preparation.setCollectionObject(collectionObject);
+            preparation.setCollectionMemberId(collectionObject.getCollectionMemberId());
+
+            preparations.add(preparation);
+
+            // possibly update repro status; warn if so
+            String newReproStatus = specimenItem.getReproStatus();
+            if (!newReproStatus.equals(reproStatus))
             {
-                preparation.setCollectionObject(collObjByAccessionIdentifier.get(accessionIdentifier));
-
-                // insert Preparation
-                preparation.setCollectionMemberId(preparation.getCollectionObject().getCollectionMemberId());
-                preparation.setPrepType(prepType);
-
-                sql = getInsertSql(preparation);
-                insert(sql);
-
-                return;
+                String status;
+                if (reproStatus.equals(SpecimenItem.NotDetermined) ||
+                        newReproStatus.equals(SpecimenItem.FlowerAndFruit) && 
+                            (reproStatus.equals(SpecimenItem.Flower) || reproStatus.equals(SpecimenItem.Fruit)))
+                {
+                    status = newReproStatus;
+                }
+                else if (reproStatus.equals(SpecimenItem.Flower) && newReproStatus.equals(SpecimenItem.Fruit) ||
+                            reproStatus.equals(SpecimenItem.Fruit) && newReproStatus.equals(SpecimenItem.Flower))
+                {
+                    status = SpecimenItem.FlowerAndFruit;
+                }
+                else
+                {
+                    status = reproStatus;
+                }
+                
+                if (!reproStatus.equals(status))
+                {
+                    warn("Changing repro status from " + reproStatus, specimenItem.getId(), status);
+                    collectionObject.setText1(status);
+                }
             }
-            else
+
+            // possibly update subcollection; warn if so
+            Integer newSubcollectionId = specimenItem.getSubcollectionId();
+            if (!newSubcollectionId.equals(subcollectionId))
             {
-                collObjByAccessionIdentifier.put(accessionIdentifier, collectionObject);
-                
-                // different collection object but same collecting event, collection, cataloger, creator, exsiccata, container
-                CollectionObject previousCollectionObject =
-                    collObjByAccessionIdentifier.get(collObjByAccessionIdentifier.values().iterator().next());
-
-                collectionObject.setCollectingEvent(previousCollectionObject.getCollectingEvent());
-                collectionObject.setCollection(previousCollectionObject.getCollection());
-                collectionObject.setCollectionMemberId(previousCollectionObject.getCollectionMemberId());
-                collectionObject.setCataloger(previousCollectionObject.getCataloger());
-                collectionObject.setCreatedByAgent(previousCollectionObject.getCreatedByAgent());
-                collectionObject.setContainer(previousCollectionObject.getContainer());
-
-                // maybe insert a new accession
-                processAccession(accession);
-
-                // insert the new collectionobject
-                sql = getInsertSql(collectionObject);
-                Integer collectionObjectId = insert(sql);
-                collectionObject.setCollectionObjectId(collectionObjectId);
-                
-                // insert the preparation
-                preparation.setCollectionMemberId(previousCollectionObject.getCollectionMemberId());
-                preparation.setPrepType(prepType);
-                
-                sql = getInsertSql(preparation);
-                insert(sql);
-
-                // maybe insert a new exsiccata item TODO: untangle series/subcollection
-                processSubcollection(specimenItem.getSubcollectionId(), collectionObject);
-                
-                return;
+                if (subcollectionId == null)
+                {
+                    subcollectionId = newSubcollectionId;
+                    
+                    if (exsiccataItem == null)
+                    {
+                        exsiccataItem = getExsiccataItem(specimenItem);
+                        if (exsiccataItem != null)
+                        {
+                            exsiccataItem.setCollectionObject(collectionObject);
+                        }
+                        else
+                        {
+                            Container container = getContainer(specimenItem);
+                            container.setCollectionMemberId(collectionObject.getCollectionMemberId());
+                            collectionObject.setContainer(container);
+                        }
+                    }
+                }
+                else if (!subcollectionId.equals(newSubcollectionId))
+                {
+                    warn("Multiple subcollections, ignoring this one", specimenItem.getSpecimenId(), String.valueOf(newSubcollectionId));
+                }
             }
         }
 
-        // if we made it here, the asa.specimen.ids are different, so we have a different collection object entirely
+        // If we made it here, the asa.specimen.ids are different, so we have a different
+        // collection object entirely.  First, save the objects associated with the old asa.specimen.id
+        if (collectionObject != null)
+        {
+            saveObjects();
+        }
 
-        lastSpecimenId = specimenId;
-        collObjByAccessionIdentifier.clear();
-        collObjByAccessionIdentifier.put(accessionIdentifier, collectionObject);
+        ////////////////////////////////////////////////
+        // Begin construction of new CollectionObject //
+        ////////////////////////////////////////////////
+
+        // Collection
+        Collection collection = getCollection(specimenItem);
+        Integer collectionMemberId = collection.getId();
         
-        // find the matching collection
-		String herbariumCode = specimenItem.getHerbariumCode();
-		Collection collection = this.getCollection(herbariumCode);
-		
-		// find the matching locality record
+        // CollectionObject
+        collectionObject = getCollectionObject(specimenItem); // TODO: collectionObject.setCollectingEvent
+        collectionObject.setCollection(collection);
+        collectionObject.setCollectionMemberId(collectionMemberId);
+        
+        // Preparation
+        preparation.setCollectionMemberId(collectionMemberId);
+        preparation.setCollectionObject(collectionObject);
+        preparations.add(preparation);
+
+        // Cataloger
+        Integer createdById = specimenItem.getCatalogedById();
+        Agent cataloger = getAgentByOptrId(createdById);
+        
+        collectionObject.setCataloger(cataloger);
+        collectionObject.setCreatedByAgent(cataloger);
+        
+        // Collector
+        collector = getCollector(specimenItem);
+        collector.setCollectionMemberId(collectionMemberId);
+
+        // CollectingEvent
+        CollectingEvent collectingEvent = getCollectingEvent(specimenItem);
+        collector.setCollectingEvent(collectingEvent);
+        collectionObject.setCollectingEvent(collectingEvent);
+
+        // Locality
 		Locality locality = new Locality();
 		Integer siteId = specimenItem.getSiteId();
 
@@ -194,118 +181,39 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 			Integer localityId = queryForId(sql);
 			locality.setLocalityId(localityId);
 		}
-		
-		// find the matching collector
-		Agent agent = new Agent();
-		Integer botanistId = specimenItem.getCollectorId();
-		
-		if (botanistId != null)
-		{
-			Botanist botanist = new Botanist();
-			botanist.setId(botanistId);
-			String guid = botanist.getGuid();
-			
-			sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
-			
-			Integer agentId = queryForId(sql);
-			agent.setAgentId(agentId);
-		}
-		
-		// find a matching container
-		Container container = new Container();
-		Integer subcollectionId = specimenItem.getSubcollectionId();
-		if (subcollectionId != null)
-		{            
-		    sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
-
-		    Integer containerId = queryForId(sql);
-	        container.setContainerId(containerId);
-		}
-		        
-		// find the matching cataloger
-		Integer createdById = specimenItem.getCatalogedById();
-		Agent cataloger = getAgentByOptrId(createdById);
-		
-	    // maybe insert an accession
-		processAccession(accession);
-            
-		// from CollectionObject we get the CollectingEvent
-		CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
-		collectingEvent.setDiscipline(discipline);
 		collectingEvent.setLocality(locality);
 
-		// insert CollectingEvent
-		sql = getInsertSql(collectingEvent);
-		Integer collectingEventId = insert(sql);
-		collectingEvent.setCollectingEventId(collectingEventId);
-		
-		// insert Collector
-		Collector collector = new Collector();
-		collector.setAgent(agent);
-		collector.setCollectingEvent(collectingEvent);
-		collector.setCollectionMemberId(collection.getCollectionId());
-		collector.setIsPrimary(true);
-		collector.setOrderNumber(1);
-		
-		sql = getInsertSql(collector);
-		insert(sql);
-
-		// insert CollectionObject
-		collectionObject.setCollectingEvent(collectingEvent);
-		collectionObject.setCollection(collection);
-		collectionObject.setCollectionMemberId(collection.getCollectionId());
-		collectionObject.setAccession(accession);
-		collectionObject.setCataloger(cataloger);
-		collectionObject.setCreatedByAgent(cataloger);
-		collectionObject.setContainer(container);
-
-		sql = getInsertSql(collectionObject);
-		Integer collectionObjectId = insert(sql);
-		collectionObject.setCollectionObjectId(collectionObjectId);
-		
-		// insert Preparation
-		preparation.setCollectionMemberId(collection.getCollectionId());
-		preparation.setPrepType(prepType);
-		
-		sql = getInsertSql(preparation);
-		insert(sql);
-		
-		// maybe insert a new exsiccata item TODO: untangle series/subcollection
+        // Container (subcollection)
+        Container container = getContainer(specimenItem);
+        container.setCollectionMemberId(collectionMemberId);
+        collectionObject.setContainer(container);
+        
+        // maybe insert a new exsiccata item TODO: untangle series/subcollection
 		//processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
 		
 	    // TODO: connect series (organization) agent as collector?
-        // find a matching series (series was converted to agent w/ type org & guid "id organization"
-        OtherIdentifier otherId = new OtherIdentifier();
-
-        Integer seriesId = specimenItem.getSeriesId();
-        String seriesNo = specimenItem.getSeriesNo();
-        String seriesAbbrev = specimenItem.getSeriesAbbrev();
-
-        if (seriesId != null && seriesNo != null)
+        OtherIdentifier series = getSeriesIdentifier(specimenItem);
+        if (series != null)
         {
-            Organization organization = new Organization();
-            organization.setId(seriesId);
-            String guid = organization.getGuid();
-
-            sql = SqlUtils.getQueryIdByFieldSql("agent", "LastName", "GUID", guid);
-
-            String institution = queryForString(sql);
-            
-            otherId.setCollectionMemberId(collection.getId());
-            otherId.setInstitution(institution);
-            otherId.setIdentifier( (seriesAbbrev == null ? "" : seriesAbbrev + " ") + seriesNo );
-            otherId.setRemarks("Created by SpecimenItemLoader from series id " + seriesId);
-            
-            sql = getInsertSql(otherId);
-            insert(sql);
+            series.setCollectionObject(collectionObject);
+            series.setCollectionMemberId(collectionMemberId);
+            otherIdentifiers.add(series);
         }
-        else if (seriesNo != null)
+
+        // TODO: create accessions from provenance?
+        OtherIdentifier accession = getAccessionIdentifier(specimenItem);
+        if (accession != null)
         {
-            warn("Series number and no series id", specimenItem.getId(), seriesNo);
+            accession.setCollectionObject(collectionObject);
+            accession.setCollectionMemberId(collectionMemberId);
+            otherIdentifiers.add(accession);
         }
-        else if (seriesId != null)
+        
+        // ExsiccataItem
+        ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem);
+        if (exsiccataItem != null)
         {
-            warn("Series id and no series number", specimenItem.getId(), String.valueOf(seriesId));
+            exsiccataItem.setCollectionObject(collectionObject);
         }
 	}
 
@@ -439,93 +347,59 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         return specimenItem;
 	}
 
-	private Preparation convert(SpecimenItem specimenItem) throws LocalException
+	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
 	{
-		CollectionObject collectionObject = new CollectionObject();
-
-		collectionObject.setGuid(String.valueOf(specimenItem.getSpecimenId()));
-
-		Integer barcode = specimenItem.getBarcode();
-		if (barcode == null)
-		{
-		    throw new LocalException("Null barcode");
-		}
-
-		try
-		{
-		    String catalogNumber = (new DecimalFormat( "000000000" ) ).format( barcode );
-		    collectionObject.setCatalogNumber(catalogNumber);
-		}
-		catch (IllegalArgumentException e)
-		{
-		    throw new LocalException("Couldn't parse barcode");
-		}
-
-		String collectorNo = specimenItem.getCollectorNo();
-		if (collectorNo != null && collectorNo.length() > 50)
-		{
-			warn("Truncating collector number", specimenItem.getSpecimenId(), collectorNo);
-			collectorNo = collectorNo.substring(0, 50);
-		}
-		collectionObject.setFieldNumber(collectorNo);
-
-		// TODO: countAmt: do we need to preserve this?  I'm not importing it at the moment.
-		// TODO: container: this should go somewhere, but I don't know where.
-		
-		// TimestampCreated
-        Date dateCreated = specimenItem.getCatalogedDate();
-        collectionObject.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-		collectionObject.setCatalogedDatePrecision( (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal() );
-
-		collectionObject.setYesNo1(specimenItem.isCultivated()); // TODO: implement
-
-		String description = specimenItem.getDescription();
-		if (description != null && description.length() > 255)
-		{
-			warn("Truncating description", specimenItem.getSpecimenId(), description);
-			description = description.substring(0, 255);
-		}
-		collectionObject.setDescription(description);
-
-		String reproStatus = specimenItem.getReproStatus();
-		collectionObject.setText1(reproStatus);
-	      
-		String substrate = specimenItem.getSubstrate();
-		collectionObject.setText2(substrate);
-
-		String remarks = specimenItem.getRemarks();
-		collectionObject.setRemarks(remarks);
-		
-	    // Accession
-        Accession accession = new Accession();
-        String accessionNumber = specimenItem.getAccessionNo();
-        String provenance = specimenItem.getProvenance();
-        String status = specimenItem.getAccessionStatus();
+        String herbariumCode = specimenItem.getHerbariumCode();
         
-        if (provenance != null && accessionNumber == null)
-        {
-            accessionNumber = "N/A";
-        }
-        if (accessionNumber != null)
-        {
-            accession.setAccessionNumber(accessionNumber);
-            accession.setRemarks(provenance);
-            accession.setStatus(status);
-        }
-		collectionObject.setAccession(accession);
+        return getCollection(herbariumCode);
+	}
+
+	private Collector getCollector(SpecimenItem specimenItem) throws LocalException
+	{
+	    Agent agent = new Agent();
+        Integer botanistId = specimenItem.getCollectorId();
         
+        if (botanistId != null)
+        {
+            Botanist botanist = new Botanist();
+            botanist.setId(botanistId);
+            String guid = botanist.getGuid();
+            
+            String sql = SqlUtils.getQueryIdByFieldSql("agent", "AgentID", "GUID", guid);
+            
+            Integer agentId = queryForId(sql);
+            agent.setAgentId(agentId);
+        }
+
+        Collector collector = new Collector();
+
+        collector.setAgent(agent);
+        collector.setIsPrimary(true);
+        collector.setOrderNumber(1);
+        
+        return collector;
+	}
+	
+	private CollectingEvent getCollectingEvent(SpecimenItem specimenItem) throws LocalException
+	{
 		CollectingEvent collectingEvent = new CollectingEvent();
+
+		// DisciplineID
+        collectingEvent.setDiscipline(discipline);
+        
 		BDate bdate = specimenItem.getCollDate();
 
 		Integer startYear  = bdate.getStartYear();
 		Integer startMonth = bdate.getStartMonth();
 		Integer startDay   = bdate.getStartDay();
 
+        // StartDate and StartDatePrecision
 		if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) )
 		{
 			collectingEvent.setStartDate( DateUtils.getSpecifyStartDate( bdate ) );
 			collectingEvent.setStartDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
 		}
+		// StartDateVerbatime
 		else if ( DateUtils.isValidCollectionDate( startYear, startMonth, startDay ) )
 		{
 			String startDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );
@@ -541,18 +415,19 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 			        String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
 		}
 
-		// StartDatePrecision
-		// TODO: start/end date precision: find out what the options are
+		// TODO: asa start/end date precision: find out what the options are
 
 		Integer endYear  = bdate.getEndYear();
 		Integer endMonth = bdate.getEndMonth();
 		Integer endDay   = bdate.getEndDay();
 
+		// EndDate and EndDatePrecision
 		if ( DateUtils.isValidSpecifyDate( endYear, endMonth, endDay ) )
 		{
 			collectingEvent.setEndDate( DateUtils.getSpecifyEndDate( bdate ) );
 			collectingEvent.setEndDatePrecision( DateUtils.getDatePrecision( endYear, endMonth, endDay ) );
 		}
+		// EndDateVerbatim
 		else if ( DateUtils.isValidCollectionDate( endYear, endMonth, endDay ) )
 		{
 			String endDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );
@@ -565,62 +440,276 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 		}
 
 	    String habitat = specimenItem.getHabitat();
+
+	    // Remarks (habitat)
 	    collectingEvent.setRemarks(habitat);
 	    
-		collectionObject.setCollectingEvent(collectingEvent);
-
-		Preparation preparation = new Preparation();
-		preparation.setSampleNumber(String.valueOf(barcode));
-		
-		Integer itemNo = specimenItem.getItemNo();
-		preparation.setNumber1((float) itemNo);
-
-		Boolean isOversize = specimenItem.isOversize();
-		preparation.setYesNo1(isOversize);
-		
-		String sex = specimenItem.getSex();
-		if (sex != null)
-		{
-		    if (sex.equals("male"))
-		    {
-		        preparation.setYesNo2(true);
-		    }
-		    else if (sex.equals("female"))
-		    {
-		        preparation.setYesNo3(true);
-		    }
-		}
-
-		String voucher = specimenItem.getVoucher(); // TODO: investigate
-		preparation.setText1(voucher);
-
-		String reference = specimenItem.getReference(); // TODO: investigate
-		preparation.setText2(reference);
-
-		String note = specimenItem.getNote();
-		preparation.setRemarks(note);
-
-		preparation.setCollectionObject(collectionObject);
-
-		return preparation;
+	    return null;
 	}
-	   
-    private String getInsertSql(Accession accession)
-    {
-        String fieldNames = "AccessionNumber, Status, Remarks, DivisionID, TimestampCreated";
-        
-        String[] values = new String[5];
-        
-        values[0] = SqlUtils.sqlString( accession.getAccessionNumber()  );
-        values[1] = SqlUtils.sqlString( accession.getStatus()           );
-        values[2] = SqlUtils.sqlString( accession.getRemarks()          );
-        values[3] = SqlUtils.sqlString( accession.getDivision().getId() );
-        values[4] = SqlUtils.now();
-        
-        return SqlUtils.getInsertSql("accession", fieldNames, values);
-    }
+	
+	private String formatBarcode(Integer barcode) throws LocalException
+	{
+        try
+        {
+            return (new DecimalFormat( "000000000" ) ).format( barcode );
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new LocalException("Couldn't parse barcode");
+        }
+	}
+	
+	private Preparation getPreparation(SpecimenItem specimenItem) throws LocalException
+	{
+	    Preparation preparation = new Preparation();
 
-    private String getInsertSql(CollectingEvent collectingEvent) throws LocalException
+	    // PrepType
+        String format = specimenItem.getFormat();
+        PrepType prepType = getPrepType(format);
+        preparation.setPrepType(prepType);
+        
+        // SampleNumber (barcode)
+	    Integer barcode = specimenItem.getBarcode();
+	    if (barcode == null)
+	    {
+	        throw new LocalException("Null barcode");
+	    }
+        preparation.setSampleNumber(formatBarcode(barcode));
+        
+        // Number1 (itemNo)
+        Integer itemNo = specimenItem.getItemNo();
+        preparation.setNumber1((float) itemNo);
+
+        // YesNo1 (isOversize)
+        Boolean isOversize = specimenItem.isOversize();
+        preparation.setYesNo1(isOversize);
+        
+        // YesNo2 (sex, isMale), YesNo3 (sex, is Female)
+        String sex = specimenItem.getSex();
+        if (sex != null)
+        {
+            if (sex.equals("male"))
+            {
+                preparation.setYesNo2(true);
+            }
+            else if (sex.equals("female"))
+            {
+                preparation.setYesNo3(true);
+            }
+        }
+
+        // Text1 (voucher)
+        String voucher = specimenItem.getVoucher(); // TODO: investigate
+        preparation.setText1(voucher);
+
+        // Text2 (reference)
+        String reference = specimenItem.getReference(); // TODO: investigate
+        preparation.setText2(reference);
+
+        // Text3 (note)
+        String note = specimenItem.getNote();
+        preparation.setRemarks(note);
+        
+        return preparation;
+	}
+
+
+	private CollectionObject getCollectionObject(SpecimenItem specimenItem) throws LocalException
+	{
+	    CollectionObject collectionObject = new CollectionObject();
+
+	    // GUID
+        collectionObject.setGuid(String.valueOf(specimenItem.getSpecimenId()));
+
+        // CatalogNumber
+        Integer barcode = specimenItem.getBarcode();
+        if (barcode == null)
+        {
+            throw new LocalException("Null barcode");
+        }
+        String catalogNumber = formatBarcode(barcode);
+        collectionObject.setCatalogNumber(catalogNumber);
+
+        // FieldNumber
+        String collectorNo = specimenItem.getCollectorNo();
+        if (collectorNo != null && collectorNo.length() > 50)
+        {
+            warn("Truncating collector number", specimenItem.getSpecimenId(), collectorNo);
+            collectorNo = collectorNo.substring(0, 50);
+        }
+        collectionObject.setFieldNumber(collectorNo);
+        
+        // TimestampCreated
+        Date dateCreated = specimenItem.getCatalogedDate();
+        collectionObject.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        collectionObject.setCatalogedDatePrecision( (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal() );
+
+        // YesNo1 (isCultivated)
+        collectionObject.setYesNo1(specimenItem.isCultivated()); // TODO: implement
+
+        // Description
+        String description = specimenItem.getDescription();
+        if (description != null && description.length() > 255)
+        {
+            warn("Truncating description", specimenItem.getSpecimenId(), description);
+            description = description.substring(0, 255);
+        }
+        collectionObject.setDescription(description);
+
+        // Text1 (reproStatus/phenology)
+        reproStatus = specimenItem.getReproStatus();
+        collectionObject.setText1(reproStatus);
+          
+        // Text2 (substrate)
+        String substrate = specimenItem.getSubstrate();
+        collectionObject.setText2(substrate);
+
+        // Remarks
+        String remarks = specimenItem.getRemarks();
+        collectionObject.setRemarks(remarks);
+        
+        return collectionObject;
+	}
+
+	private Container getContainer(SpecimenItem specimenItem) throws LocalException
+	{
+	    Container container = new Container();
+
+	    subcollectionId = specimenItem.getSubcollectionId();
+        String containerStr = specimenItem.getContainer();
+
+        if (subcollectionId != null)
+        {            
+            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Number", String.valueOf(subcollectionId));
+
+            Integer containerId = queryForId(sql);
+            container.setContainerId(containerId);    
+            
+            if (specimenItem.getContainer() != null)
+            {
+                warn("Subcollection and container present, dropping container", specimenItem.getId(), containerStr);
+            }
+        }
+        else if (containerStr != null)
+        {
+            // TODO: normalizing of container and subcollection name strings.
+            // Note that if the container string = subcollection.name for some subcollection (it does happen),
+            // we are in effect adding that subcollection_id to the specimen_item_record
+            String sql = SqlUtils.getQueryIdByFieldSql("container", "ContainerID", "Name", containerStr);
+            
+            Integer containerId = queryForId(sql);
+            if (containerId == null)
+            {
+                // insert new Container
+                container.setCollectionMemberId(collectionObject.getCollection().getId());
+                container.setName(containerStr);
+                
+                sql = getInsertSql(container);
+                containerId = insert(sql);
+            }
+            container.setContainerId(containerId);
+        }
+
+        return container;
+	}
+	
+	
+	private OtherIdentifier getSeriesIdentifier(SpecimenItem specimenItem) throws LocalException
+	{
+        Integer seriesId = specimenItem.getSeriesId();
+        String seriesNo = specimenItem.getSeriesNo();
+        String seriesAbbrev = specimenItem.getSeriesAbbrev();
+
+        if (seriesId == null || seriesNo == null)
+        {
+            if (seriesNo != null)
+            {
+                warn("Series number and no series id", specimenItem.getId(), seriesNo);
+            }
+            else if (seriesId != null)
+            {
+                warn("Series id and no series number", specimenItem.getId(), String.valueOf(seriesId));
+            }
+            
+            return null;
+        }
+
+        OtherIdentifier series = new OtherIdentifier();
+        
+        if (seriesId != null && seriesNo != null)
+        {
+            Organization organization = new Organization();
+            organization.setId(seriesId);
+            String guid = organization.getGuid();
+
+            String sql = SqlUtils.getQueryIdByFieldSql("agent", "LastName", "GUID", guid);
+            String institution = queryForString(sql);
+            
+            // Institution (series-organization)
+            series.setInstitution(institution);
+            
+            // Identifier (seriesNo)
+            series.setIdentifier( (seriesAbbrev == null ? "" : seriesAbbrev + " ") + seriesNo );
+        }
+        
+        return series;
+	}
+
+	private OtherIdentifier getAccessionIdentifier(SpecimenItem specimenItem)
+	{
+	    String accessionNo = specimenItem.getAccessionNo();
+	    if (accessionNo == null) accessionNo = "NA";
+	    
+	    String provenance = specimenItem.getProvenance();
+	    
+	    if (accessionNo.equals("NA") && provenance == null)
+	    {
+	        return null;
+	    }
+
+	    OtherIdentifier otherIdentifier = new OtherIdentifier();
+	    
+	    otherIdentifier.setInstitution(specimenItem.getHerbariumCode());
+	    otherIdentifier.setIdentifier(accessionNo);
+	    otherIdentifier.setRemarks(provenance);
+	    
+	    return otherIdentifier;
+	}
+
+	private ExsiccataItem getExsiccataItem(SpecimenItem specimenItem) throws LocalException
+	{
+	    Integer subcollectionId = specimenItem.getSubcollectionId();
+	    
+	    if (subcollectionId == null) return null;
+
+	    ExsiccataItem exsiccataItem = new ExsiccataItem();
+        
+        Exsiccata exsiccata = new Exsiccata();
+
+        Subcollection subcollection =  new Subcollection();
+        subcollection.setId(subcollectionId);
+        String guid = subcollection.getGuid();
+        
+        String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+        
+        String sql = SqlUtils.getQueryIdByFieldSql("exsiccata", "ExsiccataId", "ReferenceWorkID", subselect);
+        
+        Integer exsiccataId = queryForId(sql);
+        
+        if (exsiccataId == null)
+        {
+            throw new LocalException("Couldn't find exsiccata id for " + guid);
+        }
+
+	    if (exsiccataId == null) return null;  // subcollections without authors were considered containers
+
+	    exsiccata.setExsiccataId(exsiccataId);
+	    exsiccataItem.setExsiccata(exsiccata);
+
+	    return exsiccataItem;
+	}
+	
+	private String getInsertSql(CollectingEvent collectingEvent) throws LocalException
     {
         String fieldNames = "EndDate, EndDatePrecision, EndDateVerbatim, StartDate, StartDatePrecision, " +
                             "StartDateVerbatim, VerbatimDate, DisciplineID, LocalityID, TimestampCreated";
@@ -657,7 +746,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         return SqlUtils.getInsertSql("collector", fieldNames, values);
     }
     
-	private String getInsertSql(CollectionObject collectionObject) throws LocalException
+
+    private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
 		String fieldNames = "AccessionID, CollectionID, CollectionMemberID, CatalogerID, CatalogNumber, " +
 							"CatalogedDate, CatalogedDatePrecision, CollectingEventID, Description, " +
@@ -687,6 +777,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
+	
 	
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
@@ -723,13 +814,86 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
 	}
     
-    // TODO: implement OtherIdentifier
-    private String getInsertSql(OtherIdentifier otherIdentifer)
+    private String getInsertSql(OtherIdentifier otherIdentifier)
     {
-        String fieldNames = "";
+        String fieldNames = "CollectionMemberID, Identifier, Institution, Remarks, TimestampCreated";
         
-        String[] values = new String[0];
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( otherIdentifier.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( otherIdentifier.getIdentifier());
+        values[2] = SqlUtils.sqlString( otherIdentifier.getInstitution());
+        values[3] = SqlUtils.sqlString( otherIdentifier.getRemarks());
+        values[4] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("otheridentifier", fieldNames, values);
+    }
+    
+    
+    private String getInsertSql(Container container) throws LocalException
+    {
+        String fieldNames = "Name, CollectionMemberID";
+        
+        String[] values = new String[2];
+        
+        values[0] = SqlUtils.sqlString( container.getName());
+        values[1] = SqlUtils.sqlString( container.getCollectionMemberId());
+        
+        return SqlUtils.getInsertSql("container", fieldNames, values);
+    }
+    
+    
+    private void saveObjects() throws LocalException
+    {
+        String sql;  // this variable is going to be re-used.
+
+        // save the current CollectingEvent
+        if (collectingEvent != null)
+        {
+            sql = getInsertSql(collectingEvent);
+            Integer collectingEventId = insert(sql);
+            collectingEvent.setCollectingEventId(collectingEventId);
+        }
+        
+        // save the current Collector
+        if (collector != null)
+        {
+            sql = getInsertSql(collector);
+            Integer collectorId = insert(sql);
+            collector.setCollectorId(collectorId);
+        }
+        
+        // save the current CollectionObject
+        sql = getInsertSql(collectionObject);
+        Integer collectionObjectId = insert(sql);
+        collectionObject.setCollectionObjectId(collectionObjectId);
+        
+        // save the current Preparations
+        for (Preparation preparation : preparations)
+        {
+            sql = getInsertSql(preparation);
+            insert(sql);
+        }
+
+        // save the current OtherIdentifiers
+        for (OtherIdentifier otherId : otherIdentifiers)
+        {
+            sql = getInsertSql(otherId);
+            insert(sql);
+        }
+
+        // save the current ExsiccataItem
+        if (exsiccataItem != null)
+        {            
+            sql = getInsertSql(exsiccataItem);
+            insert(sql);
+        }
+        
+        collectingEvent  = null;
+        collector        = null;
+        collectionObject = null;
+        preparations.clear();
+        otherIdentifiers.clear();
+        exsiccataItem    = null;
     }
 }
