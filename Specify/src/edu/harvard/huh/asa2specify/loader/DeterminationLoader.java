@@ -24,6 +24,7 @@ import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -119,6 +120,10 @@ public class DeterminationLoader extends CsvToSqlLoader
 
         determination.setCollectionObject(collectionObject);
 
+        // CollectionMemberID
+        Integer collectionMemberId = getIntByField("collectionobject", "CollectionMemberID", "GUID", guid);
+        determination.setCollectionMemberId(collectionMemberId);
+
         // Taxon
         Integer asaTaxonId = asaDet.getTaxonId();
         if (asaTaxonId == null)
@@ -168,7 +173,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         // YesNo1 (isLabel)
         determination.setYesNo1( asaDet.isLabel() );
         
-        // Text1 (determinedBy) TODO: assign DeterminerID to collector if isLabel == true?
+        // Text1 (determinedBy) TODO: assign DeterminerID to collector if isLabel == true? determined_by often does not match collector in these cases
         // Determiner TODO: Ugh.  We have a string.  They have a relation.  Putting it in Text1 for now.
         String determinedBy = asaDet.getDeterminedBy();
         determination.setText1( determinedBy );
@@ -190,23 +195,23 @@ public class DeterminationLoader extends CsvToSqlLoader
     
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionObjectID, TaxonID, Confidence, DeterminedDate, DeterminedDatePrecision, " +
-        		            "IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, CollectionMemberID, TimestampCreated";
+        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, Confidence, DeterminedDate, " +
+        		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, TimestampCreated";
 
-        String[] values = new String[0];
+        String[] values = new String[12];
         
-        values[0] = SqlUtils.sqlString( determination.getCollectionObject().getId());
-        values[0] = SqlUtils.sqlString( determination.getTaxon().getId());
-        values[0] = SqlUtils.sqlString( determination.getConfidence());
-        values[0] = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[0] = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[0] = SqlUtils.sqlString( determination.getIsCurrent());
-        values[0] = SqlUtils.sqlString( determination.getText1());
-        values[0] = SqlUtils.sqlString( determination.getText2());
-        values[0] = SqlUtils.sqlString( determination.getNumber1());
-        values[0] = SqlUtils.sqlString( determination.getRemarks());
-        values[0] = SqlUtils.sqlString( determination.getCollectionMemberId());
-        values[0] = SqlUtils.now();
+        values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
+        values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
+        values[2]  = SqlUtils.sqlString( determination.getTaxon().getId());
+        values[3]  = SqlUtils.sqlString( determination.getConfidence());
+        values[4]  = SqlUtils.sqlString( determination.getDeterminedDate());
+        values[5]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
+        values[6]  = SqlUtils.sqlString( determination.getIsCurrent());
+        values[7]  = SqlUtils.sqlString( determination.getText1());
+        values[8]  = SqlUtils.sqlString( determination.getText2());
+        values[9]  = SqlUtils.sqlString( determination.getNumber1());
+        values[10] = SqlUtils.sqlString( determination.getRemarks());
+        values[11] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
