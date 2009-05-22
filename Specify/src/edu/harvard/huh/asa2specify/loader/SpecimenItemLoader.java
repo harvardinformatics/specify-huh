@@ -40,7 +40,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 	private CollectingEvent      collectingEvent  = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
-	private ExsiccataItem        exsiccataItem    = null;
+	private Set<ExsiccataItem>     exsiccataItems   = null;
 	
 	public SpecimenItemLoader(File csvFile, Statement sqlStatement) throws LocalException 
 	{
@@ -58,72 +58,48 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         // Preparation
         Preparation preparation = getPreparation(specimenItem);
 
-        // if this preparation shares the same collection object with the previously
-        // inserted one, re-use it
+        // if this preparation shares the same collection object
+        // with the previously inserted one, re-use it
         String specimenId = String.valueOf(specimenItem.getSpecimenId());
 
         if (collectionObject != null && specimenId.equals(collectionObject.getGuid()))
         {
+            Integer collectionMemberId = collectionObject.getCollectionMemberId();
+            
             preparation.setCollectionObject(collectionObject);
-            preparation.setCollectionMemberId(collectionObject.getCollectionMemberId());
-
+            preparation.setCollectionMemberId(collectionMemberId);
             preparations.add(preparation);
 
             // possibly update repro status; warn if so
-            String newReproStatus = specimenItem.getReproStatus();
-            if (!newReproStatus.equals(reproStatus))
-            {
-                String status;
-                if (reproStatus.equals(SpecimenItem.NotDetermined) ||
-                        newReproStatus.equals(SpecimenItem.FlowerAndFruit) && 
-                            (reproStatus.equals(SpecimenItem.Flower) || reproStatus.equals(SpecimenItem.Fruit)))
-                {
-                    status = newReproStatus;
-                }
-                else if (reproStatus.equals(SpecimenItem.Flower) && newReproStatus.equals(SpecimenItem.Fruit) ||
-                            reproStatus.equals(SpecimenItem.Fruit) && newReproStatus.equals(SpecimenItem.Flower))
-                {
-                    status = SpecimenItem.FlowerAndFruit;
-                }
-                else
-                {
-                    status = reproStatus;
-                }
-                
-                if (!reproStatus.equals(status))
-                {
-                    warn("Changing repro status from " + reproStatus, specimenItem.getId(), status);
-                    collectionObject.setText1(status);
-                }
-            }
+            updateReproStatus(specimenItem);
 
             // possibly update subcollection; warn if so
-            Integer newSubcollectionId = specimenItem.getSubcollectionId();
-            if (!newSubcollectionId.equals(subcollectionId))
+            updateSubcollection(specimenItem);
+            
+            // TODO: connect series (organization) agent as collector?
+            OtherIdentifier series = getSeriesIdentifier(specimenItem);
+            if (series != null)
             {
-                if (subcollectionId == null)
-                {
-                    subcollectionId = newSubcollectionId;
-                    
-                    if (exsiccataItem == null)
-                    {
-                        exsiccataItem = getExsiccataItem(specimenItem);
-                        if (exsiccataItem != null)
-                        {
-                            exsiccataItem.setCollectionObject(collectionObject);
-                        }
-                        else
-                        {
-                            Container container = getContainer(specimenItem);
-                            container.setCollectionMemberId(collectionObject.getCollectionMemberId());
-                            collectionObject.setContainer(container);
-                        }
-                    }
-                }
-                else if (!subcollectionId.equals(newSubcollectionId))
-                {
-                    warn("Multiple subcollections, ignoring this one", specimenItem.getSpecimenId(), String.valueOf(newSubcollectionId));
-                }
+                series.setCollectionObject(collectionObject);
+                series.setCollectionMemberId(collectionMemberId);
+                otherIdentifiers.add(series);
+            }
+
+            // TODO: create accessions from provenance?
+            OtherIdentifier accession = getAccessionIdentifier(specimenItem);
+            if (accession != null)
+            {
+                accession.setCollectionObject(collectionObject);
+                accession.setCollectionMemberId(collectionMemberId);
+                otherIdentifiers.add(accession);
+            }
+            
+            // ExsiccataItem
+            ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem);
+            if (exsiccataItem != null)
+            {
+                exsiccataItem.setCollectionObject(collectionObject);
+                exsiccataItems.add(exsiccataItem);
             }
         }
 
@@ -143,7 +119,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         Integer collectionMemberId = collection.getId();
         
         // CollectionObject
-        collectionObject = getCollectionObject(specimenItem); // TODO: collectionObject.setCollectingEvent
+        collectionObject = getCollectionObject(specimenItem);
         collectionObject.setCollection(collection);
         collectionObject.setCollectionMemberId(collectionMemberId);
         
@@ -164,7 +140,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         collector.setCollectionMemberId(collectionMemberId);
 
         // CollectingEvent
-        CollectingEvent collectingEvent = getCollectingEvent(specimenItem);
+        collectingEvent = getCollectingEvent(specimenItem);
         collector.setCollectingEvent(collectingEvent);
         collectionObject.setCollectingEvent(collectingEvent);
 
@@ -187,9 +163,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         Container container = getContainer(specimenItem);
         container.setCollectionMemberId(collectionMemberId);
         collectionObject.setContainer(container);
-        
-        // maybe insert a new exsiccata item TODO: untangle series/subcollection
-		//processSeries(specimenItem.getSeriesId(), specimenItem.getSeriesNo(), collectionObject);
 		
 	    // TODO: connect series (organization) agent as collector?
         OtherIdentifier series = getSeriesIdentifier(specimenItem);
@@ -197,7 +170,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         {
             series.setCollectionObject(collectionObject);
             series.setCollectionMemberId(collectionMemberId);
-            otherIdentifiers.add(series);
+            addOtherIdentifier(series);
         }
 
         // TODO: create accessions from provenance?
@@ -206,7 +179,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         {
             accession.setCollectionObject(collectionObject);
             accession.setCollectionMemberId(collectionMemberId);
-            otherIdentifiers.add(accession);
+            addOtherIdentifier(accession);
         }
         
         // ExsiccataItem
@@ -214,6 +187,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         if (exsiccataItem != null)
         {
             exsiccataItem.setCollectionObject(collectionObject);
+            addExsiccataItem(exsiccataItem);
         }
 	}
 
@@ -345,6 +319,95 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         }
 
         return specimenItem;
+	}
+
+	private void updateReproStatus(SpecimenItem specimenItem)
+	{
+        String newReproStatus = specimenItem.getReproStatus();
+        if (!newReproStatus.equals(reproStatus))
+        {
+            String status;
+            if (reproStatus.equals(SpecimenItem.NotDetermined) ||
+                    newReproStatus.equals(SpecimenItem.FlowerAndFruit) && 
+                        (reproStatus.equals(SpecimenItem.Flower) || reproStatus.equals(SpecimenItem.Fruit)))
+            {
+                status = newReproStatus;
+            }
+            else if (reproStatus.equals(SpecimenItem.Flower) && newReproStatus.equals(SpecimenItem.Fruit) ||
+                        reproStatus.equals(SpecimenItem.Fruit) && newReproStatus.equals(SpecimenItem.Flower))
+            {
+                status = SpecimenItem.FlowerAndFruit;
+            }
+            else
+            {
+                status = reproStatus;
+            }
+            
+            if (!reproStatus.equals(status))
+            {
+                warn("Changing repro status from " + reproStatus, specimenItem.getId(), status);
+                collectionObject.setText1(status);
+            }
+        }
+	}
+
+	private void updateSubcollection(SpecimenItem specimenItem) throws LocalException
+	{
+        Integer newSubcollectionId = specimenItem.getSubcollectionId();
+        if (!newSubcollectionId.equals(subcollectionId))
+        {
+            if (subcollectionId == null)
+            {
+                subcollectionId = newSubcollectionId;
+                
+                if (specimenItem.hasExsiccata())
+                {
+                    ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem);
+                    exsiccataItem.setCollectionObject(collectionObject);
+                    exsiccataItems.add(exsiccataItem);
+                }
+                else
+                {
+                    Container container = getContainer(specimenItem);
+                    container.setCollectionMemberId(collectionObject.getCollectionMemberId());
+                    collectionObject.setContainer(container);
+                }
+            }
+            else if (!subcollectionId.equals(newSubcollectionId))
+            {
+                warn("Multiple subcollections, ignoring this one", specimenItem.getSpecimenId(), String.valueOf(newSubcollectionId));
+            }
+        }
+	}
+
+	private void addExsiccataItem(ExsiccataItem exsiccataItem)
+	{
+	    if (exsiccataItem == null) return;
+	    
+        for (ExsiccataItem e : exsiccataItems)
+        {
+            if (e.getExsiccata().getId().equals(exsiccataItem.getExsiccata().getId())) return;
+        }
+	    exsiccataItems.add(exsiccataItem);
+	}
+	
+	private void addOtherIdentifier(OtherIdentifier otherIdentifier)
+	{
+	    if (otherIdentifier == null) return;
+	    
+        for (OtherIdentifier o : otherIdentifiers)
+        {
+            if (o.getInstitution().equals(otherIdentifier.getInstitution()) &&
+                    o.getIdentifier().equals(otherIdentifier.getIdentifier()))
+            {
+                String oRemarks = o.getRemarks();
+                
+                if (oRemarks == null && otherIdentifier.getRemarks() == null) return;
+                if (oRemarks.equals(otherIdentifier.getRemarks())) return;
+            }
+        }
+
+	    otherIdentifiers.add(otherIdentifier);
 	}
 
 	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
@@ -513,7 +576,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         return preparation;
 	}
 
-
 	private CollectionObject getCollectionObject(SpecimenItem specimenItem) throws LocalException
 	{
 	    CollectionObject collectionObject = new CollectionObject();
@@ -613,7 +675,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         return container;
 	}
 	
-	
 	private OtherIdentifier getSeriesIdentifier(SpecimenItem specimenItem) throws LocalException
 	{
         Integer seriesId = specimenItem.getSeriesId();
@@ -679,8 +740,8 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 	private ExsiccataItem getExsiccataItem(SpecimenItem specimenItem) throws LocalException
 	{
 	    Integer subcollectionId = specimenItem.getSubcollectionId();
-	    
-	    if (subcollectionId == null) return null;
+
+	    if (subcollectionId == null || !specimenItem.hasExsiccata()) return null;
 
 	    ExsiccataItem exsiccataItem = new ExsiccataItem();
         
@@ -700,8 +761,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         {
             throw new LocalException("Couldn't find exsiccata id for " + guid);
         }
-
-	    if (exsiccataId == null) return null;  // subcollections without authors were considered containers
 
 	    exsiccata.setExsiccataId(exsiccataId);
 	    exsiccataItem.setExsiccata(exsiccata);
@@ -746,7 +805,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         return SqlUtils.getInsertSql("collector", fieldNames, values);
     }
     
-
     private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
 		String fieldNames = "AccessionID, CollectionID, CollectionMemberID, CatalogerID, CatalogNumber, " +
@@ -777,8 +835,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
-	
-	
+		
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, PrepTypeID, " +
@@ -828,8 +885,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         
         return SqlUtils.getInsertSql("otheridentifier", fieldNames, values);
     }
-    
-    
+       
     private String getInsertSql(Container container) throws LocalException
     {
         String fieldNames = "Name, CollectionMemberID";
@@ -841,8 +897,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
-    
-    
+     
     private void saveObjects() throws LocalException
     {
         String sql;  // this variable is going to be re-used.
@@ -883,7 +938,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         }
 
         // save the current ExsiccataItem
-        if (exsiccataItem != null)
+        for (ExsiccataItem exsiccataItem : exsiccataItems)
         {            
             sql = getInsertSql(exsiccataItem);
             insert(sql);
@@ -894,6 +949,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         collectionObject = null;
         preparations.clear();
         otherIdentifiers.clear();
-        exsiccataItem    = null;
+        exsiccataItems.clear();
     }
 }
