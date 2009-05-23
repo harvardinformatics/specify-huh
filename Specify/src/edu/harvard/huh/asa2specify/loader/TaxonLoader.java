@@ -8,12 +8,18 @@ import java.util.HashMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaTaxon;
+import edu.harvard.huh.asa.AsaTaxon.ENDANGERMENT;
+import edu.harvard.huh.asa.AsaTaxon.GROUP;
+import edu.harvard.huh.asa.AsaTaxon.STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
+import edu.ku.brc.specify.datamodel.TaxonCitation;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
@@ -85,7 +91,7 @@ public class TaxonLoader extends CsvToSqlLoader
 	public void loadRecord(String[] columns) throws LocalException {
 		AsaTaxon asaTaxon = parse(columns);
 		
-		Taxon taxon = convert(asaTaxon);
+		Taxon taxon = getTaxon(asaTaxon);
 		
 		String rank = asaTaxon.getRank();
 
@@ -136,7 +142,19 @@ public class TaxonLoader extends CsvToSqlLoader
         taxon.setCreatedByAgent(createdByAgent);
         
 		String sql = getInsertSql(taxon);
-		insert(sql);
+		Integer taxonId = insert(sql);
+		taxon.setTaxonId(taxonId);
+
+		// TODO: create authors for taxon?
+		
+		// TaxonCitation
+		TaxonCitation taxonCitation = getTaxonCitation(asaTaxon);
+		if (taxonCitation != null)
+		{
+		    taxonCitation.setTaxon(taxon);
+		    sql = getInsertSql(taxonCitation);
+		    insert(sql);
+		}
 	}
 
 	public void numberNodes() throws LocalException
@@ -146,61 +164,83 @@ public class TaxonLoader extends CsvToSqlLoader
 	
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 10)
+	    if (columns.length < 21)
 	    {
 	        throw new LocalException("Wrong number of columns");
 	    }
 
 		AsaTaxon taxon = new AsaTaxon();
 
-		try {
-		    String parentId = StringUtils.trimToNull( columns[0] );
-		    if (parentId != null)
-		    {
-		        taxon.setParentId( Integer.parseInt( parentId ));
-		    }
-
-		    taxon.setId(            Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-		    taxon.setAuthor(                          StringUtils.trimToNull( columns[2] ));
-		    taxon.setCitesStatus(                     StringUtils.trimToNull( columns[3] ));
-		    taxon.setFullName(                        StringUtils.trimToNull( columns[4] ));
-		    taxon.setName(                            StringUtils.trimToNull( columns[5] ));
-		    taxon.setRank(                            StringUtils.trimToNull( columns[6] ));
-		    taxon.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7] )));
-		    taxon.setCreatedById(   Integer.parseInt( StringUtils.trimToNull( columns[8] )));
-		    taxon.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9] )));
+		try
+		{
+		    taxon.setParentId(              SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
+		    taxon.setId(                    SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
+		    taxon.setRank(                                     StringUtils.trimToNull( columns[2]  ));
+		    taxon.setGroup(               AsaTaxon.parseGroup( StringUtils.trimToNull( columns[3]  )));
+		    taxon.setStatus(             AsaTaxon.parseStatus( StringUtils.trimToNull( columns[4]  )));
+		    taxon.setEndangerment( AsaTaxon.parseEndangerment( StringUtils.trimToNull( columns[5]  )));
+		    taxon.setIsHybrid(           Boolean.parseBoolean( StringUtils.trimToNull( columns[6]  )));
+		    taxon.setFullName(                                 StringUtils.trimToNull( columns[7]  ));
+		    taxon.setName(                                     StringUtils.trimToNull( columns[8]  ));
+		    taxon.setAuthor(                                   StringUtils.trimToNull( columns[9]  ));
+		    taxon.setParAuthorId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
+		    taxon.setParExAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[11] )));
+		    taxon.setStdAuthorId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[12] )));
+		    taxon.setStdExAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[13] )));
+		    taxon.setCitInAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[14] )));
+		    taxon.setCitPublId(             SqlUtils.parseInt( StringUtils.trimToNull( columns[15] )));
+		    taxon.setCitCollation(                             StringUtils.trimToNull( columns[16] ));
+		    taxon.setCitDate(                                  StringUtils.trimToNull( columns[17] ));
+		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[18] )));
+		    taxon.setCreatedById(            Integer.parseInt( StringUtils.trimToNull( columns[19] )));
+		    taxon.setDateCreated(          SqlUtils.parseDate( StringUtils.trimToNull( columns[20] )));
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 		    throw new LocalException("Couldn't parse numeric field", e);
+		}
+		catch (AsaException e)
+		{
+		    throw new LocalException("Couldn't parse taxon field", e);
 		}
 
 		return taxon;
 	}
 
-	private Taxon convert(AsaTaxon asaTaxon) throws LocalException
+	private Taxon getTaxon(AsaTaxon asaTaxon) throws LocalException
 	{
 		Taxon specifyTaxon = new Taxon();
-		// isAccepted
-		specifyTaxon.setIsAccepted( Boolean.TRUE );
 
-		// Author TODO: see BugID:13
+		// Author
 		String author = asaTaxon.getAuthor();
 		specifyTaxon.setAuthor(author);
 
-		// CITES Status
-		String endangerment = asaTaxon.getCitesStatus();
-		specifyTaxon.setCitesStatus(endangerment);
+		// CITES Status TODO: cites status = none: insert none or leave null?
+		ENDANGERMENT endangerment = asaTaxon.getEndangerment();
+		specifyTaxon.setCitesStatus(AsaTaxon.toString(endangerment));
 
 		// FullName
 		String fullName = asaTaxon.getFullName();
 		if (fullName != null && fullName.length() > 255)
 		{
-			log.warn("truncating full name " + asaTaxon.getId() + " " + fullName);
+			warn("Truncating full name", asaTaxon.getId(), fullName);
 			fullName = fullName.substring(0, 255);
 		}
 		specifyTaxon.setFullName(fullName);
 
-		// Name
+		// GroupNumber TODO: keep taxon group in GroupNumber?
+		GROUP group = asaTaxon.getGroup();
+		specifyTaxon.setGroupNumber(AsaTaxon.toString(group));
+
+	    // isAccepted TODO: map taxon status to isAccepted
+        STATUS status = asaTaxon.getStatus();
+        specifyTaxon.setIsAccepted( status == STATUS.NomLeg );
+        
+        // isHybrid
+        Boolean isHybrid = asaTaxon.isHybrid();
+        specifyTaxon.setIsHybrid(isHybrid);
+
+        // Name
 		String name = asaTaxon.getName();
 		if (name == null)
 		{
@@ -208,17 +248,17 @@ public class TaxonLoader extends CsvToSqlLoader
 		}
 		if (name.length() > 64)
 		{
-			log.warn("truncating name");
+			warn("Truncating name", asaTaxon.getId(), name);
 			name = name.substring(0, 64);
 		}
 		specifyTaxon.setName(name);
 
+        // Remarks
+        String remarks = asaTaxon.getRemarks();
+        specifyTaxon.setRemarks(remarks);
+        
 		// TaxonomicSerialNumber
 		specifyTaxon.setTaxonomicSerialNumber( Integer.toString( asaTaxon.getId() ) );
-
-		// Remarks
-		String remarks = asaTaxon.getRemarks();
-		specifyTaxon.setRemarks(remarks);
 
 		// TimestampCreated
         Date dateCreated = asaTaxon.getDateCreated();
@@ -231,28 +271,75 @@ public class TaxonLoader extends CsvToSqlLoader
 		return specifyTaxon;
 	}
 
+	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon) throws LocalException
+	{
+	    Integer citPublId = asaTaxon.getCitPublId();
+	    
+	    if (citPublId == null) return null;
+	        
+	    TaxonCitation taxonCitation = new TaxonCitation();
+	    
+	    // ReferenceWork
+        ReferenceWork referenceWork = new ReferenceWork();
+
+        String guid = String.valueOf(citPublId);
+        
+        Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
+        referenceWork.setReferenceWorkId(referenceWorkId);
+
+        taxonCitation.setReferenceWork(referenceWork);
+        
+        // Text1 (collation)
+        String citCollation = asaTaxon.getCitCollation();
+        taxonCitation.setText1(citCollation);
+        
+        // Text2 (date)
+        String citDate = asaTaxon.getCitDate();
+        taxonCitation.setText2(citDate);
+
+        return taxonCitation;
+	}
+
 	private String getInsertSql(Taxon taxon)
 	{
-		String fieldNames = "Name, FullName, Author, CitesStatus,  TaxonomicSerialNumber, " +
-		                    "TaxonTreeDefID, TaxonTreeDefItemID, RankID, ParentID, Remarks, " +
-		                    "CreatedByAgentID, TimestampCreated, Version";
+		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, GroupNumber, " +
+				            "IsAccepted, IsHybrid, Name, ParentID, RankID, Remarks, TaxonomicSerialNumber, " +
+				            "TaxonTreeDefID, TaxonTreeDefItemID, TimestampCreated, Version";
 
-		String[] values = new String[13];
+		String[] values = new String[16];
 
-		values[0]  = SqlUtils.sqlString( taxon.getName());
-		values[1]  = SqlUtils.sqlString( taxon.getFullName());
-		values[2]  = SqlUtils.sqlString( taxon.getAuthor());
-		values[3]  = SqlUtils.sqlString( taxon.getCitesStatus());
-		values[4]  = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
-		values[5]  = SqlUtils.sqlString( taxon.getDefinition().getId());
-		values[6]  = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
-		values[7]  = SqlUtils.sqlString( taxon.getRankId());
+		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
+		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
+		values[2]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
+		values[3]  = SqlUtils.sqlString( taxon.getFullName());
+		values[4]  = SqlUtils.sqlString( taxon.getGroupNumber());
+		values[5]  = SqlUtils.sqlString( taxon.getIsAccepted());
+		values[6]  = SqlUtils.sqlString( taxon.getIsHybrid());
+		values[7]  = SqlUtils.sqlString( taxon.getName());
 		values[8]  = SqlUtils.sqlString( taxon.getParent().getId());
-	    values[9]  = SqlUtils.sqlString( taxon.getRemarks());
-		values[10] = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
-		values[11] = SqlUtils.sqlString( taxon.getTimestampCreated());
-		values[12] = SqlUtils.sqlString( taxon.getVersion());
+		values[9]  = SqlUtils.sqlString( taxon.getRankId());
+		values[10] = SqlUtils.sqlString( taxon.getRemarks());
+		values[11] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
+		values[12] = SqlUtils.sqlString( taxon.getDefinition().getId());
+		values[13] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
+		values[14] = SqlUtils.sqlString( taxon.getTimestampCreated());
+		values[15] = SqlUtils.sqlString( taxon.getVersion());
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}
+	
+    private String getInsertSql(TaxonCitation taxonCitation)
+    {
+        String fieldNames = "TaxonID, ReferenceWorkID, Text1, Text2, TimestampCreated";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
+        values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
+        values[2] = SqlUtils.sqlString( taxonCitation.getText1());
+        values[3] = SqlUtils.sqlString( taxonCitation.getText2());
+        values[4] = SqlUtils.now();
+
+        return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
+    }
 }

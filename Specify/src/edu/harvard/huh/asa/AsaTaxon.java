@@ -3,48 +3,118 @@ package edu.harvard.huh.asa;
 import java.util.Date;
 
 public class AsaTaxon {
-	public static enum TYPE { Algae, Diatoms, FungiLichens, Hepatics, Monera, Mosses, Vascular };
+    // from st_lookup category 129
+    public static enum STATUS              {  NomLeg,      NomNov,      NomCons,      OrthCons,      NomRej,      NomSuperfl,      Synonym,    LaterHomonym,   OrthVar,      NomInvalid,      Unknown  };
+    private static String[] StatusNames  = { "nom. leg.", "nom. nov.", "nom. cons.", "orth. cons.", "nom. rej.", "nom. superfl.", "synonym", "later homonym", "orth. var.", "nom. invalid.", "unknown" };
 
     // from st_lookup category 130
-    String NON_CITES_TYPE = "[none]";
-    String CITES_I_TYPE = "CITES I";
-    String CITES_II_TYPE = "CITES II";
-    String CITES_III_TYPE = "CITES III";
-
-    // from st_lookup category 140
-    String ALGAE_TYPE = "Algae";
-    String DIATOMS_TYPE = "Diatoms";
-    String FUNGI_TYPE = "Fungi & Lichens";
-    String HEPATICS_TYPE = "Hepatics";
-    String MONERA_TYPE = "Monera";
-    String MOSSES_TYPE = "Mosses";
-    String VASCULAR_TYPE = "Vascular plants";
+    public static enum ENDANGERMENT             { CitesI,    CitesII,    CitesIII,    None    };
+    private static String[] EndangermentNames = {"CITES I", "CITES II", "CITES III", "[none]" };
     
-	private Integer id;
-	private  String author;
-	private  String name;
-	private  String fullName;
-	private  String citesStatus;
-	private Integer parentId;
-	private  String rank;
-	private  String remarks;
-	private Integer createdById;
-	private    Date dateCreated;
+    // from st_lookup category 140
+    public static enum GROUP             {  Algae,   Diatoms,   FungiLichens,      Hepatics,   Monera,   Mosses,   Vascular         };
+    private static String[] GroupNames = { "Algae", "Diatoms", "Fungi & Lichens", "Hepatics", "Monera", "Mosses", "Vascular plants" };
+
+	public static STATUS parseStatus(String string) throws AsaException
+	{
+	    for (STATUS status : STATUS.values())
+	    {
+	        if (StatusNames[status.ordinal()].equals(string)) return status;
+	    }
+	    throw new AsaException("Invalid taxon status: " + string);
+	}
+
+    public static ENDANGERMENT parseEndangerment(String string) throws AsaException
+    {
+        for (ENDANGERMENT endangerment : ENDANGERMENT.values())
+        {
+            if (EndangermentNames[endangerment.ordinal()].equals(string)) return endangerment;
+        }
+        throw new AsaException("Invalid endangerment status: " + string);
+    }
+
+    public static GROUP parseGroup(String string) throws AsaException
+    {
+        for (GROUP group : GROUP.values())
+        {
+            if (GroupNames[group.ordinal()].equals(string)) return group;
+        }
+        throw new AsaException("Invalid taxon group: " + string);
+    }
+
+    public static String toString(STATUS status)
+    {
+        return StatusNames[status.ordinal()];
+    }
+    
+    public static String toString(ENDANGERMENT endangerment)
+    {
+        return EndangermentNames[endangerment.ordinal()];
+    }
+
+    public static String toString(GROUP group)
+    {
+        return GroupNames[group.ordinal()];
+    }
+
+    private      Integer id;
+	private      Integer parentId;
+	private       String rank;
+	private        GROUP group;
+	private       STATUS status;
+	private ENDANGERMENT endangerment;
+	private      Boolean isHybrid;
+	private       String fullName;
+	private       String name;
+	private       String author;
+	private      Integer parAuthorId;
+	private      Integer parExAuthorId;
+	private      Integer stdAuthorId;
+	private      Integer stdExAuthorId;
+	private      Integer citInAuthorId;
+	private      Integer citPublId;
+	private       String citCollation;
+	private       String citDate;
+	private       String remarks;
+	private      Integer createdById;
+	private         Date dateCreated;
 	
 	public Integer getId() { return id; }
-	
-	public String getAuthor() { return author; }
-	
-	public String getName() { return name; }
-	
-	public String getFullName() { return fullName; }
-	
-	public String getCitesStatus() { return citesStatus; }
 	
 	public Integer getParentId() { return parentId; }
 	
 	public String getRank() { return rank; }
 	
+	public GROUP getGroup() { return group; }
+	
+	public STATUS getStatus() { return status; }
+	
+	public ENDANGERMENT getEndangerment() { return endangerment; }
+	
+	public Boolean isHybrid() { return isHybrid; }
+
+	public String getFullName() { return fullName; }
+
+	public String getName() { return name; }
+
+	public String getAuthor() { return author; }
+	
+	public Integer getParAuthorId() { return parAuthorId; }
+	
+	public Integer getParExAuthorId() { return parExAuthorId; }
+	
+	public Integer getStdAuthorId() { return stdAuthorId; }
+	
+	public Integer getStdExAuthorId() { return stdExAuthorId; }
+	
+	public Integer getCitInAuthorId() { return citInAuthorId; }
+	
+	public Integer getCitPublId() { return citPublId; }
+	
+	public String getCitCollation() { return citCollation; }
+	
+	public String getCitDate() { return citDate; }
+
 	public String getRemarks() { return remarks; }
 	
 	public Integer getCreatedById() { return createdById; }
@@ -52,18 +122,40 @@ public class AsaTaxon {
 	public Date getDateCreated() { return dateCreated; }
 	
 	public void setId(Integer id) { this.id = id; }
-	
-	public void setAuthor(String author) { this.author = author; }
-	
+    
+    public void setParentId(Integer parentId) { this.parentId = parentId; }
+    
+    public void setRank(String rank) { this.rank = rank; }
+    
+    public void setGroup(GROUP group) { this.group = group; }
+    
+    public void setStatus(STATUS status) { this.status = status; }
+    
+    public void setEndangerment(ENDANGERMENT endangerment) { this.endangerment = endangerment; }
+    
+    public void setIsHybrid(Boolean isHybrid) { this.isHybrid = isHybrid; }
+	   
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    
 	public void setName(String name) { this.name = name; }
-	
-	public void setFullName(String fullName) { this.fullName = fullName; }
-	
-	public void setCitesStatus(String citesStatus) { this.citesStatus = citesStatus; }
-	
-	public void setParentId(Integer parentId) { this.parentId = parentId; }
-	
-	public void setRank(String rank) { this.rank = rank; }
+
+    public void setAuthor(String author) { this.author = author; }
+    
+    public void setParAuthorId(Integer parAuthorId) { this.parAuthorId = parAuthorId; }
+    
+    public void setParExAuthorId(Integer parExAuthorId) { this.parExAuthorId = parExAuthorId; }
+    
+    public void setStdAuthorId(Integer stdAuthorId) { this.stdAuthorId = stdAuthorId; }
+    
+    public void setStdExAuthorId(Integer stdExAuthorId) { this.stdExAuthorId = stdExAuthorId; }
+    
+    public void setCitInAuthorId(Integer citInAuthorId) { this.citInAuthorId = citInAuthorId; }
+    
+    public void setCitPublId(Integer citPublId) { this.citPublId = citPublId; }
+    
+    public void setCitCollation(String citCollation) { this.citCollation = citCollation; }
+    
+    public void setCitDate(String citDate) { this.citDate = citDate; }
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
 	
