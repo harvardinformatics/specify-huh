@@ -15,6 +15,7 @@
 package edu.harvard.huh.asa2specify;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -192,14 +193,14 @@ public class SqlUtils
         return "\"" + formatter.format(t.getTime()) + "\"";
     }
     
-    public static Date parseDate(String dateString) throws LocalException
+    public static Date parseDate(String s) throws LocalException
     {
-        if (dateString == null) return null;
+        if (s == null) return null;
         
         Date date = null;
         try
         {
-            date = formatter.parse(dateString);
+            date = formatter.parse(s);
         }
         catch (ParseException e)
         {
@@ -208,14 +209,14 @@ public class SqlUtils
         return date;
     }
     
-    public static Integer parseInt(String intString) throws LocalException
+    public static Integer parseInt(String s) throws LocalException
     {
-        if (intString == null) return null;
+        if (s == null) return null;
         
         Integer integer = null;
         try
         {
-            integer = Integer.parseInt(intString);
+            integer = Integer.parseInt(s);
         }
         catch (NumberFormatException e)
         {
@@ -224,6 +225,21 @@ public class SqlUtils
         return integer;
     }
     
+    public static BigDecimal parseBigDecimal(String s) throws LocalException
+    {
+        if (s == null) return null;
+        
+        Double dbl = null;
+        try {
+            Double.parseDouble(s);
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse double", e);
+        }
+        return BigDecimal.valueOf(dbl);
+    }
+
     public static String iso8859toUtf8( String string ) throws LocalException
     {
         if (string != null) {
