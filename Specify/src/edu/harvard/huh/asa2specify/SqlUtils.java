@@ -208,6 +208,22 @@ public class SqlUtils
         return date;
     }
     
+    public static Integer parseInt(String intString) throws LocalException
+    {
+        if (intString == null) return null;
+        
+        Integer integer = null;
+        try
+        {
+            integer = Integer.parseInt(intString);
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse integer", e);
+        }
+        return integer;
+    }
+    
     public static String iso8859toUtf8( String string ) throws LocalException
     {
         if (string != null) {
