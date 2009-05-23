@@ -19,21 +19,21 @@ import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.AsaDetermination;
 import edu.harvard.huh.asa.BDate;
+import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.DeterminationCitation;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
-import edu.ku.brc.specify.datamodel.TaxonCitation;
 
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
-
+    // TODO: is the verifier the determiner?  is the designator the determiner?
     public TypeSpecimenLoader(File csvFile, Statement sqlStatement)
     {
         super(csvFile, sqlStatement);
@@ -46,29 +46,37 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
         Determination determination = getDetermination(typeSpecimen);
         String sql = getInsertSql(determination);
-        insert(sql);
-        
-        // create a taxon citations
-        Integer publicationId = typeSpecimen.getNle1PublicationId();
-        Integer designatorId = typeSpecimen.getNle1DesignatorId();
-        
+        Integer determinationId = insert(sql);
+        determination.setDeterminationId(determinationId);
 
-
- 
-        TaxonCitation taxonCitation1 = new TaxonCitation();
+        // create determination citations
+        Integer publicationId1 = typeSpecimen.getNle1PublicationId();
+        Integer designatorId1 = typeSpecimen.getNle1DesignatorId();
+        String collation1 = typeSpecimen.getNle1Collation();
+        String date1 = typeSpecimen.getNle1Date();
         
+        DeterminationCitation determinationCitation1 = getDeterminationCitation(publicationId1, designatorId1, collation1, date1);
+        if (determinationCitation1 != null)
+        {
+            determinationCitation1.setDetermination(determination);
+            determinationCitation1.setCollectionMemberId(determination.getCollectionMemberId());
+            sql = getInsertSql(determinationCitation1);
+            insert(sql);
+        }
         
-        String guid = String.valueOf(publicationId);
-
-        Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
-        ReferenceWork referenceWork = new ReferenceWork();
-        referenceWork.setReferenceWorkId(referenceWorkId);
-
-        taxonCitation1.setReferenceWork(referenceWork);
-        taxonCitation1.setTaxon(determination.getTaxon());
-            
-        sql = getInsertSql(taxonCitation1);
-        insert(sql);
+        Integer publicationId2 = typeSpecimen.getNle2PublicationId();
+        Integer designatorId2 = typeSpecimen.getNle2DesignatorId();
+        String collation2 = typeSpecimen.getNle2Collation();
+        String date2 = typeSpecimen.getNle2Date();
+        
+        DeterminationCitation determinationCitation2 = getDeterminationCitation(publicationId2, designatorId2, collation2, date2);
+        if (determinationCitation2 != null)
+        {
+            determinationCitation2.setDetermination(determination);
+            determinationCitation2.setCollectionMemberId(determination.getCollectionMemberId());
+            sql = getInsertSql(determinationCitation2);
+            insert(sql);
+        }
     }
 
     private TypeSpecimen parse(String[] columns) throws LocalException
@@ -234,6 +242,64 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         return determination;
     }
         
+    private DeterminationCitation getDeterminationCitation(Integer publicationId, Integer designatorId, String collation, String date)
+        throws LocalException
+    {
+        if (publicationId == null)
+        {
+            if (designatorId != null || collation != null || date != null)
+            {
+                warn("No publication for designator, collation, or date", null, null);
+            }
+            return null;
+        }
+
+        DeterminationCitation determinationCitation = new DeterminationCitation();
+        
+        // ReferenceWork
+        String guid = String.valueOf(publicationId);
+
+        Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
+        ReferenceWork referenceWork = new ReferenceWork();
+        referenceWork.setReferenceWorkId(referenceWorkId);
+
+        determinationCitation.setReferenceWork(referenceWork);
+
+        // Remarks
+        StringBuffer remarks = new StringBuffer();
+        
+        // TODO: make designators into authors, too?
+        if (designatorId != null)
+        {
+            Botanist author = new Botanist();
+            author.setId(designatorId);
+            guid = author.getGuid();
+
+            String authorName = getStringByField("agent", "LastName", "GUID", guid);
+            remarks.append(authorName);
+        }
+        else
+        {
+            warn("No designator for publication", null, null);
+        }
+        
+        if (collation != null)
+        {
+            if (remarks.length() > 0) remarks.append("; ");
+            remarks.append(collation);
+        }
+
+        if (date != null)
+        {
+            if (remarks.length() > 0) remarks.append(". ");
+            remarks.append(date);
+        }
+
+        determinationCitation.setRemarks(remarks.toString());
+        
+        return determinationCitation;
+    }
+    
     private String getInsertSql(Determination determination)
     {
         String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, TypeStatusName, Confidence, YesNo2, DeterminedDate, " +
@@ -257,17 +323,18 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
     
-    private String getInsertSql(TaxonCitation taxonCitation)
+    private String getInsertSql(DeterminationCitation determinationCitation)
     {
-        String fieldNames = "TaxonID, ReferenceWorkID, Remarks, TimestampCreated";
+        String fieldNames = "DeterminationID, ReferenceWorkID, CollectionMemberID, Remarks, TimestampCreated";
         
-        String[] values = new String[4];
+        String[] values = new String[5];
         
-        values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
-        values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[2] = SqlUtils.sqlString( taxonCitation.getRemarks());
-        values[3] = SqlUtils.now();
+        values[0] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
+        values[1] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
+        values[2] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
+        values[3] = SqlUtils.sqlString( determinationCitation.getRemarks());
+        values[4] = SqlUtils.now();
 
-        return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
+        return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }
 }
