@@ -75,55 +75,19 @@ public class LocalityLoader extends CsvToSqlLoader
 		// assign values to Site object
 		Site site = new Site();
 
-		try {
-			site.setId(       Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-			
-			String geoUnitIdStr =               StringUtils.trimToNull( columns[1] );
-			if (geoUnitIdStr != null)
-			{
-			    site.setGeoUnitId(Integer.parseInt(geoUnitIdStr));
-			}
-			
-			site.setLocality(                   StringUtils.trimToNull( columns[2] ));
-			site.setMethod(                     StringUtils.trimToNull( columns[3] ));
-
-			String lat1Str = StringUtils.trimToNull( columns[4] );
-			if (lat1Str != null)
-			{
-				site.setLatitudeA( BigDecimal.valueOf( Double.parseDouble( lat1Str )));
-			}
-
-			String long1Str = StringUtils.trimToNull( columns[5] );
-			if (long1Str != null)
-			{
-				site.setLongitudeA( BigDecimal.valueOf( Double.parseDouble( long1Str )));
-			}
-
-			String lat2Str = StringUtils.trimToNull( columns[6] );
-			if (lat2Str != null)
-			{
-				site.setLatitudeB( BigDecimal.valueOf( Double.parseDouble( lat2Str )));
-			}
-
-			String long2Str = StringUtils.trimToNull( columns[7] );
-			if (long2Str != null)
-			{
-				site.setLongitudeB( BigDecimal.valueOf( Double.parseDouble( long2Str )));
-			}
-
-			String elevFromStr = StringUtils.trimToNull( columns[8] );
-			if (elevFromStr != null)
-			{
-				site.setElevFrom( BigDecimal.valueOf( Double.parseDouble( elevFromStr )));
-			}
-
-			String elevToStr = StringUtils.trimToNull( columns[9] );
-			if (elevToStr != null)
-			{
-				site.setElevTo( BigDecimal.valueOf( Double.parseDouble( elevToStr )));
-			}
-
-			site.setElevMethod( StringUtils.trimToNull( columns[10] ));
+		try
+		{
+			site.setId(                 Integer.parseInt( StringUtils.trimToNull( columns[0]  )));
+			site.setGeoUnitId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
+			site.setLocality(                             StringUtils.trimToNull( columns[2]  ));
+			site.setMethod(                               StringUtils.trimToNull( columns[3]  ));
+			site.setLatitudeA(  SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[4]  )));
+			site.setLongitudeA( SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[5]  )));
+			site.setLatitudeB(  SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[6]  )));
+			site.setLongitudeB( SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[7]  )));
+			site.setElevFrom(   SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[8]  )));
+			site.setElevTo(     SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[9]  )));
+			site.setElevMethod(                           StringUtils.trimToNull( columns[10] ));
 		}
 		catch (NumberFormatException e)
 		{

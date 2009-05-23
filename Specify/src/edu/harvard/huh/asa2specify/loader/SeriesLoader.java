@@ -104,17 +104,11 @@ public class SeriesLoader extends CsvToSqlLoader
 
     	try
     	{
-    		series.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-    		series.setName(                            StringUtils.trimToNull( columns[1] ));
-    		series.setAbbreviation(                    StringUtils.trimToNull( columns[2] ));
-    		
-    		String instIdStr =                         StringUtils.trimToNull( columns[3] );
-    		if (instIdStr != null)
-    		{
-    		    series.setInstitutionId( Integer.parseInt( instIdStr ));
-    		}
-
-    		series.setNote(                            StringUtils.trimToNull( columns[4] ));
+    		series.setId(             Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+    		series.setName(                             StringUtils.trimToNull( columns[1] ));
+    		series.setAbbreviation(                     StringUtils.trimToNull( columns[2] ));
+    		series.setInstitutionId( SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
+    		series.setNote(                             StringUtils.trimToNull( columns[4] ));
     	}
     	catch (NumberFormatException e) {
     		throw new LocalException("Couldn't parse numeric field", e);

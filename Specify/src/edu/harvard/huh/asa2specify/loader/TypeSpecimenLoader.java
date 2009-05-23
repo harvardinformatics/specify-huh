@@ -100,54 +100,19 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             BDate bdate = new BDate();
             typeSpecimen.setDate( bdate );
 
-            String startYearStr = StringUtils.trimToNull( columns[6] );
-            if (startYearStr != null)
-            {
-                bdate.setStartYear( Integer.parseInt( startYearStr ));
-            }
+            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
+            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
+            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[8] )));
 
-            String startMonthStr = StringUtils.trimToNull( columns[7] );
-            if (startMonthStr != null)
-            {
-                bdate.setStartMonth( Integer.parseInt( startMonthStr ));
-            }
-            
-            String startDayStr = StringUtils.trimToNull( columns[8] );
-            if (startDayStr != null)
-            {
-                bdate.setStartDay( Integer.parseInt( startDayStr ));
-            }
-            
-            String nle1DesignatorIdStr = StringUtils.trimToNull( columns[9] );
-            if (nle1DesignatorIdStr != null)
-            {
-                typeSpecimen.setNle1DesignatorId( Integer.parseInt( nle1DesignatorIdStr ));
-            }
-            
-            String nle1PublicationIdStr = StringUtils.trimToNull( columns[10] );
-            if (nle1PublicationIdStr != null)
-            {
-                typeSpecimen.setNle1PublicationId( Integer.parseInt( nle1PublicationIdStr ));
-            }
-            
-            typeSpecimen.setNle1Collation( StringUtils.trimToNull( columns[11] ));
-            typeSpecimen.setNle1Date(      StringUtils.trimToNull( columns[12] ));
-
-            String nle2DesignatorIdStr = StringUtils.trimToNull( columns[13]  );
-            if (nle2DesignatorIdStr != null)
-            {
-                typeSpecimen.setNle2DesignatorId( Integer.parseInt( nle2DesignatorIdStr ));
-            }
-            
-            String nle2PublicationIdStr = StringUtils.trimToNull( columns[14]  );
-            if (nle2PublicationIdStr != null)
-            {
-                typeSpecimen.setNle2PublicationId( Integer.parseInt( nle2PublicationIdStr ));
-            }
-            
-            typeSpecimen.setNle2Collation(                   StringUtils.trimToNull( columns[15] ));
-            typeSpecimen.setNle2Date(                        StringUtils.trimToNull( columns[16] ));
-            typeSpecimen.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[17] )));
+            typeSpecimen.setNle1DesignatorId(  SqlUtils.parseInt( StringUtils.trimToNull( columns[9]  )));
+            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
+            typeSpecimen.setNle1Collation(                        StringUtils.trimToNull( columns[11] ));
+            typeSpecimen.setNle1Date(                             StringUtils.trimToNull( columns[12] ));
+            typeSpecimen.setNle2DesignatorId(  SqlUtils.parseInt( StringUtils.trimToNull( columns[13] )));
+            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[14] )));
+            typeSpecimen.setNle2Collation(                        StringUtils.trimToNull( columns[15] ));
+            typeSpecimen.setNle2Date(                             StringUtils.trimToNull( columns[16] ));
+            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[17] )));
         }
         catch (NumberFormatException e)
         {

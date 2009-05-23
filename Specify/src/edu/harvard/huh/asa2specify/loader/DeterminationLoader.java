@@ -67,23 +67,9 @@ public class DeterminationLoader extends CsvToSqlLoader
             BDate bdate = new BDate();
             determination.setDate( bdate );
 
-            String startYearStr = StringUtils.trimToNull( columns[4] );
-            if (startYearStr != null)
-            {
-                bdate.setStartYear( Integer.parseInt( startYearStr ));
-            }
-
-            String startMonthStr = StringUtils.trimToNull( columns[5] );
-            if (startMonthStr != null)
-            {
-                bdate.setStartMonth( Integer.parseInt( startMonthStr ));
-            }
-            
-            String startDayStr = StringUtils.trimToNull( columns[6] );
-            if (startDayStr != null)
-            {
-                bdate.setStartDay( Integer.parseInt( startDayStr ));
-            }
+            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[4] )));
+            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[5] )));
+            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
 
             determination.setCurrent(   Boolean.parseBoolean( StringUtils.trimToNull( columns[7]  )));
             determination.setIsLabel(   Boolean.parseBoolean( StringUtils.trimToNull( columns[8]  )));
