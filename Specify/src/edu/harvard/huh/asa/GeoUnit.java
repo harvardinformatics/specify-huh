@@ -65,5 +65,8 @@ public class GeoUnit {
 	    
 	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 	
-	public void addVariantName(String variantName) { this.variantNames.add(variantName); }
+	public void addVariantName(String variantName)
+	{
+	    if (variantName != null) this.variantNames.add(variantName);
+	}
 }
