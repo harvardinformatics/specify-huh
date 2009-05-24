@@ -20,6 +20,17 @@ public class DateUtils {
 	    return new Timestamp(date.getTime());
 	}
 	
+	public static Calendar toCalendar(Date date) {
+		GregorianCalendar c = new GregorianCalendar();
+		c.clear();
+
+		c.set(GregorianCalendar.YEAR, date.getYear());
+		c.set(GregorianCalendar.MONTH, date.getMonth());
+		c.set(GregorianCalendar.DAY_OF_MONTH, date.getDay());
+
+		return c;
+	}
+	
 	/**
 	 * Return a string representation in the format "mmm dd, yyyy - mmm dd, yyyy"
 	 */

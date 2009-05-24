@@ -28,6 +28,11 @@ public class LocalException extends Exception
         // TODO Auto-generated constructor stub
     }
 
+    public LocalException(String message, Integer recordId)
+    {
+    	super(message + " record " + recordId);
+    }
+
     public LocalException(Throwable cause)
     {
         super(cause);
