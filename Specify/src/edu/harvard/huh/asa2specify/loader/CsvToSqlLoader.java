@@ -322,6 +322,10 @@ public abstract class CsvToSqlLoader
 			{
 				id = result.getInt(1);
 			}
+			if (result.next())
+			{
+			    log.warn("Multiple results for query: " + sql);
+			}
 
 		} catch (SQLException e)
 		{
