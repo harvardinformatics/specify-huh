@@ -2,7 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,7 +42,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 	private CollectingEvent      collectingEvent  = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
-	private Set<ExsiccataItem>     exsiccataItems   = null;
+	private Set<ExsiccataItem>   exsiccataItems   = null;
 	
 	public SpecimenItemLoader(File csvFile, Statement sqlStatement) throws LocalException 
 	{
@@ -116,16 +115,19 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         ////////////////////////////////////////////////
 
         // Collection
-        Collection collection = getCollection(specimenItem);
-        Integer collectionMemberId = collection.getId();
+        String code = specimenItem.getHerbariumCode();
+        Integer collectionId = getCollectionId(code);
         
+        Collection collection = new Collection();
+        collection.setCollectionId(collectionId);
+
         // CollectionObject
         collectionObject = getCollectionObject(specimenItem);
         collectionObject.setCollection(collection);
-        collectionObject.setCollectionMemberId(collectionMemberId);
+        collectionObject.setCollectionMemberId(collectionId);
         
         // Preparation
-        preparation.setCollectionMemberId(collectionMemberId);
+        preparation.setCollectionMemberId(collectionId);
         preparation.setCollectionObject(collectionObject);
         preparations.add(preparation);
 
@@ -138,7 +140,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         
         // Collector
         collector = getCollector(specimenItem);
-        collector.setCollectionMemberId(collectionMemberId);
+        collector.setCollectionMemberId(collectionId);
 
         // CollectingEvent
         collectingEvent = getCollectingEvent(specimenItem);
@@ -161,7 +163,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 
         // Container (subcollection)
         Container container = getContainer(specimenItem);
-        container.setCollectionMemberId(collectionMemberId);
+        container.setCollectionMemberId(collectionId);
         collectionObject.setContainer(container);
 		
 	    // TODO: connect series (organization) agent as collector?
@@ -169,7 +171,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         if (series != null)
         {
             series.setCollectionObject(collectionObject);
-            series.setCollectionMemberId(collectionMemberId);
+            series.setCollectionMemberId(collectionId);
             addOtherIdentifier(series);
         }
 
@@ -178,7 +180,7 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         if (accession != null)
         {
             accession.setCollectionObject(collectionObject);
-            accession.setCollectionMemberId(collectionMemberId);
+            accession.setCollectionMemberId(collectionId);
             addOtherIdentifier(accession);
         }
         
@@ -364,13 +366,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 	    otherIdentifiers.add(otherIdentifier);
 	}
 
-	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
-	{
-        String herbariumCode = specimenItem.getHerbariumCode();
-        
-        return getCollection(herbariumCode);
-	}
-
 	private Collector getCollector(SpecimenItem specimenItem) throws LocalException
 	{
 	    Agent agent = new Agent();
@@ -463,18 +458,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
 	    return null;
 	}
 	
-	private String formatBarcode(Integer barcode) throws LocalException
-	{
-        try
-        {
-            return (new DecimalFormat( "000000000" ) ).format( barcode );
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new LocalException("Couldn't parse barcode");
-        }
-	}
-	
 	private Preparation getPreparation(SpecimenItem specimenItem) throws LocalException
 	{
 	    Preparation preparation = new Preparation();
@@ -486,10 +469,6 @@ public class SpecimenItemLoader extends CsvToSqlLoader
         
         // SampleNumber (barcode)
 	    Integer barcode = specimenItem.getBarcode();
-	    if (barcode == null)
-	    {
-	        throw new LocalException("Null barcode");
-	    }
         preparation.setSampleNumber(formatBarcode(barcode));
         
         // Number1 (itemNo)

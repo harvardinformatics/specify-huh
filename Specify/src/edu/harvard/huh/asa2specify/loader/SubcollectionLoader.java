@@ -13,7 +13,6 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
-import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
@@ -35,10 +34,6 @@ public class SubcollectionLoader extends CsvToSqlLoader
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		Subcollection subcollection = parse(columns);
-
-		// get Collection object
-		String code = subcollection.getCollectionCode();
-		Collection collection = getCollection(code);
 
         // if this subcollection represents an exsiccata...
         String authorName = subcollection.getAuthor();
@@ -124,8 +119,7 @@ public class SubcollectionLoader extends CsvToSqlLoader
         {
             // get Container object
             Container container = getContainer(subcollection);
-            container.setCollectionMemberId(collection.getId());
-
+            
             // convert container to sql and insert
             String sql = getInsertSql(container);
             Integer containerId = insert(sql);
@@ -177,6 +171,11 @@ public class SubcollectionLoader extends CsvToSqlLoader
     {    
         Container container = new Container();
         
+		// get Collection object
+		String code = subcollection.getCollectionCode();
+		Integer collectionMemberId = getCollectionId(code);
+        container.setCollectionMemberId(collectionMemberId);
+
         String name = subcollection.getName();
         if (name == null)
         {

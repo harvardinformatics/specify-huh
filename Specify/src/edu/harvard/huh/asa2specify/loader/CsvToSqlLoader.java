@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
@@ -19,7 +20,6 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.PrepType;
@@ -29,9 +29,9 @@ public abstract class CsvToSqlLoader
 {
 	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
-	private static Hashtable<Integer, Agent>        agentsByOptrId = new Hashtable<Integer, Agent>();
-    private static Hashtable<String, Collection> collectionsByCode = new Hashtable<String, Collection>();
-	private static Hashtable<String, PrepType>     prepTypesByName = new Hashtable<String, PrepType>();
+	private static Hashtable<Integer, Agent>       agentsByOptrId = new Hashtable<Integer, Agent>();
+    private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
+	private static Hashtable<String, PrepType>    prepTypesByName = new Hashtable<String, PrepType>();
 
 	private LineIterator lineIterator;
 	private File csvFile;
@@ -174,18 +174,16 @@ public abstract class CsvToSqlLoader
         return prepType;
 	}
 	
-	protected Collection getCollection(String code) throws LocalException
+	protected Integer getCollectionId(String code) throws LocalException
 	{
-	    Collection collection = collectionsByCode.get(code);
-	    if (collection == null)
+	    Integer collectionId = collectionIdsByCode.get(code);
+	    if (collectionId == null)
 	    {
-	        Integer collectionId = getIntByField("collection", "CollectionID", "Code", code);
+	        collectionId = getIntByField("collection", "CollectionID", "Code", code);
 
-	        collection = new Collection();
-	        collection.setCollectionId(collectionId);
-	        collectionsByCode.put(code, collection);
+	        collectionIdsByCode.put(code, collectionId);
 	    }
-	    return collection;
+	    return collectionId;
 	}
 	
 	protected Discipline getBotanyDiscipline() throws LocalException
@@ -455,6 +453,43 @@ public abstract class CsvToSqlLoader
 		return true;
 	} 
 
+	protected String formatBarcode(Integer barcode) throws LocalException
+	{
+	    if (barcode == null)
+	    {
+	        throw new LocalException("Null barcode");
+	    }
+	    
+        try
+        {
+            return (new DecimalFormat( "000000000" ) ).format( barcode );
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new LocalException("Couldn't parse barcode");
+        }
+	}
+	
+	protected String formatBarcode(String barcode) throws LocalException
+	{
+		if (barcode == null)
+		{
+			throw new LocalException("Null barcode");
+		}
+		
+		Integer intBarcode = null;
+		try
+		{
+			intBarcode = Integer.parseInt(barcode);
+		}
+		catch (NumberFormatException e)
+		{
+			throw new LocalException("Couldn't parse barcode");
+		}
+		
+		return formatBarcode(intBarcode);
+	}
+	
 	protected void warn(String message, Integer id, String item)
 	{
 	    log.warn(message + " " + id + " " + item);

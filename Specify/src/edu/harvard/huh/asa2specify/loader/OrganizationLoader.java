@@ -107,22 +107,20 @@ public class OrganizationLoader extends CsvToSqlLoader
 
 		try
 		{
-			organization.setId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-			organization.setName(                 StringUtils.trimToNull( columns[1] ));
-			organization.setAcronym(              StringUtils.trimToNull( columns[2] ));
-			organization.setCity(                 StringUtils.trimToNull( columns[3] ));
-			organization.setState(                StringUtils.trimToNull( columns[4] ));
-			organization.setCountry(              StringUtils.trimToNull( columns[5] ));
-			organization.setUri(                  StringUtils.trimToNull( columns[6] ));
-			
-            Integer optrId =   Integer.parseInt( StringUtils.trimToNull( columns[7] ));
-            organization.setCreatedById(optrId);
+			organization.setId(          Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+			organization.setName(                          StringUtils.trimToNull( columns[1] ));
+			organization.setAcronym(                       StringUtils.trimToNull( columns[2] ));
+			organization.setCity(                          StringUtils.trimToNull( columns[3] ));
+			organization.setState(                         StringUtils.trimToNull( columns[4] ));
+			organization.setCountry(                       StringUtils.trimToNull( columns[5] ));
+			organization.setUri(                           StringUtils.trimToNull( columns[6] ));
+			organization.setCreatedById( Integer.parseInt( StringUtils.trimToNull( columns[7] )));
             
             String createDateString =           StringUtils.trimToNull( columns[8] );
             Date createDate = SqlUtils.parseDate(createDateString);
             organization.setDateCreated(createDate);
             
-			organization.setRemarks(            StringUtils.trimToNull (columns[9] ));
+			organization.setRemarks(                       StringUtils.trimToNull (columns[9] ));
 		}
 		catch (NumberFormatException e)
 		{
