@@ -76,6 +76,7 @@
       <picklistitem title="Gift" value="gift"/>
       <picklistitem title="Collection" value="cln"/>
       <picklistitem title="Field Work" value="field_work"/>
+      <picklistitem title="Purchase" value="purchase"/>
     </items>
   </picklist>
   <picklist name="AgentVariant" issystem="true" type="0" readonly="true" sizelimit="-1">
