@@ -4,11 +4,12 @@ select l.id,
        l.barcode,
        l.transferred_from,
        l.transferred_to,
-       (select acronym from organization where id=items.herbarium_id) as collection
+       (select acronym from organization where id=s.herbarium_id) as collection
 
 from loan_item l,
-     (select s.specimen_id, s.herbarium_id, si.barcode
-      from specimen_item si, specimen s
-      where si.specimen_id=s.specimen_id) items
+     (select specimen_id, barcode from specimen_item) si,
+     (select id, herbarium_id from specimen) s
 
-where l.barcode=items.barcode
+where l.barcode=si.barcode(+) and
+      si.specimen_id=s.id(+)
+
