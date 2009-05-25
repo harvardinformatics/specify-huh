@@ -5,20 +5,20 @@ import java.util.Date;
 public class Transaction
 {
 	// from st_lookup category 150
-	public static enum TYPE             { Loan,    Borrow,   InExchange,          OutExchange,         InGift,          OutGift,         InSpecial,               OutSpecial,              Purchase,   StaffCollection   };
-	private static String[] TypeNames = { "loan", "borrow", "incoming exchange", "outgoing exchange", "incoming gift", "outgoing gift", "incoming special exch", "outgoing special exch", "purchase", "staff collection" };
+	public static enum TYPE             { Loan,    Borrow,   InExchange,          OutExchange,         InGift,          OutGift,         InSpecial,               OutSpecial,              Purchase,   StaffCollection,    OutMiscellaneous        };
+	private static String[] TypeNames = { "loan", "borrow", "incoming exchange", "outgoing exchange", "incoming gift", "outgoing gift", "incoming special exch", "outgoing special exch", "purchase", "staff collection", "outgoing miscellaneous" };
 
-	// from st_lookup category...
-	public static enum REQUEST_TYPE { };
-	private static String[] RequestTypeNames = { };
+	// from st_lookup category 152
+	public static enum REQUEST_TYPE            {  Theirs,   Ours,   Unknown  };
+	private static String[] RequestTypeNames = { "theirs", "ours", "unknown" };
 	
-	// from st_lookup category...
-	public static enum PURPOSE { };
-	private static String[] PurposeNames = { };
+	// from st_lookup category 151, 154
+	public static enum PURPOSE             {  ForID,    Unrestricted,   ForStudy,    ForDnaSampling,     ForExhibition   };
+	private static String[] PurposeNames = { "for id", "unrestricted", "for study", "for DNA sampling", "for exhibition" };
 	
-	// from st_lookup category...
-	public static enum USER_TYPE { };
-	private static String[] UserTypeNames = { };
+	// from st_lookup category 153
+	public static enum USER_TYPE            {  Staff,   Student,   Visitor,   Unknown  };
+	private static String[] UserTypeNames = { "staff", "student", "visitor", "unknown" };
 		
 	public static TYPE parseType(String string) throws AsaException
 	{
@@ -96,6 +96,8 @@ public class Transaction
 	private          Date dateCreated;
 	private          Date originalDueDate;
 	private          Date currentDueDate;
+	private        String higherTaxon;
+	private        String taxon;
 	
 	public Integer getId() { return id; }
 	
@@ -136,6 +138,10 @@ public class Transaction
 	public Date getOriginalDueDate() { return originalDueDate; }
 	
 	public Date getCurrentDueDate() { return currentDueDate; }
+	
+	public String getHigherTaxon() { return higherTaxon; }
+	
+	public String getTaxon() { return taxon; }
 		
 	public void setId(Integer id) { this.id = id; }
 	
@@ -176,4 +182,8 @@ public class Transaction
     public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
     
     public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
+    
+    public void setHigherTaxon(String higherTaxon) { this.higherTaxon = higherTaxon; }
+    
+    public void setTaxon(String taxon) { this.taxon = taxon; }
 }
