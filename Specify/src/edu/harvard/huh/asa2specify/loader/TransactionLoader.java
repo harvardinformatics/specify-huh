@@ -59,6 +59,15 @@ public class TransactionLoader extends CsvToSqlLoader
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
+	    //       in_geo_batch     -> in.gift/in.exch/sp.exch/staff.coll/purchase
+	    //       out_geo_batch    -> out.gift/out.exch
+	    //       in_return_batch  -> loan
+	    //       out_return_batch -> borrow
+	    //       shipment         -> out.gift/out.misc/out.exch/loan
+	    //       loan_item        -> loan
+	    //       taxon_batch      -> borrow/loan
+	    //       due_date         -> borrow/loan
+	    
 	    // TODO: go through all the xAgents to determine if the affiliates/asaAgents match their assigned roles.
 
 	    // TODO: go through all Text1 fields to determine if there's a more appropriate field to put description into
