@@ -14,6 +14,8 @@
  */
 package edu.harvard.huh.asa;
 
+import edu.harvard.huh.asa.Transaction.TYPE;
+
 public class AsaShipment
 {
     // from st_lookup category 156
@@ -54,6 +56,7 @@ public class AsaShipment
     
     private Integer id;
     private Integer transactionId;
+    private    TYPE transactionType;
     private CARRIER carrier;
     private  METHOD method;
     private   Float cost;
@@ -71,6 +74,8 @@ public class AsaShipment
     public CARRIER getCarrier() { return carrier; }
     
     public METHOD getMethod() { return method; }
+    
+    public TYPE getTransactionType() { return transactionType; }
     
     public Float getCost() { return cost; }
     
@@ -93,6 +98,8 @@ public class AsaShipment
     public void setCarrier(CARRIER carrier) { this.carrier = carrier; }
     
     public void setMethod(METHOD method) { this.method = method; }
+    
+    public void setTransactionType(TYPE type) { this.transactionType = type; }
     
     public void setCost(Float cost) { this.cost = cost; }
     
