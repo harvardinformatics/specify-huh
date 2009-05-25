@@ -1,5 +1,6 @@
 select s.id,
        s.herb_transaction_id,
+       (select name from st_lookup where id=t.type_id) as transaction_type,
        (select name from st_lookup where id=s.carrier_id) as carrier,
        (select name from st_lookup where id=s.method_id) as method,
        s.cost,
@@ -10,4 +11,7 @@ select s.id,
        s.customs_no,
        regexp_replace(s.description, '[[:space:]]+', ' ') as description
 
-from shipment s
+from shipment s,
+     herb_transaction t
+
+where s.herb_transaction_id=t.id
