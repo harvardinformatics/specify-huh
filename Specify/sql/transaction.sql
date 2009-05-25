@@ -17,7 +17,31 @@ select t.id,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
        to_char((select min(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
-       to_char((select max(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date
+       to_char((select max(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
+       (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
+       regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
+       igb.qty as in_qty,
+       ogb.qty as out_qty
 
+from herb_transaction t,
+     taxon_batch tb,
 
-from herb_transaction t
+     (select in_geo.herb_transaction_id,
+            (sum(in_geo.item_count) + sum(in_geo.type_count)) as qty
+      from in_geo_batch in_geo,
+           herb_transaction ht
+      where ht.id=in_geo.herb_transaction_id
+      group by in_geo.herb_transaction_id
+      ) igb,
+
+      (select out_geo.herb_transaction_id,
+            (sum(out_geo.item_count) + sum(out_geo.type_count)) as qty
+      from out_geo_batch out_geo,
+           herb_transaction ht
+      where ht.id=out_geo.herb_transaction_id
+      group by out_geo.herb_transaction_id
+      ) ogb
+
+where t.id=tb.herb_transaction_id(+) and
+      t.id=igb.herb_transaction_id(+) and
+      t.id=ogb.herb_transaction_id(+)
