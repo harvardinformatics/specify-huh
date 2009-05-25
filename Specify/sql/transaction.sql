@@ -16,8 +16,8 @@ select t.id,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
-       to_char((select min(date_due) from due_date where id=t.id)) as original_due_date,
-       to_char((select max(date_due) from due_date where id=t.id)) as current_due_date
+       to_char((select min(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
+       to_char((select max(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date
 
 
 from herb_transaction t
