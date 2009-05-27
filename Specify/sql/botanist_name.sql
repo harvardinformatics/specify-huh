@@ -3,5 +3,5 @@ select bn.botanist_id,
        regexp_replace(bn.name, '[[:space:]]+', ' ') as name
 
 from botanist_name bn
-where bn.type_id != 110101
+where (select name from st_lookup where id=bn.type_id) != 'full name'
 order by bn.botanist_id

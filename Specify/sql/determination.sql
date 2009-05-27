@@ -1,5 +1,6 @@
 select d.id,
        d.specimen_id,
+       (select acronym from organization where id=s.herbarium_id) as collection_code,
        d.taxon_id,
        (select name from st_lookup where id=d.qualifier_id) as qualifier,
        d.det_year,
@@ -12,4 +13,6 @@ select d.id,
        d.ordinal,
        d.remarks
 from
-       determination d
+       determination d, specimen s
+where
+       d.specimen_id=s.id
