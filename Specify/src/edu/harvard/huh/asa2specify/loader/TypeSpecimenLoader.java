@@ -20,23 +20,55 @@ import java.sql.Statement;
 import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.huh.asa.BDate;
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
+import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.DeterminationCitation;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 
+// Run this class after TaxonLoader, SpecimenItemLoader, and PublicationLoader.
+
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
+    private CollectionObjectLookup collObjLookup;
+    private TaxonLookup            taxonLookup;
+    private ReferenceWorkLookup    refWorkLookup;
+    
     // TODO: is the verifier the determiner?  is the designator the determiner?
-    public TypeSpecimenLoader(File csvFile, Statement sqlStatement)
+    public TypeSpecimenLoader(File csvFile,
+                              Statement sqlStatement,
+                              CollectionObjectLookup collObjLookup,
+                              TaxonLookup taxonLookup,
+                              ReferenceWorkLookup refWorkLookup)
+        throws LocalException
     {
         super(csvFile, sqlStatement);
+        
+        this.collObjLookup = collObjLookup;
+        this.taxonLookup   = taxonLookup;
+        this.refWorkLookup = refWorkLookup;
+    }
+
+    private CollectionObjectLookup getCollectionObjectLookup()
+    {
+        return this.collObjLookup;
+    }
+    
+    private TaxonLookup getTaxonLookup()
+    {
+        return this.taxonLookup;
+    }
+
+    private ReferenceWorkLookup getReferenceWorkLookup()
+    {
+        return this.refWorkLookup;
     }
 
     @Override
@@ -44,36 +76,27 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     {
         TypeSpecimen typeSpecimen = parse(columns);
 
+        Integer typeSpecimenId = typeSpecimen.getId();
+        setCurrentRecordId(typeSpecimenId);
+        
         Determination determination = getDetermination(typeSpecimen);
         String sql = getInsertSql(determination);
         Integer determinationId = insert(sql);
         determination.setDeterminationId(determinationId);
 
-        // create determination citations
-        Integer publicationId1 = typeSpecimen.getNle1PublicationId();
-        Integer designatorId1 = typeSpecimen.getNle1DesignatorId();
-        String collation1 = typeSpecimen.getNle1Collation();
-        String date1 = typeSpecimen.getNle1Date();
+        // DeterminationCitations
+        Integer collectionMemberId = determination.getCollectionMemberId();
         
-        DeterminationCitation determinationCitation1 = getDeterminationCitation(publicationId1, designatorId1, collation1, date1);
+        DeterminationCitation determinationCitation1 = get1stDeterminationCitation(typeSpecimen, determination, collectionMemberId);
         if (determinationCitation1 != null)
         {
-            determinationCitation1.setDetermination(determination);
-            determinationCitation1.setCollectionMemberId(determination.getCollectionMemberId());
             sql = getInsertSql(determinationCitation1);
             insert(sql);
         }
-        
-        Integer publicationId2 = typeSpecimen.getNle2PublicationId();
-        Integer designatorId2 = typeSpecimen.getNle2DesignatorId();
-        String collation2 = typeSpecimen.getNle2Collation();
-        String date2 = typeSpecimen.getNle2Date();
-        
-        DeterminationCitation determinationCitation2 = getDeterminationCitation(publicationId2, designatorId2, collation2, date2);
+                
+        DeterminationCitation determinationCitation2 = get2ndDeterminationCitation(typeSpecimen, determination, collectionMemberId);
         if (determinationCitation2 != null)
         {
-            determinationCitation2.setDetermination(determination);
-            determinationCitation2.setCollectionMemberId(determination.getCollectionMemberId());
             sql = getInsertSql(determinationCitation2);
             insert(sql);
         }
@@ -81,38 +104,38 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
     private TypeSpecimen parse(String[] columns) throws LocalException
     {
-        if (columns.length < 18)
+        if (columns.length < 19)
         {
             throw new LocalException("Wrong number of columns");
         }
         
-        TypeSpecimen typeSpecimen = new TypeSpecimen();
-        
+        TypeSpecimen typeSpecimen = new TypeSpecimen();     
         try
         {
-            typeSpecimen.setId(             Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-            typeSpecimen.setSpecimenId(     Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-            typeSpecimen.setTaxonId(        Integer.parseInt( StringUtils.trimToNull( columns[2] )));
-            typeSpecimen.setTypeStatus(                       StringUtils.trimToNull( columns[3] ));
-            typeSpecimen.setConditionality(                   StringUtils.trimToNull( columns[4] ));
-            typeSpecimen.setIsFragment( Boolean.parseBoolean( StringUtils.trimToNull( columns[5] )));
+            typeSpecimen.setId(            SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+            typeSpecimen.setSpecimenId(    SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
+            typeSpecimen.setCollectionCode(                   StringUtils.trimToNull( columns[2] ));
+            typeSpecimen.setTaxonId(       SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
+            typeSpecimen.setTypeStatus(                       StringUtils.trimToNull( columns[4] ));
+            typeSpecimen.setConditionality(                   StringUtils.trimToNull( columns[5] ));
+            typeSpecimen.setIsFragment( Boolean.parseBoolean( StringUtils.trimToNull( columns[6] )));
 
             BDate bdate = new BDate();
             typeSpecimen.setDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
-            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
-            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[8] )));
+            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
+            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[8] )));
+            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[9] )));
 
-            typeSpecimen.setNle1DesignatorId(  SqlUtils.parseInt( StringUtils.trimToNull( columns[9]  )));
-            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
-            typeSpecimen.setNle1Collation(                        StringUtils.trimToNull( columns[11] ));
-            typeSpecimen.setNle1Date(                             StringUtils.trimToNull( columns[12] ));
-            typeSpecimen.setNle2DesignatorId(  SqlUtils.parseInt( StringUtils.trimToNull( columns[13] )));
-            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[14] )));
-            typeSpecimen.setNle2Collation(                        StringUtils.trimToNull( columns[15] ));
-            typeSpecimen.setNle2Date(                             StringUtils.trimToNull( columns[16] ));
-            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[17] )));
+            typeSpecimen.setNle1Designator(                       StringUtils.trimToNull( columns[10] ));
+            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[11] )));
+            typeSpecimen.setNle1Collation(                        StringUtils.trimToNull( columns[12] ));
+            typeSpecimen.setNle1Date(                             StringUtils.trimToNull( columns[13] ));
+            typeSpecimen.setNle2Designator(                       StringUtils.trimToNull( columns[14] ));
+            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[15] )));
+            typeSpecimen.setNle2Collation(                        StringUtils.trimToNull( columns[16] ));
+            typeSpecimen.setNle2Date(                             StringUtils.trimToNull( columns[17] ));
+            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[18] )));
         }
         catch (NumberFormatException e)
         {
@@ -123,59 +146,25 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     }
     
     private Determination getDetermination(TypeSpecimen typeSpecimen) throws LocalException
-    {
+    {	
         Determination determination = new Determination();
         
-        // CollectionObject
-        Integer specimenId = typeSpecimen.getSpecimenId();
-        if (specimenId == null)
-        {
-            throw new LocalException("No specimen id");
-        }
-        
-        String guid = String.valueOf(specimenId);
-        
-        Integer collectionObjectId = getIntByField("collectionobject", "CollectionObjectID", "GUID", guid);
-
-        CollectionObject collectionObject = new CollectionObject();
-        collectionObject.setCollectionObjectId(collectionObjectId);
-
-        determination.setCollectionObject(collectionObject);
-
         // CollectionMemberID
-        Integer collectionMemberId = getIntByField("collectionobject", "CollectionMemberID", "GUID", guid);
+        String code = typeSpecimen.getCollectionCode();
+        Integer collectionMemberId = getCollectionId(code);
         determination.setCollectionMemberId(collectionMemberId);
 
-        // Taxon
-        Integer asaTaxonId = typeSpecimen.getTaxonId();
-        if (asaTaxonId == null)
-        {
-            throw new LocalException("No taxon id");
-        }
-
-        String taxonSerNumber = String.valueOf(asaTaxonId);
+        // CollectionObject
+        Integer specimenId = typeSpecimen.getSpecimenId();
+        checkNull(specimenId, "specimen id");
         
-        Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
-
-        Taxon taxon = new Taxon();
-        taxon.setTaxonId(taxonId);
+        CollectionObject collectionObject = getCollectionObjectLookup().getBySpecimenId(specimenId);
+        determination.setCollectionObject(collectionObject);
         
-        determination.setTaxon( taxon ); 
-        
-        // TypeStatusName
-        String typeStatus = typeSpecimen.getTypeStatus();
-        determination.setTypeStatusName(typeStatus);
-        
-        // Conditionality
+        // Confidence TODO: make enum for conditionality
         String conditionality = typeSpecimen.getConditionality();
         if ( conditionality != null && conditionality.length() > 50 )
-        {
-            warn("Truncating confidence", typeSpecimen.getId(), conditionality);
-        }
         determination.setConfidence(conditionality);
-        
-        // YesNo2 (isFragment)
-        determination.setYesNo1( typeSpecimen.isFragment() );
         
         // DeterminedDate
         BDate bdate = typeSpecimen.getDate();
@@ -192,60 +181,95 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         else
         {
-            warn("Invalid determination date", typeSpecimen.getId(),
+            warn("Invalid determination date",
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
-
-        // Text1 (verifiedBy) TODO: normalize determiner name to botanist agent?  does this even go here?
-        String verifiedBy = typeSpecimen.getVerifiedBy();
-        determination.setText1( verifiedBy );
+        
+        // IsCurrent
+        determination.setIsCurrent(true);
         
         // Remarks TODO: Maureen, check your notes on this field and label_text
         String remarks = typeSpecimen.getRemarks();
         determination.setRemarks(remarks);
+        
+        // Taxon
+        Integer asaTaxonId = typeSpecimen.getTaxonId();
+        checkNull(asaTaxonId, "taxon id");
+
+        Taxon taxon = getTaxonLookup().getByAsaTaxonId(asaTaxonId);
+        determination.setTaxon( taxon ); 
+
+        // Text1 (verifiedBy) TODO: normalize determiner name to botanist agent?  does this even go here?
+        String verifiedBy = typeSpecimen.getVerifiedBy();
+        determination.setText1(verifiedBy);
+        
+        // TypeStatusName
+        String typeStatus = typeSpecimen.getTypeStatus();
+        determination.setTypeStatusName(typeStatus);
+        
+        // YesNo1 (isLabel)
+        
+        // YesNo2 (isFragment)
+        determination.setYesNo1( typeSpecimen.isFragment() );
 
         return determination;
     }
         
-    private DeterminationCitation getDeterminationCitation(Integer publicationId, Integer designatorId, String collation, String date)
+    private DeterminationCitation get1stDeterminationCitation(TypeSpecimen typeSpecimen, Determination determination, Integer collectionMemberId)
         throws LocalException
-    {
-        if (publicationId == null)
-        {
-            if (designatorId != null || collation != null || date != null)
-            {
-                warn("No publication for designator, collation, or date", null, null);
-            }
-            return null;
-        }
+    {    	
+    	Integer publicationId = typeSpecimen.getNle1PublicationId();
+    	String  designator    = typeSpecimen.getNle1Designator();
+    	String  collation     = typeSpecimen.getNle1Collation();
+    	String  date          = typeSpecimen.getNle1Date();
+    	
+    	return getDeterminationCitation(determination, collectionMemberId, publicationId, designator, collation, date);
+    }
+    
+    private DeterminationCitation get2ndDeterminationCitation(TypeSpecimen typeSpecimen, Determination determination, Integer collectionMemberId)
+    	throws LocalException
+    {    	
+    	Integer publicationId = typeSpecimen.getNle2PublicationId();
+    	String  designator    = typeSpecimen.getNle2Designator();
+    	String  collation     = typeSpecimen.getNle2Collation();
+    	String  date          = typeSpecimen.getNle2Date();
 
+    	return getDeterminationCitation(determination, collectionMemberId, publicationId, designator, collation, date);
+    }
+    
+    private DeterminationCitation getDeterminationCitation(Determination determination,
+    		                                               Integer       collectionMemberId,
+    		                                               Integer       publicationId,
+    		                                               String       designator,
+    		                                               String        collation,
+    		                                               String        date)
+    	throws LocalException
+    {
+        if (publicationId == null) return null;
+        
         DeterminationCitation determinationCitation = new DeterminationCitation();
         
+        // CollectionMemberId
+        determinationCitation.setCollectionMemberId(collectionMemberId);
+        
+        // Determination
+        determinationCitation.setDetermination(determination);
+        
         // ReferenceWork
-        String guid = String.valueOf(publicationId);
-
-        Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
-        ReferenceWork referenceWork = new ReferenceWork();
-        referenceWork.setReferenceWorkId(referenceWorkId);
-
+        ReferenceWork referenceWork = getReferenceWorkLookup().getByPublicationId(publicationId);
         determinationCitation.setReferenceWork(referenceWork);
 
         // Remarks
         StringBuffer remarks = new StringBuffer();
         
-        // TODO: make designators into authors, too?
-        if (designatorId != null)
+        // TODO: retain relationship? make designators into authors?
+        if (designator != null)
         {
-            Botanist author = new Botanist();
-            author.setId(designatorId);
-            guid = author.getGuid();
-
-            String authorName = getStringByField("agent", "LastName", "GUID", guid);
-            remarks.append(authorName);
+            remarks.append("nle designator: " + designator);
         }
         else
         {
-            warn("No designator for publication", null, null);
+            warn("No designator for publication", null);
         }
         
         if (collation != null)
@@ -267,36 +291,38 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, TypeStatusName, Confidence, YesNo2, DeterminedDate, " +
-        		            "DeterminedDatePrecision, Text1, Remarks, CollectionMemberID, TimestampCreated";
+        String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
+        		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, " +
+        		            "TimestampCreated, TypeStatusName, YesNo2";
 
         String[] values = new String[12];
         
-        values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
-        values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
-        values[2]  = SqlUtils.sqlString( determination.getTaxon().getId());
-        values[3]  = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[4]  = SqlUtils.sqlString( determination.getConfidence());
-        values[5]  = SqlUtils.sqlString( determination.getYesNo2());
-        values[6]  = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[7]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[8]  = SqlUtils.sqlString( determination.getIsCurrent());
-        values[9]  = SqlUtils.sqlString( determination.getText1());
-        values[10] = SqlUtils.sqlString( determination.getRemarks());
-        values[11] = SqlUtils.now();
+        values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
+        values[1]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
+        values[2]  = SqlUtils.sqlString( determination.getConfidence());
+        values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
+        values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
+        values[5]  = SqlUtils.sqlString( determination.getIsCurrent());
+        values[6]  = SqlUtils.sqlString( determination.getRemarks());
+        values[7]  = SqlUtils.sqlString( determination.getTaxon().getId());
+        values[8]  = SqlUtils.sqlString( determination.getText1());
+        values[9]  = SqlUtils.now();
+        values[10] = SqlUtils.sqlString( determination.getTypeStatusName());
+        values[11] = SqlUtils.sqlString( determination.getYesNo2());
+
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
     
     private String getInsertSql(DeterminationCitation determinationCitation)
     {
-        String fieldNames = "DeterminationID, ReferenceWorkID, CollectionMemberID, Remarks, TimestampCreated";
+        String fieldNames = "CollectionMemberID, DeterminationID, ReferenceWorkID, Remarks, TimestampCreated";
         
         String[] values = new String[5];
         
-        values[0] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
-        values[1] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
-        values[2] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
+        values[0] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
+        values[2] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
         values[3] = SqlUtils.sqlString( determinationCitation.getRemarks());
         values[4] = SqlUtils.now();
 

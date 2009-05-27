@@ -20,11 +20,6 @@ public class BotanistTeamMember
     private Integer teamId;
     private Integer ordinal;
     
-    public BotanistTeamMember()
-    {
-        ;
-    }
-    
     public Integer getBotanistId() { return botanistId; }
     
     public Integer getTeamId() { return teamId; }
@@ -36,5 +31,4 @@ public class BotanistTeamMember
     public void setTeamId(Integer teamId) { this.teamId = teamId; }
     
     public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
-    
 }

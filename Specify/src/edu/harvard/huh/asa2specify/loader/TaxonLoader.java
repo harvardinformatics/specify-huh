@@ -16,6 +16,7 @@ import edu.harvard.huh.asa.AsaTaxon.STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -23,8 +24,39 @@ import edu.ku.brc.specify.datamodel.TaxonCitation;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
-public class TaxonLoader extends CsvToSqlLoader
+// Run this class after OptrLoader.
+
+public class TaxonLoader extends TreeLoader
 {
+    public TaxonLookup getTaxonLookup()
+    {
+        if (taxonLookup == null)
+        {
+            taxonLookup = new TaxonLookup() {
+                
+                public Taxon getByAsaTaxonId(Integer asaTaxonId) throws LocalException
+                {
+                    Taxon taxon = new Taxon();
+                    
+                    String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
+                    
+                    Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
+                    
+                    taxon.setTaxonId(taxonId);
+                    
+                    return taxon;
+                }
+            };
+        }
+        
+        return taxonLookup;
+    }
+
+    private String getTaxonSerialNumber(Integer asaTaxonId)
+	{
+		return String.valueOf(asaTaxonId);
+	}
+
 	private final Logger log = Logger.getLogger(TaxonLoader.class);
 
 	private TaxonTreeDef treeDef;
@@ -32,6 +64,8 @@ public class TaxonLoader extends CsvToSqlLoader
 	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
 
 	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
+	
+	private TaxonLookup taxonLookup;
 	
 	public TaxonLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
@@ -88,19 +122,20 @@ public class TaxonLoader extends CsvToSqlLoader
 	}
 
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
+	public void loadRecord(String[] columns) throws LocalException
+	{
 		AsaTaxon asaTaxon = parse(columns);
+		
+		Integer asaTaxonId = asaTaxon.getId();
+		setCurrentRecordId(asaTaxonId);
 		
 		Taxon taxon = getTaxon(asaTaxon);
 		
 		String rank = asaTaxon.getRank();
-
+		checkNull(rank, "rank");
+		
 		Integer rankId = taxonRankIdsByType.get(rank);
-		if (rankId == null)
-		{
-			throw new LocalException("No rank id for " + asaTaxon.getId() + " " + rank);
-		}
-		taxon.setRankId(rankId);
+		checkNull(rankId, "rank id");
 		
 		if (rankId <= taxonRankIdsByType.get("family"))
 		{
@@ -110,41 +145,11 @@ public class TaxonLoader extends CsvToSqlLoader
 		        frame.setDesc("Loading " + taxon.getName() + "...");
 		    }
 		}
-
-		taxon.setDefinition(treeDef);
 		
-		TaxonTreeDefItem defItem = getTreeDefItemByRankId(rankId);
-		if (defItem == null)
-		{
-			throw new LocalException("No tree def item for rank " + asaTaxon.getId() + " " + rankId);
-		}
-		taxon.setDefinitionItem(defItem);
-		
-		// find matching parent
-		Taxon parent = new Taxon();
-		Integer parentId = asaTaxon.getParentId();
-		if (parentId != null)
-		{
-		    String taxSerNum = String.valueOf(parentId);
-
-		    parentId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxSerNum);
-		}
-		else
-		{
-		    parentId = Integer.valueOf(1); // TODO: this only just happens to work.
-		}
-		parent.setTaxonId(parentId);
-		taxon.setParent(parent);
-		
-        // find matching record creator
-        Integer creatorOptrId = asaTaxon.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        taxon.setCreatedByAgent(createdByAgent);
-        
 		String sql = getInsertSql(taxon);
 		Integer taxonId = insert(sql);
 		taxon.setTaxonId(taxonId);
-
+		
 		// TODO: create authors for taxon?
 		
 		// TaxonCitation
@@ -192,7 +197,7 @@ public class TaxonLoader extends CsvToSqlLoader
 		    taxon.setCitCollation(                             StringUtils.trimToNull( columns[16] ));
 		    taxon.setCitDate(                                  StringUtils.trimToNull( columns[17] ));
 		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[18] )));
-		    taxon.setCreatedById(            Integer.parseInt( StringUtils.trimToNull( columns[19] )));
+		    taxon.setCreatedById(           SqlUtils.parseInt( StringUtils.trimToNull( columns[19] )));
 		    taxon.setDateCreated(          SqlUtils.parseDate( StringUtils.trimToNull( columns[20] )));
 		}
 		catch (NumberFormatException e)
@@ -219,13 +224,15 @@ public class TaxonLoader extends CsvToSqlLoader
 		ENDANGERMENT endangerment = asaTaxon.getEndangerment();
 		specifyTaxon.setCitesStatus(AsaTaxon.toString(endangerment));
 
+        // CreatedByAgent
+        Integer creatorOptrId = asaTaxon.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        specifyTaxon.setCreatedByAgent(createdByAgent);
+        
 		// FullName
 		String fullName = asaTaxon.getFullName();
-		if (fullName != null && fullName.length() > 255)
-		{
-			warn("Truncating full name", asaTaxon.getId(), fullName);
-			fullName = fullName.substring(0, 255);
-		}
+		checkNull(fullName, "full name");
+		fullName = truncate(fullName, 255, "full name");
 		specifyTaxon.setFullName(fullName);
 
 		// GroupNumber TODO: keep taxon group in GroupNumber?
@@ -242,24 +249,53 @@ public class TaxonLoader extends CsvToSqlLoader
 
         // Name
 		String name = asaTaxon.getName();
-		if (name == null)
-		{
-		    throw new LocalException("No name in taxon record " + asaTaxon.getId() + " " + name);
-		}
-		if (name.length() > 64)
-		{
-			warn("Truncating name", asaTaxon.getId(), name);
-			name = name.substring(0, 64);
-		}
+		checkNull(name, "name");
+		name = truncate(name, 64, "name");
 		specifyTaxon.setName(name);
 
-        // Remarks
+		// Parent
+		Taxon parent = null;
+		Integer parentId = asaTaxon.getParentId();
+		if (parentId != null)
+		{
+		    parent = getTaxonLookup().getByAsaTaxonId(parentId);
+		}
+		else
+		{
+			parent = new Taxon();
+			parent.setTaxonId(1); // TODO: this only just happens to work.
+		}
+		specifyTaxon.setParent(parent);
+		        
+		// RankID
+		String rank = asaTaxon.getRank();
+		checkNull(rank, "rank");
+		
+		Integer rankId = taxonRankIdsByType.get(rank);
+		checkNull(rankId, "rank id");
+		
+		specifyTaxon.setRankId(rankId);
+		
+		// Remarks
         String remarks = asaTaxon.getRemarks();
         specifyTaxon.setRemarks(remarks);
         
 		// TaxonomicSerialNumber
-		specifyTaxon.setTaxonomicSerialNumber( Integer.toString( asaTaxon.getId() ) );
+		Integer asaTaxonId = asaTaxon.getId();
+		checkNull(asaTaxonId, "id");
+		
+        String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
+		specifyTaxon.setTaxonomicSerialNumber(taxonSerialNumber);
 
+		// TaxonTreeDef
+		specifyTaxon.setDefinition(treeDef);
+		
+		// TaxonTreeDefItem
+		TaxonTreeDefItem defItem = getTreeDefItemByRankId(rankId);
+		checkNull(defItem, "tree def item");
+		
+		specifyTaxon.setDefinitionItem(defItem);
+		
 		// TimestampCreated
         Date dateCreated = asaTaxon.getDateCreated();
         specifyTaxon.setTimestampCreated(DateUtils.toTimestamp(dateCreated));

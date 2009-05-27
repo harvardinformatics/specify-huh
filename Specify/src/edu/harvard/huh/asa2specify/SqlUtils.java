@@ -119,6 +119,10 @@ public class SqlUtils
         return sb.toString();
     }
     
+    public static String getUpdateSql(String tableName, String[] fields, String[] values, String whereField, Integer whereValue) {
+    	return getUpdateSql(tableName, fields, values, whereField, String.valueOf(whereValue));
+    }
+    
     public static String sqlEscape(String string, char c) {
         if (string == null) return null;
 
@@ -235,6 +239,21 @@ public class SqlUtils
             throw new LocalException("Couldn't parse double", e);
         }
         return BigDecimal.valueOf(dbl);
+    }
+    
+    public static Float parseFloat(String s) throws LocalException
+    {
+        if (s == null) return null;
+        
+        Float f = null;
+        try {
+            Float.parseFloat(s);
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse double", e);
+        }
+        return f;
     }
 
     public static String iso8859toUtf8( String string ) throws LocalException

@@ -2,8 +2,8 @@ package edu.harvard.huh.asa;
 
 import java.util.Date;
 
-public class Organization {
-
+public class Organization
+{
 	private Integer id;
 	private  String name;
 	private  String acronym;
@@ -12,16 +12,10 @@ public class Organization {
 	private  String country;
 	private  String uri;
 	private Integer createdById;
-	private Date dateCreated;
+	private    Date dateCreated;
 	private  String remarks;
 	
-	public Organization() {
-		;
-	}
-	
 	public Integer getId() { return id; }
-	
-	public String getGuid() { return id + " " + "org"; }
 	
 	public String getName() { return name; }
 	

@@ -12,23 +12,21 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package edu.harvard.huh.asa;
+package edu.harvard.huh.asa2specify.lookup;
 
-public class PublAuthor
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.ku.brc.specify.datamodel.Agent;
+
+public interface BotanistLookup
 {
-    private Integer publicationId;
-    private Integer authorId;
-    private Integer ordinal;
-
-    public Integer getPublicationId() { return this.publicationId; }
-    
-    public Integer getAuthorId() { return this.authorId; }
-    
-    public Integer getOrdinal() { return this.ordinal; }
-    
-    public void setPublicationId(Integer publicationId) { this.publicationId = publicationId; }
-    
-    public void setAuthorId(Integer authorId) { this.authorId = authorId; }
-    
-    public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
+    /**
+     * Create an Agent object with id found from database record in agent table
+     * corresponding to a previously loaded Botanist with given botanistId.  Throws
+     * an exception of the record was not found.
+     * 
+     * @param botanistId
+     * @return
+     * @throws LocalException
+     */
+    public Agent getByBotanistId(Integer botanistId) throws LocalException;
 }

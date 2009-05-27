@@ -66,6 +66,8 @@ public class AsaShipment
     private  String trackingNo;
     private  String customsNo;
     private  String description;
+    private  String boxCount;
+    private  String collectionCode;
     
     public Integer getId() { return id; }
     
@@ -91,6 +93,10 @@ public class AsaShipment
     
     public String getDescription() { return description; }
     
+    public String getBoxCount() { return boxCount; }
+    
+    public String getCollectionCode() { return collectionCode; }
+    
     public void setId(Integer id) { this.id = id; }
     
     public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
@@ -114,4 +120,8 @@ public class AsaShipment
     public void setCustomsNumber(String customsNo) { this.customsNo = customsNo; }
     
     public void setDescription(String description) { this.description = description; }
+    
+    public void setBoxCount(String boxCount) { this.boxCount = boxCount; }
+    
+    public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 }

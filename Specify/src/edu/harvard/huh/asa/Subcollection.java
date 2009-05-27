@@ -2,8 +2,8 @@ package edu.harvard.huh.asa;
 
 import java.util.Date;
 
-public class Subcollection {
-
+public class Subcollection
+{
 	private Integer id;
 	private  String collectionCode;
 	private Integer taxonGroupId;
@@ -15,8 +15,6 @@ public class Subcollection {
 	private  String remarks;
 	private Integer createdById;
 	private    Date dateCreated;
-	
-	public Subcollection() { ; }
 	
 	public Integer getId() { return id; }
 	
@@ -42,7 +40,7 @@ public class Subcollection {
 
 	public Date getDateCreated() { return dateCreated; }
 
-	public void setId(int id) { this.id = id; }
+	public void setId(Integer id) { this.id = id; }
 
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 

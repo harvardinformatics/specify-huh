@@ -6,15 +6,15 @@ import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Affiliate;
-import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa.Transaction.TYPE;
+import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -31,12 +31,13 @@ import edu.ku.brc.specify.datamodel.GiftAgent;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanAgent;
 
-public class TransactionLoader extends CsvToSqlLoader
+// Run this class after AffiliateLoader, AgentLoader, and OrganizationLoader
+public class TransactionLoader extends AuditedObjectLoader
 {
-    private static final String DEFAULT_BORROW_NUMBER = "none";
-	private static final String DEFAULT_LOAN_NUMBER = "none";
-	private static final String DEFAULT_GIFT_NUMBER = "none";
-    private static final String DEFAULT_ACCESSION_NUMBER = "none";
+    private static final String DEFAULT_BORROW_NUMBER      = "none";
+	private static final String DEFAULT_LOAN_NUMBER        = "none";
+	private static final String DEFAULT_GIFT_NUMBER        = "none";
+    private static final String DEFAULT_ACCESSION_NUMBER   = "none";
     private static final String DEFAULT_DEACCESSION_NUMBER = "none";
 	
 	// config/common/picklist
@@ -46,14 +47,32 @@ public class TransactionLoader extends CsvToSqlLoader
 
 	private Discipline discipline;
 	private Division division;
-	private Integer collectionMemberId;
 	
-	public TransactionLoader(File csvFile, Statement sqlStatement) throws LocalException
+	private AsaIdMapper botanistsByAffiliate;
+	private AsaIdMapper botanistsByAgent;
+	
+	private BotanistLookup botanistLookup;
+	
+	public TransactionLoader(File csvFile,
+	                         Statement sqlStatement,
+	                         File affiliateBotanists,
+	                         File agentBotanists,
+	                         BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.discipline = getBotanyDiscipline();
 		this.division   = getBotanyDivision();
+		
+		this.botanistsByAffiliate = new AsaIdMapper(affiliateBotanists);
+		this.botanistsByAgent     = new AsaIdMapper(agentBotanists);
+		
+		this.botanistLookup = botanistLookup;
+	}
+	
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -76,19 +95,19 @@ public class TransactionLoader extends CsvToSqlLoader
 	    
 	    // TODO: get list of conditions to raise warnings and exceptions
 	    
-	    // TODO: user_type
+	    // TODO: assign user_type
 	    
-	    // TODO: box_count
+	    // TODO: assign box_count
 	    
 	    Transaction transaction = parse(columns);
-
+	    
+	    Integer transactionId = transaction.getId();
+	    setCurrentRecordId(transactionId);
+	    
         String code = transaction.getLocalUnit();
-        if (code == null)
-        {
-            throw new LocalException("No local unit");
-        }
+        checkNull(code, "local unit");
 
-        collectionMemberId = getCollectionId(code);
+        Integer collectionMemberId = getCollectionId(code);
         
 		TYPE type = transaction.getType();
 		if (type == null)
@@ -104,7 +123,7 @@ public class TransactionLoader extends CsvToSqlLoader
 			Integer loanId = insert(sql);
 			loan.setLoanId(loanId);
 			
-			LoanAgent borrower = getLoanAgent(transaction, loan, ROLE.borrower); // "contact"
+			LoanAgent borrower = getLoanAgent(transaction, loan, ROLE.borrower, collectionMemberId); // "contact"
 			if (borrower != null)
 			{
 			    sql = getInsertSql(borrower);
@@ -113,20 +132,20 @@ public class TransactionLoader extends CsvToSqlLoader
 		}
 		else if (type.equals(TYPE.Borrow))
 		{
-			Borrow borrow = getBorrow(transaction);
+			Borrow borrow = getBorrow(transaction, collectionMemberId);
 			
 			String sql = getInsertSql(borrow);
 			Integer borrowId = insert(sql);
 			borrow.setBorrowId(borrowId);
 			
-			BorrowAgent borrower = getBorrowAgent(transaction, borrow, ROLE.borrower); // "for use by"
+			BorrowAgent borrower = getBorrowAgent(transaction, borrow, ROLE.borrower, collectionMemberId); // "for use by"
 			if (borrower != null)
 			{
 			    sql = getInsertSql(borrower);
 			    insert(sql);
 			}
 			
-			BorrowAgent lender = getBorrowAgent(transaction, borrow, ROLE.lender); // "contact"
+			BorrowAgent lender = getBorrowAgent(transaction, borrow, ROLE.lender, collectionMemberId); // "contact"
 			if (lender != null)
 			{
 			    sql = getInsertSql(lender);
@@ -155,13 +174,13 @@ public class TransactionLoader extends CsvToSqlLoader
 			Integer giftId = insert(sql);
 			gift.setGiftId(giftId);
 			
-			GiftAgent receiver = getGiftAgent(transaction, gift, ROLE.receiver);
+			GiftAgent receiver = getGiftAgent(transaction, gift, ROLE.receiver, collectionMemberId);
 			if (receiver != null)
 			{
 			    sql = getInsertSql(receiver);
 			    insert(sql);
 			}
-			GiftAgent donor = getGiftAgent(transaction, gift, ROLE.donor);
+			GiftAgent donor = getGiftAgent(transaction, gift, ROLE.donor, collectionMemberId);
 			if (donor != null)
 			{
 			    sql = getInsertSql(donor);
@@ -230,7 +249,7 @@ public class TransactionLoader extends CsvToSqlLoader
 		else if (type.equals(TYPE.OutMiscellaneous))
 		{
 		    // TODO: figure out how to deal with outgoing miscellaneous transactions
-		    warn("Outgoing miscellaneous transaction, do this by hand", transaction.getId(), transaction.getTransactionNo());
+		    warn("Outgoing miscellaneous transaction, do this by hand", transaction.getTransactionNo());
 		}
 	}
 
@@ -245,13 +264,13 @@ public class TransactionLoader extends CsvToSqlLoader
 		
 		try
 		{
-			transaction.setId(                      Integer.parseInt( StringUtils.trimToNull( columns[0] )));
+			transaction.setId(                     SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
 			transaction.setType(               Transaction.parseType( StringUtils.trimToNull( columns[1] )));
-			transaction.setAgentId(                 Integer.parseInt( StringUtils.trimToNull( columns[2] )));
+			transaction.setAgentId(                SqlUtils.parseInt( StringUtils.trimToNull( columns[2] )));
 			transaction.setLocalUnit(                                 StringUtils.trimToNull( columns[3] ));
 			transaction.setRequestType( Transaction.parseRequestType( StringUtils.trimToNull( columns[4] )));
 			transaction.setPurpose(         Transaction.parsePurpose( StringUtils.trimToNull( columns[5] )));
-			transaction.setAffiliateId(             Integer.parseInt( StringUtils.trimToNull( columns[6] )));
+			transaction.setAffiliateId(            SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
 			transaction.setUserType(       Transaction.parseUserType( StringUtils.trimToNull( columns[7] )));
 			transaction.setIsAcknowledged(      Boolean.parseBoolean( StringUtils.trimToNull( columns[8] )));
 
@@ -283,8 +302,7 @@ public class TransactionLoader extends CsvToSqlLoader
 			transaction.setCurrentDueDate(currentDueDate);
 			
 			transaction.setHigherTaxon( StringUtils.trimToNull( columns[20] ));
-			transaction.setTaxon(       StringUtils.trimToNull( columns[21] ));
-            
+			transaction.setTaxon(       StringUtils.trimToNull( columns[21] ));          
 		}
 		catch (NumberFormatException e)
 		{
@@ -294,12 +312,18 @@ public class TransactionLoader extends CsvToSqlLoader
 		{
 			throw new LocalException("Couldn't parse field", e);
 		}
-		catch (NullPointerException e)
-		{
-			throw new LocalException("Missing required field", e);
-		}
 		
 		return transaction;
+	}
+	
+	private Integer getBotanistIdByAffiliateId(Integer affiliateId)
+	{
+		return botanistsByAffiliate.map(affiliateId);
+	}
+	
+	private Integer getBotanistIdByAgentId(Integer agentId)
+	{
+		return botanistsByAgent.map(agentId);
 	}
 	
 	private Loan getLoan(Transaction transaction) throws LocalException
@@ -355,7 +379,7 @@ public class TransactionLoader extends CsvToSqlLoader
 		}
 		if (transactionNo.length() > 50)
 		{
-			warn("Truncating loan number", transaction.getId(), transactionNo);
+			warn("Truncating loan number", transactionNo);
 			transactionNo = transactionNo.substring(0, 50);
 		}
 		loan.setLoanNumber(transactionNo);
@@ -425,7 +449,7 @@ public class TransactionLoader extends CsvToSqlLoader
 		return loan;
 	}
 	
-	private LoanAgent getLoanAgent(Transaction transaction, Loan loan, ROLE role) throws LocalException
+	private LoanAgent getLoanAgent(Transaction transaction, Loan loan, ROLE role, Integer collectionMemberId) throws LocalException
 	{
         LoanAgent loanAgent = new LoanAgent();
         
@@ -469,19 +493,23 @@ public class TransactionLoader extends CsvToSqlLoader
 
 	private Agent getAffiliateAgent(Transaction transaction) throws LocalException
 	{
-        Agent agent = new Agent();
+        Agent agent = null;
         
 	    Integer affiliateId = transaction.getAffiliateId();
 
 	    if (affiliateId != null)
 	    {
-	        Affiliate affiliate = new Affiliate();
-	        affiliate.setId(affiliateId);
-	        String guid = affiliate.getGuid();
-
-	        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-	        agent.setAgentId(agentId);
+	    	Integer botanistId = getBotanistIdByAffiliateId(affiliateId);
+	    	if (botanistId != null)
+	    	{
+	    		agent = lookup(botanistId);
+	    	}
+	    	else
+	    	{
+	    		agent = getAgentByAffiliateId(affiliateId);
+	    	}
 	    }
+	    
         return agent;
 	}
 	
@@ -493,17 +521,20 @@ public class TransactionLoader extends CsvToSqlLoader
 
 	    if (asaAgentId != null)
 	    {
-	        AsaAgent asaAgent = new AsaAgent();
-	        asaAgent.setId(asaAgentId);
-	        String guid = asaAgent.getGuid();
-
-	        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-	        agent.setAgentId(agentId);
+	        Integer botanistId = getBotanistIdByAgentId(asaAgentId);
+	        if (botanistId != null)
+	        {
+	        	agent = lookup(botanistId);
+	        }
+	        else
+	        {
+	        	agent = getAgentByAsaAgentId(asaAgentId);
+	        }
 	    }
 	    return agent;
 	}
 
-	private Borrow getBorrow(Transaction transaction) throws LocalException
+	private Borrow getBorrow(Transaction transaction, Integer collectionMemberId) throws LocalException
 	{
 		Borrow borrow = new Borrow();
         
@@ -539,7 +570,7 @@ public class TransactionLoader extends CsvToSqlLoader
         }
         if (transactionNo.length() > 50)
         {
-            warn("Truncating invoice number", transaction.getId(), transactionNo);
+            warn("Truncating invoice number", transactionNo);
             transactionNo = transactionNo.substring(0, 50);
         }
         borrow.setInvoiceNumber(transactionNo);
@@ -592,7 +623,7 @@ public class TransactionLoader extends CsvToSqlLoader
 		return borrow;
 	}
 	
-	private BorrowAgent getBorrowAgent(Transaction transaction, Borrow borrow, ROLE role) throws LocalException
+	private BorrowAgent getBorrowAgent(Transaction transaction, Borrow borrow, ROLE role, Integer collectionMemberId) throws LocalException
 	{
 	    BorrowAgent borrowAgent = new BorrowAgent();
         
@@ -796,7 +827,7 @@ public class TransactionLoader extends CsvToSqlLoader
         }
         if (transactionNo.length() > 50)
         {
-            warn("Truncating invoice number", transaction.getId(), transactionNo);
+            warn("Truncating invoice number", transactionNo);
             transactionNo = transactionNo.substring(0, 50);
         }
         gift.setGiftNumber(transactionNo);
@@ -841,7 +872,7 @@ public class TransactionLoader extends CsvToSqlLoader
 		return gift;
 	}
 	
-	private GiftAgent getGiftAgent(Transaction transaction, Gift gift, ROLE role) throws LocalException
+	private GiftAgent getGiftAgent(Transaction transaction, Gift gift, ROLE role, Integer collectionMemberId) throws LocalException
 	{
 	    GiftAgent giftAgent = new GiftAgent();
 	    
@@ -899,7 +930,7 @@ public class TransactionLoader extends CsvToSqlLoader
 	    }
 	    if (transactionNo.length() > 50)
 	    {
-	        warn("Truncating loan number", transaction.getId(), transactionNo);
+	        warn("Truncating loan number", transactionNo);
 	        transactionNo = transactionNo.substring(0, 50);
 	    }
 	    deaccession.setDeaccessionNumber(transactionNo);
@@ -989,7 +1020,7 @@ public class TransactionLoader extends CsvToSqlLoader
         }
         if (transactionNo.length() > 50)
         {
-            warn("Truncating invoice number", transaction.getId(), transactionNo);
+            warn("Truncating invoice number", transactionNo);
             transactionNo = transactionNo.substring(0, 50);
         }
         accession.setAccessionNumber(transactionNo);
@@ -1006,10 +1037,8 @@ public class TransactionLoader extends CsvToSqlLoader
 	    
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = transaction.getId();
-        if (transactionId == null)
-        {
-            throw new LocalException("No transaction id");
-        }
+        checkNull(transactionId, "transaction id");
+        
         accession.setNumber1((float) transactionId);
 	    
 	    // Remarks
@@ -1313,5 +1342,31 @@ public class TransactionLoader extends CsvToSqlLoader
         values[3] = SqlUtils.now();
 
 	    return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
+	}
+	
+	private Agent getAgentByAffiliateId(Integer affiliateId) throws LocalException
+	{
+		Agent agent = new Agent();
+		
+		String guid = AffiliateLoader.getGuid(affiliateId);
+		
+        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+
+        agent.setAgentId(agentId);
+        
+        return agent;
+	}
+	
+	private Agent getAgentByAsaAgentId(Integer asaAgentId) throws LocalException
+	{
+		Agent agent = new Agent();
+		
+		String guid = AgentLoader.getGuid(asaAgentId);
+		
+        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+
+        agent.setAgentId(agentId);
+        
+        return agent;
 	}
 }

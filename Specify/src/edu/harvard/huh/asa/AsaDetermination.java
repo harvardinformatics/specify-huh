@@ -18,6 +18,7 @@ public class AsaDetermination
 {
     private Integer id;
     private Integer specimenId;
+    private  String collectionCode;
     private Integer taxonId;
     private  String qualifier;
     private   BDate date;
@@ -31,6 +32,8 @@ public class AsaDetermination
     public Integer getId() { return id; }
     
     public Integer getSpecimenId() { return specimenId; }
+    
+    public String getCollectionCode() { return collectionCode; }
     
     public Integer getTaxonId() { return taxonId; }
     
@@ -53,6 +56,8 @@ public class AsaDetermination
     public void setId(Integer id) { this.id = id; }
     
     public void setSpecimenId(Integer specimenId) { this.specimenId = specimenId; }
+    
+    public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
     
     public void setTaxonId(Integer taxonId) { this.taxonId = taxonId; }
 

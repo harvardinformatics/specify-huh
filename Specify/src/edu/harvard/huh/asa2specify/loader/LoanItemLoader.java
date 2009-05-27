@@ -15,9 +15,10 @@ import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 
+// Run this class after SpecimenItemLoader and TransactionLoader
 public class LoanItemLoader extends CsvToSqlLoader
 {
-	public LoanItemLoader(File csvFile, Statement sqlStatement)
+	public LoanItemLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 	}
@@ -26,6 +27,9 @@ public class LoanItemLoader extends CsvToSqlLoader
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		LoanItem loanItem = parse(columns);
+		
+		Integer loanItemId = loanItem.getId();
+		setCurrentRecordId(loanItemId);
 		
 		LoanPreparation loanPreparation = getLoanPreparation(loanItem);
 		
@@ -51,14 +55,13 @@ public class LoanItemLoader extends CsvToSqlLoader
     		throw new LocalException("Wrong number of columns");
     	}
 
-    	LoanItem loanItem = new LoanItem();
-    	
+    	LoanItem loanItem = new LoanItem(); 	
     	try
     	{
-    		loanItem.setId( Integer.parseInt(           StringUtils.trimToNull( columns[0] )));
-    		loanItem.setLoanId( Integer.parseInt(       StringUtils.trimToNull( columns[1] )));
+    		loanItem.setId(          SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+    		loanItem.setLoanId(      SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
     		loanItem.setReturnDate( SqlUtils.parseDate( StringUtils.trimToNull( columns[2] )));
-    		loanItem.setBarcode(                        StringUtils.trimToNull( columns[3] ));
+    		loanItem.setBarcode(     SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
     		loanItem.setTransferredFrom(                StringUtils.trimToNull( columns[4] ));
     		loanItem.setTransferredTo(                  StringUtils.trimToNull( columns[5] ));
     		loanItem.setCollection(                     StringUtils.trimToNull( columns[6] ));
@@ -66,10 +69,6 @@ public class LoanItemLoader extends CsvToSqlLoader
     	catch (NumberFormatException e)
     	{
     		throw new LocalException("Couldn't parse numeric field", e);
-    	}
-    	catch (NullPointerException e)
-    	{
-    		throw new LocalException("Missing required field", e);
     	}
     	
     	return loanItem;

@@ -5,61 +5,54 @@ import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistRoleCountry;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentGeography;
 import edu.ku.brc.specify.datamodel.Geography;
 
+// Run this class after BotanistLoader and GeoUnitLoader.
+
 public class BotanistCountryLoader extends CsvToSqlLoader
 {
-	public BotanistCountryLoader(File csvFile, Statement sqlStatement)
+    // lookups for geography
+    private GeographyLookup geoLookup;
+    private BotanistLookup  botanistLookup;
+    
+	public BotanistCountryLoader(File csvFile,
+	                             Statement sqlStatement,
+	                             GeographyLookup geoLookup,
+	                             BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
+		
+		this.geoLookup = geoLookup;
+		this.botanistLookup = botanistLookup;
 	}
 
+	private Geography lookupGeography(Integer geoUnitId) throws LocalException
+	{
+	    return geoLookup.getByGeoUnitId(geoUnitId);
+	}
+    
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getByBotanistId(botanistId);
+    }
+    
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		BotanistRoleCountry botanistRoleCountry = parse(columns);
+		
+		Integer botanistId = botanistRoleCountry.getBotanistId();
+		setCurrentRecordId(botanistId);
 
 		// convert BotanistRoleCountry into AgentGeography
-		AgentGeography agentGeography = convert(botanistRoleCountry);
-
-		// find the matching agent record
-		Agent agent = new Agent();
-		Integer botanistId = botanistRoleCountry.getBotanistId();
-
-		if (botanistId == null)
-		{
-			throw new LocalException("No botanist id");
-		}
-		Botanist botanist = new Botanist();
-		botanist.setId(botanistId);
-
-		String guid = botanist.getGuid();
-
-		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-
-		agent.setAgentId(agentId);
-		agentGeography.setAgent(agent);
-
-		// find the matching geography record
-		Geography geography = new Geography();
-		Integer geoUnitId = botanistRoleCountry.getGeoUnitId();
-
-		if (geoUnitId == null)
-		{
-			throw new LocalException("No geo unit id");
-		}
-		guid = String.valueOf(geoUnitId);
-
-		Integer geographyId = getIntByField("geography", "GeographyID", "GUID", guid);
-
-		geography.setGeographyId(geographyId);
-		agentGeography.setGeography(geography);
+		AgentGeography agentGeography = getAgentGeography(botanistRoleCountry);
 
 		// convert agentgeography to sql and insert
 		String sql = getInsertSql(agentGeography);
@@ -76,54 +69,65 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		BotanistRoleCountry botanistRoleCountry = new BotanistRoleCountry();
 		try
 		{
-			botanistRoleCountry.setBotanistId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-
-			String role =                                        StringUtils.trimToNull( columns[1] );
-			if (role == null) throw new LocalException("No type found in record ");
-
-			botanistRoleCountry.setRole(role);
-
-			botanistRoleCountry.setGeoUnitId( Integer.parseInt( StringUtils.trimToNull( columns[2] )));
-			botanistRoleCountry.setOrdinal(   Integer.parseInt( StringUtils.trimToNull( columns[3] )));
+			botanistRoleCountry.setBotanistId( SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+			botanistRoleCountry.setRole(                          StringUtils.trimToNull( columns[1] ));
+			botanistRoleCountry.setGeoUnitId(  SqlUtils.parseInt( StringUtils.trimToNull( columns[2] )));
+			botanistRoleCountry.setOrdinal(    SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
 		}
 		catch (NumberFormatException e)
 		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
-
+		
 		return botanistRoleCountry;
 	}
 
-
-	private AgentGeography convert(BotanistRoleCountry botanistRoleCountry)
+	private AgentGeography getAgentGeography(BotanistRoleCountry botanistRoleCountry)
+		throws LocalException
 	{
 		AgentGeography agentGeography = new AgentGeography();
 
+		// Agent
+		Integer botanistId = botanistRoleCountry.getBotanistId();
+		checkNull(botanistId, "botanist id");
+
+		Agent agent = lookupBotanist(botanistId);
+		agentGeography.setAgent(agent);
+
+		// Geography
+		Integer geoUnitId = botanistRoleCountry.getGeoUnitId();
+		checkNull(geoUnitId, "geo unit id");
+
+		Geography geography = lookupGeography(geoUnitId);
+		agentGeography.setGeography(geography);
+		
+		// Role
 		String role = botanistRoleCountry.getRole();
-		if (role.length() > 64)
-		{
-			warn("Truncating botanist role", botanistRoleCountry.getBotanistId(), role);
-			role = role.substring(0, 64);
-		}
+		checkNull(role, "role");
+		role = truncate(role, 64, "role");
 		agentGeography.setRole(role);
 
 		Integer ordinal = botanistRoleCountry.getOrdinal();
-		agentGeography.setRemarks(String.valueOf(ordinal));
+		if (ordinal != null)
+		{
+			String remarks = String.valueOf(ordinal);
+			agentGeography.setRemarks(remarks);
+		}
 
 		return agentGeography;
 	}
 
 	private String getInsertSql(AgentGeography agentGeography)
 	{
-		String fieldNames = "AgentId, GeographyID, Role, TimestampCreated, Remarks";
+		String fieldNames = "AgentId, GeographyID, , Remarks, Role, TimestampCreated";
 
 		String[] values = new String[5];
 
 		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getAgentId());
 		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getGeographyId());
-		values[2] = SqlUtils.sqlString( agentGeography.getRole());
-		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.sqlString( agentGeography.getRemarks()); 
+		values[2] = SqlUtils.sqlString( agentGeography.getRemarks()); 
+		values[3] = SqlUtils.sqlString( agentGeography.getRole());
+		values[4] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}

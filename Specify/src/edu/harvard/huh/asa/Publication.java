@@ -19,7 +19,6 @@ import java.util.Date;
 public class Publication
 {
     private Integer id;
- 
     private  String isbn;
     private  String pubPlace;
     private  String pubDate;
@@ -33,11 +32,7 @@ public class Publication
     private Integer createdById;
     private    Date dateCreated;
     private  String remarks;
- 
-    public Publication() {
-        ;
-    }
-    
+
     public Integer getId() { return this.id; }
     
     public String getIsbn() { return this.isbn; }

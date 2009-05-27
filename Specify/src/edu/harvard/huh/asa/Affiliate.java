@@ -48,9 +48,7 @@ public class Affiliate
     public Date getDateCreated() { return dateCreated; }
     
     public String getRemarks() { return remarks; }
-    
-    public String getGuid() { return id + " affiliate"; }
-    
+ 
     public void setId(Integer id) { this.id = id; }
     
     public void setSurname(String surname) { this.surname = surname; }

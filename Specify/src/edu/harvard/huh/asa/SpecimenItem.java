@@ -1,10 +1,9 @@
 package edu.harvard.huh.asa;
 
-import java.util.Calendar;
 import java.util.Date;
 
-public class SpecimenItem {
-	
+public class SpecimenItem
+{	
     public static final String Fruit = "fruit";
     public static final String Flower = "flower";
     public static final String FlowerAndFruit = "flower and fruit";
@@ -24,7 +23,7 @@ public class SpecimenItem {
 	private   String seriesAbbrev;
 	private   String format;
 	private  Integer itemNo;
-	private   String remarks; // specimen.remarks
+	private   String remarks;        // specimen.remarks
 	private   String provenance;
 	private   String voucher;
 	private  Boolean isOversize;
@@ -33,7 +32,7 @@ public class SpecimenItem {
 	private   String sex;
 	private   String accessionNo;
 	private   String accessionStatus;
-	private   String note; // specimen_item.note
+	private   String note;           // specimen_item.note
 	private   String reference;
 	private   String description;
 	private   String habitat;
@@ -44,11 +43,7 @@ public class SpecimenItem {
 	private  Integer catalogedById;	
 	private    BDate collDate;
 	private  Boolean hasExsiccata;
-	
-	public SpecimenItem() {
-	    ;
-	}
-	
+
 	public Integer getId() { return this.id; }
 	
 	public Integer getSpecimenId() { return this.specimenId; }

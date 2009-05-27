@@ -5,47 +5,44 @@ import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Botanist;
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistName.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentVariant;
 
+// Run this class after BotanistLoader.
+
 public class BotanistNameLoader extends CsvToSqlLoader
 {
-	public BotanistNameLoader(File csvFile, Statement sqlStatement)
+    private BotanistLookup botanistLookup;
+    
+	public BotanistNameLoader(File csvFile, Statement sqlStatement, BotanistLookup botanistLookup)
+	    throws LocalException
 	{
 		super(csvFile, sqlStatement);
+		
+		this.botanistLookup = botanistLookup;
 	}
+	
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getByBotanistId(botanistId);
+    }
 	
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		BotanistName botanistName = parse(columns);
 
+		Integer botanistId = botanistName.getBotanistId();
+		setCurrentRecordId(botanistId);
+		
         // convert BotanistName into AgentVariant
-        AgentVariant agentVariant = convert(botanistName);
-        
-        // find the matching agent record
-        Agent agent = new Agent();
-        Integer botanistId = botanistName.getBotanistId();
-
-        if (botanistId == null)
-        {
-        	throw new LocalException("No botanist id");
-        }
-
-        Botanist botanist = new Botanist();
-        botanist.setId(botanistId);
-
-        String guid = botanist.getGuid();
-
-        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-
-        agent.setAgentId(agentId);
-        agentVariant.setAgent(agent);
+        AgentVariant agentVariant = getAgentVariant(botanistName);
 
         // convert agentvariant to sql and insert
         String sql = getInsertSql(agentVariant);
@@ -60,79 +57,71 @@ public class BotanistNameLoader extends CsvToSqlLoader
             throw new LocalException("Wrong number of columns");
         }
 
-        // assign values to Botanist object
-        BotanistName botanistName = new BotanistName();
-        
-        try {
-            botanistName.setBotanistId(Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
-            
-            String type = StringUtils.trimToNull( columns[1] );
-            if (type == null) throw new LocalException("No type found in record ");
-
-            BotanistName.TYPE nameType;
-
-            if      (type.equals("author name")   ) nameType = BotanistName.TYPE.Author;
-            else if (type.equals("author abbrev") ) nameType = BotanistName.TYPE.AuthorAbbrev;
-            else if (type.equals("collector name")) nameType = BotanistName.TYPE.Collector;
-            else if (type.equals("variant")       ) nameType = BotanistName.TYPE.Variant;
-            
-            else throw new LocalException("Unrecognized botanist name type: " + type);
-
-            botanistName.setType(nameType);
-
-            botanistName.setName( StringUtils.trimToNull( columns[2] ));
+        BotanistName botanistName = new BotanistName();        
+        try
+        {
+            botanistName.setBotanistId( SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+            botanistName.setType(  BotanistName.parseType( StringUtils.trimToNull( columns[1] )));
+            botanistName.setName(                          StringUtils.trimToNull( columns[2] ));
 
         }
         catch (NumberFormatException e)
         {
             throw new LocalException("Couldn't parse numeric field", e);
         }
-        
+        catch (AsaException e)
+        {
+        	throw new LocalException("Couldn't parse name type", e);
+        }
+
         return botanistName;
     }
 
-    private AgentVariant convert(BotanistName botanistName) throws LocalException
+    private AgentVariant getAgentVariant(BotanistName botanistName) throws LocalException
     {
-
-        AgentVariant variant = new AgentVariant();
+        AgentVariant agentVariant = new AgentVariant();
         
+     	// Agent
+        Integer botanistId = botanistName.getBotanistId();
+        checkNull(botanistId, "id");
+
+        Agent agent = lookup(botanistId);
+        agentVariant.setAgent(agent);
+
+        // Name
         String name = botanistName.getName();
-        if (name == null)
-        {
-            throw new LocalException("No name");
-        }
+        checkNull(name, "name");
 
-        if (name.length() > 255)
-        {
-            warn("Truncating botanist name variant", botanistName.getBotanistId(), name);
-            name = name.substring(0, 255);
-        }
-        variant.setName(botanistName.getName());
+        name = truncate(name, 255, "name");
+        agentVariant.setName(botanistName.getName());
         
+        // Type
         Byte varType;
-        TYPE nameType = botanistName.getType();
         
-        if      (nameType == TYPE.Author      ) varType = AgentVariant.AUTHOR;
+        TYPE nameType = botanistName.getType();
+        checkNull(nameType, "type");
+        
+        if      (nameType == TYPE.AuthorName  ) varType = AgentVariant.AUTHOR;
         else if (nameType == TYPE.AuthorAbbrev) varType = AgentVariant.AUTHOR_ABBREV;
         else if (nameType == TYPE.Collector   ) varType = AgentVariant.LABLELNAME;
         else if (nameType == TYPE.Variant     ) varType = AgentVariant.VARIANT;
         
-        else throw new IllegalArgumentException("Unrecognized BotanistName type");
+        else throw new IllegalArgumentException("Invalid BotanistName type");
 
-        variant.setVarType(varType);
+        agentVariant.setVarType(varType);
         
-        return variant;
+        return agentVariant;
     }
     
     private String getInsertSql(AgentVariant agentVariant)
     {
-        String fieldNames = "AgentID, VarType, Name, TimestampCreated";
+        String fieldNames = "AgentID, Name, VarType, TimestampCreated";
         
         String[] values = new String[4];
         
         values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
-        values[1] = SqlUtils.sqlString( agentVariant.getVarType());
-        values[2] = SqlUtils.sqlString( agentVariant.getName());
+        values[1] = SqlUtils.sqlString( agentVariant.getName());
+        values[2] = SqlUtils.sqlString( agentVariant.getVarType());
         values[3] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);

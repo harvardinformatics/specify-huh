@@ -21,11 +21,6 @@ public class BotanistRoleCountry
     private Integer geoUnitId;
     private Integer ordinal;
     
-    public BotanistRoleCountry()
-    {
-        ;
-    }
-    
     public Integer getBotanistId() { return botanistId; }
     
     public String getRole() { return role; }
@@ -41,5 +36,4 @@ public class BotanistRoleCountry
     public void setGeoUnitId(Integer geoUnitId) { this.geoUnitId = geoUnitId; }
     
     public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
-    
 }

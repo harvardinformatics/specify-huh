@@ -58,8 +58,6 @@ public class AsaAgent
     public String getUri() { return uri; }
 
     public String getRemarks() { return remarks; }
-
-    public String getGuid() { return id + " agent"; }
     
     public void setId(Integer id) { this.id = id; }
     

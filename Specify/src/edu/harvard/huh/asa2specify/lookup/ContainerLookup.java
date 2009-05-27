@@ -12,23 +12,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package edu.harvard.huh.asa;
+package edu.harvard.huh.asa2specify.lookup;
 
-public class PublAuthor
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.ku.brc.specify.datamodel.Container;
+
+public interface ContainerLookup
 {
-    private Integer publicationId;
-    private Integer authorId;
-    private Integer ordinal;
-
-    public Integer getPublicationId() { return this.publicationId; }
+    public Container getBySubcollectionId(Integer subcollectionId) throws LocalException;
     
-    public Integer getAuthorId() { return this.authorId; }
+    public Container getByName(String name) throws LocalException;
     
-    public Integer getOrdinal() { return this.ordinal; }
-    
-    public void setPublicationId(Integer publicationId) { this.publicationId = publicationId; }
-    
-    public void setAuthorId(Integer authorId) { this.authorId = authorId; }
-    
-    public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
+    public Container queryByName(String name) throws LocalException;
 }

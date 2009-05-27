@@ -24,17 +24,37 @@ import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.ku.brc.specify.datamodel.Collection;
+import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Taxon;
 
+// Run this class after TaxonLoader and SpecimenItemLoader.
+
 public class DeterminationLoader extends CsvToSqlLoader
 {
-
-    public DeterminationLoader(File csvFile, Statement sqlStatement)
+    private CollectionObjectLookup collObjLookup;
+    private TaxonLookup              taxonLookup;
+    
+    public DeterminationLoader(File                   csvFile,
+                               Statement              sqlStatement,
+                               CollectionObjectLookup collObjLookup,
+                               TaxonLookup            taxonLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
+        
+        this.collObjLookup = collObjLookup;
+    }
+
+    private CollectionObject lookupCollObj(Integer specimenId) throws LocalException
+    {
+        return collObjLookup.getBySpecimenId(specimenId);
+    }
+    
+    private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
+    {
+        return taxonLookup.getByAsaTaxonId(asaTaxonId);
     }
 
     @Override
@@ -42,7 +62,10 @@ public class DeterminationLoader extends CsvToSqlLoader
     {
         AsaDetermination asaDetermination = parse(columns);
 
-        Determination determination = convert(asaDetermination);
+        Integer asaDetId = asaDetermination.getId();
+        setCurrentRecordId(asaDetId);
+        
+        Determination determination = getDetermination(asaDetermination);
         
         String sql = getInsertSql(determination);
         insert(sql);
@@ -50,33 +73,33 @@ public class DeterminationLoader extends CsvToSqlLoader
 
     private AsaDetermination parse(String[] columns) throws LocalException
     {
-        if (columns.length < 13)
+        if (columns.length < 14)
         {
             throw new LocalException("Wrong number of columns");
         }
         
         AsaDetermination determination = new AsaDetermination();
-        
         try
         {
-            determination.setId(         Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-            determination.setSpecimenId( Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-            determination.setTaxonId(    Integer.parseInt( StringUtils.trimToNull( columns[2] )));
-            determination.setQualifier(                    StringUtils.trimToNull( columns[3] ));
+            determination.setId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+            determination.setSpecimenId( SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
+            determination.setCollectionCode(                StringUtils.trimToNull( columns[2] ));
+            determination.setTaxonId(    SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
+            determination.setQualifier(                     StringUtils.trimToNull( columns[4] ));
             
             BDate bdate = new BDate();
             determination.setDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[4] )));
-            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[5] )));
-            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
+            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[5] )));
+            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
+            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
 
-            determination.setCurrent(   Boolean.parseBoolean( StringUtils.trimToNull( columns[7]  )));
-            determination.setIsLabel(   Boolean.parseBoolean( StringUtils.trimToNull( columns[8]  )));
-            determination.setDeterminedBy(                    StringUtils.trimToNull( columns[9]  ));
-            determination.setLabelText(                       StringUtils.trimToNull( columns[10] ));
-            determination.setOrdinal(       Integer.parseInt( StringUtils.trimToNull( columns[11] )));
-            determination.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[12] )));
+            determination.setCurrent(   Boolean.parseBoolean( StringUtils.trimToNull( columns[8]  )));
+            determination.setIsLabel(   Boolean.parseBoolean( StringUtils.trimToNull( columns[9]  )));
+            determination.setDeterminedBy(                    StringUtils.trimToNull( columns[10] ));
+            determination.setLabelText(                       StringUtils.trimToNull( columns[11] ));
+            determination.setOrdinal(      SqlUtils.parseInt( StringUtils.trimToNull( columns[12] )));
+            determination.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[13] )));
         }
         catch (NumberFormatException e)
         {
@@ -86,53 +109,37 @@ public class DeterminationLoader extends CsvToSqlLoader
         return determination;
     }
     
-    private Determination convert(AsaDetermination asaDet) throws LocalException
+    private Determination getDetermination(AsaDetermination asaDet) throws LocalException
     {
         Determination determination = new Determination();
         
         // CollectionObject
         Integer specimenId = asaDet.getSpecimenId();
-        if (specimenId == null)
-        {
-            throw new LocalException("No specimen id");
-        }
+        checkNull(specimenId, "specimen id");
         
-        String guid = String.valueOf(specimenId);
-        
-        Integer collectionObjectId = getIntByField("collectionobject", "CollectionObjectID", "GUID", guid);
-
-        CollectionObject collectionObject = new CollectionObject();
-        collectionObject.setCollectionObjectId(collectionObjectId);
-
+        CollectionObject collectionObject = lookupCollObj(specimenId);
         determination.setCollectionObject(collectionObject);
 
         // CollectionMemberID
-        Integer collectionMemberId = getIntByField("collectionobject", "CollectionMemberID", "GUID", guid);
+        String collectionCode = asaDet.getCollectionCode();
+        checkNull(collectionCode, "collection code");
+        Integer collectionMemberId = getCollectionId(collectionCode);
         determination.setCollectionMemberId(collectionMemberId);
 
         // Taxon
         Integer asaTaxonId = asaDet.getTaxonId();
-        if (asaTaxonId == null)
-        {
-            throw new LocalException("No taxon id");
-        }
+        checkNull(asaTaxonId, "taxon id");
 
-        String taxonSerNumber = String.valueOf(asaTaxonId);
+        Taxon taxon = lookupTaxon(asaTaxonId);
+        determination.setTaxon(taxon); 
         
-        Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
-
-        Taxon taxon = new Taxon();
-        taxon.setTaxonId(taxonId);
-        
-        determination.setTaxon( taxon ); 
-        
-        // Confidence
+        // Confidence TODO: enum for confidence
         String qualifier = asaDet.getQualifier();
-        if ( qualifier != null && qualifier.length() > 50 )
+        if (qualifier != null)
         {
-            warn("Truncating confidence", asaDet.getId(), qualifier);
+        	qualifier = truncate(qualifier, 50, "qualifier");
+            determination.setConfidence(qualifier);
         }
-        determination.setConfidence(qualifier);
         
         // DeterminedDate
         BDate bdate = asaDet.getDate();
@@ -142,31 +149,33 @@ public class DeterminationLoader extends CsvToSqlLoader
         Integer startDay   = bdate.getStartDay();
 
         // DeterminedDate and DeterminedDatePrecision
-        if ( DateUtils.isValidSpecifyDate( startYear, startMonth, startDay ) )
+        if (DateUtils.isValidSpecifyDate( startYear, startMonth, startDay))
         {
-            determination.setDeterminedDate( DateUtils.getSpecifyStartDate( bdate ) );
-            determination.setDeterminedDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
+            determination.setDeterminedDate(DateUtils.getSpecifyStartDate(bdate));
+            determination.setDeterminedDatePrecision(DateUtils.getDatePrecision(startYear, startMonth, startDay));
         }
         else
         {
-            warn("Invalid start date", asaDet.getId(),
+            warn("Invalid start date",
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
 
         // IsCurrent
-        determination.setIsCurrent( asaDet.isCurrent() );
+        Boolean isCurrent = asaDet.isCurrent();
+        determination.setIsCurrent(isCurrent);
         
         // YesNo1 (isLabel)
-        determination.setYesNo1( asaDet.isLabel() );
+        Boolean isLabel = asaDet.isLabel();
+        determination.setYesNo1(isLabel);
         
         // Text1 (determinedBy) TODO: assign DeterminerID to collector if isLabel == true? determined_by often does not match collector in these cases
         // Determiner TODO: Ugh.  We have a string.  They have a relation.  Putting it in Text1 for now.
         String determinedBy = asaDet.getDeterminedBy();
-        determination.setText1( determinedBy );
+        determination.setText1(determinedBy);
         
         // Text2 (labelText)
         String labelText = asaDet.getLabelText();
-        determination.setText2( labelText );
+        determination.setText2(labelText);
         
         // Number1 (ordinal)
         Integer ordinal = asaDet.getOrdinal();

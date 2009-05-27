@@ -2,7 +2,8 @@ package edu.harvard.huh.asa;
 
 import java.util.Date;
 
-public class AsaTaxon {
+public class AsaTaxon
+{
     // from st_lookup category 129
     public static enum STATUS              {  NomLeg,      NomNov,      NomCons,      OrthCons,      NomRej,      NomSuperfl,      Synonym,    LaterHomonym,   OrthVar,      NomInvalid,      Unknown  };
     private static String[] StatusNames  = { "nom. leg.", "nom. nov.", "nom. cons.", "orth. cons.", "nom. rej.", "nom. superfl.", "synonym", "later homonym", "orth. var.", "nom. invalid.", "unknown" };

@@ -7,7 +7,7 @@ public class LoanItem
 	private Integer id;
 	private Integer loanId;
 	private    Date returnDate;
-	private  String barcode;
+	private Integer barcode;
 	private  String transferredFrom;
 	private  String transferredTo;
 	private  String collection;
@@ -18,7 +18,7 @@ public class LoanItem
 	
 	public Date getReturnDate() { return returnDate; }
 	
-	public String getBarcode() { return barcode; }
+	public Integer getBarcode() { return barcode; }
 	
 	public String getTransferredFrom() { return transferredFrom; }
 	
@@ -32,7 +32,7 @@ public class LoanItem
 	
 	public void setReturnDate(Date returnDate) { this.returnDate = returnDate; }
 	
-	public void setBarcode(String barcode) { this.barcode = barcode; }
+	public void setBarcode(Integer barcode) { this.barcode = barcode; }
 	
 	public void setTransferredFrom(String transferredFrom) { this.transferredFrom = transferredFrom; }
 	

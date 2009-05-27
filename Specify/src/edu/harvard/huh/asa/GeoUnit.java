@@ -4,10 +4,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GeoUnit {
-
-	private Integer id;
-	private Integer parentId;
+public class GeoUnit
+{
+	private     Integer id;
+	private     Integer parentId;
 	private      String name;
 	private      String abbreviation;
 	private      String isoCode;

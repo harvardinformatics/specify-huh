@@ -15,30 +15,31 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa.Optr;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
-import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader
 {
 	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
-	private static Hashtable<Integer, Agent>       agentsByOptrId = new Hashtable<Integer, Agent>();
     private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
-	private static Hashtable<String, PrepType>    prepTypesByName = new Hashtable<String, PrepType>();
 
 	private LineIterator lineIterator;
 	private File csvFile;
 	private Statement sqlStatement;
 	protected ProgressFrame frame;
 
-	public CsvToSqlLoader(File csvFile, Statement sqlStatement)
+	protected Integer currentRecordId;
+	
+	private Discipline botanyDiscipline;
+	private Division   botanyDivision;
+	
+	public CsvToSqlLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
 		this.csvFile = csvFile;
 		this.sqlStatement = sqlStatement;
@@ -92,88 +93,36 @@ public abstract class CsvToSqlLoader
 
 	public abstract void loadRecord(String[] columns) throws LocalException;
 
-	protected void numberNodes(String tableName, String idField) throws LocalException
+	protected Statement getStatement()
 	{
-		String tempTableName = "tempTable";
-		try {
-			String resetHighestChildNodeNumber = "update " + tableName + " set HighestChildNodeNumber=null";
-			sqlStatement.executeUpdate(resetHighestChildNodeNumber);
-
-			String createTableLikeTaxon = "create table " + tempTableName + " like " + tableName;
-			sqlStatement.execute(createTableLikeTaxon);
-
-			String copyTaxonTable = "insert into " + tempTableName + " select * from " + tableName;
-			sqlStatement.executeUpdate(copyTaxonTable);
-
-			String updateLeafNodes = "update " + tableName + " a " +
-			"set a.HighestChildNodeNumber=a.NodeNumber " +
-			"where not exists " +
-			"(select null from " + tempTableName + " b where a." + idField + "=b.ParentID)";
-
-			int updatedNodes = sqlStatement.executeUpdate(updateLeafNodes);
-
-			String updateReftaxon = "update " + tempTableName + " a " +
-			"set a.HighestChildNodeNumber=" +
-			"(select b.HighestChildNodeNumber from " + tableName + " b " +
-			"where b." + idField + "=a." + idField + ")";
-
-			sqlStatement.executeUpdate(updateReftaxon);
-
-			String updateNextLevel = "update " + tableName + " a " +
-			"set a.HighestChildNodeNumber=" +
-			"(select max(b.HighestChildNodeNumber) from " + tempTableName + " b " +
-			"where b.ParentID=a." + idField + ") " +
-			"where  a." + idField + " in (select c.ParentID from " + tempTableName + " c " +
-			"where c.HighestChildNodeNumber is not null) order by a." + idField + " desc";
-
-			while (updatedNodes > 0) {               
-				updatedNodes = sqlStatement.executeUpdate(updateNextLevel);
-				sqlStatement.executeUpdate(updateReftaxon);
-			}
-			
-			String dropTempTable = "drop table " + tempTableName;
-			sqlStatement.execute(dropTempTable);
-			
-		}
-		catch (SQLException e)
-		{
-			throw new LocalException("Problem numbering nodes", e);
-		}
+	    return sqlStatement;
 	}
 
-	protected Agent getAgentByOptrId(Integer optrId) throws LocalException
+	protected Integer getCurrentRecordId()
 	{
-	    Agent agent = agentsByOptrId.get(optrId);
-
-	    if (agent == null)
-	    {
-	        Optr optr = new Optr();
-	        optr.setId(optrId);
-
-	        Integer agentId = getIntByField("agent", "AgentID", "GUID", optr.getGuid());
-	        
-	        agent = new Agent();
-	        agent.setAgentId(agentId);
-	        agentsByOptrId.put(optrId, agent);
-	    } 
-	    
-        return agent;
-	}
-
-	protected PrepType getPrepType(String format) throws LocalException
-	{
-        PrepType prepType = prepTypesByName.get(format);
-        if (prepType == null)
-        {
-            Integer prepTypeId = getIntByField("preptype", "PrepTypeID", "Name", format);
-
-            prepType = new PrepType();
-            prepType.setPrepTypeId(prepTypeId);
-            prepTypesByName.put(format, prepType);
-        }
-        return prepType;
+		return currentRecordId;
 	}
 	
+	protected void setCurrentRecordId(Integer currentRecordId)
+	{
+		this.currentRecordId = currentRecordId;
+	}
+
+	protected void checkNull(Object o, String fieldName) throws LocalException
+	{
+		if (o == null) throw new LocalException("No " + fieldName, getCurrentRecordId());
+	}
+	
+	protected String truncate(String s, int len, String fieldName)
+	{
+		if (s.length() > len)
+		{
+			warn("Truncating " + fieldName, s);
+			s = s.substring(0, len);
+		}
+		return s;
+	}
+
 	protected Integer getCollectionId(String code) throws LocalException
 	{
 	    Integer collectionId = collectionIdsByCode.get(code);
@@ -188,24 +137,28 @@ public abstract class CsvToSqlLoader
 	
 	protected Discipline getBotanyDiscipline() throws LocalException
 	{
-	    Discipline d = new Discipline();
-	    
-        Integer disciplineId = getIntByField("discipline", "DisciplineID", "Name", "Botany");
+	    if (botanyDiscipline == null)
+	    {
+	        botanyDiscipline = new Discipline();
 
-        d.setDisciplineId(disciplineId);
+	        Integer disciplineId = getIntByField("discipline", "DisciplineID", "Name", "Botany");
 
-        return d;
+	        botanyDiscipline.setDisciplineId(disciplineId);
+	    }
+	    return botanyDiscipline;
 	}
 
 	protected Division getBotanyDivision() throws LocalException
 	{
-	    Division d = new Division();
+	    if (botanyDivision == null)
+	    {
+	        Division botanyDivision = new Division();
 
-	    Integer divisionId = getIntByField("division", "DivisionID", "Name", "Botany");
-        
-	    d.setDivisionId(divisionId);
+	        Integer divisionId = getIntByField("division", "DivisionID", "Name", "Botany");
 
-	    return d;
+	        botanyDivision.setDivisionId(divisionId);
+	    }
+	    return botanyDivision;
 	}
 
 	public void setFrame(ProgressFrame frame)
@@ -237,6 +190,7 @@ public abstract class CsvToSqlLoader
 			}
 		}
 	}
+
 	private int countRecords() throws LocalException
 	{
 		// count the lines in the file and set up an iterator for them
@@ -292,14 +246,14 @@ public abstract class CsvToSqlLoader
 	    
 		try
 		{
-			sqlStatement.executeUpdate(sql);
+			getStatement().executeUpdate(sql);
 		}
 		catch (SQLException e)
 		{
 			throw new LocalException(e);
 		}
 
-		Integer id = BasicSQLUtils.getInsertedId(sqlStatement);
+		Integer id = BasicSQLUtils.getInsertedId(getStatement());
 		if (id == null)
 		{
 			throw new LocalException("CsvToSqlLoader: Couldn't get inserted record ID");
@@ -308,7 +262,7 @@ public abstract class CsvToSqlLoader
 		return id;
 	}
 
-	private Integer queryForInt(String sql) throws LocalException
+	protected Integer queryForInt(String sql) throws LocalException
 	{
 	    log.debug(sql);
 
@@ -316,7 +270,7 @@ public abstract class CsvToSqlLoader
 		Integer id = null;
 		try
 		{
-			result = sqlStatement.executeQuery(sql);
+			result = getStatement().executeQuery(sql);
 
 			if (result.next())
 			{
@@ -407,6 +361,16 @@ public abstract class CsvToSqlLoader
 	    return string;
 	}
 
+	/**
+     * Compose and execute a query to return an String.  Throws exception if not found.
+     * @throws LocalException
+     */
+	protected String getStringByField(String table, String returnField, String matchField, Integer value)
+	    throws LocalException
+	{
+	    return getStringByField(table, returnField, matchField, String.valueOf(value));
+	}
+	
 	private String queryForString(String table, String returnField, String matchField, String value)
 	    throws LocalException
 	{
@@ -423,7 +387,7 @@ public abstract class CsvToSqlLoader
 	    String string = null;
 	    try
 	    {
-	        result = sqlStatement.executeQuery(sql);
+	        result = getStatement().executeQuery(sql);
 
 	        if (result.next())
 	        {
@@ -443,7 +407,7 @@ public abstract class CsvToSqlLoader
 	    log.debug(sql);
 	    
 		try {
-			int success = sqlStatement.executeUpdate(sql);
+			int success = getStatement().executeUpdate(sql);
 			if (success != 1)
 			{
 				return false;
@@ -473,29 +437,9 @@ public abstract class CsvToSqlLoader
             throw new LocalException("Couldn't parse barcode");
         }
 	}
-	
-	protected String formatBarcode(String barcode) throws LocalException
-	{
-		if (barcode == null)
-		{
-			throw new LocalException("Null barcode");
-		}
 		
-		Integer intBarcode = null;
-		try
-		{
-			intBarcode = Integer.parseInt(barcode);
-		}
-		catch (NumberFormatException e)
-		{
-			throw new LocalException("Couldn't parse barcode");
-		}
-		
-		return formatBarcode(intBarcode);
-	}
-	
-	protected void warn(String message, Integer id, String item)
+	protected void warn(String message, String item)
 	{
-	    log.warn(message + " " + id + " " + item);
+	    log.warn(message + " [" + getCurrentRecordId() + "] " + item);
 	}
 }

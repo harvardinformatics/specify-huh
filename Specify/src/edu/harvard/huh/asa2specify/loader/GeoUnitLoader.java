@@ -12,13 +12,47 @@ import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
 
-public class GeoUnitLoader extends CsvToSqlLoader {
+// Run this class after OptrLoader.
 
+public class GeoUnitLoader extends TreeLoader
+{
+    public GeographyLookup getGeographyLookup()
+    {
+        if (geoLookup == null)
+        {
+            geoLookup = new GeographyLookup() {
+
+                public Geography getByGeoUnitId(Integer geoUnitId) throws LocalException
+                {
+                    Geography geography = new Geography();
+
+                    String guid = getGuid(geoUnitId);
+
+                    Integer geographyId = getIntByField("geography", "GeographyID", "GUID", guid);
+
+                    geography.setGeographyId(geographyId);
+
+                    return geography;
+                }
+            };
+        }
+
+        return geoLookup;
+    }
+
+	private String getGuid(Integer geoUnitId)
+	{
+	    return String.valueOf(geoUnitId);
+	}
+	
+	private GeographyLookup geoLookup;
+	   
 	// root
 	private final String ROOT_TYPE = "root";
 	private final Integer ROOT_RANK = 0;  // Specify value
@@ -150,11 +184,13 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	public GeoUnitLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
 		super(csvFile, sqlStatement);
+		
 		this.treeDef = getGeoTreeDef();
 		this.nullIdGeography = new Geography();
+		
 		nullIdGeography.setGeographyId(null);
 	}
-
+	   
     private GeographyTreeDef getGeoTreeDef() throws LocalException
     {
         GeographyTreeDef g = new GeographyTreeDef();
@@ -183,37 +219,18 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	}
 
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
-		// TODO Auto-generated method stub
-
+	public void loadRecord(String[] columns) throws LocalException
+	{
 		GeoUnit geoUnit = parse(columns);
 
-		Geography geography = convert(geoUnit);
-
-		geography.setDefinition(treeDef);
-
-		// find matching parent
-		Geography parent = new Geography();
-		Integer parentId = geoUnit.getParentId();
-		if (parentId == 10100)
-		{
-		    parentId = Integer.valueOf(1); // TODO: this only happens to work
-		}
-		else
-		{
-		    String guid = String.valueOf(parentId);
-
-		    parentId = getIntByField("geography", "GeographyID", "GUID", guid);
-		}
-		parent.setGeographyId(parentId);
-		geography.setParent(parent);
-
-		// find parent's rank id
-		Integer parentRankId = getIntByField("geography", "RankID", "GeographyID", parentId);
-
-		// RankId
+		Integer geoUnitId = geoUnit.getId();
+		setCurrentRecordId(geoUnitId);
+		
 		String rank = geoUnit.getRank();
+		checkNull(rank, "rank");
+		
 		String name = geoUnit.getName();
+		checkNull(name, "name");
 		
 		if (rank.equals(REGION_TYPE))
 		{
@@ -223,36 +240,9 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		        frame.setDesc("Loading " + name + "...");
 		    }
 		}
-
-		Integer rankId = getGeoTreeDefItem(name, rank, parentRankId);
-		if (rankId == null)
-		{
-			throw new LocalException("No rank id for " + name + " rank " + rank + " parent rank " + parentRankId);
-		}
-
-		geography.setRankId( rankId );
-		if (parent != null && rankId <= parentRankId)
-		{
-			warn("Parent rank is greater or equal", geoUnit.getId(), geoUnit.getName());
-		}
-
-		GeographyTreeDefItem defItem = getTreeDefItemByRankId(rankId);
-
-		if (defItem == null)
-		{
-			throw new LocalException("No tree def item for rank " + geoUnit.getId() + " " + rankId);
-		}
-		geography.setDefinitionItem(defItem);
 		
-	    // accepted parent geography
-        geography.setAcceptedGeography(nullIdGeography);
-        geography.setAcceptedParent(nullIdGeography);
-        
-        // find matching record creator
-        Integer creatorOptrId = geoUnit.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        geography.setCreatedByAgent(createdByAgent);
-        
+		Geography geography = getGeography(geoUnit);
+
 		String sql = getInsertSql(geography);
 		Integer geographyId = insert(sql);
 		geography.setGeographyId(geographyId);
@@ -260,18 +250,9 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 		// variant names
 		for (String variantName : geoUnit.getVariantNames())
 		{
-		    Geography synonym = new Geography();
+			String fullName = getQualifiedName(name, geoUnit.getDisplayQualifier());
+		    Geography synonym = getSynonym(geography, variantName, fullName);
 
-		    synonym.setName(variantName);
-		    synonym.setFullName(getQualifiedName(variantName, geoUnit.getDisplayQualifier())); // TODO: add length checking?
-		    synonym.setIsAccepted(false);
-		    synonym.setAcceptedGeography(geography);
-		    synonym.setParent(parent);
-		    synonym.setDefinition(treeDef);
-		    synonym.setDefinitionItem(defItem);
-		    synonym.setRankId(rankId);
-		    synonym.setCreatedByAgent(geography.getCreatedByAgent());
-		    synonym.setTimestampCreated(geography.getTimestampCreated());
 		    sql = getInsertSql(synonym);
 		    insert(sql);
 		}
@@ -290,19 +271,18 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	    }
 
 	    GeoUnit geoUnit = new GeoUnit();
-
 	    try
 	    {
-	        geoUnit.setParentId(      Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-	        geoUnit.setId(            Integer.parseInt( StringUtils.trimToNull( columns[1] )));
-	        geoUnit.setRank(                            StringUtils.trimToNull( columns[2] ));
-	        geoUnit.setIsoCode(                         StringUtils.trimToNull( columns[3] ));
-	        geoUnit.setDisplayQualifier(                StringUtils.trimToNull( columns[4] ));
-	        geoUnit.setName(                            StringUtils.trimToNull( columns[5] ));
-	        geoUnit.setVernacularName(                  StringUtils.trimToNull( columns[6] ));
-	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7] )));
-	        geoUnit.setCreatedById(   Integer.parseInt( StringUtils.trimToNull( columns[8] )));
-	        geoUnit.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9] )));
+	        geoUnit.setParentId(     SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
+	        geoUnit.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
+	        geoUnit.setRank(                            StringUtils.trimToNull( columns[2]  ));
+	        geoUnit.setIsoCode(                         StringUtils.trimToNull( columns[3]  ));
+	        geoUnit.setDisplayQualifier(                StringUtils.trimToNull( columns[4]  ));
+	        geoUnit.setName(                            StringUtils.trimToNull( columns[5]  ));
+	        geoUnit.setVernacularName(                  StringUtils.trimToNull( columns[6]  ));
+	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7]  )));
+	        geoUnit.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[8]  )));
+	        geoUnit.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9]  )));
             geoUnit.addVariantName(                     StringUtils.trimToNull( columns[10] ));
             geoUnit.addVariantName(                     StringUtils.trimToNull( columns[11] ));
             geoUnit.addVariantName(                     StringUtils.trimToNull( columns[12] ));
@@ -317,65 +297,101 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 	    return geoUnit;
 	}
 
-	private Geography convert(GeoUnit geoUnit) throws LocalException
+	private Geography getGeography(GeoUnit geoUnit) throws LocalException
 	{
 		Geography geography = new Geography();
-
-		// GUID TODO: temporary, remove after import
-		geography.setGuid( String.valueOf( geoUnit.getId() ) );
-
+		
 		// Abbreviation
 		String abbrev = geoUnit.getAbbreviation();
-		if (abbrev != null && abbrev.length() > 16)
+		if (abbrev != null)
 		{
-			warn("Truncating abbreviation", geoUnit.getId(), abbrev);
-			abbrev = abbrev.substring(0, 16);
+			abbrev = truncate(abbrev, 16, "abbreviation");
+			geography.setAbbrev(abbrev);
 		}
-		geography.setAbbrev(abbrev);
+		
+	    // AcceptedGeography
+        geography.setAcceptedGeography(nullIdGeography);
 
 		// CommonName
 		String vernacularName = geoUnit.getVernacularName();
-		if (vernacularName != null && vernacularName.length() > 128)
+		if (vernacularName != null)
 		{
-			warn("Truncating vernacular name", geoUnit.getId(), vernacularName);
-			vernacularName = vernacularName.substring(0, 128);
+			vernacularName = truncate(vernacularName, 128, "vernacular name");
+			geography.setCommonName(vernacularName);
 		}
-		geography.setCommonName(vernacularName);
-
-		// Name
-		String name = geoUnit.getName();
-		if ( name == null )
-		{
-			throw new LocalException("No name");
-		}
-		if (name.length() > 64) {
-		    warn("Truncating name", geoUnit.getId(), name);
-			name = name.substring(0, 64);
-		}
-		geography.setName(name);
+        
+        // CreatedByAgent
+        Integer creatorOptrId = geoUnit.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        geography.setCreatedByAgent(createdByAgent);
+		
+		// GeographyTreeDef
+		geography.setDefinition(treeDef);
+		
+		// GUID TODO: temporary, remove after import
+		Integer geoUnitId = geoUnit.getId();
+		checkNull(geoUnitId, "id");
+		
+		String guid = getGuid(geoUnitId);
+		geography.setGuid(guid);
 
 		// FullName
+		String name = geoUnit.getName();
 		String displayQualifier = geoUnit.getDisplayQualifier();
 		String qualifiedName = getQualifiedName(name, displayQualifier);
-        if (qualifiedName.length() > 255)
-        {
-            warn("Truncating qualified name", geoUnit.getId(), qualifiedName);
-            qualifiedName = qualifiedName.substring(0, 255);
-        }
+        qualifiedName = truncate(qualifiedName, 255, "qualified name");
 		geography.setFullName(qualifiedName);
 
 		// GeographyCode
 		String isoCode = geoUnit.getIsoCode();
-		if (isoCode != null && isoCode.length() > 8)
+		if (isoCode != null)
 		{
-		    warn("Truncating iso code", geoUnit.getId(), isoCode);
-			isoCode = isoCode.substring(0, 8);
+		    isoCode = truncate(isoCode, 8, "iso code");
+		    geography.setGeographyCode(isoCode);
 		}
-		geography.setGeographyCode(isoCode);
 
 		// IsAccepted
 		geography.setIsAccepted(true);
 		
+		// Name
+		checkNull(name, "name");
+		name = truncate(name, 64, "name");
+		geography.setName(name);
+		
+		// Parent
+		Geography parent = null;
+		Integer parentId = geoUnit.getParentId();
+		
+		if (parentId != 10100)
+		{
+			parent = getGeographyLookup().getByGeoUnitId(parentId);
+		}
+		else
+		{
+		    parent = new Geography();
+		    parent.setGeographyId(1); // TODO: this only happens to work
+		}
+		
+		geography.setParent(parent);
+
+		// RankId
+		String rank = geoUnit.getRank();
+		Integer parentRankId = getIntByField("geography", "RankID", "GeographyID", parentId);
+		
+		Integer rankId = getGeoTreeDefItem(name, rank, parentRankId);
+		checkNull(rankId, "rank id" + name);
+		geography.setRankId( rankId );
+		
+		if (parent != null && rankId <= parentRankId)
+		{
+			warn("Parent rank is greater or equal", geoUnit.getName());
+		}
+
+		// GeographyTreeDefItem
+		GeographyTreeDefItem defItem = getTreeDefItemByRankId(rankId);
+		checkNull(defItem, "tree def item");
+		geography.setDefinitionItem(defItem);
+        
 		// Remarks
 		String remarks = geoUnit.getRemarks();
 		geography.setRemarks(remarks);
@@ -388,6 +404,58 @@ public class GeoUnitLoader extends CsvToSqlLoader {
         geography.setVersion(1);
 
         return geography;
+	}
+
+	private Geography getSynonym(Geography geography, String name, String fullName)
+	{
+		Geography synonym = new Geography();
+		
+		// Abbreviation
+		
+		// AcceptedGeography
+		synonym.setAcceptedGeography(geography);
+		
+		// CommonName
+		
+		// CreatedBy
+		synonym.setCreatedByAgent(geography.getCreatedByAgent());
+	    	
+		// FullName
+		fullName = truncate(name, 255, "variant full name");
+		synonym.setFullName(fullName);
+		
+		// GeographyCode
+		
+		// GeographyTreeDef
+	    synonym.setDefinition(treeDef);
+		
+		// GeographyTreeDefItem
+	    synonym.setDefinitionItem(geography.getDefinitionItem());
+		
+		// GUID
+		
+		// IsAccepted
+	    synonym.setIsAccepted(false);
+	    
+		// Name
+		name = truncate(name, 64, "variant name");
+	    synonym.setName(name);
+	    
+		// Parent
+	    synonym.setParent(geography.getParent());
+
+	    // RankID
+	    synonym.setRankId(geography.getRankId());
+		
+		// Remarks
+		
+		// TimestampCreated
+	    synonym.setTimestampCreated(geography.getTimestampCreated());
+		
+		// Version
+	    synonym.setVersion(1);
+	    
+	    return synonym;
 	}
 
 	private String getQualifiedName(String name, String displayQualifier)
@@ -404,26 +472,26 @@ public class GeoUnitLoader extends CsvToSqlLoader {
 
 	private String getInsertSql(Geography geography)
 	{
-	    String fieldNames = "GUID, Abbrev, CommonName, Name, FullName, GeographyCode, " +
-	                        "IsAccepted, AcceptedID, GeographyTreeDefID, GeographyTreeDefItemID, " +
-	                        "RankID, ParentID, Remarks, CreatedByAgentID, TimestampCreated, Version";
+	    String fieldNames = "Abbrev, AcceptedID, CommonName, CreatedByAgentID, FullName, GeographyCode, " +
+	                        "GeographyTreeDefID, GeographyTreeDefItemID, GUID, IsAccepted, Name, " +
+	                        "ParentID, RankID, Remarks, TimestampCreated, Version";
 
 	    String[] values = new String[16];
 
-	    values[0]  = SqlUtils.sqlString( geography.getGuid());
-	    values[1]  = SqlUtils.sqlString( geography.getAbbrev());
+	    values[0]  = SqlUtils.sqlString( geography.getAbbrev());
+	    values[1]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
 	    values[2]  = SqlUtils.sqlString( geography.getCommonName());
-	    values[3]  = SqlUtils.sqlString( geography.getName());
+	    values[3]  = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
 	    values[4]  = SqlUtils.sqlString( geography.getFullName());
 	    values[5]  = SqlUtils.sqlString( geography.getGeographyCode());
-	    values[6]  = SqlUtils.sqlString( geography.getIsAccepted());
-	    values[7]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
-	    values[8]  = SqlUtils.sqlString( geography.getDefinition().getId());
-	    values[9]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
-	    values[10] = SqlUtils.sqlString( geography.getRankId());
+	    values[6]  = SqlUtils.sqlString( geography.getDefinition().getId());
+	    values[7]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
+	    values[8]  = SqlUtils.sqlString( geography.getGuid());
+	    values[9]  = SqlUtils.sqlString( geography.getIsAccepted());
+	    values[10] = SqlUtils.sqlString( geography.getName());
 	    values[11] = SqlUtils.sqlString( geography.getParent().getId());
-	    values[12] = SqlUtils.sqlString( geography.getRemarks());
-	    values[13] = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
+	    values[12] = SqlUtils.sqlString( geography.getRankId());
+	    values[13] = SqlUtils.sqlString( geography.getRemarks());
 	    values[14] = SqlUtils.sqlString( geography.getTimestampCreated());
 	    values[15] = SqlUtils.sqlString( geography.getVersion());
 

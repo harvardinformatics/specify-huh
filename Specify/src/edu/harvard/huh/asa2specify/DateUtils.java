@@ -22,13 +22,19 @@ public class DateUtils {
 	
 	public static Calendar toCalendar(Date date) {
 		GregorianCalendar c = new GregorianCalendar();
+
 		c.clear();
-
-		c.set(GregorianCalendar.YEAR, date.getYear());
-		c.set(GregorianCalendar.MONTH, date.getMonth());
-		c.set(GregorianCalendar.DAY_OF_MONTH, date.getDay());
-
+		c.setTime(date);
+		
 		return c;
+	}
+	
+	public static Calendar toCalendar(Integer year) {
+	    Calendar c = Calendar.getInstance();
+	    c.clear();
+	    c.set(Calendar.YEAR, year);
+	    
+	    return c;
 	}
 	
 	/**
@@ -377,6 +383,11 @@ public class DateUtils {
 	    }
 	    
 	    return result;
+	}
+	
+	public static byte getFullDatePrecision()
+	{
+		return (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal();
 	}
 	
 	// don't call this unless the params have been vetted by isValidCollectionDate

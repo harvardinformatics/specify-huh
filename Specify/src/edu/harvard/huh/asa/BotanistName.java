@@ -17,13 +17,24 @@ package edu.harvard.huh.asa;
 public class BotanistName
 {
     private Integer botanistId;
-    private TYPE type;
-    private String name;
+    private    TYPE type;
+    private  String name;
     
-    public static enum TYPE { Full, Author, Collector, Variant, AuthorAbbrev };
+    public static enum TYPE             {  FullName,    AuthorName,    Collector,   Variant,   AuthorAbbrev   };
+    private static String[] TypeNames = { "full name", "author name", "collector", "variant", "author abbrev" };
 
-    public BotanistName() {
-        ;
+    public static TYPE parseType(String string) throws AsaException
+    {
+	    for (TYPE type : TYPE.values())
+	    {
+	        if (TypeNames[type.ordinal()].equals(string)) return type;
+	    }
+	    throw new AsaException("Invalid botanist name type: " + string);
+    }
+    
+    public static String toString(TYPE type)
+    {
+    	return TypeNames[type.ordinal()];
     }
 
     public Integer getBotanistId() { return botanistId; }

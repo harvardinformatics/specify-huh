@@ -6,23 +6,41 @@ import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class OrganizationLoader extends CsvToSqlLoader
+// Run this class after SeriesLoader.
+
+public class OrganizationLoader extends AuditedObjectLoader
 {
-    private AsaIdMapper orgMapper;
+	static String getGuid(Integer organizationId)
+	{
+		return organizationId + " organization";
+	}
 	
-	public OrganizationLoader(File csvFile, Statement specifySqlStatement, File orgToBotanist) throws LocalException
+    private AsaIdMapper orgMapper;
+	private BotanistLookup botanistLookup;
+	
+	public OrganizationLoader(File csvFile,
+	                          Statement specifySqlStatement,
+	                          File orgToBotanist,
+	                          BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
+		
 		this.orgMapper = new AsaIdMapper(orgToBotanist);
+		this.botanistLookup = botanistLookup;
+	}
+
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -30,64 +48,44 @@ public class OrganizationLoader extends CsvToSqlLoader
 	{
 		Organization organization = parse(columns);
 
-		// convert organization into agent ...
-		Agent agent = convert(organization);
-
-        // find matching record creator
-        Integer creatorOptrId = organization.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
+		Integer organizationId = organization.getId();
+		checkNull(organizationId, "id");
+		setCurrentRecordId(organizationId);
+		
+		Agent agent = getAgent(organization);
         
-        // find matching botanist
-        Integer organizationAgentId = null;
         Integer botanistId = getBotanistId(organization.getId());
         
-        if (botanistId != null)
+        if (botanistId != null) // retain botanist id in guid
         {
-            Botanist botanist = new Botanist();
-            botanist.setId(botanistId);
-            String guid = botanist.getGuid();
-
-            organizationAgentId = queryForInt("agent", "AgentID", "GUID", guid);
-        }
-        
-        if (organizationAgentId == null)
-        {
-            String sql = getInsertSql(agent);
-            organizationAgentId = insert(sql);
-            agent.setAgentId(organizationAgentId);
+            Agent botanistAgent = lookup(botanistId);
+            Integer agentId = botanistAgent.getId();
+            agent.setAgentId(agentId);
+            
+        	if (agent.getRemarks() != null)
+            {
+                warn("Ignoring remarks", agent.getRemarks());
+            }
+        	
+            String sql = getUpdateSql(agent, agentId);
+            update(sql);
         }
         else
         {
-            if (agent.getRemarks() != null)
-            {
-                warn("Ignoring remarks", organization.getId(), agent.getRemarks());
-            }
-            String sql = getUpdateSql(agent, organizationAgentId);
-            update(sql);
+            String sql = getInsertSql(agent);
+            Integer agentId = insert(sql);
+            agent.setAgentId(agentId);
+        }
+        
+        // Address
+        Address address = getAddress(organization, agent);
+        
+        if (address != null)
+        {
+			String sql = getInsertSql(address);
+			insert(sql);
         }
 
-		String city = organization.getCity();
-		String state = organization.getState();
-		String country = organization.getCountry();
-
-		if (city != null || state != null || country != null) {
-			Address address = new Address();
-
-			address.setCity(city);
-			address.setState(state);
-			address.setCountry(country);
-			address.setAgent(agent);
-
-			try
-			{
-				String sql = getInsertSql(address);
-				insert(sql);
-			}
-			catch (LocalException e) {
-				warn("Couldn't insert address record", organization.getId(), e.getMessage());
-			}
-		}
 	}
 
 	private Integer getBotanistId(Integer organizationId)
@@ -101,26 +99,20 @@ public class OrganizationLoader extends CsvToSqlLoader
 		{
 			throw new LocalException("Wrong number of columns");
 		}
-
-		// assign values to Botanist object
+		
 		Organization organization = new Organization();
-
 		try
 		{
-			organization.setId(          Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-			organization.setName(                          StringUtils.trimToNull( columns[1] ));
-			organization.setAcronym(                       StringUtils.trimToNull( columns[2] ));
-			organization.setCity(                          StringUtils.trimToNull( columns[3] ));
-			organization.setState(                         StringUtils.trimToNull( columns[4] ));
-			organization.setCountry(                       StringUtils.trimToNull( columns[5] ));
-			organization.setUri(                           StringUtils.trimToNull( columns[6] ));
-			organization.setCreatedById( Integer.parseInt( StringUtils.trimToNull( columns[7] )));
-            
-            String createDateString =           StringUtils.trimToNull( columns[8] );
-            Date createDate = SqlUtils.parseDate(createDateString);
-            organization.setDateCreated(createDate);
-            
-			organization.setRemarks(                       StringUtils.trimToNull (columns[9] ));
+			organization.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+			organization.setName(                            StringUtils.trimToNull( columns[1] ));
+			organization.setAcronym(                         StringUtils.trimToNull( columns[2] ));
+			organization.setCity(                            StringUtils.trimToNull( columns[3] ));
+			organization.setState(                           StringUtils.trimToNull( columns[4] ));
+			organization.setCountry(                         StringUtils.trimToNull( columns[5] ));
+			organization.setUri(                             StringUtils.trimToNull( columns[6] ));
+			organization.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
+            organization.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8] )));            
+			organization.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull (columns[9] )));
 		}
 		catch (NumberFormatException e)
 		{
@@ -130,96 +122,136 @@ public class OrganizationLoader extends CsvToSqlLoader
 		return organization;
 	}
 
-	private Agent convert(Organization organization) throws LocalException
-	{
+	private Agent getAgent(Organization organization) throws LocalException
+	{		
 		Agent agent = new Agent();
 
-		// AgentType
-		agent.setAgentType(Agent.ORG);
-
-		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
-		agent.setGuid(organization.getGuid());
-
-		// Abbreviation
+		// Abbreviation TODO: merge records based on abbreviation?
 		String abbreviation = organization.getAcronym();
 		if (abbreviation != null && !abbreviation.startsWith("*"))
 		{
-		    if (abbreviation.length() > 50)
-		    {
-		        warn("Truncating acronym", organization.getId(), abbreviation);
-		        abbreviation = abbreviation.substring(0, 50);
-		    }
-		      agent.setAbbreviation(abbreviation);
+			abbreviation = truncate(abbreviation, 50, "acronym");
+			agent.setAbbreviation(abbreviation);
 		}
+		
+		// AgentType
+		agent.setAgentType(Agent.ORG);
+
+        // CreatedByAgent
+        Integer creatorOptrId = organization.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        agent.setCreatedByAgent(createdByAgent);
+        
+		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
+		Integer organizationId = organization.getId();
+		checkNull(organizationId, "id");
+		
+		String guid = OrganizationLoader.getGuid(organizationId);
+		agent.setGuid(guid);
 
 		// LastName
 		String lastName = organization.getName();
-		if ( lastName.length() > 50 ) {
-		    warn("Truncating last name", organization.getId(), lastName);
-			lastName = lastName.substring( 0, 50);
-		}
+		checkNull(lastName, "name");
+		lastName = truncate(lastName, 50, "name");
 		agent.setLastName(lastName);
-
-		// URL
-		String url = organization.getUri();
-		if (url != null && url.length() > 255) {
-		    warn("Truncating url", organization.getId(), url);
-			url = url.substring(0, 255);
-		}
-		agent.setUrl(url);
 
 		// Remarks
 		String remarks = organization.getRemarks();
-		if ( remarks != null ) {
-			agent.setRemarks(SqlUtils.iso8859toUtf8(remarks));
-		}
+		agent.setRemarks((remarks));
 
         // TimestampCreated
         Date dateCreated = organization.getDateCreated();
         agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
+		
+        // URL
+		String url = organization.getUri();
+		if (url != null)
+		{
+			url = truncate(url, 255, "url");
+			agent.setUrl(url);
+		}
+		
 		return agent;
 	}
 
+	private Address getAddress(Organization organization, Agent agent)
+	{	
+		String city = organization.getCity();
+		String state = organization.getState();
+		String country = organization.getCountry();
+		
+		if (city == null && state == null && country == null) return null;
+
+		Address address = new Address();
+		
+		// Agent
+		address.setAgent(agent);
+		
+		// City
+		if (city != null)
+		{
+			city = truncate(city, 64, "city");
+			address.setCity(city);
+		}
+		
+		// State
+		if (state != null)
+		{
+			state = truncate(state, 64, "state");
+			address.setState(state);
+		}
+		
+		// Country
+		if (country != null)
+		{
+			country = truncate(country, 64, "country");
+			address.setCountry(country);
+		}
+		
+		return address;
+	}
+	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, GUID, Abbreviation, LastName, CreatedByAgentID, TimestampCreated, Remarks";
+			"Abbreviation, AgentType, CreatedByAgentID, GUID, LastName, Remarks, TimestampCreated, URL";
 
-		String[] values = new String[7];
+		String[] values = new String[8];
 
-		values[0] =     String.valueOf( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getGuid());
-		values[2] = SqlUtils.sqlString( agent.getAbbreviation());
-		values[3] = SqlUtils.sqlString( agent.getLastName());
-		values[4] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[5] = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[6] = SqlUtils.sqlString( agent.getRemarks());
-
+		values[0] = SqlUtils.sqlString( agent.getAbbreviation());
+		values[1] = SqlUtils.sqlString( agent.getAgentType());
+		values[2] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[3] = SqlUtils.sqlString( agent.getGuid());
+		values[4] = SqlUtils.sqlString( agent.getLastName());
+		values[5] = SqlUtils.sqlString( agent.getRemarks());
+		values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
+		values[7] = SqlUtils.sqlString( agent.getUrl());
+		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
 	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
 	{
-        String[] fieldNames = { "Abbreviation" };
+        String[] fieldNames = { "Abbreviation", "URL" };
 
-        String[] values = new String[1];
+        String[] values = new String[2];
 
         values[0] = SqlUtils.sqlString( agent.getAbbreviation());
-
-        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", String.valueOf(agentId));
+        values[1] = SqlUtils.sqlString( agent.getUrl());
+        
+        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", agentId);
 	}
 
 	private String getInsertSql(Address address) throws LocalException
     {
-    	String fieldNames = "City, State, Country, AgentID, TimestampCreated";
+    	String fieldNames = "AgentID, City, State, Country, TimestampCreated";
     	
     	String[] values = new String[5];
     	
-    	values[0] = SqlUtils.sqlString( address.getCity());
-    	values[1] = SqlUtils.sqlString( address.getState());
-    	values[2] = SqlUtils.sqlString( address.getCountry());
-    	values[3] = SqlUtils.sqlString( address.getAgent().getAgentId());
+    	values[0] = SqlUtils.sqlString( address.getAgent().getAgentId());
+    	values[1] = SqlUtils.sqlString( address.getCity());
+    	values[2] = SqlUtils.sqlString( address.getState());
+    	values[3] = SqlUtils.sqlString( address.getCountry());
     	values[4] = SqlUtils.now();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);

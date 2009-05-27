@@ -9,8 +9,13 @@ import org.apache.commons.lang.StringUtils;
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
+import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
+import edu.harvard.huh.asa2specify.lookup.ExsiccataLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.Container;
@@ -19,15 +24,111 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
 
-public class SubcollectionLoader extends CsvToSqlLoader
+// Run this class after TaxonLoader.
+
+public class SubcollectionLoader extends AuditedObjectLoader
 {
+    public ExsiccataLookup getExsiccataLookup()
+    {
+        if (exsiccataLookup == null)
+        {
+            exsiccataLookup = new ExsiccataLookup() {
+                
+                public Exsiccata getBySubcollectionId(Integer subcollectionId) throws LocalException
+                {
+                    Exsiccata exsiccata = new Exsiccata();
+                    
+                    String guid = getGuid(subcollectionId);
+
+                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+                    
+                    Integer exsiccataId = getIntByField("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
+
+                    exsiccata.setExsiccataId(exsiccataId);
+                    
+                    return exsiccata;
+                }
+            };
+        }
+        return exsiccataLookup;
+    }
+
+    public ContainerLookup getContainerLookup()
+    {
+        if (containerLookup == null)
+        {
+            containerLookup = new ContainerLookup() {
+                public Container getBySubcollectionId(Integer subcollectionId) throws LocalException
+                {
+                    Container container = new Container();
+                    
+                    Integer containerId = getIntByField("container", "ContainerID", "Number", subcollectionId);
+
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+                
+                public Container getByName(String name) throws LocalException
+                {
+                    Container container = new Container();
+                    
+                    Integer containerId = getIntByField("container", "ContainerID", "Name", name);
+                    
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+                
+                public Container queryByName(String name) throws LocalException
+                {
+                    Integer containerId = queryForInt("container", "ContainerID", "Name", name);
+                    
+                    if (containerId == null) return null;
+                    
+                    Container container = new Container();
+                    
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+            };
+        }
+        return containerLookup;
+    }
+
+    private String getGuid(Integer subcollectionId)
+	{
+		return subcollectionId + " subcoll";
+	}
+	
     private AsaIdMapper subcollMapper;
+    private TaxonLookup taxonLookup;
+    private BotanistLookup botanistLookup;
+    private ExsiccataLookup exsiccataLookup;
+    private ContainerLookup containerLookup;
     
-	public SubcollectionLoader(File csvFile, Statement sqlStatement, File subcollToBotanist) throws LocalException
+	public SubcollectionLoader(File csvFile,
+	                           Statement sqlStatement,
+	                           File subcollToBotanist,
+	                           TaxonLookup taxonLookup,
+	                           BotanistLookup botanistLookup)
+	    throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.subcollMapper = new AsaIdMapper(subcollToBotanist);
+		this.botanistLookup = botanistLookup;
+	}
+	
+	private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
+	{
+	    return taxonLookup.getByAsaTaxonId(asaTaxonId);
+	}
+
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
 	}
 	
 	@Override
@@ -35,6 +136,9 @@ public class SubcollectionLoader extends CsvToSqlLoader
 	{
 		Subcollection subcollection = parse(columns);
 
+		Integer subcollectionId = subcollection.getId();
+		setCurrentRecordId(subcollectionId);
+		
         // if this subcollection represents an exsiccata...
         String authorName = subcollection.getAuthor();
         if (authorName != null)
@@ -47,72 +151,39 @@ public class SubcollectionLoader extends CsvToSqlLoader
             Integer referenceWorkId = insert(sql);
             referenceWork.setReferenceWorkId(referenceWorkId);
 
-            // get Exsiccata object
-            Exsiccata exsiccata = getExsiccata(subcollection);
-
-            // create an exsiccata
-            exsiccata.setReferenceWork(referenceWork);
+            // get an Exsiccata object
+            Exsiccata exsiccata = getExsiccata(subcollection, referenceWork);
             sql = getInsertSql(exsiccata);
             Integer exsiccataId = insert(sql);
             exsiccata.setExsiccataId(exsiccataId);
             
             // create a taxon citation
-            Integer taxonGroupId = subcollection.getTaxonGroupId();
-            if (taxonGroupId != null)
-            {
-                String taxonSerNumber = String.valueOf(taxonGroupId);
-                
-                Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerNumber);
-
-                Taxon taxon = new Taxon();
-                taxon.setTaxonId(taxonId);
-                
-                TaxonCitation taxonCitation = new TaxonCitation();
-                taxonCitation.setReferenceWork(referenceWork);
-                taxonCitation.setTaxon(taxon);
-                
-                sql = getInsertSql(taxonCitation);
-                insert(sql);
-            }
-            else
-            {
-                warn("No taxon group id", subcollection.getId(), null);
-            }
+            TaxonCitation taxonCitation = getTaxonCitation(subcollection, referenceWork);
+            sql = getInsertSql(taxonCitation);
+            insert(sql);
 
             // find matching agent for author or create one
-            Agent authorAgent = new Agent();
+            Agent agent = null;
 
             Integer botanistId = getBotanistId(subcollection.getId());
             if (botanistId != null)
             {
-                Botanist botanist = new Botanist();
-                botanist.setId(botanistId);
-                
-                String guid = botanist.getGuid();
-
-                Integer authorAgentId = getIntByField("agent", "AgentID", "GUID", guid);
-
-                authorAgent.setAgentId(authorAgentId);
+                agent = lookupBotanist(botanistId);
             }
             else
             {
                 // create an agent
-                Agent agent = getAgent(subcollection);
+                agent = getAgent(subcollection);
                 
                 // convert agent to sql and insert
                 sql = getInsertSql(agent);
                 Integer authorAgentId = insert(sql);
-                authorAgent.setAgentId(authorAgentId);
+                agent.setAgentId(authorAgentId);
             }
 
             // create an author
-            Author author = new Author();
-
-            author.setAgent(authorAgent);
-            author.setReferenceWork(referenceWork);
-            author.setOrderNumber((short) 1);
-            getInsertSql(author);
-
+            Author author = getAuthor(subcollection, agent, referenceWork);
+            sql = getInsertSql(author);
             insert(sql);
         }
         else
@@ -143,20 +214,16 @@ public class SubcollectionLoader extends CsvToSqlLoader
 
     	try
     	{
-    	    subcollection.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0]  )));
+    	    subcollection.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
     	    subcollection.setCollectionCode(                  StringUtils.trimToNull( columns[1]  ));
-    	    subcollection.setTaxonGroupId(  Integer.parseInt( StringUtils.trimToNull( columns[2]  )));
+    	    subcollection.setTaxonGroupId( SqlUtils.parseInt( StringUtils.trimToNull( columns[2]  )));
     	    subcollection.setName(                            StringUtils.trimToNull( columns[3]  ));
     	    subcollection.setAuthor(                          StringUtils.trimToNull( columns[4]  ));
     	    subcollection.setSpecimenCount(                   StringUtils.trimToNull( columns[5]  ));
     	    subcollection.setLocation(                        StringUtils.trimToNull( columns[6]  ));
     	    subcollection.setCabinet(                         StringUtils.trimToNull( columns[7]  ));
-    	    
-            String createDateString =                         StringUtils.trimToNull( columns[8]  );
-            Date createDate = SqlUtils.parseDate(createDateString);
-            subcollection.setDateCreated(createDate);
-            
-            subcollection.setCreatedById( Integer.parseInt(   StringUtils.trimToNull( columns[9]  )));
+            subcollection.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8]  )));            
+            subcollection.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[9]  )));
     		subcollection.setRemarks(                         StringUtils.trimToNull( columns[10] ));
     	}
     	catch (NumberFormatException e)
@@ -171,26 +238,17 @@ public class SubcollectionLoader extends CsvToSqlLoader
     {    
         Container container = new Container();
         
-		// get Collection object
+		// CollectionMemberId
 		String code = subcollection.getCollectionCode();
 		Integer collectionMemberId = getCollectionId(code);
         container.setCollectionMemberId(collectionMemberId);
-
-        String name = subcollection.getName();
-        if (name == null)
-        {
-            throw new LocalException("No name");
-        }
-        container.setName(name);
+    
+        // CreatedByAgent
+        Integer creatorOptrId = subcollection.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        container.setCreatedByAgent(createdByAgent);
         
-        // this is how we will match the specimen item records to the new containers
-        Integer subcollectionId = subcollection.getId();
-        if (subcollectionId == null)
-        {
-            throw new LocalException("No id");
-        }
-        container.setNumber(subcollectionId);
-        
+        // Description
         String specimenCount = subcollection.getSpecimenCount();
         String      location = subcollection.getLocation();
         String       cabinet = subcollection.getCabinet();
@@ -203,42 +261,85 @@ public class SubcollectionLoader extends CsvToSqlLoader
                                  "Cabinet:"         +       cabinet == null ? "" : cabinet       + ";" +
                                  "Remarks:"         +       remarks == null ? "" : remarks       + ";";
             
+            description = truncate(description, 255, "count/location/cabinet/remarks");
             container.setDescription(description);
         }
+        
+        // Name
+        String name = subcollection.getName();
+        checkNull(name, "name");
+        name = truncate(name, 64, "name");
+        container.setName(name);
+        
+        // Number this is how we will match the specimen item records to the new containers
+    	Integer subcollectionId = subcollection.getId();
+    	checkNull(subcollectionId, "id");
 
+        container.setNumber(subcollectionId);
+
+        // TimestampCreated
+        Date dateCreated = subcollection.getDateCreated();
+        container.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
         return container;
 	}
     
     private ReferenceWork getReferenceWork(Subcollection subcollection) throws LocalException
     {
-        ReferenceWork referenceWork = new ReferenceWork();
+    	ReferenceWork referenceWork = new ReferenceWork();
         
+        // CreatedByAgent
+        Integer creatorOptrId = subcollection.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        referenceWork.setCreatedByAgent(createdByAgent);
+        
+        // GUID
+    	Integer subcollectionId = subcollection.getId();
+    	checkNull(subcollectionId, "id");
+    	
+        String guid = getGuid(subcollectionId);
+        referenceWork.setGuid(guid);
+        
+        // ReferenceWorkType
         referenceWork.setReferenceWorkType(ReferenceWork.BOOK);
-
-        referenceWork.setGuid(subcollection.getGuid());
-        
-        String title = subcollection.getName();
-        if (title == null)
-        {
-            throw new LocalException("No title");
-        }
-        referenceWork.setTitle(title);
-        
+     
+        // Remarks
         String remarks = subcollection.getRemarks();
         referenceWork.setRemarks(remarks);
+        
+        // TimestampCreated
+        Date dateCreated = subcollection.getDateCreated();
+        referenceWork.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
+        // Title
+        String title = subcollection.getName();
+        checkNull(title, "title");
+        title = truncate(title, 255, "title");
+        referenceWork.setTitle(title);
         
         return referenceWork;
     }
     
-    private Exsiccata getExsiccata(Subcollection subcollection) throws LocalException
-    {
+    private Exsiccata getExsiccata(Subcollection subcollection, ReferenceWork referenceWork) throws LocalException
+    {	
         Exsiccata exsiccata = new Exsiccata();
         
+        // CreatedByAgent
+        Integer creatorOptrId = subcollection.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        exsiccata.setCreatedByAgent(createdByAgent);
+
+        // ReferenceWork
+        exsiccata.setReferenceWork(referenceWork);
+        
+        // TimestampCreated
+        Date dateCreated = subcollection.getDateCreated();
+        exsiccata.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
+        // Title
         String title = subcollection.getName();
-        if (title == null)
-        {
-            throw new LocalException("No title");
-        }
+        checkNull(title, "title");
+        title = truncate(title, 255, "title");
         exsiccata.setTitle(title);
         
         return exsiccata;
@@ -246,76 +347,108 @@ public class SubcollectionLoader extends CsvToSqlLoader
     
     private Agent getAgent(Subcollection subcollection) throws LocalException
     {
-        Agent agent = new Agent();
-        
+    	Agent agent = new Agent();
+                
         String author = subcollection.getAuthor();
-        if (author == null)
-        {
-            throw new LocalException("No author");
-        }
+        checkNull(author, "author");
         
         Botanist botanist = new Botanist();
         botanist.setName(author);
         
-        // LastName
-        String lastName = botanist.getLastName();
-        if (lastName == null)
-        {
-            throw new LocalException("No last name in subcollection record " + subcollection.getId());
-        }
-
-        if (lastName.length() > 50)
-        {
-            warn("Truncating last name", subcollection.getId(), lastName);
-            lastName = lastName.substring(0, 50);
-        }
-        agent.setLastName(lastName);
-        
-        // FirstName
-        String firstName = botanist.getFirstName();
-        if (firstName != null && firstName.length() > 50)
-        {
-            warn("Truncating first name", subcollection.getId(), firstName);
-            firstName = firstName.substring(0, 50);
-        }
-        agent.setFirstName(firstName);
-
         // AgentType
         if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
         else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
         else agent.setAgentType( Agent.PERSON );
+        
+        // CreatedByAgent
+        Integer creatorOptrId = subcollection.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        agent.setCreatedByAgent(createdByAgent);
+        
+        // FirstName
+        String firstName = botanist.getFirstName();
+        if (firstName != null)
+        {
+            firstName = truncate(firstName, 50, "first name");
+            agent.setFirstName(firstName);
+        }
+        
+        // LastName
+        String lastName = botanist.getLastName();
+        checkNull(lastName, "last name");
+        lastName = truncate(lastName, 50, "last name");
+        agent.setLastName(lastName);
 
-        // Remarks
-        agent.setRemarks("Created by SubcollectionLoader from asa subcollection id " + subcollection.getId());
 
+        // TimestampCreated
+        Date dateCreated = subcollection.getDateCreated();
+        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
         return agent;
     }
+    
+    private Author getAuthor(Subcollection subcollection, Agent agent, ReferenceWork referenceWork)
+    {
+    	Author author = new Author();
 
+    	// Agent
+        author.setAgent(agent);
+
+        // OrderNumber
+        author.setOrderNumber((short) 1);
+        
+        // ReferenceWork
+        author.setReferenceWork(referenceWork);
+        
+    	return author;
+    }
+
+    private TaxonCitation getTaxonCitation(Subcollection subcollection, ReferenceWork referenceWork)
+    	throws LocalException
+    {	
+        TaxonCitation taxonCitation = new TaxonCitation();
+        
+        // Taxon
+        Integer taxonGroupId = subcollection.getTaxonGroupId();
+    	checkNull(taxonGroupId, "taxon group id");
+    	
+        Taxon taxon = lookupTaxon(taxonGroupId);
+        taxonCitation.setTaxon(taxon);
+        
+        // ReferenceWork
+        taxonCitation.setReferenceWork(referenceWork);
+
+        return taxonCitation;
+    }
+    
     private String getInsertSql(Container container) throws LocalException
     {
-        String fieldNames = "Name, Number, CollectionMemberID, Description";
+        String fieldNames = "CollectionMemberID, CreatedByAgentID, Description, Name, Number, TimestampCreated";
         
-        String[] values = new String[4];
+        String[] values = new String[6];
         
-        values[0] = SqlUtils.sqlString( container.getName());
-        values[1] = SqlUtils.sqlString( container.getNumber());
-        values[2] = SqlUtils.sqlString( container.getCollectionMemberId());
-        values[3] = SqlUtils.sqlString( container.getDescription());
+        values[0] = SqlUtils.sqlString( container.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( container.getCreatedByAgent().getId());
+        values[2] = SqlUtils.sqlString( container.getDescription());
+        values[3] = SqlUtils.sqlString( container.getName());
+        values[4] = SqlUtils.sqlString( container.getNumber());
+        values[5] = SqlUtils.sqlString( container.getTimestampCreated());
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
     
     private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "GUID, ReferenceWorkType, Title, TimestampCreated, Remarks";
+		String fieldNames = "CreatedByAgentID, GUID, ReferenceWorkType, Remarks, TimestampCreated, Title";
 
-		String[] values = new String[5];
+		String[] values = new String[6];
 
-		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
-		values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[2] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[0] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
+		values[1] = SqlUtils.sqlString( referenceWork.getGuid());
+		values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+		values[3] = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[4] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
+		values[5] = SqlUtils.sqlString( referenceWork.getTitle());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
@@ -323,28 +456,29 @@ public class SubcollectionLoader extends CsvToSqlLoader
     private String getInsertSql(Agent agent) throws LocalException
     {
         String fieldNames = 
-            "AgentType, FirstName, LastName, TimestampCreated, Remarks";
+            "AgentType, CreatedByAgentID, FirstName, LastName, TimestampCreated";
 
         String[] values = new String[5];
 
         values[0] = SqlUtils.sqlString( agent.getAgentType());
-        values[1] = SqlUtils.sqlString( agent.getFirstName());
-        values[2] = SqlUtils.sqlString( agent.getLastName());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.sqlString( agent.getRemarks());
+        values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+        values[2] = SqlUtils.sqlString( agent.getFirstName());
+        values[3] = SqlUtils.sqlString( agent.getLastName());
+        values[4] = SqlUtils.now();
 
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
 
     private String getInsertSql(Exsiccata exsiccata) throws LocalException
     {
-    	String fieldNames = "Title, ReferenceWorkID, TimestampCreated";
+    	String fieldNames = "CreatedByAgentID, Title, ReferenceWorkID, TimestampCreated";
  
-    	String[] values = new String[3];
+    	String[] values = new String[4];
     	
-    	values[0] = SqlUtils.sqlString( exsiccata.getTitle());
-    	values[1] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
-    	values[2] = SqlUtils.now();
+    	values[0] = SqlUtils.sqlString( exsiccata.getCreatedByAgent().getId());
+    	values[1] = SqlUtils.sqlString( exsiccata.getTitle());
+    	values[2] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
+    	values[3] = SqlUtils.now();
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }

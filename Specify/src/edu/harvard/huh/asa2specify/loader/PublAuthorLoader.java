@@ -5,24 +5,48 @@ import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
+// Run this class after BotanistLoader and PublicationLoader.
+
 public class PublAuthorLoader extends CsvToSqlLoader
 {
-	private int lastRefWorkId;
+    private ReferenceWorkLookup refWorkLookup;
+    private BotanistLookup      botanistLookup;
+    
+    private int lastRefWorkId;
 	private int orderNumber;
 	
-	public PublAuthorLoader(File csvFile, Statement sqlStatement)
+	public PublAuthorLoader(File csvFile,
+	                        Statement sqlStatement,
+	                        ReferenceWorkLookup refWorkLookup,
+	                        BotanistLookup botanistLookup) throws LocalException
+
 	{
 		super(csvFile, sqlStatement);
+		
+		this.refWorkLookup = refWorkLookup;
+		this.botanistLookup = botanistLookup;
+		
 		lastRefWorkId = 0;
 		orderNumber = 1;
+	}
+
+	private ReferenceWork lookupPub(Integer publicationId) throws LocalException
+	{
+	    return refWorkLookup.getByPublicationId(publicationId);
+	}
+
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -30,52 +54,11 @@ public class PublAuthorLoader extends CsvToSqlLoader
 	{
 		PublAuthor publAuthor = parse(columns);
 
+		Integer publicationId = publAuthor.getPublicationId();
+		setCurrentRecordId(publicationId);
+		
 		// convert BotanistRoleCountry into AgentGeography
 		Author author = convert(publAuthor);
-
-		// find the matching agent record
-		Agent agent = new Agent();
-		Integer authorId = publAuthor.getAuthorId();
-
-		if (authorId == null)
-		{
-			throw new LocalException("No author id");
-		}
-		Botanist botanist = new Botanist();
-		botanist.setId(authorId);
-
-		String guid = botanist.getGuid();
-
-		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-
-		agent.setAgentId(agentId);
-		author.setAgent(agent);
-
-		// find the matching referencework record
-		ReferenceWork referenceWork = new ReferenceWork();
-		Integer publicationId = publAuthor.getPublicationId();
-
-		if (publicationId == null)
-		{
-			throw new LocalException("No publication id");
-		}
-		guid = String.valueOf(publicationId);
-		
-		Integer refWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
-
-		referenceWork.setReferenceWorkId(refWorkId);        
-		author.setReferenceWork(referenceWork);
-
-		if (refWorkId != lastRefWorkId)
-		{
-			orderNumber = 1;
-			lastRefWorkId = refWorkId;
-		}
-		else
-		{
-			orderNumber ++;
-		}
-		author.setOrderNumber((short) orderNumber);
 
 		// convert agentspecialty to sql and insert
 		String sql = getInsertSql(author);
@@ -92,9 +75,9 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		PublAuthor publAuthor = new PublAuthor();
 		try
 		{
-			publAuthor.setPublicationId( Integer.parseInt(StringUtils.trimToNull( columns[0] ) ) );
-			publAuthor.setAuthorId(      Integer.parseInt(StringUtils.trimToNull( columns[1] ) ) );
-			publAuthor.setOrdinal(       Integer.parseInt(StringUtils.trimToNull( columns[2] ) ) );
+			publAuthor.setPublicationId( Integer.parseInt( StringUtils.trimToNull( columns[0] ) ) );
+			publAuthor.setAuthorId(      Integer.parseInt( StringUtils.trimToNull( columns[1] ) ) );
+			publAuthor.setOrdinal(       Integer.parseInt( StringUtils.trimToNull( columns[2] ) ) );
 		}
 		catch (NumberFormatException e)
 		{
@@ -104,10 +87,36 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		return publAuthor;
 	}
 
-	private Author convert(PublAuthor publAuthor)
+	private Author convert(PublAuthor publAuthor) throws LocalException
 	{
 		Author author = new Author();
+		
+		// Agent
+		Integer authorId = publAuthor.getAuthorId();
+		checkNull(authorId, "author id");
 
+		Agent agent = lookupBotanist(authorId);
+		author.setAgent(agent);
+
+		// ReferenceWork
+		Integer publicationId = publAuthor.getPublicationId();
+		checkNull(publicationId, "publication id");
+		
+		ReferenceWork referenceWork = lookupPub(publicationId);
+		author.setReferenceWork(referenceWork);
+
+		// OrderNumber
+		if (referenceWork.getId() != lastRefWorkId)
+		{
+			orderNumber = 1;
+			lastRefWorkId = referenceWork.getId();
+		}
+		else
+		{
+			orderNumber ++;
+		}
+		author.setOrderNumber((short) orderNumber);
+		
 		return author;
 	}
 

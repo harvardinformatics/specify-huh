@@ -1,18 +1,14 @@
 package edu.harvard.huh.asa;
 
-public class Series {
-
+public class Series
+{
 	private Integer id;
 	private  String name;
 	private  String abbreviation;
 	private Integer institutionId;
 	private  String note;
 	
-	public Series() { ; }
-	
 	public Integer getId() { return id; }
-	
-	public String getGuid() { return id + " series"; }
 	
 	public String getName() { return name; }
 	
@@ -31,5 +27,4 @@ public class Series {
 	public void setInstitutionId(Integer institutionId) { this.institutionId = institutionId; }
 	
 	public void setNote(String note) { this.note = note; }
-
 }

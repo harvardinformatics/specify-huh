@@ -4,89 +4,90 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Hashtable;
 
 import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.huh.asa.Botanist;
-import edu.harvard.huh.asa.Optr;
+import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class BotanistLoader extends CsvToSqlLoader
-{
-    private static Hashtable<Integer, Integer> optrIdsByBotanistId = new Hashtable<Integer, Integer>();
-	
-    public BotanistLoader(File csvFile, Statement sqlStatement)
+// Run this class after OptrLoader.
+
+public class BotanistLoader extends AuditedObjectLoader
+{	
+    public BotanistLookup getBotanistLookup()
+    {
+        if (botanistLookup == null)
+        {
+            botanistLookup = new BotanistLookup() {
+
+                public Agent getByBotanistId(Integer botanistId) throws LocalException
+                {
+                    Agent agent = new Agent();
+
+                    String guid = getGuid(botanistId);
+
+                    Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+
+                    agent.setAgentId(agentId);
+                    
+                    return agent;
+                }
+            };
+        }
+        return botanistLookup;
+    }
+
+    private String getGuid(Integer botanistId)
+    {
+    	return botanistId + " botanist";
+    }
+
+    private BotanistLookup botanistLookup;
+    private AsaIdMapper optrs;
+    
+    public BotanistLoader(File csvFile, Statement sqlStatement, File botanistOptrs) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
-        optrIdsByBotanistId.put(Botanist.BFRANZONE,  Optr.BFRANZONE);
-        optrIdsByBotanistId.put(Botanist.BRACH,      Optr.BRACH);
-        optrIdsByBotanistId.put(Botanist.BTAN,       Optr.BTAN);
-        optrIdsByBotanistId.put(Botanist.CBEANS,     Optr.CBEANS);
-        optrIdsByBotanistId.put(Botanist.DBOUFFORD,  Optr.DBOUFFORD);
-        optrIdsByBotanistId.put(Botanist.DPFISTER,   Optr.DPFISTER);
-        optrIdsByBotanistId.put(Botanist.EPFISTER,   Optr.EPFISTER);
-        optrIdsByBotanistId.put(Botanist.ESHAW1,     Optr.ESHAW);
-        optrIdsByBotanistId.put(Botanist.ESHAW2,     Optr.ESHAW);
-        optrIdsByBotanistId.put(Botanist.EWOOD,      Optr.EWOOD);
-        optrIdsByBotanistId.put(Botanist.EZACHARIAS, Optr.EZACHARIAS);
-        optrIdsByBotanistId.put(Botanist.GLEWISG,    Optr.GLEWISG);
-        optrIdsByBotanistId.put(Botanist.HALLING,    Optr.HALLING);
-        optrIdsByBotanistId.put(Botanist.HKESNER,    Optr.HKESNER);
-        optrIdsByBotanistId.put(Botanist.IHAY,       Optr.IHAY);
-        optrIdsByBotanistId.put(Botanist.JCACAVIO,   Optr.JCACAVIO);
-        optrIdsByBotanistId.put(Botanist.JDOLAN,     Optr.JDOLAN);
-        optrIdsByBotanistId.put(Botanist.JMACKLIN,   Optr.JMACKLIN);
-        optrIdsByBotanistId.put(Botanist.KGANDHI,    Optr.KGANDHI);
-        optrIdsByBotanistId.put(Botanist.KITTREDGE,  Optr.KITTREDGE);
-        optrIdsByBotanistId.put(Botanist.LLUKAS,     Optr.LLUKAS);
-        optrIdsByBotanistId.put(Botanist.MACKLILN,   Optr.MACKLILN);
-        optrIdsByBotanistId.put(Botanist.MPETERS,    Optr.MPETERS);
-        optrIdsByBotanistId.put(Botanist.MSCHMULL,   Optr.MSCHMULL);
-        optrIdsByBotanistId.put(Botanist.PWHITE,     Optr.PWHITE);
-        optrIdsByBotanistId.put(Botanist.ROMERO,     Optr.ROMERO);
-        optrIdsByBotanistId.put(Botanist.SDAVIES,    Optr.SDAVIES);
-        optrIdsByBotanistId.put(Botanist.SHULTZ1,    Optr.SHULTZ);
-        optrIdsByBotanistId.put(Botanist.SHULTZ2,    Optr.SHULTZ);
-        optrIdsByBotanistId.put(Botanist.SKELLEY,    Optr.SKELLEY);
-        optrIdsByBotanistId.put(Botanist.SLAGRECA,   Optr.SLAGRECA); 
-        optrIdsByBotanistId.put(Botanist.SLINDSAY,   Optr.SLINDSAY);
-        optrIdsByBotanistId.put(Botanist.SZABEL,     Optr.SZABEL);
-        optrIdsByBotanistId.put(Botanist.THIERS,     Optr.THIERS);
-        optrIdsByBotanistId.put(Botanist.ZANONI,     Optr.ZANONI);
+		this.optrs = new AsaIdMapper(botanistOptrs);
 	}
-
-	public void loadRecord(String[] columns) throws LocalException {
-
+    
+    public void loadRecord(String[] columns) throws LocalException
+	{
 		Botanist botanist = parse(columns);
 
+		Integer botanistId = botanist.getId();
+		setCurrentRecordId(botanistId);
+		
         // convert botanist into agent ...
-        Agent botanistAgent = convert( botanist );
-
-        // find matching record creator
-        Integer creatorOptrId = botanist.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        botanistAgent.setCreatedByAgent(createdByAgent);
+        Agent botanistAgent = getAgent(botanist);
         
         // convert agent to sql and insert or update (if there was an optr record for this botanist)
-        Integer botanistOptrId = optrIdsByBotanistId.get(botanist.getId());
-        if (botanistOptrId == null)
+        Integer optrId = getOptrId(botanistId);
+        
+        if (optrId == null)
         {
             String sql = getInsertSql(botanistAgent);
             insert(sql);
         }
         else
         {
-            Optr botanistOptr = new Optr();
-            botanistOptr.setId(botanistOptrId);
-
-            String sql = getUpdateSql(botanistAgent, botanistOptr.getGuid());
+        	// merge the botanist and optr records; new guid as a botanist.
+            Agent optrAgent = getAgentByOptrId(optrId);
+            
+            String sql = getUpdateSql(botanistAgent, optrAgent.getId());
             update(sql);
         }
+	}
+    
+	private Integer getOptrId(Integer botanistId)
+	{
+		return optrs.map(botanistId);
 	}
 
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
@@ -97,121 +98,92 @@ public class BotanistLoader extends CsvToSqlLoader
             throw new LocalException("Wrong number of columns");
         }
 
-        // assign values to Botanist object
-        Botanist botanist = new Botanist();
-        try {
-            botanist.setId(            Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-            botanist.setTeam(      Boolean.parseBoolean( StringUtils.trimToNull( columns[1] )));
-            botanist.setCorporate( Boolean.parseBoolean( StringUtils.trimToNull( columns[2] )));
-            botanist.setName(                            StringUtils.trimToNull( columns[3] ));
-
-            // no place to put this at the moment: birth/death, flourished, collected, received specimens
-            botanist.setDatesType(                       StringUtils.trimToNull( columns[4] ));
-
-            String startYearStr =                        StringUtils.trimToNull( columns[5] );
-            if ( startYearStr != null )
-            {
-                botanist.setStartYear( Integer.parseInt( startYearStr ) );
-            }
-
-            // doing nothing with this at the moment: ?, circa; null means default, exact
-            botanist.setStartPrecision(                  StringUtils.trimToNull( columns[6] ));
-
-            String endYearStr =                          StringUtils.trimToNull( columns[7] );
-            if ( endYearStr != null )
-            {
-                botanist.setEndYear( Integer.parseInt( endYearStr ) );
-            }
-
-            // no place to put this at the moment: ?, circa; null means default, exact
-            botanist.setEndPrecision(                    StringUtils.trimToNull( columns[8] ));
-
-            botanist.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9] )));
-            botanist.setCreatedById( Integer.parseInt(   StringUtils.trimToNull( columns[10] )));
-            
-            String createDateString =                    StringUtils.trimToNull( columns[11] );
-            Date createDate = SqlUtils.parseDate(createDateString);
-            botanist.setDateCreated(createDate);
+        Botanist botanist = new Botanist();        
+        try
+        {
+            botanist.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
+            botanist.setTeam(      Boolean.parseBoolean( StringUtils.trimToNull( columns[1]  )));
+            botanist.setCorporate( Boolean.parseBoolean( StringUtils.trimToNull( columns[2]  )));
+            botanist.setName(                            StringUtils.trimToNull( columns[3]  ));
+            botanist.setDatesType(                       StringUtils.trimToNull( columns[4]  ));
+            botanist.setStartYear(    SqlUtils.parseInt( StringUtils.trimToNull( columns[5]  )));
+            botanist.setStartPrecision(                  StringUtils.trimToNull( columns[6]  ));
+            botanist.setEndYear(      SqlUtils.parseInt( StringUtils.trimToNull( columns[7]  )));
+            botanist.setEndPrecision(                    StringUtils.trimToNull( columns[8]  ));
+            botanist.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9]  )));
+            botanist.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
+            botanist.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[11] )));
         }
         catch (NumberFormatException e)
         {
             throw new LocalException("Couldn't parse numeric field", e);
         }
-
+        
         return botanist;
     }
 
-    private Agent convert( Botanist botanist ) throws LocalException
+    private Agent getAgent(Botanist botanist) throws LocalException
     {    
 		Agent agent = new Agent();
 
 		// NOTE: as of 11:46 am Feb 27 2009, each botanist record that lacks a full name
 		// has both an author name and collector name and they are equal; further, the
 		// author/collector name contains an ampersand (and a positive team flag)
-
-		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
-		agent.setGuid( botanist.getGuid() );
-
+        
+		// AgentType
+        if (botanist.isOrganization()) agent.setAgentType( Agent.ORG );
+        else if (botanist.isGroup())   agent.setAgentType( Agent.GROUP );
+        else                           agent.setAgentType( Agent.PERSON );
+        
+		// CreatedByAgent
+        Integer creatorOptrId = botanist.getCreatedById();
+        checkNull(creatorOptrId, "created by id");
+        
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        agent.setCreatedByAgent(createdByAgent);
+        
 		// DateOfBirth: this is going to hold start dates no matter what the type for the time being
 		Integer startYear = botanist.getStartYear();
-		if (startYear != null) {
-		    Calendar c = Calendar.getInstance();
-		    c.clear();
-		    c.set(Calendar.YEAR, startYear);
-		    
-		    agent.setDateOfBirth(c);
+		if (startYear != null)
+		{
+			Calendar dateOfBirth = DateUtils.toCalendar(startYear);
+			agent.setDateOfBirth(dateOfBirth);
 		}
 		
 		// DateOfDeath: this is going to hold end dates no matter what the type for the time being
         Integer endYear = botanist.getEndYear();
-        if (endYear != null) {
-            Calendar c = Calendar.getInstance();
-            c.clear();
-            c.set(Calendar.YEAR, endYear);
-            
-            agent.setDateOfDeath(c);
-        }
-        
-        String name = botanist.getName();
-        if (name == null)
+        if (endYear != null)
         {
-            throw new LocalException("Name is null");
+            Calendar dateOfDeath = DateUtils.toCalendar(endYear);
+            agent.setDateOfDeath(dateOfDeath);
         }
+                
+        // FirstName
+        String name = botanist.getName();
+        checkNull(name, "name");
 
+		String firstName = botanist.getFirstName();
+		if (firstName != null)
+		{
+            firstName = truncate(firstName, 50, "first name");
+            agent.setFirstName(firstName);
+        }
+		
+		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
+		Integer botanistId = botanist.getId();
+		checkNull(botanistId, "id");
+		
+        String guid = getGuid(botanistId);
+        agent.setGuid(guid);
+        
         // LastName
 		String lastName = botanist.getLastName();
-		if (lastName == null)
-		{
-		    throw new LocalException("No last name in botanist record " + botanist.getId());
-		}
-
-		if (lastName.length() > 50)
-		{
-		    warn("Truncating last name", botanist.getId(), lastName);
-            lastName = lastName.substring(0, 50);
-        }
+		lastName = truncate(lastName, 50, "last name");
         agent.setLastName(lastName);
-        
-        // FirstName
-		String firstName = botanist.getFirstName();
-		if (firstName != null && firstName.length() > 50)
-		{
-		    warn("Truncating first name", botanist.getId(), firstName);
-            firstName = firstName.substring(0, 50);
-        }
-        agent.setFirstName(firstName);
 
-        // AgentType
-        if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
-        else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
-        else agent.setAgentType( Agent.PERSON );
-        
 		// Remarks
         String remarks = botanist.getRemarks();
-        if (remarks != null)
-        {
-            agent.setRemarks(remarks);
-        }
+        agent.setRemarks(remarks);
 
         // TimestampCreated
         Date dateCreated = botanist.getDateCreated();
@@ -223,41 +195,41 @@ public class BotanistLoader extends CsvToSqlLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, GUID, DateOfBirth, DateOfDeath, FirstName, LastName, Remarks, CreatedByAgentID, TimestampCreated";
+			"AgentType, CreatedByAgentID, DateOfBirth, DateOfDeath, FirstName, GUID, LastName, Remarks, TimestampCreated";
 
 		String[] values = new String[9];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getGuid());
+		values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
 		values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
 		values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
 		values[4] = SqlUtils.sqlString( agent.getFirstName());
-		values[5] = SqlUtils.sqlString( agent.getLastName());
-	    values[6] = SqlUtils.sqlString( agent.getRemarks());
-	    values[7] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[5] = SqlUtils.sqlString( agent.getGuid());
+	    values[6] = SqlUtils.sqlString( agent.getLastName());
+	    values[7] = SqlUtils.sqlString( agent.getRemarks());
 		values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 
-	private String getUpdateSql(Agent agent, String agentGuid) throws LocalException
+	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
 	{
-	    String[] fieldNames = { "AgentType", "GUID", "DateOfBirth", "DateOfDeath", "FirstName", 
-	            "LastName", "Remarks", "CreatedByAgentID", "TimestampCreated" };
+	    String[] fieldNames = { "AgentType", "CreatedByAgentID","DateOfBirth", "DateOfDeath", "FirstName",
+	    		                "GUID", "LastName", "Remarks", "TimestampCreated" };
 
 	    String[] values = new String[9];
 
 	    values[0] = SqlUtils.sqlString( agent.getAgentType());
-	    values[1] = SqlUtils.sqlString( agent.getGuid());
+	    values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
 	    values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
 	    values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
 	    values[4] = SqlUtils.sqlString( agent.getFirstName());
-	    values[5] = SqlUtils.sqlString( agent.getLastName());
-	    values[6] = SqlUtils.sqlString( agent.getRemarks());
-	    values[7] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+	    values[5] = SqlUtils.sqlString( agent.getGuid());
+	    values[6] = SqlUtils.sqlString( agent.getLastName());
+	    values[7] = SqlUtils.sqlString( agent.getRemarks());
 	    values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
 
-	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "GUID", SqlUtils.sqlString(agentGuid));
+	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", SqlUtils.sqlString(agentId));
 	}
 }

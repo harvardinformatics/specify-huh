@@ -2,23 +2,20 @@ package edu.harvard.huh.asa;
 
 import java.math.BigDecimal;
 
-public class Site {
-	
-	private int id;
-	
-	private Integer     geoUnitId;
-	private String      locality;
-	private String      latLongMethod;
-	private BigDecimal  latitudeA;
-	private BigDecimal  longitudeA;
-	private BigDecimal  latitudeB;
-	private BigDecimal  longitudeB;
-	private BigDecimal  elevFrom;
-	private BigDecimal  elevTo;
-	private String      elevMethod; // not in test asa
-	private Integer     disciplineId;
-	
-	public Site() { ; }
+public class Site
+{	
+	private    Integer id;
+	private    Integer geoUnitId;
+	private     String locality;
+	private     String latLongMethod;
+	private BigDecimal latitudeA;
+	private BigDecimal longitudeA;
+	private BigDecimal latitudeB;
+	private BigDecimal longitudeB;
+	private BigDecimal elevFrom;
+	private BigDecimal elevTo;
+	private     String elevMethod;
+	private    Integer disciplineId;
 		 
 	public int getId() { return id; }
 	

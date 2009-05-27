@@ -18,17 +18,18 @@ public class TypeSpecimen
 {
     private Integer id;
     private Integer specimenId;
+    private  String collectionCode;
     private Integer taxonId;
     private  String typeStatus;
     private  String conditionality;
     private Boolean isFragment;
     private   BDate date;
     private  String verifiedBy;
-    private Integer nle1DesignatorId;
+    private  String nle1Designator;
     private Integer nle1PublicationId;
     private  String nle1Collation;
     private  String nle1Date;
-    private Integer nle2DesignatorId;
+    private  String nle2Designator;
     private Integer nle2PublicationId;
     private  String nle2Collation;
     private  String nle2Date;
@@ -37,6 +38,8 @@ public class TypeSpecimen
     public Integer getId() { return id; }
     
     public Integer getSpecimenId() { return specimenId; }
+    
+    public String getCollectionCode() { return collectionCode; }
     
     public Integer getTaxonId() { return taxonId; }
     
@@ -50,7 +53,7 @@ public class TypeSpecimen
     
     public String getVerifiedBy() { return verifiedBy; }
     
-    public Integer getNle1DesignatorId() { return nle1DesignatorId; }
+    public String getNle1Designator() { return nle1Designator; }
     
     public Integer getNle1PublicationId() { return nle1PublicationId; }
     
@@ -58,7 +61,7 @@ public class TypeSpecimen
     
     public String getNle1Date() { return nle1Date; }
     
-    public Integer getNle2DesignatorId() { return nle2DesignatorId; }
+    public String getNle2Designator() { return nle2Designator; }
     
     public Integer getNle2PublicationId() { return nle2PublicationId; }
     
@@ -76,6 +79,8 @@ public class TypeSpecimen
 
     public void setTypeStatus(String typeStatus) { this.typeStatus = typeStatus; }
     
+    public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
+    
     public void setConditionality(String conditionality) { this.conditionality = conditionality; }
     
     public void setIsFragment(Boolean isFragment) { this.isFragment = isFragment; }
@@ -84,7 +89,7 @@ public class TypeSpecimen
     
     public void setVerifiedBy(String determinedBy) { this.verifiedBy = determinedBy; }
     
-    public void setNle1DesignatorId(Integer nle1DesignatorId) { this.nle1DesignatorId = nle1DesignatorId; }
+    public void setNle1Designator(String nle1Designator) { this.nle1Designator = nle1Designator; }
     
     public void setNle1PublicationId(Integer nle1PublicationId) { this.nle1PublicationId = nle1PublicationId; }
     
@@ -92,7 +97,7 @@ public class TypeSpecimen
     
     public void setNle1Date(String nle1Date) { this.nle1Date = nle1Date; }
     
-    public void setNle2DesignatorId(Integer nle2DesignatorId) { this.nle2DesignatorId = nle2DesignatorId; }
+    public void setNle2Designator(String nle2Designator) { this.nle2Designator = nle2Designator; }
     
     public void setNle2PublicationId(Integer nle2PublicationId) { this.nle2PublicationId = nle2PublicationId; }
     

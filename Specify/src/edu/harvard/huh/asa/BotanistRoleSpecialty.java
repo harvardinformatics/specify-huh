@@ -21,11 +21,6 @@ public class BotanistRoleSpecialty
     private  String specialty;
     private Integer ordinal;
     
-    public BotanistRoleSpecialty()
-    {
-        ;
-    }
-    
     public Integer getBotanistId() { return botanistId; }
     
     public String getRole() { return role; }

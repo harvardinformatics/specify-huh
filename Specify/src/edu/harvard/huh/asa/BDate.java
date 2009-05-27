@@ -2,23 +2,22 @@ package edu.harvard.huh.asa;
 
 import java.text.MessageFormat;
 
-public class BDate {
-	
-	private int id;
-	
+public class BDate
+{	
+	private Integer id;	
 	private Integer startYear;
 	private Integer startMonth;
 	private Integer startDay;
-	private String startPrecision;
+	private  String startPrecision;
 	private Integer endYear;
 	private Integer endMonth;
 	private Integer endDay;
-	private String endPrecision;
-	private String text;
+	private  String endPrecision;
+	private  String text;
 	
 	public BDate() { ; }
 	
-	public int getId() { return id; }
+	public Integer getId() { return id; }
 	
 	public Integer getStartYear() { return startYear; }
 	
@@ -38,7 +37,7 @@ public class BDate {
 	
 	public String getText() { return text; }
 	
-	public void setId(int id) { this.id = id; }
+	public void setId(Integer id) { this.id = id; }
 		
 	public void setStartYear(Integer startYear) { this.startYear = startYear; }
 	

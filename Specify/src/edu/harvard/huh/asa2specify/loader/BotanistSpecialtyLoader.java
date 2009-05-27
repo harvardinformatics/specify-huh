@@ -5,61 +5,49 @@ import java.sql.Statement;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentSpecialty;
 
+// Run this class after BotanistLoader.
+
 public class BotanistSpecialtyLoader extends CsvToSqlLoader
 {
+    private BotanistLookup botanistLookup;
+    
 	private int lastAgentId;
 	private int orderNumber;
 
-	public BotanistSpecialtyLoader(File csvFile, Statement sqlStatement)
+	public BotanistSpecialtyLoader(File csvFile,
+	                               Statement sqlStatement,
+	                               BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
+		
+		this.botanistLookup = botanistLookup;
+		
 		lastAgentId = 0;
 		orderNumber = 1;
 	}
+
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getByBotanistId(botanistId);
+    }
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		BotanistRoleSpecialty botanistRoleSpecialty = parse(columns);
 
-		// convert BotanistRoleCountry into AgentSpecialty
-		AgentSpecialty agentSpecialty = convert(botanistRoleSpecialty);
-
-		// find the matching agent record
-		Agent agent = new Agent();
 		Integer botanistId = botanistRoleSpecialty.getBotanistId();
-
-		if (botanistId == null)
-		{
-			throw new LocalException("No botanist id");
-		}
-		Botanist botanist = new Botanist();
-		botanist.setId(botanistId);
-
-		String guid = botanist.getGuid();
-
-		Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
-
-		agent.setAgentId(agentId);
-		agentSpecialty.setAgent(agent);
-
-		if (agentId != lastAgentId)
-		{
-			orderNumber = 1;
-			lastAgentId = agentId;
-		}
-		else
-		{
-			orderNumber++;
-		}
-		agentSpecialty.setOrderNumber(orderNumber);
+		setCurrentRecordId(botanistId);
+		
+		// convert BotanistRoleCountry into AgentSpecialty
+		AgentSpecialty agentSpecialty = getAgentSpecialty(botanistRoleSpecialty);
 
 		// convert agentspecialty to sql and insert
 		String sql = getInsertSql(agentSpecialty);
@@ -76,10 +64,10 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		BotanistRoleSpecialty botanistRoleSpecialty = new BotanistRoleSpecialty();
 		try
 		{
-			botanistRoleSpecialty.setBotanistId( Integer.parseInt( StringUtils.trimToNull( columns[0] )));
-			botanistRoleSpecialty.setRole(                         StringUtils.trimToNull( columns[1] ));
-			botanistRoleSpecialty.setSpecialty(                    StringUtils.trimToNull( columns[2] ));
-			botanistRoleSpecialty.setOrdinal(    Integer.parseInt( StringUtils.trimToNull( columns[3] )));
+			botanistRoleSpecialty.setBotanistId( SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+			botanistRoleSpecialty.setRole(                          StringUtils.trimToNull( columns[1] ));
+			botanistRoleSpecialty.setSpecialty(                     StringUtils.trimToNull( columns[2] ));
+			botanistRoleSpecialty.setOrdinal(    SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
 		}
 		catch (NumberFormatException e)
 		{
@@ -89,40 +77,53 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		return botanistRoleSpecialty;
 	}
 
-	private AgentSpecialty convert(BotanistRoleSpecialty botanistRoleSpecialty) throws LocalException
+	private AgentSpecialty getAgentSpecialty(BotanistRoleSpecialty botanistRoleSpecialty) throws LocalException
 	{
 
 		AgentSpecialty agentSpecialty = new AgentSpecialty();
 
+		// Agent
+		Integer botanistId = botanistRoleSpecialty.getBotanistId();
+		checkNull(botanistId, "botanist id");
+		
+		Agent agent = lookup(botanistId);
+		agentSpecialty.setAgent(agent);
+
+		// OrderNumber
+		if (agent.getId() != lastAgentId)
+		{
+			orderNumber = 1;
+			lastAgentId = agent.getId();
+		}
+		else
+		{
+			orderNumber++;
+		}
+		agentSpecialty.setOrderNumber(orderNumber);
+		
+        // SpecialtyName
 		String role = botanistRoleSpecialty.getRole();
-        if (role == null) throw new LocalException("No role");
+        checkNull(role, "role");
         
 		String specialty = botanistRoleSpecialty.getSpecialty();
-		if (specialty == null) throw new LocalException("No specialty");
+		checkNull(specialty, "specialty");
 		
 		String specialtyName = specialty + " (" + role + ")";
-		if (specialtyName.length() > 64)
-		{
-			warn("Truncating botanist specialty", botanistRoleSpecialty.getBotanistId(), specialtyName);
-			specialtyName = specialtyName.substring(0, 64);
-		}
+		specialtyName = truncate(specialtyName, 64, "specialty name");
 		agentSpecialty.setSpecialtyName(specialtyName);
-
-		Integer ordinal = botanistRoleSpecialty.getOrdinal();        
-		agentSpecialty.setOrderNumber(ordinal);
 
 		return agentSpecialty;
 	}
 
 	private String getInsertSql(AgentSpecialty agentSpecialty)
 	{
-		String fieldNames = "AgentId, SpecialtyName, OrderNumber, TimestampCreated";
+		String fieldNames = "AgentId, OrderNumber, SpecialtyName, TimestampCreated";
 
 		String[] values = new String[4];
 
 		values[0] = SqlUtils.sqlString( agentSpecialty.getAgent().getAgentId());
-		values[1] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
-		values[2] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
+		values[1] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
+		values[2] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
 		values[3] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("agentspecialty", fieldNames, values);

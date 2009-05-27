@@ -7,26 +7,44 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.huh.asa.Affiliate;
-import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Division;
 
-public class AffiliateLoader extends CsvToSqlLoader
+// Run this class after OrganizationLoader and before AgentLoader.
+
+public class AffiliateLoader extends AuditedObjectLoader
 {
+    private BotanistLookup botanistLookup;
+    
 	private Division division;
 	private AsaIdMapper affiliates;
-	
-	public AffiliateLoader(File csvFile, Statement specifySqlStatement, File affiliateBotanists) throws LocalException
+
+	static String getGuid(Integer affiliateId)
+	{
+		return affiliateId + " affiliate";
+	}
+
+	public AffiliateLoader(File csvFile,
+	                       Statement specifySqlStatement,
+	                       File affiliateBotanists,
+	                       BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
 		
 		this.division = getBotanyDivision();
 		this.affiliates = new AsaIdMapper(affiliateBotanists);
+		this.botanistLookup = botanistLookup;
+	}
+
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -34,50 +52,39 @@ public class AffiliateLoader extends CsvToSqlLoader
 	{
 		Affiliate affiliate = parse(columns);
 
-		// convert organization into agent ...
-		Agent agent = convert(affiliate);
+		Integer affiliateId = affiliate.getId();
+		setCurrentRecordId(affiliateId);
+		
+		// convert affiliate into agent ...
+        Agent agent = getAgent(affiliate);
+                
+        Integer botanistId = getBotanistId(affiliateId);
 
-        // find matching record creator
-        Integer creatorOptrId = affiliate.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
-        
-        // find matching botanist
-        Integer affiliateAgentId = null;
-        Integer botanistId = getBotanistId(affiliate.getId());
-        
-        if (botanistId != null)
+        if (botanistId != null) // retain botanist id in guid
         {
-            Botanist botanist = new Botanist();
-            botanist.setId(botanistId);
-            String guid = botanist.getGuid();
-
-            affiliateAgentId = queryForInt("agent", "AgentID", "GUID", guid);
-        }
-        
-        if (affiliateAgentId == null)
-        {
-            String sql = getInsertSql(agent);
-            affiliateAgentId = insert(sql);
+            Agent botanistAgent = lookup(botanistId);
+            Integer agentId = botanistAgent.getId();
+            agent.setAgentId(agentId);
+            
+        	if (agent.getRemarks() != null)
+            {
+                warn("Ignoring remarks", agent.getRemarks());
+            }
+        	
+            String sql = getUpdateSql(agent, agentId);
+            update(sql);
         }
         else
         {
-            if (agent.getRemarks() != null)
-            {
-                warn("Ignoring remarks", affiliate.getId(), agent.getRemarks());
-            }
-
-            String sql = getUpdateSql(agent, affiliateAgentId);
-            update(sql);
+            String sql = getInsertSql(agent);
+            Integer agentId = insert(sql);
+            agent.setAgentId(agentId);
         }
-		
-		if (affiliate.getPhone() != null || affiliate.getAddress() != null)
+
+        Address address = getAddress(affiliate, agent);
+        if (address != null)
 		{
-		    agent.setAgentId(affiliateAgentId);
-		    Address address = getAddress(affiliate);
-		    address.setAgent(agent);
-		    
-		    String sql = getInsertSql(address);
+        	String sql = getInsertSql(address);
 		    insert(sql);
 		}
 	}
@@ -94,88 +101,84 @@ public class AffiliateLoader extends CsvToSqlLoader
 			throw new LocalException("Wrong number of columns");
 		}
 
-		// assign values to Optr object
 		Affiliate affiliate = new Affiliate();
-
-		try {
-		    affiliate.setId(           Integer.parseInt(StringUtils.trimToNull( columns[0] )));
-		    affiliate.setSurname(                       StringUtils.trimToNull( columns[1] ));
-		    affiliate.setGivenName(                     StringUtils.trimToNull( columns[2] ));
-		    affiliate.setPosition(                      StringUtils.trimToNull( columns[3] ));
-		    affiliate.setPhone(                         StringUtils.trimToNull( columns[4] ));
-		    affiliate.setEmail(                         StringUtils.trimToNull( columns[5] ));
-		    affiliate.setAddress(                       StringUtils.trimToNull( columns[6] ));
-	          
-            Integer optrId =           Integer.parseInt(StringUtils.trimToNull( columns[7] ));
-            affiliate.setCreatedById(optrId);
-            
-            String createDateString =                   StringUtils.trimToNull( columns[8] );
-            Date createDate = SqlUtils.parseDate(createDateString);
-            affiliate.setDateCreated(createDate);
-            
-		    affiliate.setRemarks(SqlUtils.iso8859toUtf8(StringUtils.trimToNull( columns[9] )));
+		try
+		{
+		    affiliate.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
+		    affiliate.setSurname(                         StringUtils.trimToNull( columns[1] ));
+		    affiliate.setGivenName(                       StringUtils.trimToNull( columns[2] ));
+		    affiliate.setPosition(                        StringUtils.trimToNull( columns[3] ));
+		    affiliate.setPhone(                           StringUtils.trimToNull( columns[4] ));
+		    affiliate.setEmail(                           StringUtils.trimToNull( columns[5] ));
+		    affiliate.setAddress(                         StringUtils.trimToNull( columns[6] ));
+		    affiliate.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
+            affiliate.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8] )));
+		    affiliate.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9] )));
 		}
-		catch (NumberFormatException e) {
+		catch (NumberFormatException e)
+		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
 
 		return affiliate;
 	}
 
-	private Agent convert(Affiliate affiliate) throws LocalException
+	private Agent getAgent(Affiliate affiliate) throws LocalException
 	{
 
 		Agent agent = new Agent();
-
-		// Division
-		agent.setDivision(division);
 		
 		// AgentType
 		agent.setAgentType(Agent.PERSON);
-
-		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
-		agent.setGuid(affiliate.getGuid());
-
-		// LastName
-		String lastName = affiliate.getSurname();
-		if (lastName.length() > 50) {
-			warn("Truncating last name ", affiliate.getId(), lastName);
-			lastName = lastName.substring(0, 50);
+		
+		// CreatedBy
+        Integer creatorOptrId = affiliate.getCreatedById();
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        agent.setCreatedByAgent(createdByAgent);
+        
+		// Division
+		agent.setDivision(division);
+		  
+        // Email
+		String email = affiliate.getEmail();
+		if (email != null)
+		{
+		    email = truncate(email, 50, "email");
+			agent.setEmail(email);
 		}
-		agent.setLastName(lastName);
-
+		
 		// FirstName
 		String firstName = affiliate.getGivenName();
-		if (firstName != null && firstName.length() > 50) {
-		    warn("Truncating first name", affiliate.getId(), firstName);
-		    firstName = firstName.substring(0, 50);
+		if (firstName != null)
+		{
+			firstName = truncate(firstName, 50, "first name");
+			agent.setFirstName(firstName);
 		}
-		agent.setFirstName(firstName);
-	        
+
+		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
+		Integer affiliateId = affiliate.getId();
+		checkNull(affiliateId, "id");
+		
+		String guid = AffiliateLoader.getGuid(affiliateId);
+		agent.setGuid(guid);
+
 		// JobTitle
 		String position = affiliate.getPosition();
-		if (position != null && position.length() > 50)
+		if (position != null)
 		{
-		    warn("Truncating position", affiliate.getId(), position);
-		    firstName = position.substring(0, 50);
+			position = truncate(position, 50, "position");
+			agent.setJobTitle(position);	
 		}
-		agent.setJobTitle(position);
-		  
-        // Email TODO
-		String email = affiliate.getEmail();
-		if (email != null && email.length() > 50)
-		{
-		    warn("Truncating last email", affiliate.getId(), position);
-		    email = email.substring(0, 50);
-		}
-		agent.setEmail(email);
-
-        
+		
+		// LastName
+		String lastName = affiliate.getSurname();
+		checkNull(lastName, "lastName");
+		lastName = truncate(lastName, 50, "last name");
+		agent.setLastName(lastName);
+		
         // Remarks
         String remarks = affiliate.getRemarks();
-        if ( remarks != null ) {
-            agent.setRemarks(remarks);
-        }
+        agent.setRemarks(remarks);
         
         // TimestampCreated
         Date dateCreated = affiliate.getDateCreated();
@@ -184,25 +187,29 @@ public class AffiliateLoader extends CsvToSqlLoader
 		return agent;
 	}
 
-	private Address getAddress(Affiliate affiliate)
+	private Address getAddress(Affiliate affiliate, Agent agent) throws LocalException
 	{
-	    Address address = new Address();
+		Integer affiliateId = affiliate.getId();
+		checkNull(affiliateId, "id");
+		
+        String phone = affiliate.getPhone();
+        String addressString = affiliate.getAddress();
+        
+        if (phone == null && addressString == null) return null;
+        
+		Address address = new Address();
         
         // Phone
-        String phone = affiliate.getPhone();
-        if (phone != null && phone.length() > 50)
+        if (phone != null)
         {
-            warn("Truncating phone number", affiliate.getId(), phone);
-            phone = phone.substring(0, 50);
+            phone = truncate(phone, 50, "phone number");
+            address.setPhone1(phone);
         }
-        address.setPhone1(phone);
-        
+
         // Address TODO: only 17 records have data, and it all needs post-import cleaning
-        String addressString = affiliate.getAddress();
-        if (addressString != null && addressString.length() > 255)
+        if (addressString != null)
         {
-            warn("Truncating address", affiliate.getId(), addressString);
-            addressString = addressString.substring(0, 255);
+            addressString = truncate(addressString, 255, "address");
         }
         address.setAddress(addressString);
 
@@ -211,32 +218,34 @@ public class AffiliateLoader extends CsvToSqlLoader
 
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = 
-			"AgentType, GUID, FirstName, LastName, DivisionID, CreatedByAgentID, TimestampCreated, Remarks";
+		String fieldNames = "AgentType, CreatedByAgentID, DivisionID, Email, FirstName, " +
+				            "GUID, JobTitle, LastName, TimestampCreated, Remarks";
 
-		String[] values = new String[8];
+		String[] values = new String[10];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getGuid());
-		values[2] = SqlUtils.sqlString( agent.getFirstName());
-		values[3] = SqlUtils.sqlString( agent.getLastName());
-		values[4] = SqlUtils.sqlString( agent.getDivision().getDivisionId());
-        values[5] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-        values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[7] = SqlUtils.sqlString( agent.getRemarks());
+        values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[2] = SqlUtils.sqlString( agent.getDivision().getDivisionId());
+		values[3] = SqlUtils.sqlString( agent.getEmail());
+		values[4] = SqlUtils.sqlString( agent.getFirstName());
+		values[5] = SqlUtils.sqlString( agent.getGuid());
+		values[6] = SqlUtils.sqlString( agent.getJobTitle());
+		values[7] = SqlUtils.sqlString( agent.getLastName());
+		values[8] = SqlUtils.sqlString( agent.getRemarks());
+        values[9] = SqlUtils.sqlString( agent.getTimestampCreated());
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "Address, Phone1, AgentID, TimestampCreated";
+        String fieldNames = "Address, AgentID,  Phone1, TimestampCreated";
         
         String[] values = new String[4];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
-        values[1] = SqlUtils.sqlString( address.getPhone1());
-        values[2] = SqlUtils.sqlString( address.getAgent().getAgentId());
+        values[1] = SqlUtils.sqlString( address.getAgent().getAgentId());
+        values[2] = SqlUtils.sqlString( address.getPhone1());
         values[3] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
@@ -244,13 +253,13 @@ public class AffiliateLoader extends CsvToSqlLoader
     
     private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
     {
-        String[] fieldNames = { "JobTitle", "Email" };
+    	String[] fieldNames = { "Email", "JobTitle" };
 
         String[] values = new String[2];
 
-        values[0] = SqlUtils.sqlString( agent.getJobTitle());
-        values[1] = SqlUtils.sqlString( agent.getEmail());
-
-        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", String.valueOf(agentId));
+        values[0] = SqlUtils.sqlString( agent.getEmail());
+        values[1] = SqlUtils.sqlString( agent.getJobTitle());
+        
+        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", agentId);
     }
 }
