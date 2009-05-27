@@ -79,6 +79,11 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //taxonLoader.numberNodes();
             //log.info("Numbered taxon tree");
 
+            OptrLoader optrLoader = new OptrLoader(new File(dir, "optr.csv"),
+                                                   statement,
+                                                   new File(dir, "optr_botanist.csv"));
+            records = optrLoader.loadRecords();
+            
             //GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
             //records = geoUnitLoader.loadRecords();
             //System.out.println("Numbering Geography Tree...");
@@ -91,8 +96,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization_test.csv"), statement);
             //records += organizationLoader.loadRecords();
             
-            SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement, new File(dir, "series_botanist.csv"), new File(dir, "series_organization.csv"));
-            records += seriesLoader.loadRecords();
+            //SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"), statement, new File(dir, "series_botanist.csv"));
+            //records += seriesLoader.loadRecords();
             
             //AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"), statement, new File(dir, "affiliate_botanist.csv"));
             //records += affiliateLoader.loadRecords();
@@ -115,8 +120,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             //PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"), statement);
             //records = publAuthorLoader.loadRecords();
             
-            SpecimenItemLoader specimenLoader = new SpecimenItemLoader(new File(dir, "specimen_item_small.csv"), statement);
-            records = specimenLoader.loadRecords();
+            //SpecimenItemLoader specimenLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"), statement, new File(dir, "series_botanist.csv"));;
+            //records = specimenLoader.loadRecords();
             
             log.info("Loaded " + records + " records");
         }
