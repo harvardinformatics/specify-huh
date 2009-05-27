@@ -1351,7 +1351,7 @@ public class TransactionLoader extends AuditedObjectLoader
 		
 		String guid = AffiliateLoader.getGuid(affiliateId);
 		
-        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 
         agent.setAgentId(agentId);
         
@@ -1364,7 +1364,7 @@ public class TransactionLoader extends AuditedObjectLoader
 		
 		String guid = AgentLoader.getGuid(asaAgentId);
 		
-        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 
         agent.setAgentId(agentId);
         

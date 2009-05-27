@@ -42,7 +42,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
 
                     String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
                     
-                    Integer exsiccataId = getIntByField("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
+                    Integer exsiccataId = getInt("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
 
                     exsiccata.setExsiccataId(exsiccataId);
                     
@@ -62,7 +62,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
                 {
                     Container container = new Container();
                     
-                    Integer containerId = getIntByField("container", "ContainerID", "Number", subcollectionId);
+                    Integer containerId = getInt("container", "ContainerID", "Number", subcollectionId);
 
                     container.setContainerId(containerId);
                     
@@ -73,7 +73,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
                 {
                     Container container = new Container();
                     
-                    Integer containerId = getIntByField("container", "ContainerID", "Name", name);
+                    Integer containerId = getInt("container", "ContainerID", "Name", name);
                     
                     container.setContainerId(containerId);
                     

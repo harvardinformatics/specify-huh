@@ -23,392 +23,394 @@ import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader
 {
-	private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
+    private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
 
     private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
 
-	private LineIterator lineIterator;
-	private File csvFile;
-	private Statement sqlStatement;
-	protected ProgressFrame frame;
+    private LineIterator lineIterator;
+    private File csvFile;
+    private Statement sqlStatement;
+    protected ProgressFrame frame;
 
-	protected Integer currentRecordId;
-	
-	private Discipline botanyDiscipline;
-	private Division   botanyDivision;
-	
-	public CsvToSqlLoader(File csvFile, Statement sqlStatement) throws LocalException
-	{
-		this.csvFile = csvFile;
-		this.sqlStatement = sqlStatement;
-	}
+    protected Integer currentRecordId;
 
-	public int loadRecords() throws LocalException
-	{
-		int records = countRecords();
-		log.info(records + " records");
+    private Discipline botanyDiscipline;
+    private Division   botanyDivision;
 
-		// initialize progress frame
-		initializeProgressFrame(records);
+    public CsvToSqlLoader(File csvFile, Statement sqlStatement) throws LocalException
+    {
+        this.csvFile = csvFile;
+        this.sqlStatement = sqlStatement;
+    }
 
-		// iterate over lines, creating locality objects for each via sql
-		int counter = 0;
+    public int loadRecords() throws LocalException
+    {
+        int records = countRecords();
+        log.info(records + " records");
 
-		while (true)
-		{
-			String line = null;
-			try {
-				line = getNextLine();
-			}
-			catch (LocalException e) {
-				log.error("Couldn't read line", e);
-				continue;
-			}
+        // initialize progress frame
+        initializeProgressFrame(records);
 
-			if (line == null) break;
+        // iterate over lines, creating locality objects for each via sql
+        int counter = 0;
 
-			counter++;
+        while (true)
+        {
+            String line = null;
+            try {
+                line = getNextLine();
+            }
+            catch (LocalException e) {
+                log.error("Couldn't read line", e);
+                continue;
+            }
 
-			if (counter % 1000 == 0)
-			{
-			    log.info("Processed " + counter + " records");
-			}
+            if (line == null) break;
 
-			updateProgressFrame(counter);
+            counter++;
 
-			String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
-			try {
-				loadRecord(columns);
-			}
-			catch (LocalException e) {
-				log.error("Couldn't insert record for line " + counter + "\n" + line);
-				continue;
-			}
-		}
+            if (counter % 1000 == 0)
+            {
+                log.info("Processed " + counter + " records");
+            }
 
-		return counter;
-	}
+            updateProgressFrame(counter);
 
-	public abstract void loadRecord(String[] columns) throws LocalException;
+            String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+            try {
+                loadRecord(columns);
+            }
+            catch (LocalException e) {
+                log.error("Couldn't insert record for line " + counter + "\n" + line);
+                continue;
+            }
+        }
 
-	protected Statement getStatement()
-	{
-	    return sqlStatement;
-	}
+        return counter;
+    }
 
-	protected Integer getCurrentRecordId()
-	{
-		return currentRecordId;
-	}
-	
-	protected void setCurrentRecordId(Integer currentRecordId)
-	{
-		this.currentRecordId = currentRecordId;
-	}
+    public abstract void loadRecord(String[] columns) throws LocalException;
 
-	protected void checkNull(Object o, String fieldName) throws LocalException
-	{
-		if (o == null) throw new LocalException("No " + fieldName, getCurrentRecordId());
-	}
-	
-	protected String truncate(String s, int len, String fieldName)
-	{
-		if (s.length() > len)
-		{
-			warn("Truncating " + fieldName, s);
-			s = s.substring(0, len);
-		}
-		return s;
-	}
+    public void setFrame(ProgressFrame frame)
+    {
+        this.frame = frame;
+    }
 
-	protected Integer getCollectionId(String code) throws LocalException
-	{
-	    Integer collectionId = collectionIdsByCode.get(code);
-	    if (collectionId == null)
-	    {
-	        collectionId = getIntByField("collection", "CollectionID", "Code", code);
+    protected Integer getCurrentRecordId()
+    {
+        return currentRecordId;
+    }
 
-	        collectionIdsByCode.put(code, collectionId);
-	    }
-	    return collectionId;
-	}
-	
-	protected Discipline getBotanyDiscipline() throws LocalException
-	{
-	    if (botanyDiscipline == null)
-	    {
-	        botanyDiscipline = new Discipline();
+    protected void setCurrentRecordId(Integer currentRecordId)
+    {
+        this.currentRecordId = currentRecordId;
+    }
 
-	        Integer disciplineId = getIntByField("discipline", "DisciplineID", "Name", "Botany");
+    protected Statement getStatement()
+    {
+        return sqlStatement;
+    }
 
-	        botanyDiscipline.setDisciplineId(disciplineId);
-	    }
-	    return botanyDiscipline;
-	}
+    protected void checkNull(Object o, String fieldName) throws LocalException
+    {
+        if (o == null) throw new LocalException("No " + fieldName, getCurrentRecordId());
+    }
 
-	protected Division getBotanyDivision() throws LocalException
-	{
-	    if (botanyDivision == null)
-	    {
-	        Division botanyDivision = new Division();
+    protected String truncate(String s, int len, String fieldName)
+    {
+        if (s.length() > len)
+        {
+            warn("Truncating " + fieldName, s);
+            s = s.substring(0, len);
+        }
+        return s;
+    }
 
-	        Integer divisionId = getIntByField("division", "DivisionID", "Name", "Botany");
+    protected Integer getCollectionId(String code) throws LocalException
+    {
+        Integer collectionId = collectionIdsByCode.get(code);
+        if (collectionId == null)
+        {
+            collectionId = getInt("collection", "CollectionID", "Code", code);
 
-	        botanyDivision.setDivisionId(divisionId);
-	    }
-	    return botanyDivision;
-	}
+            collectionIdsByCode.put(code, collectionId);
+        }
+        return collectionId;
+    }
 
-	public void setFrame(ProgressFrame frame)
-	{
-		this.frame = frame;
-	}
+    protected Discipline getBotanyDiscipline() throws LocalException
+    {
+        if (botanyDiscipline == null)
+        {
+            botanyDiscipline = new Discipline();
 
-	private void initializeProgressFrame(final int records)
-	{
-		if (frame != null)
-		{
-			final int mx = records;
-			SwingUtilities.invokeLater(new Runnable()
-			{
-				public void run()
-				{
-					frame.setProcess(0, mx);
-				}
-			});
-		}
-	}
+            Integer disciplineId = getInt("discipline", "DisciplineID", "Name", "Botany");
 
-	private void updateProgressFrame(final int counter)
-	{
-		if (frame != null) {
-			if (counter % 100 == 0)
-			{
-				frame.setProcess(counter);
-			}
-		}
-	}
+            botanyDiscipline.setDisciplineId(disciplineId);
+        }
+        return botanyDiscipline;
+    }
 
-	private int countRecords() throws LocalException
-	{
-		// count the lines in the file and set up an iterator for them
-		int lastLine = 0;
-		LineIterator lines = null;
-		try
-		{
-			lines = FileUtils.lineIterator(csvFile);
-		}
-		catch (IOException e)
-		{
-			throw new LocalException("CsvToSqlLoader: Couldn't create LineIterator", e);
-		}
+    protected Division getBotanyDivision() throws LocalException
+    {
+        if (botanyDivision == null)
+        {
+            Division botanyDivision = new Division();
 
-		while (lines.hasNext())
-		{
-			lastLine++;
-			lines.nextLine();
-		}
+            Integer divisionId = getInt("division", "DivisionID", "Name", "Botany");
 
-		LineIterator.closeQuietly(lines);
+            botanyDivision.setDivisionId(divisionId);
+        }
+        return botanyDivision;
+    }
 
-		return lastLine;
-	}
-
-	private String getNextLine() throws LocalException
-	{
-		try
-		{
-			if (lineIterator == null)
-			{
-				lineIterator = FileUtils.lineIterator(csvFile);
-			}
-		} catch (IOException e)
-		{
-			throw new LocalException("CsvToSqlLoader: Couldn't create LineIterator", e);
-		}
-
-		if (lineIterator.hasNext())
-		{
-			return lineIterator.nextLine();
-		}
-		else
-		{
-			LineIterator.closeQuietly(lineIterator);
-			return null;
-		}
-	}
-
-	protected Integer insert(String sql) throws LocalException
-	{
-	    log.debug(sql);
-	    
-		try
-		{
-			getStatement().executeUpdate(sql);
-		}
-		catch (SQLException e)
-		{
-			throw new LocalException(e);
-		}
-
-		Integer id = BasicSQLUtils.getInsertedId(getStatement());
-		if (id == null)
-		{
-			throw new LocalException("CsvToSqlLoader: Couldn't get inserted record ID");
-		}
-
-		return id;
-	}
-
-	// TODO: clean up all these query methods; most should not be called from outside this
-	// class, and many probably aren't.  how many do we even need?
-	private Integer queryForInt(String sql) throws LocalException
-	{
-	    log.debug(sql);
-
-	    ResultSet result = null;
-		Integer id = null;
-		try
-		{
-			result = getStatement().executeQuery(sql);
-
-			if (result.next())
-			{
-				id = result.getInt(1);
-			}
-			if (result.next())
-			{
-			    log.warn("Multiple results for query: " + sql);
-			}
-
-		} catch (SQLException e)
-		{
-			throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
-		}
-
-		return id;
-	}
-
-	/**
+    /**
      * Compose and execute a query to return an Integer.  Returns null if not found.
      * @throws LocalException
      */
-	protected Integer queryForInt(String table, String intField, String field, String value)
-	    throws LocalException
-	{
-	    String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, value);
-	    
-	    Integer id = queryForInt(sql);
-	    
-	    return id;
-	}
+    protected Integer queryForInt(String table, String intField, String field, String value)
+    throws LocalException
+    {
+        String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, value);
 
-	/**
+        Integer id = queryForInt(sql);
+
+        return id;
+    }
+
+    /**
      * Compose and execute a query to return an Integer.  Throws exception if not found.
      * @throws LocalException
      */
-	protected Integer getIntByField(String table, String intField, String field, String value)
-	    throws LocalException
-	{
-	    Integer id = queryForInt(table, intField, field, value);
-	    
-	    if (id == null)
-	    {
-	        throw new LocalException("Couldn't find " + intField + " for " + field + "=" + value);
-	    }
-	    
-	    return id;
-	}
-	
-	/**
+    protected Integer getInt(String table, String intField, String field, String value)
+    throws LocalException
+    {
+        Integer id = queryForInt(table, intField, field, value);
+
+        if (id == null)
+        {
+            throw new LocalException("Couldn't find " + intField + " for " + field + "=" + value);
+        }
+
+        return id;
+    }
+
+    /**
      * Compose and execute a query to return an Integer.  Throws exception if not found.
      * @throws LocalException
      */
-	protected Integer getIntByField(String table, String intField, String field, Integer value)
-	    throws LocalException
-	{
-	    return getIntByField(table, intField, field, String.valueOf(value));
-	}
+    protected Integer getInt(String table, String intField, String field, Integer value)
+    throws LocalException
+    {
+        return getInt(table, intField, field, String.valueOf(value));
+    }
 
-	/**
+
+    /**
      * Compose and execute a query to return an String.  Throws exception if not found.
      * @throws LocalException
      */
-	private String getStringByField(String table, String returnField, String matchField, String value)
-	    throws LocalException
-	{
-	    String string = queryForString(table, returnField, matchField, value);
-	    
-	    if (string == null)
-	    {
-	        throw new LocalException("Couldn't find " + returnField + " for " + matchField + "=" + value);
-	    }
-	    
-	    return string;
-	}
+    protected String getString(String table, String returnField, String matchField, Integer value)
+    throws LocalException
+    {
+        return getString(table, returnField, matchField, String.valueOf(value));
+    }
 
-	/**
+    protected Integer insert(String sql) throws LocalException
+    {
+        log.debug(sql);
+
+        try
+        {
+            getStatement().executeUpdate(sql);
+        }
+        catch (SQLException e)
+        {
+            throw new LocalException(e);
+        }
+
+        Integer id = BasicSQLUtils.getInsertedId(getStatement());
+        if (id == null)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't get inserted record ID");
+        }
+
+        return id;
+    }
+
+    protected boolean update(String sql) throws LocalException
+    {
+        log.debug(sql);
+
+        try {
+            int success = getStatement().executeUpdate(sql);
+            if (success != 1)
+            {
+                return false;
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't execute update", e);
+        }
+
+        return true;
+    } 
+
+    protected void warn(String message, String item)
+    {
+        log.warn(message + " [" + getCurrentRecordId() + "] " + item);
+    }
+
+    private void initializeProgressFrame(final int records)
+    {
+        if (frame != null)
+        {
+            final int mx = records;
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.setProcess(0, mx);
+                }
+            });
+        }
+    }
+
+    private void updateProgressFrame(final int counter)
+    {
+        if (frame != null) {
+            if (counter % 100 == 0)
+            {
+                frame.setProcess(counter);
+            }
+        }
+    }
+
+    private int countRecords() throws LocalException
+    {
+        // count the lines in the file and set up an iterator for them
+        int lastLine = 0;
+        LineIterator lines = null;
+        try
+        {
+            lines = FileUtils.lineIterator(csvFile);
+        }
+        catch (IOException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't create LineIterator", e);
+        }
+
+        while (lines.hasNext())
+        {
+            lastLine++;
+            lines.nextLine();
+        }
+
+        LineIterator.closeQuietly(lines);
+
+        return lastLine;
+    }
+
+    private String getNextLine() throws LocalException
+    {
+        try
+        {
+            if (lineIterator == null)
+            {
+                lineIterator = FileUtils.lineIterator(csvFile);
+            }
+        } catch (IOException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't create LineIterator", e);
+        }
+
+        if (lineIterator.hasNext())
+        {
+            return lineIterator.nextLine();
+        }
+        else
+        {
+            LineIterator.closeQuietly(lineIterator);
+            return null;
+        }
+    }
+
+
+    // TODO: clean up all these query methods; most should not be called from outside this
+    // class, and many probably aren't.  how many do we even need?
+    private Integer queryForInt(String sql) throws LocalException
+    {
+        log.debug(sql);
+
+        ResultSet result = null;
+        Integer id = null;
+        try
+        {
+            result = getStatement().executeQuery(sql);
+
+            if (result.next())
+            {
+                id = result.getInt(1);
+            }
+            if (result.next())
+            {
+                log.warn("Multiple results for query: " + sql);
+            }
+
+        } catch (SQLException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
+        }
+
+        return id;
+    }
+
+    /**
      * Compose and execute a query to return an String.  Throws exception if not found.
      * @throws LocalException
      */
-	protected String getStringByField(String table, String returnField, String matchField, Integer value)
-	    throws LocalException
-	{
-	    return getStringByField(table, returnField, matchField, String.valueOf(value));
-	}
-	
-	private String queryForString(String table, String returnField, String matchField, String value)
-	    throws LocalException
-	{
-	    String sql = SqlUtils.getQueryIdByFieldSql(table, returnField, matchField, value);
-	    
-	    return queryForString(sql);
-	}
+    private String getString(String table, String returnField, String matchField, String value)
+        throws LocalException
+    {
+        String string = queryForString(table, returnField, matchField, value);
 
-	private String queryForString(String sql) throws LocalException
-	{
-	    log.debug(sql);
+        if (string == null)
+        {
+            throw new LocalException("Couldn't find " + returnField + " for " + matchField + "=" + value);
+        }
 
-	    ResultSet result = null;
-	    String string = null;
-	    try
-	    {
-	        result = getStatement().executeQuery(sql);
+        return string;
+    }
 
-	        if (result.next())
-	        {
-	            string = result.getString(1);
-	        }
+    private String queryForString(String table, String returnField, String matchField, String value)
+        throws LocalException
+    {
+        String sql = SqlUtils.getQueryIdByFieldSql(table, returnField, matchField, value);
 
-	    } catch (SQLException e)
-	    {
-	        throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
-	    }
+        return queryForString(sql);
+    }
 
-	    return string;
-	}
-	   
-	protected boolean update(String sql) throws LocalException
-	{
-	    log.debug(sql);
-	    
-		try {
-			int success = getStatement().executeUpdate(sql);
-			if (success != 1)
-			{
-				return false;
-			}
-		}
-		catch (SQLException e)
-		{
-			throw new LocalException("CsvToSqlLoader: Couldn't execute update", e);
-		}
+    private String queryForString(String sql) throws LocalException
+    {
+        log.debug(sql);
 
-		return true;
-	} 
-		
-	protected void warn(String message, String item)
-	{
-	    log.warn(message + " [" + getCurrentRecordId() + "] " + item);
-	}
+        ResultSet result = null;
+        String string = null;
+        try
+        {
+            result = getStatement().executeQuery(sql);
+
+            if (result.next())
+            {
+                string = result.getString(1);
+            }
+
+        } catch (SQLException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
+        }
+
+        return string;
+    }
 }

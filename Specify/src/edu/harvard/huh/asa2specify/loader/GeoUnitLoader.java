@@ -34,7 +34,7 @@ public class GeoUnitLoader extends TreeLoader
 
                     String guid = getGuid(geoUnitId);
 
-                    Integer geographyId = getIntByField("geography", "GeographyID", "GUID", guid);
+                    Integer geographyId = getInt("geography", "GeographyID", "GUID", guid);
 
                     geography.setGeographyId(geographyId);
 
@@ -195,7 +195,7 @@ public class GeoUnitLoader extends TreeLoader
     {
         GeographyTreeDef g = new GeographyTreeDef();
 
-        Integer geoTreeDefId = getIntByField("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
+        Integer geoTreeDefId = getInt("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
 
         g.setGeographyTreeDefId(geoTreeDefId);
 
@@ -208,7 +208,7 @@ public class GeoUnitLoader extends TreeLoader
 
 	    if (treeDefItem == null)
 	    {
-	        Integer geoTreeDefItemId = getIntByField("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
+	        Integer geoTreeDefItemId = getInt("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new GeographyTreeDefItem();
 	        treeDefItem.setGeographyTreeDefItemId(geoTreeDefItemId);
@@ -376,7 +376,7 @@ public class GeoUnitLoader extends TreeLoader
 
 		// RankId
 		String rank = geoUnit.getRank();
-		Integer parentRankId = getIntByField("geography", "RankID", "GeographyID", parentId);
+		Integer parentRankId = getInt("geography", "RankID", "GeographyID", parentId);
 		
 		Integer rankId = getGeoTreeDefItem(name, rank, parentRankId);
 		checkNull(rankId, "rank id" + name);

@@ -339,7 +339,7 @@ public class AgentLoader extends CsvToSqlLoader
 		
 		String guid = OrganizationLoader.getGuid(organizationId);
 		
-        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 
         agent.setAgentId(agentId);
         

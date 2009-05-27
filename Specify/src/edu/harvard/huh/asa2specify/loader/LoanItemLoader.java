@@ -99,7 +99,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		// LoanID
 		Integer transactionId = loanItem.getLoanId();
 		// TODO: move this to interface
-		Integer loanId = getIntByField("loan", "LoanID", "Number1", transactionId);
+		Integer loanId = getInt("loan", "LoanID", "Number1", transactionId);
 		
 		Loan loan = new Loan();
 		loan.setLoanId(loanId);
@@ -129,7 +129,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		// PreparationID
 		String barcode = formatBarcode(loanItem.getBarcode());
 	    // TODO: move to interface
-		Integer preparationId = getIntByField("preparation", "PreparationID", "SampleNumber", barcode);
+		Integer preparationId = getInt("preparation", "PreparationID", "SampleNumber", barcode);
 		
 		Preparation preparation = new Preparation();
 		preparation.setPreparationId(preparationId);

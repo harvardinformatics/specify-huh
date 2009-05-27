@@ -51,7 +51,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                     
                     String guid = getGuid(specimenId);
                     
-                    Integer collectionObjectId = getIntByField("collectionobject", "CollectionObjectID", "GUID", guid);
+                    Integer collectionObjectId = getInt("collectionobject", "CollectionObjectID", "GUID", guid);
                     
                     collectionObject.setCollectionObjectId(collectionObjectId);
                     
@@ -791,7 +791,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         Integer agentId = agent.getAgentId();
 
         // TODO: move to interface?
-        String institution = getStringByField("agent", "LastName", "AgentID", agentId);
+        String institution = getString("agent", "LastName", "AgentID", agentId);
 
         series.setInstitution(institution);
 
@@ -991,7 +991,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		
 		String guid = SeriesLoader.getGuid(seriesId);
 		
-        Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 
         agent.setAgentId(agentId);
         
@@ -1003,7 +1003,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         PrepType prepType = prepTypesByName.get(format);
         if (prepType == null)
         {
-            Integer prepTypeId = getIntByField("preptype", "PrepTypeID", "Name", format);
+            Integer prepTypeId = getInt("preptype", "PrepTypeID", "Name", format);
 
             prepType = new PrepType();
             prepType.setPrepTypeId(prepTypeId);

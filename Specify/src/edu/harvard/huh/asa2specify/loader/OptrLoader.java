@@ -146,7 +146,7 @@ public class OptrLoader extends CsvToSqlLoader
                     throw new LocalException("Agent not found for optr id " + optrId);
                 }
                 guid = null; //BotanistLoader.getGuid(botanistId);
-                agentId = getIntByField("agent", "AgentID", "GUID", guid);
+                agentId = getInt("agent", "AgentID", "GUID", guid);
             }
             agent = new Agent();
             agent.setAgentId(agentId);

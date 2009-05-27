@@ -40,7 +40,7 @@ public class TaxonLoader extends TreeLoader
                     
                     String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
                     
-                    Integer taxonId = getIntByField("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
+                    Integer taxonId = getInt("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
                     
                     taxon.setTaxonId(taxonId);
                     
@@ -99,7 +99,7 @@ public class TaxonLoader extends TreeLoader
 	{
 	    TaxonTreeDef t = new TaxonTreeDef();
 
-	    Integer taxonTreeDefId = getIntByField("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
+	    Integer taxonTreeDefId = getInt("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
 	    t.setTaxonTreeDefId(taxonTreeDefId);
 
 	    return t;
@@ -111,7 +111,7 @@ public class TaxonLoader extends TreeLoader
 
 	    if (treeDefItem == null)
 	    {
-	        Integer taxonTreeDefItemId = getIntByField("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
+	        Integer taxonTreeDefItemId = getInt("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
 
 	        treeDefItem = new TaxonTreeDefItem();
 	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
@@ -321,7 +321,7 @@ public class TaxonLoader extends TreeLoader
         String guid = String.valueOf(citPublId);
         
         // TODO: move to interface
-        Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
+        Integer referenceWorkId = getInt("referencework", "ReferenceWorkID", "GUID", guid);
         referenceWork.setReferenceWorkId(referenceWorkId);
 
         taxonCitation.setReferenceWork(referenceWork);

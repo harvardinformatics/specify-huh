@@ -31,7 +31,7 @@ public class BotanistLoader extends AuditedObjectLoader
 
                     String guid = getGuid(botanistId);
 
-                    Integer agentId = getIntByField("agent", "AgentID", "GUID", guid);
+                    Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 
                     agent.setAgentId(agentId);
                     
