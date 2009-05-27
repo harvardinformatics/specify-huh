@@ -1344,6 +1344,7 @@ public class TransactionLoader extends AuditedObjectLoader
 	    return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
 	}
 	
+    // TODO: move to interface
 	private Agent getAgentByAffiliateId(Integer affiliateId) throws LocalException
 	{
 		Agent agent = new Agent();
@@ -1356,7 +1357,7 @@ public class TransactionLoader extends AuditedObjectLoader
         
         return agent;
 	}
-	
+    // TODO: move to interface
 	private Agent getAgentByAsaAgentId(Integer asaAgentId) throws LocalException
 	{
 		Agent agent = new Agent();

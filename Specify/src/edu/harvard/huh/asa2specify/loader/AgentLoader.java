@@ -332,6 +332,7 @@ public class AgentLoader extends CsvToSqlLoader
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }
     
+    // TODO: move to interface
 	private Agent getAgentByOrganizationId(Integer organizationId) throws LocalException
 	{
 		Agent agent = new Agent();

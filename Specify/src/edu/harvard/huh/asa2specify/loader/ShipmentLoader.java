@@ -202,6 +202,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	if (agent == null)
     	{
+    	    // TODO: move this to interface
     		Integer agentId = queryForInt("agent", "AgentId", "GUID", carrier);
     		
     		if (agentId != null)
@@ -244,6 +245,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	ExchangeOut exchangeOut = new ExchangeOut();
     	
+    	// TODO: move this to interface
     	Integer exchangeOutId = getIntByField("exchangeout", "ExchangeOutId", "Number1", transactionId);
     	
     	exchangeOut.setExchangeOutId(exchangeOutId);
@@ -255,6 +257,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	Loan loan = new Loan();
     	
+        // TODO: move this to interface
     	Integer loanId = getIntByField("loan", "LoanID", "Number1", transactionId);
     	
     	loan.setLoanId(loanId);

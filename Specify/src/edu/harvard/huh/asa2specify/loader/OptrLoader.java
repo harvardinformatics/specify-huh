@@ -15,7 +15,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 // Run this class first.
 public class OptrLoader extends CsvToSqlLoader
 {   
-    static String getGuid(Integer optrId)
+    private String getGuid(Integer optrId)
     {
     	return optrId + " optr";
     }
@@ -89,7 +89,7 @@ public class OptrLoader extends CsvToSqlLoader
 		}
 		
 		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
-		String guid = OptrLoader.getGuid(optrId);
+		String guid = getGuid(optrId);
 		agent.setGuid(guid);
 
 		// LastName
@@ -133,7 +133,8 @@ public class OptrLoader extends CsvToSqlLoader
 
         if (agent == null)
         {
-            String guid = OptrLoader.getGuid(optrId);
+            String guid = getGuid(optrId);
+            // TODO: move this to interface
             Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
             
             if (agentId == null)

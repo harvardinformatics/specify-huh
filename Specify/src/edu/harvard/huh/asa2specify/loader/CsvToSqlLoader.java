@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
@@ -18,7 +17,6 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.ui.ProgressFrame;
@@ -262,7 +260,9 @@ public abstract class CsvToSqlLoader
 		return id;
 	}
 
-	protected Integer queryForInt(String sql) throws LocalException
+	// TODO: clean up all these query methods; most should not be called from outside this
+	// class, and many probably aren't.  how many do we even need?
+	private Integer queryForInt(String sql) throws LocalException
 	{
 	    log.debug(sql);
 
@@ -304,20 +304,6 @@ public abstract class CsvToSqlLoader
 	}
 
 	/**
-	 * Compose and execute a query to return an Integer.  Returns null if not found.
-	 * @throws LocalException
-	 */
-	protected Integer queryForInt(String table, String intField, String field, Integer value)
-	    throws LocalException
-	{
-	    String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, String.valueOf(value));
-
-	    Integer id = queryForInt(sql);
-
-	    return id;
-	}
-
-	/**
      * Compose and execute a query to return an Integer.  Throws exception if not found.
      * @throws LocalException
      */
@@ -348,7 +334,7 @@ public abstract class CsvToSqlLoader
      * Compose and execute a query to return an String.  Throws exception if not found.
      * @throws LocalException
      */
-	protected String getStringByField(String table, String returnField, String matchField, String value)
+	private String getStringByField(String table, String returnField, String matchField, String value)
 	    throws LocalException
 	{
 	    String string = queryForString(table, returnField, matchField, value);
@@ -420,23 +406,6 @@ public abstract class CsvToSqlLoader
 
 		return true;
 	} 
-
-	protected String formatBarcode(Integer barcode) throws LocalException
-	{
-	    if (barcode == null)
-	    {
-	        throw new LocalException("Null barcode");
-	    }
-	    
-        try
-        {
-            return (new DecimalFormat( "000000000" ) ).format( barcode );
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new LocalException("Couldn't parse barcode");
-        }
-	}
 		
 	protected void warn(String message, String item)
 	{

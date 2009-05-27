@@ -320,6 +320,7 @@ public class TaxonLoader extends TreeLoader
 
         String guid = String.valueOf(citPublId);
         
+        // TODO: move to interface
         Integer referenceWorkId = getIntByField("referencework", "ReferenceWorkID", "GUID", guid);
         referenceWork.setReferenceWorkId(referenceWorkId);
 
