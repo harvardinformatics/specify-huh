@@ -10,6 +10,7 @@ import edu.harvard.huh.asa.LoanItem;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
@@ -18,9 +19,13 @@ import edu.ku.brc.specify.datamodel.Preparation;
 // Run this class after SpecimenItemLoader and TransactionLoader
 public class LoanItemLoader extends CsvToSqlLoader
 {
-	public LoanItemLoader(File csvFile, Statement sqlStatement) throws LocalException
+    private PreparationLookup prepLookup;
+    
+	public LoanItemLoader(File csvFile, Statement sqlStatement, PreparationLookup prepLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
+		
+		this.prepLookup = prepLookup;
 	}
 
 	@Override
@@ -48,6 +53,11 @@ public class LoanItemLoader extends CsvToSqlLoader
 		}
 	}
 
+	private String formatBarcode(Integer barcode) throws LocalException
+	{
+	    return prepLookup.formatBarcode(barcode);
+	}
+	
 	private LoanItem parse(String[] columns) throws LocalException
 	{
     	if (columns.length < 7)
@@ -88,6 +98,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// LoanID
 		Integer transactionId = loanItem.getLoanId();
+		// TODO: move this to interface
 		Integer loanId = getIntByField("loan", "LoanID", "Number1", transactionId);
 		
 		Loan loan = new Loan();
@@ -117,6 +128,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// PreparationID
 		String barcode = formatBarcode(loanItem.getBarcode());
+	    // TODO: move to interface
 		Integer preparationId = getIntByField("preparation", "PreparationID", "SampleNumber", barcode);
 		
 		Preparation preparation = new Preparation();

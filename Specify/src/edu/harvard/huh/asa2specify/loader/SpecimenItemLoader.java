@@ -2,6 +2,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -20,6 +21,7 @@ import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.ExsiccataLookup;
 import edu.harvard.huh.asa2specify.lookup.LocalityLookup;
+import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
@@ -61,6 +63,32 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return collObjLookup;
     }
 
+    public PreparationLookup getPreparationLookup()
+    {
+        if (prepLookup == null)
+        {
+            prepLookup = new PreparationLookup() {
+                public String formatBarcode(Integer barcode) throws LocalException
+                {
+                    if (barcode == null)
+                    {
+                        throw new LocalException("Null barcode");
+                    }
+                    
+                    try
+                    {
+                        return (new DecimalFormat( "000000000" ) ).format( barcode );
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        throw new LocalException("Couldn't parse barcode");
+                    }
+                }
+            };
+        }
+        return prepLookup;
+    }
+
     private String getGuid(Integer specimenId)
 	{
 		return String.valueOf(specimenId);
@@ -71,6 +99,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Hashtable<String, PrepType> prepTypesByName;
 	
 	private CollectionObjectLookup collObjLookup;
+	private PreparationLookup prepLookup;
 	
 	private BotanistLookup botanistLookup;
 	private ExsiccataLookup exsiccataLookup;
@@ -136,6 +165,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Locality lookupSite(Integer siteId) throws LocalException
 	{
 	    return localityLookup.queryBySiteId(siteId);
+	}
+	
+	private String formatBarcode(Integer barcode) throws LocalException
+	{
+	    return prepLookup.formatBarcode(barcode);
 	}
 	
 	@Override
@@ -756,6 +790,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
         Integer agentId = agent.getAgentId();
 
+        // TODO: move to interface?
         String institution = getStringByField("agent", "LastName", "AgentID", agentId);
 
         series.setInstitution(institution);
@@ -949,6 +984,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
 	
+    // TODO: move to interface
 	private Agent getAgentBySeriesId(Integer seriesId) throws LocalException
 	{
 		Agent agent = new Agent();
