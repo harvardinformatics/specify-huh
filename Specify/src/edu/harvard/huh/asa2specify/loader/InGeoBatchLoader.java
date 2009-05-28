@@ -11,16 +11,19 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 
 public class InGeoBatchLoader extends CsvToSqlLoader {
 
-	public InGeoBatchLoader(File csvFile, Statement sqlStatement)
-			throws LocalException {
+	public InGeoBatchLoader(File csvFile, Statement sqlStatement) throws LocalException
+	{
 		super(csvFile, sqlStatement);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
-		// TODO Auto-generated method stub
-
+	public void loadRecord(String[] columns) throws LocalException
+	{	
+	    InGeoBatch inGeoBatch = parse(columns);
+	    
+	    Integer inGeoBatchId = inGeoBatch.getId();
+	    setCurrentRecordId(inGeoBatchId);
 	}
 
 	private InGeoBatch parse(String[] columns) throws LocalException

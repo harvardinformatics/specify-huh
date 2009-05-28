@@ -9,6 +9,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
+import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
@@ -18,12 +19,17 @@ import edu.ku.brc.specify.datamodel.Preparation;
 public class LoanItemLoader extends CsvToSqlLoader
 {
     private PreparationLookup prepLookup;
+    private TransactionLookup loanLookup;
     
-	public LoanItemLoader(File csvFile, Statement sqlStatement, PreparationLookup prepLookup) throws LocalException
+	public LoanItemLoader(File csvFile,
+	                      Statement sqlStatement,
+	                      PreparationLookup prepLookup,
+	                      TransactionLookup loanLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.prepLookup = prepLookup;
+		this.loanLookup = loanLookup;
 	}
 
 	@Override
@@ -40,7 +46,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		Integer loanPreparationId = insert(sql);
 		loanPreparation.setLoanPreparationId(loanPreparationId);
 		
-		LoanReturnPreparation loanReturnPreparation = getLoanReturnPreparation(loanItem);
+		LoanReturnPreparation loanReturnPreparation = getLoanReturnPreparation(loanItem, loanPreparation);
 		if (loanReturnPreparation != null)
 		{
 			loanReturnPreparation.setCollectionMemberId(loanPreparation.getCollectionMemberId());
@@ -54,6 +60,16 @@ public class LoanItemLoader extends CsvToSqlLoader
 	private String formatBarcode(Integer barcode) throws LocalException
 	{
 	    return prepLookup.formatBarcode(barcode);
+	}
+
+	private Preparation lookupSpecimenItem(String barcode) throws LocalException
+	{
+	    return prepLookup.getByBarcode(barcode);
+	}
+
+	private Loan lookupLoan(Integer transactionId) throws LocalException
+	{
+	    return loanLookup.getLoan(transactionId);
 	}
 	
 	private LoanItem parse(String[] columns) throws LocalException
@@ -92,16 +108,12 @@ public class LoanItemLoader extends CsvToSqlLoader
 		loanPreparation.setCollectionMemberId(collectionMemberId);
 		
 		// IsResolved
-		loanPreparation.setIsResolved(loanItem.getReturnDate() != null);
+		boolean isResolved = loanItem.getReturnDate() != null;
+		loanPreparation.setIsResolved(isResolved);
 		
 		// LoanID
 		Integer transactionId = loanItem.getLoanId();
-		// TODO: move this to interface
-		Integer loanId = getInt("loan", "LoanID", "Number1", transactionId);
-		
-		Loan loan = new Loan();
-		loan.setLoanId(loanId);
-		
+		Loan loan = lookupLoan(transactionId);
 		loanPreparation.setLoan(loan);
 		
 		// OutComments
@@ -126,26 +138,41 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// PreparationID
 		String barcode = formatBarcode(loanItem.getBarcode());
-	    // TODO: move to interface
-		Integer preparationId = getInt("preparation", "PreparationID", "SampleNumber", barcode);
-		
-		Preparation preparation = new Preparation();
-		preparation.setPreparationId(preparationId);
+	    Preparation preparation = lookupSpecimenItem(barcode);
 		
 		loanPreparation.setPreparation(preparation);
 		
+		// Quantity
+		loanPreparation.setQuantity(1);
+		
+		// QuantityResolved/QuantityReturned
+		int q = isResolved? 1 : 0;
+
+		loanPreparation.setQuantityResolved(q);
+		loanPreparation.setQuantityReturned(q);
+
 		return loanPreparation;
 	}
 	
-	private LoanReturnPreparation getLoanReturnPreparation(LoanItem loanItem)
+	private LoanReturnPreparation getLoanReturnPreparation(LoanItem loanItem,
+	                                                       LoanPreparation loanPreparation) throws LocalException
 	{
 		if (loanItem.getReturnDate() == null) return null;
 		
 		LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
 		
-		// Quantity TODO: resolved?  returned?
-		int quantityReturned = 1;
-		loanReturnPreparation.setQuantityReturned(quantityReturned);
+		// CollectionMemberID
+		String collectionCode = loanItem.getCollection();
+		Integer collectionMemberId = getCollectionId(collectionCode);
+		loanReturnPreparation.setCollectionMemberId(collectionMemberId);
+
+		// LoanPreparation
+		loanReturnPreparation.setLoanPreparation(loanPreparation);
+		
+		// QuantityResolved/QuantityReturned TODO: resolved?  returned?
+		int q = 1;
+		loanReturnPreparation.setQuantityResolved(q);
+		loanReturnPreparation.setQuantityReturned(q);
 		
 		// ReturnedDate
 		Date returnDate = loanItem.getReturnDate();
@@ -157,32 +184,36 @@ public class LoanItemLoader extends CsvToSqlLoader
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
 		String fieldNames = "CollectionMemberID, IsResolved, LoanID, OutComments, PreparationID, " +
-				            "TimestampCreated";
+				            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated";
 		
-		String[] values = new String[6];
+		String[] values = new String[9];
 		
 		values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
 		values[1] = SqlUtils.sqlString( loanPreparation.getIsResolved());
 		values[2] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
 		values[3] = SqlUtils.sqlString( loanPreparation.getOutComments());
 		values[4] = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[5] = SqlUtils.now();
+		values[5] = SqlUtils.sqlString( loanPreparation.getQuantity());
+		values[6] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+		values[7] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+		values[8] = SqlUtils.now();
 
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}
 	
 	private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
 	{
-		String fieldNames = "CollectionMemberID, LoanPreparationID, Quantity, ReturnedDate, " +
-				            "TimestampCreated";
+		String fieldNames = "CollectionMemberID, LoanPreparationID, QuantityResolved, " +
+				            "QuantityReturned, ReturnedDate, TimestampCreated";
 		
-		String[] values = new String[5];
+		String[] values = new String[6];
 		
 		values[0] = SqlUtils.sqlString( loanReturnPreparation.getCollectionMemberId());
 		values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-		values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-		values[3] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-		values[4] = SqlUtils.now();
+		values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
+		values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
+		values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+		values[5] = SqlUtils.now();
 		
 		return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
 	}

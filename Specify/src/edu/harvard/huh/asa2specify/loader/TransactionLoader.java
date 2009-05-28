@@ -13,6 +13,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -49,6 +50,8 @@ public class TransactionLoader extends AuditedObjectLoader
 	private AsaIdMapper botanistsByAffiliate;
 	private AsaIdMapper botanistsByAgent;
 	
+	private TransactionLookup transactionLookup;
+	
 	private BotanistLookup botanistLookup;
 	
 	public TransactionLoader(File csvFile,
@@ -68,11 +71,6 @@ public class TransactionLoader extends AuditedObjectLoader
 		this.botanistLookup = botanistLookup;
 	}
 	
-	private Agent lookup(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
-	}
-
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -251,6 +249,102 @@ public class TransactionLoader extends AuditedObjectLoader
 		}
 	}
 
+	public TransactionLookup getTransactionLookup()
+	{
+	    if (transactionLookup == null)
+	    {
+	        transactionLookup = new TransactionLookup() {
+
+                @Override
+                public Accession getAccession(Integer transactionId) throws LocalException
+                {
+                    Accession accession = new Accession();
+                    
+                    Integer accessionId = getInt("accesion", "AccessionID", "Number1", transactionId);
+                    
+                    accession.setAccessionId(accessionId);
+                    
+                    return accession;
+                }
+
+                @Override
+                public Borrow getBorrow(Integer transactionId) throws LocalException
+                {
+                    Borrow borrow = new Borrow();
+                    
+                    Integer borrowId = getInt("borrow", "BorrowID", "Number1", transactionId);
+                    
+                    borrow.setBorrowId(borrowId);
+                    
+                    return borrow;
+                }
+
+                @Override
+                public Deaccession getDeaccession(Integer transactionId) throws LocalException
+                {
+                    Deaccession deaccession = new Deaccession();
+                    
+                    Integer deaccessionId = getInt("deaccession", "DeaccessionID", "Number1", transactionId);
+                    
+                    deaccession.setDeaccessionId(deaccessionId);
+                    
+                    return deaccession;
+                }
+
+                @Override
+                public ExchangeIn getExchangeIn(Integer transactionId) throws LocalException
+                {
+                    ExchangeIn exchangeIn = new ExchangeIn();
+                    
+                    Integer exchangeInId = getInt("exchangein", "ExchangeInID", "Number1", transactionId);
+                    
+                    exchangeIn.setExchangeInId(exchangeInId);
+                    
+                    return exchangeIn;
+                }
+
+                @Override
+                public ExchangeOut getExchangeOut(Integer transactionId) throws LocalException
+                {
+                    ExchangeOut exchangeOut = new ExchangeOut();
+                    
+                    Integer exchangeOutId = getInt("exchangeout", "ExchangeOutID", "Number1", transactionId);
+                    
+                    exchangeOut.setExchangeOutId(exchangeOutId);
+                    
+                    return exchangeOut;
+                }
+
+                @Override
+                public Gift getGift(Integer transactionId) throws LocalException
+                {
+                    Gift gift = new Gift();
+                    
+                    Integer giftId = getInt("gift", "GiftID", "Number1", transactionId);
+                    
+                    gift.setGiftId(giftId);
+                    
+                    return gift;
+                }
+
+                @Override
+                public Loan getLoan(Integer transactionId) throws LocalException
+                {
+                    Loan loan = new Loan();
+                    
+                    Integer loanId = getInt("loan", "LoanID", "Number1", transactionId);
+                    
+                    loan.setLoanId(loanId);
+                    
+                    return loan;
+                }
+	            
+	        };
+	    }
+	    
+	    return transactionLookup;
+	}
+
 	private Transaction parse(String[] columns) throws LocalException
 	{
     	if (columns.length < 22)
@@ -297,6 +391,11 @@ public class TransactionLoader extends AuditedObjectLoader
 		return transaction;
 	}
 	
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getByBotanistId(botanistId);
+	}
+	   
 	private Integer getBotanistIdByAffiliateId(Integer affiliateId)
 	{
 		return botanistsByAffiliate.map(affiliateId);

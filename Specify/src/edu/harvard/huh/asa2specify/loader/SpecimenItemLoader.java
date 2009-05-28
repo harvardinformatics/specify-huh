@@ -82,6 +82,28 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                         throw new LocalException("Couldn't parse barcode");
                     }
                 }
+                
+                public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException
+                {
+                    Preparation preparation = new Preparation();
+                    
+                    Integer preparationId = getInt("preparation", "PreparationID","Number1", specimenItemId);
+                    
+                    preparation.setPreparationId(preparationId);
+                    
+                    return preparation;
+                }
+                
+                public Preparation getByBarcode(String barcode) throws LocalException
+                {
+                    Preparation preparation = new Preparation();
+                    
+                    Integer preparationId = getInt("preparation", "PreparationID","SampleNumber", barcode);
+                    
+                    preparation.setPreparationId(preparationId);
+                    
+                    return preparation;
+                }
             };
         }
         return prepLookup;

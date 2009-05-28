@@ -15,13 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.LoanPreparation;
 
-public interface PreparationLookup
+public interface TaxonBatchLookup
 {
-    public String formatBarcode(Integer barcode) throws LocalException;
-    
-    public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException;
-    
-    public Preparation getByBarcode(String barcode) throws LocalException;
+    public LoanPreparation getByTaxonBatchId(Integer taxonBatchId) throws LocalException;
 }

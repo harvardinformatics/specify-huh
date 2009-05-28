@@ -6,19 +6,23 @@ public class TaxonBatch
 {	
 	private Integer id;
 	private Integer transactionId;
-	private TYPE type;
-	private String higherTaxon;
+	private String  collectionCode;
+	private TYPE    type;
+	private String  higherTaxon;
 	private Integer itemCount;
 	private Integer typeCount;
 	private Integer nonSpecimenCount;
-	private String taxon;
-	private String transferredFrom;
+	private String  taxon;
+	private String  transferredFrom;
+	private Integer qtyReturned;
 	
 	public Integer getId() { return id; }
 	
 	public Integer getTransactionId() { return transactionId; }
 	
-	public TYPE getTransactionType() { return type; }
+	public String getCollectionCode() { return collectionCode; }
+	
+	public TYPE getType() { return type; }
 	
 	public String getHigherTaxon() { return higherTaxon; }
 	
@@ -30,11 +34,15 @@ public class TaxonBatch
 	
 	public String getTaxon() { return taxon; }
 	
+	public Integer getQtyReturned() { return qtyReturned; }
+	
 	public String getTransferredFrom() { return transferredFrom; }
 	
 	public void setId(Integer id) { this.id = id; }
 	
 	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
+	
+	public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 	
 	public void setType(TYPE type) { this.type = type; }
 	
@@ -49,4 +57,6 @@ public class TaxonBatch
 	public void setTaxon(String taxon) { this.taxon = taxon; }
 	
 	public void setTransferredFrom(String transferredFrom) { this.transferredFrom = transferredFrom; }
+	
+	public void setQtyReturned(Integer qtyReturned) { this.qtyReturned = qtyReturned; }
 }

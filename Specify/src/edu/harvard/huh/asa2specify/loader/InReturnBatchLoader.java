@@ -8,19 +8,28 @@ import edu.harvard.huh.asa.InReturnBatch;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 
-public class InReturnBatchLoader extends CsvToSqlLoader {
-
-	public InReturnBatchLoader(File csvFile, Statement sqlStatement)
-			throws LocalException {
+public class InReturnBatchLoader extends CsvToSqlLoader
+{
+	public InReturnBatchLoader(File csvFile, Statement sqlStatement) throws LocalException
+	{
 		super(csvFile, sqlStatement);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public void loadRecord(String[] columns) throws LocalException {
-		// TODO Auto-generated method stub
+	public void loadRecord(String[] columns) throws LocalException
+	{
+		InReturnBatch inReturnBatch = parse(columns);
+		
+		Integer inReturnBatchId = inReturnBatch.getId();
+		setCurrentRecordId(inReturnBatchId);
 
+		LoanReturnPreparation loanReturnPreparation = getLoanReturnPreparation(inReturnBatch);
+		
+		String sql = getInsertSql(loanReturnPreparation);
+		insert(sql);
 	}
 
 	private InReturnBatch parse(String[] columns) throws LocalException
@@ -53,4 +62,29 @@ public class InReturnBatchLoader extends CsvToSqlLoader {
 		
 		return inReturnBatch;
 	}
+	
+    private LoanReturnPreparation getLoanReturnPreparation(InReturnBatch inReturnBatch)
+    {
+        LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
+        
+        // TODO: taxon batch needs to go first
+        
+        return loanReturnPreparation;
+    }
+	
+    private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
+    {
+        String fieldNames = "CollectionMemberID, LoanPreparationID, Quantity, ReturnedDate, " +
+                            "TimestampCreated";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( loanReturnPreparation.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
+        values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
+        values[3] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+        values[4] = SqlUtils.now();
+        
+        return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
+    }
 }
