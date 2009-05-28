@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.LoanItem;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -68,13 +66,13 @@ public class LoanItemLoader extends CsvToSqlLoader
     	LoanItem loanItem = new LoanItem(); 	
     	try
     	{
-    		loanItem.setId(          SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-    		loanItem.setLoanId(      SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
-    		loanItem.setReturnDate( SqlUtils.parseDate( StringUtils.trimToNull( columns[2] )));
-    		loanItem.setBarcode(     SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
-    		loanItem.setTransferredFrom(                StringUtils.trimToNull( columns[4] ));
-    		loanItem.setTransferredTo(                  StringUtils.trimToNull( columns[5] ));
-    		loanItem.setCollection(                     StringUtils.trimToNull( columns[6] ));
+    		loanItem.setId(          SqlUtils.parseInt( columns[0] ));
+    		loanItem.setLoanId(      SqlUtils.parseInt( columns[1] ));
+    		loanItem.setReturnDate( SqlUtils.parseDate( columns[2] ));
+    		loanItem.setBarcode(     SqlUtils.parseInt( columns[3] ));
+    		loanItem.setTransferredFrom(                columns[4] );
+    		loanItem.setTransferredTo(                  columns[5] );
+    		loanItem.setCollection(                     columns[6] );
     	}
     	catch (NumberFormatException e)
     	{

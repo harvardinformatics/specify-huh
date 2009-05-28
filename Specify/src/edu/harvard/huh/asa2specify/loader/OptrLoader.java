@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Hashtable;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Optr;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -57,10 +55,10 @@ public class OptrLoader extends CsvToSqlLoader
 		Optr optr = new Optr();
 		try
 		{
-		    optr.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-		    optr.setUserName(                        StringUtils.trimToNull( columns[1] ));
-		    optr.setFullName(                        StringUtils.trimToNull( columns[2] ));
-		    optr.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[3] )));
+		    optr.setId(           SqlUtils.parseInt( columns[0] ));
+		    optr.setUserName(                        columns[1] );
+		    optr.setFullName(                        columns[2] );
+		    optr.setRemarks( SqlUtils.iso8859toUtf8( columns[3] ));
 		}
 		catch (NumberFormatException e)
 		{

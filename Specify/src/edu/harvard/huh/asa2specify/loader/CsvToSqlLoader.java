@@ -77,6 +77,11 @@ public abstract class CsvToSqlLoader
             updateProgressFrame(counter);
 
             String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+            
+            for (int i=0; i<columns.length; i++)
+            {
+            	columns[i] = StringUtils.trimToNull(columns[i]);
+            }
             try {
                 loadRecord(columns);
             }
@@ -256,6 +261,11 @@ public abstract class CsvToSqlLoader
 
         return true;
     } 
+
+    protected void info(String message)
+    {
+    	log.info(message);
+    }
 
     protected void warn(String message, String item)
     {

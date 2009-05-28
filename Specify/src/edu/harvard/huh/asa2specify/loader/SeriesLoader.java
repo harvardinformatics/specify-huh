@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Series;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -86,11 +84,11 @@ public class SeriesLoader extends CsvToSqlLoader
     	Series series = new Series();
     	try
     	{
-    		series.setId(            SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-    		series.setName(                             StringUtils.trimToNull( columns[1] ));
-    		series.setAbbreviation(                     StringUtils.trimToNull( columns[2] ));
-    		series.setInstitutionId( SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
-    		series.setNote(                             StringUtils.trimToNull( columns[4] ));
+    		series.setId(            SqlUtils.parseInt( columns[0] ));
+    		series.setName(                             columns[1] );
+    		series.setAbbreviation(                     columns[2] );
+    		series.setInstitutionId( SqlUtils.parseInt( columns[3] ));
+    		series.setNote(                             columns[4] );
     	}
     	catch (NumberFormatException e)
     	{

@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -75,9 +73,9 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		PublAuthor publAuthor = new PublAuthor();
 		try
 		{
-			publAuthor.setPublicationId( Integer.parseInt( StringUtils.trimToNull( columns[0] ) ) );
-			publAuthor.setAuthorId(      Integer.parseInt( StringUtils.trimToNull( columns[1] ) ) );
-			publAuthor.setOrdinal(       Integer.parseInt( StringUtils.trimToNull( columns[2] ) ) );
+			publAuthor.setPublicationId( Integer.parseInt( columns[0] ));
+			publAuthor.setAuthorId(      Integer.parseInt( columns[1] ));
+			publAuthor.setOrdinal(       Integer.parseInt( columns[2] ));
 		}
 		catch (NumberFormatException e)
 		{

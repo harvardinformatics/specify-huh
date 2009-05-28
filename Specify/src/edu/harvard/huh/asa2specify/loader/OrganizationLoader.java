@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -103,16 +101,16 @@ public class OrganizationLoader extends AuditedObjectLoader
 		Organization organization = new Organization();
 		try
 		{
-			organization.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-			organization.setName(                            StringUtils.trimToNull( columns[1] ));
-			organization.setAcronym(                         StringUtils.trimToNull( columns[2] ));
-			organization.setCity(                            StringUtils.trimToNull( columns[3] ));
-			organization.setState(                           StringUtils.trimToNull( columns[4] ));
-			organization.setCountry(                         StringUtils.trimToNull( columns[5] ));
-			organization.setUri(                             StringUtils.trimToNull( columns[6] ));
-			organization.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
-            organization.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8] )));            
-			organization.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull (columns[9] )));
+			organization.setId(           SqlUtils.parseInt( columns[0] ));
+			organization.setName(                            columns[1] );
+			organization.setAcronym(                         columns[2] );
+			organization.setCity(                            columns[3] );
+			organization.setState(                           columns[4] );
+			organization.setCountry(                         columns[5] );
+			organization.setUri(                             columns[6] );
+			organization.setCreatedById(  SqlUtils.parseInt( columns[7] ));
+            organization.setDateCreated( SqlUtils.parseDate( columns[8] ));            
+			organization.setRemarks( SqlUtils.iso8859toUtf8( columns[9] ));
 		}
 		catch (NumberFormatException e)
 		{

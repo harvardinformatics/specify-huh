@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -104,16 +102,16 @@ public class AffiliateLoader extends AuditedObjectLoader
 		Affiliate affiliate = new Affiliate();
 		try
 		{
-		    affiliate.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-		    affiliate.setSurname(                         StringUtils.trimToNull( columns[1] ));
-		    affiliate.setGivenName(                       StringUtils.trimToNull( columns[2] ));
-		    affiliate.setPosition(                        StringUtils.trimToNull( columns[3] ));
-		    affiliate.setPhone(                           StringUtils.trimToNull( columns[4] ));
-		    affiliate.setEmail(                           StringUtils.trimToNull( columns[5] ));
-		    affiliate.setAddress(                         StringUtils.trimToNull( columns[6] ));
-		    affiliate.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
-            affiliate.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8] )));
-		    affiliate.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9] )));
+		    affiliate.setId(           SqlUtils.parseInt( columns[0] ));
+		    affiliate.setSurname(                         columns[1] );
+		    affiliate.setGivenName(                       columns[2] );
+		    affiliate.setPosition(                        columns[3] );
+		    affiliate.setPhone(                           columns[4] );
+		    affiliate.setEmail(                           columns[5] );
+		    affiliate.setAddress(                         columns[6] );
+		    affiliate.setCreatedById(  SqlUtils.parseInt( columns[7] ));
+            affiliate.setDateCreated( SqlUtils.parseDate( columns[8] ));
+		    affiliate.setRemarks( SqlUtils.iso8859toUtf8( columns[9] ));
 		}
 		catch (NumberFormatException e)
 		{

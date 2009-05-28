@@ -5,9 +5,6 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -173,8 +170,6 @@ public class GeoUnitLoader extends TreeLoader
 	private final String CITY_SUBREGION_TYPE = "city subregion";
 	private final Integer CITY_SUBREGION_RANK = 510;
 
-	private final Logger log = Logger.getLogger(GeoUnitLoader.class);
-
 	private GeographyTreeDef treeDef;
 
 	private final Geography nullIdGeography;
@@ -234,7 +229,7 @@ public class GeoUnitLoader extends TreeLoader
 		
 		if (rank.equals(REGION_TYPE))
 		{
-		    log.info("Processing " + name);
+		    info("Processing " + name);
 		    if (frame != null)
 		    {
 		        frame.setDesc("Loading " + name + "...");
@@ -273,21 +268,21 @@ public class GeoUnitLoader extends TreeLoader
 	    GeoUnit geoUnit = new GeoUnit();
 	    try
 	    {
-	        geoUnit.setParentId(     SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-	        geoUnit.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
-	        geoUnit.setRank(                            StringUtils.trimToNull( columns[2]  ));
-	        geoUnit.setIsoCode(                         StringUtils.trimToNull( columns[3]  ));
-	        geoUnit.setDisplayQualifier(                StringUtils.trimToNull( columns[4]  ));
-	        geoUnit.setName(                            StringUtils.trimToNull( columns[5]  ));
-	        geoUnit.setVernacularName(                  StringUtils.trimToNull( columns[6]  ));
-	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[7]  )));
-	        geoUnit.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[8]  )));
-	        geoUnit.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[9]  )));
-            geoUnit.addVariantName(                     StringUtils.trimToNull( columns[10] ));
-            geoUnit.addVariantName(                     StringUtils.trimToNull( columns[11] ));
-            geoUnit.addVariantName(                     StringUtils.trimToNull( columns[12] ));
-            geoUnit.addVariantName(                     StringUtils.trimToNull( columns[13] ));
-            geoUnit.addVariantName(                     StringUtils.trimToNull( columns[14] ));
+	        geoUnit.setParentId(     SqlUtils.parseInt( columns[0]  ));
+	        geoUnit.setId(           SqlUtils.parseInt( columns[1]  ));
+	        geoUnit.setRank(                            columns[2]  );
+	        geoUnit.setIsoCode(                         columns[3]  );
+	        geoUnit.setDisplayQualifier(                columns[4]  );
+	        geoUnit.setName(                            columns[5]  );
+	        geoUnit.setVernacularName(                  columns[6]  );
+	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( columns[7]  ));
+	        geoUnit.setCreatedById(  SqlUtils.parseInt( columns[8]  ));
+	        geoUnit.setDateCreated( SqlUtils.parseDate( columns[9]  ));
+            geoUnit.addVariantName(                     columns[10] );
+            geoUnit.addVariantName(                     columns[11] );
+            geoUnit.addVariantName(                     columns[12] );
+            geoUnit.addVariantName(                     columns[13] );
+            geoUnit.addVariantName(                     columns[14] );
 	    }
 	    catch (NumberFormatException e)
 	    {

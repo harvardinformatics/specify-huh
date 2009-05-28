@@ -4,8 +4,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -110,17 +108,17 @@ public class SiteLoader extends CsvToSqlLoader
 		Site site = new Site();
 		try
 		{
-			site.setId(                SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-			site.setGeoUnitId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
-			site.setLocality(                             StringUtils.trimToNull( columns[2]  ));
-			site.setMethod(                               StringUtils.trimToNull( columns[3]  ));
-			site.setLatitudeA(  SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[4]  )));
-			site.setLongitudeA( SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[5]  )));
-			site.setLatitudeB(  SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[6]  )));
-			site.setLongitudeB( SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[7]  )));
-			site.setElevFrom(   SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[8]  )));
-			site.setElevTo(     SqlUtils.parseBigDecimal( StringUtils.trimToNull( columns[9]  )));
-			site.setElevMethod(                           StringUtils.trimToNull( columns[10] ));
+			site.setId(                SqlUtils.parseInt( columns[0]  ));
+			site.setGeoUnitId(         SqlUtils.parseInt( columns[1]  ));
+			site.setLocality(                             columns[2]  );
+			site.setMethod(                               columns[3]  );
+			site.setLatitudeA(  SqlUtils.parseBigDecimal( columns[4]  ));
+			site.setLongitudeA( SqlUtils.parseBigDecimal( columns[5]  ));
+			site.setLatitudeB(  SqlUtils.parseBigDecimal( columns[6]  ));
+			site.setLongitudeB( SqlUtils.parseBigDecimal( columns[7]  ));
+			site.setElevFrom(   SqlUtils.parseBigDecimal( columns[8]  ));
+			site.setElevTo(     SqlUtils.parseBigDecimal( columns[9]  ));
+			site.setElevMethod(                           columns[10] );
 		}
 		catch (NumberFormatException e)
 		{

@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -101,18 +99,18 @@ public class BotanistLoader extends AuditedObjectLoader
         Botanist botanist = new Botanist();        
         try
         {
-            botanist.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-            botanist.setTeam(      Boolean.parseBoolean( StringUtils.trimToNull( columns[1]  )));
-            botanist.setCorporate( Boolean.parseBoolean( StringUtils.trimToNull( columns[2]  )));
-            botanist.setName(                            StringUtils.trimToNull( columns[3]  ));
-            botanist.setDatesType(                       StringUtils.trimToNull( columns[4]  ));
-            botanist.setStartYear(    SqlUtils.parseInt( StringUtils.trimToNull( columns[5]  )));
-            botanist.setStartPrecision(                  StringUtils.trimToNull( columns[6]  ));
-            botanist.setEndYear(      SqlUtils.parseInt( StringUtils.trimToNull( columns[7]  )));
-            botanist.setEndPrecision(                    StringUtils.trimToNull( columns[8]  ));
-            botanist.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[9]  )));
-            botanist.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
-            botanist.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[11] )));
+            botanist.setId(           SqlUtils.parseInt( columns[0]  ));
+            botanist.setTeam(      Boolean.parseBoolean( columns[1]  ));
+            botanist.setCorporate( Boolean.parseBoolean( columns[2]  ));
+            botanist.setName(                            columns[3]  );
+            botanist.setDatesType(                       columns[4]  );
+            botanist.setStartYear(    SqlUtils.parseInt( columns[5]  ));
+            botanist.setStartPrecision(                  columns[6]  );
+            botanist.setEndYear(      SqlUtils.parseInt( columns[7]  ));
+            botanist.setEndPrecision(                    columns[8]  );
+            botanist.setRemarks( SqlUtils.iso8859toUtf8( columns[9]  ));
+            botanist.setCreatedById(  SqlUtils.parseInt( columns[10] ));
+            botanist.setDateCreated( SqlUtils.parseDate( columns[11] ));
         }
         catch (NumberFormatException e)
         {

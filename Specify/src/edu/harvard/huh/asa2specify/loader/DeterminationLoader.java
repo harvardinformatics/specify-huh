@@ -17,8 +17,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.AsaDetermination;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -81,25 +79,25 @@ public class DeterminationLoader extends CsvToSqlLoader
         AsaDetermination determination = new AsaDetermination();
         try
         {
-            determination.setId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-            determination.setSpecimenId( SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
-            determination.setCollectionCode(                StringUtils.trimToNull( columns[2] ));
-            determination.setTaxonId(    SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
-            determination.setQualifier(                     StringUtils.trimToNull( columns[4] ));
+            determination.setId(         SqlUtils.parseInt( columns[0] ));
+            determination.setSpecimenId( SqlUtils.parseInt( columns[1] ));
+            determination.setCollectionCode(                columns[2] );
+            determination.setTaxonId(    SqlUtils.parseInt( columns[3] ));
+            determination.setQualifier(                     columns[4] );
             
             BDate bdate = new BDate();
             determination.setDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[5] )));
-            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
-            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
+            bdate.setStartYear(  SqlUtils.parseInt( columns[5] ));
+            bdate.setStartMonth( SqlUtils.parseInt( columns[6] ));
+            bdate.setStartDay(   SqlUtils.parseInt( columns[7] ));
 
-            determination.setCurrent(   Boolean.parseBoolean( StringUtils.trimToNull( columns[8]  )));
-            determination.setIsLabel(   Boolean.parseBoolean( StringUtils.trimToNull( columns[9]  )));
-            determination.setDeterminedBy(                    StringUtils.trimToNull( columns[10] ));
-            determination.setLabelText(                       StringUtils.trimToNull( columns[11] ));
-            determination.setOrdinal(      SqlUtils.parseInt( StringUtils.trimToNull( columns[12] )));
-            determination.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[13] )));
+            determination.setCurrent(   Boolean.parseBoolean( columns[8]  ));
+            determination.setIsLabel(   Boolean.parseBoolean( columns[9]  ));
+            determination.setDeterminedBy(                    columns[10] );
+            determination.setLabelText(                       columns[11] );
+            determination.setOrdinal(      SqlUtils.parseInt( columns[12] ));
+            determination.setRemarks( SqlUtils.iso8859toUtf8( columns[13] ));
         }
         catch (NumberFormatException e)
         {

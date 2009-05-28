@@ -18,8 +18,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.HashMap;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.Transaction;
@@ -68,20 +66,20 @@ public class ShipmentLoader extends CsvToSqlLoader
     	AsaShipment asaShipment = new AsaShipment();
     	try
     	{
-    		asaShipment.setId(                  SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-    		asaShipment.setTransactionId(       SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
-    		asaShipment.setTransactionType( Transaction.parseType( StringUtils.trimToNull( columns[2]  )));
-    		asaShipment.setCarrier(      AsaShipment.parseCarrier( StringUtils.trimToNull( columns[3]  )));
-    		asaShipment.setMethod(        AsaShipment.parseMethod( StringUtils.trimToNull( columns[4]  )));
-    		asaShipment.setCost(              SqlUtils.parseFloat( StringUtils.trimToNull( columns[5]  )));
-    		asaShipment.setIsEstimatedCost(  Boolean.parseBoolean( StringUtils.trimToNull( columns[6]  )));
-    		asaShipment.setIsInsured(        Boolean.parseBoolean( StringUtils.trimToNull( columns[7]  )));
-    		asaShipment.setOrdinal(             SqlUtils.parseInt( StringUtils.trimToNull( columns[8]  )));
-    		asaShipment.setTrackingNumber(                         StringUtils.trimToNull( columns[9]  ));
-    		asaShipment.setCustomsNumber(                          StringUtils.trimToNull( columns[9]  ));
-    		asaShipment.setDescription(                            StringUtils.trimToNull( columns[10] ));
-    		asaShipment.setBoxCount(                               StringUtils.trimToNull( columns[11] ));
-    		asaShipment.setBoxCount(                               StringUtils.trimToNull( columns[12] ));
+    		asaShipment.setId(                 SqlUtils.parseInt( columns[0]  ));
+    		asaShipment.setTransactionId(      SqlUtils.parseInt( columns[1]  ));
+    		asaShipment.setType(           Transaction.parseType( columns[2]  ));
+    		asaShipment.setCarrier(     AsaShipment.parseCarrier( columns[3]  ));
+    		asaShipment.setMethod(       AsaShipment.parseMethod( columns[4]  ));
+    		asaShipment.setCost(             SqlUtils.parseFloat( columns[5]  ));
+    		asaShipment.setIsEstimatedCost( Boolean.parseBoolean( columns[6]  ));
+    		asaShipment.setIsInsured(       Boolean.parseBoolean( columns[7]  ));
+    		asaShipment.setOrdinal(            SqlUtils.parseInt( columns[8]  ));
+    		asaShipment.setTrackingNumber(                        columns[9]  );
+    		asaShipment.setCustomsNumber(                         columns[9]  );
+    		asaShipment.setDescription(                           columns[10] );
+    		asaShipment.setBoxCount(                              columns[11] );
+    		asaShipment.setBoxCount(                              columns[12] );
     	}
     	catch (NumberFormatException e)
     	{
@@ -103,7 +101,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	Integer transactionId = asaShipment.getTransactionId();
     	checkNull(transactionId, "transaction id");
     	
-    	TYPE type = asaShipment.getTransactionType();
+    	TYPE type = asaShipment.getType();
     	
     	if (type.equals(TYPE.OutExchange) || type.equals(TYPE.OutSpecial))
     	{
@@ -190,7 +188,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	shipment.setText1(customsNumber);
     	    	
     	// YesNo1 (isEstimatedCost)
-    	Boolean isEstimatedCost = asaShipment.isCostEstimated();
+    	Boolean isEstimatedCost = asaShipment.isEstimatedCost();
     	shipment.setYesNo1(isEstimatedCost);
     	
     	return shipment;

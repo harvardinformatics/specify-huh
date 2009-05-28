@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.BotanistTeamMember;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -64,9 +62,9 @@ public class BotanistTeamLoader extends CsvToSqlLoader
         BotanistTeamMember botanistTeamMember = new BotanistTeamMember();
         try
         {
-        	botanistTeamMember.setTeamId(     SqlUtils.parseInt(StringUtils.trimToNull( columns[0] )));
-        	botanistTeamMember.setBotanistId( SqlUtils.parseInt(StringUtils.trimToNull( columns[1] )));
-        	botanistTeamMember.setOrdinal(    SqlUtils.parseInt(StringUtils.trimToNull( columns[2] )));
+        	botanistTeamMember.setTeamId(     SqlUtils.parseInt( columns[0] ));
+        	botanistTeamMember.setBotanistId( SqlUtils.parseInt( columns[1] ));
+        	botanistTeamMember.setOrdinal(    SqlUtils.parseInt( columns[2] ));
         }
         catch (NumberFormatException e)
         {

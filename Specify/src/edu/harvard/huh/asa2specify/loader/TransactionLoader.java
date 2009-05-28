@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
@@ -264,45 +262,28 @@ public class TransactionLoader extends AuditedObjectLoader
 		
 		try
 		{
-			transaction.setId(                     SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-			transaction.setType(               Transaction.parseType( StringUtils.trimToNull( columns[1] )));
-			transaction.setAgentId(                SqlUtils.parseInt( StringUtils.trimToNull( columns[2] )));
-			transaction.setLocalUnit(                                 StringUtils.trimToNull( columns[3] ));
-			transaction.setRequestType( Transaction.parseRequestType( StringUtils.trimToNull( columns[4] )));
-			transaction.setPurpose(         Transaction.parsePurpose( StringUtils.trimToNull( columns[5] )));
-			transaction.setAffiliateId(            SqlUtils.parseInt( StringUtils.trimToNull( columns[6] )));
-			transaction.setUserType(       Transaction.parseUserType( StringUtils.trimToNull( columns[7] )));
-			transaction.setIsAcknowledged(      Boolean.parseBoolean( StringUtils.trimToNull( columns[8] )));
-
-			String openDateString = StringUtils.trimToNull( columns[9] );
-			Date openDate = SqlUtils.parseDate(openDateString);
-			transaction.setOpenDate(openDate);
-			
-			String closeDateString = StringUtils.trimToNull( columns[10] );
-			Date closeDate = SqlUtils.parseDate(closeDateString);
-			transaction.setCloseDate(closeDate);
-			
-			transaction.setTransactionNo(                 StringUtils.trimToNull( columns[11] ));
-			transaction.setForUseBy(                      StringUtils.trimToNull( columns[12] ));
-			transaction.setBoxCount(                      StringUtils.trimToNull( columns[13] ));
-			transaction.setDescription(                   StringUtils.trimToNull( columns[14] ));
-			transaction.setRemarks(                       StringUtils.trimToNull( columns[15] ));
-			transaction.setCreatedById( Integer.parseInt( StringUtils.trimToNull( columns[16] )));
-
-			String createDateString = StringUtils.trimToNull( columns[17] );
-			Date createDate = SqlUtils.parseDate(createDateString);
-			transaction.setDateCreated(createDate);
-			
-			String originalDueDateString = StringUtils.trimToNull( columns[18] );
-			Date originalDueDate = SqlUtils.parseDate(originalDueDateString);
-			transaction.setOriginalDueDate(originalDueDate);
-			
-			String currentDueDateString = StringUtils.trimToNull( columns[19] );
-			Date currentDueDate = SqlUtils.parseDate(currentDueDateString);
-			transaction.setCurrentDueDate(currentDueDate);
-			
-			transaction.setHigherTaxon( StringUtils.trimToNull( columns[20] ));
-			transaction.setTaxon(       StringUtils.trimToNull( columns[21] ));          
+			transaction.setId(                     SqlUtils.parseInt( columns[0]  ));
+			transaction.setType(               Transaction.parseType( columns[1]  ));
+			transaction.setAgentId(                SqlUtils.parseInt( columns[2]  ));
+			transaction.setLocalUnit(                                 columns[3]  );
+			transaction.setRequestType( Transaction.parseRequestType( columns[4]  ));
+			transaction.setPurpose(         Transaction.parsePurpose( columns[5]  ));
+			transaction.setAffiliateId(            SqlUtils.parseInt( columns[6]  ));
+			transaction.setUserType(       Transaction.parseUserType( columns[7]  ));
+			transaction.setIsAcknowledged(      Boolean.parseBoolean( columns[8]  ));
+			transaction.setOpenDate(              SqlUtils.parseDate( columns[9]  ));
+			transaction.setCloseDate(             SqlUtils.parseDate( columns[10] ));			
+			transaction.setTransactionNo(                             columns[11] );
+			transaction.setForUseBy(                                  columns[12] );
+			transaction.setBoxCount(                                  columns[13] );
+			transaction.setDescription(                               columns[14] );
+			transaction.setRemarks(                                   columns[15] );
+			transaction.setCreatedById(             Integer.parseInt( columns[16] ));
+			transaction.setDateCreated(           SqlUtils.parseDate( columns[17] ));
+			transaction.setOriginalDueDate(       SqlUtils.parseDate( columns[18] ));
+			transaction.setCurrentDueDate(        SqlUtils.parseDate( columns[19] ));			
+			transaction.setHigherTaxon(                               columns[20] );
+			transaction.setTaxon(                                     columns[21] );          
 		}
 		catch (NumberFormatException e)
 		{

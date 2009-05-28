@@ -5,9 +5,6 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaTaxon;
 import edu.harvard.huh.asa.AsaTaxon.ENDANGERMENT;
@@ -56,8 +53,6 @@ public class TaxonLoader extends TreeLoader
 	{
 		return String.valueOf(asaTaxonId);
 	}
-
-	private final Logger log = Logger.getLogger(TaxonLoader.class);
 
 	private TaxonTreeDef treeDef;
 	
@@ -139,7 +134,7 @@ public class TaxonLoader extends TreeLoader
 		
 		if (rankId <= taxonRankIdsByType.get("family"))
 		{
-		    log.info("Processing " + taxon.getName());
+		    info("Processing " + taxon.getName());
 		    if (frame != null)
 		    {
 		        frame.setDesc("Loading " + taxon.getName() + "...");
@@ -178,27 +173,27 @@ public class TaxonLoader extends TreeLoader
 
 		try
 		{
-		    taxon.setParentId(              SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-		    taxon.setId(                    SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
-		    taxon.setRank(                                     StringUtils.trimToNull( columns[2]  ));
-		    taxon.setGroup(               AsaTaxon.parseGroup( StringUtils.trimToNull( columns[3]  )));
-		    taxon.setStatus(             AsaTaxon.parseStatus( StringUtils.trimToNull( columns[4]  )));
-		    taxon.setEndangerment( AsaTaxon.parseEndangerment( StringUtils.trimToNull( columns[5]  )));
-		    taxon.setIsHybrid(           Boolean.parseBoolean( StringUtils.trimToNull( columns[6]  )));
-		    taxon.setFullName(                                 StringUtils.trimToNull( columns[7]  ));
-		    taxon.setName(                                     StringUtils.trimToNull( columns[8]  ));
-		    taxon.setAuthor(                                   StringUtils.trimToNull( columns[9]  ));
-		    taxon.setParAuthorId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[10] )));
-		    taxon.setParExAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[11] )));
-		    taxon.setStdAuthorId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[12] )));
-		    taxon.setStdExAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[13] )));
-		    taxon.setCitInAuthorId(         SqlUtils.parseInt( StringUtils.trimToNull( columns[14] )));
-		    taxon.setCitPublId(             SqlUtils.parseInt( StringUtils.trimToNull( columns[15] )));
-		    taxon.setCitCollation(                             StringUtils.trimToNull( columns[16] ));
-		    taxon.setCitDate(                                  StringUtils.trimToNull( columns[17] ));
-		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[18] )));
-		    taxon.setCreatedById(           SqlUtils.parseInt( StringUtils.trimToNull( columns[19] )));
-		    taxon.setDateCreated(          SqlUtils.parseDate( StringUtils.trimToNull( columns[20] )));
+		    taxon.setParentId(              SqlUtils.parseInt( columns[0]  ));
+		    taxon.setId(                    SqlUtils.parseInt( columns[1]  ));
+		    taxon.setRank(                                     columns[2]  );
+		    taxon.setGroup(               AsaTaxon.parseGroup( columns[3]  ));
+		    taxon.setStatus(             AsaTaxon.parseStatus( columns[4]  ));
+		    taxon.setEndangerment( AsaTaxon.parseEndangerment( columns[5]  ));
+		    taxon.setIsHybrid(           Boolean.parseBoolean( columns[6]  ));
+		    taxon.setFullName(                                 columns[7]  );
+		    taxon.setName(                                     columns[8]  );
+		    taxon.setAuthor(                                   columns[9]  );
+		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[10] ));
+		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[11] ));
+		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[12] ));
+		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[13] ));
+		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[14] ));
+		    taxon.setCitPublId(             SqlUtils.parseInt( columns[15] ));
+		    taxon.setCitCollation(                             columns[16] );
+		    taxon.setCitDate(                                  columns[17] );
+		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[18] ));
+		    taxon.setCreatedById(           SqlUtils.parseInt( columns[19] ));
+		    taxon.setDateCreated(          SqlUtils.parseDate( columns[20] ));
 		}
 		catch (NumberFormatException e)
 		{

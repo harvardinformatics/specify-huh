@@ -56,7 +56,7 @@ public class AsaShipment
     
     private Integer id;
     private Integer transactionId;
-    private    TYPE transactionType;
+    private    TYPE type;
     private CARRIER carrier;
     private  METHOD method;
     private   Float cost;
@@ -77,11 +77,11 @@ public class AsaShipment
     
     public METHOD getMethod() { return method; }
     
-    public TYPE getTransactionType() { return transactionType; }
+    public TYPE getType() { return type; }
     
     public Float getCost() { return cost; }
     
-    public Boolean isCostEstimated() { return isEstimatedCost; }
+    public Boolean isEstimatedCost() { return isEstimatedCost; }
     
     public Boolean isInsured() { return isInsured; }
     
@@ -105,7 +105,7 @@ public class AsaShipment
     
     public void setMethod(METHOD method) { this.method = method; }
     
-    public void setTransactionType(TYPE type) { this.transactionType = type; }
+    public void setType(TYPE type) { this.type = type; }
     
     public void setCost(Float cost) { this.cost = cost; }
     

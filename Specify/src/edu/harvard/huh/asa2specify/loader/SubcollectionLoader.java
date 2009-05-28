@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
@@ -214,17 +212,17 @@ public class SubcollectionLoader extends AuditedObjectLoader
 
     	try
     	{
-    	    subcollection.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-    	    subcollection.setCollectionCode(                  StringUtils.trimToNull( columns[1]  ));
-    	    subcollection.setTaxonGroupId( SqlUtils.parseInt( StringUtils.trimToNull( columns[2]  )));
-    	    subcollection.setName(                            StringUtils.trimToNull( columns[3]  ));
-    	    subcollection.setAuthor(                          StringUtils.trimToNull( columns[4]  ));
-    	    subcollection.setSpecimenCount(                   StringUtils.trimToNull( columns[5]  ));
-    	    subcollection.setLocation(                        StringUtils.trimToNull( columns[6]  ));
-    	    subcollection.setCabinet(                         StringUtils.trimToNull( columns[7]  ));
-            subcollection.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[8]  )));            
-            subcollection.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[9]  )));
-    		subcollection.setRemarks(                         StringUtils.trimToNull( columns[10] ));
+    	    subcollection.setId(           SqlUtils.parseInt( columns[0]  ));
+    	    subcollection.setCollectionCode(                  columns[1]  );
+    	    subcollection.setTaxonGroupId( SqlUtils.parseInt( columns[2]  ));
+    	    subcollection.setName(                            columns[3]  );
+    	    subcollection.setAuthor(                          columns[4]  );
+    	    subcollection.setSpecimenCount(                   columns[5]  );
+    	    subcollection.setLocation(                        columns[6]  );
+    	    subcollection.setCabinet(                         columns[7]  );
+            subcollection.setDateCreated( SqlUtils.parseDate( columns[8]  ));            
+            subcollection.setCreatedById(  SqlUtils.parseInt( columns[9]  ));
+    		subcollection.setRemarks(                         columns[10] );
     	}
     	catch (NumberFormatException e)
     	{

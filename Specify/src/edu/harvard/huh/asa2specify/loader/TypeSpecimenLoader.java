@@ -17,8 +17,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -112,30 +110,30 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         TypeSpecimen typeSpecimen = new TypeSpecimen();     
         try
         {
-            typeSpecimen.setId(            SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-            typeSpecimen.setSpecimenId(    SqlUtils.parseInt( StringUtils.trimToNull( columns[1] )));
-            typeSpecimen.setCollectionCode(                   StringUtils.trimToNull( columns[2] ));
-            typeSpecimen.setTaxonId(       SqlUtils.parseInt( StringUtils.trimToNull( columns[3] )));
-            typeSpecimen.setTypeStatus(                       StringUtils.trimToNull( columns[4] ));
-            typeSpecimen.setConditionality(                   StringUtils.trimToNull( columns[5] ));
-            typeSpecimen.setIsFragment( Boolean.parseBoolean( StringUtils.trimToNull( columns[6] )));
+            typeSpecimen.setId(            SqlUtils.parseInt( columns[0] ));
+            typeSpecimen.setSpecimenId(    SqlUtils.parseInt( columns[1] ));
+            typeSpecimen.setCollectionCode(                   columns[2] );
+            typeSpecimen.setTaxonId(       SqlUtils.parseInt( columns[3] ));
+            typeSpecimen.setTypeStatus(                       columns[4] );
+            typeSpecimen.setConditionality(                   columns[5] );
+            typeSpecimen.setIsFragment( Boolean.parseBoolean( columns[6] ));
 
             BDate bdate = new BDate();
             typeSpecimen.setDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( StringUtils.trimToNull( columns[7] )));
-            bdate.setStartMonth( SqlUtils.parseInt( StringUtils.trimToNull( columns[8] )));
-            bdate.setStartDay(   SqlUtils.parseInt( StringUtils.trimToNull( columns[9] )));
+            bdate.setStartYear(  SqlUtils.parseInt( columns[7] ));
+            bdate.setStartMonth( SqlUtils.parseInt( columns[8] ));
+            bdate.setStartDay(   SqlUtils.parseInt( columns[9] ));
 
-            typeSpecimen.setNle1Designator(                       StringUtils.trimToNull( columns[10] ));
-            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[11] )));
-            typeSpecimen.setNle1Collation(                        StringUtils.trimToNull( columns[12] ));
-            typeSpecimen.setNle1Date(                             StringUtils.trimToNull( columns[13] ));
-            typeSpecimen.setNle2Designator(                       StringUtils.trimToNull( columns[14] ));
-            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[15] )));
-            typeSpecimen.setNle2Collation(                        StringUtils.trimToNull( columns[16] ));
-            typeSpecimen.setNle2Date(                             StringUtils.trimToNull( columns[17] ));
-            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[18] )));
+            typeSpecimen.setNle1Designator(                       columns[10] );
+            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( columns[11] ));
+            typeSpecimen.setNle1Collation(                        columns[12] );
+            typeSpecimen.setNle1Date(                             columns[13] );
+            typeSpecimen.setNle2Designator(                       columns[14] );
+            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( columns[15] ));
+            typeSpecimen.setNle2Collation(                        columns[16] );
+            typeSpecimen.setNle2Date(                             columns[17] );
+            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[18] ));
         }
         catch (NumberFormatException e)
         {

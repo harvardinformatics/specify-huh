@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.Publication;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -91,20 +89,20 @@ public class PublicationLoader extends AuditedObjectLoader
 		Publication publication = new Publication();
 		try
 		{
-			publication.setId(           SqlUtils.parseInt( StringUtils.trimToNull( columns[0] )));
-			publication.setIsbn(                            StringUtils.trimToNull( columns[1] ));
-			publication.setPubPlace(                        StringUtils.trimToNull( columns[2] ));
-			publication.setPublisher(                       StringUtils.trimToNull( columns[3] ));
-			publication.setUrl(                             StringUtils.trimToNull( columns[4] ));
-			publication.setTitle(                           StringUtils.trimToNull( columns[5] ));
-			publication.setPubDate(                         StringUtils.trimToNull( columns[6] ));
-			publication.setJournal(   Boolean.parseBoolean( StringUtils.trimToNull( columns[7] )));
-			publication.setIsbn(                            StringUtils.trimToNull( columns[8] ));
-			publication.setBph(                             StringUtils.trimToNull( columns[9] ));
-			publication.setAbbreviation(                    StringUtils.trimToNull( columns[10] ));
-            publication.setCreatedById(  SqlUtils.parseInt( StringUtils.trimToNull( columns[11] )));
-            publication.setDateCreated( SqlUtils.parseDate( StringUtils.trimToNull( columns[12] )));
-			publication.setRemarks( SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[13] )));
+			publication.setId(           SqlUtils.parseInt( columns[0]  ));
+			publication.setIsbn(                            columns[1]  );
+			publication.setPubPlace(                        columns[2]  );
+			publication.setPublisher(                       columns[3]  );
+			publication.setUrl(                             columns[4]  );
+			publication.setTitle(                           columns[5]  );
+			publication.setPubDate(                         columns[6]  );
+			publication.setJournal(   Boolean.parseBoolean( columns[7]  ));
+			publication.setIsbn(                            columns[8]  );
+			publication.setBph(                             columns[9]  );
+			publication.setAbbreviation(                    columns[10] );
+            publication.setCreatedById(  SqlUtils.parseInt( columns[11] ));
+            publication.setDateCreated( SqlUtils.parseDate( columns[12] ));
+			publication.setRemarks( SqlUtils.iso8859toUtf8( columns[13] ));
 		}
 		catch (NumberFormatException e)
 		{

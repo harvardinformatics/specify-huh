@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.commons.lang.StringUtils;
-
 import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -106,20 +104,20 @@ public class AgentLoader extends CsvToSqlLoader
 		AsaAgent agent = new AsaAgent();
 		try
 		{
-		    agent.setId(             SqlUtils.parseInt( StringUtils.trimToNull( columns[0]  )));
-		    agent.setOrganizationId( SqlUtils.parseInt( StringUtils.trimToNull( columns[1]  )));
-		    agent.setActive(      Boolean.parseBoolean( StringUtils.trimToNull( columns[2]  )));
-		    agent.setPrefix(                            StringUtils.trimToNull( columns[3]  ));
-		    agent.setName(                              StringUtils.trimToNull( columns[4]  ));
-		    agent.setTitle(                             StringUtils.trimToNull( columns[5]  ));
-		    agent.setSpecialty(                         StringUtils.trimToNull( columns[6]  ));
-		    agent.setCorrespAddress(                    StringUtils.trimToNull( columns[7]  ));
-		    agent.setShippingAddress(                   StringUtils.trimToNull( columns[8]  ));
-            agent.setEmail(                             StringUtils.trimToNull( columns[9]  ));
-		    agent.setPhone(                             StringUtils.trimToNull( columns[10] ));
-            agent.setFax(                               StringUtils.trimToNull( columns[11] ));
-		    agent.setUri(                               StringUtils.trimToNull( columns[12] ));
-		    agent.setRemarks(   SqlUtils.iso8859toUtf8( StringUtils.trimToNull( columns[13] )));
+		    agent.setId(             SqlUtils.parseInt( columns[0]  ));
+		    agent.setOrganizationId( SqlUtils.parseInt( columns[1]  ));
+		    agent.setActive(      Boolean.parseBoolean( columns[2]  ));
+		    agent.setPrefix(                            columns[3]  );
+		    agent.setName(                              columns[4]  );
+		    agent.setTitle(                             columns[5]  );
+		    agent.setSpecialty(                         columns[6]  );
+		    agent.setCorrespAddress(                    columns[7]  );
+		    agent.setShippingAddress(                   columns[8]  );
+            agent.setEmail(                             columns[9]  );
+		    agent.setPhone(                             columns[10] );
+            agent.setFax(                               columns[11] );
+		    agent.setUri(                               columns[12] );
+		    agent.setRemarks(   SqlUtils.iso8859toUtf8( columns[13] ));
 		}
 		catch (NumberFormatException e)
 		{
