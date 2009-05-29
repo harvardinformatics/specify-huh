@@ -1,5 +1,6 @@
 select orb.id,
        orb.herb_transaction_id,
+       (select acronym from organization where id=t.id) as collection_code,
        (select name from st_lookup where id=t.type_id) as type,
        orb.item_count,
        orb.type_count,
