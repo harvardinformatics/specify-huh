@@ -225,7 +225,7 @@ public class LoadHUHdatabase
             log.info("Loaded " + botanistRecords + " botanist records");
             
             frame.setDesc("Loading taxon...");
-            TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"), statement);
+            TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"), statement, null);// TODO: re-order loaders and add non-null refworklookup here
             taxonLoader.setFrame(frame);
             int taxonRecords = taxonLoader.loadRecords(); 
             log.info("Loaded " + taxonRecords + " taxonRecords");
