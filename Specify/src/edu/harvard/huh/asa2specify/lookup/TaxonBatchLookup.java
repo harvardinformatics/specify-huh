@@ -15,9 +15,12 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
+import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 
 public interface TaxonBatchLookup
 {
-    public LoanPreparation getByTaxonBatchId(Integer taxonBatchId) throws LocalException;
+    public LoanPreparation getLoanPreparation(Integer transactionId) throws LocalException;
+    
+    public BorrowMaterial getBorrowMaterial(Integer transactionId) throws LocalException;
 }
