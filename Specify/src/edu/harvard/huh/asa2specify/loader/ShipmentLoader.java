@@ -24,6 +24,8 @@ import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
+import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Loan;
@@ -35,11 +37,20 @@ public class ShipmentLoader extends CsvToSqlLoader
     
 	private HashMap<String, Agent> shippers;
 	
-    public ShipmentLoader(File csvFile, Statement sqlStatement) throws LocalException
+	private CarrierLookup carrierLookup;
+	private TransactionLookup transactionLookup;
+	
+    public ShipmentLoader(File csvFile, 
+    		              Statement sqlStatement,
+    		              TransactionLookup transactionLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
 
+
+        this.transactionLookup = transactionLookup;
+        
         this.shippers = new HashMap<String, Agent>();
+        this.carrierLookup = getCarrierLookup();
     }
 
     @Override
@@ -54,6 +65,39 @@ public class ShipmentLoader extends CsvToSqlLoader
         
         String sql = getInsertSql(shipment);
         insert(sql);
+    }
+    
+    public CarrierLookup getCarrierLookup()
+    {
+    	if (carrierLookup == null)
+    	{
+    		carrierLookup = new CarrierLookup() {
+    			public Agent getByName(String carrierName) throws LocalException
+    			{
+    				Agent agent = new Agent();
+    				
+    				Integer agentId = getInt("agent", "AgentID", "LastName", carrierName);
+    				
+    				agent.setAgentId(agentId);
+    				
+    				return agent;
+    			}
+    			
+    			public Agent queryByName(String carrierName) throws LocalException
+    			{
+    				Agent agent = new Agent();
+    				
+    				Integer agentId = queryForInt("agent", "AgentID", "LastName", carrierName);
+    				
+    				if (agentId == null) return null;
+    				
+    				agent.setAgentId(agentId);
+    				
+    				return agent;
+    			}
+    		};
+    	}
+    	return carrierLookup;
     }
     
     private AsaShipment parse(String[] columns) throws LocalException
@@ -97,7 +141,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	Shipment shipment = new Shipment();
     	
-    	// Borrow/ExchangeOut/Gift/Loan TODO: check which transaction types exist in asa shipments
+    	// Borrow/ExchangeOut/Gift/Loan (Loan, OutExchange, OutGift, OutMiscExch, OutSpecialExch)
     	Integer transactionId = asaShipment.getTransactionId();
     	checkNull(transactionId, "transaction id");
     	
@@ -105,16 +149,16 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	if (type.equals(TYPE.OutExchange) || type.equals(TYPE.OutSpecial))
     	{
-    		ExchangeOut exchangeOut = getExchangeOutByTransactionId(transactionId);
+    		ExchangeOut exchangeOut = lookupExchangeOut(transactionId);
     		shipment.setExchangeOut(exchangeOut);
     	}
     	else if (type.equals(TYPE.OutGift))
     	{
-    		warn("No link to deaccession", null);
+    		warn("No link in Specify to deaccession", null); // TODO: put fields into transaction loader for out gift?
     	}
     	else if (type.equals(TYPE.Loan))
     	{
-    		Loan loan = getLoanByTransactionId(transactionId);
+    		Loan loan = lookupLoan(transactionId);
     		shipment.setLoan(loan);
     	}
     	else
@@ -191,7 +235,14 @@ public class ShipmentLoader extends CsvToSqlLoader
     	Boolean isEstimatedCost = asaShipment.isEstimatedCost();
     	shipment.setYesNo1(isEstimatedCost);
     	
+    	// YesNo2 (outReturnBatch.isAcknowledged)
+    	
     	return shipment;
+    }
+    
+    private Agent lookupCarrier(String carrierName) throws LocalException
+    {
+    	return carrierLookup.queryByName(carrierName);
     }
     
     private Agent getAgentByCarrierName(String carrier) throws LocalException
@@ -200,19 +251,13 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	if (agent == null)
     	{
-    	    // TODO: move this to interface
-    		Integer agentId = queryForInt("agent", "AgentId", "GUID", carrier);
+    		agent = lookupCarrier(carrier);
     		
-    		if (agentId != null)
-    		{
-    			agent = new Agent();
-    			agent.setAgentId(agentId);
-    		}
-    		else
+    		if (agent == null)
     		{
     			agent = getCarrierAgent(carrier);
     			String sql = getInsertSql(agent);
-    			agentId = insert(sql);
+    			Integer agentId = insert(sql);
     			agent.setAgentId(agentId);
     		}
     		
@@ -238,39 +283,40 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	return carrierAgent;
     }
-
-    private ExchangeOut getExchangeOutByTransactionId(Integer transactionId) throws LocalException
+    
+    private ExchangeOut lookupExchangeOut(Integer transactionId) throws LocalException
     {
-    	ExchangeOut exchangeOut = new ExchangeOut();
-    	
-    	// TODO: move this to interface
-    	Integer exchangeOutId = getInt("exchangeout", "ExchangeOutId", "Number1", transactionId);
-    	
-    	exchangeOut.setExchangeOutId(exchangeOutId);
-    	
-    	return exchangeOut;
+    	return transactionLookup.getExchangeOut(transactionId);
     }
     
-    private Loan getLoanByTransactionId(Integer transactionId) throws LocalException
+    private Loan lookupLoan(Integer transactionId) throws LocalException
     {
-    	Loan loan = new Loan();
-    	
-        // TODO: move this to interface
-    	Integer loanId = getInt("loan", "LoanID", "Number1", transactionId);
-    	
-    	loan.setLoanId(loanId);
-    	
-    	return loan;
+    	return transactionLookup.getLoan(transactionId);
     }
     
 	private String getInsertSql(Shipment shipment)
     {
-    	String fieldNames = "";
+		String fields = "CollectionMemberID, ExchangeOutID, InsuredForAmount, LoanID, NumberOfPackages, " +
+        "Number1, Number2, Remarks, Shipper, ShipmentMethod, ShipmentNumber" +
+        "TimestampCreated, YesNo1";
+
+		String[] values = new String[13];
+
+		values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
+		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
+		values[2]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
+		values[3]  = SqlUtils.sqlString( shipment.getLoan().getId());
+		values[4]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+		values[5]  = SqlUtils.sqlString( shipment.getNumber1());
+		values[6]  = SqlUtils.sqlString( shipment.getNumber2());
+		values[7]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[8]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[9]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[10] = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[11] = SqlUtils.now();
+		values[12] = SqlUtils.sqlString( shipment.getYesNo1());
     	
-    	String[] values = new String[0];
-    	
-    	values[0] = SqlUtils.now();
-    	return SqlUtils.getInsertSql("shipment", fieldNames, values);
+    	return SqlUtils.getInsertSql("shipment", fields, values);
     }
 
 	private String getInsertSql(Agent agent)

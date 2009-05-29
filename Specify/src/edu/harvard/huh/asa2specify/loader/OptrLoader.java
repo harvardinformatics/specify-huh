@@ -8,20 +8,18 @@ import edu.harvard.huh.asa.Optr;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
 // Run this class first.
 public class OptrLoader extends CsvToSqlLoader
-{   
-    private String getGuid(Integer optrId)
-    {
-    	return optrId + " optr";
-    }
- 
+{    
     private static Hashtable<Integer, Agent> agentsByOptrId = new Hashtable<Integer, Agent>();
 
     private static AsaIdMapper botanistsByOptr;
 
+    private OptrLookup optrLookup;
+    
 	public OptrLoader(File csvFile, Statement specifySqlStatement, File optrToBotanists) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
@@ -29,6 +27,43 @@ public class OptrLoader extends CsvToSqlLoader
 		botanistsByOptr = new AsaIdMapper(optrToBotanists);
 	}
 
+	public OptrLookup getOptrLookup()
+	{
+		if (optrLookup == null)
+		{
+			optrLookup = new OptrLookup() {
+				public Agent getByOptrId(Integer optrId) throws LocalException
+				{
+			        Agent agent = agentsByOptrId.get(optrId);
+
+			        if (agent == null)
+			        {
+			            String guid = getGuid(optrId);
+
+			            Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
+			            
+			            if (agentId == null)
+			            {
+			                Integer botanistId = getBotanistId(optrId);
+
+			                if (botanistId == null)
+			                {
+			                    throw new LocalException("Agent not found for optr id " + optrId);
+			                }
+			                guid = null; //BotanistLoader.getGuid(botanistId);
+			                agentId = getInt("agent", "AgentID", "GUID", guid);
+			            }
+			            agent = new Agent();
+			            agent.setAgentId(agentId);
+			            agentsByOptrId.put(optrId, agent);
+			        } 
+			        
+			        return agent;
+				}
+			};
+		}
+		return optrLookup;
+	}
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -103,6 +138,11 @@ public class OptrLoader extends CsvToSqlLoader
 		return agent;
 	}
 
+    private String getGuid(Integer optrId)
+    {
+    	return optrId + " optr";
+    }
+    
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
@@ -132,7 +172,7 @@ public class OptrLoader extends CsvToSqlLoader
         if (agent == null)
         {
             String guid = getGuid(optrId);
-            // TODO: move this to interface
+            // TODO: move to interface
             Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
             
             if (agentId == null)

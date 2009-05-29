@@ -9,6 +9,7 @@ import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -18,6 +19,8 @@ import edu.ku.brc.specify.datamodel.Division;
 
 public class AffiliateLoader extends AuditedObjectLoader
 {
+	private AffiliateLookup affiliateLookup;
+	
     private BotanistLookup botanistLookup;
     
 	private Division division;
@@ -40,6 +43,28 @@ public class AffiliateLoader extends AuditedObjectLoader
 		this.botanistLookup = botanistLookup;
 	}
 
+	public AffiliateLookup getAffiliateLookup()
+	{
+		if (affiliateLookup == null)
+		{
+			affiliateLookup = new AffiliateLookup() {
+				public Agent getByAffiliateId(Integer affiliateId) throws LocalException
+				{
+					Agent agent = new Agent(); // TODO: this doesn't account for affiliate botanists
+					
+					String guid = AffiliateLoader.getGuid(affiliateId);
+					
+			        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+
+			        agent.setAgentId(agentId);
+			        
+			        return agent;
+				}
+			};
+		}
+		return affiliateLookup;
+	}
+	
 	private Agent lookup(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getByBotanistId(botanistId);

@@ -13,6 +13,7 @@ import edu.harvard.huh.asa.AsaTaxon.STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
@@ -61,11 +62,14 @@ public class TaxonLoader extends TreeLoader
 	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
 	
 	private TaxonLookup taxonLookup;
+	private ReferenceWorkLookup refWorkLookup;
 	
-	public TaxonLoader(File csvFile, Statement sqlStatement) throws LocalException
+	public TaxonLoader(File csvFile, Statement sqlStatement, ReferenceWorkLookup refWorkLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 
+		this.refWorkLookup = refWorkLookup;
+		
 		this.treeDef = getTaxonTreeDef();
 		
 		taxonRankIdsByType.put("life",             0);
@@ -311,14 +315,7 @@ public class TaxonLoader extends TreeLoader
 	    TaxonCitation taxonCitation = new TaxonCitation();
 	    
 	    // ReferenceWork
-        ReferenceWork referenceWork = new ReferenceWork();
-
-        String guid = String.valueOf(citPublId);
-        
-        // TODO: move to interface
-        Integer referenceWorkId = getInt("referencework", "ReferenceWorkID", "GUID", guid);
-        referenceWork.setReferenceWorkId(referenceWorkId);
-
+        ReferenceWork referenceWork = lookupPublication(citPublId);
         taxonCitation.setReferenceWork(referenceWork);
         
         // Text1 (collation)
@@ -332,6 +329,11 @@ public class TaxonLoader extends TreeLoader
         return taxonCitation;
 	}
 
+	private ReferenceWork lookupPublication(Integer publicationId) throws LocalException
+	{
+		return refWorkLookup.getByPublicationId(publicationId);
+	}
+	
 	private String getInsertSql(Taxon taxon)
 	{
 		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, GroupNumber, " +

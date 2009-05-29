@@ -12,6 +12,8 @@ import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
+import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
 import edu.ku.brc.specify.datamodel.Accession;
@@ -53,12 +55,16 @@ public class TransactionLoader extends AuditedObjectLoader
 	private TransactionLookup transactionLookup;
 	
 	private BotanistLookup botanistLookup;
+	private AsaAgentLookup agentLookup;
+	private AffiliateLookup affiliateLookup;
 	
 	public TransactionLoader(File csvFile,
 	                         Statement sqlStatement,
 	                         File affiliateBotanists,
 	                         File agentBotanists,
-	                         BotanistLookup botanistLookup) throws LocalException
+	                         BotanistLookup botanistLookup,
+	                         AsaAgentLookup agentLookup,
+	                         AffiliateLookup affiliateLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
@@ -68,7 +74,9 @@ public class TransactionLoader extends AuditedObjectLoader
 		this.botanistsByAffiliate = new AsaIdMapper(affiliateBotanists);
 		this.botanistsByAgent     = new AsaIdMapper(agentBotanists);
 		
-		this.botanistLookup = botanistLookup;
+		this.botanistLookup  = botanistLookup;
+		this.agentLookup     = agentLookup;
+		this.affiliateLookup = affiliateLookup;
 	}
 	
 	@Override
@@ -91,9 +99,9 @@ public class TransactionLoader extends AuditedObjectLoader
 	    
 	    // TODO: get list of conditions to raise warnings and exceptions
 	    
-	    // TODO: assign user_type
+	    // TODO: assign userType
 	    
-	    // TODO: assign box_count
+	    // TODO: assign boxCount
 	    
 	    Transaction transaction = parse(columns);
 	    
@@ -391,11 +399,21 @@ public class TransactionLoader extends AuditedObjectLoader
 		return transaction;
 	}
 	
-	private Agent lookup(Integer botanistId) throws LocalException
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getByBotanistId(botanistId);
 	}
 	   
+	private Agent lookupAgent(Integer asaAgentId) throws LocalException
+	{
+		return agentLookup.getByAsaAgentId(asaAgentId);
+	}
+
+	private Agent lookupAffiliate(Integer affiliateId) throws LocalException
+	{
+		return affiliateLookup.getByAffiliateId(affiliateId);
+	}
+	
 	private Integer getBotanistIdByAffiliateId(Integer affiliateId)
 	{
 		return botanistsByAffiliate.map(affiliateId);
@@ -412,7 +430,7 @@ public class TransactionLoader extends AuditedObjectLoader
         
 		// TODO: their are some loans with forUseBy = ours, do we note that somewhere?
 		
-	    // TODO: AddressOfRecordID
+	    // TODO: AddressOfRecord
 		
 	    // CreatedByAgentID
         Integer creatorOptrId = transaction.getCreatedById();
@@ -582,11 +600,11 @@ public class TransactionLoader extends AuditedObjectLoader
 	    	Integer botanistId = getBotanistIdByAffiliateId(affiliateId);
 	    	if (botanistId != null)
 	    	{
-	    		agent = lookup(botanistId);
+	    		agent = lookupBotanist(botanistId);
 	    	}
 	    	else
 	    	{
-	    		agent = getAgentByAffiliateId(affiliateId);
+	    		agent = lookupAffiliate(affiliateId);
 	    	}
 	    }
 	    
@@ -604,11 +622,11 @@ public class TransactionLoader extends AuditedObjectLoader
 	        Integer botanistId = getBotanistIdByAgentId(asaAgentId);
 	        if (botanistId != null)
 	        {
-	        	agent = lookup(botanistId);
+	        	agent = lookupBotanist(botanistId);
 	        }
 	        else
 	        {
-	        	agent = getAgentByAsaAgentId(asaAgentId);
+	        	agent = lookupAgent(asaAgentId);
 	        }
 	    }
 	    return agent;
@@ -618,7 +636,7 @@ public class TransactionLoader extends AuditedObjectLoader
 	{
 		Borrow borrow = new Borrow();
         
-        // TODO: AddressOfRecordID
+        // TODO: AddressOfRecord
 		
         // CollectionMemberID
         borrow.setCollectionMemberId(collectionMemberId);
@@ -1387,7 +1405,6 @@ public class TransactionLoader extends AuditedObjectLoader
 	    return SqlUtils.getInsertSql("deaccessionagent", fieldNames, values);
 	}
 	
-	
 	private String getInsertSql(Accession deaccession)
 	{
         String fieldNames = "AccessionNumber, CreatedByAgentID, DateAccessioned, Number1, " +
@@ -1422,32 +1439,5 @@ public class TransactionLoader extends AuditedObjectLoader
         values[3] = SqlUtils.now();
 
 	    return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
-	}
-	
-    // TODO: move to interface
-	private Agent getAgentByAffiliateId(Integer affiliateId) throws LocalException
-	{
-		Agent agent = new Agent();
-		
-		String guid = AffiliateLoader.getGuid(affiliateId);
-		
-        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
-
-        agent.setAgentId(agentId);
-        
-        return agent;
-	}
-    // TODO: move to interface
-	private Agent getAgentByAsaAgentId(Integer asaAgentId) throws LocalException
-	{
-		Agent agent = new Agent();
-		
-		String guid = AgentLoader.getGuid(asaAgentId);
-		
-        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
-
-        agent.setAgentId(agentId);
-        
-        return agent;
 	}
 }

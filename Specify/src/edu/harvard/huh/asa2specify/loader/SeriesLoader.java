@@ -14,7 +14,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class SeriesLoader extends CsvToSqlLoader
 {
-	static String getGuid(Integer seriesId)
+		private String getGuid(Integer seriesId)
 	{
 		return seriesId + " series";
 	}
@@ -32,11 +32,6 @@ public class SeriesLoader extends CsvToSqlLoader
 		this.seriesToBotanistMapper = new AsaIdMapper(seriesToBotanist);
 		this.botanistLookup = botanistLookup;
 	}
-	
-    private Agent lookup(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getByBotanistId(botanistId);
-    }
 
     @Override
 	public void loadRecord(String[] columns) throws LocalException
@@ -68,6 +63,11 @@ public class SeriesLoader extends CsvToSqlLoader
             insert(sql);
         }      
 	}
+    
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getByBotanistId(botanistId);
+    }
 
 	private Integer getBotanistId(Integer seriesId)
 	{
@@ -118,7 +118,7 @@ public class SeriesLoader extends CsvToSqlLoader
     	Integer seriesId = series.getId();
     	checkNull(seriesId, "id");
     	
-        String guid = SeriesLoader.getGuid(seriesId);
+        String guid = getGuid(seriesId);
         agent.setGuid(guid);
 		
         // LastName

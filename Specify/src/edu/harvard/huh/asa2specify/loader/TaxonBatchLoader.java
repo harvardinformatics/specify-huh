@@ -67,17 +67,30 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    {
 	        taxonBatchLookup = new TaxonBatchLookup() {
 	            
-	            public LoanPreparation getByTaxonBatchId(Integer taxonBatchId) throws LocalException
+	            public LoanPreparation getLoanPreparation(Integer transactionId) throws LocalException
 	            {
 	                LoanPreparation loanPreparation = new LoanPreparation();
 	                
-	                String inComments = String.valueOf(taxonBatchId);
+	                String inComments = String.valueOf(transactionId);
 	                
 	                Integer loanPreparationId = getInt("loanpreparation", "Loan", "InComments", inComments);
 	                
 	                loanPreparation.setLoanPreparationId(loanPreparationId);
 	                
 	                return loanPreparation;
+	            }
+	            
+	            public BorrowMaterial getBorrowMaterial(Integer transactionId) throws LocalException
+	            {
+	            	BorrowMaterial borrowMaterial = new BorrowMaterial();
+	            	
+	            	String materialNumber = String.valueOf(transactionId);
+	            	
+	            	Integer borrowMaterialId = getInt("borrowmaterial", "BorrowMaterialID", "MaterialNumber", materialNumber);
+	            	
+	            	borrowMaterial.setBorrowMaterialId(borrowMaterialId);
+	            	
+	            	return borrowMaterial;
 	            }
 	        };
 	    }

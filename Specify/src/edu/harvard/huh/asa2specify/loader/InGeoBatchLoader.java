@@ -9,6 +9,8 @@ import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 
+// TODO: make sure the transaction classes are checking for null and truncating
+
 public class InGeoBatchLoader extends CsvToSqlLoader {
 
 	public InGeoBatchLoader(File csvFile, Statement sqlStatement) throws LocalException

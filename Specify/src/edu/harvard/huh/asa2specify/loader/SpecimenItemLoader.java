@@ -10,7 +10,6 @@ import java.util.Set;
 
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.SpecimenItem;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -114,8 +113,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		return String.valueOf(specimenId);
 	}
 	
-	private Discipline discipline;	
-	private AsaIdMapper botanists;
+	private Discipline discipline;
 	private Hashtable<String, PrepType> prepTypesByName;
 	
 	private CollectionObjectLookup collObjLookup;
@@ -153,7 +151,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		super(csvFile, sqlStatement);
 		
 		this.discipline      = getBotanyDiscipline();
-		this.botanists       = new AsaIdMapper(seriesBotanists);
 		this.prepTypesByName = new Hashtable<String, PrepType>();
 		
 		this.botanistLookup  = botanistLookup;
@@ -279,11 +276,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         Preparation preparation = getPreparation(specimenItem, collectionObject, collectionId);
         preparations.add(preparation);
 	}
-	
-	private Integer getBotanistId(Integer seriesId)
-	{
-		return botanists.map(seriesId);
-	}
 
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
@@ -329,7 +321,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             specimenItem.setReference(                          columns[27] );
             specimenItem.setNote(                               columns[28] );
             specimenItem.setHerbariumCode(                      columns[29] );
-            specimenItem.setSeriesId(        SqlUtils.parseInt( columns[30] ));
+            specimenItem.setSeriesName(                         columns[30] );
             specimenItem.setSiteId(          SqlUtils.parseInt( columns[31] ));
             specimenItem.setCollectorId(     SqlUtils.parseInt( columns[32] ));
             specimenItem.setCatalogedById(   SqlUtils.parseInt( columns[33] ));
@@ -770,19 +762,19 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private OtherIdentifier getSeriesIdentifier(SpecimenItem specimenItem, CollectionObject collectionObject, Integer collectionMemberId)
 		throws LocalException
 	{
-        Integer seriesId = specimenItem.getSeriesId();
+        String seriesName = specimenItem.getSeriesName();
         String seriesNo = specimenItem.getSeriesNo();
         String seriesAbbrev = specimenItem.getSeriesAbbrev();
 
-        if (seriesId == null || seriesNo == null)
+        if (seriesName == null || seriesNo == null)
         {
             if (seriesNo != null)
             {
                 warn("Series number and no series id", seriesNo);
             }
-            else if (seriesId != null)
+            else if (seriesName != null)
             {
-                warn("Series id and no series number", String.valueOf(seriesId));
+                warn("Series id and no series number", seriesName);
             }
             
             return null;
@@ -797,23 +789,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         series.setCollectionObject(collectionObject);
         
         // Institution (series-organization)
-        Agent agent = null;
-
-        Integer botanistId = getBotanistId(seriesId);
-        if (botanistId != null)
-        {
-        	agent = lookupBotanist(botanistId);
-        }
-        else
-        {
-        	agent = getAgentBySeriesId(seriesId);
-        }
-        Integer agentId = agent.getAgentId();
-
-        // TODO: move to interface?
-        String institution = getString("agent", "LastName", "AgentID", agentId);
-
-        series.setInstitution(institution);
+        series.setInstitution(seriesName);
 
         // Identifier (seriesNo)
         series.setIdentifier( (seriesAbbrev == null ? "" : seriesAbbrev + " ") + seriesNo );
@@ -1003,20 +979,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
-	
-    // TODO: move to interface
-	private Agent getAgentBySeriesId(Integer seriesId) throws LocalException
-	{
-		Agent agent = new Agent();
-		
-		String guid = SeriesLoader.getGuid(seriesId);
-		
-        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
-
-        agent.setAgentId(agentId);
-        
-        return agent;
-	}
 	
 	private PrepType getPrepType(String format) throws LocalException
 	{

@@ -10,6 +10,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 
@@ -17,7 +18,11 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class OrganizationLoader extends AuditedObjectLoader
 {
-	static String getGuid(Integer organizationId)
+	// TODO: relocate methods by visibility
+	
+	private OrganizationLookup organizationLookup;
+	
+	private String getGuid(Integer organizationId)
 	{
 		return organizationId + " organization";
 	}
@@ -36,6 +41,27 @@ public class OrganizationLoader extends AuditedObjectLoader
 		this.botanistLookup = botanistLookup;
 	}
 
+	public OrganizationLookup getOrganizationLookup()
+	{
+		if (organizationLookup == null)
+		{
+			organizationLookup = new OrganizationLookup() {
+				public Agent getById(Integer organizationId) throws LocalException
+				{
+					Agent agent = new Agent(); // TODO: this doesn't account for organization botanists
+					
+					String guid = getGuid(organizationId);
+					
+					Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+					
+					agent.setAgentId(agentId);
+					
+					return agent;
+				}
+			};
+		}
+		return organizationLookup;
+	}
 	private Agent lookup(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getByBotanistId(botanistId);
@@ -144,7 +170,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 		Integer organizationId = organization.getId();
 		checkNull(organizationId, "id");
 		
-		String guid = OrganizationLoader.getGuid(organizationId);
+		String guid = getGuid(organizationId);
 		agent.setGuid(guid);
 
 		// LastName
