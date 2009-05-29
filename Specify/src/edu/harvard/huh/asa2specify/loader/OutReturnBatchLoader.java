@@ -16,7 +16,7 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonBatchLookup;
-import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
+import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
@@ -29,7 +29,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 {
 	private TaxonBatchLookup borrowMaterialLookup;
 	private CarrierLookup carrierLookup;
-	private TransactionLookup borrowLookup;
+	private BorrowLookup borrowLookup;
 	
 	private HashMap<String, Agent> shippers;
 	
@@ -37,13 +37,13 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 			                    Statement sqlStatement,
 			                    TaxonBatchLookup taxonBatchLookup,
 			                    CarrierLookup carrierLookup,
-			                    TransactionLookup transactionLookup) throws LocalException
+			                    BorrowLookup borrowLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.borrowMaterialLookup = taxonBatchLookup;
 		this.carrierLookup = carrierLookup;
-		this.borrowLookup = transactionLookup;
+		this.borrowLookup = borrowLookup;
 		
 		this.shippers = new HashMap<String, Agent>();
 	}
@@ -146,7 +146,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	
 	private Borrow lookupBorrow(Integer transactionId) throws LocalException
 	{
-		return borrowLookup.getBorrow(transactionId);
+		return borrowLookup.getById(transactionId);
 	}
 	
 	private short getQuantity(OutReturnBatch outReturnBatch)

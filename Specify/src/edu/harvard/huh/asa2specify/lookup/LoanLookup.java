@@ -15,27 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Accession;
-import edu.ku.brc.specify.datamodel.Borrow;
-import edu.ku.brc.specify.datamodel.Deaccession;
-import edu.ku.brc.specify.datamodel.ExchangeIn;
-import edu.ku.brc.specify.datamodel.ExchangeOut;
-import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.Loan;
 
-public interface TransactionLookup
+public interface LoanLookup
 {
-    public Accession getAccession(Integer accessionId) throws LocalException;
-    
-    public Borrow getBorrow(Integer transactionId) throws LocalException;
-
-    public Deaccession getDeaccession(Integer transactionId) throws LocalException;
-    
-    public ExchangeIn getExchangeIn(Integer transactionId) throws LocalException;
-    
-    public ExchangeOut getExchangeOut(Integer transactionId) throws LocalException;
-    
-    public Gift getGift(Integer transactionId) throws LocalException;
-    
-    public Loan getLoan(Integer transactionId) throws LocalException;
+    public Loan getById(Integer transactionId) throws LocalException;
 }

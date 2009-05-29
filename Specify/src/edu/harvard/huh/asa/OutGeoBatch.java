@@ -16,7 +16,7 @@ public class OutGeoBatch
 	
 	public Integer getTransactionId() { return transactionId; }
 	
-	public TYPE getTransactionType() { return type; }
+	public TYPE getType() { return type; }
 	
 	public String getGeoUnit() { return geoUnit; }
 	

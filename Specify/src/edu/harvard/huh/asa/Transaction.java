@@ -94,10 +94,6 @@ public class Transaction
 	private        String remarks;
 	private       Integer createdById;
 	private          Date dateCreated;
-	private          Date originalDueDate;
-	private          Date currentDueDate;
-	private        String higherTaxon;
-	private        String taxon;
 	
 	public Integer getId() { return id; }
 	
@@ -134,15 +130,7 @@ public class Transaction
 	public Integer getCreatedById() { return createdById; }
 
 	public Date getDateCreated() { return dateCreated; }
-	
-	public Date getOriginalDueDate() { return originalDueDate; }
-	
-	public Date getCurrentDueDate() { return currentDueDate; }
-	
-	public String getHigherTaxon() { return higherTaxon; }
-	
-	public String getTaxon() { return taxon; }
-		
+			
 	public void setId(Integer id) { this.id = id; }
 	
 	public void setType(TYPE type) { this.type = type; }
@@ -178,12 +166,4 @@ public class Transaction
     public void setCreatedById(Integer createdById) { this.createdById = createdById; }
     
     public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
-    
-    public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
-    
-    public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
-    
-    public void setHigherTaxon(String higherTaxon) { this.higherTaxon = higherTaxon; }
-    
-    public void setTaxon(String taxon) { this.taxon = taxon; }
 }

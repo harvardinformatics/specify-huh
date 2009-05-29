@@ -8,8 +8,8 @@ import edu.harvard.huh.asa.LoanItem;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
-import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
@@ -19,12 +19,12 @@ import edu.ku.brc.specify.datamodel.Preparation;
 public class LoanItemLoader extends CsvToSqlLoader
 {
     private PreparationLookup prepLookup;
-    private TransactionLookup loanLookup;
+    private LoanLookup loanLookup;
     
 	public LoanItemLoader(File csvFile,
 	                      Statement sqlStatement,
 	                      PreparationLookup prepLookup,
-	                      TransactionLookup loanLookup) throws LocalException
+	                      LoanLookup loanLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
@@ -69,7 +69,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 
 	private Loan lookupLoan(Integer transactionId) throws LocalException
 	{
-	    return loanLookup.getLoan(transactionId);
+	    return loanLookup.getById(transactionId);
 	}
 	
 	private LoanItem parse(String[] columns) throws LocalException

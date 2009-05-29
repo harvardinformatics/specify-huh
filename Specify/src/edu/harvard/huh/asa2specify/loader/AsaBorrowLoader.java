@@ -1,0 +1,303 @@
+/* This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package edu.harvard.huh.asa2specify.loader;
+
+import java.io.File;
+import java.sql.Statement;
+import java.util.Date;
+
+import edu.harvard.huh.asa.AsaBorrow;
+import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa2specify.DateUtils;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
+import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Borrow;
+import edu.ku.brc.specify.datamodel.BorrowAgent;
+
+public class AsaBorrowLoader extends TransactionLoader
+{
+    private static final String DEFAULT_BORROW_NUMBER = "none";
+    
+    private BorrowLookup borrowLookup;
+    
+    public AsaBorrowLoader(File csvFile,
+                           Statement sqlStatement,
+                           File affiliateBotanists,
+                           File agentBotanists,
+                           BotanistLookup botanistLookup,
+                           AsaAgentLookup agentLookup,
+                           AffiliateLookup affiliateLookup) throws LocalException
+   {
+        super(csvFile,
+                sqlStatement,
+                affiliateBotanists,
+                agentBotanists,
+                botanistLookup,
+                agentLookup,
+                affiliateLookup);
+
+        // TODO Auto-generated constructor stub
+   }
+
+    public void loadRecord(String[] columns) throws LocalException
+    {
+        AsaBorrow asaBorrow = parse(columns);
+
+        Integer transactionId = asaBorrow.getId();
+        setCurrentRecordId(transactionId);
+        
+        String code = asaBorrow.getLocalUnit();
+        checkNull(code, "local unit");
+        
+        Integer collectionMemberId = getCollectionId(code);
+        
+        Borrow borrow = getBorrow(asaBorrow, collectionMemberId);
+        
+        String sql = getInsertSql(borrow);
+        Integer borrowId = insert(sql);
+        borrow.setBorrowId(borrowId);
+        
+        BorrowAgent borrower = getBorrowAgent(asaBorrow, borrow, ROLE.borrower, collectionMemberId); // "for use by"
+        if (borrower != null)
+        {
+            sql = getInsertSql(borrower);
+            insert(sql);
+        }
+        
+        BorrowAgent lender = getBorrowAgent(asaBorrow, borrow, ROLE.lender, collectionMemberId); // "contact"
+        if (lender != null)
+        {
+            sql = getInsertSql(lender);
+            insert(sql);
+        }
+    }
+
+    public BorrowLookup getBorrowLookup()
+    {
+        if (borrowLookup == null)
+        {
+            borrowLookup = new BorrowLookup() {
+
+                @Override
+                public Borrow getById(Integer transactionId) throws LocalException
+                {
+                    Borrow borrow = new Borrow();
+                    
+                    Integer borrowId = getInt("borrow", "BorrowID", "Number1", transactionId);
+                    
+                    borrow.setBorrowId(borrowId);
+                    
+                    return borrow;
+                }
+            };
+        }
+        return borrowLookup;
+    }
+
+    private AsaBorrow parse(String[] columns) throws LocalException
+    {        
+        AsaBorrow asaBorrow = new AsaBorrow();
+        
+        int i = parse(columns, asaBorrow);
+        
+        if (columns.length < i + 4)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        asaBorrow.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
+        asaBorrow.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));           
+        asaBorrow.setHigherTaxon(                         columns[i + 2] );
+        asaBorrow.setTaxon(                               columns[i + 3] );
+
+        return asaBorrow;
+    }
+    
+    private Borrow getBorrow(AsaBorrow asaBorrow, Integer collectionMemberId) throws LocalException
+    {
+        Borrow borrow = new Borrow();
+        
+        // TODO: AddressOfRecord
+        
+        // CollectionMemberID
+        borrow.setCollectionMemberId(collectionMemberId);
+        
+        // CreatedByAgentID
+        Integer creatorOptrId = asaBorrow.getCreatedById();
+        Agent createdByAgent = getAgentByOptrId(creatorOptrId);
+        borrow.setCreatedByAgent(createdByAgent);
+        
+        // CurrentDueDate
+        Date currentDueDate = asaBorrow.getCurrentDueDate();
+        if (currentDueDate != null)
+        {
+            borrow.setCurrentDueDate(DateUtils.toCalendar(currentDueDate));
+        }
+        
+        // DateClosed
+        Date closeDate = asaBorrow.getCloseDate();
+        if (closeDate != null)
+        {
+            borrow.setDateClosed(DateUtils.toCalendar(closeDate));
+        }
+
+        // InvoiceNumber
+        String transactionNo = asaBorrow.getTransactionNo();
+        if ( transactionNo == null)
+        {
+            transactionNo = DEFAULT_BORROW_NUMBER;
+        }
+        if (transactionNo.length() > 50)
+        {
+            warn("Truncating invoice number", transactionNo);
+            transactionNo = transactionNo.substring(0, 50);
+        }
+        borrow.setInvoiceNumber(transactionNo);
+        
+        // IsClosed
+        borrow.setIsClosed(closeDate != null);
+        
+        // Number1 (id) TODO: temporary!! remove when done!
+        Integer transactionId = asaBorrow.getId();
+        if (transactionId == null)
+        {
+            throw new LocalException("No transaction id");
+        }
+        borrow.setNumber1((float) transactionId);
+        
+        // OriginalDueDate
+        Date originalDueDate = asaBorrow.getOriginalDueDate();
+        if (originalDueDate != null)
+        {
+            borrow.setOriginalDueDate(DateUtils.toCalendar(originalDueDate));
+        }
+        
+        // ReceivedDate
+        Date openDate = asaBorrow.getOpenDate();
+        if (openDate != null)
+        {
+            borrow.setReceivedDate(DateUtils.toCalendar(openDate));
+        }
+
+        // Remarks
+        String remarks = asaBorrow.getRemarks();
+        borrow.setRemarks(remarks);
+                
+        // Text1 (description)
+        String description = asaBorrow.getDescription();
+        borrow.setText1(description);
+        
+        // Text2
+        String forUseBy = asaBorrow.getForUseBy();
+        borrow.setText2(forUseBy);
+        
+        // TimestampCreated
+        Date dateCreated = asaBorrow.getDateCreated();
+        borrow.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        
+        // YesNo1 (isAcknowledged)
+        Boolean isAcknowledged = asaBorrow.isAcknowledged();
+        borrow.setYesNo1(isAcknowledged);
+        
+        return borrow;
+    }
+    
+    private BorrowAgent getBorrowAgent(Transaction transaction, Borrow borrow, ROLE role, Integer collectionMemberId) throws LocalException
+    {
+        BorrowAgent borrowAgent = new BorrowAgent();
+        
+        // Agent
+        Agent agent = null;
+
+        if (role.equals(ROLE.borrower))
+        {
+            agent = getAffiliateAgent(transaction);
+        }
+        else if (role.equals(ROLE.lender))
+        {
+            agent = getAsaAgentAgent(transaction);
+        }
+        
+        if (agent.getId() == null) return null;
+        
+        borrowAgent.setAgent(agent);
+        
+        // CollectionMemberID
+        borrowAgent.setCollectionMemberId(collectionMemberId);
+        
+        // LoanID
+        borrowAgent.setBorrow(borrow);
+        
+        // Remarks
+        if (role.equals(ROLE.borrower))
+        {
+            String forUseBy = transaction.getForUseBy();
+            String remarks = "(" + forUseBy + ")";
+            borrowAgent.setRemarks(remarks);
+        }
+        
+        // Role
+        borrowAgent.setRole(role.name());
+        
+        return borrowAgent;
+    }
+    
+    private String getInsertSql(Borrow borrow)
+    {
+        String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed" +
+                            "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate" +
+                            "Remarks, Text1, Text2,  TimestampCreated, YesNo1";
+        
+        String[] values = new String[14];
+        
+        values[0]  = SqlUtils.sqlString( borrow.getCollectionMemberId());
+        values[1]  = SqlUtils.sqlString( borrow.getCreatedByAgent().getId());
+        values[2]  = SqlUtils.sqlString( borrow.getCurrentDueDate());
+        values[3]  = SqlUtils.sqlString( borrow.getDateClosed());
+        values[4]  = SqlUtils.sqlString( borrow.getInvoiceNumber());
+        values[5]  = SqlUtils.sqlString( borrow.getIsClosed());
+        values[6]  = SqlUtils.sqlString( borrow.getNumber1());
+        values[7]  = SqlUtils.sqlString( borrow.getOriginalDueDate());
+        values[8]  = SqlUtils.sqlString( borrow.getReceivedDate());
+        values[9]  = SqlUtils.sqlString( borrow.getRemarks());
+        values[10] = SqlUtils.sqlString( borrow.getText1());
+        values[11] = SqlUtils.sqlString( borrow.getText2());
+        values[12] = SqlUtils.sqlString( borrow.getTimestampCreated());
+        values[13] = SqlUtils.sqlString( borrow.getYesNo1());
+            
+        return SqlUtils.getInsertSql("borrow", fieldNames, values);
+    }
+    
+    private String getInsertSql(BorrowAgent borrowAgent)
+    {
+        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, TimestampCreated";
+
+        String[] values = new String[5];
+
+        values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
+        values[1] = SqlUtils.sqlString( borrowAgent.getBorrow().getId());
+        values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
+        values[3] = SqlUtils.sqlString( borrowAgent.getRole());
+        values[4] = SqlUtils.now();
+
+        return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
+    }
+    
+}

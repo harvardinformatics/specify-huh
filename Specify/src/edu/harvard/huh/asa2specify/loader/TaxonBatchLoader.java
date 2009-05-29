@@ -10,8 +10,9 @@ import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonBatchLookup;
-import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
+import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.Loan;
@@ -21,15 +22,18 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 {
     private TaxonBatchLookup taxonBatchLookup;
     
-    private TransactionLookup transactionLookup;
+    private BorrowLookup borrowLookup;
+    private LoanLookup loanLookup;
 
     public TaxonBatchLoader(File csvFile,
 	                        Statement sqlStatement,
-	                        TransactionLookup transactionLookup) throws LocalException
+	                        BorrowLookup borrowLookup,
+	                        LoanLookup loanLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 
-		this.transactionLookup = transactionLookup;
+		this.borrowLookup = borrowLookup;
+		this.loanLookup = loanLookup;
 	}
 
 	@Override
@@ -276,12 +280,12 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	
 	private Borrow lookupBorrow(Integer transactionId) throws LocalException
 	{
-	    return transactionLookup.getBorrow(transactionId);
+	    return borrowLookup.getById(transactionId);
 	}
 	
 	private Loan lookupLoan(Integer transactionId) throws LocalException
 	{
-	    return transactionLookup.getLoan(transactionId);
+	    return loanLookup.getById(transactionId);
 	}
 	
 	private String getInsertSql(BorrowMaterial borrowMaterial)

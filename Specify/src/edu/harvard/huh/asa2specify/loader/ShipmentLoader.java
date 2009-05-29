@@ -25,7 +25,8 @@ import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
-import edu.harvard.huh.asa2specify.lookup.TransactionLookup;
+import edu.harvard.huh.asa2specify.lookup.LoanLookup;
+import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Loan;
@@ -38,16 +39,18 @@ public class ShipmentLoader extends CsvToSqlLoader
 	private HashMap<String, Agent> shippers;
 	
 	private CarrierLookup carrierLookup;
-	private TransactionLookup transactionLookup;
+	private LoanLookup loanLookup;
+	private OutgoingExchangeLookup outExchangeLookup;
 	
     public ShipmentLoader(File csvFile, 
     		              Statement sqlStatement,
-    		              TransactionLookup transactionLookup) throws LocalException
+    		              LoanLookup transactionLookup,
+    		              OutgoingExchangeLookup outExchangeLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
 
 
-        this.transactionLookup = transactionLookup;
+        this.loanLookup = transactionLookup;
         
         this.shippers = new HashMap<String, Agent>();
         this.carrierLookup = getCarrierLookup();
@@ -286,12 +289,12 @@ public class ShipmentLoader extends CsvToSqlLoader
     
     private ExchangeOut lookupExchangeOut(Integer transactionId) throws LocalException
     {
-    	return transactionLookup.getExchangeOut(transactionId);
+    	return outExchangeLookup.getById(transactionId);
     }
     
     private Loan lookupLoan(Integer transactionId) throws LocalException
     {
-    	return transactionLookup.getLoan(transactionId);
+    	return loanLookup.getById(transactionId);
     }
     
 	private String getInsertSql(Shipment shipment)
