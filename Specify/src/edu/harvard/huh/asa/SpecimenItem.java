@@ -4,6 +4,9 @@ import java.util.Date;
 
 public class SpecimenItem
 {	
+	// TODO: normalize alignment of variable declarations
+	
+	// TODO: enum for reproStatus
     public static final String Fruit = "fruit";
     public static final String Flower = "flower";
     public static final String FlowerAndFruit = "flower and fruit";
@@ -18,7 +21,7 @@ public class SpecimenItem
 	private   String collectorNo;
 	private   String herbariumCode;
 	private  Integer siteId;
-	private  Integer seriesId;
+	private   String seriesName;
 	private   String seriesNo;
 	private   String seriesAbbrev;
 	private   String format;
@@ -96,7 +99,7 @@ public class SpecimenItem
 	
 	public Date getCatalogedDate() { return this.catalogedDate; }
 	
-	public Integer getSeriesId() { return this.seriesId; }
+	public String getSeriesName() { return this.seriesName; }
 	
 	public String getSeriesNo() { return this.seriesNo; }
 	
@@ -160,7 +163,7 @@ public class SpecimenItem
 	
 	public void setCatalogedDate(Date catalogedDate) { this.catalogedDate = catalogedDate; }
 	
-	public void setSeriesId(Integer seriesId) { this.seriesId = seriesId; }
+	public void setSeriesName(String seriesName) { this.seriesName = seriesName; }
 	
 	public void setSeriesNo(String seriesNo) { this.seriesNo = seriesNo; }
 	

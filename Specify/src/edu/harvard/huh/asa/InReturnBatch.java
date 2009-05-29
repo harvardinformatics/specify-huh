@@ -8,16 +8,19 @@ public class InReturnBatch
 {
 	private Integer id;
 	private Integer transactionId;
-	private TYPE type;
+	private String  collectionCode;
+	private TYPE    type;
 	private Integer itemCount;
-	private String boxCount;
+	private String  boxCount;
 	private Boolean isAcknowledged;
-	private Date actionDate;
-	private String transferredTo;
+	private Date    actionDate;
+	private String  transferredTo;
 	
 	public Integer getId() { return id; }
 	
 	public Integer getTransactionId() { return transactionId; }
+	
+	public String getCollectionCode() { return collectionCode; }
 	
 	public TYPE getTransactionType() { return type; }
 	
@@ -35,6 +38,7 @@ public class InReturnBatch
 	
 	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
 	
+	public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
