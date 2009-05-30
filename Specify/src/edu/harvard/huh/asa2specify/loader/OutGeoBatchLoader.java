@@ -14,7 +14,7 @@ import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 
 public class OutGeoBatchLoader extends CsvToSqlLoader
 {
-    OutgoingGiftLookup outGiftLookup;
+    private OutgoingGiftLookup outGiftLookup;
     
 	public OutGeoBatchLoader(File csvFile,
 	                         Statement sqlStatement,
@@ -44,6 +44,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 		else if (type.equals(TYPE.OutExchange))
 		{
 		    ;// TODO: this needs to go into transaction loader
+		    // there is no such thing as "ExchangePreparation"
 		}
 		else
 		{

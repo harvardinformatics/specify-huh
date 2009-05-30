@@ -7,7 +7,7 @@ import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
-import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
+import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
@@ -16,7 +16,7 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublAuthorLoader extends CsvToSqlLoader
 {
-    private ReferenceWorkLookup refWorkLookup;
+    private PublicationLookup   publicationLookup;
     private BotanistLookup      botanistLookup;
     
     private int lastRefWorkId;
@@ -24,27 +24,17 @@ public class PublAuthorLoader extends CsvToSqlLoader
 	
 	public PublAuthorLoader(File csvFile,
 	                        Statement sqlStatement,
-	                        ReferenceWorkLookup refWorkLookup,
+	                        PublicationLookup publicationLookup,
 	                        BotanistLookup botanistLookup) throws LocalException
 
 	{
 		super(csvFile, sqlStatement);
 		
-		this.refWorkLookup = refWorkLookup;
+		this.publicationLookup = publicationLookup;
 		this.botanistLookup = botanistLookup;
 		
 		lastRefWorkId = 0;
 		orderNumber = 1;
-	}
-
-	private ReferenceWork lookupPub(Integer publicationId) throws LocalException
-	{
-	    return refWorkLookup.getByPublicationId(publicationId);
-	}
-
-	private Agent lookupBotanist(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -118,6 +108,16 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		return author;
 	}
 
+	private ReferenceWork lookupPub(Integer publicationId) throws LocalException
+	{
+	    return publicationLookup.getById(publicationId);
+	}
+
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
+	
 	private String getInsertSql(Author author)
 	{
 		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";

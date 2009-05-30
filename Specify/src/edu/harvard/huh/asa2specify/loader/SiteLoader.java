@@ -7,9 +7,8 @@ import java.sql.Statement;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
-import edu.harvard.huh.asa2specify.lookup.LocalityLookup;
-import edu.ku.brc.specify.datamodel.Discipline;
+import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
+import edu.harvard.huh.asa2specify.lookup.SiteLookup;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.util.LatLonConverter.FORMAT;
@@ -18,37 +17,7 @@ import edu.ku.brc.util.LatLonConverter.FORMAT;
 
 public class SiteLoader extends CsvToSqlLoader
 {
-    public LocalityLookup getSiteLookup()
-    {
-        if (siteLookup == null)
-        {
-            siteLookup = new LocalityLookup() {
-                
-                public Locality queryBySiteId(Integer siteId) throws LocalException
-                {
-                    String guid = getGuid(siteId);  // TODO: put a getLocalityById method in superclass
-
-                    Integer localityId = queryForInt("locality", "LocalityID", "GUID", guid);
-                    
-                    if (localityId == null) return null;
-                    
-                    Locality locality = new Locality();
-                    locality.setLocalityId(localityId);
-
-                    return locality;
-                }
-            };
-        }
-        return siteLookup;
-    }
-
-    private String getGuid(Integer siteId)
-	{
-		return String.valueOf(siteId);
-	}
-
-	private Discipline discipline;
-
+ 
 	// default locality name
 	private static final String UNNAMED = "Unnamed locality";
 
@@ -56,28 +25,17 @@ public class SiteLoader extends CsvToSqlLoader
 	private static final byte srcLatLongUnit = (byte) FORMAT.DDDDDD.ordinal();
 	
 	// lookup for geography
-	private GeographyLookup geoLookup;
+	private GeoUnitLookup geoLookup;
 
-	private LocalityLookup siteLookup;
+	private SiteLookup siteLookup;
 	
 	public SiteLoader(File asaCsvFile,
 	                      Statement specifySqlStatement,
-	                      GeographyLookup geoLookup) throws LocalException
+	                      GeoUnitLookup geoLookup) throws LocalException
 	{
 		super(asaCsvFile, specifySqlStatement);
 		
-		this.discipline = getBotanyDiscipline();
 		this.geoLookup = geoLookup;
-	}
-
-	private Discipline getDiscipline()
-	{
-	    return discipline;
-	}
-	
-	private Geography lookup(Integer geoUnitId) throws LocalException
-	{
-	    return geoLookup.getByGeoUnitId(geoUnitId);
 	}
 
 	public void loadRecord(String[] columns) throws LocalException
@@ -95,6 +53,30 @@ public class SiteLoader extends CsvToSqlLoader
 		// convert locality to sql and insert
 		String sql = getInsertSql(locality);
 		insert(sql);
+	}
+	
+	public SiteLookup getSiteLookup()
+	{
+		if (siteLookup == null)
+		{
+			siteLookup = new SiteLookup() {
+
+				public Locality queryById(Integer siteId) throws LocalException
+				{
+					String guid = getGuid(siteId);  // TODO: put a getLocalityById method in superclass
+
+					Integer localityId = queryForInt("locality", "LocalityID", "GUID", guid);
+
+					if (localityId == null) return null;
+
+					Locality locality = new Locality();
+					locality.setLocalityId(localityId);
+
+					return locality;
+				}
+			};
+		}
+		return siteLookup;
 	}
 
 	// id, geo_unit_id, locality, latlong_method, latitude_a, longitude_a, latitude_b, longitude_b, elev_from, elev_to, elev_method
@@ -133,7 +115,7 @@ public class SiteLoader extends CsvToSqlLoader
 		Locality locality = new Locality();
 		
 		// Disicpline
-		locality.setDiscipline(getDiscipline());
+		locality.setDiscipline(getBotanyDiscipline());
 
 		// ElevationMethod		
 		String elevMethod = site.getElevMethod();
@@ -164,18 +146,20 @@ public class SiteLoader extends CsvToSqlLoader
 		String guid = getGuid(siteId);
 		locality.setGuid(guid);
 
-		// Lat1Text, Latitude1 TODO: latitude validity check
+		// Lat1Text, Latitude1
 		BigDecimal latitudeA = site.getLatitudeA();
 		if (latitudeA != null)
 		{
-			locality.setLatitude1( latitudeA );
-			locality.setLat1text( String.valueOf( latitudeA ) );
+			checkLatitude(latitudeA);
+			locality.setLatitude1(latitudeA);
+			locality.setLat1text(String.valueOf(latitudeA));
 		}
 
-		// Lat2Text, Latitude2 TODO: latitude validity check
+		// Lat2Text, Latitude2
 		BigDecimal latitudeB = site.getLatitudeB();
 		if (latitudeB != null)
 		{
+			checkLatitude(latitudeB);
 			locality.setLatitude2(latitudeB);
 			locality.setLat2text(String.valueOf(latitudeB));
 		}
@@ -195,23 +179,25 @@ public class SiteLoader extends CsvToSqlLoader
 		// LocalityName is a required field, but we don't use it
 		locality.setLocalityName(UNNAMED);
 
-		// Long1Text, Longitude1 TODO: longitude validity check
+		// Long1Text, Longitude1
 		BigDecimal longitudeA = site.getLongitudeA();
 		if (longitudeA != null)
 		{
+			checkLongitude(longitudeA);
 			locality.setLongitude1(longitudeA);
 			locality.setLong1text(String.valueOf(longitudeA));
 		}
 
-		// Long2Text, Longitude2 TODO: longitude validity check
+		// Long2Text, Longitude2
 		BigDecimal longitudeB = site.getLongitudeB();
 		if (longitudeB != null)
 		{
+			checkLongitude(longitudeB);
 			locality.setLongitude2(longitudeB);
 			locality.setLong2text(String.valueOf(longitudeB));
 		}
 
-		// MaxElevation TODO: validity checks?
+		// MaxElevation
 		BigDecimal elevTo = site.getElevTo();
 		if (elevTo != null)
 		{
@@ -234,7 +220,33 @@ public class SiteLoader extends CsvToSqlLoader
 		
 		return locality;
 	}
+    
+	private String getGuid(Integer siteId)
+	{
+		return String.valueOf(siteId);
+	}
+    
+	private Geography lookup(Integer geoUnitId) throws LocalException
+	{
+	    return geoLookup.getById(geoUnitId);
+	}
 
+	private void checkLatitude(BigDecimal latitude) throws LocalException
+	{
+		if (latitude.intValue() < 0 || latitude.intValue() > 90)
+		{
+			throw new LocalException("Invalid latitude: " + latitude);
+		}
+	}
+	
+	private void checkLongitude(BigDecimal longitude) throws LocalException
+	{
+		if (longitude.abs().intValue() > 180)
+		{
+			throw new LocalException("Invalid longitude: " + longitude);
+		}
+	}
+	
 	private String getInsertSql(Locality locality)
 	{
 		String fieldNames =

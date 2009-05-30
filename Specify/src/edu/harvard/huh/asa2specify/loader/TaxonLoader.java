@@ -13,7 +13,7 @@ import edu.harvard.huh.asa.AsaTaxon.STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
+import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
@@ -26,35 +26,6 @@ import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
 public class TaxonLoader extends TreeLoader
 {
-    public TaxonLookup getTaxonLookup()
-    {
-        if (taxonLookup == null)
-        {
-            taxonLookup = new TaxonLookup() {
-                
-                public Taxon getByAsaTaxonId(Integer asaTaxonId) throws LocalException
-                {
-                    Taxon taxon = new Taxon();
-                    
-                    String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
-                    
-                    Integer taxonId = getInt("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
-                    
-                    taxon.setTaxonId(taxonId);
-                    
-                    return taxon;
-                }
-            };
-        }
-        
-        return taxonLookup;
-    }
-
-    private String getTaxonSerialNumber(Integer asaTaxonId)
-	{
-		return String.valueOf(asaTaxonId);
-	}
-
 	private TaxonTreeDef treeDef;
 	
 	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
@@ -62,13 +33,13 @@ public class TaxonLoader extends TreeLoader
 	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
 	
 	private TaxonLookup taxonLookup;
-	private ReferenceWorkLookup refWorkLookup;
+	private PublicationLookup publicationLookup;
 	
-	public TaxonLoader(File csvFile, Statement sqlStatement, ReferenceWorkLookup refWorkLookup) throws LocalException
+	public TaxonLoader(File csvFile, Statement sqlStatement, PublicationLookup publicationLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 
-		this.refWorkLookup = refWorkLookup;
+		this.publicationLookup = publicationLookup;
 		
 		this.treeDef = getTaxonTreeDef();
 		
@@ -166,6 +137,30 @@ public class TaxonLoader extends TreeLoader
 		numberNodes("taxon", "TaxonID");
 	}
 	
+	public TaxonLookup getTaxonLookup()
+	{
+		if (taxonLookup == null)
+		{
+			taxonLookup = new TaxonLookup() {
+
+				public Taxon getById(Integer asaTaxonId) throws LocalException
+				{
+					Taxon taxon = new Taxon();
+
+					String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
+
+					Integer taxonId = getInt("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
+
+					taxon.setTaxonId(taxonId);
+
+					return taxon;
+				}
+			};
+		}
+
+		return taxonLookup;
+	}
+
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
 	    if (columns.length < 21)
@@ -257,7 +252,7 @@ public class TaxonLoader extends TreeLoader
 		Integer parentId = asaTaxon.getParentId();
 		if (parentId != null)
 		{
-		    parent = getTaxonLookup().getByAsaTaxonId(parentId);
+		    parent = getTaxonLookup().getById(parentId);
 		}
 		else
 		{
@@ -306,6 +301,11 @@ public class TaxonLoader extends TreeLoader
 		return specifyTaxon;
 	}
 
+    private String getTaxonSerialNumber(Integer asaTaxonId)
+	{
+		return String.valueOf(asaTaxonId);
+	}
+
 	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon) throws LocalException
 	{
 	    Integer citPublId = asaTaxon.getCitPublId();
@@ -331,7 +331,7 @@ public class TaxonLoader extends TreeLoader
 
 	private ReferenceWork lookupPublication(Integer publicationId) throws LocalException
 	{
-		return refWorkLookup.getByPublicationId(publicationId);
+		return publicationLookup.getById(publicationId);
 	}
 	
 	private String getInsertSql(Taxon taxon)

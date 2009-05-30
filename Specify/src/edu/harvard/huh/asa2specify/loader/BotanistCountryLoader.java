@@ -7,7 +7,7 @@ import edu.harvard.huh.asa.BotanistRoleCountry;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
-import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
+import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentGeography;
 import edu.ku.brc.specify.datamodel.Geography;
@@ -17,12 +17,12 @@ import edu.ku.brc.specify.datamodel.Geography;
 public class BotanistCountryLoader extends CsvToSqlLoader
 {
     // lookups for geography
-    private GeographyLookup geoLookup;
+    private GeoUnitLookup geoLookup;
     private BotanistLookup  botanistLookup;
     
 	public BotanistCountryLoader(File csvFile,
 	                             Statement sqlStatement,
-	                             GeographyLookup geoLookup,
+	                             GeoUnitLookup geoLookup,
 	                             BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
@@ -30,17 +30,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		this.geoLookup = geoLookup;
 		this.botanistLookup = botanistLookup;
 	}
-
-	private Geography lookupGeography(Integer geoUnitId) throws LocalException
-	{
-	    return geoLookup.getByGeoUnitId(geoUnitId);
-	}
-    
-	private Agent lookupBotanist(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getByBotanistId(botanistId);
-    }
-    
+  
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -61,7 +51,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 4)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		BotanistRoleCountry botanistRoleCountry = new BotanistRoleCountry();
@@ -115,6 +105,16 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		return agentGeography;
 	}
 
+	private Geography lookupGeography(Integer geoUnitId) throws LocalException
+	{
+	    return geoLookup.getById(geoUnitId);
+	}
+    
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getById(botanistId);
+    }
+  
 	private String getInsertSql(AgentGeography agentGeography)
 	{
 		String fieldNames = "AgentId, GeographyID, , Remarks, Role, TimestampCreated";

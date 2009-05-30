@@ -64,7 +64,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 	}
 	private Agent lookup(Integer botanistId) throws LocalException
 	{
-	    return botanistLookup.getByBotanistId(botanistId);
+	    return botanistLookup.getById(botanistId);
 	}
 
 	@Override

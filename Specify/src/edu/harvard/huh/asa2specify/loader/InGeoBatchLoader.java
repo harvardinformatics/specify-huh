@@ -32,7 +32,7 @@ public class InGeoBatchLoader extends CsvToSqlLoader {
 	{
 		if (columns.length < 10)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		InGeoBatch inGeoBatch = new InGeoBatch();

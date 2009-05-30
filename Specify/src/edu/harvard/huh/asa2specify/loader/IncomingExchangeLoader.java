@@ -24,20 +24,19 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 
 public class IncomingExchangeLoader extends TransactionLoader
 {
-
     public IncomingExchangeLoader(File csvFile,
                                   Statement sqlStatement,
                                   File affiliateBotanists,
                                   File agentBotanists,
                                   BotanistLookup botanistLookup,
-                                  AsaAgentLookup agentLookup,
+                                  AgentLookup agentLookup,
                                   AffiliateLookup affiliateLookup) throws LocalException
     {
         super(csvFile,
@@ -47,8 +46,6 @@ public class IncomingExchangeLoader extends TransactionLoader
               botanistLookup,
               agentLookup,
               affiliateLookup);
-
-        // TODO Auto-generated constructor stub
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -93,7 +90,11 @@ public class IncomingExchangeLoader extends TransactionLoader
         
         // DescriptionOfMaterial
         String description = transaction.getDescription();
-        exchangeIn.setDescriptionOfMaterial(description);
+        if (description != null)
+        {
+        	description = truncate(description, 120, "description");
+        	exchangeIn.setDescriptionOfMaterial(description);
+        }
         
         // ExchangeDate
         Date openDate = transaction.getOpenDate();

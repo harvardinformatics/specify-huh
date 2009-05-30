@@ -9,7 +9,7 @@ import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
@@ -44,28 +44,28 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 	
 	protected enum ACCESSION_TYPE { gift, cln, disposal, field_work, lost, other, purchase };
 	
-	private AsaIdMapper botanistsByAffiliate;
-	private AsaIdMapper botanistsByAgent;
-	private BotanistLookup botanistLookup;
-	private AsaAgentLookup agentLookup;
-	private AffiliateLookup affiliateLookup;
+	private static AsaIdMapper BotanistsByAffiliate;
+	private static AsaIdMapper BotanistsByAgent;
+	private static BotanistLookup BotanistLookup;
+	private static AgentLookup AgentLookup;
+	private static AffiliateLookup AffiliateLookup;
 	
 	public TransactionLoader(File csvFile,
 	                         Statement sqlStatement,
 	                         File affiliateBotanists,
 	                         File agentBotanists,
 	                         BotanistLookup botanistLookup,
-	                         AsaAgentLookup agentLookup,
+	                         AgentLookup agentLookup,
 	                         AffiliateLookup affiliateLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
-		this.botanistsByAffiliate = new AsaIdMapper(affiliateBotanists);
-		this.botanistsByAgent     = new AsaIdMapper(agentBotanists);
+		if (BotanistsByAffiliate == null) BotanistsByAffiliate = new AsaIdMapper(affiliateBotanists);
+		if (BotanistsByAgent == null) BotanistsByAgent = new AsaIdMapper(agentBotanists);
 		
-		this.botanistLookup  = botanistLookup;
-		this.agentLookup     = agentLookup;
-		this.affiliateLookup = affiliateLookup;
+		if (BotanistLookup == null) BotanistLookup  = botanistLookup;
+		if (AgentLookup == null) AgentLookup = agentLookup;
+		if (AffiliateLookup == null) AffiliateLookup = affiliateLookup;
 	}
 
 	protected int parse(String[] columns, Transaction transaction) throws LocalException
@@ -153,26 +153,26 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     
     private Agent lookupBotanist(Integer botanistId) throws LocalException
     {
-        return botanistLookup.getByBotanistId(botanistId);
+        return BotanistLookup.getById(botanistId);
     }
        
     private Agent lookupAgent(Integer asaAgentId) throws LocalException
     {
-        return agentLookup.getByAsaAgentId(asaAgentId);
+        return AgentLookup.getById(asaAgentId);
     }
 
     private Agent lookupAffiliate(Integer affiliateId) throws LocalException
     {
-        return affiliateLookup.getByAffiliateId(affiliateId);
+        return AffiliateLookup.getById(affiliateId);
     }
     
     private Integer getBotanistIdByAffiliateId(Integer affiliateId)
     {
-        return botanistsByAffiliate.map(affiliateId);
+        return BotanistsByAffiliate.map(affiliateId);
     }
     
     private Integer getBotanistIdByAgentId(Integer agentId)
     {
-        return botanistsByAgent.map(agentId);
+        return BotanistsByAgent.map(agentId);
     }
 }

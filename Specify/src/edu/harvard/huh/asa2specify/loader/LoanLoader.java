@@ -25,7 +25,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.loader.TransactionLoader;
@@ -44,7 +44,7 @@ public class LoanLoader extends TransactionLoader
                       File affiliateBotanists,
                       File agentBotanists,
                       BotanistLookup botanistLookup,
-                      AsaAgentLookup agentLookup,
+                      AgentLookup agentLookup,
                       AffiliateLookup affiliateLookup) throws LocalException
     {
         super(csvFile,
@@ -176,19 +176,13 @@ public class LoanLoader extends TransactionLoader
         {
             transactionNo = DEFAULT_LOAN_NUMBER;
         }
-        if (transactionNo.length() > 50)
-        {
-            warn("Truncating loan number", transactionNo);
-            transactionNo = transactionNo.substring(0, 50);
-        }
+        transactionNo = truncate(transactionNo, 50, "transaction number");
         loan.setLoanNumber(transactionNo);
 
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = asaLoan.getId();
-        if (transactionId == null)
-        {
-            throw new LocalException("No transaction id");
-        }
+        checkNull(transactionId, "transaction id");
+        
         loan.setNumber1((float) transactionId);
         
         // OriginalDueDate
@@ -225,9 +219,13 @@ public class LoanLoader extends TransactionLoader
         }
         else
         {
-            if (higherTaxon != null) srcTaxonomy = higherTaxon;
+        	srcTaxonomy = higherTaxon;
         }
-        loan.setSrcTaxonomy(srcTaxonomy);
+        if (srcTaxonomy != null)
+        {
+        	srcTaxonomy = truncate(srcTaxonomy, 32, "src taxonomy");
+        	loan.setSrcTaxonomy(srcTaxonomy);
+        }
         
         // Text1 (description)
         String description = asaLoan.getDescription();

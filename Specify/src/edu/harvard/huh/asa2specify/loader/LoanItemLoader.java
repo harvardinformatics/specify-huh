@@ -19,7 +19,7 @@ import edu.ku.brc.specify.datamodel.Preparation;
 public class LoanItemLoader extends CsvToSqlLoader
 {
     private PreparationLookup prepLookup;
-    private LoanLookup loanLookup;
+    private LoanLookup        loanLookup;
     
 	public LoanItemLoader(File csvFile,
 	                      Statement sqlStatement,
@@ -76,7 +76,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 	{
     	if (columns.length < 7)
     	{
-    		throw new LocalException("Wrong number of columns");
+    		throw new LocalException("Not enough columns");
     	}
 
     	LoanItem loanItem = new LoanItem(); 	

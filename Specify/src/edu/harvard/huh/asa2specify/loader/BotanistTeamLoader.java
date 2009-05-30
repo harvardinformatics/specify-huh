@@ -30,12 +30,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader
 		lastAgentId = 0;
 		orderNumber = 1;
 	}
-
-    private Agent lookup(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getByBotanistId(botanistId);
-    }
-    
+ 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -56,7 +51,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader
     {
         if (columns.length < 3)
         {
-            throw new LocalException("Wrong number of columns");
+            throw new LocalException("Not enough columns");
         }
         
         BotanistTeamMember botanistTeamMember = new BotanistTeamMember();
@@ -111,7 +106,12 @@ public class BotanistTeamLoader extends CsvToSqlLoader
 
         return groupPerson;
     }
-    
+
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getById(botanistId);
+    }
+   
     private String getInsertSql(GroupPerson groupPerson)
     {
     	String fieldNames = "CollectionMemberID, GroupID, MemberID, OrderNumber, TimestampCreated";

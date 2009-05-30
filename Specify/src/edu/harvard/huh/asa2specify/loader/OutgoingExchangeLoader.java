@@ -24,7 +24,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -39,7 +39,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
                                   File affiliateBotanists,
                                   File agentBotanists,
                                   BotanistLookup botanistLookup,
-                                  AsaAgentLookup agentLookup,
+                                  AgentLookup agentLookup,
                                   AffiliateLookup affiliateLookup) throws LocalException
     {
         super(csvFile,
@@ -49,8 +49,6 @@ public class OutgoingExchangeLoader extends TransactionLoader
               botanistLookup,
               agentLookup,
               affiliateLookup);
-
-        // TODO Auto-generated constructor stub
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -114,7 +112,11 @@ public class OutgoingExchangeLoader extends TransactionLoader
 
         // DescriptionOfMaterial
         String description = transaction.getDescription();
-        exchangeOut.setDescriptionOfMaterial(description);
+        if (description != null)
+        {
+        	description = truncate(description, 120, "description");
+        	exchangeOut.setDescriptionOfMaterial(description);
+        }
         
         // DivisionID
         exchangeOut.setDivision(getBotanyDivision());

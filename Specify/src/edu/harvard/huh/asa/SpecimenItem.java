@@ -6,46 +6,55 @@ public class SpecimenItem
 {	
 	// TODO: normalize alignment of variable declarations
 	
-	// TODO: enum for reproStatus
-    public static final String Fruit = "fruit";
-    public static final String Flower = "flower";
-    public static final String FlowerAndFruit = "flower and fruit";
-    public static final String Sterile = "sterile";
-    public static final String Sporophyte = "sporophyte";
-    public static final String NotDetermined = "not determined";
+	public static enum REPRO_STATUS           { Fruit,    Flower,   FlowerAndFruit,     Sterile,   Sporophyte,   NotDetermined   };
+	public static String[] ReproStatusNames = { "fruit", "flower", "flower and fruit", "sterile", "sporophyte", "not determined" };
 
-    private  Integer id;
-	private  Integer specimenId;
-	private  Integer barcode;
-	private  Integer collectorId;
-	private   String collectorNo;
-	private   String herbariumCode;
-	private  Integer siteId;
-	private   String seriesName;
-	private   String seriesNo;
-	private   String seriesAbbrev;
-	private   String format;
-	private  Integer itemNo;
-	private   String remarks;        // specimen.remarks
-	private   String provenance;
-	private   String voucher;
-	private  Boolean isOversize;
-	private  Boolean isCultivated;
-	private   String reproStatus;
-	private   String sex;
-	private   String accessionNo;
-	private   String accessionStatus;
-	private   String note;           // specimen_item.note
-	private   String reference;
-	private   String description;
-	private   String habitat;
-	private   String substrate;
-	private   String container;
-	private  Integer subcollectionId;
-	private     Date catalogedDate;
-	private  Integer catalogedById;	
-	private    BDate collDate;
-	private  Boolean hasExsiccata;
+	public static REPRO_STATUS parseReproStatus(String string) throws AsaException
+	{
+	    for (REPRO_STATUS reproStatus : REPRO_STATUS.values())
+	    {
+	        if (ReproStatusNames[reproStatus.ordinal()].equals(string)) return reproStatus;
+	    }
+	    throw new AsaException("Invalid transaction type: " + string);
+	}
+	
+	public static String toString(REPRO_STATUS reproStatus)
+	{
+		return ReproStatusNames[reproStatus.ordinal()];
+	}
+	
+    private      Integer id;
+	private      Integer specimenId;
+	private      Integer barcode;
+	private      Integer collectorId;
+	private       String collectorNo;
+	private       String herbariumCode;
+	private      Integer siteId;
+	private       String seriesName;
+	private       String seriesNo;
+	private       String seriesAbbrev;
+	private       String format;
+	private      Integer itemNo;
+	private       String remarks;        // specimen.remarks
+	private       String provenance;
+	private       String voucher;
+	private      Boolean isOversize;
+	private      Boolean isCultivated;
+	private REPRO_STATUS reproStatus;
+	private       String sex;
+	private       String accessionNo;
+	private       String accessionStatus;
+	private       String note;           // specimen_item.note
+	private       String reference;
+	private       String description;
+	private       String habitat;
+	private       String substrate;
+	private       String container;
+	private      Integer subcollectionId;
+	private         Date catalogedDate;
+	private      Integer catalogedById;	
+	private        BDate collDate;
+	private      Boolean hasExsiccata;
 
 	public Integer getId() { return this.id; }
 	
@@ -77,7 +86,7 @@ public class SpecimenItem
 
 	public Boolean isCultivated() { return this.isCultivated; }
 	
-	public String getReproStatus() { return this.reproStatus; }
+	public REPRO_STATUS getReproStatus() { return this.reproStatus; }
 	
 	public String getSex() { return this.sex; }
 	
@@ -141,7 +150,7 @@ public class SpecimenItem
 	
 	public void setCultivated(Boolean isCultivated) { this.isCultivated = isCultivated; }
 	
-	public void setReproStatus(String reproStatus) { this.reproStatus = reproStatus; }
+	public void setReproStatus(REPRO_STATUS reproStatus) { this.reproStatus = reproStatus; }
 	
 	public void setSex(String sex) { this.sex = sex; }
 	

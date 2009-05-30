@@ -46,7 +46,7 @@ public class InReturnBatchLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 9)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		InReturnBatch inReturnBatch = new InReturnBatch();

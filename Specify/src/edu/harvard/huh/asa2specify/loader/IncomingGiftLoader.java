@@ -25,7 +25,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Gift;
@@ -40,7 +40,7 @@ public class IncomingGiftLoader extends TransactionLoader
                               File affiliateBotanists,
                               File agentBotanists,
                               BotanistLookup botanistLookup,
-                              AsaAgentLookup agentLookup,
+                              AgentLookup agentLookup,
                               AffiliateLookup affiliateLookup) throws LocalException
    {
         super(csvFile,
@@ -50,8 +50,6 @@ public class IncomingGiftLoader extends TransactionLoader
                 botanistLookup,
                 agentLookup,
                 affiliateLookup);
-
-        // TODO Auto-generated constructor stub
    }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -143,6 +141,7 @@ public class IncomingGiftLoader extends TransactionLoader
         // PurposeOfGift
         PURPOSE purpose = transaction.getPurpose();
         String purposeOfGift = Transaction.toString(purpose);
+        purposeOfGift = truncate(purposeOfGift, 64, "purpose");
         gift.setPurposeOfGift(purposeOfGift);
         
         // Remarks

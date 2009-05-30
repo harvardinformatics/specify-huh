@@ -27,9 +27,9 @@ public abstract class CsvToSqlLoader
 
     private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
 
-    private LineIterator lineIterator;
-    private File csvFile;
-    private Statement sqlStatement;
+    private LineIterator    lineIterator;
+    private File            csvFile;
+    private Statement       sqlStatement;
     protected ProgressFrame frame;
 
     protected Integer currentRecordId;

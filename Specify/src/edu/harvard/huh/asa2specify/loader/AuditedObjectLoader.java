@@ -16,34 +16,63 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.util.Hashtable;
 
+import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
 public abstract class AuditedObjectLoader extends CsvToSqlLoader
 {
-    private OptrLoader optrLoader;
+    private static Hashtable<Integer, Agent> AgentsByOptrId = new Hashtable<Integer, Agent>();
+    private static AsaIdMapper               BotanistsByOptr;
+    private static OptrLookup                OptrLookup;
+    private static BotanistLookup            BotanistLookup;
     
     public AuditedObjectLoader(File csvFile, Statement sqlStatement) throws LocalException
     {
         super(csvFile, sqlStatement);
-        // TODO Auto-generated constructor stub
     }
 
-    public void setOptrLoader(OptrLoader optrLoader)
+    public static void setOptrLookup(OptrLookup optrLookup)
     {
-        this.optrLoader = optrLoader;
+        OptrLookup = optrLookup;
     }
 
+    public static void setBotanistLookup(BotanistLookup botanistLookup)
+    {
+    	BotanistLookup = botanistLookup;
+    }
+
+    // Agent records that represent Optrs who are also Botanists will first be loaded
+    // as Optrs, which puts the Optr id in the Agent GUID field.  During Botanist
+    // loading, the Agent records for Optr-Botanists are updated to put the Botanist
+    // id in the Agent GUID field.  That means the guid-- the means by which we get
+    // those Agent records-- may change during Botanist loading.
     protected Agent getAgentByOptrId(Integer optrId) throws LocalException
     {
-        if (optrLoader != null)
+        Agent agent = AgentsByOptrId.get(optrId);
+
+        if (agent == null && OptrLookup != null)
         {
-            return optrLoader.getAgentByOptrId(optrId);
+        	agent = OptrLookup.queryById(optrId);
+        	
+        	if (agent == null && BotanistsByOptr != null)
+        	{
+	        	Integer botanistId = BotanistsByOptr.map(optrId);
+	        	
+	        	if (botanistId != null)
+	        	{
+	        		agent = BotanistLookup.getById(botanistId);
+	        	}
+        	}
+
+        	if (agent == null) throw new LocalException("Couldn't find agent for optr id: " + optrId);
+        	
+            AgentsByOptrId.put(optrId, agent);
         }
-        else 
-        {
-            return null;
-        }
+    	return agent;
     }
 }

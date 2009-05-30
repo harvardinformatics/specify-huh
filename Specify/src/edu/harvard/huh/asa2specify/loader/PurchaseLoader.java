@@ -24,7 +24,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
@@ -37,7 +37,7 @@ public class PurchaseLoader extends TransactionLoader
                           File affiliateBotanists,
                           File agentBotanists,
                           BotanistLookup botanistLookup,
-                          AsaAgentLookup agentLookup,
+                          AgentLookup agentLookup,
                           AffiliateLookup affiliateLookup) throws LocalException
    {
         super(csvFile,
@@ -47,8 +47,6 @@ public class PurchaseLoader extends TransactionLoader
                 botanistLookup,
                 agentLookup,
                 affiliateLookup);
-
-        // TODO Auto-generated constructor stub
    }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -96,11 +94,7 @@ public class PurchaseLoader extends TransactionLoader
         {
             transactionNo = DEFAULT_ACCESSION_NUMBER;
         }
-        if (transactionNo.length() > 50)
-        {
-            warn("Truncating invoice number", transactionNo);
-            transactionNo = transactionNo.substring(0, 50);
-        }
+        transactionNo = truncate(transactionNo, 50, "invoice number");
         accession.setAccessionNumber(transactionNo);
         
         // DateAccessioned

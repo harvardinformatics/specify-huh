@@ -9,7 +9,7 @@ import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
+import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
@@ -19,36 +19,7 @@ import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
 
 public class GeoUnitLoader extends TreeLoader
 {
-    public GeographyLookup getGeographyLookup()
-    {
-        if (geoLookup == null)
-        {
-            geoLookup = new GeographyLookup() {
-
-                public Geography getByGeoUnitId(Integer geoUnitId) throws LocalException
-                {
-                    Geography geography = new Geography();
-
-                    String guid = getGuid(geoUnitId);
-
-                    Integer geographyId = getInt("geography", "GeographyID", "GUID", guid);
-
-                    geography.setGeographyId(geographyId);
-
-                    return geography;
-                }
-            };
-        }
-
-        return geoLookup;
-    }
-
-	private String getGuid(Integer geoUnitId)
-	{
-	    return String.valueOf(geoUnitId);
-	}
-	
-	private GeographyLookup geoLookup;
+	private GeoUnitLookup geoLookup;
 	   
 	// root
 	private final String ROOT_TYPE = "root";
@@ -258,11 +229,35 @@ public class GeoUnitLoader extends TreeLoader
 		numberNodes("geography", "GeographyID");
 	}
 
+    public GeoUnitLookup getGeographyLookup()
+    {
+        if (geoLookup == null)
+        {
+            geoLookup = new GeoUnitLookup() {
+
+                public Geography getById(Integer geoUnitId) throws LocalException
+                {
+                    Geography geography = new Geography();
+
+                    String guid = getGuid(geoUnitId);
+
+                    Integer geographyId = getInt("geography", "GeographyID", "GUID", guid);
+
+                    geography.setGeographyId(geographyId);
+
+                    return geography;
+                }
+            };
+        }
+
+        return geoLookup;
+    }
+
 	private GeoUnit parse(String[] columns) throws LocalException
 	{
 	    if (columns.length < 15)
 	    {
-	        throw new LocalException("Wrong number of columns");
+	        throw new LocalException("Not enough columns");
 	    }
 
 	    GeoUnit geoUnit = new GeoUnit();
@@ -359,7 +354,7 @@ public class GeoUnitLoader extends TreeLoader
 		
 		if (parentId != 10100)
 		{
-			parent = getGeographyLookup().getByGeoUnitId(parentId);
+			parent = getGeographyLookup().getById(parentId);
 		}
 		else
 		{
@@ -401,6 +396,11 @@ public class GeoUnitLoader extends TreeLoader
         return geography;
 	}
 
+	private String getGuid(Integer geoUnitId)
+	{
+	    return String.valueOf(geoUnitId);
+	}
+	
 	private Geography getSynonym(Geography geography, String name, String fullName)
 	{
 		Geography synonym = new Geography();

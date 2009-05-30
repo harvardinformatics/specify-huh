@@ -24,7 +24,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -42,7 +42,7 @@ public class OutgoingGiftLoader extends TransactionLoader
                               File affiliateBotanists,
                               File agentBotanists,
                               BotanistLookup botanistLookup,
-                              AsaAgentLookup agentLookup,
+                              AgentLookup agentLookup,
                               AffiliateLookup affiliateLookup) throws LocalException
    {
         super(csvFile,
@@ -52,8 +52,6 @@ public class OutgoingGiftLoader extends TransactionLoader
                 botanistLookup,
                 agentLookup,
                 affiliateLookup);
-
-        // TODO Auto-generated constructor stub
    }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -137,19 +135,13 @@ public class OutgoingGiftLoader extends TransactionLoader
         {
             transactionNo = DEFAULT_DEACCESSION_NUMBER;
         }
-        if (transactionNo.length() > 50)
-        {
-            warn("Truncating loan number", transactionNo);
-            transactionNo = transactionNo.substring(0, 50);
-        }
+        
+        transactionNo = truncate(transactionNo, 50, "loan number");    
         deaccession.setDeaccessionNumber(transactionNo);
             
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = transaction.getId();
-        if (transactionId == null)
-        {
-            throw new LocalException("No transaction id");
-        }
+        checkNull(transactionId, "transaction id");
         deaccession.setNumber1((float) transactionId);
         
         // Remarks

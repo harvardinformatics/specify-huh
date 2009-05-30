@@ -22,7 +22,6 @@ import edu.harvard.huh.asa2specify.LocalException;
 
 public abstract class TreeLoader extends AuditedObjectLoader
 {
-
     public TreeLoader(File csvFile, Statement sqlStatement) throws LocalException
     {
         super(csvFile, sqlStatement);
@@ -31,7 +30,8 @@ public abstract class TreeLoader extends AuditedObjectLoader
     protected void numberNodes(String tableName, String idField) throws LocalException
     {
         String tempTableName = "tempTable";
-        try {
+        try
+        {
             String resetHighestChildNodeNumber = "update " + tableName + " set HighestChildNodeNumber=null";
             getStatement().executeUpdate(resetHighestChildNodeNumber);
 
@@ -76,5 +76,4 @@ public abstract class TreeLoader extends AuditedObjectLoader
             throw new LocalException("Problem numbering nodes", e);
         }
     }
-
 }

@@ -17,13 +17,23 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends AuditedObjectLoader
 {	
+    private BotanistLookup botanistLookup;
+    private AsaIdMapper optrs;
+    
+    public BotanistLoader(File csvFile, Statement sqlStatement, File botanistOptrs) throws LocalException
+	{
+		super(csvFile, sqlStatement);
+		
+		this.optrs = new AsaIdMapper(botanistOptrs);
+	}
+    
     public BotanistLookup getBotanistLookup()
     {
         if (botanistLookup == null)
         {
             botanistLookup = new BotanistLookup() {
 
-                public Agent getByBotanistId(Integer botanistId) throws LocalException
+                public Agent getById(Integer botanistId) throws LocalException
                 {
                     Agent agent = new Agent();
 
@@ -39,21 +49,6 @@ public class BotanistLoader extends AuditedObjectLoader
         }
         return botanistLookup;
     }
-
-    private String getGuid(Integer botanistId)
-    {
-    	return botanistId + " botanist";
-    }
-
-    private BotanistLookup botanistLookup;
-    private AsaIdMapper optrs;
-    
-    public BotanistLoader(File csvFile, Statement sqlStatement, File botanistOptrs) throws LocalException
-	{
-		super(csvFile, sqlStatement);
-		
-		this.optrs = new AsaIdMapper(botanistOptrs);
-	}
     
     public void loadRecord(String[] columns) throws LocalException
 	{
@@ -82,7 +77,12 @@ public class BotanistLoader extends AuditedObjectLoader
             update(sql);
         }
 	}
-    
+
+    private String getGuid(Integer botanistId)
+    {
+    	return botanistId + " botanist";
+    }
+
 	private Integer getOptrId(Integer botanistId)
 	{
 		return optrs.map(botanistId);
@@ -93,7 +93,7 @@ public class BotanistLoader extends AuditedObjectLoader
     {
         if (columns.length < 12)
         {
-            throw new LocalException("Wrong number of columns");
+            throw new LocalException("Not enough columns");
         }
 
         Botanist botanist = new Botanist();        

@@ -22,7 +22,7 @@ import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
+import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
@@ -32,27 +32,17 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class DeterminationLoader extends CsvToSqlLoader
 {
-    private CollectionObjectLookup collObjLookup;
+    private SpecimenLookup collObjLookup;
     private TaxonLookup              taxonLookup;
     
     public DeterminationLoader(File                   csvFile,
                                Statement              sqlStatement,
-                               CollectionObjectLookup collObjLookup,
+                               SpecimenLookup collObjLookup,
                                TaxonLookup            taxonLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
         
         this.collObjLookup = collObjLookup;
-    }
-
-    private CollectionObject lookupCollObj(Integer specimenId) throws LocalException
-    {
-        return collObjLookup.getBySpecimenId(specimenId);
-    }
-    
-    private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
-    {
-        return taxonLookup.getByAsaTaxonId(asaTaxonId);
     }
 
     @Override
@@ -73,7 +63,7 @@ public class DeterminationLoader extends CsvToSqlLoader
     {
         if (columns.length < 14)
         {
-            throw new LocalException("Wrong number of columns");
+            throw new LocalException("Not enough columns");
         }
         
         AsaDetermination determination = new AsaDetermination();
@@ -186,6 +176,16 @@ public class DeterminationLoader extends CsvToSqlLoader
         return determination;
     }
     
+    private CollectionObject lookupCollObj(Integer specimenId) throws LocalException
+    {
+        return collObjLookup.getById(specimenId);
+    }
+    
+    private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
+    {
+        return taxonLookup.getById(asaTaxonId);
+    }
+
     private String getInsertSql(Determination determination)
     {
         String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, Confidence, DeterminedDate, " +

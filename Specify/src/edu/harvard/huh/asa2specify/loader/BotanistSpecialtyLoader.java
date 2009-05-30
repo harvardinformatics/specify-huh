@@ -31,11 +31,6 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		orderNumber = 1;
 	}
 
-    private Agent lookup(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getByBotanistId(botanistId);
-    }
-
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -56,7 +51,7 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 4)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		BotanistRoleSpecialty botanistRoleSpecialty = new BotanistRoleSpecialty();
@@ -112,6 +107,11 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 
 		return agentSpecialty;
 	}
+
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getById(botanistId);
+    }
 
 	private String getInsertSql(AgentSpecialty agentSpecialty)
 	{

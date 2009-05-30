@@ -8,16 +8,18 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.SpecimenItem;
+import edu.harvard.huh.asa.SpecimenItem.REPRO_STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
-import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
+import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
-import edu.harvard.huh.asa2specify.lookup.ExsiccataLookup;
-import edu.harvard.huh.asa2specify.lookup.LocalityLookup;
+import edu.harvard.huh.asa2specify.lookup.SiteLookup;
+import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -36,93 +38,15 @@ import edu.ku.brc.specify.datamodel.Preparation;
 
 public class SpecimenItemLoader extends AuditedObjectLoader
 {
-    public CollectionObjectLookup getCollectionObjectLookup()
-    {
-        if (collObjLookup == null)
-        {
-            collObjLookup = new CollectionObjectLookup() {
-                
-                public CollectionObject getBySpecimenId(Integer specimenId) throws LocalException
-                {
-                    CollectionObject collectionObject = new CollectionObject();
-                    
-                    String guid = getGuid(specimenId);
-                    
-                    Integer collectionObjectId = getInt("collectionobject", "CollectionObjectID", "GUID", guid);
-                    
-                    collectionObject.setCollectionObjectId(collectionObjectId);
-                    
-                    return collectionObject;
-                }
-            };
-        }
-        
-        return collObjLookup;
-    }
-
-    public PreparationLookup getPreparationLookup()
-    {
-        if (prepLookup == null)
-        {
-            prepLookup = new PreparationLookup() {
-                public String formatBarcode(Integer barcode) throws LocalException
-                {
-                    if (barcode == null)
-                    {
-                        throw new LocalException("Null barcode");
-                    }
-                    
-                    try
-                    {
-                        return (new DecimalFormat( "000000000" ) ).format( barcode );
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                        throw new LocalException("Couldn't parse barcode");
-                    }
-                }
-                
-                public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException
-                {
-                    Preparation preparation = new Preparation();
-                    
-                    Integer preparationId = getInt("preparation", "PreparationID","Number1", specimenItemId);
-                    
-                    preparation.setPreparationId(preparationId);
-                    
-                    return preparation;
-                }
-                
-                public Preparation getByBarcode(String barcode) throws LocalException
-                {
-                    Preparation preparation = new Preparation();
-                    
-                    Integer preparationId = getInt("preparation", "PreparationID","SampleNumber", barcode);
-                    
-                    preparation.setPreparationId(preparationId);
-                    
-                    return preparation;
-                }
-            };
-        }
-        return prepLookup;
-    }
-
-    private String getGuid(Integer specimenId)
-	{
-		return String.valueOf(specimenId);
-	}
-	
-	private Discipline discipline;
 	private Hashtable<String, PrepType> prepTypesByName;
 	
-	private CollectionObjectLookup collObjLookup;
+	private SpecimenLookup collObjLookup;
 	private PreparationLookup prepLookup;
+	private ContainerLookup containerLookup;
 	
 	private BotanistLookup botanistLookup;
-	private ExsiccataLookup exsiccataLookup;
-	private ContainerLookup containerLookup;
-	private LocalityLookup localityLookup;
+	private SubcollectionLookup subcollLookup;
+	private SiteLookup siteLookup;
 	
 	// These objects are all related to the collection object
 	// and need the collection object to be saved first
@@ -137,56 +61,24 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	// These items need to be remembered for comparison with
 	// other specimen items' values
 	private Integer              specimenId       = null;
-	private String               reproStatus      = null;
+	private REPRO_STATUS         reproStatus      = null;
 	private Integer              subcollectionId  = null;
 	
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
 	                          File seriesBotanists,
 	                          BotanistLookup botanistLookup,
-	                          ExsiccataLookup exsiccataLookup,
+	                          SubcollectionLookup subcollLookup,
 	                          ContainerLookup containerLookup,
-	                          LocalityLookup siteLookup) throws LocalException 
+	                          SiteLookup siteLookup) throws LocalException 
 	{
 		super(csvFile, sqlStatement);
 		
-		this.discipline      = getBotanyDiscipline();
 		this.prepTypesByName = new Hashtable<String, PrepType>();
 		
-		this.botanistLookup  = botanistLookup;
-		this.exsiccataLookup = exsiccataLookup;
-		this.containerLookup = containerLookup;
-		this.localityLookup      = siteLookup;
-	}
-
-	private Agent lookupBotanist(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
-	}
-
-	private Exsiccata lookupExsiccata(Integer subCollectionId) throws LocalException
-	{
-	    return exsiccataLookup.getBySubcollectionId(subcollectionId);
-	}
-	
-	private Container lookupContainer(String name) throws LocalException
-	{
-	    return containerLookup.queryByName(name);
-	}
-
-	private Container lookupContainer(Integer subcollectionId) throws LocalException
-	{
-	    return containerLookup.getBySubcollectionId(subcollectionId);
-	}
-
-	private Locality lookupSite(Integer siteId) throws LocalException
-	{
-	    return localityLookup.queryBySiteId(siteId);
-	}
-	
-	private String formatBarcode(Integer barcode) throws LocalException
-	{
-	    return prepLookup.formatBarcode(barcode);
+		this.botanistLookup = botanistLookup;
+		this.subcollLookup  = subcollLookup;
+		this.siteLookup     = siteLookup;
 	}
 	
 	@Override
@@ -253,7 +145,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         container = getContainer(specimenItem, collectionId);
         
         // CollectingEvent
-        collectingEvent = getCollectingEvent(specimenItem, discipline);
+        collectingEvent = getCollectingEvent(specimenItem, getBotanyDiscipline());
         
         // CollectionObject
         collectionObject = getCollectionObject(specimenItem, collection, container, collectingEvent);
@@ -277,6 +169,111 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         preparations.add(preparation);
 	}
 
+	public ContainerLookup getContainerLookup()
+	{
+		if (containerLookup == null)
+		{
+			containerLookup = new ContainerLookup() {
+				public Container getByName(String name) throws LocalException
+				{
+					Container container = new Container();
+					
+					Integer containerId = getInt("container", "ContainerID", "Name", name);
+					
+					container.setContainerId(containerId);
+					
+					return container;
+				}
+				
+				public Container queryByName(String name) throws LocalException
+				{
+					Integer containerId = queryForInt("container", "ContainerID", "Name", name);
+					
+					if (containerId == null) return null;
+					
+					Container container = new Container();
+					
+					container.setContainerId(containerId);
+					
+					return container;
+				}
+			};
+		}
+		return containerLookup;
+	}
+
+	public SpecimenLookup getCollectionObjectLookup()
+    {
+        if (collObjLookup == null)
+        {
+            collObjLookup = new SpecimenLookup() {
+                
+                public CollectionObject getById(Integer specimenId) throws LocalException
+                {
+                    CollectionObject collectionObject = new CollectionObject();
+                    
+                    String guid = getGuid(specimenId);
+                    
+                    Integer collectionObjectId = getInt("collectionobject", "CollectionObjectID", "GUID", guid);
+                    
+                    collectionObject.setCollectionObjectId(collectionObjectId);
+                    
+                    return collectionObject;
+                }
+            };
+        }
+        
+        return collObjLookup;
+    }
+
+    public PreparationLookup getPreparationLookup()
+    {
+        if (prepLookup == null)
+        {
+            prepLookup = new PreparationLookup() {
+                public String formatBarcode(Integer barcode) throws LocalException
+                {
+                    if (barcode == null)
+                    {
+                        throw new LocalException("Null barcode");
+                    }
+                    
+                    try
+                    {
+                        return (new DecimalFormat( "000000000" ) ).format( barcode );
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        throw new LocalException("Couldn't parse barcode");
+                    }
+                }
+                
+                public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException
+                {
+                    Preparation preparation = new Preparation();
+                    
+                    Integer preparationId = getInt("preparation", "PreparationID","Number1", specimenItemId);
+                    
+                    preparation.setPreparationId(preparationId);
+                    
+                    return preparation;
+                }
+                
+                public Preparation getByBarcode(String barcode) throws LocalException
+                {
+                    Preparation preparation = new Preparation();
+                    
+                    Integer preparationId = getInt("preparation", "PreparationID","SampleNumber", barcode);
+                    
+                    preparation.setPreparationId(preparationId);
+                    
+                    return preparation;
+                }
+            };
+        }
+        return prepLookup;
+    }
+	
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 40)
@@ -286,21 +283,21 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 		SpecimenItem specimenItem = new SpecimenItem();
 		try {
-		    specimenItem.setId(             SqlUtils.parseInt( columns[0]  ));
-		    specimenItem.setSpecimenId(     SqlUtils.parseInt( columns[1]  ));
-		    specimenItem.setBarcode(        SqlUtils.parseInt( columns[2]  ));
-		    specimenItem.setCollectorNo(                       columns[3]  );
-            specimenItem.setCatalogedDate( SqlUtils.parseDate( columns[4]  ));
-            specimenItem.setCultivated(  Boolean.parseBoolean( columns[5]  ));
-            specimenItem.setDescription(                       columns[6]  );
-            specimenItem.setHabitat(                           columns[7]  );
-            specimenItem.setSubstrate(                         columns[8]  );
-            specimenItem.setReproStatus(                       columns[9]  );
-            specimenItem.setSex(                               columns[10] );
-            specimenItem.setRemarks(                           columns[11] );
-            specimenItem.setAccessionNo(                       columns[12] );
-            specimenItem.setProvenance(                        columns[13] );
-            specimenItem.setAccessionStatus(                   columns[14] );
+		    specimenItem.setId(                      SqlUtils.parseInt( columns[0]  ));
+		    specimenItem.setSpecimenId(              SqlUtils.parseInt( columns[1]  ));
+		    specimenItem.setBarcode(                 SqlUtils.parseInt( columns[2]  ));
+		    specimenItem.setCollectorNo(                                columns[3]  );
+            specimenItem.setCatalogedDate(          SqlUtils.parseDate( columns[4]  ));
+            specimenItem.setCultivated(           Boolean.parseBoolean( columns[5]  ));
+            specimenItem.setDescription(                                columns[6]  );
+            specimenItem.setHabitat(                                    columns[7]  );
+            specimenItem.setSubstrate(                                  columns[8]  );
+            specimenItem.setReproStatus( SpecimenItem.parseReproStatus( columns[9]  ));
+            specimenItem.setSex(                                        columns[10] );
+            specimenItem.setRemarks(                                    columns[11] );
+            specimenItem.setAccessionNo(                                columns[12] );
+            specimenItem.setProvenance(                                 columns[13] );
+            specimenItem.setAccessionStatus(                            columns[14] );
             
             BDate bdate = new BDate();
             specimenItem.setCollDate( bdate );
@@ -336,6 +333,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         {
             throw new LocalException("Couldn't parse numeric field", e);
         }
+        catch (AsaException e)
+        {
+        	throw new LocalException("Couldn't parse repro status", e);
+        }
 
         return specimenItem;
 	}
@@ -343,22 +344,22 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	private void updateReproStatus(SpecimenItem specimenItem) throws LocalException
 	{
-        String newReproStatus = specimenItem.getReproStatus();
+		REPRO_STATUS newReproStatus = specimenItem.getReproStatus();
         checkNull(newReproStatus, "repro status");
         
         if (!newReproStatus.equals(reproStatus))
         {
-            String status;
-            if (reproStatus.equals(SpecimenItem.NotDetermined) ||
-                    newReproStatus.equals(SpecimenItem.FlowerAndFruit) && 
-                        (reproStatus.equals(SpecimenItem.Flower) || reproStatus.equals(SpecimenItem.Fruit)))
+        	REPRO_STATUS status;
+            if (reproStatus.equals(REPRO_STATUS.NotDetermined) ||
+                    newReproStatus.equals(REPRO_STATUS.FlowerAndFruit) && 
+                        (reproStatus.equals(REPRO_STATUS.Flower) || reproStatus.equals(REPRO_STATUS.Fruit)))
             {
                 status = newReproStatus;
             }
-            else if (reproStatus.equals(SpecimenItem.Flower) && newReproStatus.equals(SpecimenItem.Fruit) ||
-                        reproStatus.equals(SpecimenItem.Fruit) && newReproStatus.equals(SpecimenItem.Flower))
+            else if (reproStatus.equals(REPRO_STATUS.Flower) && newReproStatus.equals(REPRO_STATUS.Fruit) ||
+                        reproStatus.equals(REPRO_STATUS.Fruit) && newReproStatus.equals(REPRO_STATUS.Flower))
             {
-                status = SpecimenItem.FlowerAndFruit;
+                status = REPRO_STATUS.FlowerAndFruit;
             }
             else
             {
@@ -367,13 +368,47 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             
             if (!reproStatus.equals(status))
             {
-                warn("Changing repro status from " + reproStatus, status);
-                collectionObject.setText1(status);
+                warn("Changing repro status from " + reproStatus, SpecimenItem.toString(status));
+                collectionObject.setText1(SpecimenItem.toString(status));
             }
         }
 	}
 
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
 
+	private Exsiccata lookupExsiccata(Integer subCollectionId) throws LocalException
+	{
+	    return subcollLookup.getExsiccataById(subcollectionId);
+	}
+	
+	private Container lookupContainer(String name) throws LocalException
+	{
+	    return containerLookup.queryByName(name);
+	}
+
+	private Container lookupContainer(Integer subcollectionId) throws LocalException
+	{
+	    return subcollLookup.getContainerById(subcollectionId);
+	}
+
+	private Locality lookupSite(Integer siteId) throws LocalException
+	{
+	    return siteLookup.queryById(siteId);
+	}
+	
+	private String formatBarcode(Integer barcode) throws LocalException
+	{
+	    return prepLookup.formatBarcode(barcode);
+	}
+
+    private String getGuid(Integer specimenId)
+	{
+		return String.valueOf(specimenId);
+	}
+    
 	private void updateSubcollection(SpecimenItem specimenItem, Integer collectionMemberId) throws LocalException
 	{
         Integer newSubcollectionId = specimenItem.getSubcollectionId();
@@ -462,8 +497,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         return collector;
 	}
-		
-	
 
 	private CollectingEvent getCollectingEvent(SpecimenItem specimenItem, Discipline discipline) throws LocalException
 	{
@@ -695,7 +728,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         // Text1 (reproStatus/phenology)
         reproStatus = specimenItem.getReproStatus();
-        collectionObject.setText1(reproStatus);
+        collectionObject.setText1(SpecimenItem.toString(reproStatus));
           
         // Text2 (substrate)
         String substrate = specimenItem.getSubstrate();

@@ -2,10 +2,8 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Hashtable;
 
 import edu.harvard.huh.asa.Optr;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.OptrLookup;
@@ -14,17 +12,11 @@ import edu.ku.brc.specify.datamodel.Agent;
 // Run this class first.
 public class OptrLoader extends CsvToSqlLoader
 {    
-    private static Hashtable<Integer, Agent> agentsByOptrId = new Hashtable<Integer, Agent>();
-
-    private static AsaIdMapper botanistsByOptr;
-
     private OptrLookup optrLookup;
     
 	public OptrLoader(File csvFile, Statement specifySqlStatement, File optrToBotanists) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-
-		botanistsByOptr = new AsaIdMapper(optrToBotanists);
 	}
 
 	public OptrLookup getOptrLookup()
@@ -32,31 +24,16 @@ public class OptrLoader extends CsvToSqlLoader
 		if (optrLookup == null)
 		{
 			optrLookup = new OptrLookup() {
-				public Agent getByOptrId(Integer optrId) throws LocalException
+				public Agent queryById(Integer optrId) throws LocalException
 				{
-			        Agent agent = agentsByOptrId.get(optrId);
+					String guid = getGuid(optrId);
 
-			        if (agent == null)
-			        {
-			            String guid = getGuid(optrId);
+					Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
 
-			            Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
-			            
-			            if (agentId == null)
-			            {
-			                Integer botanistId = getBotanistId(optrId);
+					if (agentId == null) return null;
 
-			                if (botanistId == null)
-			                {
-			                    throw new LocalException("Agent not found for optr id " + optrId);
-			                }
-			                guid = null; //BotanistLoader.getGuid(botanistId);
-			                agentId = getInt("agent", "AgentID", "GUID", guid);
-			            }
-			            agent = new Agent();
-			            agent.setAgentId(agentId);
-			            agentsByOptrId.put(optrId, agent);
-			        } 
+					Agent agent = new Agent();
+					agent.setAgentId(agentId);
 			        
 			        return agent;
 				}
@@ -159,43 +136,4 @@ public class OptrLoader extends CsvToSqlLoader
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
-	
-	// Agent records that represent Optrs who are also Botanists will first be loaded
-    // as Optrs, which puts the Optr id in the Agent GUID field.  During Botanist
-    // loading, the Agent records for Optr-Botanists are updated to put the Botanist
-    // id in the Agent GUID field.  That means the guid-- the means by which we get
-    // those Agent records-- may change during Botanist loading.
-	Agent getAgentByOptrId(Integer optrId) throws LocalException
-    {
-        Agent agent = agentsByOptrId.get(optrId);
-
-        if (agent == null)
-        {
-            String guid = getGuid(optrId);
-            // TODO: move to interface
-            Integer agentId = queryForInt("agent", "AgentID", "GUID", guid);
-            
-            if (agentId == null)
-            {
-                Integer botanistId = getBotanistId(optrId);
-
-                if (botanistId == null)
-                {
-                    throw new LocalException("Agent not found for optr id " + optrId);
-                }
-                guid = null; //BotanistLoader.getGuid(botanistId);
-                agentId = getInt("agent", "AgentID", "GUID", guid);
-            }
-            agent = new Agent();
-            agent.setAgentId(agentId);
-            agentsByOptrId.put(optrId, agent);
-        } 
-        
-        return agent;
-    }
-    
-    private Integer getBotanistId(Integer optrId)
-    {
-        return botanistsByOptr.map(optrId);
-    }
 }

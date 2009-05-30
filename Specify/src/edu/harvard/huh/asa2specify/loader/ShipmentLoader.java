@@ -227,7 +227,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	// ShipmentNumber (trackingNumber)
     	String trackingNumber = asaShipment.getTrackingNumber();
     	checkNull(trackingNumber, "tracking number");
-    	
+    	trackingNumber = truncate(trackingNumber, 50, "tracking number");
     	shipment.setShipmentNumber(trackingNumber);
     	
     	// Text1 (customsNo)

@@ -14,11 +14,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class SeriesLoader extends CsvToSqlLoader
 {
-		private String getGuid(Integer seriesId)
-	{
-		return seriesId + " series";
-	}
-
 	private AsaIdMapper seriesToBotanistMapper;
     private BotanistLookup botanistLookup;
     
@@ -66,7 +61,7 @@ public class SeriesLoader extends CsvToSqlLoader
     
     private Agent lookup(Integer botanistId) throws LocalException
     {
-        return botanistLookup.getByBotanistId(botanistId);
+        return botanistLookup.getById(botanistId);
     }
 
 	private Integer getBotanistId(Integer seriesId)
@@ -135,6 +130,11 @@ public class SeriesLoader extends CsvToSqlLoader
 		return agent;
 	}
     
+	private String getGuid(Integer seriesId)
+	{
+		return seriesId + " series";
+	}
+	
     private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "Abbreviation, AgentType, GUID, LastName, Remarks, TimestampCreated";

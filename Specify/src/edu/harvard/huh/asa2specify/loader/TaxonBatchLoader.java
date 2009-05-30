@@ -156,7 +156,11 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    
 	    // Description (higherTaxon, taxon, itemCount, typeCount, nonSpecimenCount)
 	    String description = getDescription(taxonBatch);
-	    borrowMaterial.setDescription(description);
+	    if (description != null)
+	    {
+	    	description = truncate(description, 50, "description");
+		    borrowMaterial.setDescription(description);
+	    }
    
         // InComments (transferredFrom)
         String transferredFrom = taxonBatch.getTransferredFrom();
@@ -164,6 +168,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
         
 	    // MaterialNumber (transactionId)
 	    String materialNumber = String.valueOf(transactionId);
+	    checkNull(materialNumber, "transaction id");
 	    
 	    borrowMaterial.setMaterialNumber(materialNumber);
 	    

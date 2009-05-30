@@ -160,7 +160,6 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	
 	private Shipment getShipment(OutReturnBatch outReturnBatch) throws LocalException
 	{
-		// TODO: make sure there aren't asa.shipment records for this borrow
 		Shipment shipment = new Shipment();
 		
 	   	// Borrow

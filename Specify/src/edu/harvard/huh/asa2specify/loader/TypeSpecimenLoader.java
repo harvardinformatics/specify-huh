@@ -22,8 +22,8 @@ import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.CollectionObjectLookup;
-import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
+import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
+import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
@@ -35,38 +35,23 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
-    private CollectionObjectLookup collObjLookup;
-    private TaxonLookup            taxonLookup;
-    private ReferenceWorkLookup    refWorkLookup;
+    private SpecimenLookup      collObjLookup;
+    private TaxonLookup         taxonLookup;
+    private PublicationLookup   publicationLookup;
     
     // TODO: is the verifier the determiner?  is the designator the determiner?
     public TypeSpecimenLoader(File csvFile,
                               Statement sqlStatement,
-                              CollectionObjectLookup collObjLookup,
+                              SpecimenLookup collObjLookup,
                               TaxonLookup taxonLookup,
-                              ReferenceWorkLookup refWorkLookup)
+                              PublicationLookup publicationLookup)
         throws LocalException
     {
         super(csvFile, sqlStatement);
         
         this.collObjLookup = collObjLookup;
         this.taxonLookup   = taxonLookup;
-        this.refWorkLookup = refWorkLookup;
-    }
-
-    private CollectionObjectLookup getCollectionObjectLookup()
-    {
-        return this.collObjLookup;
-    }
-    
-    private TaxonLookup getTaxonLookup()
-    {
-        return this.taxonLookup;
-    }
-
-    private ReferenceWorkLookup getReferenceWorkLookup()
-    {
-        return this.refWorkLookup;
+        this.publicationLookup = publicationLookup;
     }
 
     @Override
@@ -156,7 +141,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer specimenId = typeSpecimen.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        CollectionObject collectionObject = getCollectionObjectLookup().getBySpecimenId(specimenId);
+        CollectionObject collectionObject = getCollectionObjectLookup().getById(specimenId);
         determination.setCollectionObject(collectionObject);
         
         // Confidence TODO: make enum for conditionality
@@ -194,7 +179,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer asaTaxonId = typeSpecimen.getTaxonId();
         checkNull(asaTaxonId, "taxon id");
 
-        Taxon taxon = getTaxonLookup().getByAsaTaxonId(asaTaxonId);
+        Taxon taxon = getTaxonLookup().getById(asaTaxonId);
         determination.setTaxon( taxon ); 
 
         // Text1 (verifiedBy) TODO: normalize determiner name to botanist agent?  does this even go here?
@@ -254,7 +239,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         determinationCitation.setDetermination(determination);
         
         // ReferenceWork
-        ReferenceWork referenceWork = getReferenceWorkLookup().getByPublicationId(publicationId);
+        ReferenceWork referenceWork = getReferenceWorkLookup().getById(publicationId);
         determinationCitation.setReferenceWork(referenceWork);
 
         // Remarks
@@ -287,6 +272,21 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         return determinationCitation;
     }
     
+    private SpecimenLookup getCollectionObjectLookup()
+    {
+        return this.collObjLookup;
+    }
+    
+    private TaxonLookup getTaxonLookup()
+    {
+        return this.taxonLookup;
+    }
+
+    private PublicationLookup getReferenceWorkLookup()
+    {
+        return this.publicationLookup;
+    }
+
     private String getInsertSql(Determination determination)
     {
         String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +

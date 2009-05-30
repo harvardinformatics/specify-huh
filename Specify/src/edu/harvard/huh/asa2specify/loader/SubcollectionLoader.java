@@ -12,7 +12,7 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
-import edu.harvard.huh.asa2specify.lookup.ExsiccataLookup;
+import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
@@ -26,75 +26,6 @@ import edu.ku.brc.specify.datamodel.TaxonCitation;
 
 public class SubcollectionLoader extends AuditedObjectLoader
 {
-    public ExsiccataLookup getExsiccataLookup()
-    {
-        if (exsiccataLookup == null)
-        {
-            exsiccataLookup = new ExsiccataLookup() {
-                
-                public Exsiccata getBySubcollectionId(Integer subcollectionId) throws LocalException
-                {
-                    Exsiccata exsiccata = new Exsiccata();
-                    
-                    String guid = getGuid(subcollectionId);
-
-                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
-                    
-                    Integer exsiccataId = getInt("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
-
-                    exsiccata.setExsiccataId(exsiccataId);
-                    
-                    return exsiccata;
-                }
-            };
-        }
-        return exsiccataLookup;
-    }
-
-    public ContainerLookup getContainerLookup()
-    {
-        if (containerLookup == null)
-        {
-            containerLookup = new ContainerLookup() {
-                public Container getBySubcollectionId(Integer subcollectionId) throws LocalException
-                {
-                    Container container = new Container();
-                    
-                    Integer containerId = getInt("container", "ContainerID", "Number", subcollectionId);
-
-                    container.setContainerId(containerId);
-                    
-                    return container;
-                }
-                
-                public Container getByName(String name) throws LocalException
-                {
-                    Container container = new Container();
-                    
-                    Integer containerId = getInt("container", "ContainerID", "Name", name);
-                    
-                    container.setContainerId(containerId);
-                    
-                    return container;
-                }
-                
-                public Container queryByName(String name) throws LocalException
-                {
-                    Integer containerId = queryForInt("container", "ContainerID", "Name", name);
-                    
-                    if (containerId == null) return null;
-                    
-                    Container container = new Container();
-                    
-                    container.setContainerId(containerId);
-                    
-                    return container;
-                }
-            };
-        }
-        return containerLookup;
-    }
-
     private String getGuid(Integer subcollectionId)
 	{
 		return subcollectionId + " subcoll";
@@ -103,7 +34,8 @@ public class SubcollectionLoader extends AuditedObjectLoader
     private AsaIdMapper subcollMapper;
     private TaxonLookup taxonLookup;
     private BotanistLookup botanistLookup;
-    private ExsiccataLookup exsiccataLookup;
+    private SubcollectionLookup subcollLookup;
+    
     private ContainerLookup containerLookup;
     
 	public SubcollectionLoader(File csvFile,
@@ -117,16 +49,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		
 		this.subcollMapper = new AsaIdMapper(subcollToBotanist);
 		this.botanistLookup = botanistLookup;
-	}
-	
-	private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
-	{
-	    return taxonLookup.getByAsaTaxonId(asaTaxonId);
-	}
-
-	private Agent lookupBotanist(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
 	}
 	
 	@Override
@@ -196,11 +118,92 @@ public class SubcollectionLoader extends AuditedObjectLoader
         }
 	}
 
+    public SubcollectionLookup getSubcollectionLookup()
+    {
+        if (subcollLookup == null)
+        {
+            subcollLookup = new SubcollectionLookup() {
+                
+                public Exsiccata getExsiccataById(Integer subcollectionId) throws LocalException
+                {
+                    Exsiccata exsiccata = new Exsiccata();
+                    
+                    String guid = getGuid(subcollectionId);
+
+                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+                    
+                    Integer exsiccataId = getInt("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
+
+                    exsiccata.setExsiccataId(exsiccataId);
+                    
+                    return exsiccata;
+                }
+                
+                public Container getContainerById(Integer subcollectionId) throws LocalException
+                {
+                    Container container = new Container();
+                    
+                    Integer containerId = getInt("container", "ContainerID", "Number", subcollectionId);
+
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+            };
+        }
+        return subcollLookup;
+    }
+
+    public ContainerLookup getContainerLookup()
+    {
+        if (containerLookup == null)
+        {
+            containerLookup = new ContainerLookup() {
+
+                public Container getByName(String name) throws LocalException
+                {
+                    Container container = new Container();
+                    
+                    Integer containerId = getInt("container", "ContainerID", "Name", name);
+                    
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+                
+                public Container queryByName(String name) throws LocalException
+                {
+                    Integer containerId = queryForInt("container", "ContainerID", "Name", name);
+                    
+                    if (containerId == null) return null;
+                    
+                    Container container = new Container();
+                    
+                    container.setContainerId(containerId);
+                    
+                    return container;
+                }
+            };
+        }
+        return containerLookup;
+    }
+
 	private Integer getBotanistId(Integer subcollectionId)
 	{
 	    return subcollMapper.map(subcollectionId);
 	}
 
+	
+	private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
+	{
+	    return taxonLookup.getById(asaTaxonId);
+	}
+
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
+	
 	private Subcollection parse(String[] columns) throws LocalException
     {
     	if (columns.length < 11)

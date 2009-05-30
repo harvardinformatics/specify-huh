@@ -24,25 +24,25 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
 
-public class AsaBorrowLoader extends TransactionLoader
+public class BorrowLoader extends TransactionLoader
 {
     private static final String DEFAULT_BORROW_NUMBER = "none";
     
     private BorrowLookup borrowLookup;
     
-    public AsaBorrowLoader(File csvFile,
+    public BorrowLoader(File csvFile,
                            Statement sqlStatement,
                            File affiliateBotanists,
                            File agentBotanists,
                            BotanistLookup botanistLookup,
-                           AsaAgentLookup agentLookup,
+                           AgentLookup agentLookup,
                            AffiliateLookup affiliateLookup) throws LocalException
    {
         super(csvFile,
@@ -52,8 +52,6 @@ public class AsaBorrowLoader extends TransactionLoader
                 botanistLookup,
                 agentLookup,
                 affiliateLookup);
-
-        // TODO Auto-generated constructor stub
    }
 
     public void loadRecord(String[] columns) throws LocalException

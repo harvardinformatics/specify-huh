@@ -7,7 +7,7 @@ import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.AsaAgentLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Address;
@@ -17,17 +17,11 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class AgentLoader extends CsvToSqlLoader
 {
-	private AsaAgentLookup agentLookup;
+	private AgentLookup        agentLookup;
 	
 	private OrganizationLookup organizationLookup;
-	
-	private String getGuid(Integer agentId)
-	{
-		return agentId + " agent";
-	}
-
-	private AsaIdMapper agents;
-	private BotanistLookup botanistLookup;
+	private AsaIdMapper        agents;
+	private BotanistLookup     botanistLookup;
 	
 	public AgentLoader(File csvFile,
 	                   Statement specifySqlStatement,
@@ -43,12 +37,12 @@ public class AgentLoader extends CsvToSqlLoader
 		this.organizationLookup = organizationLookup;
 	}
 
-	public AsaAgentLookup getAgentLookup()
+	public AgentLookup getAgentLookup()
 	{
 		if (agentLookup == null)
 		{
-			agentLookup = new AsaAgentLookup() {
-				public Agent getByAsaAgentId(Integer asaAgentId) throws LocalException
+			agentLookup = new AgentLookup() {
+				public Agent getById(Integer asaAgentId) throws LocalException
 				{
 					Agent agent = new Agent();  // TODO: this doesn't take into account agent botanists
 
@@ -63,11 +57,6 @@ public class AgentLoader extends CsvToSqlLoader
 			};
 		}
 		return agentLookup;
-	}
-	
-	private Agent lookup(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -119,6 +108,16 @@ public class AgentLoader extends CsvToSqlLoader
         	insert(sql);
         }
 	}
+	
+	private String getGuid(Integer agentId)
+	{
+		return agentId + " agent";
+	}
+
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
 
 	private Integer getBotanistId(Integer agentId)
 	{
@@ -129,7 +128,7 @@ public class AgentLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 14)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		AsaAgent agent = new AsaAgent();

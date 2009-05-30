@@ -13,7 +13,6 @@ import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Division;
 
 // Run this class after OrganizationLoader and before AgentLoader.
 
@@ -22,8 +21,6 @@ public class AffiliateLoader extends AuditedObjectLoader
 	private AffiliateLookup affiliateLookup;
 	
     private BotanistLookup botanistLookup;
-    
-	private Division division;
 	private AsaIdMapper affiliates;
 
 	static String getGuid(Integer affiliateId)
@@ -37,8 +34,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 	                       BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-		
-		this.division = getBotanyDivision();
+
 		this.affiliates = new AsaIdMapper(affiliateBotanists);
 		this.botanistLookup = botanistLookup;
 	}
@@ -48,7 +44,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 		if (affiliateLookup == null)
 		{
 			affiliateLookup = new AffiliateLookup() {
-				public Agent getByAffiliateId(Integer affiliateId) throws LocalException
+				public Agent getById(Integer affiliateId) throws LocalException
 				{
 					Agent agent = new Agent(); // TODO: this doesn't account for affiliate botanists
 					
@@ -63,11 +59,6 @@ public class AffiliateLoader extends AuditedObjectLoader
 			};
 		}
 		return affiliateLookup;
-	}
-	
-	private Agent lookup(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getByBotanistId(botanistId);
 	}
 
 	@Override
@@ -116,12 +107,17 @@ public class AffiliateLoader extends AuditedObjectLoader
 	{
 	    return affiliates.map(affiliateId);
 	}
+	
+	private Agent lookup(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
 
 	private Affiliate parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 10)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		Affiliate affiliate = new Affiliate();
@@ -148,7 +144,6 @@ public class AffiliateLoader extends AuditedObjectLoader
 
 	private Agent getAgent(Affiliate affiliate) throws LocalException
 	{
-
 		Agent agent = new Agent();
 		
 		// AgentType
@@ -160,7 +155,7 @@ public class AffiliateLoader extends AuditedObjectLoader
         agent.setCreatedByAgent(createdByAgent);
         
 		// Division
-		agent.setDivision(division);
+		agent.setDivision(getBotanyDivision());
 		  
         // Email
 		String email = affiliate.getEmail();

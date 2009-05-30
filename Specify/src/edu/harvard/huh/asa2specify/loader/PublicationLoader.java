@@ -8,43 +8,14 @@ import edu.harvard.huh.asa.Publication;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
+import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Journal;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublicationLoader extends AuditedObjectLoader
 {
-    public ReferenceWorkLookup getReferenceWorkLookup()
-    {
-        if (refWorkLookup == null)
-        {
-            refWorkLookup = new ReferenceWorkLookup() {
-                
-                public  ReferenceWork getByPublicationId(Integer publicationId) throws LocalException
-                {
-                    ReferenceWork referenceWork = new ReferenceWork();
-                    
-                    String guid = getGuid(publicationId);
-                    
-                    Integer referenceWorkId = getInt("referenceWork", "ReferenceWorkID", "GUID", guid);
-                    
-                    referenceWork.setReferenceWorkId(referenceWorkId);
-                    
-                    return referenceWork;
-                }
-                
-            };
-        }
-        return refWorkLookup;
-    }
-
-    private String getGuid(Integer publicationId)
-	{
-		return publicationId + " publication";
-	}
-
-	private ReferenceWorkLookup refWorkLookup;
+ 	private PublicationLookup publicationLookup;
 	
 	public PublicationLoader(File csvFile, Statement sqlStatement) throws LocalException
 	{
@@ -77,6 +48,30 @@ public class PublicationLoader extends AuditedObjectLoader
 
 		String sql = getInsertSql(referenceWork);
 		insert(sql);
+	}
+
+	public PublicationLookup getReferenceWorkLookup()
+	{
+		if (publicationLookup == null)
+		{
+			publicationLookup = new PublicationLookup() {
+
+				public  ReferenceWork getById(Integer publicationId) throws LocalException
+				{
+					ReferenceWork referenceWork = new ReferenceWork();
+
+					String guid = getGuid(publicationId);
+
+					Integer referenceWorkId = getInt("referenceWork", "ReferenceWorkID", "GUID", guid);
+
+					referenceWork.setReferenceWorkId(referenceWorkId);
+
+					return referenceWork;
+				}
+
+			};
+		}
+		return publicationLookup;
 	}
 
 	private Publication parse(String[] columns) throws LocalException
@@ -231,6 +226,11 @@ public class PublicationLoader extends AuditedObjectLoader
 		return journal;
 	}
 
+    private String getGuid(Integer publicationId)
+	{
+		return publicationId + " publication";
+	}
+    
 	private String getInsertSql(Journal journal) throws LocalException
 	{
 		String fieldNames = "GUID, ISSN, JournalAbbreviation, JournalName, Text1, TimestampCreated";
