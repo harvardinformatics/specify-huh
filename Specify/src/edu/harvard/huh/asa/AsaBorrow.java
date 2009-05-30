@@ -18,10 +18,10 @@ import java.util.Date;
 
 public class AsaBorrow extends Transaction
 {
-    private          Date originalDueDate;
-    private          Date currentDueDate;
-    private        String higherTaxon;
-    private        String taxon;
+    private Date   originalDueDate;
+    private Date   currentDueDate;
+    private String higherTaxon;
+    private String taxon;
     
     public Date getOriginalDueDate() { return originalDueDate; }
     

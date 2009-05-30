@@ -19,7 +19,7 @@ public class Optr
     private Integer id;
     private  String userName;
     private  String fullName;
-    private  String remarks;
+    private  String note;
 
     public Integer getId() { return id; }
     
@@ -27,7 +27,7 @@ public class Optr
     
     public String getFullName() { return fullName; }
     
-    public String getRemarks() { return remarks; }
+    public String getNote() { return note; }
     
     public void setId(Integer id) { this.id = id; }
     
@@ -35,7 +35,7 @@ public class Optr
     
     public void setFullName(String fullName) { this.fullName = fullName; }
     
-    public void setRemarks(String remarks) { this.remarks = remarks; }
+    public void setNote(String remarks) { this.note = remarks; }
     
     public String getFirstName()
     {

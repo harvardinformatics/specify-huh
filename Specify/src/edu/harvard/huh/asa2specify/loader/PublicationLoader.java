@@ -91,8 +91,8 @@ public class PublicationLoader extends AuditedObjectLoader
 			publication.setUrl(                             columns[4]  );
 			publication.setTitle(                           columns[5]  );
 			publication.setPubDate(                         columns[6]  );
-			publication.setJournal(   Boolean.parseBoolean( columns[7]  ));
-			publication.setIsbn(                            columns[8]  );
+			publication.setIsJournal( Boolean.parseBoolean( columns[7]  ));
+			publication.setIssn(                            columns[8]  );
 			publication.setBph(                             columns[9]  );
 			publication.setAbbreviation(                    columns[10] );
             publication.setCreatedById(  SqlUtils.parseInt( columns[11] ));

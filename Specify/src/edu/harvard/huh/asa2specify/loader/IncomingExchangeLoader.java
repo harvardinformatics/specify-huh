@@ -63,6 +63,8 @@ public class IncomingExchangeLoader extends TransactionLoader
     
     private IncomingExchange parse(String[] columns) throws LocalException
     {        
+        // TODO: implement new incoming_exchange.sql
+        
         IncomingExchange inExchange = new IncomingExchange();
         
         parse(columns, inExchange);

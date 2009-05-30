@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Geography;
+import edu.ku.brc.specify.datamodel.Locality;
 
-public interface GeographyLookup
+public interface SiteLookup
 {
-    public Geography getByGeoUnitId(Integer geoUnitId) throws LocalException;
+    public Locality queryById(Integer siteId) throws LocalException;
 }

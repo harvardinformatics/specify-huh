@@ -6,26 +6,23 @@ import java.util.Set;
 
 public class GeoUnit
 {
+    private     Integer parentId;
 	private     Integer id;
-	private     Integer parentId;
-	private      String name;
-	private      String abbreviation;
-	private      String isoCode;
-	private      String vernacularName;
-	private      String displayQualifier;
-	private      String rank;
+    private      String rank;
+    private      String isoCode;
+    private      String displayQualifier;
+    private      String name;
+    private      String vernacularName;
 	private      String remarks;
 	private     Integer createdById;
 	private        Date dateCreated;
 	private Set<String> variantNames = new HashSet<String>();
-	
+    
+    public Integer getParentId() { return parentId; }
+    
 	public Integer getId() { return id; }
 	
-	public Integer getParentId() { return parentId; }
-	
 	public String getName() { return name; }
-	
-	public String getAbbreviation() { return abbreviation; }
 	
 	public String getIsoCode() { return isoCode; }
 	
@@ -43,17 +40,15 @@ public class GeoUnit
 	
 	public Set<String> getVariantNames() { return variantNames; }
 	    
+    public void setParentId(Integer parentId) { this.parentId = parentId; }
+    
 	public void setId(Integer id) { this.id = id; }
-	
-	public void setParentId(Integer parentId) { this.parentId = parentId; }
 	
 	public void setName(String name) { this.name = name; }
 	
 	public void setVernacularName(String vernacularName) { this.vernacularName = vernacularName; }
 	
 	public void setDisplayQualifier(String displayQualifier) { this.displayQualifier = displayQualifier; }
-	
-	public void setAbbreviation(String abbreviation) { this.abbreviation = abbreviation; }
 	
 	public void setIsoCode(String isoCode) { this.isoCode = isoCode; }
 	

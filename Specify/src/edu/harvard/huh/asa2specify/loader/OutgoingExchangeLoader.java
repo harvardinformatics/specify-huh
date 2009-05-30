@@ -88,6 +88,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
 
     private OutgoingExchange parse(String[] columns) throws LocalException
     {        
+        // TODO: implement new outgoing_exchange.sql
         OutgoingExchange outExchange = new OutgoingExchange();
         
         parse(columns, outExchange);

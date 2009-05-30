@@ -87,9 +87,9 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
     private TypeSpecimen parse(String[] columns) throws LocalException
     {
-        if (columns.length < 19)
+        if (columns.length < 20)
         {
-            throw new LocalException("Wrong number of columns");
+            throw new LocalException("Not enough columns");
         }
         
         TypeSpecimen typeSpecimen = new TypeSpecimen();     
@@ -110,15 +110,16 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             bdate.setStartMonth( SqlUtils.parseInt( columns[8] ));
             bdate.setStartDay(   SqlUtils.parseInt( columns[9] ));
 
-            typeSpecimen.setNle1Designator(                       columns[10] );
-            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( columns[11] ));
-            typeSpecimen.setNle1Collation(                        columns[12] );
-            typeSpecimen.setNle1Date(                             columns[13] );
-            typeSpecimen.setNle2Designator(                       columns[14] );
-            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( columns[15] ));
-            typeSpecimen.setNle2Collation(                        columns[16] );
-            typeSpecimen.setNle2Date(                             columns[17] );
-            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[18] ));
+            typeSpecimen.setVerifiedBy(                           columns[10] );
+            typeSpecimen.setNle1Designator(                       columns[11] );
+            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( columns[12] ));
+            typeSpecimen.setNle1Collation(                        columns[13] );
+            typeSpecimen.setNle1Date(                             columns[14] );
+            typeSpecimen.setNle2Designator(                       columns[15] );
+            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( columns[16] ));
+            typeSpecimen.setNle2Collation(                        columns[17] );
+            typeSpecimen.setNle2Date(                             columns[18] );
+            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[19] ));
         }
         catch (NumberFormatException e)
         {

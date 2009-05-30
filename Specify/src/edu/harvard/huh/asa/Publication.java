@@ -75,7 +75,7 @@ public class Publication
     
     public void setTitle(String title) { this.title = title; }
     
-    public void setJournal(Boolean isJournal) { this.isJournal = isJournal; }
+    public void setIsJournal(Boolean isJournal) { this.isJournal = isJournal; }
     
     public void setBph(String bph) { this.bph = bph; }
     

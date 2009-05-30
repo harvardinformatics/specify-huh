@@ -292,12 +292,6 @@ public class GeoUnitLoader extends TreeLoader
 		Geography geography = new Geography();
 		
 		// Abbreviation
-		String abbrev = geoUnit.getAbbreviation();
-		if (abbrev != null)
-		{
-			abbrev = truncate(abbrev, 16, "abbreviation");
-			geography.setAbbrev(abbrev);
-		}
 		
 	    // AcceptedGeography
         geography.setAcceptedGeography(nullIdGeography);
@@ -467,28 +461,27 @@ public class GeoUnitLoader extends TreeLoader
 
 	private String getInsertSql(Geography geography)
 	{
-	    String fieldNames = "Abbrev, AcceptedID, CommonName, CreatedByAgentID, FullName, GeographyCode, " +
+	    String fieldNames = "AcceptedID, CommonName, CreatedByAgentID, FullName, GeographyCode, " +
 	                        "GeographyTreeDefID, GeographyTreeDefItemID, GUID, IsAccepted, Name, " +
 	                        "ParentID, RankID, Remarks, TimestampCreated, Version";
 
-	    String[] values = new String[16];
+	    String[] values = new String[15];
 
-	    values[0]  = SqlUtils.sqlString( geography.getAbbrev());
-	    values[1]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
-	    values[2]  = SqlUtils.sqlString( geography.getCommonName());
-	    values[3]  = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
-	    values[4]  = SqlUtils.sqlString( geography.getFullName());
-	    values[5]  = SqlUtils.sqlString( geography.getGeographyCode());
-	    values[6]  = SqlUtils.sqlString( geography.getDefinition().getId());
-	    values[7]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
-	    values[8]  = SqlUtils.sqlString( geography.getGuid());
-	    values[9]  = SqlUtils.sqlString( geography.getIsAccepted());
-	    values[10] = SqlUtils.sqlString( geography.getName());
-	    values[11] = SqlUtils.sqlString( geography.getParent().getId());
-	    values[12] = SqlUtils.sqlString( geography.getRankId());
-	    values[13] = SqlUtils.sqlString( geography.getRemarks());
-	    values[14] = SqlUtils.sqlString( geography.getTimestampCreated());
-	    values[15] = SqlUtils.sqlString( geography.getVersion());
+	    values[0]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
+	    values[1]  = SqlUtils.sqlString( geography.getCommonName());
+	    values[2]  = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
+	    values[3]  = SqlUtils.sqlString( geography.getFullName());
+	    values[4]  = SqlUtils.sqlString( geography.getGeographyCode());
+	    values[5]  = SqlUtils.sqlString( geography.getDefinition().getId());
+	    values[6]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
+	    values[7]  = SqlUtils.sqlString( geography.getGuid());
+	    values[8]  = SqlUtils.sqlString( geography.getIsAccepted());
+	    values[9]  = SqlUtils.sqlString( geography.getName());
+	    values[10] = SqlUtils.sqlString( geography.getParent().getId());
+	    values[11] = SqlUtils.sqlString( geography.getRankId());
+	    values[12] = SqlUtils.sqlString( geography.getRemarks());
+	    values[13] = SqlUtils.sqlString( geography.getTimestampCreated());
+	    values[14] = SqlUtils.sqlString( geography.getVersion());
 
 	    return SqlUtils.getInsertSql("geography", fieldNames, values);
 	}

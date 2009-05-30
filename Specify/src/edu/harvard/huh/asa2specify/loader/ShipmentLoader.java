@@ -126,7 +126,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     		asaShipment.setCustomsNumber(                         columns[9]  );
     		asaShipment.setDescription(                           columns[10] );
     		asaShipment.setBoxCount(                              columns[11] );
-    		asaShipment.setBoxCount(                              columns[12] );
+    		asaShipment.setCollectionCode(                        columns[12] );
     	}
     	catch (NumberFormatException e)
     	{

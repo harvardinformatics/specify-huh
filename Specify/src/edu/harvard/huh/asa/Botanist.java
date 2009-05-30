@@ -10,15 +10,14 @@ public class Botanist
     // TODO: date precision: doing nothing with this at the moment: ?, circa; null means default, exact
 
 	private Integer id;	
-	private  String name;
-	private  String startPrecision;
-	private Integer startYear;
-	private  String endPrecision;
-	private Integer endYear;
-	private  String datesType;
-	private Boolean activeFlag;
 	private Boolean isTeam;
 	private Boolean isCorporate;
+	private  String name;
+	private  String datesType;
+	private Integer startYear;
+	private  String startPrecision;
+    private Integer endYear;
+	private  String endPrecision;
 	private  String remarks;
 	private Integer createdById;
 	private    Date dateCreated;
@@ -27,7 +26,15 @@ public class Botanist
     private final static Pattern orgPattern   = Pattern.compile("Bureau of|Commission|Committee|Consortium|Department|Expedition|Group|Herbarium|Missionaries|Museum|National|Nurseries|Nursery|Program|Research|School|Scientific|Service|Society|Survey|University");
 	
 	public Integer getId() { return id; }
-	
+
+	public Boolean isTeam() { return isTeam; }
+
+	public Boolean isCorporate() { return isCorporate; }
+
+	public String getName() { return name; }
+
+	public String getDatesType() { return datesType; }
+
 	public Integer getStartYear() { return startYear; }
 	
 	public String getStartPrecision() { return startPrecision; }
@@ -35,16 +42,6 @@ public class Botanist
 	public Integer getEndYear() { return endYear; }
 	
 	public String getEndPrecision() { return endPrecision; }
-	
-	public String getDatesType() { return datesType; }
-	
-	public Boolean isActive() { return activeFlag; }
-	
-	public Boolean isTeam() { return isTeam; }
-	
-	public Boolean isCorporate() { return isCorporate; }
-	
-	public String getName() { return name; }
 	
 	public String getRemarks() { return remarks; }
 	
@@ -54,24 +51,22 @@ public class Botanist
 		
 	public void setId(Integer id) { this.id = id; }
 	
+	public void setTeam(Boolean isTeam) { this.isTeam = isTeam; }
+	    
+	public void setCorporate(Boolean isCorporate) { this.isCorporate = isCorporate; }
+	
 	public void setName(String name) { this.name = name; }
-	
-	public void setStartPrecision(String startPrecision) { this.startPrecision = startPrecision; }
-	
-	public void setStartYear(Integer startYear) { this.startYear = startYear; }
-	
-	public void setEndPrecision(String endPrecision) { this.endPrecision = endPrecision; }
-	
-	public void setEndYear(Integer endYear) { this.endYear = endYear; }
 	
 	public void setDatesType(String datesType) { this.datesType = datesType; }
 	
-	public void setActive(Boolean isActive) { this.activeFlag = isActive; }
-	
-	public void setTeam(Boolean isTeam) { this.isTeam = isTeam; }
-	
-	public void setCorporate(Boolean isCorporate) { this.isCorporate = isCorporate; }
-	
+    public void setStartPrecision(String startPrecision) { this.startPrecision = startPrecision; }
+    
+    public void setStartYear(Integer startYear) { this.startYear = startYear; }
+    
+	public void setEndYear(Integer endYear) { this.endYear = endYear; }
+
+	public void setEndPrecision(String endPrecision) { this.endPrecision = endPrecision; }
+    
 	public void setRemarks(String remarks) { this.remarks = remarks; }
 	
 	public void setCreatedById(Integer createdById) { this.createdById = createdById; }

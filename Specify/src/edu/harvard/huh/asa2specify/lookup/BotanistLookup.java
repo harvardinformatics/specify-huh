@@ -28,5 +28,5 @@ public interface BotanistLookup
      * @return
      * @throws LocalException
      */
-    public Agent getByBotanistId(Integer botanistId) throws LocalException;
+    public Agent getById(Integer botanistId) throws LocalException;
 }

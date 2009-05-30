@@ -5,5 +5,5 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public interface OptrLookup
 {
-	public Agent getByOptrId(Integer optrId) throws LocalException;
+	public Agent queryById(Integer optrId) throws LocalException;
 }

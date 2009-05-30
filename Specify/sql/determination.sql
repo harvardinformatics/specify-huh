@@ -13,6 +13,7 @@ select d.id,
        d.ordinal,
        d.remarks
 from
-       determination d, specimen s
+       determination d,
+       specimen s
 where
        d.specimen_id=s.id

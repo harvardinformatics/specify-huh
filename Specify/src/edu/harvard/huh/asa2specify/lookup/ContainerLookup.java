@@ -18,9 +18,7 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.ku.brc.specify.datamodel.Container;
 
 public interface ContainerLookup
-{
-    public Container getBySubcollectionId(Integer subcollectionId) throws LocalException;
-    
+{  
     public Container getByName(String name) throws LocalException;
     
     public Container queryByName(String name) throws LocalException;

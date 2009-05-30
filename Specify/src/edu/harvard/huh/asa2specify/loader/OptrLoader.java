@@ -67,10 +67,10 @@ public class OptrLoader extends CsvToSqlLoader
 		Optr optr = new Optr();
 		try
 		{
-		    optr.setId(           SqlUtils.parseInt( columns[0] ));
-		    optr.setUserName(                        columns[1] );
-		    optr.setFullName(                        columns[2] );
-		    optr.setRemarks( SqlUtils.iso8859toUtf8( columns[3] ));
+		    optr.setId(        SqlUtils.parseInt( columns[0] ));
+		    optr.setUserName(                     columns[1] );
+		    optr.setFullName(                     columns[2] );
+		    optr.setNote( SqlUtils.iso8859toUtf8( columns[3] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -109,7 +109,7 @@ public class OptrLoader extends CsvToSqlLoader
 		agent.setLastName(lastName);
 	        
 		// Remarks
-		String remarks = optr.getRemarks();
+		String remarks = optr.getNote();
 		agent.setRemarks(remarks);
 
 		return agent;

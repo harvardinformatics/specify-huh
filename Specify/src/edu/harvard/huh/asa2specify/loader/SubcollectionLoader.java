@@ -223,8 +223,8 @@ public class SubcollectionLoader extends AuditedObjectLoader
     	    subcollection.setSpecimenCount(                   columns[5]  );
     	    subcollection.setLocation(                        columns[6]  );
     	    subcollection.setCabinet(                         columns[7]  );
-            subcollection.setDateCreated( SqlUtils.parseDate( columns[8]  ));            
-            subcollection.setCreatedById(  SqlUtils.parseInt( columns[9]  ));
+            subcollection.setCreatedById(  SqlUtils.parseInt( columns[8]  ));
+            subcollection.setDateCreated( SqlUtils.parseDate( columns[9]  ));            
     		subcollection.setRemarks(                         columns[10] );
     	}
     	catch (NumberFormatException e)

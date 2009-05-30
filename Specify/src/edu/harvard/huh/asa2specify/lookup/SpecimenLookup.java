@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Exsiccata;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 
-public interface ExsiccataLookup
+public interface SpecimenLookup
 {
-    public Exsiccata getBySubcollectionId(Integer subcollectionId) throws LocalException;
+    public CollectionObject getById(Integer specimenId) throws LocalException;
 }

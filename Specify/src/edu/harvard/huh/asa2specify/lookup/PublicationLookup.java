@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.ReferenceWork;
 
-public interface LocalityLookup
+public interface PublicationLookup
 {
-    public Locality queryBySiteId(Integer siteId) throws LocalException;
+    public ReferenceWork getById(Integer publicationId) throws LocalException;
 }

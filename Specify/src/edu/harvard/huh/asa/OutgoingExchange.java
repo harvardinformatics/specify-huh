@@ -16,5 +16,6 @@ package edu.harvard.huh.asa;
 
 public class OutgoingExchange extends Transaction
 {
-
+    // TODO: implement outgoing_exchange.sql
+    
 }

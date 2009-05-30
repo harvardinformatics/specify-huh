@@ -58,8 +58,8 @@ public class AsaTaxon
         return GroupNames[group.ordinal()];
     }
 
+    private      Integer parentId;
     private      Integer id;
-	private      Integer parentId;
 	private       String rank;
 	private        GROUP group;
 	private       STATUS status;
@@ -79,10 +79,10 @@ public class AsaTaxon
 	private       String remarks;
 	private      Integer createdById;
 	private         Date dateCreated;
-	
+	   
+    public Integer getParentId() { return parentId; }
+    
 	public Integer getId() { return id; }
-	
-	public Integer getParentId() { return parentId; }
 	
 	public String getRank() { return rank; }
 	

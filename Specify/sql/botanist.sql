@@ -11,4 +11,5 @@ select b.id,
        regexp_replace(b.remarks, '[[:space:]]+', ' ') as remarks,
        b.created_by_id,
        to_char(b.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created
+
 from botanist b

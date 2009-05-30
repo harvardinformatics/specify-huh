@@ -19,5 +19,5 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public interface TaxonLookup
 {
-    public Taxon getByAsaTaxonId(Integer asaTaxonId) throws LocalException;
+    public Taxon getById(Integer asaTaxonId) throws LocalException;
 }

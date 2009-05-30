@@ -7,10 +7,10 @@ select s.id,
        decode(s.cost_estimated_flag, 1,'true', '') as is_estimated_cost,
        decode(s.insurance_flag, 1, 'true', '') as is_insured,
        s.ordinal,
-       s.tracking_no,
-       s.customs_no,
+       regexp_replace(s.tracking_no, '[[:space:]]+', ' ') as tracking_no,
+       regexp_replace(s.customs_no, '[[:space:]]+', ' ') as customs_no,
        regexp_replace(s.description, '[[:space:]]+', ' ') as description,
-       regexp_replace(t.box_count '[[:space:]]+', ' ') as box_count,
+       regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        (select acronym from organization where id=t.local_unit_id) as collection_code
 
 from shipment s,

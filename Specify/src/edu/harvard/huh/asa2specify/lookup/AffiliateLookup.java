@@ -5,6 +5,5 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public interface AffiliateLookup
 {
-	// TODO: normalize interface names and method names
-	public Agent getByAffiliateId(Integer affiliateId) throws LocalException;
+	public Agent getById(Integer affiliateId) throws LocalException;
 }
