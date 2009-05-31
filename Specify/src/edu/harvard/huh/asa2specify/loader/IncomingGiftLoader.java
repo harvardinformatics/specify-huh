@@ -27,6 +27,7 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.IncomingGiftLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftAgent;
@@ -34,6 +35,8 @@ import edu.ku.brc.specify.datamodel.GiftAgent;
 public class IncomingGiftLoader extends TransactionLoader
 {
     private static final String DEFAULT_GIFT_NUMBER = "none";
+    
+    private IncomingGiftLookup inGiftLookup;
     
     public IncomingGiftLoader(File csvFile,
                               Statement sqlStatement,
@@ -84,6 +87,28 @@ public class IncomingGiftLoader extends TransactionLoader
         }
     }
  
+    public IncomingGiftLookup getIncomingGiftLookup()
+    {
+        if (inGiftLookup == null)
+        {
+            inGiftLookup = new IncomingGiftLookup() {
+
+                public Gift getById(Integer transactionId) throws LocalException
+                {
+                    Gift gift = new Gift();
+                    
+                    Integer giftId = getInt("gift", "GiftID", "Number1", transactionId);
+                    
+                    gift.setGiftId(giftId);
+                    
+                    return gift;
+                }
+                
+            };
+        }
+        return inGiftLookup;
+    }
+
     private IncomingGift parse(String[] columns) throws LocalException
     {        
         IncomingGift incomingGift = new IncomingGift();
@@ -93,14 +118,14 @@ public class IncomingGiftLoader extends TransactionLoader
         return incomingGift;
     }
     
-    private Gift getGift(Transaction transaction) throws LocalException
+    private Gift getGift(IncomingGift inGift) throws LocalException
     {
         Gift gift = new Gift();
 
         // TODO: AddressOfRecord
         
         // CreatedByAgentID
-        Integer creatorOptrId = transaction.getCreatedById();
+        Integer creatorOptrId = inGift.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         gift.setCreatedByAgent(createdByAgent);
         
@@ -111,14 +136,14 @@ public class IncomingGiftLoader extends TransactionLoader
         gift.setDivision(getBotanyDivision());
         
         // GiftDate
-        Date openDate = transaction.getOpenDate();
+        Date openDate = inGift.getOpenDate();
         if (openDate != null)
         {
             gift.setGiftDate(DateUtils.toCalendar(openDate));
         }
         
         // GiftNumber
-        String transactionNo = transaction.getTransactionNo();
+        String transactionNo = inGift.getTransactionNo();
         if ( transactionNo == null)
         {
             transactionNo = DEFAULT_GIFT_NUMBER;
@@ -131,7 +156,7 @@ public class IncomingGiftLoader extends TransactionLoader
         gift.setGiftNumber(transactionNo);
         
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = transaction.getId();
+        Integer transactionId = inGift.getId();
         if (transactionId == null)
         {
             throw new LocalException("No transaction id");
@@ -139,13 +164,13 @@ public class IncomingGiftLoader extends TransactionLoader
         gift.setNumber1((float) transactionId);
         
         // PurposeOfGift
-        PURPOSE purpose = transaction.getPurpose();
+        PURPOSE purpose = inGift.getPurpose();
         String purposeOfGift = Transaction.toString(purpose);
         purposeOfGift = truncate(purposeOfGift, 64, "purpose");
         gift.setPurposeOfGift(purposeOfGift);
         
         // Remarks
-        String remarks = transaction.getRemarks();
+        String remarks = inGift.getRemarks();
         gift.setRemarks(remarks);
         
         // TODO: SrcGeography
@@ -153,19 +178,19 @@ public class IncomingGiftLoader extends TransactionLoader
         // TODO: SrcTaxonomy
         
         // Text1 (description)
-        String description = transaction.getDescription();
+        String description = inGift.getDescription();
         gift.setText1(description);
         
         // Text2
-        String forUseBy = transaction.getForUseBy();
+        String forUseBy = inGift.getForUseBy();
         gift.setText2(forUseBy);
         
         // TimestampCreated
-        Date dateCreated = transaction.getDateCreated();
+        Date dateCreated = inGift.getDateCreated();
         gift.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = transaction.isAcknowledged();
+        Boolean isAcknowledged = inGift.isAcknowledged();
         gift.setYesNo1(isAcknowledged);
         
         return gift;

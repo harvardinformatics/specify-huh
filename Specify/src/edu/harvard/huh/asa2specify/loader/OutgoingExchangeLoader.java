@@ -16,10 +16,10 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.Date;
 
 import edu.harvard.huh.asa.OutgoingExchange;
-import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -88,49 +88,60 @@ public class OutgoingExchangeLoader extends TransactionLoader
 
     private OutgoingExchange parse(String[] columns) throws LocalException
     {        
-        // TODO: implement new outgoing_exchange.sql
         OutgoingExchange outExchange = new OutgoingExchange();
         
-        parse(columns, outExchange);
+        int i = parse(columns, outExchange);
+        
+        if (columns.length < i + 6)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        outExchange.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
+        outExchange.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
+        outExchange.setGeoUnit(                             columns[i + 2] );
+        outExchange.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
+        outExchange.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
+        outExchange.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
         
         return outExchange;
     }
     
-    private ExchangeOut getExchangeOut(Transaction transaction) throws LocalException
+    private ExchangeOut getExchangeOut(OutgoingExchange outgoingExchange) throws LocalException
     {
         ExchangeOut exchangeOut = new ExchangeOut();
 
         // TODO: AddressOfRecord
         
         // CreatedByAgentID
-        Integer creatorOptrId = transaction.getCreatedById();
+        Integer creatorOptrId = outgoingExchange.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         exchangeOut.setCreatedByAgent(createdByAgent);
         
         // CatalogedByID
-        Agent agentCatalogedBy = getAffiliateAgent(transaction);
+        Agent agentCatalogedBy = getAffiliateAgent(outgoingExchange);
         exchangeOut.setAgentCatalogedBy(agentCatalogedBy);
 
         // DescriptionOfMaterial
-        String description = transaction.getDescription();
-        if (description != null)
+        String descriptionOfMaterial = outgoingExchange.getDescription();
+        if (descriptionOfMaterial != null)
         {
-        	description = truncate(description, 120, "description");
-        	exchangeOut.setDescriptionOfMaterial(description);
+            descriptionOfMaterial = truncate(descriptionOfMaterial, 120, "description");
+        	exchangeOut.setDescriptionOfMaterial(descriptionOfMaterial);
         }
         
         // DivisionID
         exchangeOut.setDivision(getBotanyDivision());
         
         // ExchangeDate
-        Date openDate = transaction.getOpenDate();
+        Date openDate = outgoingExchange.getOpenDate();
         if (openDate != null)
         {
             exchangeOut.setExchangeDate(DateUtils.toCalendar(openDate));
         }
         
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = transaction.getId();
+        Integer transactionId = outgoingExchange.getId();
         if (transactionId == null)
         {
             throw new LocalException("No transaction id");
@@ -138,43 +149,78 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setNumber1((float) transactionId);
         
         // QuantityExchanged
+        short quantity = getQuantity(outgoingExchange);
+        exchangeOut.setQuantityExchanged(quantity);
         
         // Remarks
-        String remarks = transaction.getRemarks();
+        String remarks = outgoingExchange.getRemarks();
         exchangeOut.setRemarks(remarks);
                 
         // SentToOrganization
-        Agent agentSentTo = getAsaAgentAgent(transaction);
+        Agent agentSentTo = getAsaAgentAgent(outgoingExchange);
         exchangeOut.setAgentSentTo(agentSentTo);
         
-        // TODO: SrcGeography
+        // SrcGeography
+        String geoUnit = outgoingExchange.getGeoUnit();
+        checkNull(geoUnit, "src geography");
+        geoUnit = truncate(geoUnit, 32, "src geography");
+        exchangeOut.setSrcGeography(geoUnit);
         
-        // TODO: SrcTaxonomy
-        
-        // Text1 (description)
+        // SrcTaxonomy
+
+        // Text1 (item, type, non-specimen counts; original date due)
+        String description = getDescription(outgoingExchange);
+        if (description != null)
+        {
+            description = truncate(description, 120, "description");
+        }
+        exchangeOut.setText1(description);
         
         // Text2 (forUseBy)
-        String forUseBy = transaction.getForUseBy();
+        String forUseBy = outgoingExchange.getForUseBy();
         exchangeOut.setText2(forUseBy);
         
         // TimestampCreated
-        Date dateCreated = transaction.getDateCreated();
+        Date dateCreated = outgoingExchange.getDateCreated();
         exchangeOut.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = transaction.isAcknowledged();
+        Boolean isAcknowledged = outgoingExchange.isAcknowledged();
         exchangeOut.setYesNo1(isAcknowledged);
         
         return exchangeOut;
     }
  
+    private short getQuantity(OutgoingExchange outgoingExchange)
+    {
+        Integer itemCount = outgoingExchange.getItemCount();
+        Integer typeCount = outgoingExchange.getTypeCount();
+        Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
+        
+        return (short) (itemCount + typeCount + nonSpecimenCount);
+    }
+    
+    private String getDescription(OutgoingExchange outgoingExchange)
+    {
+        Integer itemCount = outgoingExchange.getItemCount();
+        Integer typeCount = outgoingExchange.getTypeCount();
+        Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
+
+        Date originalDateDue = outgoingExchange.getOriginalDueDate();
+        
+        Object[] args = { itemCount, typeCount, nonSpecimenCount, DateUtils.toString(originalDateDue) };
+        String pattern = "{0} items, {1} types, {2} non-specimens{3}";
+
+        return MessageFormat.format(pattern, args);
+    }
+    
     private String getInsertSql(ExchangeOut exchangeOut)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, " +
-                            "ExchangeDate, Number1, Remarks, SentToOrganizationID, Text2, " +
-                            "TimestampCreated, YesNo1";
+                            "ExchangeDate, Number1, QuantityExchanged, Remarks, SentToOrganizationID, " +
+                            "SrcGeography, Text1, Text2, TimestampCreated, YesNo1";
 
-        String[] values = new String[11];
+        String[] values = new String[14];
 
         values[0]  = SqlUtils.sqlString( exchangeOut.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeOut.getCreatedByAgent().getId());
@@ -182,11 +228,14 @@ public class OutgoingExchangeLoader extends TransactionLoader
         values[3]  = SqlUtils.sqlString( exchangeOut.getDivision().getId());
         values[4]  = SqlUtils.sqlString( exchangeOut.getExchangeDate());
         values[5]  = SqlUtils.sqlString( exchangeOut.getNumber1());
-        values[6]  = SqlUtils.sqlString( exchangeOut.getRemarks());
-        values[7]  = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
-        values[8]  = SqlUtils.sqlString( exchangeOut.getText2());
-        values[9]  = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
-        values[10] = SqlUtils.sqlString( exchangeOut.getYesNo1());
+        values[6]  = SqlUtils.sqlString( exchangeOut.getQuantityExchanged());
+        values[7]  = SqlUtils.sqlString( exchangeOut.getRemarks());
+        values[8]  = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
+        values[9]  = SqlUtils.sqlString( exchangeOut.getSrcGeography());
+        values[10] = SqlUtils.sqlString( exchangeOut.getText1());
+        values[11] = SqlUtils.sqlString( exchangeOut.getText2());
+        values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
+        values[13] = SqlUtils.sqlString( exchangeOut.getYesNo1());
         
         return SqlUtils.getInsertSql("exchangeout", fieldNames, values);
     }

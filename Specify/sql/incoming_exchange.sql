@@ -31,6 +31,6 @@ from herb_transaction t,
      in_geo_batch igb
 
 where t.id=igb.herb_transaction_id(+) and
-      (select name from st_lookup where id=t.type_id) = 'incoming exchange'
+      (select name from st_lookup where id=t.type_id) in ('incoming exchange', 'incoming special exch')
 
 order by t.id

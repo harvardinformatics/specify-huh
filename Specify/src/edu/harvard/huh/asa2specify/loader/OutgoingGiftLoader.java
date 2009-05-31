@@ -113,24 +113,24 @@ public class OutgoingGiftLoader extends TransactionLoader
         return outgoingGift;
     }
     
-    private Deaccession getDeaccession(Transaction transaction, ACCESSION_TYPE type) throws LocalException
+    private Deaccession getDeaccession(OutgoingGift outGift, ACCESSION_TYPE type) throws LocalException
     {
         Deaccession deaccession = new Deaccession();
         
         // CreatedByAgentID
-        Integer creatorOptrId = transaction.getCreatedById();
+        Integer creatorOptrId = outGift.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         deaccession.setCreatedByAgent(createdByAgent);
         
         // DeaccessionDate
-        Date openDate = transaction.getOpenDate();
+        Date openDate = outGift.getOpenDate();
         if (openDate != null)
         {
             deaccession.setDeaccessionDate(DateUtils.toCalendar(openDate));
         }
             
         // DeaccessionNumber
-        String transactionNo = transaction.getTransactionNo();
+        String transactionNo = outGift.getTransactionNo();
         if ( transactionNo == null)
         {
             transactionNo = DEFAULT_DEACCESSION_NUMBER;
@@ -140,31 +140,31 @@ public class OutgoingGiftLoader extends TransactionLoader
         deaccession.setDeaccessionNumber(transactionNo);
             
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = transaction.getId();
+        Integer transactionId = outGift.getId();
         checkNull(transactionId, "transaction id");
         deaccession.setNumber1((float) transactionId);
         
         // Remarks
-        String remarks = transaction.getRemarks();
+        String remarks = outGift.getRemarks();
         deaccession.setRemarks(remarks);
         
         // Text1 (description)
-        String description = transaction.getDescription();
+        String description = outGift.getDescription();
         deaccession.setText1(description);
         
         // Text2
-        String forUseBy = transaction.getForUseBy();
+        String forUseBy = outGift.getForUseBy();
         deaccession.setText2(forUseBy);
         
         // TimestampCreated
-        Date dateCreated = transaction.getDateCreated();
+        Date dateCreated = outGift.getDateCreated();
         deaccession.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // Type
         deaccession.setType(type.name());
 
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = transaction.isAcknowledged();
+        Boolean isAcknowledged = outGift.isAcknowledged();
         deaccession.setYesNo1(isAcknowledged);
         
         return deaccession;

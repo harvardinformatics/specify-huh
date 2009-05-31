@@ -16,6 +16,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.Date;
 
 import edu.harvard.huh.asa.Purchase;
@@ -56,7 +57,7 @@ public class PurchaseLoader extends TransactionLoader
         Integer transactionId = purchase.getId();
         setCurrentRecordId(transactionId);
         
-        Accession accession = getAccession(purchase, ACCESSION_TYPE.purchase);
+        Accession accession = getAccession(purchase);
         
         String sql = getInsertSql(accession);
         Integer accessionId = insert(sql);
@@ -77,19 +78,24 @@ public class PurchaseLoader extends TransactionLoader
         }
     }
 
-    private Accession getAccession(Transaction transaction, ACCESSION_TYPE type) throws LocalException
+    private Accession getAccession(Purchase purchase) throws LocalException
     {
         Accession accession = new Accession();
         
         // TODO: AddressOfRecord
         
         // CreatedByAgent
-        Integer creatorOptrId = transaction.getCreatedById();
+        Integer creatorOptrId = purchase.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         accession.setCreatedByAgent(createdByAgent);
         
+        // AccesionCondition
+        String accessionCondition = getDescription(purchase);
+        accessionCondition = truncate(accessionCondition, 255, "accession condition");
+        accession.setAccessionCondition(accessionCondition);
+        
         // AccessionNumber
-        String transactionNo = transaction.getTransactionNo();
+        String transactionNo = purchase.getTransactionNo();
         if ( transactionNo == null)
         {
             transactionNo = DEFAULT_ACCESSION_NUMBER;
@@ -98,7 +104,7 @@ public class PurchaseLoader extends TransactionLoader
         accession.setAccessionNumber(transactionNo);
         
         // DateAccessioned
-        Date openDate = transaction.getOpenDate();
+        Date openDate = purchase.getOpenDate();
         if (openDate != null)
         {
             accession.setDateAccessioned(DateUtils.toCalendar(openDate));
@@ -108,7 +114,7 @@ public class PurchaseLoader extends TransactionLoader
         accession.setDivision(getBotanyDivision());
         
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = transaction.getId();
+        Integer transactionId = purchase.getId();
         checkNull(transactionId, "transaction id");
         
         accession.setNumber1((float) transactionId);
@@ -118,22 +124,22 @@ public class PurchaseLoader extends TransactionLoader
         accession.setRemarks(remarks);
         
         // Text1 (description)
-        String description = transaction.getDescription();
+        String description = purchase.getDescription();
         accession.setText1(description);
         
         // Text2 (forUseBy)
-        String forUseBy = transaction.getForUseBy();
+        String forUseBy = purchase.getForUseBy();
         accession.setText2(forUseBy);
         
         // Text3 (boxCount)
-        String boxCount = transaction.getBoxCount();
+        String boxCount = purchase.getBoxCount();
         accession.setText3(boxCount);
         
         // Type
-        accession.setType(type.name());
+        accession.setType(ACCESSION_TYPE.purchase.name());
         
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = transaction.isAcknowledged();
+        Boolean isAcknowledged = purchase.isAcknowledged();
         accession.setYesNo1(isAcknowledged);
         
         return accession;
@@ -143,8 +149,22 @@ public class PurchaseLoader extends TransactionLoader
     {        
         Purchase purchase = new Purchase();
         
-        parse(columns, purchase);
-
+        int i = parse(columns, purchase);
+        
+        if (columns.length < i + 8)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        purchase.setGeoUnit(                             columns[i + 0] );
+        purchase.setItemCount(        SqlUtils.parseInt( columns[i + 1] ));
+        purchase.setTypeCount(        SqlUtils.parseInt( columns[i + 2] ));
+        purchase.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 3] ));
+        purchase.setDiscardCount(     SqlUtils.parseInt( columns[i + 4] ));
+        purchase.setDistributeCount(  SqlUtils.parseInt( columns[i + 5] ));
+        purchase.setReturnCount(      SqlUtils.parseInt( columns[i + 6] ));
+        purchase.setCost(           SqlUtils.parseFloat( columns[i + 7] ));
+        
         return purchase;
     }
     
@@ -179,25 +199,48 @@ public class PurchaseLoader extends TransactionLoader
             
             return accessionAgent;
     }
+
+    private String getDescription(Purchase purchase)
+    {
+        String geoUnit = purchase.getGeoUnit();
+        if (geoUnit == null) geoUnit = "";
+        else geoUnit = geoUnit + ": ";
+
+        Integer itemCount = purchase.getItemCount();
+        Integer typeCount = purchase.getTypeCount();
+        Integer nonSpecimenCount = purchase.getNonSpecimenCount();
+
+        Integer discardCount = purchase.getDiscardCount();
+        Integer distributeCount = purchase.getDistributeCount();
+        Integer returnCount = purchase.getReturnCount();
+        
+        Float cost = purchase.getCost();
+        
+        Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount, cost };
+        String pattern = "{0}{1} items, {2} types, {3} non-specimens; {4} discarded, {5} distributed, {6} returned; cost: {7}";
+
+        return MessageFormat.format(pattern, args);
+    }
     
     private String getInsertSql(Accession accession)
     {
-        String fieldNames = "AccessionNumber, CreatedByAgentID, DateAccessioned, Number1, " +
-                            "Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
+        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
+                            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
 
-        String[] values = new String[11];
+        String[] values = new String[12];
 
-        values[0]  = SqlUtils.sqlString( accession.getAccessionNumber());
-        values[1]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
-        values[2]  = SqlUtils.sqlString( accession.getDateAccessioned());
-        values[3]  = SqlUtils.sqlString( accession.getNumber1());
-        values[4]  = SqlUtils.sqlString( accession.getRemarks());
-        values[5]  = SqlUtils.sqlString( accession.getText1());
-        values[6]  = SqlUtils.sqlString( accession.getText2());
-        values[7]  = SqlUtils.sqlString( accession.getText3());
-        values[8]  = SqlUtils.sqlString( accession.getType());
-        values[9]  = SqlUtils.sqlString( accession.getTimestampCreated());
-        values[10] = SqlUtils.sqlString( accession.getYesNo1());
+        values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
+        values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
+        values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
+        values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
+        values[4]  = SqlUtils.sqlString( accession.getNumber1());
+        values[5]  = SqlUtils.sqlString( accession.getRemarks());
+        values[6]  = SqlUtils.sqlString( accession.getText1());
+        values[7]  = SqlUtils.sqlString( accession.getText2());
+        values[8]  = SqlUtils.sqlString( accession.getText3());
+        values[9]  = SqlUtils.sqlString( accession.getType());
+        values[10] = SqlUtils.sqlString( accession.getTimestampCreated());
+        values[11] = SqlUtils.sqlString( accession.getYesNo1());
 
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }

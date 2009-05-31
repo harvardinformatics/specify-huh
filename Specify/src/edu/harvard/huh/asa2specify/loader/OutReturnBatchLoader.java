@@ -251,7 +251,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	    Integer nonSpecimenCount = taxonBatch.getNonSpecimenCount();
 
 	    Object[] args = {boxCount, itemCount, typeCount, nonSpecimenCount };
-	    String pattern = "{0} box(es): {1} items, {2} types, {3} non-specimens\n";
+	    String pattern = "{0} box(es): {1} items, {2} types, {3} non-specimens";
 	    
 	    return MessageFormat.format(pattern, args);
 	}

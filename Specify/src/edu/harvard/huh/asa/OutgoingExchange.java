@@ -14,8 +14,39 @@
  */
 package edu.harvard.huh.asa;
 
+import java.util.Date;
+
 public class OutgoingExchange extends Transaction
 {
-    // TODO: implement outgoing_exchange.sql
+    private Date    originalDueDate;
+    private Date    currentDueDate;
+    private String  geoUnit;
+    private Integer itemCount;
+    private Integer typeCount;
+    private Integer nonSpecimenCount;
     
+    public Date getOriginalDueDate() { return originalDueDate; }
+    
+    public Date getCurrentDueDate() { return currentDueDate; }
+    
+    public String getGeoUnit() { return geoUnit; }
+    
+    public Integer getItemCount() { return itemCount; }
+    
+    public Integer getTypeCount() { return typeCount; }
+    
+    public Integer getNonSpecimenCount() { return nonSpecimenCount; }
+    
+    public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
+    
+    public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
+    
+    public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
+
+    public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
+    
+    public void setTypeCount(Integer typeCount) { this.typeCount = typeCount; }
+    
+    public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
+
 }

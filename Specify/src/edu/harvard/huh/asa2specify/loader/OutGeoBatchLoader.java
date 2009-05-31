@@ -41,11 +41,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 		    String sql = getInsertSql(deaccessionPrep);
 		    insert(sql);
 		}
-		else if (type.equals(TYPE.OutExchange))
-		{
-		    ;// TODO: this needs to go into transaction loader
-		    // there is no such thing as "ExchangePreparation"
-		}
 		else
 		{
 		    throw new LocalException("Invalid out geo batch transaction type: " + type.name());
@@ -119,7 +114,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 	    Integer nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
 
 	    Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount };
-	    String pattern = "{0}{1} items, {2} types, {3} non-specimens\n";
+	    String pattern = "{0}{1} items, {2} types, {3} non-specimens";
 
 	    return MessageFormat.format(pattern, args);
 	}

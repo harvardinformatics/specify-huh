@@ -1,6 +1,7 @@
 package edu.harvard.huh.asa2specify;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -12,10 +13,14 @@ public class DateUtils {
 	
 	public static final int MIN_YEAR = 1766;
 	public static final int MAX_YEAR = 2008;
+	
 	private static final String[] MONTHS =
 		{ "January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December" };
 	
+    public static final String DateFormat = "yyyy-MM-dd";
+    private static final SimpleDateFormat formatter = new SimpleDateFormat(DateFormat);
+    
 	public static Timestamp toTimestamp(Date date) {
 	    return new Timestamp(date.getTime());
 	}
@@ -37,6 +42,12 @@ public class DateUtils {
 	    return c;
 	}
 	
+    public static String toString(Date d)
+    {
+        if (d == null) return "null";
+        return formatter.format(d.getTime());
+    }
+    
 	/**
 	 * Return a string representation in the format "mmm dd, yyyy - mmm dd, yyyy"
 	 */
