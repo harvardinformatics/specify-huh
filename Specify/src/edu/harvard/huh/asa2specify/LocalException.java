@@ -14,6 +14,7 @@
  */
 package edu.harvard.huh.asa2specify;
 
+@SuppressWarnings("serial")
 public class LocalException extends Exception
 {
 
@@ -25,7 +26,6 @@ public class LocalException extends Exception
     public LocalException(String message)
     {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     public LocalException(String message, Integer recordId)
@@ -36,13 +36,11 @@ public class LocalException extends Exception
     public LocalException(Throwable cause)
     {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
 
     public LocalException(String message, Throwable cause)
     {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
 }

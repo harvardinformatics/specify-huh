@@ -22,7 +22,8 @@ public class GeoUnitLoader extends TreeLoader
 	private GeoUnitLookup geoLookup;
 	   
 	// root
-	private final String ROOT_TYPE = "root";
+	@SuppressWarnings("unused")
+    private final String ROOT_TYPE = "root";
 	private final Integer ROOT_RANK = 0;  // Specify value
 
 	// continent
@@ -34,6 +35,7 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer REGION_RANK = 150;
 
 	// sub-region
+	@SuppressWarnings("unused")
 	private final String ARCHIPELAGO_TYPE = "archipelago";
 	private final Integer ARCHIPELAGO_RANK = 160;
 
@@ -42,30 +44,37 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer COUNTRY_RANK = 200;  // Specify value
 
 	// land
+	@SuppressWarnings("unused")
 	private final String LAND_TYPE = "land";
 	private final Integer LAND_RANK = 210;
 
 	// territory
+	@SuppressWarnings("unused")
 	private final String TERRITORY_TYPE = "territory";
 	private final Integer TERRITORY_RANK = 220;
 
 	// subcontinent island(s)
+	@SuppressWarnings("unused")
 	private final String SUBCONTINENT_ISL_TYPE = "subcontinent island(s)";
 	private final Integer SUBCONTINENT_ISL_RANK = 230;
 
 	// continent subregion
+	@SuppressWarnings("unused")
 	private final String CONTINTENT_SUBREGION_TYPE = "continent subregion";
 	private final Integer CONTINENT_SUBREGION_RANK = 250;
 
 	// country subregion
+	@SuppressWarnings("unused")
 	private final String COUNTRY_SUBREGION_TYPE = "country subregion";
 	private final Integer COUNTRY_SUBREGION_RANK = 260;
 
 	// straights
+	@SuppressWarnings("unused")
 	private final String STRAIGHTS_TYPE = "straights";
 	private final Integer STRAIGHTS_RANK = 270;
 
 	// subcountry island(s)
+	@SuppressWarnings("unused")
 	private final String SUBCOUNTRY_ISL_TYPE = "subcountry island(s)";
 	private final Integer SUBCOUNTRY_ISL_RANK = 280;
 
@@ -74,14 +83,17 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer STATE_RANK = 300;  // Specify value
 
 	// peninsula
+	@SuppressWarnings("unused")
 	private final String PENINSULA_TYPE = "peninsula";
 	private final Integer PENINSULA_RANK = 310;
 
 	// sub-state/province
+	@SuppressWarnings("unused")
 	private final String SUBSTATE_ISL_TYPE = "substate island(s)";
 	private final Integer SUBSTATE_ISL_RANK = 320;
 
 	// coast
+	@SuppressWarnings("unused")
 	private final String COAST_TYPE = "coast";
 	private final Integer COAST_RANK = 330;
 
@@ -90,6 +102,7 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer OTHER_RANK = 360;
 
 	// state subregion
+	@SuppressWarnings("unused")
 	private final String STATE_SUBREGION_TYPE = "state subregion";
 	private final Integer STATE_SUBREGION_RANK = 380;
 
@@ -98,38 +111,47 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer COUNTY_RANK = 400;  // Specify value
 
 	// mountain(s)
+	@SuppressWarnings("unused")
 	private final String MOUNTAIN_TYPE = "mountain(s)";
 	private final Integer MOUNTAIN_RANK = 410;
 
 	// river
+	@SuppressWarnings("unused")
 	private final String RIVER_TYPE = "river";
 	private final Integer RIVER_RANK = 420;
 
 	// forest
+	@SuppressWarnings("unused")
 	private final String FOREST_TYPE = "forest";
 	private final Integer FOREST_RANK = 430;
 
 	// valley
+	@SuppressWarnings("unused")
 	private final String VALLEY_TYPE = "valley";
 	private final Integer VALLEY_RANK = 440;
 
 	// island
+	@SuppressWarnings("unused")
 	private final String ISLAND_TYPE = "island";
 	private final Integer ISLAND_RANK = 450;
 
 	// hills
+	@SuppressWarnings("unused")
 	private final String HILL_TYPE = "hill(s)";
 	private final Integer HILL_RANK = 460;
 
 	// canyon
+	@SuppressWarnings("unused")
 	private final String CANYON_TYPE = "canyon";
 	private final Integer CANYON_RANK = 470;
 
 	// lake
+	@SuppressWarnings("unused")
 	private final String LAKE_TYPE = "lake";
 	private Integer LAKE_RANK = 480;
 
 	// county subregion
+	@SuppressWarnings("unused")
 	private final String COUNTY_SUBREGION_TYPE = "county subregion";
 	private final Integer COUNTY_SUBREGION_RANK = 490;
 
@@ -138,6 +160,7 @@ public class GeoUnitLoader extends TreeLoader
 	private final Integer CITY_RANK = 500;  // Specify value
 
 	// sub-city
+	@SuppressWarnings("unused")
 	private final String CITY_SUBREGION_TYPE = "city subregion";
 	private final Integer CITY_SUBREGION_RANK = 510;
 

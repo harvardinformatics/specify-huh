@@ -14,30 +14,28 @@
  */
 package edu.harvard.huh.asa;
 
+@SuppressWarnings("serial")
 public class AsaException extends Exception
 {
 
     public AsaException()
     {
-        // TODO Auto-generated constructor stub
+        ;
     }
 
     public AsaException(String message)
     {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     public AsaException(Throwable cause)
     {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
 
     public AsaException(String message, Throwable cause)
     {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
 }
