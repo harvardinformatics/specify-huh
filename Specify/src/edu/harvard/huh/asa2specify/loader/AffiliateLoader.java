@@ -48,7 +48,8 @@ public class AffiliateLoader extends AuditedObjectLoader
 				{
 					Agent agent = new Agent(); // TODO: this doesn't account for affiliate botanists
 					
-					String guid = AffiliateLoader.getGuid(affiliateId);
+					Integer botanistId = getBotanistId(affiliateId);
+					String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : AffiliateLoader.getGuid(affiliateId);
 					
 			        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 

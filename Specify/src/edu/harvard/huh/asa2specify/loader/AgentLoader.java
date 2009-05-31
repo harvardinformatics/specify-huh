@@ -44,9 +44,11 @@ public class AgentLoader extends CsvToSqlLoader
 			agentLookup = new AgentLookup() {
 				public Agent getById(Integer asaAgentId) throws LocalException
 				{
-					Agent agent = new Agent();  // TODO: this doesn't take into account agent botanists
-
-					String guid = getGuid(asaAgentId);
+					Agent agent = new Agent();
+					
+					Integer botanistId = getBotanistId(asaAgentId);
+					
+                    String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : getGuid(asaAgentId);
 
 					Integer agentId = getInt("agent", "AgentID", "GUID", guid);
 

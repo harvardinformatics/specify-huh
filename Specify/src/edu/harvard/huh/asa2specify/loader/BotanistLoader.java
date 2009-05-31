@@ -78,7 +78,7 @@ public class BotanistLoader extends AuditedObjectLoader
         }
 	}
 
-    private String getGuid(Integer botanistId)
+    protected static String getGuid(Integer botanistId)
     {
     	return botanistId + " botanist";
     }
