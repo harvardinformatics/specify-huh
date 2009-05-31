@@ -202,7 +202,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		return containerLookup;
 	}
 
-	public SpecimenLookup getCollectionObjectLookup()
+	public SpecimenLookup getSpecimenLookup()
     {
         if (collObjLookup == null)
         {

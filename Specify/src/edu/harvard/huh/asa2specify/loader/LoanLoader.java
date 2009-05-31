@@ -24,9 +24,6 @@ import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AgentLookup;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.loader.TransactionLoader;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -39,23 +36,9 @@ public class LoanLoader extends TransactionLoader
 
     private LoanLookup loanLookup;
     
-    public LoanLoader(File csvFile,
-                      Statement sqlStatement,
-                      File affiliateBotanists,
-                      File agentBotanists,
-                      BotanistLookup botanistLookup,
-                      AgentLookup agentLookup,
-                      AffiliateLookup affiliateLookup) throws LocalException
+    public LoanLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
-        super(csvFile,
-              sqlStatement,
-              affiliateBotanists,
-              agentBotanists,
-              botanistLookup,
-              agentLookup,
-              affiliateLookup);
-        
-        // TODO Auto-generated constructor stub
+        super(csvFile, sqlStatement);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -255,11 +238,11 @@ public class LoanLoader extends TransactionLoader
 
         if (role.equals(ROLE.preparer))
         {
-            agent = getAffiliateAgent(transaction);
+            agent = lookupAffiliate(transaction);
         }
         else if (role.equals(ROLE.borrower))
         {
-            agent = getAsaAgentAgent(transaction);
+            agent = lookupAgent(transaction);
         }
 
         if (agent.getId() == null) return null;

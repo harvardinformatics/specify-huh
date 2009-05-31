@@ -44,13 +44,13 @@ public class ShipmentLoader extends CsvToSqlLoader
 	
     public ShipmentLoader(File csvFile, 
     		              Statement sqlStatement,
-    		              LoanLookup transactionLookup,
+    		              LoanLookup loanLookup,
     		              OutgoingExchangeLookup outExchangeLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
 
 
-        this.loanLookup = transactionLookup;
+        this.loanLookup = loanLookup;
         
         this.shippers = new HashMap<String, Agent>();
         this.carrierLookup = getCarrierLookup();

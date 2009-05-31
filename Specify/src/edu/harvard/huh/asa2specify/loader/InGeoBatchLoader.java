@@ -14,8 +14,8 @@ import edu.harvard.huh.asa2specify.lookup.IncomingGiftLookup;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftPreparation;
 
-public class InGeoBatchLoader extends CsvToSqlLoader {
-
+public class InGeoBatchLoader extends CsvToSqlLoader
+{
     private IncomingGiftLookup inGiftLookup;
     
 	public InGeoBatchLoader(File csvFile,

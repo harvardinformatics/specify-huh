@@ -23,29 +23,14 @@ import edu.harvard.huh.asa.IncomingExchange;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AgentLookup;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 
 public class IncomingExchangeLoader extends TransactionLoader
 {
-    public IncomingExchangeLoader(File csvFile,
-                                  Statement sqlStatement,
-                                  File affiliateBotanists,
-                                  File agentBotanists,
-                                  BotanistLookup botanistLookup,
-                                  AgentLookup agentLookup,
-                                  AffiliateLookup affiliateLookup) throws LocalException
+    public IncomingExchangeLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
-        super(csvFile,
-              sqlStatement,
-              affiliateBotanists,
-              agentBotanists,
-              botanistLookup,
-              agentLookup,
-              affiliateLookup);
+        super(csvFile, sqlStatement);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -91,7 +76,7 @@ public class IncomingExchangeLoader extends TransactionLoader
         // TODO: AddressOfRecord
         
         // CatalogedByID ("for use by")
-        Agent agentCatalogedBy = getAffiliateAgent(inExchange);
+        Agent agentCatalogedBy = lookupAffiliate(inExchange);
         exchangeIn.setAgentCatalogedBy(agentCatalogedBy);
 
         // CreatedByAgentID
@@ -130,7 +115,7 @@ public class IncomingExchangeLoader extends TransactionLoader
         exchangeIn.setQuantityExchanged(quantity);
         
         // ReceivedFromOrganization ("contact")
-        Agent agentReceivedFrom = getAsaAgentAgent(inExchange);
+        Agent agentReceivedFrom = lookupAgent(inExchange);
         exchangeIn.setAgentReceivedFrom(agentReceivedFrom);
         
         // Remarks

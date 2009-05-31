@@ -36,14 +36,19 @@ public abstract class AuditedObjectLoader extends CsvToSqlLoader
         super(csvFile, sqlStatement);
     }
 
-    public static void setOptrLookup(OptrLookup optrLookup)
+    protected void setOptrLookup(OptrLookup optrLookup)
     {
         OptrLookup = optrLookup;
     }
 
-    public static void setBotanistLookup(BotanistLookup botanistLookup)
+    protected void setBotanistLookup(BotanistLookup botanistLookup)
     {
     	BotanistLookup = botanistLookup;
+    }
+
+    protected void setOptrBotanistMapper(AsaIdMapper botanists) throws LocalException
+    {
+        BotanistsByOptr = botanists;
     }
 
     // Agent records that represent Optrs who are also Botanists will first be loaded

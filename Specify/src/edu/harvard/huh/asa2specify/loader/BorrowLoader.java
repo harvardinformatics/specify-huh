@@ -38,20 +38,16 @@ public class BorrowLoader extends TransactionLoader
     private BorrowLookup borrowLookup;
     
     public BorrowLoader(File csvFile,
-                           Statement sqlStatement,
-                           File affiliateBotanists,
-                           File agentBotanists,
-                           BotanistLookup botanistLookup,
-                           AgentLookup agentLookup,
-                           AffiliateLookup affiliateLookup) throws LocalException
+                        Statement sqlStatement,
+                        BotanistLookup botanistLookup,
+                        AffiliateLookup affiliateLookup,
+                        AgentLookup agentLookup) throws LocalException
    {
         super(csvFile,
-                sqlStatement,
-                affiliateBotanists,
-                agentBotanists,
-                botanistLookup,
-                agentLookup,
-                affiliateLookup);
+              sqlStatement,
+              botanistLookup,
+              affiliateLookup,
+              agentLookup);
    }
 
     public void loadRecord(String[] columns) throws LocalException
@@ -226,11 +222,11 @@ public class BorrowLoader extends TransactionLoader
 
         if (role.equals(ROLE.borrower))
         {
-            agent = getAffiliateAgent(transaction);
+            agent = lookupAffiliate(transaction);
         }
         else if (role.equals(ROLE.lender))
         {
-            agent = getAsaAgentAgent(transaction);
+            agent = lookupAgent(transaction);
         }
         
         if (agent.getId() == null) return null;

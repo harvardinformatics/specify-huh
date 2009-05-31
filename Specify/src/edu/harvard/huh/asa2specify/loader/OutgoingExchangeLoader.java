@@ -23,9 +23,6 @@ import edu.harvard.huh.asa.OutgoingExchange;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.AgentLookup;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
@@ -34,21 +31,9 @@ public class OutgoingExchangeLoader extends TransactionLoader
 {
     private OutgoingExchangeLookup outExchangeLookup;
     
-    public OutgoingExchangeLoader(File csvFile,
-                                  Statement sqlStatement,
-                                  File affiliateBotanists,
-                                  File agentBotanists,
-                                  BotanistLookup botanistLookup,
-                                  AgentLookup agentLookup,
-                                  AffiliateLookup affiliateLookup) throws LocalException
+    public OutgoingExchangeLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
-        super(csvFile,
-              sqlStatement,
-              affiliateBotanists,
-              agentBotanists,
-              botanistLookup,
-              agentLookup,
-              affiliateLookup);
+        super(csvFile, sqlStatement);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -119,7 +104,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setCreatedByAgent(createdByAgent);
         
         // CatalogedByID
-        Agent agentCatalogedBy = getAffiliateAgent(outgoingExchange);
+        Agent agentCatalogedBy = lookupAffiliate(outgoingExchange);
         exchangeOut.setAgentCatalogedBy(agentCatalogedBy);
 
         // DescriptionOfMaterial
@@ -157,7 +142,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setRemarks(remarks);
                 
         // SentToOrganization
-        Agent agentSentTo = getAsaAgentAgent(outgoingExchange);
+        Agent agentSentTo = lookupAgent(outgoingExchange);
         exchangeOut.setAgentSentTo(agentSentTo);
         
         // SrcGeography

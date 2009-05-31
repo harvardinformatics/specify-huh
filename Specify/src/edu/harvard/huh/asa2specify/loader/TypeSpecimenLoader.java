@@ -35,22 +35,21 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
-    private SpecimenLookup      collObjLookup;
+    private SpecimenLookup      specimenLookup;
     private TaxonLookup         taxonLookup;
     private PublicationLookup   publicationLookup;
     
     // TODO: is the verifier the determiner?  is the designator the determiner?
     public TypeSpecimenLoader(File csvFile,
                               Statement sqlStatement,
-                              SpecimenLookup collObjLookup,
+                              SpecimenLookup specimenLookup,
                               TaxonLookup taxonLookup,
-                              PublicationLookup publicationLookup)
-        throws LocalException
+                              PublicationLookup publicationLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
         
-        this.collObjLookup = collObjLookup;
-        this.taxonLookup   = taxonLookup;
+        this.specimenLookup    = specimenLookup;
+        this.taxonLookup       = taxonLookup;
         this.publicationLookup = publicationLookup;
     }
 
@@ -142,7 +141,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer specimenId = typeSpecimen.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        CollectionObject collectionObject = getCollectionObjectLookup().getById(specimenId);
+        CollectionObject collectionObject = getSpecimenLookup().getById(specimenId);
         determination.setCollectionObject(collectionObject);
         
         // Confidence TODO: make enum for conditionality
@@ -240,7 +239,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         determinationCitation.setDetermination(determination);
         
         // ReferenceWork
-        ReferenceWork referenceWork = getReferenceWorkLookup().getById(publicationId);
+        ReferenceWork referenceWork = getPublicationLookup().getById(publicationId);
         determinationCitation.setReferenceWork(referenceWork);
 
         // Remarks
@@ -273,9 +272,9 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         return determinationCitation;
     }
     
-    private SpecimenLookup getCollectionObjectLookup()
+    private SpecimenLookup getSpecimenLookup()
     {
-        return this.collObjLookup;
+        return this.specimenLookup;
     }
     
     private TaxonLookup getTaxonLookup()
@@ -283,7 +282,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         return this.taxonLookup;
     }
 
-    private PublicationLookup getReferenceWorkLookup()
+    private PublicationLookup getPublicationLookup()
     {
         return this.publicationLookup;
     }

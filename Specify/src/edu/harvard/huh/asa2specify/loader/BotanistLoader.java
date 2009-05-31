@@ -11,6 +11,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
 // Run this class after OptrLoader.
@@ -20,11 +21,19 @@ public class BotanistLoader extends AuditedObjectLoader
     private BotanistLookup botanistLookup;
     private AsaIdMapper optrs;
     
-    public BotanistLoader(File csvFile, Statement sqlStatement, File botanistOptrs) throws LocalException
+    public BotanistLoader(File csvFile,
+                          Statement sqlStatement,
+                          File botanistOptrs,
+                          File optrBotanists,
+                          OptrLookup optrLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.optrs = new AsaIdMapper(botanistOptrs);
+		
+		setOptrBotanistMapper(new AsaIdMapper(optrBotanists));
+		setOptrLookup(optrLookup);
+		setBotanistLookup(getBotanistLookup());
 	}
     
     public BotanistLookup getBotanistLookup()

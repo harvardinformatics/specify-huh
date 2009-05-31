@@ -5,7 +5,6 @@ import java.sql.Statement;
 
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Transaction;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
@@ -44,28 +43,27 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 	
 	protected enum ACCESSION_TYPE { gift, cln, disposal, field_work, lost, other, purchase };
 	
-	private static AsaIdMapper BotanistsByAffiliate;
-	private static AsaIdMapper BotanistsByAgent;
+
 	private static BotanistLookup BotanistLookup;
 	private static AgentLookup AgentLookup;
 	private static AffiliateLookup AffiliateLookup;
 	
 	public TransactionLoader(File csvFile,
 	                         Statement sqlStatement,
-	                         File affiliateBotanists,
-	                         File agentBotanists,
 	                         BotanistLookup botanistLookup,
-	                         AgentLookup agentLookup,
-	                         AffiliateLookup affiliateLookup) throws LocalException
+	                         AffiliateLookup affiliateLookup,
+	                         AgentLookup agentLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
-		
-		if (BotanistsByAffiliate == null) BotanistsByAffiliate = new AsaIdMapper(affiliateBotanists);
-		if (BotanistsByAgent == null) BotanistsByAgent = new AsaIdMapper(agentBotanists);
 		
 		if (BotanistLookup == null) BotanistLookup  = botanistLookup;
 		if (AgentLookup == null) AgentLookup = agentLookup;
 		if (AffiliateLookup == null) AffiliateLookup = affiliateLookup;
+	}
+
+	protected TransactionLoader(File csvFile, Statement sqlStatement) throws LocalException
+	{
+	    super(csvFile, sqlStatement);
 	}
 
 	protected int parse(String[] columns, Transaction transaction) throws LocalException
@@ -107,72 +105,22 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 		
 		return 18; // index of next column
 	}
-
-	protected Agent getAffiliateAgent(Transaction transaction) throws LocalException
-	{
-        Agent agent = null;
+     
+    protected Agent lookupAgent(Transaction transaction) throws LocalException
+    {
+        Integer asaAgentId = transaction.getAgentId();
+        checkNull(asaAgentId, "agent id");
         
-	    Integer affiliateId = transaction.getAffiliateId();
-
-	    if (affiliateId != null)
-	    {
-	    	Integer botanistId = getBotanistIdByAffiliateId(affiliateId);
-	    	if (botanistId != null)
-	    	{
-	    		agent = lookupBotanist(botanistId);
-	    	}
-	    	else
-	    	{
-	    		agent = lookupAffiliate(affiliateId);
-	    	}
-	    }
-	    
-        return agent;
-	}
-	
-	protected Agent getAsaAgentAgent(Transaction transaction) throws LocalException
-	{
-	    Agent agent = new Agent();
-	    
-	    Integer asaAgentId = transaction.getAgentId();
-
-	    if (asaAgentId != null)
-	    {
-	        Integer botanistId = getBotanistIdByAgentId(asaAgentId);
-	        if (botanistId != null)
-	        {
-	        	agent = lookupBotanist(botanistId);
-	        }
-	        else
-	        {
-	        	agent = lookupAgent(asaAgentId);
-	        }
-	    }
-	    return agent;
-	}
-    
-    private Agent lookupBotanist(Integer botanistId) throws LocalException
-    {
-        return BotanistLookup.getById(botanistId);
-    }
-       
-    private Agent lookupAgent(Integer asaAgentId) throws LocalException
-    {
         return AgentLookup.getById(asaAgentId);
     }
 
-    private Agent lookupAffiliate(Integer affiliateId) throws LocalException
+    protected Agent lookupAffiliate(Transaction transaction) throws LocalException
     {
+        Integer affiliateId = transaction.getAffiliateId();
+        checkNull(affiliateId, "affiliate id");
+        
         return AffiliateLookup.getById(affiliateId);
     }
     
-    private Integer getBotanistIdByAffiliateId(Integer affiliateId)
-    {
-        return BotanistsByAffiliate.map(affiliateId);
-    }
-    
-    private Integer getBotanistIdByAgentId(Integer agentId)
-    {
-        return BotanistsByAgent.map(agentId);
-    }
+
 }

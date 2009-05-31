@@ -14,7 +14,7 @@ public class OptrLoader extends CsvToSqlLoader
 {    
     private OptrLookup optrLookup;
     
-	public OptrLoader(File csvFile, Statement specifySqlStatement, File optrToBotanists) throws LocalException
+	public OptrLoader(File csvFile, Statement specifySqlStatement) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
 	}
