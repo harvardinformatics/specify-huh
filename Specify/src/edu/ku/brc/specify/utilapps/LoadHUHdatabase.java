@@ -30,29 +30,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
-import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
-import edu.harvard.huh.asa2specify.loader.BotanistLoader;
-import edu.harvard.huh.asa2specify.loader.BotanistNameLoader;
-import edu.harvard.huh.asa2specify.loader.BotanistSpecialtyLoader;
-import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
-import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
-import edu.harvard.huh.asa2specify.loader.SiteLoader;
-import edu.harvard.huh.asa2specify.loader.OptrLoader;
-import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
-import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
-import edu.harvard.huh.asa2specify.loader.PublicationLoader;
-import edu.harvard.huh.asa2specify.loader.SeriesLoader;
-import edu.harvard.huh.asa2specify.loader.SpecimenItemLoader;
-import edu.harvard.huh.asa2specify.loader.SubcollectionLoader;
-import edu.harvard.huh.asa2specify.loader.TaxonLoader;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
-import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
-import edu.harvard.huh.asa2specify.lookup.ExsiccataLookup;
-import edu.harvard.huh.asa2specify.lookup.GeographyLookup;
-import edu.harvard.huh.asa2specify.lookup.ReferenceWorkLookup;
-import edu.harvard.huh.asa2specify.lookup.LocalityLookup;
-import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
+import edu.harvard.huh.asa2specify.loader.*;
+import edu.harvard.huh.asa2specify.lookup.*;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
@@ -208,33 +187,15 @@ public class LoadHUHdatabase
             
             File dir = new File("/home/maureen/load");
             
-            // This will load agent records with GUID="{optr.id} optr"
-            frame.setDesc("Loading optr...");
-            OptrLoader optrLoader = new OptrLoader(new File(dir, "optr.csv"), statement, new File(dir, "optr_botanist.csv"));
+            frame.setDesc("Loading optrs...");
+            OptrLoader optrLoader = new OptrLoader(new File(dir, "optr.csv"), statement);
             optrLoader.setFrame(frame);
             int optrRecords = optrLoader.loadRecords();
             log.info("Loaded " + optrRecords + " optr records");
             
-            // This will load agent records with GUID="{botanist.id} botanist".
-            // Pre-existing agent records for people who have both optr and botanist entries will be updated.
-            frame.setDesc("Loading botanist...");
-            BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"), statement, new File(dir, "botanist_optr.csv"));
-            
-            botanistLoader.setFrame(frame);
-            int botanistRecords = botanistLoader.loadRecords();
-            log.info("Loaded " + botanistRecords + " botanist records");
-            
-            frame.setDesc("Loading taxon...");
-            TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"), statement, null);// TODO: re-order loaders and add non-null refworklookup here
-            taxonLoader.setFrame(frame);
-            int taxonRecords = taxonLoader.loadRecords(); 
-            log.info("Loaded " + taxonRecords + " taxonRecords");
+            OptrLookup optrLookup = optrLoader.getOptrLookup();
 
-            frame.setDesc("Numbering Taxonomy Tree...");
-            taxonLoader.numberNodes();
-            log.info("Numbered taxon tree");
-            
-            frame.setDesc("Loading geo_unit...");
+            frame.setDesc("Loading geo units...");
             GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
             geoUnitLoader.setFrame(frame);
             int geoUnitRecords = geoUnitLoader.loadRecords();
@@ -244,33 +205,28 @@ public class LoadHUHdatabase
             geoUnitLoader.numberNodes();
             log.info("Numbered geography tree");
             
-            frame.setDesc("Loading site...");
-            GeographyLookup geoLookup = geoUnitLoader.getGeographyLookup();
+            frame.setDesc("Loading sites...");
+            GeoUnitLookup geoLookup = geoUnitLoader.getGeographyLookup();
             SiteLoader siteLoader = new SiteLoader(new File(dir, "site.csv"), statement, geoLookup);
             siteLoader.setFrame(frame);
             int localityRecords = siteLoader.loadRecords();
             log.info("Loaded " + localityRecords + " site records");
-            
-            frame.setDesc("Loading organization...");
-            BotanistLookup botanistLookup = botanistLoader.getBotanistLookup();
-            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
-                                                                           statement,
-                                                                           new File(dir, "organization_botanist.csv"),
-                                                                           botanistLookup);
-            organizationLoader.setFrame(frame);
-            int organizationRecords = organizationLoader.loadRecords();
-            log.info("Loaded " + organizationRecords + " organization records");
 
-            frame.setDesc("Loading affiliate...");
-            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
-                                                                  statement,
-                                                                  new File(dir, "affiliate_botanist.csv"),
-                                                                  botanistLookup);
-            affiliateLoader.setFrame(frame);
-            int affiliateRecords = affiliateLoader.loadRecords();
-            log.info("Loaded " + affiliateRecords + " affiliate records");
+            SiteLookup siteLookup = siteLoader.getSiteLookup();
             
-            frame.setDesc("Loading botanist_name...");
+            frame.setDesc("Loading botanists...");
+            BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"),
+                                                               statement,
+                                                               new File(dir, "botanist_optr.csv"),
+                                                               new File(dir, "optr_botanist.csv"),
+                                                               optrLookup);
+            botanistLoader.setFrame(frame);
+            int botanistRecords = botanistLoader.loadRecords();
+            log.info("Loaded " + botanistRecords + " botanist records");
+            
+            BotanistLookup botanistLookup = botanistLoader.getBotanistLookup();
+            
+            frame.setDesc("Loading botanist names...");
             BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File(dir, "botanist_name.csv"),
                                                                            statement,
                                                                            botanistLookup);
@@ -278,7 +234,7 @@ public class LoadHUHdatabase
             int botanistNameRecords = botanistNameLoader.loadRecords();
             log.info("Loaded " + botanistNameRecords + " botanist_name records");
             
-            frame.setDesc("Loading botanist_team...");
+            frame.setDesc("Loading botanist teams...");
             BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"),
                                                                            statement,
                                                                            botanistLookup);
@@ -286,7 +242,7 @@ public class LoadHUHdatabase
             int botanistTeamRecords = botanistTeamLoader.loadRecords();
             log.info("Loaded " + botanistTeamRecords + " botanist_team records");
             
-            frame.setDesc("Loading botanist_role_country...");
+            frame.setDesc("Loading botanist role countries...");
             BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"),
                                                                                     statement,
                                                                                     geoLookup,
@@ -295,7 +251,7 @@ public class LoadHUHdatabase
             int botanistCountryRecords = botanistCountryLoader.loadRecords();
             log.info("Loaded " + botanistCountryRecords + " botanist_country records");
             
-            frame.setDesc("Loading botanist_role_specialty...");
+            frame.setDesc("Loading botanist role specialties...");
             BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"),
                                                                                           statement,
                                                                                           botanistLookup);
@@ -303,21 +259,16 @@ public class LoadHUHdatabase
             int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
             log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
             
-            frame.setDesc("Loading publication...");
-            PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"), statement);
-            publicationLoader.setFrame(frame);
-            int publicationRecords = publicationLoader.loadRecords();
-            log.info("Loaded " + publicationRecords + " publication records");
+            frame.setDesc("Loading organizations...");
+            OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
+                                                                           statement,
+                                                                           new File(dir, "org_botanist.csv"),
+                                                                           botanistLookup);
+            organizationLoader.setFrame(frame);
+            int organizationRecords = organizationLoader.loadRecords();
+            log.info("Loaded " + organizationRecords + " organization records");
             
-            frame.setDesc("Loading publ_author...");
-            ReferenceWorkLookup refWorkLookup = publicationLoader.getReferenceWorkLookup();
-            PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"),
-                                                                     statement,
-                                                                     refWorkLookup,
-                                                                     botanistLookup);
-            publAuthorLoader.setFrame(frame);
-            int publAuthorRecords = publAuthorLoader.loadRecords();
-            log.info("Loaded " + publAuthorRecords + " publ_author records");
+            OrganizationLookup orgLookup = organizationLoader.getOrganizationLookup();
             
             frame.setDesc("Loading series...");
             SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"),
@@ -328,41 +279,240 @@ public class LoadHUHdatabase
             int seriesRecords = seriesLoader.loadRecords();
             log.info("Loaded " + seriesRecords + " series records");
             
-            frame.setDesc("Loading subcollection...");
+            frame.setDesc("Loading affiliates...");
+            AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
+                                                                  statement,
+                                                                  new File(dir, "affiliate_botanist.csv"),
+                                                                  botanistLookup);
+            affiliateLoader.setFrame(frame);
+            int affiliateRecords = affiliateLoader.loadRecords();
+            log.info("Loaded " + affiliateRecords + " affiliate records");
+            
+            AffiliateLookup affiliateLookup = affiliateLoader.getAffiliateLookup();
+            
+            frame.setDesc("Loading agents...");
+            AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"),
+                                                      statement,
+                                                      new File(dir, "agent_botanist.csv"),
+                                                      botanistLookup, 
+                                                      orgLookup);
+            agentLoader.setFrame(frame);
+            int agentRecords = agentLoader.loadRecords();
+            log.info("Loaded " + agentRecords + " agent records");
+            
+            AgentLookup agentLookup = agentLoader.getAgentLookup();
+            
+            frame.setDesc("Loading publications...");
+            PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"),
+                                                                        statement);
+            publicationLoader.setFrame(frame);
+            int publicationRecords = publicationLoader.loadRecords();
+            log.info("Loaded " + publicationRecords + " publication records");
+            
+            frame.setDesc("Loading publ authors...");
+            PublicationLookup pubLookup = publicationLoader.getReferenceWorkLookup();
+            PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"),
+                                                                     statement,
+                                                                     pubLookup,
+                                                                     botanistLookup);
+            publAuthorLoader.setFrame(frame);
+            int publAuthorRecords = publAuthorLoader.loadRecords();
+            log.info("Loaded " + publAuthorRecords + " publ_author records");
+            
+            frame.setDesc("Loading taxa...");
+            TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
+                                                      statement,
+                                                      pubLookup);
+            taxonLoader.setFrame(frame);
+            int taxonRecords = taxonLoader.loadRecords(); 
+            log.info("Loaded " + taxonRecords + " taxonRecords");
+
+            frame.setDesc("Numbering Taxonomy Tree...");
+            taxonLoader.numberNodes();
+            log.info("Numbered taxon tree");
+ 
             TaxonLookup taxonLookup = taxonLoader.getTaxonLookup();
+            
+            frame.setDesc("Loading subcollections...");
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
                                                                               taxonLookup,
                                                                               botanistLookup);
+            int subcollectionRecords = subcollectionLoader.loadRecords();
+            log.info("Loaded " + subcollectionRecords + " subcollection records");
             
-            frame.setDesc("Loading specimen_item and specimen...");
-            ExsiccataLookup exsiccataLookup = subcollectionLoader.getExsiccataLookup();
+            frame.setDesc("Loading specimen items and specimens...");
+
             ContainerLookup containerLookup = subcollectionLoader.getContainerLookup();
-            LocalityLookup siteLookup = siteLoader.getSiteLookup();
+            SubcollectionLookup subcollLookup = subcollectionLoader.getSubcollectionLookup();
+            
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
                                                                            statement,
                                                                            new File(dir, "series_botanist.csv"),
                                                                            botanistLookup,
-                                                                           exsiccataLookup,
+                                                                           subcollLookup,
                                                                            containerLookup,
                                                                            siteLookup);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
             log.info("Loaded " + specimenItemRecords + " specimen_item records");
             
-/*            frame.setDesc("Loading determination and type_specimen...");
-            DeterminationLoader determinationLoader = new DeterminationLoader(new File(dir, "determination.csv"), statement);
+            SpecimenLookup specimenLookup = specimenItemLoader.getSpecimenLookup();
+            PreparationLookup prepLookup  = specimenItemLoader.getPreparationLookup();
+            
+            frame.setDesc("Loading determinations...");
+            DeterminationLoader determinationLoader = new DeterminationLoader(new File(dir, "determination.csv"),
+                                                                              statement,
+                                                                              specimenLookup,
+                                                                              taxonLookup);
             determinationLoader.setFrame(frame);
             int determinationRecords = determinationLoader.loadRecords();
             log.info("Loaded " + determinationRecords + " determination records");
+
+            frame.setDesc("Loading type specimens...");
+            TypeSpecimenLoader typeLoader = new TypeSpecimenLoader(new File(dir, "type_specimen.csv"),
+                                                                       statement,
+                                                                       specimenLookup,
+                                                                       taxonLookup,
+                                                                       pubLookup);
+            typeLoader.setFrame(frame);
+            int typeRecords = typeLoader.loadRecords();
+            log.info("Loaded " + typeRecords + " type specimen records");
             
-            frame.setDesc("Loading agent...");
-            AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"), statement);
-            agentLoader.setFrame(frame);
-            int agentRecords = agentLoader.loadRecords();
-            log.info("Loaded " + agentRecords + " agent records");*/
+            frame.setDesc("Loading borrows...");
+            BorrowLoader borrowLoader = new BorrowLoader(new File(dir, "borrow.csv"),
+                                                         statement,
+                                                         botanistLookup,
+                                                         affiliateLookup,
+                                                         agentLookup);
+            borrowLoader.setFrame(frame);
+            int borrowRecords = borrowLoader.loadRecords();
+            log.info("Loaded " + borrowRecords + " borrow records");
             
+            BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
+            
+            frame.setDesc("Loading incoming exchanges...");
+            IncomingExchangeLoader inExchangeLoader =
+                new IncomingExchangeLoader(new File(dir, "incoming_exchange.csv"), statement);
+            inExchangeLoader.setFrame(frame);
+            int inExchangeRecords = inExchangeLoader.loadRecords();
+            log.info("Loaded " + inExchangeRecords + " incoming exchange records");
+            
+            frame.setDesc("Loading incoming gifts...");
+            IncomingGiftLoader inGiftLoader =
+                new IncomingGiftLoader(new File(dir, "incoming_gift.csv"), statement);
+            inGiftLoader.setFrame(frame);
+            int inGiftRecords = inGiftLoader.loadRecords();
+            log.info("Loaded " + inGiftRecords + " incoming gift records");
+            
+            IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
+            
+            frame.setDesc("Loading loans...");
+            LoanLoader loanLoader =
+                new LoanLoader(new File(dir, "loan.csv"), statement);
+            loanLoader.setFrame(frame);
+            int loanLoaderRecords = loanLoader.loadRecords();
+            log.info("Loaded " + loanLoaderRecords + " loan records");
+            
+            LoanLookup loanLookup = loanLoader.getLoanLookup();
+            
+            frame.setDesc("Loading outgoing exchanges...");
+            OutgoingExchangeLoader outExchangeLoader =
+                new OutgoingExchangeLoader(new File(dir, "outgoingexchange.csv"), statement);
+            outExchangeLoader.setFrame(frame);
+            int outExchangeRecords = outExchangeLoader.loadRecords();
+            log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
+            
+            OutgoingExchangeLookup outExchangeLookup = outExchangeLoader.getOutgoingExchangeLookup();
+            
+            frame.setDesc("Loading outgoing gifts...");
+            OutgoingGiftLoader outGiftLoader =
+                new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"), statement);
+            outGiftLoader.setFrame(frame);
+            int outGiftRecords = outGiftLoader.loadRecords();
+            log.info("Loaded " + outGiftRecords + " outgoing gift records");
+            
+            OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
+            
+            frame.setDesc("Loading purchases...");
+            PurchaseLoader purchaseLoader =
+                new PurchaseLoader(new File(dir, "purchase.csv"), statement);
+            purchaseLoader.setFrame(frame);
+            int purchaseRecords = purchaseLoader.loadRecords();
+            log.info("Loaded " + purchaseRecords + " purchase records");
+            
+            frame.setDesc("Loading staff collections...");
+            StaffCollectionLoader staffCollLoader =
+                new StaffCollectionLoader(new File(dir, "staff_collection.csv"), statement);
+            staffCollLoader.setFrame(frame);
+            int staffCollRecords = typeLoader.loadRecords();
+            log.info("Loaded " + staffCollRecords + " staff collection records");
+            
+            frame.setDesc("Loading shipments...");
+            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "out_return_batch.csv"),
+                                                               statement,
+                                                               loanLookup,
+                                                               outExchangeLookup);
+            shipmentLoader.setFrame(frame);
+            int shipmentRecords = shipmentLoader.loadRecords();
+            log.info("Loaded " + shipmentRecords + " shipment records");
+            
+            CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
+            
+            frame.setDesc("Loading taxon batches...");
+            TaxonBatchLoader taxonBatchLoader = new TaxonBatchLoader(new File(dir, "taxon_batch.csv"),
+                                                                     statement,
+                                                                     borrowLookup,
+                                                                     loanLookup);
+            taxonBatchLoader.setFrame(frame);
+            int taxonBatchRecords = taxonBatchLoader.loadRecords();
+            log.info("Loaded " + taxonBatchRecords + " taxon batch records");
+            
+            TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
+            
+            frame.setDesc("Loading in_geo batches...");
+            InGeoBatchLoader inGeoBatchLoader = new InGeoBatchLoader(new File(dir, "in_geo_batch.csv"),
+                                                                     statement,
+                                                                     inGiftLookup);
+            inGeoBatchLoader.setFrame(frame);
+            int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
+            log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
+            
+            frame.setDesc("Loading in_return batches...");
+            InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
+                                                                              statement,
+                                                                              taxonBatchLookup);
+            inReturnBatchLoader.setFrame(frame);
+            int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
+            log.info("Loaded " + inReturnBatchRecords + " in return batch records");
+            
+            frame.setDesc("Loading loan items...");
+            LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
+                                                               statement,
+                                                               prepLookup,
+                                                               loanLookup);
+            loanItemLoader.setFrame(frame);
+            int loanItemRecords = loanItemLoader.loadRecords();
+            log.info("Loaded " + loanItemRecords + " loan item records");
+            
+            frame.setDesc("Loading out_geo batches...");
+            OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
+                                                                        statement,
+                                                                        outGiftLookup);
+            outGeoBatchLoader.setFrame(frame);
+            int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
+            log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+            
+            frame.setDesc("Loading out_return batches...");
+            OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
+                                                                                 statement,
+                                                                                 taxonBatchLookup,
+                                                                                 carrierLookup,
+                                                                                 borrowLookup);
+            outReturnBatchLoader.setFrame(frame);
+            int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
+            log.info("Loaded " + outReturnBatchRecords + " out return batch records");
             
             SwingUtilities.invokeLater(new Runnable()
             {
