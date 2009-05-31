@@ -117,7 +117,7 @@ public class LoadHUHdatabase
         }
         
         frame.setProcessPercent(true);
-        frame.setOverall(0, 4);
+        frame.setOverall(0, 34);
         frame.getCloseBtn().setVisible(false);
 
         steps = 0;
@@ -136,7 +136,6 @@ public class LoadHUHdatabase
                     frame.getProcessProgress().setIndeterminate(true);
                     frame.getProcessProgress().setString("");
                     frame.setDesc("Logging into "+dbName+"....");
-                    frame.setOverall(steps++);
                 }
             });
             
@@ -168,7 +167,6 @@ public class LoadHUHdatabase
                     frame.getProcessProgress().setIndeterminate(true);
                     frame.getProcessProgress().setString("");
                     frame.setDesc("Loading data....");
-                    frame.setOverall(steps++);
                 }
             });
             
@@ -192,6 +190,7 @@ public class LoadHUHdatabase
             optrLoader.setFrame(frame);
             int optrRecords = optrLoader.loadRecords();
             log.info("Loaded " + optrRecords + " optr records");
+            frame.setOverall(steps++);
             
             OptrLookup optrLookup = optrLoader.getOptrLookup();
 
@@ -200,6 +199,7 @@ public class LoadHUHdatabase
             geoUnitLoader.setFrame(frame);
             int geoUnitRecords = geoUnitLoader.loadRecords();
             log.info("Loaded " + geoUnitRecords + " geo_unit records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Numbering Geography Tree...");
             geoUnitLoader.numberNodes();
@@ -211,7 +211,8 @@ public class LoadHUHdatabase
             siteLoader.setFrame(frame);
             int localityRecords = siteLoader.loadRecords();
             log.info("Loaded " + localityRecords + " site records");
-
+            frame.setOverall(steps++);
+            
             SiteLookup siteLookup = siteLoader.getSiteLookup();
             
             frame.setDesc("Loading botanists...");
@@ -223,6 +224,7 @@ public class LoadHUHdatabase
             botanistLoader.setFrame(frame);
             int botanistRecords = botanistLoader.loadRecords();
             log.info("Loaded " + botanistRecords + " botanist records");
+            frame.setOverall(steps++);
             
             BotanistLookup botanistLookup = botanistLoader.getBotanistLookup();
             
@@ -233,6 +235,7 @@ public class LoadHUHdatabase
             botanistNameLoader.setFrame(frame);
             int botanistNameRecords = botanistNameLoader.loadRecords();
             log.info("Loaded " + botanistNameRecords + " botanist_name records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading botanist teams...");
             BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"),
@@ -241,6 +244,7 @@ public class LoadHUHdatabase
             botanistTeamLoader.setFrame(frame);
             int botanistTeamRecords = botanistTeamLoader.loadRecords();
             log.info("Loaded " + botanistTeamRecords + " botanist_team records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading botanist role countries...");
             BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"),
@@ -250,6 +254,7 @@ public class LoadHUHdatabase
             botanistCountryLoader.setFrame(frame);
             int botanistCountryRecords = botanistCountryLoader.loadRecords();
             log.info("Loaded " + botanistCountryRecords + " botanist_country records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading botanist role specialties...");
             BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"),
@@ -258,6 +263,7 @@ public class LoadHUHdatabase
             botanistSpecialtyLoader.setFrame(frame);
             int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
             log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading organizations...");
             OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
@@ -267,6 +273,7 @@ public class LoadHUHdatabase
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
             log.info("Loaded " + organizationRecords + " organization records");
+            frame.setOverall(steps++);
             
             OrganizationLookup orgLookup = organizationLoader.getOrganizationLookup();
             
@@ -278,6 +285,7 @@ public class LoadHUHdatabase
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
             log.info("Loaded " + seriesRecords + " series records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading affiliates...");
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
@@ -287,6 +295,7 @@ public class LoadHUHdatabase
             affiliateLoader.setFrame(frame);
             int affiliateRecords = affiliateLoader.loadRecords();
             log.info("Loaded " + affiliateRecords + " affiliate records");
+            frame.setOverall(steps++);
             
             AffiliateLookup affiliateLookup = affiliateLoader.getAffiliateLookup();
             
@@ -299,6 +308,7 @@ public class LoadHUHdatabase
             agentLoader.setFrame(frame);
             int agentRecords = agentLoader.loadRecords();
             log.info("Loaded " + agentRecords + " agent records");
+            frame.setOverall(steps++);
             
             AgentLookup agentLookup = agentLoader.getAgentLookup();
             
@@ -308,6 +318,7 @@ public class LoadHUHdatabase
             publicationLoader.setFrame(frame);
             int publicationRecords = publicationLoader.loadRecords();
             log.info("Loaded " + publicationRecords + " publication records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading publ authors...");
             PublicationLookup pubLookup = publicationLoader.getReferenceWorkLookup();
@@ -318,6 +329,7 @@ public class LoadHUHdatabase
             publAuthorLoader.setFrame(frame);
             int publAuthorRecords = publAuthorLoader.loadRecords();
             log.info("Loaded " + publAuthorRecords + " publ_author records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading taxa...");
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
@@ -326,7 +338,8 @@ public class LoadHUHdatabase
             taxonLoader.setFrame(frame);
             int taxonRecords = taxonLoader.loadRecords(); 
             log.info("Loaded " + taxonRecords + " taxonRecords");
-
+            frame.setOverall(steps++);
+            
             frame.setDesc("Numbering Taxonomy Tree...");
             taxonLoader.numberNodes();
             log.info("Numbered taxon tree");
@@ -341,6 +354,7 @@ public class LoadHUHdatabase
                                                                               botanistLookup);
             int subcollectionRecords = subcollectionLoader.loadRecords();
             log.info("Loaded " + subcollectionRecords + " subcollection records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading specimen items and specimens...");
 
@@ -357,6 +371,7 @@ public class LoadHUHdatabase
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
             log.info("Loaded " + specimenItemRecords + " specimen_item records");
+            frame.setOverall(steps++);
             
             SpecimenLookup specimenLookup = specimenItemLoader.getSpecimenLookup();
             PreparationLookup prepLookup  = specimenItemLoader.getPreparationLookup();
@@ -369,7 +384,8 @@ public class LoadHUHdatabase
             determinationLoader.setFrame(frame);
             int determinationRecords = determinationLoader.loadRecords();
             log.info("Loaded " + determinationRecords + " determination records");
-
+            frame.setOverall(steps++);
+            
             frame.setDesc("Loading type specimens...");
             TypeSpecimenLoader typeLoader = new TypeSpecimenLoader(new File(dir, "type_specimen.csv"),
                                                                        statement,
@@ -379,6 +395,7 @@ public class LoadHUHdatabase
             typeLoader.setFrame(frame);
             int typeRecords = typeLoader.loadRecords();
             log.info("Loaded " + typeRecords + " type specimen records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading borrows...");
             BorrowLoader borrowLoader = new BorrowLoader(new File(dir, "borrow.csv"),
@@ -389,6 +406,7 @@ public class LoadHUHdatabase
             borrowLoader.setFrame(frame);
             int borrowRecords = borrowLoader.loadRecords();
             log.info("Loaded " + borrowRecords + " borrow records");
+            frame.setOverall(steps++);
             
             BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
             
@@ -398,6 +416,7 @@ public class LoadHUHdatabase
             inExchangeLoader.setFrame(frame);
             int inExchangeRecords = inExchangeLoader.loadRecords();
             log.info("Loaded " + inExchangeRecords + " incoming exchange records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading incoming gifts...");
             IncomingGiftLoader inGiftLoader =
@@ -405,6 +424,7 @@ public class LoadHUHdatabase
             inGiftLoader.setFrame(frame);
             int inGiftRecords = inGiftLoader.loadRecords();
             log.info("Loaded " + inGiftRecords + " incoming gift records");
+            frame.setOverall(steps++);
             
             IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
             
@@ -414,6 +434,7 @@ public class LoadHUHdatabase
             loanLoader.setFrame(frame);
             int loanLoaderRecords = loanLoader.loadRecords();
             log.info("Loaded " + loanLoaderRecords + " loan records");
+            frame.setOverall(steps++);
             
             LoanLookup loanLookup = loanLoader.getLoanLookup();
             
@@ -423,6 +444,7 @@ public class LoadHUHdatabase
             outExchangeLoader.setFrame(frame);
             int outExchangeRecords = outExchangeLoader.loadRecords();
             log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
+            frame.setOverall(steps++);
             
             OutgoingExchangeLookup outExchangeLookup = outExchangeLoader.getOutgoingExchangeLookup();
             
@@ -432,6 +454,7 @@ public class LoadHUHdatabase
             outGiftLoader.setFrame(frame);
             int outGiftRecords = outGiftLoader.loadRecords();
             log.info("Loaded " + outGiftRecords + " outgoing gift records");
+            frame.setOverall(steps++);
             
             OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
             
@@ -441,6 +464,7 @@ public class LoadHUHdatabase
             purchaseLoader.setFrame(frame);
             int purchaseRecords = purchaseLoader.loadRecords();
             log.info("Loaded " + purchaseRecords + " purchase records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading staff collections...");
             StaffCollectionLoader staffCollLoader =
@@ -448,6 +472,7 @@ public class LoadHUHdatabase
             staffCollLoader.setFrame(frame);
             int staffCollRecords = typeLoader.loadRecords();
             log.info("Loaded " + staffCollRecords + " staff collection records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading shipments...");
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "out_return_batch.csv"),
@@ -457,6 +482,7 @@ public class LoadHUHdatabase
             shipmentLoader.setFrame(frame);
             int shipmentRecords = shipmentLoader.loadRecords();
             log.info("Loaded " + shipmentRecords + " shipment records");
+            frame.setOverall(steps++);
             
             CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
             
@@ -468,6 +494,7 @@ public class LoadHUHdatabase
             taxonBatchLoader.setFrame(frame);
             int taxonBatchRecords = taxonBatchLoader.loadRecords();
             log.info("Loaded " + taxonBatchRecords + " taxon batch records");
+            frame.setOverall(steps++);
             
             TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
             
@@ -478,6 +505,7 @@ public class LoadHUHdatabase
             inGeoBatchLoader.setFrame(frame);
             int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
             log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading in_return batches...");
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
@@ -486,6 +514,7 @@ public class LoadHUHdatabase
             inReturnBatchLoader.setFrame(frame);
             int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
             log.info("Loaded " + inReturnBatchRecords + " in return batch records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading loan items...");
             LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
@@ -495,6 +524,7 @@ public class LoadHUHdatabase
             loanItemLoader.setFrame(frame);
             int loanItemRecords = loanItemLoader.loadRecords();
             log.info("Loaded " + loanItemRecords + " loan item records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading out_geo batches...");
             OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
@@ -503,6 +533,7 @@ public class LoadHUHdatabase
             outGeoBatchLoader.setFrame(frame);
             int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
             log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+            frame.setOverall(steps++);
             
             frame.setDesc("Loading out_return batches...");
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
@@ -513,6 +544,7 @@ public class LoadHUHdatabase
             outReturnBatchLoader.setFrame(frame);
             int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
             log.info("Loaded " + outReturnBatchRecords + " out return batch records");
+            frame.setOverall(steps++);
             
             SwingUtilities.invokeLater(new Runnable()
             {
