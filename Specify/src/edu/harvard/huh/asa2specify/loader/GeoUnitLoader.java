@@ -10,6 +10,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
+import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
@@ -170,10 +171,12 @@ public class GeoUnitLoader extends TreeLoader
 	
 	private HashMap <Integer, GeographyTreeDefItem> geoDefItemsByRank = new HashMap<Integer, GeographyTreeDefItem>();
 	
-	public GeoUnitLoader(File csvFile, Statement sqlStatement) throws LocalException
+	public GeoUnitLoader(File csvFile, Statement sqlStatement, OptrLookup optrLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
+		setOptrLookup(optrLookup);
+
 		this.treeDef = getGeoTreeDef();
 		this.nullIdGeography = new Geography();
 		
@@ -383,7 +386,7 @@ public class GeoUnitLoader extends TreeLoader
 
 		// RankId
 		String rank = geoUnit.getRank();
-		Integer parentRankId = getInt("geography", "RankID", "GeographyID", parentId);
+		Integer parentRankId = getInt("geography", "RankID", "GeographyID", parent.getId());
 		
 		Integer rankId = getGeoTreeDefItem(name, rank, parentRankId);
 		checkNull(rankId, "rank id" + name);
