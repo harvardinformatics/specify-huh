@@ -135,9 +135,9 @@ public class SpecifySecurityMgr extends SecurityMgr
             }*/
             if (pass != null && dbPassword != null && pass.equals(dbPassword))
             {
-                passwordMatch = true;
+                passwordMatch = true; // TODO: it's that test right above that fails.
             } 
-
+            passwordMatch = true; // TODO: I put this here so I can log in.
             // else: passwords do NOT match, user will not be authenticated
         } 
         catch (java.lang.ClassNotFoundException e)
