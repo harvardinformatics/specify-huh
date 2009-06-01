@@ -34,24 +34,32 @@ public abstract class TreeLoader extends AuditedObjectLoader
         {
             String resetHighestChildNodeNumber = "update " + tableName + " set HighestChildNodeNumber=null";
             getStatement().executeUpdate(resetHighestChildNodeNumber);
-
+            
             String createTableLikeTaxon = "create table " + tempTableName + " like " + tableName;
             getStatement().execute(createTableLikeTaxon);
 
             String copyTaxonTable = "insert into " + tempTableName + " select * from " + tableName;
             getStatement().executeUpdate(copyTaxonTable);
 
-            String updateLeafNodes = "update " + tableName + " a " +
-            "set a.HighestChildNodeNumber=a.NodeNumber " +
-            "where not exists " +
+            String resetNodeNumber = "update " + tableName + " a" + ", " + tempTableName + " b " +  
+            "set a.NodeNumber=" + "b." + idField +
+            " where a." + idField + "=b." + idField;
+            getStatement().executeUpdate(resetNodeNumber);
+            
+            String resetTempNodeNumber = "update " + tableName + " a" + ", " + tempTableName + " b " + 
+            "set b.NodeNumber=a.NodeNumber" +
+            " where b." + idField + "=a." + idField;
+            getStatement().executeUpdate(resetTempNodeNumber);
+            
+            String updateLeafNodes = "update " + tableName + " a" + ", " + tempTableName + " b " + 
+            "set a.HighestChildNodeNumber=b.NodeNumber " +
+            "where a." + idField + "=b." + idField + " and not exists " +
             "(select null from " + tempTableName + " b where a." + idField + "=b.ParentID)";
 
             int updatedNodes = getStatement().executeUpdate(updateLeafNodes);
 
-            String updateReftaxon = "update " + tempTableName + " a " +
-            "set a.HighestChildNodeNumber=" +
-            "(select b.HighestChildNodeNumber from " + tableName + " b " +
-            "where b." + idField + "=a." + idField + ")";
+            String updateReftaxon = "update " + tableName + " a" + ", " + tempTableName + " b " + 
+            "set b.HighestChildNodeNumber=a.HighestChildNodeNumber where b." + idField + "=a." + idField;
 
             getStatement().executeUpdate(updateReftaxon);
 
@@ -59,8 +67,9 @@ public abstract class TreeLoader extends AuditedObjectLoader
             "set a.HighestChildNodeNumber=" +
             "(select max(b.HighestChildNodeNumber) from " + tempTableName + " b " +
             "where b.ParentID=a." + idField + ") " +
-            "where  a." + idField + " in (select c.ParentID from " + tempTableName + " c " +
-            "where c.HighestChildNodeNumber is not null) order by a." + idField + " desc";
+            "where a.HighestChildNodeNumber is null and not exists (select c." + idField + " from " + tempTableName + " c " +
+            "where c.ParentID=a." + idField + " and c.HighestChildNodeNumber is null)" +
+            "order by a." + idField + " desc";
 
             while (updatedNodes > 0) {               
                 updatedNodes = getStatement().executeUpdate(updateNextLevel);
