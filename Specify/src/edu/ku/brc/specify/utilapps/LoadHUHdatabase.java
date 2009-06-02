@@ -454,7 +454,7 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading outgoing exchanges...");
             OutgoingExchangeLoader outExchangeLoader =
-                new OutgoingExchangeLoader(new File(dir, "outgoingexchange.csv"), statement);
+                new OutgoingExchangeLoader(new File(dir, "outgoing_exchange.csv"), statement);
             outExchangeLoader.setFrame(frame);
             int outExchangeRecords = outExchangeLoader.loadRecords();
             log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
