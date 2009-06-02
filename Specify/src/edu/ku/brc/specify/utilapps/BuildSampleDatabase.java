@@ -9014,8 +9014,8 @@ public class BuildSampleDatabase
         for (int i = 0; i < Colls.length; i++)
         {
             Collection collection = createEmptyCollection(discipline, 
-                    Colls[i], 
                     CollAbbrevs[i],
+                    Colls[i], 
                     catAutoNumScheme,
                     accAutoNumScheme,
                     disciplineType.isEmbeddedCollecingEvent());
