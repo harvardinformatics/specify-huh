@@ -62,7 +62,7 @@ public class PublicationLoader extends AuditedObjectLoader
 
 					String guid = getGuid(publicationId);
 
-					Integer referenceWorkId = getInt("referenceWork", "ReferenceWorkID", "GUID", guid);
+					Integer referenceWorkId = getInt("referencework", "ReferenceWorkID", "GUID", guid);
 
 					referenceWork.setReferenceWorkId(referenceWorkId);
 

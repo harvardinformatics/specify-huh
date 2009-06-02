@@ -38,7 +38,7 @@ import edu.ku.brc.specify.datamodel.Preparation;
 
 public class SpecimenItemLoader extends AuditedObjectLoader
 {
-	private Hashtable<String, PrepType> prepTypesByName;
+	private Hashtable<String, PrepType> prepTypesByNameAndColl;
 	
 	private SpecimenLookup collObjLookup;
 	private PreparationLookup prepLookup;
@@ -56,7 +56,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private CollectingEvent      collectingEvent  = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
-	private Set<ExsiccataItem>   exsiccataItems   = null;
+	private Set<ExsiccataItem>   exsiccataItems   = new HashSet<ExsiccataItem>();
 
 	// These items need to be remembered for comparison with
 	// other specimen items' values
@@ -69,16 +69,19 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	                          File seriesBotanists,
 	                          BotanistLookup botanistLookup,
 	                          SubcollectionLookup subcollLookup,
-	                          ContainerLookup containerLookup,
 	                          SiteLookup siteLookup) throws LocalException 
 	{
 		super(csvFile, sqlStatement);
 		
-		this.prepTypesByName = new Hashtable<String, PrepType>();
+		this.prepTypesByNameAndColl = new Hashtable<String, PrepType>();
 		
-		this.botanistLookup = botanistLookup;
-		this.subcollLookup  = subcollLookup;
-		this.siteLookup     = siteLookup;
+		this.botanistLookup  = botanistLookup;
+		this.subcollLookup   = subcollLookup;
+		this.siteLookup      = siteLookup;
+		this.prepLookup      = getPreparationLookup();
+		this.containerLookup = getContainerLookup();
+		
+		init();
 	}
 	
 	@Override
@@ -119,6 +122,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             // ExsiccataItem
             ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
             addExsiccataItem(exsiccataItem);
+            
+            return;
         }
 
         // If we made it here, the asa.specimen.ids are different, so we have a different
@@ -578,7 +583,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    // Remarks (habitat)
 	    collectingEvent.setRemarks(habitat);
 	    
-	    return null;
+	    return collectingEvent;
 	}
 	
 	
@@ -603,7 +608,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         // PrepType
         String format = specimenItem.getFormat();
-        PrepType prepType = getPrepType(format);
+        PrepType prepType = getPrepType(format, collectionMemberId);
         preparation.setPrepType(prepType);
         
         // Remarks(note)
@@ -659,7 +664,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	private CollectionObject getCollectionObject(SpecimenItem specimenItem, Collection collection, Container container, CollectingEvent collectingEvent) throws LocalException
 	{
-			    CollectionObject collectionObject = new CollectionObject();
+		CollectionObject collectionObject = new CollectionObject();
 
         // Cataloger
         Integer createdById = specimenItem.getCatalogedById();
@@ -675,7 +680,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // CatalogedDatePrecision
         Byte catalogedDatePrecision = DateUtils.getFullDatePrecision();
         collectionObject.setCatalogedDatePrecision(catalogedDatePrecision);
-        
+
         // CatalogNumber
         Integer barcode = specimenItem.getBarcode();
         checkNull(barcode, "barcode");
@@ -737,7 +742,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // TimestampCreated
         Date dateCreated = specimenItem.getCatalogedDate();
         collectionObject.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        collectionObject.setCatalogedDatePrecision( (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal() );
         
         // YesNo1 (isCultivated)
         collectionObject.setYesNo1(specimenItem.isCultivated()); // TODO: implement cultivated specimens
@@ -780,6 +784,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 container.setCollectionMemberId(collectionMemberId);
 
                 // Name
+                containerStr = truncate(containerStr, 64, "container name");
                 container.setName(containerStr);
             }
             else
@@ -1003,26 +1008,31 @@ public class SpecimenItemLoader extends AuditedObjectLoader
        
     private String getInsertSql(Container container) throws LocalException
     {
-        String fieldNames = "Name, CollectionMemberID";
+        String fieldNames = "Name, CollectionMemberID, TimestampCreated";
         
-        String[] values = new String[2];
+        String[] values = new String[3];
         
         values[0] = SqlUtils.sqlString( container.getName());
         values[1] = SqlUtils.sqlString( container.getCollectionMemberId());
+        values[2] = SqlUtils.now();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
 	
-	private PrepType getPrepType(String format) throws LocalException
+	private PrepType getPrepType(String format, Integer collectionId) throws LocalException
 	{
-        PrepType prepType = prepTypesByName.get(format);
+	    String key = format + " " + collectionId;
+	    
+        PrepType prepType = prepTypesByNameAndColl.get(key);
         if (prepType == null)
         {
-            Integer prepTypeId = getInt("preptype", "PrepTypeID", "Name", format);
-
+            String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + SqlUtils.sqlString(format);
+            Integer prepTypeId = queryForInt(sql);
+            if (prepTypeId == null) throw new LocalException("Couldn't find prep type for " + key);
+            
             prepType = new PrepType();
             prepType.setPrepTypeId(prepTypeId);
-            prepTypesByName.put(format, prepType);
+            prepTypesByNameAndColl.put(format, prepType);
         }
         return prepType;
 	}
@@ -1081,6 +1091,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             insert(sql);
         }
         
+        init();
+    }
+    
+    private void init()
+    {
         collectingEvent  = null;
         collector        = null;
         collectionObject = null;

@@ -235,7 +235,7 @@ public class TaxonLoader extends TreeLoader
 
 	    // isAccepted TODO: map taxon status to isAccepted
         STATUS status = asaTaxon.getStatus();
-        specifyTaxon.setIsAccepted( status == STATUS.NomLeg );
+        specifyTaxon.setIsAccepted( status != STATUS.NomRej && status != STATUS.NomInvalid && status != STATUS.NomSuperfl);
         
         // isHybrid
         Boolean isHybrid = asaTaxon.isHybrid();

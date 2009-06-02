@@ -27,6 +27,7 @@ public class AsaTaxon
 
     public static ENDANGERMENT parseEndangerment(String string) throws AsaException
     {
+        if (string == null) return ENDANGERMENT.None;
         for (ENDANGERMENT endangerment : ENDANGERMENT.values())
         {
             if (EndangermentNames[endangerment.ordinal()].equals(string)) return endangerment;

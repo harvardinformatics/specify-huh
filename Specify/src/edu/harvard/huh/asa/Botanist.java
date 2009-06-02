@@ -51,9 +51,9 @@ public class Botanist
 		
 	public void setId(Integer id) { this.id = id; }
 	
-	public void setTeam(Boolean isTeam) { this.isTeam = isTeam; }
+	public void setIsTeam(Boolean isTeam) { this.isTeam = isTeam; }
 	    
-	public void setCorporate(Boolean isCorporate) { this.isCorporate = isCorporate; }
+	public void setIsCorporate(Boolean isCorporate) { this.isCorporate = isCorporate; }
 	
 	public void setName(String name) { this.name = name; }
 	

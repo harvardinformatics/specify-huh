@@ -231,6 +231,9 @@ public class AffiliateLoader extends AuditedObjectLoader
             addressString = truncate(addressString, 255, "address");
         }
         address.setAddress(addressString);
+        
+        // Agent
+        address.setAgent(agent);
 
         return address;
 	}
@@ -238,13 +241,13 @@ public class AffiliateLoader extends AuditedObjectLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "AgentType, CreatedByAgentID, DivisionID, Email, FirstName, " +
-				            "GUID, JobTitle, LastName, TimestampCreated, Remarks";
+				            "GUID, JobTitle, LastName, Remarks, TimestampCreated";
 
 		String[] values = new String[10];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
         values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[2] = SqlUtils.sqlString( agent.getDivision().getDivisionId());
+		values[2] = SqlUtils.sqlString( agent.getDivision().getId());
 		values[3] = SqlUtils.sqlString( agent.getEmail());
 		values[4] = SqlUtils.sqlString( agent.getFirstName());
 		values[5] = SqlUtils.sqlString( agent.getGuid());
@@ -263,7 +266,7 @@ public class AffiliateLoader extends AuditedObjectLoader
         String[] values = new String[4];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
-        values[1] = SqlUtils.sqlString( address.getAgent().getAgentId());
+        values[1] = SqlUtils.sqlString( address.getAgent().getId());
         values[2] = SqlUtils.sqlString( address.getPhone1());
         values[3] = SqlUtils.now();
         

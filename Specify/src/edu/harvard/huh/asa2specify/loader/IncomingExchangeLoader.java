@@ -52,19 +52,21 @@ public class IncomingExchangeLoader extends TransactionLoader
         
         int i = parse(columns, inExchange);
         
-        if (columns.length < i + 8)
+        if (columns.length < i + 10)
         {
             throw new LocalException("Not enough columns");
         }
         
-        inExchange.setGeoUnit(                             columns[i + 0] );
-        inExchange.setItemCount(        SqlUtils.parseInt( columns[i + 1] ));
-        inExchange.setTypeCount(        SqlUtils.parseInt( columns[i + 2] ));
-        inExchange.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 3] ));
-        inExchange.setDiscardCount(     SqlUtils.parseInt( columns[i + 4] ));
-        inExchange.setDistributeCount(  SqlUtils.parseInt( columns[i + 5] ));
-        inExchange.setReturnCount(      SqlUtils.parseInt( columns[i + 6] ));
-        inExchange.setCost(           SqlUtils.parseFloat( columns[i + 7] ));
+        inExchange.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
+        inExchange.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
+        inExchange.setGeoUnit(                             columns[i + 2] );
+        inExchange.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
+        inExchange.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
+        inExchange.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
+        inExchange.setDiscardCount(     SqlUtils.parseInt( columns[i + 6] ));
+        inExchange.setDistributeCount(  SqlUtils.parseInt( columns[i + 7] ));
+        inExchange.setReturnCount(      SqlUtils.parseInt( columns[i + 8] ));
+        inExchange.setCost(           SqlUtils.parseFloat( columns[i + 9] ));
         
         return inExchange;
     }
@@ -75,13 +77,13 @@ public class IncomingExchangeLoader extends TransactionLoader
 
         // TODO: AddressOfRecord
         
-        // CatalogedByID ("for use by")
-        Agent agentCatalogedBy = lookupAffiliate(inExchange);
-        exchangeIn.setAgentCatalogedBy(agentCatalogedBy);
-
-        // CreatedByAgentID
+        // CatalogedByID
         Integer creatorOptrId = inExchange.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
+
+        exchangeIn.setAgentCatalogedBy(createdByAgent);
+        
+        // CreatedByAgentID
         exchangeIn.setCreatedByAgent(createdByAgent);
         
         // DescriptionOfMaterial
@@ -116,6 +118,7 @@ public class IncomingExchangeLoader extends TransactionLoader
         
         // ReceivedFromOrganization ("contact")
         Agent agentReceivedFrom = lookupAgent(inExchange);
+        checkNull(agentReceivedFrom, "recipient");
         exchangeIn.setAgentReceivedFrom(agentReceivedFrom);
         
         // Remarks

@@ -172,7 +172,7 @@ public class OutgoingGiftLoader extends TransactionLoader
             agent = lookupAgent(transaction);
         }
 
-        if (agent.getId() == null) return null;
+        if (agent == null || agent.getId() == null) return null;
 
         deaccessionAgent.setAgent(agent);
 
@@ -210,7 +210,7 @@ public class OutgoingGiftLoader extends TransactionLoader
     
     private String getInsertSql(DeaccessionAgent deaccessionAgent)
     {
-        String fieldNames = "AgentID, DaccessionID, Role, TimestampCreated";
+        String fieldNames = "AgentID, DeaccessionID, Role, TimestampCreated";
 
         String[] values = new String[4];
 

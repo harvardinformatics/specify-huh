@@ -36,6 +36,8 @@ public class ShipmentLoader extends CsvToSqlLoader
 {
     // Loan/Exchange/Gift
     
+    private static final String DEFAULT_SHIPPING_NUMBER = "none";
+    
 	private HashMap<String, Agent> shippers;
 	
 	private CarrierLookup carrierLookup;
@@ -54,6 +56,7 @@ public class ShipmentLoader extends CsvToSqlLoader
         
         this.shippers = new HashMap<String, Agent>();
         this.carrierLookup = getCarrierLookup();
+        this.outExchangeLookup = outExchangeLookup;
     }
 
     @Override
@@ -105,7 +108,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     
     private AsaShipment parse(String[] columns) throws LocalException
     {
-    	if (columns.length < 13)
+    	if (columns.length < 14)
     	{
     		throw new LocalException("Wrong number of columns");
     	}
@@ -123,10 +126,10 @@ public class ShipmentLoader extends CsvToSqlLoader
     		asaShipment.setIsInsured(       Boolean.parseBoolean( columns[7]  ));
     		asaShipment.setOrdinal(            SqlUtils.parseInt( columns[8]  ));
     		asaShipment.setTrackingNumber(                        columns[9]  );
-    		asaShipment.setCustomsNumber(                         columns[9]  );
-    		asaShipment.setDescription(                           columns[10] );
-    		asaShipment.setBoxCount(                              columns[11] );
-    		asaShipment.setCollectionCode(                        columns[12] );
+    		asaShipment.setCustomsNumber(                         columns[10] );
+    		asaShipment.setDescription(                           columns[11] );
+    		asaShipment.setBoxCount(                              columns[12] );
+    		asaShipment.setCollectionCode(                        columns[13] );
     	}
     	catch (NumberFormatException e)
     	{
@@ -154,15 +157,19 @@ public class ShipmentLoader extends CsvToSqlLoader
     	{
     		ExchangeOut exchangeOut = lookupExchangeOut(transactionId);
     		shipment.setExchangeOut(exchangeOut);
+    		shipment.setLoan(new Loan());
     	}
     	else if (type.equals(TYPE.OutGift))
     	{
     		warn("No link in Specify to deaccession", null); // TODO: put fields into transaction loader for out gift?
+    		shipment.setExchangeOut(new ExchangeOut());
+    		shipment.setLoan(new Loan());
     	}
     	else if (type.equals(TYPE.Loan))
     	{
     		Loan loan = lookupLoan(transactionId);
     		shipment.setLoan(loan);
+    		shipment.setExchangeOut(new ExchangeOut());
     	}
     	else
     	{
@@ -226,7 +233,10 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	// ShipmentNumber (trackingNumber)
     	String trackingNumber = asaShipment.getTrackingNumber();
-    	checkNull(trackingNumber, "tracking number");
+    	if (trackingNumber == null)
+    	{
+    	    trackingNumber = DEFAULT_SHIPPING_NUMBER;
+    	}
     	trackingNumber = truncate(trackingNumber, 50, "tracking number");
     	shipment.setShipmentNumber(trackingNumber);
     	
@@ -300,8 +310,8 @@ public class ShipmentLoader extends CsvToSqlLoader
 	private String getInsertSql(Shipment shipment)
     {
 		String fields = "CollectionMemberID, ExchangeOutID, InsuredForAmount, LoanID, NumberOfPackages, " +
-        "Number1, Number2, Remarks, Shipper, ShipmentMethod, ShipmentNumber" +
-        "TimestampCreated, YesNo1";
+                        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, ShipmentNumber, " +
+                        "TimestampCreated, YesNo1";
 
 		String[] values = new String[13];
 
@@ -324,14 +334,15 @@ public class ShipmentLoader extends CsvToSqlLoader
 
 	private String getInsertSql(Agent agent)
     {
-    	String fieldNames = "AgentType, GUID, LastName";
+    	String fieldNames = "AgentType, GUID, LastName, TimestampCreated";
     	
-    	String[] values = new String[3];
+    	String[] values = new String[4];
     	
     	values[0] = SqlUtils.sqlString( agent.getAgentType());
     	values[1] = SqlUtils.sqlString( agent.getGuid());
     	values[2] = SqlUtils.sqlString( agent.getLastName());
-
-    	return SqlUtils.getInsertSql("shipment", fieldNames, values);
+    	values[3] = SqlUtils.now();
+    	
+    	return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
 }

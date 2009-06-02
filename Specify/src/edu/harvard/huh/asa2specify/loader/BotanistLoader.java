@@ -109,8 +109,8 @@ public class BotanistLoader extends AuditedObjectLoader
         try
         {
             botanist.setId(           SqlUtils.parseInt( columns[0]  ));
-            botanist.setTeam(      Boolean.parseBoolean( columns[1]  ));
-            botanist.setCorporate( Boolean.parseBoolean( columns[2]  ));
+            botanist.setIsTeam(      Boolean.parseBoolean( columns[1]  ));
+            botanist.setIsCorporate( Boolean.parseBoolean( columns[2]  ));
             botanist.setName(                            columns[3]  );
             botanist.setDatesType(                       columns[4]  );
             botanist.setStartYear(    SqlUtils.parseInt( columns[5]  ));

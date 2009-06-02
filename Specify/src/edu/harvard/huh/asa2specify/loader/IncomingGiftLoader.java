@@ -197,7 +197,7 @@ public class IncomingGiftLoader extends TransactionLoader
             agent = lookupAgent(transaction);
         }
         
-        if (agent.getId() == null) return null;
+        if (agent == null || agent.getId() == null) return null;
         
         giftAgent.setAgent(agent);
         

@@ -62,19 +62,21 @@ public class StaffCollectionLoader extends TransactionLoader
         
         int i = parse(columns, staffCollection);
         
-        if (columns.length < i + 8)
+        if (columns.length < i + 10)
         {
             throw new LocalException("Not enough columns");
         }
         
-        staffCollection.setGeoUnit(                             columns[i + 0] );
-        staffCollection.setItemCount(        SqlUtils.parseInt( columns[i + 1] ));
-        staffCollection.setTypeCount(        SqlUtils.parseInt( columns[i + 2] ));
-        staffCollection.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 3] ));
-        staffCollection.setDiscardCount(     SqlUtils.parseInt( columns[i + 4] ));
-        staffCollection.setDistributeCount(  SqlUtils.parseInt( columns[i + 5] ));
-        staffCollection.setReturnCount(      SqlUtils.parseInt( columns[i + 6] ));
-        staffCollection.setCost(           SqlUtils.parseFloat( columns[i + 7] ));
+        staffCollection.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
+        staffCollection.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
+        staffCollection.setGeoUnit(                             columns[i + 2] );
+        staffCollection.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
+        staffCollection.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
+        staffCollection.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
+        staffCollection.setDiscardCount(     SqlUtils.parseInt( columns[i + 6] ));
+        staffCollection.setDistributeCount(  SqlUtils.parseInt( columns[i + 7] ));
+        staffCollection.setReturnCount(      SqlUtils.parseInt( columns[i + 8] ));
+        staffCollection.setCost(           SqlUtils.parseFloat( columns[i + 9] ));
         
         return staffCollection;
     }
@@ -163,7 +165,7 @@ public class StaffCollectionLoader extends TransactionLoader
                 agent = lookupAgent(transaction);
             }
 
-            if (agent.getId() == null) return null;
+            if (agent == null || agent.getId() == null) return null;
 
             accessionAgent.setAgent(agent);
 
@@ -202,22 +204,23 @@ public class StaffCollectionLoader extends TransactionLoader
     
     private String getInsertSql(Accession accession)
     {
-        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, Number1, " +
-                            "Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
+        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, DivisionID, " +
+        		            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
 
-        String[] values = new String[12];
+        String[] values = new String[13];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
         values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
         values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
+        values[4]  = SqlUtils.sqlString( accession.getDivision().getId());
         values[4]  = SqlUtils.sqlString( accession.getNumber1());
         values[5]  = SqlUtils.sqlString( accession.getRemarks());
         values[6]  = SqlUtils.sqlString( accession.getText1());
         values[7]  = SqlUtils.sqlString( accession.getText2());
         values[8]  = SqlUtils.sqlString( accession.getText3());
         values[9]  = SqlUtils.sqlString( accession.getType());
-        values[10] = SqlUtils.sqlString( accession.getTimestampCreated());
+        values[10] = SqlUtils.now();
         values[11] = SqlUtils.sqlString( accession.getYesNo1());
 
         return SqlUtils.getInsertSql("accession", fieldNames, values);

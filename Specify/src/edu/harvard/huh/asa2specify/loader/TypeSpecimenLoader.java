@@ -133,8 +133,10 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Determination determination = new Determination();
         
         // CollectionMemberID
-        String code = typeSpecimen.getCollectionCode();
-        Integer collectionMemberId = getCollectionId(code);
+        String collectionCode = typeSpecimen.getCollectionCode();
+        checkNull(collectionCode, "collection code");
+        
+        Integer collectionMemberId = getCollectionId(collectionCode);
         determination.setCollectionMemberId(collectionMemberId);
 
         // CollectionObject
@@ -162,7 +164,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             determination.setDeterminedDate( DateUtils.getSpecifyStartDate( bdate ) );
             determination.setDeterminedDatePrecision( DateUtils.getDatePrecision( startYear, startMonth, startDay ) );
         }
-        else
+        else if (startYear != null)
         {
             warn("Invalid determination date",
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
@@ -180,6 +182,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         checkNull(asaTaxonId, "taxon id");
 
         Taxon taxon = getTaxonLookup().getById(asaTaxonId);
+        
+        // this doesn't change anything; it is necessary that this field be non-null
+        // for the call to determination.setTaxon TODO: check that this is still true
+        taxon.setIsAccepted(true);
+
         determination.setTaxon( taxon ); 
 
         // Text1 (verifiedBy) TODO: normalize determiner name to botanist agent?  does this even go here?
@@ -188,6 +195,9 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         
         // TypeStatusName
         String typeStatus = typeSpecimen.getTypeStatus();
+        checkNull(typeStatus, "type status");
+        
+        typeStatus = truncate(typeStatus, 50, "type status");
         determination.setTypeStatusName(typeStatus);
         
         // YesNo1 (isLabel)

@@ -21,7 +21,7 @@ public class BotanistName
     private  String name;
     
     public static enum TYPE             {  FullName,    AuthorName,    Collector,   Variant,   AuthorAbbrev   };
-    private static String[] TypeNames = { "full name", "author name", "collector", "variant", "author abbrev" };
+    private static String[] TypeNames = { "full name", "author name", "collector name", "variant", "author abbrev" };
 
     public static TYPE parseType(String string) throws AsaException
     {

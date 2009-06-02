@@ -32,17 +32,18 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class DeterminationLoader extends CsvToSqlLoader
 {
-    private SpecimenLookup collObjLookup;
-    private TaxonLookup              taxonLookup;
+    private SpecimenLookup specimenLookup;
+    private TaxonLookup    taxonLookup;
     
-    public DeterminationLoader(File                   csvFile,
-                               Statement              sqlStatement,
-                               SpecimenLookup collObjLookup,
-                               TaxonLookup            taxonLookup) throws LocalException
+    public DeterminationLoader(File           csvFile,
+                               Statement      sqlStatement,
+                               SpecimenLookup specimenLookup,
+                               TaxonLookup    taxonLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
         
-        this.collObjLookup = collObjLookup;
+        this.specimenLookup = specimenLookup;
+        this.taxonLookup    = taxonLookup;
     }
 
     @Override
@@ -105,12 +106,13 @@ public class DeterminationLoader extends CsvToSqlLoader
         Integer specimenId = asaDet.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        CollectionObject collectionObject = lookupCollObj(specimenId);
+        CollectionObject collectionObject = lookupSpecimen(specimenId);
         determination.setCollectionObject(collectionObject);
 
         // CollectionMemberID
         String collectionCode = asaDet.getCollectionCode();
         checkNull(collectionCode, "collection code");
+        
         Integer collectionMemberId = getCollectionId(collectionCode);
         determination.setCollectionMemberId(collectionMemberId);
 
@@ -119,6 +121,10 @@ public class DeterminationLoader extends CsvToSqlLoader
         checkNull(asaTaxonId, "taxon id");
 
         Taxon taxon = lookupTaxon(asaTaxonId);
+
+        // this doesn't change anything; it is necessary that this field be non-null
+        // for the call to determination.setTaxon TODO: check that this is still true
+        taxon.setIsAccepted(true);
         determination.setTaxon(taxon); 
         
         // Confidence TODO: enum for confidence
@@ -142,7 +148,7 @@ public class DeterminationLoader extends CsvToSqlLoader
             determination.setDeterminedDate(DateUtils.getSpecifyStartDate(bdate));
             determination.setDeterminedDatePrecision(DateUtils.getDatePrecision(startYear, startMonth, startDay));
         }
-        else
+        else if (startYear != null)
         {
             warn("Invalid start date",
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
@@ -176,9 +182,9 @@ public class DeterminationLoader extends CsvToSqlLoader
         return determination;
     }
     
-    private CollectionObject lookupCollObj(Integer specimenId) throws LocalException
+    private CollectionObject lookupSpecimen(Integer specimenId) throws LocalException
     {
-        return collObjLookup.getById(specimenId);
+        return specimenLookup.getById(specimenId);
     }
     
     private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException

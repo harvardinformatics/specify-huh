@@ -34,6 +34,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
     private AsaIdMapper subcollMapper;
     private TaxonLookup taxonLookup;
     private BotanistLookup botanistLookup;
+    
     private SubcollectionLookup subcollLookup;
     
     private ContainerLookup containerLookup;
@@ -48,7 +49,9 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		super(csvFile, sqlStatement);
 		
 		this.subcollMapper = new AsaIdMapper(subcollToBotanist);
+		
 		this.botanistLookup = botanistLookup;
+		this.taxonLookup    = taxonLookup;
 	}
 	
 	@Override
@@ -355,6 +358,8 @@ public class SubcollectionLoader extends AuditedObjectLoader
         
         Botanist botanist = new Botanist();
         botanist.setName(author);
+        botanist.setIsCorporate(false); // TODO: can we assume all subcoll authors are not corporate?
+        botanist.setIsTeam(false);      // TODO: this is possibly not going to work for all
         
         // AgentType
         if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );

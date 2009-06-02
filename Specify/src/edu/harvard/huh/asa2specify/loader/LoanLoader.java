@@ -245,7 +245,7 @@ public class LoanLoader extends TransactionLoader
             agent = lookupAgent(transaction);
         }
 
-        if (agent.getId() == null) return null;
+        if (agent == null || agent.getId() == null) return null;
         
         loanAgent.setAgent(agent);
         

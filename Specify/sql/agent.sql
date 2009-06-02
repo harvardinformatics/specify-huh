@@ -1,6 +1,7 @@
 select a.id,
        a.organization_id,
        decode(a.active_flag, 1, 'true', '') as is_active,
+       regexp_replace(a.prefix, '[[:space:]]+', ' ') as prefix,
        regexp_replace(a.name, '[[:space:]]+', ' ') as name,
        regexp_replace(a.title, '[[:space:]]+', ' ') as title,
        regexp_replace(a.specialty, '[[:space:]]+', ' ') as specialty,

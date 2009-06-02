@@ -34,6 +34,11 @@ public class AsaIdMapper
 
     public AsaIdMapper(File csvFile) throws LocalException
     {
+        if (csvFile == null || ! csvFile.exists() || ! csvFile.canRead() )
+        {
+            throw new LocalException("Couldn't read file: " + (csvFile == null ? "null" : csvFile.getName()));
+        }
+        
         this.csvFile = csvFile;
         this.toIds = new Hashtable<Integer, Integer>();
 

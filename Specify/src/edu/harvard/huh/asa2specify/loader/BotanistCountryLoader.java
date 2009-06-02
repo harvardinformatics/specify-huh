@@ -117,12 +117,12 @@ public class BotanistCountryLoader extends CsvToSqlLoader
   
 	private String getInsertSql(AgentGeography agentGeography)
 	{
-		String fieldNames = "AgentId, GeographyID, , Remarks, Role, TimestampCreated";
+		String fieldNames = "AgentId, GeographyID, Remarks, Role, TimestampCreated";
 
 		String[] values = new String[5];
 
-		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getAgentId());
-		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getGeographyId());
+		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getId());
+		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getId());
 		values[2] = SqlUtils.sqlString( agentGeography.getRemarks()); 
 		values[3] = SqlUtils.sqlString( agentGeography.getRole());
 		values[4] = SqlUtils.now();

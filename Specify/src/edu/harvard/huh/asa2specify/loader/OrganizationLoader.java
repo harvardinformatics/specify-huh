@@ -48,7 +48,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 			organizationLookup = new OrganizationLookup() {
 				public Agent getById(Integer organizationId) throws LocalException
 				{
-					Agent agent = new Agent(); // TODO: this doesn't account for organization botanists
+					Agent agent = new Agent();
 					
 					Integer botanistId = getBotanistId(organizationId);
 

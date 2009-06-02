@@ -92,23 +92,23 @@ public class OutgoingExchangeLoader extends TransactionLoader
         return outExchange;
     }
     
-    private ExchangeOut getExchangeOut(OutgoingExchange outgoingExchange) throws LocalException
+    private ExchangeOut getExchangeOut(OutgoingExchange outExchange) throws LocalException
     {
         ExchangeOut exchangeOut = new ExchangeOut();
 
         // TODO: AddressOfRecord
         
-        // CreatedByAgentID
-        Integer creatorOptrId = outgoingExchange.getCreatedById();
+        // CatalogedByID
+        Integer creatorOptrId = outExchange.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
+
+        exchangeOut.setAgentCatalogedBy(createdByAgent);
+        
+        // CreatedByAgentID
         exchangeOut.setCreatedByAgent(createdByAgent);
         
-        // CatalogedByID
-        Agent agentCatalogedBy = lookupAffiliate(outgoingExchange);
-        exchangeOut.setAgentCatalogedBy(agentCatalogedBy);
-
         // DescriptionOfMaterial
-        String descriptionOfMaterial = outgoingExchange.getDescription();
+        String descriptionOfMaterial = outExchange.getDescription();
         if (descriptionOfMaterial != null)
         {
             descriptionOfMaterial = truncate(descriptionOfMaterial, 120, "description");
@@ -119,14 +119,14 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setDivision(getBotanyDivision());
         
         // ExchangeDate
-        Date openDate = outgoingExchange.getOpenDate();
+        Date openDate = outExchange.getOpenDate();
         if (openDate != null)
         {
             exchangeOut.setExchangeDate(DateUtils.toCalendar(openDate));
         }
         
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = outgoingExchange.getId();
+        Integer transactionId = outExchange.getId();
         if (transactionId == null)
         {
             throw new LocalException("No transaction id");
@@ -134,19 +134,20 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setNumber1((float) transactionId);
         
         // QuantityExchanged
-        short quantity = getQuantity(outgoingExchange);
+        short quantity = getQuantity(outExchange);
         exchangeOut.setQuantityExchanged(quantity);
         
         // Remarks
-        String remarks = outgoingExchange.getRemarks();
+        String remarks = outExchange.getRemarks();
         exchangeOut.setRemarks(remarks);
                 
         // SentToOrganization
-        Agent agentSentTo = lookupAgent(outgoingExchange);
+        Agent agentSentTo = lookupAgent(outExchange);
+        checkNull(agentSentTo, "recipient");
         exchangeOut.setAgentSentTo(agentSentTo);
         
         // SrcGeography
-        String geoUnit = outgoingExchange.getGeoUnit();
+        String geoUnit = outExchange.getGeoUnit();
         checkNull(geoUnit, "src geography");
         geoUnit = truncate(geoUnit, 32, "src geography");
         exchangeOut.setSrcGeography(geoUnit);
@@ -154,7 +155,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         // SrcTaxonomy
 
         // Text1 (item, type, non-specimen counts; original date due)
-        String description = getDescription(outgoingExchange);
+        String description = getDescription(outExchange);
         if (description != null)
         {
             description = truncate(description, 120, "description");
@@ -162,15 +163,15 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setText1(description);
         
         // Text2 (forUseBy)
-        String forUseBy = outgoingExchange.getForUseBy();
+        String forUseBy = outExchange.getForUseBy();
         exchangeOut.setText2(forUseBy);
         
         // TimestampCreated
-        Date dateCreated = outgoingExchange.getDateCreated();
+        Date dateCreated = outExchange.getDateCreated();
         exchangeOut.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = outgoingExchange.isAcknowledged();
+        Boolean isAcknowledged = outExchange.isAcknowledged();
         exchangeOut.setYesNo1(isAcknowledged);
         
         return exchangeOut;

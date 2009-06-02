@@ -229,7 +229,7 @@ public class BorrowLoader extends TransactionLoader
             agent = lookupAgent(transaction);
         }
         
-        if (agent.getId() == null) return null;
+        if (agent ==  null || agent.getId() == null) return null;
         
         borrowAgent.setAgent(agent);
         
@@ -255,8 +255,8 @@ public class BorrowLoader extends TransactionLoader
     
     private String getInsertSql(Borrow borrow)
     {
-        String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed" +
-                            "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate" +
+        String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
+                            "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate, " +
                             "Remarks, Text1, Text2,  TimestampCreated, YesNo1";
         
         String[] values = new String[14];

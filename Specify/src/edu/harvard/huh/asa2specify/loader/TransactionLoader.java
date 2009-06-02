@@ -68,7 +68,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 
 	protected int parse(String[] columns, Transaction transaction) throws LocalException
 	{
-    	if (columns.length < 22)
+    	if (columns.length < 18)
     	{
     		throw new LocalException("Wrong number of columns");
     	}
@@ -109,7 +109,8 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     protected Agent lookupAgent(Transaction transaction) throws LocalException
     {
         Integer asaAgentId = transaction.getAgentId();
-        checkNull(asaAgentId, "agent id");
+        
+        if (asaAgentId == null) return null;
         
         return AgentLookup.getById(asaAgentId);
     }
@@ -117,10 +118,9 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     protected Agent lookupAffiliate(Transaction transaction) throws LocalException
     {
         Integer affiliateId = transaction.getAffiliateId();
-        checkNull(affiliateId, "affiliate id");
         
-        return AffiliateLookup.getById(affiliateId);
+        if (affiliateId == null) return null;
+        
+        else return AffiliateLookup.getById(affiliateId);
     }
-    
-
 }

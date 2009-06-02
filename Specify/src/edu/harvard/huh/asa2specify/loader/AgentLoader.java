@@ -312,7 +312,7 @@ public class AgentLoader extends CsvToSqlLoader
 
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle" +
+		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle, " +
 				            "LastName, ParentOrganizationID, Remarks, TimestampCreated, " +
 				            "Title, URL";
 
@@ -329,7 +329,7 @@ public class AgentLoader extends CsvToSqlLoader
 		values[8]  = SqlUtils.sqlString( agent.getRemarks());
 		values[9]  = SqlUtils.now();
 		values[10] = SqlUtils.sqlString( agent.getTitle());
-		values[10] = SqlUtils.sqlString( agent.getUrl());
+		values[11] = SqlUtils.sqlString( agent.getUrl());
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -353,7 +353,7 @@ public class AgentLoader extends CsvToSqlLoader
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "AgentID, Address, Fax, IsShipping, Phone1,TimestampCreated";
+        String fieldNames = " Address, AgentID,Fax, IsShipping, Phone1, TimestampCreated";
         
         String[] values = new String[6];
         

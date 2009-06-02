@@ -52,8 +52,10 @@ public abstract class CsvToSqlLoader
         initializeProgressFrame(records);
 
         // iterate over lines, creating locality objects for each via sql
-        int counter = 0;
-
+        int counter   = 0;
+        int errors    = 0;
+        int successes = 0;
+        
         while (true)
         {
             String line = null;
@@ -86,11 +88,18 @@ public abstract class CsvToSqlLoader
                 loadRecord(columns);
             }
             catch (LocalException e) {
-                log.error("Couldn't insert record for line " + counter + "\n" + line);
+                errors++;
+                log.error("Couldn't insert record for line " + counter + "\n" + line + "\n", e); // TODO: make this user friendly
                 continue;
             }
+            
+            successes++;
         }
-
+        
+        log.info(counter + " records");
+        log.info(successes + " successful imports");
+        log.info(errors + " errors");
+        
         return counter;
     }
 
@@ -160,7 +169,7 @@ public abstract class CsvToSqlLoader
     {
         if (botanyDivision == null)
         {
-            Division botanyDivision = new Division();
+            botanyDivision = new Division();
 
             Integer divisionId = getInt("division", "DivisionID", "Name", "Botany");
 
@@ -219,6 +228,35 @@ public abstract class CsvToSqlLoader
     throws LocalException
     {
         return getString(table, returnField, matchField, String.valueOf(value));
+    }
+
+    // TODO: clean up all these query methods; most should not be called from outside this
+    // class, and many probably aren't.  how many do we even need?
+    protected Integer queryForInt(String sql) throws LocalException
+    {
+        log.debug(sql);
+
+        ResultSet result = null;
+        Integer id = null;
+        try
+        {
+            result = getStatement().executeQuery(sql);
+
+            if (result.next())
+            {
+                id = result.getInt(1);
+            }
+            if (result.next())
+            {
+                log.warn("Multiple results for query: " + sql);
+            }
+
+        } catch (SQLException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
+        }
+
+        return id;
     }
 
     protected Integer insert(String sql) throws LocalException
@@ -344,36 +382,6 @@ public abstract class CsvToSqlLoader
             LineIterator.closeQuietly(lineIterator);
             return null;
         }
-    }
-
-
-    // TODO: clean up all these query methods; most should not be called from outside this
-    // class, and many probably aren't.  how many do we even need?
-    private Integer queryForInt(String sql) throws LocalException
-    {
-        log.debug(sql);
-
-        ResultSet result = null;
-        Integer id = null;
-        try
-        {
-            result = getStatement().executeQuery(sql);
-
-            if (result.next())
-            {
-                id = result.getInt(1);
-            }
-            if (result.next())
-            {
-                log.warn("Multiple results for query: " + sql);
-            }
-
-        } catch (SQLException e)
-        {
-            throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
-        }
-
-        return id;
     }
 
     /**

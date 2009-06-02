@@ -232,7 +232,7 @@ public class SqlUtils
         
         Double dbl = null;
         try {
-            Double.parseDouble(s);
+            dbl = Double.parseDouble(s);
         }
         catch (NumberFormatException e)
         {

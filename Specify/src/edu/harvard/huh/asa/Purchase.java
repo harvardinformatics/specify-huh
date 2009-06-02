@@ -14,8 +14,12 @@
  */
 package edu.harvard.huh.asa;
 
+import java.util.Date;
+
 public class Purchase extends Transaction
 {
+    private Date   originalDueDate;
+    private Date   currentDueDate;
     private String  geoUnit;
     private Integer itemCount;
     private Integer typeCount;
@@ -24,6 +28,10 @@ public class Purchase extends Transaction
     private Integer distributeCount;
     private Integer returnCount;
     private Float   cost;
+    
+    public Date getOriginalDueDate() { return originalDueDate; }
+    
+    public Date getCurrentDueDate() { return currentDueDate; }
     
     public String getGeoUnit() { return geoUnit; }
     
@@ -40,6 +48,10 @@ public class Purchase extends Transaction
     public Integer getReturnCount() { return returnCount; }
     
     public Float getCost() { return cost; }
+    
+    public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
+    
+    public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
     
     public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
     
