@@ -158,7 +158,21 @@ public class LoadHUHdatabase
                 return false;
             }
                         
-            setSession(HibernateUtil.getCurrentSession());
+/*            setSession(HibernateUtil.getCurrentSession());
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.getProcessProgress().setIndeterminate(true);
+                    frame.getProcessProgress().setString("");
+                    frame.setDesc("Saving data into "+dbName+"....");
+                    frame.setOverall(steps++);
+                }
+            });
+            
+            if (hideFrame) System.out.println("Persisting Data...");
+            
+            HibernateUtil.getCurrentSession().close();*/
             
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -195,7 +209,9 @@ public class LoadHUHdatabase
             OptrLookup optrLookup = optrLoader.getOptrLookup();
 
             frame.setDesc("Loading geo units...");
-            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
+            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"),
+                                                            statement,
+                                                            optrLookup);
             geoUnitLoader.setFrame(frame);
             int geoUnitRecords = geoUnitLoader.loadRecords();
             log.info("Loaded " + geoUnitRecords + " geo_unit records");
@@ -247,7 +263,7 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             frame.setDesc("Loading botanist role countries...");
-            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"),
+            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_role_country.csv"),
                                                                                     statement,
                                                                                     geoLookup,
                                                                                     botanistLookup);
@@ -257,7 +273,7 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             frame.setDesc("Loading botanist role specialties...");
-            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"),
+            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_role_specialty.csv"),
                                                                                           statement,
                                                                                           botanistLookup);
             botanistSpecialtyLoader.setFrame(frame);
@@ -358,7 +374,6 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading specimen items and specimens...");
 
-            ContainerLookup containerLookup = subcollectionLoader.getContainerLookup();
             SubcollectionLookup subcollLookup = subcollectionLoader.getSubcollectionLookup();
             
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
@@ -366,7 +381,6 @@ public class LoadHUHdatabase
                                                                            new File(dir, "series_botanist.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
-                                                                           containerLookup,
                                                                            siteLookup);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();
@@ -470,7 +484,7 @@ public class LoadHUHdatabase
             StaffCollectionLoader staffCollLoader =
                 new StaffCollectionLoader(new File(dir, "staff_collection.csv"), statement);
             staffCollLoader.setFrame(frame);
-            int staffCollRecords = typeLoader.loadRecords();
+            int staffCollRecords = staffCollLoader.loadRecords();
             log.info("Loaded " + staffCollRecords + " staff collection records");
             frame.setOverall(steps++);
             
@@ -545,21 +559,6 @@ public class LoadHUHdatabase
             int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
             log.info("Loaded " + outReturnBatchRecords + " out return batch records");
             frame.setOverall(steps++);
-            
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    frame.getProcessProgress().setIndeterminate(true);
-                    frame.getProcessProgress().setString("");
-                    frame.setDesc("Saving data into "+dbName+"....");
-                    frame.setOverall(steps++);
-                }
-            });
-            
-            if (hideFrame) System.out.println("Persisting Data...");
-            
-            HibernateUtil.getCurrentSession().close();
             
             if (hideFrame) System.out.println("Done.");
             

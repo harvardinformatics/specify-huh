@@ -17,7 +17,6 @@ import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
-import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.harvard.huh.asa2specify.lookup.IncomingGiftLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
@@ -87,29 +86,74 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             return;
         }
         
+        File dir = new File("/home/maureen/testload");
+        
         int records = 0;
+        
+        boolean doOptr        = false; // 1
+        boolean doGeo         = false; // 2
+        boolean doSite        = false; // 3
+        boolean doBot         = false; // 4
+        boolean doBotName     = false; // 5
+        boolean doBotTeam     = false; // 6
+        boolean doBotCountry  = false; // 7
+        boolean doBotSpec     = false; // 8
+        boolean doOrg         = false; // 9
+        boolean doSeries      = false; // 10
+        boolean doAff         = false; // 11
+        boolean doAgent       = false; // 12
+        boolean doPub         = false; // 13
+        boolean doPubAuth     = false; // 14
+        boolean doTax         = false; // 15
+        boolean doSubcoll     = false; // 16
+        boolean doSpec        = false; // 17
+        boolean doDet         = false; // 18
+        boolean doType        = false; // 19
+        boolean doBorrow      = false; // 20
+        boolean doInEx        = false; // 21
+        boolean doInGift      = false; // 22
+        boolean doLoan        = false; // 23
+        boolean doOutEx       = false; // 24
+        boolean doOutGift     = false; // 25
+        boolean doPurch       = false; // 26
+        boolean doStaffColl   = false; // 27
+        boolean doShip        = false; // 28
+        boolean doTaxBatch    = false; // 29
+        boolean doInGeoBatch  = false; // 30
+        boolean doInRetBatch  = false; // 31
+        boolean doLoanIt      = false; // 32
+        boolean doOutGeoBatch = false; // 33
+        boolean doOutRetBatch = true; // 34
+        
         try
         {
-            File dir = new File("/home/maureen/load");
-            
             OptrLoader optrLoader = new OptrLoader(new File(dir, "optr.csv"), statement);
-            int optrRecords = optrLoader.loadRecords();
-            log.info("Loaded " + optrRecords + " optr records");
-            
+            if (doOptr)
+            {
+                int optrRecords = optrLoader.loadRecords();
+                log.info("Loaded " + optrRecords + " optr records");
+            }
             OptrLookup optrLookup = optrLoader.getOptrLookup();
 
-            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"), statement);
-            int geoUnitRecords = geoUnitLoader.loadRecords();
-            log.info("Loaded " + geoUnitRecords + " geo_unit records");
-            
-            geoUnitLoader.numberNodes();
-            log.info("Numbered geography tree");
-            
-            GeoUnitLookup geoLookup = geoUnitLoader.getGeographyLookup();
-            SiteLoader siteLoader = new SiteLoader(new File(dir, "site.csv"), statement, geoLookup);
-            int localityRecords = siteLoader.loadRecords();
-            log.info("Loaded " + localityRecords + " site records");
+            GeoUnitLoader geoUnitLoader = new GeoUnitLoader(new File(dir, "geo_unit.csv"),
+                                                            statement,
+                                                            optrLookup);
+            if (doGeo)
+            {
+                int geoUnitRecords = geoUnitLoader.loadRecords();
+                log.info("Loaded " + geoUnitRecords + " geo_unit records");
+                geoUnitLoader.numberNodes();
+                log.info("Numbered geography tree");
+            }
 
+            GeoUnitLookup geoLookup = geoUnitLoader.getGeographyLookup();
+
+            SiteLoader siteLoader = new SiteLoader(new File(dir, "site.csv"), statement, geoLookup);
+            if (doSite)
+            {
+                int localityRecords = siteLoader.loadRecords();
+                log.info("Loaded " + localityRecords + " site records");
+            }
             SiteLookup siteLookup = siteLoader.getSiteLookup();
 
             BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"),
@@ -117,59 +161,80 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                new File(dir, "botanist_optr.csv"),
                                                                new File(dir, "optr_botanist.csv"),
                                                                optrLookup);
-            int botanistRecords = botanistLoader.loadRecords();
-            log.info("Loaded " + botanistRecords + " botanist records");
-            
+            if (doBot)
+            {
+                int botanistRecords = botanistLoader.loadRecords();
+                log.info("Loaded " + botanistRecords + " botanist records");
+            }
             BotanistLookup botanistLookup = botanistLoader.getBotanistLookup();
-            
+
             BotanistNameLoader botanistNameLoader = new BotanistNameLoader(new File(dir, "botanist_name.csv"),
                                                                            statement,
                                                                            botanistLookup);
-            int botanistNameRecords = botanistNameLoader.loadRecords();
-            log.info("Loaded " + botanistNameRecords + " botanist_name records");
-            
+            if (doBotName)
+            {
+                int botanistNameRecords = botanistNameLoader.loadRecords();
+                log.info("Loaded " + botanistNameRecords + " botanist_name records");
+            }
+
             BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"),
                                                                            statement,
                                                                            botanistLookup);
-            int botanistTeamRecords = botanistTeamLoader.loadRecords();
-            log.info("Loaded " + botanistTeamRecords + " botanist_team records");
+            if (doBotTeam)
+            {
+                int botanistTeamRecords = botanistTeamLoader.loadRecords();
+                log.info("Loaded " + botanistTeamRecords + " botanist_team records");
+            }
             
-            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_country.csv"),
+            BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_role_country.csv"),
                                                                                     statement,
                                                                                     geoLookup,
                                                                                     botanistLookup);
-            int botanistCountryRecords = botanistCountryLoader.loadRecords();
-            log.info("Loaded " + botanistCountryRecords + " botanist_country records");
+            if (doBotCountry)
+            {
+                int botanistCountryRecords = botanistCountryLoader.loadRecords();
+                log.info("Loaded " + botanistCountryRecords + " botanist_country records");
+            }
             
-            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_specialty.csv"),
+            BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_role_specialty.csv"),
                                                                                           statement,
                                                                                           botanistLookup);
-            int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
-            log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
-            
+            if (doBotSpec)
+            {
+                int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
+                log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
+            }
+
             OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
                                                                            statement,
                                                                            new File(dir, "org_botanist.csv"),
                                                                            botanistLookup);
-            int organizationRecords = organizationLoader.loadRecords();
-            log.info("Loaded " + organizationRecords + " organization records");
-            
+            if (doOrg)
+            {
+                int organizationRecords = organizationLoader.loadRecords();
+                log.info("Loaded " + organizationRecords + " organization records");
+            }
             OrganizationLookup orgLookup = organizationLoader.getOrganizationLookup();
             
             SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"),
                                                          statement,
                                                          new File(dir, "series_botanist.csv"),
                                                          botanistLookup);
-            int seriesRecords = seriesLoader.loadRecords();
-            log.info("Loaded " + seriesRecords + " series records");
-            
+            if (doSeries)
+            {
+                int seriesRecords = seriesLoader.loadRecords();
+                log.info("Loaded " + seriesRecords + " series records");
+            }
+         
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
                                                                   statement,
                                                                   new File(dir, "affiliate_botanist.csv"),
                                                                   botanistLookup);
-            int affiliateRecords = affiliateLoader.loadRecords();
-            log.info("Loaded " + affiliateRecords + " affiliate records");
-            
+            if (doAff)
+            {
+                int affiliateRecords = affiliateLoader.loadRecords();
+                log.info("Loaded " + affiliateRecords + " affiliate records");
+            }
             AffiliateLookup affiliateLookup = affiliateLoader.getAffiliateLookup();
             
             AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"),
@@ -177,33 +242,45 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                       new File(dir, "agent_botanist.csv"),
                                                       botanistLookup, 
                                                       orgLookup);
-            int agentRecords = agentLoader.loadRecords();
-            log.info("Loaded " + agentRecords + " agent records");
-            
+            if (doAgent)
+            {
+                int agentRecords = agentLoader.loadRecords();
+                log.info("Loaded " + agentRecords + " agent records");
+            }
             AgentLookup agentLookup = agentLoader.getAgentLookup();
             
             PublicationLoader publicationLoader = new PublicationLoader(new File(dir, "publication.csv"),
                                                                         statement);
-            int publicationRecords = publicationLoader.loadRecords();
-            log.info("Loaded " + publicationRecords + " publication records");
+            if (doPub)
+            {
+                int publicationRecords = publicationLoader.loadRecords();
+                log.info("Loaded " + publicationRecords + " publication records");
+            }
             
             PublicationLookup pubLookup = publicationLoader.getReferenceWorkLookup();
+            
             PublAuthorLoader publAuthorLoader = new PublAuthorLoader(new File(dir, "publ_author.csv"),
                                                                      statement,
                                                                      pubLookup,
                                                                      botanistLookup);
-            int publAuthorRecords = publAuthorLoader.loadRecords();
-            log.info("Loaded " + publAuthorRecords + " publ_author records");
+            if (doPubAuth)
+            {
+                int publAuthorRecords = publAuthorLoader.loadRecords();
+                log.info("Loaded " + publAuthorRecords + " publ_author records");
+            }
             
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
                                                       statement,
                                                       pubLookup);
-            int taxonRecords = taxonLoader.loadRecords(); 
-            log.info("Loaded " + taxonRecords + " taxonRecords");
+            if (doTax)
+            {
+                int taxonRecords = taxonLoader.loadRecords(); 
+                log.info("Loaded " + taxonRecords + " taxonRecords");
 
-            taxonLoader.numberNodes();
-            log.info("Numbered taxon tree");
- 
+                taxonLoader.numberNodes();
+                log.info("Numbered taxon tree");
+            }
+            
             TaxonLookup taxonLookup = taxonLoader.getTaxonLookup();
             
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
@@ -211,10 +288,12 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                               new File(dir, "subcollection_botanist.csv"),
                                                                               taxonLookup,
                                                                               botanistLookup);
-            int subcollectionRecords = subcollectionLoader.loadRecords();
-            log.info("Loaded " + subcollectionRecords + " subcollection records");
+            if (doSubcoll)
+            {
+                int subcollectionRecords = subcollectionLoader.loadRecords();
+                log.info("Loaded " + subcollectionRecords + " subcollection records");
+            }
 
-            ContainerLookup containerLookup = subcollectionLoader.getContainerLookup();
             SubcollectionLookup subcollLookup = subcollectionLoader.getSubcollectionLookup();
             
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
@@ -222,10 +301,12 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                            new File(dir, "series_botanist.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
-                                                                           containerLookup,
                                                                            siteLookup);
-            int specimenItemRecords = specimenItemLoader.loadRecords();
-            log.info("Loaded " + specimenItemRecords + " specimen_item records");
+            if (doSpec)
+            {
+                int specimenItemRecords = specimenItemLoader.loadRecords();
+                log.info("Loaded " + specimenItemRecords + " specimen_item records");
+            }
             
             SpecimenLookup specimenLookup = specimenItemLoader.getSpecimenLookup();
             PreparationLookup prepLookup  = specimenItemLoader.getPreparationLookup();
@@ -234,76 +315,116 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                               statement,
                                                                               specimenLookup,
                                                                               taxonLookup);
-            int determinationRecords = determinationLoader.loadRecords();
-            log.info("Loaded " + determinationRecords + " determination records");
-
+            if (doDet)
+            {
+                int determinationRecords = determinationLoader.loadRecords();
+                log.info("Loaded " + determinationRecords + " determination records");
+            }
+            
             TypeSpecimenLoader typeLoader = new TypeSpecimenLoader(new File(dir, "type_specimen.csv"),
                                                                        statement,
                                                                        specimenLookup,
                                                                        taxonLookup,
                                                                        pubLookup);
-            int typeRecords = typeLoader.loadRecords();
-            log.info("Loaded " + typeRecords + " type specimen records");
+            if (doType)
+            {
+                int typeRecords = typeLoader.loadRecords();
+                log.info("Loaded " + typeRecords + " type specimen records");
+            }
             
             BorrowLoader borrowLoader = new BorrowLoader(new File(dir, "borrow.csv"),
                                                          statement,
                                                          botanistLookup,
                                                          affiliateLookup,
                                                          agentLookup);
-            int borrowRecords = typeLoader.loadRecords();
-            log.info("Loaded " + borrowRecords + " borrow records");
+            if (doBorrow)
+            {
+                int borrowRecords = borrowLoader.loadRecords();
+                log.info("Loaded " + borrowRecords + " borrow records");
+            }
             
             BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
             
             IncomingExchangeLoader inExchangeLoader =
                 new IncomingExchangeLoader(new File(dir, "incoming_exchange.csv"), statement);
-            int inExchangeRecords = inExchangeLoader.loadRecords();
-            log.info("Loaded " + inExchangeRecords + " incoming exchange records");
+
+            if (doInEx)
+            {
+                int inExchangeRecords = inExchangeLoader.loadRecords();
+                log.info("Loaded " + inExchangeRecords + " incoming exchange records");
+            }
             
             IncomingGiftLoader inGiftLoader =
                 new IncomingGiftLoader(new File(dir, "incoming_gift.csv"), statement);
-            int inGiftRecords = inGiftLoader.loadRecords();
-            log.info("Loaded " + inGiftRecords + " incoming gift records");
+            
+            if (doInGift)
+            {
+                int inGiftRecords = inGiftLoader.loadRecords();
+                log.info("Loaded " + inGiftRecords + " incoming gift records");
+            }
             
             IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
             
             LoanLoader loanLoader =
                 new LoanLoader(new File(dir, "loan.csv"), statement);
-            int loanLoaderRecords = loanLoader.loadRecords();
-            log.info("Loaded " + loanLoaderRecords + " loan records");
             
+            if (doLoan)
+            {
+                int loanLoaderRecords = loanLoader.loadRecords();
+                log.info("Loaded " + loanLoaderRecords + " loan records");
+            }
+
             LoanLookup loanLookup = loanLoader.getLoanLookup();
             
             OutgoingExchangeLoader outExchangeLoader =
-                new OutgoingExchangeLoader(new File(dir, "outgoingexchange.csv"), statement);
-            int outExchangeRecords = outExchangeLoader.loadRecords();
-            log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
+                new OutgoingExchangeLoader(new File(dir, "outgoing_exchange.csv"), statement);
+            
+            if (doOutEx)
+            {
+                int outExchangeRecords = outExchangeLoader.loadRecords();
+                log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
+            }
             
             OutgoingExchangeLookup outExchangeLookup = outExchangeLoader.getOutgoingExchangeLookup();
             
             OutgoingGiftLoader outGiftLoader =
                 new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"), statement);
-            int outGiftRecords = outGiftLoader.loadRecords();
-            log.info("Loaded " + outGiftRecords + " outgoing gift records");
+            
+            if (doOutGift)
+            {
+                int outGiftRecords = outGiftLoader.loadRecords();
+                log.info("Loaded " + outGiftRecords + " outgoing gift records");
+            }
             
             OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
             
             PurchaseLoader purchaseLoader =
                 new PurchaseLoader(new File(dir, "purchase.csv"), statement);
-            int purchaseRecords = purchaseLoader.loadRecords();
-            log.info("Loaded " + purchaseRecords + " purchase records");
+            
+            if (doPurch)
+            {
+                int purchaseRecords = purchaseLoader.loadRecords();
+                log.info("Loaded " + purchaseRecords + " purchase records");
+            }
             
             StaffCollectionLoader staffCollLoader =
                 new StaffCollectionLoader(new File(dir, "staff_collection.csv"), statement);
-            int staffCollRecords = staffCollLoader.loadRecords();
-            log.info("Loaded " + staffCollRecords + " staff collection records");
             
-            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "out_return_batch.csv"),
+            if (doStaffColl)
+            {
+                int staffCollRecords = staffCollLoader.loadRecords();
+                log.info("Loaded " + staffCollRecords + " staff collection records");
+            }
+            
+            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
                                                                loanLookup,
                                                                outExchangeLookup);
-            int shipmentRecords = shipmentLoader.loadRecords();
-            log.info("Loaded " + shipmentRecords + " shipment records");
+            if (doShip)
+            {
+                int shipmentRecords = shipmentLoader.loadRecords();
+                log.info("Loaded " + shipmentRecords + " shipment records");
+            }
             
             CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
             
@@ -311,43 +432,61 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                      statement,
                                                                      borrowLookup,
                                                                      loanLookup);
-            int taxonBatchRecords = taxonBatchLoader.loadRecords();
-            log.info("Loaded " + taxonBatchRecords + " taxon batch records");
+            if (doTaxBatch)
+            {
+                int taxonBatchRecords = taxonBatchLoader.loadRecords();
+                log.info("Loaded " + taxonBatchRecords + " taxon batch records");
+            }
             
             TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
             
             InGeoBatchLoader inGeoBatchLoader = new InGeoBatchLoader(new File(dir, "in_geo_batch.csv"),
                                                                      statement,
                                                                      inGiftLookup);
-            int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
-            log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
+            if (doInGeoBatch)
+            {
+                int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
+                log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
+            }
             
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
                                                                               statement,
                                                                               taxonBatchLookup);
-            int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
-            log.info("Loaded " + inReturnBatchRecords + " in return batch records");
+            if (doInRetBatch)
+            {
+                int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
+                log.info("Loaded " + inReturnBatchRecords + " in return batch records");
+            }
             
             LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
                                                                statement,
                                                                prepLookup,
                                                                loanLookup);
-            int loanItemRecords = loanItemLoader.loadRecords();
-            log.info("Loaded " + loanItemRecords + " loan item records");
+            if (doLoanIt)
+            {
+                int loanItemRecords = loanItemLoader.loadRecords();
+                log.info("Loaded " + loanItemRecords + " loan item records");
+            }
             
             OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
                                                                         statement,
                                                                         outGiftLookup);
-            int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
-            log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+            if (doOutGeoBatch)
+            {
+                int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
+                log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+            }
             
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,
                                                                                  taxonBatchLookup,
                                                                                  carrierLookup,
                                                                                  borrowLookup);
-            int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
-            log.info("Loaded " + outReturnBatchRecords + " out return batch records");
+            if (doOutRetBatch)
+            {
+                int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
+                log.info("Loaded " + outReturnBatchRecords + " out return batch records");
+            }
             
             log.info("Loaded " + records + " records");
         }
