@@ -11,6 +11,7 @@ public class InReturnBatch
 	private String  collectionCode;
 	private TYPE    type;
 	private Integer itemCount;
+	private Integer nonSpecimenCount;
 	private String  boxCount;
 	private Boolean isAcknowledged;
 	private Date    actionDate;
@@ -26,6 +27,8 @@ public class InReturnBatch
 	
 	public Integer getItemCount() { return itemCount; }
 	
+	public Integer getNonSpecimenCount() { return nonSpecimenCount; }
+	
 	public String getBoxCount() { return boxCount; }
 	
 	public Boolean isAcknowledged() { return isAcknowledged; }
@@ -39,9 +42,12 @@ public class InReturnBatch
 	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
 	
 	public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
+	
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
+	
+	public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
 	
 	public void setBoxCount(String boxCount) { this.boxCount = boxCount; }
 	

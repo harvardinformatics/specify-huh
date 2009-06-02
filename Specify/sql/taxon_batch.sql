@@ -8,9 +8,10 @@ select tb.id,
        tb.non_specimen_count,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
        regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from,
-       decode((select name from st_lookup where id=t.type_id),
+       nvl(decode((select name from st_lookup where id=t.type_id),
               'borrow', (select sum(item_count + type_count + non_specimen_count) from out_return_batch where herb_transaction_id=t.id),
               'loan',   (select sum(item_count + type_count + non_specimen_count) from in_return_batch where herb_transaction_id=t.id)
+          ), 0
        ) as qty_returned
 
 from taxon_batch tb,

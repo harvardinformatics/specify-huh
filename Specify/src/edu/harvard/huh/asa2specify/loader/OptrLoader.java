@@ -61,7 +61,7 @@ public class OptrLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 4)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		Optr optr = new Optr();

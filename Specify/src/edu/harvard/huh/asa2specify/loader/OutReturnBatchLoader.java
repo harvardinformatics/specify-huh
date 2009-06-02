@@ -27,6 +27,8 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 public class OutReturnBatchLoader extends CsvToSqlLoader
 {
+    private static final String DEFAULT_SHIPPING_NUMBER = "none";
+    
 	private TaxonBatchLookup borrowMaterialLookup;
 	private CarrierLookup carrierLookup;
 	private BorrowLookup borrowLookup;
@@ -66,9 +68,9 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 
 	private OutReturnBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 15)
+		if (columns.length < 16)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		OutReturnBatch outReturnBatch = new OutReturnBatch();
@@ -89,6 +91,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[12] ));
 			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[13] ));
 			outReturnBatch.setNote(                                  columns[14] );
+			outReturnBatch.setTransactionNo(                         columns[15] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -215,6 +218,11 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	shipment.setShipmentMethod(method);
     	
     	// ShipmentNumber (shipment.trackingNumber)
+    	String shipmentNumber = outReturnBatch.getTransactionNo();
+    	if (shipmentNumber == null) shipmentNumber = DEFAULT_SHIPPING_NUMBER;
+    	
+    	shipmentNumber = truncate(shipmentNumber, 50, "transaction number");
+    	shipment.setShipmentNumber(shipmentNumber);
     	
     	// Text1 (shipment.customsNo)
     	    	
@@ -276,10 +284,10 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	private String getInsertSql(Shipment shipment)
 	{
 		String fields = "BorrowID, CollectionMemberID, NumberOfPackages, " +
-				        "Number1, Number2, Remarks, Shipper, ShipmentMethod, " +
-				        "TimestampCreated, YesNo1, YesNo2";
+				        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
+				        "ShipmentNumber, TimestampCreated, YesNo1, YesNo2";
 		
-		String[] values = new String[11];
+		String[] values = new String[12];
 		
 		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
 		values[1]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
@@ -289,9 +297,10 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[5]  = SqlUtils.sqlString( shipment.getRemarks());
 		values[6]  = SqlUtils.sqlString( shipment.getShipper().getId());
 		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[8]  = SqlUtils.now();
-		values[9]  = SqlUtils.sqlString( shipment.getYesNo1());
-		values[10] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[11] = SqlUtils.sqlString( shipment.getYesNo2());
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

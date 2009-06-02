@@ -32,7 +32,7 @@ public class OutGeoBatch
 	
 	public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
 	
-	public void setTransactionType(TYPE type) { this.type = type; }
+	public void setType(TYPE type) { this.type = type; }
 	
 	public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
 	

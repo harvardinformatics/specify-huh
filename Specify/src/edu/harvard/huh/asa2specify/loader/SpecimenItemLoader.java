@@ -283,7 +283,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	{
 		if (columns.length < 40)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		SpecimenItem specimenItem = new SpecimenItem();

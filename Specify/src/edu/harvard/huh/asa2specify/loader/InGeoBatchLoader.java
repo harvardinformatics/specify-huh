@@ -156,9 +156,9 @@ public class InGeoBatchLoader extends CsvToSqlLoader
 
 	private String getInsertSql(GiftPreparation giftPreparation)
 	{
-	    String fields = "CollectionMemberID, DescriptionOfMaterial, GifID, Quantity, TimestampCreated";
+	    String fields = "CollectionMemberID, DescriptionOfMaterial, GiftID, Quantity, TimestampCreated";
 	    
-	    String[] values = new String[6];
+	    String[] values = new String[5];
 	    
 	    values[0] = SqlUtils.sqlString( giftPreparation.getCollectionMemberId());
 	    values[1] = SqlUtils.sqlString( giftPreparation.getDescriptionOfMaterial());

@@ -70,7 +70,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 	{
     	if (columns.length < 18)
     	{
-    		throw new LocalException("Wrong number of columns");
+    		throw new LocalException("Not enough columns");
     	}
 		
 		try

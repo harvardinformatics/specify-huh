@@ -44,7 +44,7 @@ public class InReturnBatchLoader extends CsvToSqlLoader
 
 	private InReturnBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 9)
+		if (columns.length < 10)
 		{
 			throw new LocalException("Not enough columns");
 		}
@@ -57,10 +57,11 @@ public class InReturnBatchLoader extends CsvToSqlLoader
 			inReturnBatch.setCollectionCode(                       columns[2] );
 			inReturnBatch.setType(          Transaction.parseType( columns[3] ));
 			inReturnBatch.setItemCount(         SqlUtils.parseInt( columns[4] ));
-			inReturnBatch.setBoxCount(                             columns[5] );
-			inReturnBatch.setIsAcknowledged( Boolean.parseBoolean( columns[6] ));
-			inReturnBatch.setActionDate(       SqlUtils.parseDate( columns[7] ));
-			inReturnBatch.setTransferredTo(                        columns[8] );
+            inReturnBatch.setNonSpecimenCount(  SqlUtils.parseInt( columns[5] ));
+			inReturnBatch.setBoxCount(                             columns[6] );
+			inReturnBatch.setIsAcknowledged( Boolean.parseBoolean( columns[7] ));
+			inReturnBatch.setActionDate(       SqlUtils.parseDate( columns[8] ));
+			inReturnBatch.setTransferredTo(                        columns[9] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -95,9 +96,9 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         loanReturnPreparation.setLoanPreparation(loanPreparation);
         
         // QuantityResolved/QuantityReturned (itemCount)
-        Integer itemCount = inReturnBatch.getItemCount();
-        loanReturnPreparation.setQuantityResolved(itemCount);
-        loanReturnPreparation.setQuantityReturned(itemCount);
+        Integer quantity = getQuantity(inReturnBatch);
+        loanReturnPreparation.setQuantityResolved(quantity);
+        loanReturnPreparation.setQuantityReturned(quantity);
         
         // Remarks (transferredTo)
         String transferredTo = inReturnBatch.getTransferredTo();
@@ -114,6 +115,11 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         return loanReturnPreparation;
     }
 	
+    private int getQuantity(InReturnBatch inReturnBatch)
+    {
+        return inReturnBatch.getItemCount() + inReturnBatch.getNonSpecimenCount();
+    }
+    
     private LoanPreparation lookupTaxonBatch(Integer transactionId) throws LocalException
     {
     	return taxonBatchLookup.getLoanPreparation(transactionId);

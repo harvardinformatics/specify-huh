@@ -73,7 +73,7 @@ public class SeriesLoader extends CsvToSqlLoader
     {
     	if (columns.length < 5)
     	{
-    		throw new LocalException("Wrong number of columns");
+    		throw new LocalException("Not enough columns");
     	}
 
     	Series series = new Series();

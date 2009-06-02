@@ -165,7 +165,7 @@ public class TaxonLoader extends TreeLoader
 	{
 	    if (columns.length < 21)
 	    {
-	        throw new LocalException("Wrong number of columns");
+	        throw new LocalException("Not enough columns");
 	    }
 
 		AsaTaxon taxon = new AsaTaxon();

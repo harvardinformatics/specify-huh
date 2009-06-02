@@ -77,7 +77,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	                
 	                String inComments = String.valueOf(transactionId);
 	                
-	                Integer loanPreparationId = getInt("loanpreparation", "Loan", "InComments", inComments);
+	                Integer loanPreparationId = getInt("loanpreparation", "LoanID", "InComments", inComments);
 	                
 	                loanPreparation.setLoanPreparationId(loanPreparationId);
 	                
@@ -106,7 +106,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 11)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		TaxonBatch taxonBatch = new TaxonBatch();
@@ -190,6 +190,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
                 
         // DescriptionOfMaterial
         String description = getDescription(taxonBatch);
+        description = truncate(description, 255, "description");
         loanPreparation.setDescriptionOfMaterial(description);
         
         // IsResolved
@@ -223,7 +224,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
         loanPreparation.setQuantity(quantity);
         
         // QuantityResolved/QuantityReturned
-        int quantityReturned = taxonBatch.getQtyReturned();
+        int quantityReturned = deNullify(taxonBatch.getQtyReturned());
         
         loanPreparation.setQuantityResolved(quantityReturned);
         loanPreparation.setQuantityReturned(quantityReturned);
@@ -269,9 +270,14 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    return MessageFormat.format(pattern, args);
 	}
 
+	private int deNullify(Integer i)
+	{
+	    return i == null ? 0 : i.intValue();
+	}
+
 	private short getQuantity(TaxonBatch taxonBatch)
 	{
-	    Integer itemCount = taxonBatch.getItemCount();
+	    Integer itemCount = taxonBatch.getItemCount() ;
 	    Integer typeCount = taxonBatch.getTypeCount();
 	    Integer nonSpecimenCount = taxonBatch.getNonSpecimenCount();
 

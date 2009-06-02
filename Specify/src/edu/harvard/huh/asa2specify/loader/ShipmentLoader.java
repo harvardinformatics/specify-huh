@@ -110,7 +110,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	if (columns.length < 14)
     	{
-    		throw new LocalException("Wrong number of columns");
+    		throw new LocalException("Not enough columns");
     	}
     	
     	AsaShipment asaShipment = new AsaShipment();

@@ -57,7 +57,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 	{
 		if (columns.length < 3)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		PublAuthor publAuthor = new PublAuthor();

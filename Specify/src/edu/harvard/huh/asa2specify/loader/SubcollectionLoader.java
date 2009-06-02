@@ -211,7 +211,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
     {
     	if (columns.length < 11)
     	{
-    		throw new LocalException("Wrong number of columns");
+    		throw new LocalException("Not enough columns");
     	}
 
     	Subcollection subcollection = new Subcollection();

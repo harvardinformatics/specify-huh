@@ -23,6 +23,7 @@ public class OutReturnBatch
 	private Float   cost;
 	private Boolean isEstimatedCost;
 	private String  note;
+	private String  transactionNo;
 	
 	public Integer getId() { return id; }
 	
@@ -54,6 +55,8 @@ public class OutReturnBatch
 	
 	public String getNote() { return note; }
 	
+	public String getTransactionNo() { return transactionNo; }
+	
 	public void setId(Integer id) { this.id = id; }
 	
 	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
@@ -83,4 +86,6 @@ public class OutReturnBatch
     public void setIsEstimatedCost(Boolean isEstimatedCost) { this.isEstimatedCost = isEstimatedCost; }
 	
 	public void setNote(String note) { this.note = note; }
+	
+	public void setTransactionNo(String transactionNo) { this.transactionNo = transactionNo; }
 }

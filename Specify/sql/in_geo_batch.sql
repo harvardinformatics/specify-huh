@@ -7,6 +7,7 @@ select igb.id,
        igb.type_count,
        igb.non_specimen_count,
        igb.discard_count,
+       igb.distribute_count,
        igb.return_count,
        igb.cost
 

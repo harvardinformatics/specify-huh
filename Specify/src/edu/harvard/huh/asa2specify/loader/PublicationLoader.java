@@ -78,7 +78,7 @@ public class PublicationLoader extends AuditedObjectLoader
 	{
 		if (columns.length < 14)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 
 		Publication publication = new Publication();

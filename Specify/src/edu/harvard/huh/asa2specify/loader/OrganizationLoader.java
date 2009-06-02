@@ -123,7 +123,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 	{
 		if (columns.length < 10)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		Organization organization = new Organization();

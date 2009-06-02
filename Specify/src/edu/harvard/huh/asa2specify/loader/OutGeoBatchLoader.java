@@ -4,7 +4,9 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.MessageFormat;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.OutGeoBatch;
+import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -49,9 +51,9 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
 	private OutGeoBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 6)
+		if (columns.length < 7)
 		{
-			throw new LocalException("Wrong number of columns");
+			throw new LocalException("Not enough columns");
 		}
 		
 		OutGeoBatch outGeoBatch = new OutGeoBatch();
@@ -59,14 +61,19 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 		{			
 			outGeoBatch.setId(               SqlUtils.parseInt( columns[0] ));
 			outGeoBatch.setTransactionId(    SqlUtils.parseInt( columns[1] ));
-			outGeoBatch.setGeoUnit(                             columns[2] );
-			outGeoBatch.setItemCount(        SqlUtils.parseInt( columns[3] ));
-			outGeoBatch.setTypeCount(        SqlUtils.parseInt( columns[4] ));
-			outGeoBatch.setNonSpecimenCount( SqlUtils.parseInt( columns[5] ));			
+			outGeoBatch.setType(         Transaction.parseType( columns[2] ));
+			outGeoBatch.setGeoUnit(                             columns[3] );
+			outGeoBatch.setItemCount(        SqlUtils.parseInt( columns[4] ));
+			outGeoBatch.setTypeCount(        SqlUtils.parseInt( columns[5] ));
+			outGeoBatch.setNonSpecimenCount( SqlUtils.parseInt( columns[6] ));			
 		}
 		catch (NumberFormatException e)
 		{
 			throw new LocalException("Couldn't parse numeric field", e);
+		}
+		catch (AsaException e)
+		{
+		    throw new LocalException("Couldn't parse transaction type", e);
 		}
 		
 		return outGeoBatch;
@@ -126,7 +133,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
 	private String getInsertSql(DeaccessionPreparation deaccessionPrep)
 	{
-	    String fields = "Deaccession, Quantity, Remarks, TimestampCreated";
+	    String fields = "DeaccessionID, Quantity, Remarks, TimestampCreated";
 	    
 	    String[] values = new String[4];
 	    
