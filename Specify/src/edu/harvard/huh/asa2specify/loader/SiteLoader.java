@@ -4,6 +4,8 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -17,7 +19,8 @@ import edu.ku.brc.util.LatLonConverter.FORMAT;
 
 public class SiteLoader extends CsvToSqlLoader
 {
- 
+    private static final Logger log  = Logger.getLogger(SiteLoader.class);
+    
 	// default locality name
 	private static final String UNNAMED = "Unnamed locality";
 
@@ -55,6 +58,20 @@ public class SiteLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 	
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
+	@Override
+    protected void postLoad() throws LocalException
+    {
+        // TODO: probably drop this index after import
+	    getLogger().info("Creating guid index");
+        String sql =  "create index guid on locality(GUID)";
+        execute(sql);
+    }
+    
 	public SiteLookup getSiteLookup()
 	{
 		if (siteLookup == null)
@@ -168,11 +185,7 @@ public class SiteLoader extends CsvToSqlLoader
 		String method = site.getLatLongMethod();
 		if (method != null)
 		{
-			if (method.length() > 50)
-			{
-				warn("Truncating lat/long method", method);
-				method = method.substring(0, 50);
-			}
+			method = truncate(method, 50, "lat/long method");
 			locality.setLatLongMethod(method);
 		}
 
@@ -233,7 +246,7 @@ public class SiteLoader extends CsvToSqlLoader
 
 	private void checkLatitude(BigDecimal latitude) throws LocalException
 	{
-		if (latitude.intValue() < 0 || latitude.intValue() > 90)
+		if (latitude.abs().intValue() > 90)
 		{
 			throw new LocalException("Invalid latitude: " + latitude);
 		}
@@ -252,9 +265,9 @@ public class SiteLoader extends CsvToSqlLoader
 		String fieldNames =
 			"DisciplineID, ElevationMethod, GeographyID, GUID, LatLongMethod, Lat1Text, Lat2Text, " +
 			"Latitude1, Latitude2, Long1Text, Long2Text, Longitude1, Longitude2, LocalityName, " +
-			"MaxElevation, MinElevation, Remarks, SrcLatLongUnit, TimestampCreated";
+			"MaxElevation, MinElevation, Remarks, SrcLatLongUnit, TimestampCreated, Version";
 
-		String[] values = new String[19];
+		String[] values = new String[20];
 
 		values[0]  = SqlUtils.sqlString( locality.getDiscipline().getId());
 		values[1]  = SqlUtils.sqlString( locality.getElevationMethod());
@@ -275,7 +288,8 @@ public class SiteLoader extends CsvToSqlLoader
 		values[16] = SqlUtils.sqlString( locality.getRemarks());
 		values[17] = SqlUtils.sqlString( locality.getSrcLatLongUnit());
 		values[18] = SqlUtils.now();
-
+		values[19] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("locality", fieldNames, values);
 	}
 }

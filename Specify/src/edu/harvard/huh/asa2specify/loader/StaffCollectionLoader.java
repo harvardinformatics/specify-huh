@@ -19,6 +19,8 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.StaffCollection;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -30,6 +32,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class StaffCollectionLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(StaffCollectionLoader.class);
+    
     public StaffCollectionLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
         super(csvFile, sqlStatement);
@@ -54,6 +58,11 @@ public class StaffCollectionLoader extends TransactionLoader
             sql = getInsertSql(collector);
             insert(sql);
         }
+    }
+    
+    public Logger getLogger()
+    {
+        return log;
     }
     
     private StaffCollection parse(String[] columns) throws LocalException
@@ -205,38 +214,40 @@ public class StaffCollectionLoader extends TransactionLoader
     private String getInsertSql(Accession accession)
     {
         String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, DivisionID, " +
-        		            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
+        		            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[13];
+        String[] values = new String[14];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
         values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
         values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
         values[4]  = SqlUtils.sqlString( accession.getDivision().getId());
-        values[4]  = SqlUtils.sqlString( accession.getNumber1());
-        values[5]  = SqlUtils.sqlString( accession.getRemarks());
-        values[6]  = SqlUtils.sqlString( accession.getText1());
-        values[7]  = SqlUtils.sqlString( accession.getText2());
-        values[8]  = SqlUtils.sqlString( accession.getText3());
-        values[9]  = SqlUtils.sqlString( accession.getType());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.sqlString( accession.getYesNo1());
+        values[5]  = SqlUtils.sqlString( accession.getNumber1());
+        values[6]  = SqlUtils.sqlString( accession.getRemarks());
+        values[7]  = SqlUtils.sqlString( accession.getText1());
+        values[8]  = SqlUtils.sqlString( accession.getText2());
+        values[9]  = SqlUtils.sqlString( accession.getText3());
+        values[10] = SqlUtils.sqlString( accession.getType());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.one();
+        values[13] = SqlUtils.sqlString( accession.getYesNo1());
 
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
 
     private String getInsertSql(AccessionAgent accessionAgent)
     {
-        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated";
+        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated, Version";
 
-        String[] values = new String[4];
+        String[] values = new String[5];
 
         values[0] = SqlUtils.sqlString( accessionAgent.getAccession().getId());
         values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
         values[2] = SqlUtils.sqlString( accessionAgent.getRole());
         values[3] = SqlUtils.now();
-
+        values[4] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }
 }

@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -18,6 +20,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends AuditedObjectLoader
 {	
+    private static final Logger log  = Logger.getLogger(BotanistLoader.class);
+    
     private BotanistLookup botanistLookup;
     private AsaIdMapper optrs;
     
@@ -33,7 +37,7 @@ public class BotanistLoader extends AuditedObjectLoader
 		
 		setOptrBotanistMapper(new AsaIdMapper(optrBotanists));
 		setOptrLookup(optrLookup);
-		setBotanistLookup(getBotanistLookup());
+        setBotanistLookup(getBotanistLookup());
 	}
     
     public BotanistLookup getBotanistLookup()
@@ -86,6 +90,11 @@ public class BotanistLoader extends AuditedObjectLoader
             update(sql);
         }
 	}
+
+    public Logger getLogger()
+    {
+        return log;
+    }
 
     protected static String getGuid(Integer botanistId)
     {
@@ -167,7 +176,12 @@ public class BotanistLoader extends AuditedObjectLoader
                 
         // FirstName
         String name = botanist.getName();
-        checkNull(name, "name");
+        if (name == null)
+        {
+            getLogger().warn(rec() + "Empty name");
+            name = EMPTY;
+            botanist.setName(name);
+        }
 
 		String firstName = botanist.getFirstName();
 		if (firstName != null)
@@ -201,10 +215,10 @@ public class BotanistLoader extends AuditedObjectLoader
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = 
-			"AgentType, CreatedByAgentID, DateOfBirth, DateOfDeath, FirstName, GUID, LastName, Remarks, TimestampCreated";
+		String fieldNames = "AgentType, CreatedByAgentID, DateOfBirth, DateOfDeath, " +
+				            "FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[9];
+		String[] values = new String[10];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
 		values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
@@ -215,7 +229,7 @@ public class BotanistLoader extends AuditedObjectLoader
 	    values[6] = SqlUtils.sqlString( agent.getLastName());
 	    values[7] = SqlUtils.sqlString( agent.getRemarks());
 		values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
-
+		values[9] = SqlUtils.one();
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

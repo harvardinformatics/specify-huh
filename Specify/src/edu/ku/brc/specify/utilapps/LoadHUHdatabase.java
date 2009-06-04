@@ -34,7 +34,6 @@ import edu.harvard.huh.asa2specify.loader.*;
 import edu.harvard.huh.asa2specify.lookup.*;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
-import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.specify.dbsupport.SpecifyDeleteHelper;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ProgressFrame;
@@ -42,6 +41,7 @@ import edu.ku.brc.ui.UIHelper;
 
 public class LoadHUHdatabase
 {
+    // TODO: insert into agent_discipline(AgentID, DisciplineID) select a.AgentID, 3 from agent a where a.AgentID > 1;
     private static final Logger  log      = Logger.getLogger(LoadHUHdatabase.class);
 
     protected Session            session;
@@ -157,22 +157,6 @@ public class LoadHUHdatabase
                 if (hideFrame) System.out.println("Login Failed!");
                 return false;
             }
-                        
-/*            setSession(HibernateUtil.getCurrentSession());
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    frame.getProcessProgress().setIndeterminate(true);
-                    frame.getProcessProgress().setString("");
-                    frame.setDesc("Saving data into "+dbName+"....");
-                    frame.setOverall(steps++);
-                }
-            });
-            
-            if (hideFrame) System.out.println("Persisting Data...");
-            
-            HibernateUtil.getCurrentSession().close();*/
             
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -379,6 +363,7 @@ public class LoadHUHdatabase
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
                                                                            statement,
                                                                            new File(dir, "series_botanist.csv"),
+                                                                           new File(dir, "specimen_item_id_barcode.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
                                                                            siteLookup);
@@ -489,7 +474,7 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             frame.setDesc("Loading shipments...");
-            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "out_return_batch.csv"),
+            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
                                                                loanLookup,
                                                                outExchangeLookup);

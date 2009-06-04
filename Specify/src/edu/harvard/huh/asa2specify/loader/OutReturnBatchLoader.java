@@ -7,6 +7,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.OutReturnBatch;
@@ -27,6 +29,8 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 public class OutReturnBatchLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(OutReturnBatchLoader.class);
+    
     private static final String DEFAULT_SHIPPING_NUMBER = "none";
     
 	private TaxonBatchLookup borrowMaterialLookup;
@@ -66,6 +70,11 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	private OutReturnBatch parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 16)
@@ -267,9 +276,9 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
 		String fields = "BorrowMaterialID, CollectionMemberID, Quantity, " +
-				        "Remarks, ReturnedDate, TimestampCreated";
+				        "Remarks, ReturnedDate, TimestampCreated, Version";
 		
-		String[] values = new String[6];
+		String[] values = new String[7];
 		
 		values[0] = SqlUtils.sqlString( borrowReturnMaterial.getBorrowMaterial().getId());
 		values[1] = SqlUtils.sqlString( borrowReturnMaterial.getCollectionMemberId());
@@ -277,6 +286,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
 		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
 		values[5] = SqlUtils.now();
+		values[6] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("borrowreturnmaterial", fields, values);
 	}
@@ -285,9 +295,9 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	{
 		String fields = "BorrowID, CollectionMemberID, NumberOfPackages, " +
 				        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
-				        "ShipmentNumber, TimestampCreated, YesNo1, YesNo2";
+				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
-		String[] values = new String[12];
+		String[] values = new String[13];
 		
 		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
 		values[1]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
@@ -299,8 +309,9 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
 		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.sqlString( shipment.getYesNo1());
-		values[11] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[10] = SqlUtils.one();
+		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
@@ -26,6 +28,8 @@ import edu.ku.brc.specify.datamodel.TaxonCitation;
 
 public class SubcollectionLoader extends AuditedObjectLoader
 {
+    private static final Logger log  = Logger.getLogger(SubcollectionLoader.class);
+    
     private String getGuid(Integer subcollectionId)
 	{
 		return subcollectionId + " subcoll";
@@ -121,6 +125,11 @@ public class SubcollectionLoader extends AuditedObjectLoader
         }
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
     public SubcollectionLookup getSubcollectionLookup()
     {
         if (subcollLookup == null)
@@ -133,9 +142,9 @@ public class SubcollectionLoader extends AuditedObjectLoader
                     
                     String guid = getGuid(subcollectionId);
 
-                    String subselect =  "(" + SqlUtils.getQueryIdByFieldSql("referencework", "ReferenceWorkID", "GUID", guid) + ")";
+                    String sql = "select ExsiccataID from exsiccata where ReferenceWorkID=(select ReferenceWorkID from referencework where GUID=\"" +  guid + "\")";
                     
-                    Integer exsiccataId = getInt("exsiccata", "ExsiccataID", "ReferenceWorkID", subselect);
+                    Integer exsiccataId = getInt(sql);
 
                     exsiccata.setExsiccataId(exsiccataId);
                     
@@ -429,9 +438,10 @@ public class SubcollectionLoader extends AuditedObjectLoader
     
     private String getInsertSql(Container container) throws LocalException
     {
-        String fieldNames = "CollectionMemberID, CreatedByAgentID, Description, Name, Number, TimestampCreated";
+        String fieldNames = "CollectionMemberID, CreatedByAgentID, Description, Name, " +
+        		            "Number, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[7];
         
         values[0] = SqlUtils.sqlString( container.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( container.getCreatedByAgent().getId());
@@ -439,15 +449,17 @@ public class SubcollectionLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( container.getName());
         values[4] = SqlUtils.sqlString( container.getNumber());
         values[5] = SqlUtils.sqlString( container.getTimestampCreated());
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
     
     private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "CreatedByAgentID, GUID, ReferenceWorkType, Remarks, TimestampCreated, Title";
+		String fieldNames = "CreatedByAgentID, GUID, ReferenceWorkType, Remarks, TimestampCreated, " +
+				            "Title, Version";
 
-		String[] values = new String[6];
+		String[] values = new String[7];
 
 		values[0] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
 		values[1] = SqlUtils.sqlString( referenceWork.getGuid());
@@ -455,64 +467,69 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		values[3] = SqlUtils.sqlString( referenceWork.getRemarks());
 		values[4] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
 		values[5] = SqlUtils.sqlString( referenceWork.getTitle());
-
+		values[6] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
     
     private String getInsertSql(Agent agent) throws LocalException
     {
-        String fieldNames = 
-            "AgentType, CreatedByAgentID, FirstName, LastName, TimestampCreated";
+        String fieldNames = "AgentType, CreatedByAgentID, FirstName, GUID, LastName, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[7];
 
         values[0] = SqlUtils.sqlString( agent.getAgentType());
         values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
         values[2] = SqlUtils.sqlString( agent.getFirstName());
-        values[3] = SqlUtils.sqlString( agent.getLastName());
-        values[4] = SqlUtils.now();
-
+        values[3] = SqlUtils.sqlString( agent.getGuid());
+        values[4] = SqlUtils.sqlString( agent.getLastName());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
 
     private String getInsertSql(Exsiccata exsiccata) throws LocalException
     {
-    	String fieldNames = "CreatedByAgentID, Title, ReferenceWorkID, TimestampCreated";
+    	String fieldNames = "CreatedByAgentID, Title, ReferenceWorkID, TimestampCreated, Version";
  
-    	String[] values = new String[4];
+    	String[] values = new String[5];
     	
     	values[0] = SqlUtils.sqlString( exsiccata.getCreatedByAgent().getId());
     	values[1] = SqlUtils.sqlString( exsiccata.getTitle());
     	values[2] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
     	values[3] = SqlUtils.now();
+    	values[4] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }
     
     private String getInsertSql(Author author)
 	{
-		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
+		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated, Version";
 
-		String[] values = new String[4];
+		String[] values = new String[5];
 
 		values[0] = String.valueOf( author.getAgent().getId());
 		values[1] = String.valueOf( author.getReferenceWork().getId());
 		values[2] = String.valueOf( author.getOrderNumber());
 		values[3] = SqlUtils.now();
-
+		values[4] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}
     
     private String getInsertSql(TaxonCitation taxonCitation)
     {
-        String fieldNames = "TaxonID, ReferenceWorkID, TimestampCreated";
+        String fieldNames = "TaxonID, ReferenceWorkID, TimestampCreated, Version";
         
-        String[] values = new String[3];
+        String[] values = new String[4];
         
         values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
         values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
         values[2] = SqlUtils.now();
-
+        values[3] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }
 }

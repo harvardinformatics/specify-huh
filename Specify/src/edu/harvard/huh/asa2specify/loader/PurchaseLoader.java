@@ -19,6 +19,8 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Purchase;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -30,6 +32,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class PurchaseLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(PurchaseLoader.class);
+    
     public PurchaseLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
         super(csvFile, sqlStatement);
@@ -63,6 +67,11 @@ public class PurchaseLoader extends TransactionLoader
         }
     }
 
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
     private Accession getAccession(Purchase purchase) throws LocalException
     {
         Accession accession = new Accession();
@@ -212,9 +221,10 @@ public class PurchaseLoader extends TransactionLoader
     private String getInsertSql(Accession accession)
     {
         String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
-                            "DivisionID, Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, YesNo1";
+                            "DivisionID, Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, " +
+                            "Version, YesNo1";
 
-        String[] values = new String[13];
+        String[] values = new String[14];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
@@ -228,22 +238,24 @@ public class PurchaseLoader extends TransactionLoader
         values[9]  = SqlUtils.sqlString( accession.getText3());
         values[10] = SqlUtils.sqlString( accession.getType());
         values[11] = SqlUtils.now();
-        values[12] = SqlUtils.sqlString( accession.getYesNo1());
+        values[12] = SqlUtils.one();
+        values[13] = SqlUtils.sqlString( accession.getYesNo1());
 
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
 
     private String getInsertSql(AccessionAgent accessionAgent)
     {
-        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated";
+        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated, Version";
 
-        String[] values = new String[4];
+        String[] values = new String[5];
 
         values[0] = SqlUtils.sqlString( accessionAgent.getAccession().getId());
         values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
         values[2] = SqlUtils.sqlString( accessionAgent.getRole());
         values[3] = SqlUtils.now();
-
+        values[4] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }
 }

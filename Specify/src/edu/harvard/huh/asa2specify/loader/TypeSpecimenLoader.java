@@ -17,6 +17,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -35,6 +37,8 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(TypeSpecimenLoader.class);
+    
     private SpecimenLookup      specimenLookup;
     private TaxonLookup         taxonLookup;
     private PublicationLookup   publicationLookup;
@@ -84,6 +88,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
     }
 
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
     private TypeSpecimen parse(String[] columns) throws LocalException
     {
         if (columns.length < 20)
@@ -166,7 +175,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         else if (startYear != null)
         {
-            warn("Invalid determination date",
+            getLogger().warn("Invalid verification date: " +
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
         
@@ -262,7 +271,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         else
         {
-            warn("No designator for publication", null);
+            getLogger().warn(rec() + "No designator for publication");
         }
         
         if (collation != null)
@@ -301,9 +310,9 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     {
         String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, " +
-        		            "TimestampCreated, TypeStatusName, YesNo2";
+        		            "TimestampCreated, TypeStatusName, Version, YesNo2";
 
-        String[] values = new String[12];
+        String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
@@ -316,24 +325,26 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[8]  = SqlUtils.sqlString( determination.getText1());
         values[9]  = SqlUtils.now();
         values[10] = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[11] = SqlUtils.sqlString( determination.getYesNo2());
-
+        values[11] = SqlUtils.one();
+        values[12] = SqlUtils.sqlString( determination.getYesNo2());
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
     
     private String getInsertSql(DeterminationCitation determinationCitation)
     {
-        String fieldNames = "CollectionMemberID, DeterminationID, ReferenceWorkID, Remarks, TimestampCreated";
+        String fieldNames = "CollectionMemberID, DeterminationID, ReferenceWorkID, Remarks, " +
+        		            "TimestampCreated, Version";
         
-        String[] values = new String[5];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
         values[2] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
         values[3] = SqlUtils.sqlString( determinationCitation.getRemarks());
         values[4] = SqlUtils.now();
-
+        values[5] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }
 }

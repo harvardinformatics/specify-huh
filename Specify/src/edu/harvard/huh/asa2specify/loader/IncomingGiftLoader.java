@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.IncomingGift;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
@@ -31,6 +33,8 @@ import edu.ku.brc.specify.datamodel.GiftAgent;
 
 public class IncomingGiftLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(IncomingGiftLoader.class);
+    
     private static final String DEFAULT_GIFT_NUMBER = "none";
     
     private IncomingGiftLookup inGiftLookup;
@@ -72,6 +76,11 @@ public class IncomingGiftLoader extends TransactionLoader
         }
     }
  
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
     public IncomingGiftLookup getIncomingGiftLookup()
     {
         if (inGiftLookup == null)
@@ -133,11 +142,7 @@ public class IncomingGiftLoader extends TransactionLoader
         {
             transactionNo = DEFAULT_GIFT_NUMBER;
         }
-        if (transactionNo.length() > 50)
-        {
-            warn("Truncating invoice number", transactionNo);
-            transactionNo = transactionNo.substring(0, 50);
-        }
+        transactionNo = truncate(transactionNo, 50, "transaction number");
         gift.setGiftNumber(transactionNo);
         
         // Number1 (id) TODO: temporary!! remove when done!
@@ -218,9 +223,10 @@ public class IncomingGiftLoader extends TransactionLoader
     private String getInsertSql(Gift gift)
     {
         String fieldNames = "CreatedByAgentID, DisciplineID, DivisionID, GiftDate, GiftNumber, " +
-                            "Number1, PurposeOfGift, Remarks, Text1, Text2, TimestampCreated, YesNo1";
+                            "Number1, PurposeOfGift, Remarks, Text1, Text2, TimestampCreated, " +
+                            "Version, YesNo1";
         
-        String[] values = new String[12];
+        String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( gift.getDiscipline().getId());
@@ -233,23 +239,25 @@ public class IncomingGiftLoader extends TransactionLoader
         values[8]  = SqlUtils.sqlString( gift.getText1());
         values[9]  = SqlUtils.sqlString( gift.getText2());
         values[10] = SqlUtils.sqlString( gift.getTimestampCreated());
-        values[11] = SqlUtils.sqlString( gift.getYesNo1());
+        values[11] = SqlUtils.one();
+        values[12] = SqlUtils.sqlString( gift.getYesNo1());
         
         return SqlUtils.getInsertSql("gift", fieldNames, values);
     }
     
     private String getInsertSql(GiftAgent borrowAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, GiftID, Role, TimestampCreated";
+        String fieldNames = "AgentID, CollectionMemberID, GiftID, Role, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
         values[2] = SqlUtils.sqlString( borrowAgent.getGift().getId());
         values[3] = SqlUtils.sqlString( borrowAgent.getRole());
         values[4] = SqlUtils.now();
-
+        values[5] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     }
 }

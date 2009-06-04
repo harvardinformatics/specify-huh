@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.Transaction;
@@ -36,6 +38,8 @@ public class ShipmentLoader extends CsvToSqlLoader
 {
     // Loan/Exchange/Gift
     
+    private static final Logger log  = Logger.getLogger(ShipmentLoader.class);
+            
     private static final String DEFAULT_SHIPPING_NUMBER = "none";
     
 	private HashMap<String, Agent> shippers;
@@ -71,6 +75,11 @@ public class ShipmentLoader extends CsvToSqlLoader
         
         String sql = getInsertSql(shipment);
         insert(sql);
+    }
+    
+    public Logger getLogger()
+    {
+        return log;
     }
     
     public CarrierLookup getCarrierLookup()
@@ -125,11 +134,11 @@ public class ShipmentLoader extends CsvToSqlLoader
     		asaShipment.setIsEstimatedCost( Boolean.parseBoolean( columns[6]  ));
     		asaShipment.setIsInsured(       Boolean.parseBoolean( columns[7]  ));
     		asaShipment.setOrdinal(            SqlUtils.parseInt( columns[8]  ));
-    		asaShipment.setTrackingNumber(                        columns[9]  );
+    		asaShipment.setTrackingNumber(                        columns[9] );
     		asaShipment.setCustomsNumber(                         columns[10] );
     		asaShipment.setDescription(                           columns[11] );
     		asaShipment.setBoxCount(                              columns[12] );
-    		asaShipment.setCollectionCode(                        columns[13] );
+            asaShipment.setCollectionCode(                        columns[13] );
     	}
     	catch (NumberFormatException e)
     	{
@@ -137,7 +146,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	}
     	catch (AsaException e)
     	{
-    		throw new LocalException("Couldn't parse field", e);
+    		throw new LocalException("Couldn't parse carrier/method field", e);
     	}
     	
     	return asaShipment;
@@ -161,7 +170,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	}
     	else if (type.equals(TYPE.OutGift))
     	{
-    		warn("No link in Specify to deaccession", null); // TODO: put fields into transaction loader for out gift?
+    		getLogger().warn(rec() + "No link in Specify to deaccession");
     		shipment.setExchangeOut(new ExchangeOut());
     		shipment.setLoan(new Loan());
     	}
@@ -311,9 +320,9 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
 		String fields = "CollectionMemberID, ExchangeOutID, InsuredForAmount, LoanID, NumberOfPackages, " +
                         "Number1, Number2, Remarks, ShipperID, ShipmentMethod, ShipmentNumber, " +
-                        "TimestampCreated, YesNo1";
+                        "TimestampCreated, Version, YesNo1";
 
-		String[] values = new String[13];
+		String[] values = new String[14];
 
 		values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
@@ -327,21 +336,23 @@ public class ShipmentLoader extends CsvToSqlLoader
 		values[9]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[10] = SqlUtils.sqlString( shipment.getShipmentNumber());
 		values[11] = SqlUtils.now();
-		values[12] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[12] = SqlUtils.one();
+		values[13] = SqlUtils.sqlString( shipment.getYesNo1());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }
 
 	private String getInsertSql(Agent agent)
     {
-    	String fieldNames = "AgentType, GUID, LastName, TimestampCreated";
+    	String fieldNames = "AgentType, GUID, LastName, TimestampCreated, Version";
     	
-    	String[] values = new String[4];
+    	String[] values = new String[5];
     	
     	values[0] = SqlUtils.sqlString( agent.getAgentType());
     	values[1] = SqlUtils.sqlString( agent.getGuid());
     	values[2] = SqlUtils.sqlString( agent.getLastName());
     	values[3] = SqlUtils.now();
+    	values[4] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("agent", fieldNames, values);
     }

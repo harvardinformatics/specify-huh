@@ -3491,7 +3491,8 @@ public class BuildSampleDatabase
         earth.setDefinition(treeDef);
         GeographyTreeDefItem defItem = treeDef.getDefItemByRank(0);
         earth.setDefinitionItem(defItem);
-
+        earth.setVersion(1);
+        
         int counter = 0;
         
         try
@@ -4655,6 +4656,7 @@ public class BuildSampleDatabase
         taxon.setName("Taxonomy Root");
         taxon.setDefinition(treeDef);
         taxon.setDefinitionItem(rootTTD);
+        taxon.setVersion(1);
         rootTTD.getTreeEntries().add(taxon);
         taxon.setParent(null);
         persist(taxon);

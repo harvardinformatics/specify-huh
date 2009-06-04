@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Series;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -14,6 +16,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class SeriesLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(SeriesLoader.class);
+    
 	private AsaIdMapper seriesToBotanistMapper;
     private BotanistLookup botanistLookup;
     
@@ -46,7 +50,7 @@ public class SeriesLoader extends CsvToSqlLoader
             
             if (seriesAgent.getRemarks() != null)
             {
-            	warn("Ignoring remarks", seriesAgent.getRemarks());
+            	getLogger().warn(rec() + "Ignoring remarks: " + seriesAgent.getRemarks());
             }
 
             String sql = getUpdateSql(seriesAgent, botanistAgent.getId());
@@ -58,6 +62,11 @@ public class SeriesLoader extends CsvToSqlLoader
             insert(sql);
         }      
 	}
+    
+    public Logger getLogger()
+    {
+        return log;
+    }
     
     private Agent lookup(Integer botanistId) throws LocalException
     {
@@ -137,9 +146,9 @@ public class SeriesLoader extends CsvToSqlLoader
 	
     private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "Abbreviation, AgentType, GUID, LastName, Remarks, TimestampCreated";
+		String fieldNames = "Abbreviation, AgentType, GUID, LastName, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[6];
+		String[] values = new String[7];
 
 		values[0] = SqlUtils.sqlString( agent.getAbbreviation());
 		values[1] = SqlUtils.sqlString( agent.getAgentType());
@@ -147,7 +156,8 @@ public class SeriesLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( agent.getLastName());
 		values[4] = SqlUtils.sqlString( agent.getRemarks());
 		values[5] = SqlUtils.now();
-
+		values[6] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);    
 	}
     

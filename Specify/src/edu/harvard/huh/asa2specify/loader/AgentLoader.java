@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -17,6 +19,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class AgentLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(AgentLoader.class);
+    
 	private AgentLookup        agentLookup;
 	
 	private OrganizationLookup organizationLookup;
@@ -81,7 +85,7 @@ public class AgentLoader extends CsvToSqlLoader
             
         	if (agent.getRemarks() != null)
             {
-                warn("Ignoring remarks", asaAgent.getRemarks());
+                getLogger().warn(rec() + "Ignoring remarks: " + asaAgent.getRemarks());
             }
         	
             String sql = getUpdateSql(agent, agentId);
@@ -111,6 +115,11 @@ public class AgentLoader extends CsvToSqlLoader
         }
 	}
 	
+	public Logger getLogger()
+	{
+	    return log;
+	}
+
 	private String getGuid(Integer agentId)
 	{
 		return agentId + " agent";
@@ -226,10 +235,9 @@ public class AgentLoader extends CsvToSqlLoader
 		
 		// Title
 		String prefix = asaAgent.getPrefix();
-		if (prefix != null && prefix.length() > 50)
+		if (prefix != null)
 		{
-		    warn("Truncating prefix", prefix);
-		    prefix = prefix.substring(0, 50);
+		    prefix = truncate(prefix, 50, "prefix");
 		}
 		agent.setTitle(prefix);
 		
@@ -314,9 +322,9 @@ public class AgentLoader extends CsvToSqlLoader
 	{
 		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle, " +
 				            "LastName, ParentOrganizationID, Remarks, TimestampCreated, " +
-				            "Title, URL";
+				            "Title, URL, Version";
 
-		String[] values = new String[12];
+		String[] values = new String[13];
 
 		values[0]  = SqlUtils.sqlString( agent.getAgentType());
 		values[1]  = SqlUtils.sqlString( agent.getEmail());
@@ -330,7 +338,8 @@ public class AgentLoader extends CsvToSqlLoader
 		values[9]  = SqlUtils.now();
 		values[10] = SqlUtils.sqlString( agent.getTitle());
 		values[11] = SqlUtils.sqlString( agent.getUrl());
-
+		values[12] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
@@ -353,9 +362,9 @@ public class AgentLoader extends CsvToSqlLoader
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = " Address, AgentID,Fax, IsShipping, Phone1, TimestampCreated";
+        String fieldNames = "Address, AgentID,Fax, IsShipping, Phone1, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[7];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
         values[1] = SqlUtils.sqlString( address.getAgent().getAgentId());
@@ -363,6 +372,7 @@ public class AgentLoader extends CsvToSqlLoader
         values[3] = SqlUtils.sqlString( address.getIsShipping());
         values[4] = SqlUtils.sqlString( address.getPhone1());
         values[5] = SqlUtils.now();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

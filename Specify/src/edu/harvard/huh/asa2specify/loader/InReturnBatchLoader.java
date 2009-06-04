@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.InReturnBatch;
 import edu.harvard.huh.asa.Transaction;
@@ -17,6 +19,8 @@ import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 
 public class InReturnBatchLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(InReturnBatchLoader.class);
+    
 	private TaxonBatchLookup taxonBatchLookup;
 	
 	public InReturnBatchLoader(File csvFile,
@@ -42,6 +46,11 @@ public class InReturnBatchLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 
+	public Logger getLogger()
+	{
+	    return log;
+	}
+	
 	private InReturnBatch parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 10)
@@ -128,9 +137,9 @@ public class InReturnBatchLoader extends CsvToSqlLoader
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
     {
         String fieldNames = "CollectionMemberID, LoanPreparationID, QuantityResolved, " +
-        		            "QuantityReturned, ReturnedDate, TimestampCreated";
+        		            "QuantityReturned, ReturnedDate, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[7];
         
         values[0] = SqlUtils.sqlString( loanReturnPreparation.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
@@ -138,6 +147,7 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
         values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
         values[5] = SqlUtils.now();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
     }

@@ -68,7 +68,7 @@ public abstract class AuditedObjectLoader extends CsvToSqlLoader
         	{
 	        	Integer botanistId = BotanistsByOptr.map(optrId);
 	        	
-	        	if (botanistId != null)
+	        	if (botanistId != null && BotanistLookup != null)
 	        	{
 	        		agent = BotanistLookup.getById(botanistId);
 	        	}

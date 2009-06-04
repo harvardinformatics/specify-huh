@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Publication;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -15,6 +17,8 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublicationLoader extends AuditedObjectLoader
 {
+    private static final Logger log  = Logger.getLogger(PublicationLoader.class);
+    
  	private PublicationLookup publicationLookup;
 	
 	public PublicationLoader(File csvFile, Statement sqlStatement) throws LocalException
@@ -50,6 +54,11 @@ public class PublicationLoader extends AuditedObjectLoader
 		insert(sql);
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	public PublicationLookup getReferenceWorkLookup()
 	{
 		if (publicationLookup == null)
@@ -163,7 +172,12 @@ public class PublicationLoader extends AuditedObjectLoader
         
 		// Title
 		String title = publication.getTitle();
-		checkNull(title, "title");
+		if (title == null)
+		{
+		    getLogger().warn(rec() + "Empty title");
+		    title = EMPTY;
+		    publication.setTitle(title);
+		}
 		title = truncate(title, 255, "title");
 		referenceWork.setTitle(title);
 
@@ -211,7 +225,12 @@ public class PublicationLoader extends AuditedObjectLoader
 
 		// JournalName
 		String title = publication.getTitle();
-		checkNull(title, "title");
+        if (title == null)
+        {
+            getLogger().warn(rec() + "Empty title");
+            title = EMPTY;
+            publication.setTitle(title);
+        }
 		title = truncate(title, 255, "title");
 		journal.setJournalName(title);
 
@@ -233,9 +252,9 @@ public class PublicationLoader extends AuditedObjectLoader
     
 	private String getInsertSql(Journal journal) throws LocalException
 	{
-		String fieldNames = "GUID, ISSN, JournalAbbreviation, JournalName, Text1, TimestampCreated";
+		String fieldNames = "GUID, ISSN, JournalAbbreviation, JournalName, Text1, TimestampCreated, Version";
 
-		String[] values = new String[6];
+		String[] values = new String[7];
 
 		values[0] = SqlUtils.sqlString( journal.getGuid());
 		values[1] = SqlUtils.sqlString( journal.getIssn());
@@ -243,16 +262,17 @@ public class PublicationLoader extends AuditedObjectLoader
 		values[3] = SqlUtils.sqlString( journal.getJournalName());
 		values[4] = SqlUtils.sqlString( journal.getText1());
         values[5] = SqlUtils.sqlString( journal.getTimestampCreated());
-
+        values[6] = SqlUtils.one();
+        
 		return SqlUtils.getInsertSql("journal", fieldNames, values);
 	}
 
 	private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
 		String fieldNames = "CreatedByAgentID, GUID, ISBN, JournalID, PlaceOfPublication, Publisher, " +
-				            "ReferenceWorkType, Remarks, TimestampCreated, Title, URL, WorkDate";
+				            "ReferenceWorkType, Remarks, TimestampCreated, Title, URL, Version, WorkDate";
 
-		String[] values = new String[12];
+		String[] values = new String[13];
 
 		values[0]  = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
 		values[1]  = SqlUtils.sqlString( referenceWork.getGuid());
@@ -265,7 +285,8 @@ public class PublicationLoader extends AuditedObjectLoader
         values[8]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
         values[9]  = SqlUtils.sqlString( referenceWork.getTitle());
 		values[10] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[11] = SqlUtils.sqlString( referenceWork.getWorkDate());
+		values[11] = SqlUtils.one();
+		values[12] = SqlUtils.sqlString( referenceWork.getWorkDate());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}

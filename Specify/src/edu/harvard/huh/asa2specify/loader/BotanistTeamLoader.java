@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.BotanistTeamMember;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -14,6 +16,8 @@ import edu.ku.brc.specify.datamodel.GroupPerson;
 
 public class BotanistTeamLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(BotanistTeamLoader.class);
+    
     private BotanistLookup botanistLookup;
     
 	private int lastAgentId;
@@ -47,7 +51,12 @@ public class BotanistTeamLoader extends CsvToSqlLoader
         insert(sql);
 	}
 
-    private BotanistTeamMember parse(String[] columns) throws LocalException
+	public Logger getLogger()
+	{
+	    return log;
+	}
+
+	private BotanistTeamMember parse(String[] columns) throws LocalException
     {
         if (columns.length < 3)
         {
@@ -114,15 +123,16 @@ public class BotanistTeamLoader extends CsvToSqlLoader
    
     private String getInsertSql(GroupPerson groupPerson)
     {
-    	String fieldNames = "CollectionMemberID, GroupID, MemberID, OrderNumber, TimestampCreated";
+    	String fieldNames = "CollectionMemberID, GroupID, MemberID, OrderNumber, TimestampCreated, Version";
     	
-    	String[] values = new String[5];
+    	String[] values = new String[6];
     	
     	values[0] = SqlUtils.sqlString( groupPerson.getCollectionMemberId());
     	values[1] = SqlUtils.sqlString( groupPerson.getGroup().getId());
     	values[2] = SqlUtils.sqlString( groupPerson.getMember().getId());
     	values[3] = SqlUtils.sqlString( groupPerson.getOrderNumber());
     	values[4] = SqlUtils.now();
+    	values[5] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }

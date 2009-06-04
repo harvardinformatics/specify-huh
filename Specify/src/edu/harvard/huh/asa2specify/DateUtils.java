@@ -12,7 +12,7 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 public class DateUtils {
 	
 	public static final int MIN_YEAR = 1766;
-	public static final int MAX_YEAR = 2008;
+	public static final int MAX_YEAR = 2009;
 	
 	private static final String[] MONTHS =
 		{ "January", "February", "March", "April", "May", "June",

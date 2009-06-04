@@ -1,9 +1,9 @@
 select l.id,
        l.loan_id,
        to_char(l.return_date, 'YYYY-MM-DD HH24:MI:SS') as return_date,
-       l.barcode,
-       l.transferred_from,
-       l.transferred_to,
+       regexp_replace(l.barcode, '[[:space:]]+', ' ') as barcode,
+       regexp_replace(l.transferred_from, '[[:space:]]+', ' ') as transferred_from,
+       regexp_replace(l.transferred_to, '[[:space:]]+', ' ') as transferred_to,
        (select acronym from organization where id=s.herbarium_id) as collection
 
 from loan_item l,

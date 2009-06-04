@@ -23,8 +23,8 @@ import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
-
+    protected static final String EMPTY = "EMPTY";
+    
     private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
 
     private LineIterator    lineIterator;
@@ -45,8 +45,10 @@ public abstract class CsvToSqlLoader
 
     public int loadRecords() throws LocalException
     {
+        preLoad();
+        
         int records = countRecords();
-        log.info(records + " records");
+        getLogger().info( this.getClass().getSimpleName() + ": " + records + " records input");
 
         // initialize progress frame
         initializeProgressFrame(records);
@@ -63,7 +65,7 @@ public abstract class CsvToSqlLoader
                 line = getNextLine();
             }
             catch (LocalException e) {
-                log.error("Couldn't read line", e);
+                getLogger().error("Couldn't read line", e);
                 continue;
             }
 
@@ -73,7 +75,7 @@ public abstract class CsvToSqlLoader
 
             if (counter % 1000 == 0)
             {
-                log.info("Processed " + counter + " records");
+                getLogger().info("Processed " + counter + " records");
             }
 
             updateProgressFrame(counter);
@@ -89,25 +91,39 @@ public abstract class CsvToSqlLoader
             }
             catch (LocalException e) {
                 errors++;
-                log.error("Couldn't insert record for line " + counter + "\n" + line + "\n", e); // TODO: make this user friendly
+                getLogger().error(rec(), e);
                 continue;
             }
             
             successes++;
         }
         
-        log.info(counter + " records");
-        log.info(successes + " successful imports");
-        log.info(errors + " errors");
+        getLogger().info(counter + " records processed");
+        getLogger().info(successes + " successful imports");
+        getLogger().info(errors + " errors");
+        
+        postLoad();
         
         return counter;
     }
 
     public abstract void loadRecord(String[] columns) throws LocalException;
-
+    
+    public abstract Logger getLogger();
+    
     public void setFrame(ProgressFrame frame)
     {
         this.frame = frame;
+    }
+    
+    protected void preLoad() throws LocalException
+    {
+        ;
+    }
+
+    protected void postLoad() throws LocalException
+    {
+        ;
     }
 
     protected Integer getCurrentRecordId()
@@ -130,11 +146,16 @@ public abstract class CsvToSqlLoader
         if (o == null) throw new LocalException("No " + fieldName, getCurrentRecordId());
     }
 
+    protected String rec()
+    {
+        return " [" + getCurrentRecordId() + "] ";
+    }
+    
     protected String truncate(String s, int len, String fieldName)
     {
         if (s.length() > len)
         {
-            warn("Truncating " + fieldName, s);
+            getLogger().warn(rec() + "Truncating " + fieldName + ": " + s);
             s = s.substring(0, len);
         }
         return s;
@@ -176,6 +197,20 @@ public abstract class CsvToSqlLoader
             botanyDivision.setDivisionId(divisionId);
         }
         return botanyDivision;
+    }
+
+    protected void execute(String sql) throws LocalException
+    {
+        getLogger().debug(sql);
+        
+        try
+        {
+            getStatement().execute(sql);
+        }
+        catch (SQLException e)
+        {
+            throw new LocalException("Problem executing sql", e);
+        }
     }
 
     /**
@@ -234,7 +269,7 @@ public abstract class CsvToSqlLoader
     // class, and many probably aren't.  how many do we even need?
     protected Integer queryForInt(String sql) throws LocalException
     {
-        log.debug(sql);
+        getLogger().debug(sql);
 
         ResultSet result = null;
         Integer id = null;
@@ -248,7 +283,7 @@ public abstract class CsvToSqlLoader
             }
             if (result.next())
             {
-                log.warn("Multiple results for query: " + sql);
+                getLogger().warn("Multiple results for query: " + sql);
             }
 
         } catch (SQLException e)
@@ -259,9 +294,39 @@ public abstract class CsvToSqlLoader
         return id;
     }
 
+    protected Integer getInt(String sql) throws LocalException
+    {
+        getLogger().debug(sql);
+
+        ResultSet result = null;
+        Integer id = null;
+        try
+        {
+            result = getStatement().executeQuery(sql);
+
+            if (result.next())
+            {
+                id = result.getInt(1);
+            }
+            else
+            {
+                throw new LocalException("CsvToSqlLoader: Query returned no results");
+            }
+            if (result.next())
+            {
+                getLogger().warn("Multiple results for query: " + sql);
+            }
+
+        } catch (SQLException e)
+        {
+            throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
+        }
+
+        return id;
+    }
     protected Integer insert(String sql) throws LocalException
     {
-        log.debug(sql);
+        getLogger().debug(sql);
 
         try
         {
@@ -283,7 +348,7 @@ public abstract class CsvToSqlLoader
 
     protected boolean update(String sql) throws LocalException
     {
-        log.debug(sql);
+        getLogger().debug(sql);
 
         try {
             int success = getStatement().executeUpdate(sql);
@@ -299,16 +364,6 @@ public abstract class CsvToSqlLoader
 
         return true;
     } 
-
-    protected void info(String message)
-    {
-    	log.info(message);
-    }
-
-    protected void warn(String message, String item)
-    {
-        log.warn(message + " [" + getCurrentRecordId() + "] " + item);
-    }
 
     private void initializeProgressFrame(final int records)
     {
@@ -411,7 +466,7 @@ public abstract class CsvToSqlLoader
 
     private String queryForString(String sql) throws LocalException
     {
-        log.debug(sql);
+        getLogger().debug(sql);
 
         ResultSet result = null;
         String string = null;

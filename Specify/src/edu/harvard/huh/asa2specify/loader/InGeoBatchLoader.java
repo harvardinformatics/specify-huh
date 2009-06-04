@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.MessageFormat;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.InGeoBatch;
 import edu.harvard.huh.asa.Transaction;
@@ -16,6 +18,8 @@ import edu.ku.brc.specify.datamodel.GiftPreparation;
 
 public class InGeoBatchLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(InGeoBatchLoader.class);
+    
     private IncomingGiftLookup inGiftLookup;
     
 	public InGeoBatchLoader(File csvFile,
@@ -49,6 +53,11 @@ public class InGeoBatchLoader extends CsvToSqlLoader
 	    }
 	}
 
+	public Logger getLogger()
+	{
+	    return log;
+	}
+	
 	private InGeoBatch parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 12)
@@ -156,15 +165,17 @@ public class InGeoBatchLoader extends CsvToSqlLoader
 
 	private String getInsertSql(GiftPreparation giftPreparation)
 	{
-	    String fields = "CollectionMemberID, DescriptionOfMaterial, GiftID, Quantity, TimestampCreated";
+	    String fields = "CollectionMemberID, DescriptionOfMaterial, GiftID, Quantity, " +
+	    		        "TimestampCreated, Version";
 	    
-	    String[] values = new String[5];
+	    String[] values = new String[6];
 	    
 	    values[0] = SqlUtils.sqlString( giftPreparation.getCollectionMemberId());
 	    values[1] = SqlUtils.sqlString( giftPreparation.getDescriptionOfMaterial());
 	    values[2] = SqlUtils.sqlString( giftPreparation.getGift().getId());
 	    values[3] = SqlUtils.sqlString( giftPreparation.getQuantity());
 	    values[4] = SqlUtils.now();
+	    values[5] = SqlUtils.one();
 	    
 	    return SqlUtils.getInsertSql("giftpreparation", fields, values);
 	}

@@ -40,7 +40,7 @@ public class LocalException extends Exception
 
     public LocalException(String message, Throwable cause)
     {
-        super(message, cause);
+        super(message + cause.getMessage(), cause);
     }
 
 }

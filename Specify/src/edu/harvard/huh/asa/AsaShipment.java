@@ -19,7 +19,7 @@ import edu.harvard.huh.asa.Transaction.TYPE;
 public class AsaShipment
 {
     // from st_lookup category 156
-    public static enum CARRIER             { USPS,    FedEx,   UPS,   Unknown     };
+    public static enum CARRIER             {  USPS,   FedEx,   UPS,   Unknown     };
     private static String[] CarrierNames = { "USPS", "FedEx", "UPS", "NA/Unknown" };
 
     // from st_lookup category 157

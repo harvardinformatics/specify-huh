@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.BotanistRoleCountry;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -16,6 +18,8 @@ import edu.ku.brc.specify.datamodel.Geography;
 
 public class BotanistCountryLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(BotanistCountryLoader.class);
+    
     // lookups for geography
     private GeoUnitLookup geoLookup;
     private BotanistLookup  botanistLookup;
@@ -45,6 +49,11 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		// convert agentgeography to sql and insert
 		String sql = getInsertSql(agentGeography);
 		insert(sql);
+	}
+
+	public Logger getLogger()
+	{
+	    return log;
 	}
 
 	private BotanistRoleCountry parse(String[] columns) throws LocalException
@@ -117,16 +126,17 @@ public class BotanistCountryLoader extends CsvToSqlLoader
   
 	private String getInsertSql(AgentGeography agentGeography)
 	{
-		String fieldNames = "AgentId, GeographyID, Remarks, Role, TimestampCreated";
+		String fieldNames = "AgentId, GeographyID, Remarks, Role, TimestampCreated, Version";
 
-		String[] values = new String[5];
+		String[] values = new String[6];
 
 		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getId());
 		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getId());
 		values[2] = SqlUtils.sqlString( agentGeography.getRemarks()); 
 		values[3] = SqlUtils.sqlString( agentGeography.getRole());
 		values[4] = SqlUtils.now();
-
+		values[5] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}
 

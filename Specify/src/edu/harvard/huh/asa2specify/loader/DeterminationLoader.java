@@ -17,6 +17,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaDetermination;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -32,6 +34,8 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class DeterminationLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(DeterminationLoader.class);
+    
     private SpecimenLookup specimenLookup;
     private TaxonLookup    taxonLookup;
     
@@ -58,6 +62,11 @@ public class DeterminationLoader extends CsvToSqlLoader
         
         String sql = getInsertSql(determination);
         insert(sql);
+    }
+
+    public Logger getLogger()
+    {
+        return log;
     }
 
     private AsaDetermination parse(String[] columns) throws LocalException
@@ -150,7 +159,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         }
         else if (startYear != null)
         {
-            warn("Invalid start date",
+            getLogger().warn(rec() + "Invalid determination date: " +
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
 
@@ -195,9 +204,10 @@ public class DeterminationLoader extends CsvToSqlLoader
     private String getInsertSql(Determination determination)
     {
         String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, Confidence, DeterminedDate, " +
-        		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, TimestampCreated";
+        		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, " +
+        		            "TimestampCreated, Version";
 
-        String[] values = new String[13];
+        String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
@@ -212,7 +222,8 @@ public class DeterminationLoader extends CsvToSqlLoader
         values[10] = SqlUtils.sqlString( determination.getNumber1());
         values[11] = SqlUtils.sqlString( determination.getRemarks());
         values[12] = SqlUtils.now();
-
+        values[13] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
 }

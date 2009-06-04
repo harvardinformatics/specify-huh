@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -18,7 +20,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class OrganizationLoader extends AuditedObjectLoader
 {
-	// TODO: relocate methods by visibility
+    private static final Logger log  = Logger.getLogger(OrganizationLoader.class);
 	
 	private OrganizationLookup organizationLookup;
 	
@@ -90,7 +92,7 @@ public class OrganizationLoader extends AuditedObjectLoader
             
         	if (agent.getRemarks() != null)
             {
-                warn("Ignoring remarks", agent.getRemarks());
+                getLogger().warn(rec() + "Ignoring remarks: " + agent.getRemarks());
             }
         	
             String sql = getUpdateSql(agent, agentId);
@@ -114,6 +116,11 @@ public class OrganizationLoader extends AuditedObjectLoader
 
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	private Integer getBotanistId(Integer organizationId)
 	{
 	    return orgMapper.map(organizationId);
@@ -239,10 +246,10 @@ public class OrganizationLoader extends AuditedObjectLoader
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = 
-			"Abbreviation, AgentType, CreatedByAgentID, GUID, LastName, Remarks, TimestampCreated, URL";
+		String fieldNames = "Abbreviation, AgentType, CreatedByAgentID, GUID, " +
+				            "LastName, Remarks, TimestampCreated, URL, Version";
 
-		String[] values = new String[8];
+		String[] values = new String[9];
 
 		values[0] = SqlUtils.sqlString( agent.getAbbreviation());
 		values[1] = SqlUtils.sqlString( agent.getAgentType());
@@ -252,6 +259,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 		values[5] = SqlUtils.sqlString( agent.getRemarks());
 		values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
 		values[7] = SqlUtils.sqlString( agent.getUrl());
+		values[8] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -270,15 +278,16 @@ public class OrganizationLoader extends AuditedObjectLoader
 
 	private String getInsertSql(Address address) throws LocalException
     {
-    	String fieldNames = "AgentID, City, State, Country, TimestampCreated";
+    	String fieldNames = "AgentID, City, State, Country, TimestampCreated, Version";
     	
-    	String[] values = new String[5];
+    	String[] values = new String[6];
     	
     	values[0] = SqlUtils.sqlString( address.getAgent().getAgentId());
     	values[1] = SqlUtils.sqlString( address.getCity());
     	values[2] = SqlUtils.sqlString( address.getState());
     	values[3] = SqlUtils.sqlString( address.getCountry());
     	values[4] = SqlUtils.now();
+    	values[5] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }

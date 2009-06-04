@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.MessageFormat;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.OutGeoBatch;
 import edu.harvard.huh.asa.Transaction;
@@ -16,6 +18,8 @@ import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 
 public class OutGeoBatchLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(OutGeoBatchLoader.class);
+    
     private OutgoingGiftLookup outGiftLookup;
     
 	public OutGeoBatchLoader(File csvFile,
@@ -49,6 +53,11 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 		}
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	private OutGeoBatch parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 7)
@@ -133,14 +142,15 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
 	private String getInsertSql(DeaccessionPreparation deaccessionPrep)
 	{
-	    String fields = "DeaccessionID, Quantity, Remarks, TimestampCreated";
+	    String fields = "DeaccessionID, Quantity, Remarks, TimestampCreated, Version";
 	    
-	    String[] values = new String[4];
+	    String[] values = new String[5];
 	    
 	    values[0] = SqlUtils.sqlString( deaccessionPrep.getDeaccession().getId());
 	    values[1] = SqlUtils.sqlString( deaccessionPrep.getQuantity());
 	    values[2] = SqlUtils.sqlString( deaccessionPrep.getRemarks());
 	    values[3] = SqlUtils.now();
+	    values[4] = SqlUtils.one();
 	    
 	    return SqlUtils.getInsertSql("deaccessionpreparation", fields, values);
 	}

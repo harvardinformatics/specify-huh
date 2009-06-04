@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -18,6 +20,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class AffiliateLoader extends AuditedObjectLoader
 {
+    private static final Logger log  = Logger.getLogger(AffiliateLoader.class);
+    
 	private AffiliateLookup affiliateLookup;
 	
     private BotanistLookup botanistLookup;
@@ -27,7 +31,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 	{
 		return affiliateId + " affiliate";
 	}
-
+    
 	public AffiliateLoader(File csvFile,
 	                       Statement specifySqlStatement,
 	                       File affiliateBotanists,
@@ -83,7 +87,7 @@ public class AffiliateLoader extends AuditedObjectLoader
             
         	if (agent.getRemarks() != null)
             {
-                warn("Ignoring remarks", agent.getRemarks());
+        	    getLogger().warn(rec() + "Ignoring remarks: " + agent.getRemarks());
             }
         	
             String sql = getUpdateSql(agent, agentId);
@@ -104,6 +108,11 @@ public class AffiliateLoader extends AuditedObjectLoader
 		}
 	}
 
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
 	private Integer getBotanistId(Integer affiliateId)
 	{
 	    return affiliates.map(affiliateId);
@@ -241,34 +250,36 @@ public class AffiliateLoader extends AuditedObjectLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "AgentType, CreatedByAgentID, DivisionID, Email, FirstName, " +
-				            "GUID, JobTitle, LastName, Remarks, TimestampCreated";
+				            "GUID, JobTitle, LastName, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[10];
+		String[] values = new String[11];
 
-		values[0] = SqlUtils.sqlString( agent.getAgentType());
-        values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[2] = SqlUtils.sqlString( agent.getDivision().getId());
-		values[3] = SqlUtils.sqlString( agent.getEmail());
-		values[4] = SqlUtils.sqlString( agent.getFirstName());
-		values[5] = SqlUtils.sqlString( agent.getGuid());
-		values[6] = SqlUtils.sqlString( agent.getJobTitle());
-		values[7] = SqlUtils.sqlString( agent.getLastName());
-		values[8] = SqlUtils.sqlString( agent.getRemarks());
-        values[9] = SqlUtils.sqlString( agent.getTimestampCreated());
-
+		values[0]  = SqlUtils.sqlString( agent.getAgentType());
+        values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[2]  = SqlUtils.sqlString( agent.getDivision().getId());
+		values[3]  = SqlUtils.sqlString( agent.getEmail());
+		values[4]  = SqlUtils.sqlString( agent.getFirstName());
+		values[5]  = SqlUtils.sqlString( agent.getGuid());
+		values[6]  = SqlUtils.sqlString( agent.getJobTitle());
+		values[7]  = SqlUtils.sqlString( agent.getLastName());
+		values[8]  = SqlUtils.sqlString( agent.getRemarks());
+        values[9]  = SqlUtils.sqlString( agent.getTimestampCreated());
+        values[10] = SqlUtils.one();
+        
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "Address, AgentID,  Phone1, TimestampCreated";
+        String fieldNames = "Address, AgentID,  Phone1, TimestampCreated, Version";
         
-        String[] values = new String[4];
+        String[] values = new String[5];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
         values[1] = SqlUtils.sqlString( address.getAgent().getId());
         values[2] = SqlUtils.sqlString( address.getPhone1());
         values[3] = SqlUtils.now();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

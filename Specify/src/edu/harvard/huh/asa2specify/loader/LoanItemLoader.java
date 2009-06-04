@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.LoanItem;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -18,6 +20,8 @@ import edu.ku.brc.specify.datamodel.Preparation;
 // Run this class after SpecimenItemLoader and TransactionLoader
 public class LoanItemLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(LoanItemLoader.class);
+    
     private PreparationLookup prepLookup;
     private LoanLookup        loanLookup;
     
@@ -57,6 +61,11 @@ public class LoanItemLoader extends CsvToSqlLoader
 		}
 	}
 
+	public Logger getLogger()
+	{
+	    return log;
+	}
+	
 	private String formatBarcode(Integer barcode) throws LocalException
 	{
 	    return prepLookup.formatBarcode(barcode);
@@ -104,6 +113,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// CollectionMemberID
 		String code = loanItem.getCollection();
+		checkNull(code, "collection code");
 		Integer collectionMemberId = getCollectionId(code);
 		loanPreparation.setCollectionMemberId(collectionMemberId);
 		
@@ -184,9 +194,9 @@ public class LoanItemLoader extends CsvToSqlLoader
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
 		String fieldNames = "CollectionMemberID, IsResolved, LoanID, OutComments, PreparationID, " +
-				            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated";
+				            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, Version";
 		
-		String[] values = new String[9];
+		String[] values = new String[10];
 		
 		values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
 		values[1] = SqlUtils.sqlString( loanPreparation.getIsResolved());
@@ -197,16 +207,17 @@ public class LoanItemLoader extends CsvToSqlLoader
 		values[6] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
 		values[7] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
 		values[8] = SqlUtils.now();
-
+		values[9] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}
 	
 	private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
 	{
 		String fieldNames = "CollectionMemberID, LoanPreparationID, QuantityResolved, " +
-				            "QuantityReturned, ReturnedDate, TimestampCreated";
+				            "QuantityReturned, ReturnedDate, TimestampCreated, Version";
 		
-		String[] values = new String[6];
+		String[] values = new String[7];
 		
 		values[0] = SqlUtils.sqlString( loanReturnPreparation.getCollectionMemberId());
 		values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
@@ -214,6 +225,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
 		values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
 		values[5] = SqlUtils.now();
+		values[6] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
 	}

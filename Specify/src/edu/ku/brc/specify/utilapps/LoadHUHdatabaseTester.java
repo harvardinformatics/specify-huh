@@ -4,11 +4,14 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Enumeration;
 import java.util.Vector;
 
+import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.*;
@@ -53,7 +56,7 @@ import edu.ku.brc.specify.datamodel.Discipline;
 
 public class LoadHUHdatabaseTester extends LoadHUHdatabase
 {
-    private static final Logger log = Logger.getLogger(LoadHUHdatabase.class);
+    private static final Logger log = Logger.getLogger(LoadHUHdatabaseTester.class);
 
     protected static Vector<DatabaseDriverInfo> driverList;
    
@@ -65,11 +68,11 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         BasicConfigurator.configure();
         log.setLevel(Level.ALL);
 
-        log.debug("debug");
-        log.info("info");
-        log.warn("warn");
-        log.error("error");
- 
+        //log.debug("debug");
+        //log.info("info");
+        //log.warn("warn");
+        //log.error("error");
+        
         LoadHUHdatabaseTester test = new LoadHUHdatabaseTester();
         test.setUpConnection();
 
@@ -86,9 +89,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             return;
         }
         
-        File dir = new File("/home/maureen/testload");
-        
-        int records = 0;
+        File dir = new File("/home/maureen/load");
         
         boolean doOptr        = false; // 1
         boolean doGeo         = false; // 2
@@ -117,13 +118,13 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doOutGift     = false; // 25
         boolean doPurch       = false; // 26
         boolean doStaffColl   = false; // 27
-        boolean doShip        = false; // 28
+        boolean doShip        = true; // 28
         boolean doTaxBatch    = false; // 29
         boolean doInGeoBatch  = false; // 30
         boolean doInRetBatch  = false; // 31
         boolean doLoanIt      = false; // 32
         boolean doOutGeoBatch = false; // 33
-        boolean doOutRetBatch = true; // 34
+        boolean doOutRetBatch = false; // 34
         
         try
         {
@@ -131,7 +132,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOptr)
             {
                 int optrRecords = optrLoader.loadRecords();
-                log.info("Loaded " + optrRecords + " optr records");
+                log.info("Processed " + optrRecords + " optr records");
             }
             OptrLookup optrLookup = optrLoader.getOptrLookup();
 
@@ -141,7 +142,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doGeo)
             {
                 int geoUnitRecords = geoUnitLoader.loadRecords();
-                log.info("Loaded " + geoUnitRecords + " geo_unit records");
+                log.info("Processed " + geoUnitRecords + " geo_unit records");
                 geoUnitLoader.numberNodes();
                 log.info("Numbered geography tree");
             }
@@ -152,7 +153,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doSite)
             {
                 int localityRecords = siteLoader.loadRecords();
-                log.info("Loaded " + localityRecords + " site records");
+                log.info("Processed " + localityRecords + " site records");
             }
             SiteLookup siteLookup = siteLoader.getSiteLookup();
 
@@ -164,7 +165,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBot)
             {
                 int botanistRecords = botanistLoader.loadRecords();
-                log.info("Loaded " + botanistRecords + " botanist records");
+                log.info("Processed " + botanistRecords + " botanist records");
             }
             BotanistLookup botanistLookup = botanistLoader.getBotanistLookup();
 
@@ -174,7 +175,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBotName)
             {
                 int botanistNameRecords = botanistNameLoader.loadRecords();
-                log.info("Loaded " + botanistNameRecords + " botanist_name records");
+                log.info("Processed " + botanistNameRecords + " botanist_name records");
             }
 
             BotanistTeamLoader botanistTeamLoader = new BotanistTeamLoader(new File(dir, "botanist_team.csv"),
@@ -183,7 +184,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBotTeam)
             {
                 int botanistTeamRecords = botanistTeamLoader.loadRecords();
-                log.info("Loaded " + botanistTeamRecords + " botanist_team records");
+                log.info("Processed " + botanistTeamRecords + " botanist_team records");
             }
             
             BotanistCountryLoader botanistCountryLoader = new BotanistCountryLoader(new File(dir, "botanist_role_country.csv"),
@@ -193,7 +194,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBotCountry)
             {
                 int botanistCountryRecords = botanistCountryLoader.loadRecords();
-                log.info("Loaded " + botanistCountryRecords + " botanist_country records");
+                log.info("Processed " + botanistCountryRecords + " botanist_country records");
             }
             
             BotanistSpecialtyLoader botanistSpecialtyLoader = new BotanistSpecialtyLoader(new File(dir, "botanist_role_specialty.csv"),
@@ -202,7 +203,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBotSpec)
             {
                 int botanistSpecialtyRecords = botanistSpecialtyLoader.loadRecords();
-                log.info("Loaded " + botanistSpecialtyRecords + " botanist_specialty records");
+                log.info("Processed " + botanistSpecialtyRecords + " botanist_specialty records");
             }
 
             OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
@@ -212,7 +213,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOrg)
             {
                 int organizationRecords = organizationLoader.loadRecords();
-                log.info("Loaded " + organizationRecords + " organization records");
+                log.info("Processed " + organizationRecords + " organization records");
             }
             OrganizationLookup orgLookup = organizationLoader.getOrganizationLookup();
             
@@ -223,7 +224,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doSeries)
             {
                 int seriesRecords = seriesLoader.loadRecords();
-                log.info("Loaded " + seriesRecords + " series records");
+                log.info("Processed " + seriesRecords + " series records");
             }
          
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
@@ -233,7 +234,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doAff)
             {
                 int affiliateRecords = affiliateLoader.loadRecords();
-                log.info("Loaded " + affiliateRecords + " affiliate records");
+                log.info("Processed " + affiliateRecords + " affiliate records");
             }
             AffiliateLookup affiliateLookup = affiliateLoader.getAffiliateLookup();
             
@@ -245,7 +246,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doAgent)
             {
                 int agentRecords = agentLoader.loadRecords();
-                log.info("Loaded " + agentRecords + " agent records");
+                log.info("Processed " + agentRecords + " agent records");
             }
             AgentLookup agentLookup = agentLoader.getAgentLookup();
             
@@ -254,7 +255,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doPub)
             {
                 int publicationRecords = publicationLoader.loadRecords();
-                log.info("Loaded " + publicationRecords + " publication records");
+                log.info("Processed " + publicationRecords + " publication records");
             }
             
             PublicationLookup pubLookup = publicationLoader.getReferenceWorkLookup();
@@ -266,7 +267,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doPubAuth)
             {
                 int publAuthorRecords = publAuthorLoader.loadRecords();
-                log.info("Loaded " + publAuthorRecords + " publ_author records");
+                log.info("Processed " + publAuthorRecords + " publ_author records");
             }
             
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
@@ -275,7 +276,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doTax)
             {
                 int taxonRecords = taxonLoader.loadRecords(); 
-                log.info("Loaded " + taxonRecords + " taxonRecords");
+                log.info("Processed " + taxonRecords + " taxonRecords");
 
                 taxonLoader.numberNodes();
                 log.info("Numbered taxon tree");
@@ -291,7 +292,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doSubcoll)
             {
                 int subcollectionRecords = subcollectionLoader.loadRecords();
-                log.info("Loaded " + subcollectionRecords + " subcollection records");
+                log.info("Processed " + subcollectionRecords + " subcollection records");
             }
 
             SubcollectionLookup subcollLookup = subcollectionLoader.getSubcollectionLookup();
@@ -299,13 +300,14 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
                                                                            statement,
                                                                            new File(dir, "series_botanist.csv"),
+                                                                           new File(dir, "specimen_item_id_barcode.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
                                                                            siteLookup);
             if (doSpec)
             {
                 int specimenItemRecords = specimenItemLoader.loadRecords();
-                log.info("Loaded " + specimenItemRecords + " specimen_item records");
+                log.info("Processed " + specimenItemRecords + " specimen_item records");
             }
             
             SpecimenLookup specimenLookup = specimenItemLoader.getSpecimenLookup();
@@ -318,7 +320,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doDet)
             {
                 int determinationRecords = determinationLoader.loadRecords();
-                log.info("Loaded " + determinationRecords + " determination records");
+                log.info("Processed " + determinationRecords + " determination records");
             }
             
             TypeSpecimenLoader typeLoader = new TypeSpecimenLoader(new File(dir, "type_specimen.csv"),
@@ -329,7 +331,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doType)
             {
                 int typeRecords = typeLoader.loadRecords();
-                log.info("Loaded " + typeRecords + " type specimen records");
+                log.info("Processed " + typeRecords + " type specimen records");
             }
             
             BorrowLoader borrowLoader = new BorrowLoader(new File(dir, "borrow.csv"),
@@ -340,7 +342,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doBorrow)
             {
                 int borrowRecords = borrowLoader.loadRecords();
-                log.info("Loaded " + borrowRecords + " borrow records");
+                log.info("Processed " + borrowRecords + " borrow records");
             }
             
             BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
@@ -351,7 +353,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doInEx)
             {
                 int inExchangeRecords = inExchangeLoader.loadRecords();
-                log.info("Loaded " + inExchangeRecords + " incoming exchange records");
+                log.info("Processed " + inExchangeRecords + " incoming exchange records");
             }
             
             IncomingGiftLoader inGiftLoader =
@@ -360,7 +362,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doInGift)
             {
                 int inGiftRecords = inGiftLoader.loadRecords();
-                log.info("Loaded " + inGiftRecords + " incoming gift records");
+                log.info("Processed " + inGiftRecords + " incoming gift records");
             }
             
             IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
@@ -371,7 +373,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doLoan)
             {
                 int loanLoaderRecords = loanLoader.loadRecords();
-                log.info("Loaded " + loanLoaderRecords + " loan records");
+                log.info("Processed " + loanLoaderRecords + " loan records");
             }
 
             LoanLookup loanLookup = loanLoader.getLoanLookup();
@@ -382,7 +384,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOutEx)
             {
                 int outExchangeRecords = outExchangeLoader.loadRecords();
-                log.info("Loaded " + outExchangeRecords + " outgoing exchange records");
+                log.info("Processed " + outExchangeRecords + " outgoing exchange records");
             }
             
             OutgoingExchangeLookup outExchangeLookup = outExchangeLoader.getOutgoingExchangeLookup();
@@ -393,7 +395,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOutGift)
             {
                 int outGiftRecords = outGiftLoader.loadRecords();
-                log.info("Loaded " + outGiftRecords + " outgoing gift records");
+                log.info("Processed " + outGiftRecords + " outgoing gift records");
             }
             
             OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
@@ -404,7 +406,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doPurch)
             {
                 int purchaseRecords = purchaseLoader.loadRecords();
-                log.info("Loaded " + purchaseRecords + " purchase records");
+                log.info("Processed " + purchaseRecords + " purchase records");
             }
             
             StaffCollectionLoader staffCollLoader =
@@ -413,7 +415,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doStaffColl)
             {
                 int staffCollRecords = staffCollLoader.loadRecords();
-                log.info("Loaded " + staffCollRecords + " staff collection records");
+                log.info("Processed " + staffCollRecords + " staff collection records");
             }
             
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
@@ -423,7 +425,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doShip)
             {
                 int shipmentRecords = shipmentLoader.loadRecords();
-                log.info("Loaded " + shipmentRecords + " shipment records");
+                log.info("Processed " + shipmentRecords + " shipment records");
             }
             
             CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
@@ -435,7 +437,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doTaxBatch)
             {
                 int taxonBatchRecords = taxonBatchLoader.loadRecords();
-                log.info("Loaded " + taxonBatchRecords + " taxon batch records");
+                log.info("Processed " + taxonBatchRecords + " taxon batch records");
             }
             
             TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
@@ -446,7 +448,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doInGeoBatch)
             {
                 int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
-                log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
+                log.info("Processed " + inGeoBatchRecords + " in geo batch records");
             }
             
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
@@ -455,7 +457,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doInRetBatch)
             {
                 int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
-                log.info("Loaded " + inReturnBatchRecords + " in return batch records");
+                log.info("Processed " + inReturnBatchRecords + " in return batch records");
             }
             
             LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
@@ -465,7 +467,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doLoanIt)
             {
                 int loanItemRecords = loanItemLoader.loadRecords();
-                log.info("Loaded " + loanItemRecords + " loan item records");
+                log.info("Processed " + loanItemRecords + " loan item records");
             }
             
             OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
@@ -474,7 +476,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOutGeoBatch)
             {
                 int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
-                log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+                log.info("Processed " + outGeoBatchRecords + " out geo batch records");
             }
             
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
@@ -485,17 +487,15 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doOutRetBatch)
             {
                 int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
-                log.info("Loaded " + outReturnBatchRecords + " out return batch records");
+                log.info("Processed " + outReturnBatchRecords + " out return batch records");
             }
             
-            log.info("Loaded " + records + " records");
         }
         catch (LocalException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        System.out.println("Processed " + records + " records");
     }
     
     void setUpConnection() {

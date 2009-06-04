@@ -46,7 +46,7 @@ from
 
 where
        si.specimen_id=s.id and
-       s.collector_id=b.id and
+       s.collector_id=b.id(+) and
        s.date_id=d.id
 
-order by si.specimen_id
+order by s.id, si.specimen_id

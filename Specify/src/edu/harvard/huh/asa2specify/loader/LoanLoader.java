@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaLoan;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
@@ -32,6 +34,8 @@ import edu.ku.brc.specify.datamodel.LoanAgent;
 
 public class LoanLoader extends TransactionLoader
 {
+    private static final Logger log = Logger.getLogger(LoanLoader.class);
+    
     private static final String DEFAULT_LOAN_NUMBER = "none";
 
     private LoanLookup loanLookup;
@@ -66,7 +70,12 @@ public class LoanLoader extends TransactionLoader
             insert(sql);
         }
     }
-
+    
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
     public LoanLookup getLoanLookup()
     {
         if (loanLookup == null)
@@ -274,9 +283,9 @@ public class LoanLoader extends TransactionLoader
     {
         String fieldNames = "CreatedByAgentID, CurrentDueDate, DateClosed, DisciplineId, DivisionId, " +
                             "IsClosed, LoanDate, LoanNumber, Number1, OriginalDueDate, PurposeOfLoan, " +
-                            "Remarks, SrcTaxonomy, Text1, Text2, TimestampCreated, YesNo1";
+                            "Remarks, SrcTaxonomy, Text1, Text2, TimestampCreated, Version, YesNo1";
         
-        String[] values = new String[17];
+        String[] values = new String[18];
         
         values[0]  = SqlUtils.sqlString( loan.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( loan.getCurrentDueDate());
@@ -294,22 +303,24 @@ public class LoanLoader extends TransactionLoader
         values[13] = SqlUtils.sqlString( loan.getText1());
         values[14] = SqlUtils.sqlString( loan.getText2());
         values[15] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[16] = SqlUtils.sqlString( loan.getYesNo1());
+        values[16] = SqlUtils.one();
+        values[17] = SqlUtils.sqlString( loan.getYesNo1());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
     }
     
     private String getInsertSql(LoanAgent loanAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, LoanID, Role, TimestampCreated";
+        String fieldNames = "AgentID, CollectionMemberID, LoanID, Role, TimestampCreated, Version";
             
-        String[] values = new String[5];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( loanAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( loanAgent.getCollectionMemberId());
         values[2] = SqlUtils.sqlString( loanAgent.getLoan().getId());
         values[3] = SqlUtils.sqlString( loanAgent.getRole());
         values[4] = SqlUtils.now();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
     }

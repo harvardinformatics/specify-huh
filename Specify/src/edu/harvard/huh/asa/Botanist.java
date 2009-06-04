@@ -105,11 +105,15 @@ public class Botanist
     
 	public boolean isOrganization()
 	{
-	    return isCorporate || isOrg(name);
+	    if (name == null) return isCorporate;
+	    
+	    else return isCorporate || isOrg(name);
 	}
 	
 	public boolean isGroup()
 	{
+	    if (name == null) return isCorporate;
+	    
 	    return isTeam || isGroup(name);
 	}
 	
@@ -119,13 +123,13 @@ public class Botanist
 	}
 	
     private boolean isGroup( String name )
-    {
+    { 
         Matcher m = groupPattern.matcher( name );
         return m.matches();
     }
     
     private boolean isOrg( String name )
-    {
+    {   
         Matcher m = orgPattern.matcher( name );
         return m.matches();
     }

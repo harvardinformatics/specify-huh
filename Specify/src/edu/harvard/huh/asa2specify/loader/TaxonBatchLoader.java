@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.text.MessageFormat;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.TaxonBatch;
 import edu.harvard.huh.asa.Transaction;
@@ -20,6 +22,8 @@ import edu.ku.brc.specify.datamodel.LoanPreparation;
 
 public class TaxonBatchLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(TaxonBatch.class);
+    
     private TaxonBatchLookup taxonBatchLookup;
     
     private BorrowLookup borrowLookup;
@@ -65,6 +69,11 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    }
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	public TaxonBatchLookup getTaxonBatchLookup()
 	{
 	    if (taxonBatchLookup == null)
@@ -302,9 +311,9 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	private String getInsertSql(BorrowMaterial borrowMaterial)
 	{
 	    String fields = "BorrowID, CollectionMemberID, Description, InComments, " +
-	    		        "MaterialNumber, Quantity, TimestampCreated";
+	    		        "MaterialNumber, Quantity, TimestampCreated, Version";
 	        
-	    String[] values = new String[7];
+	    String[] values = new String[8];
 	    
 	    values[0] = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
 	    values[1] = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
@@ -313,6 +322,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    values[4] = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
 	    values[5] = SqlUtils.sqlString( borrowMaterial.getQuantity());
 	    values[6] = SqlUtils.now();
+	    values[7] = SqlUtils.one();
 	    
 	    return SqlUtils.getInsertSql("borrowmaterial", fields, values);
 	}
@@ -321,21 +331,22 @@ public class TaxonBatchLoader extends CsvToSqlLoader
     {
         String fieldNames = "CollectionMemberID, DescriptionOfMaterial, InComments, IsResolved, " +
         		            "LoanID, OutComments, Quantity, QuantityResolved, QuantityReturned, " +
-        		            "TimestampCreated";
+        		            "TimestampCreated, Version";
         
-        String[] values = new String[10];
+        String[] values = new String[11];
         
-        values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
-        values[1] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
-        values[2] = SqlUtils.sqlString( loanPreparation.getInComments());
-        values[3] = SqlUtils.sqlString( loanPreparation.getIsResolved());
-        values[4] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-        values[5] = SqlUtils.sqlString( loanPreparation.getOutComments());
-        values[6] = SqlUtils.sqlString( loanPreparation.getQuantity());
-        values[7] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-        values[8] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-        values[9] = SqlUtils.now();
-
+        values[0]  = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
+        values[1]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
+        values[2]  = SqlUtils.sqlString( loanPreparation.getInComments());
+        values[3]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
+        values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+        values[5]  = SqlUtils.sqlString( loanPreparation.getOutComments());
+        values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+        values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+        values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+        values[9]  = SqlUtils.now();
+        values[10] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }
 }

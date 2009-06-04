@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -20,6 +22,8 @@ import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
 
 public class GeoUnitLoader extends TreeLoader
 {
+    private static final Logger log  = Logger.getLogger(GeoUnitLoader.class);
+            
 	private GeoUnitLookup geoLookup;
 	   
 	// root
@@ -200,7 +204,7 @@ public class GeoUnitLoader extends TreeLoader
 
 	    if (treeDefItem == null)
 	    {
-	        Integer geoTreeDefItemId = getInt("geographytreedefitem", "GeographyTreeDefID", "RankID", rankId);
+	        Integer geoTreeDefItemId = getInt("geographytreedefitem", "GeographyTreeDefItemID", "RankID", rankId);
 
 	        treeDefItem = new GeographyTreeDefItem();
 	        treeDefItem.setGeographyTreeDefItemId(geoTreeDefItemId);
@@ -226,7 +230,7 @@ public class GeoUnitLoader extends TreeLoader
 		
 		if (rank.equals(REGION_TYPE))
 		{
-		    info("Processing " + name);
+		    getLogger().info("Processing " + name);
 		    if (frame != null)
 		    {
 		        frame.setDesc("Loading " + name + "...");
@@ -250,6 +254,11 @@ public class GeoUnitLoader extends TreeLoader
 		}
 	}
 
+	public Logger getLogger()
+	{
+	    return log;
+	}
+	
 	public void numberNodes() throws LocalException
 	{
 		numberNodes("geography", "GeographyID");
@@ -279,6 +288,15 @@ public class GeoUnitLoader extends TreeLoader
         return geoLookup;
     }
 
+    @Override
+    protected void postLoad() throws LocalException
+    {
+        // TODO: probably drop this index after import
+        getLogger().info("Creating guid index");
+        String sql =  "create index guid on geography(GUID)";
+        execute(sql);
+    }
+    
 	private GeoUnit parse(String[] columns) throws LocalException
 	{
 	    if (columns.length < 15)
@@ -394,7 +412,7 @@ public class GeoUnitLoader extends TreeLoader
 		
 		if (parent != null && rankId <= parentRankId)
 		{
-			warn("Parent rank is greater or equal", geoUnit.getName());
+			getLogger().warn(rec() + "Parent rank is greater or equal: " + geoUnit.getName());
 		}
 
 		// GeographyTreeDefItem

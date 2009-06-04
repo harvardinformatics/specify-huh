@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -14,6 +16,8 @@ import edu.ku.brc.specify.datamodel.AgentSpecialty;
 
 public class BotanistSpecialtyLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(BotanistSpecialtyLoader.class);
+    
     private BotanistLookup botanistLookup;
     
 	private int lastAgentId;
@@ -47,6 +51,11 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 
+	public Logger getLogger()
+	{
+	    return log;
+	}
+	
 	private BotanistRoleSpecialty parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 4)
@@ -115,15 +124,16 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 
 	private String getInsertSql(AgentSpecialty agentSpecialty)
 	{
-		String fieldNames = "AgentId, OrderNumber, SpecialtyName, TimestampCreated";
+		String fieldNames = "AgentId, OrderNumber, SpecialtyName, TimestampCreated, Version";
 
-		String[] values = new String[4];
+		String[] values = new String[5];
 
 		values[0] = SqlUtils.sqlString( agentSpecialty.getAgent().getAgentId());
 		values[1] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
 		values[2] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
 		values[3] = SqlUtils.now();
-
+		values[4] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("agentspecialty", fieldNames, values);
 	}
 }

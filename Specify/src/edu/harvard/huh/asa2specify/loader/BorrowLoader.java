@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaBorrow;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -33,6 +35,8 @@ import edu.ku.brc.specify.datamodel.BorrowAgent;
 
 public class BorrowLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(BorrowLoader.class);
+    
     private static final String DEFAULT_BORROW_NUMBER = "none";
     
     private BorrowLookup borrowLookup;
@@ -81,6 +85,11 @@ public class BorrowLoader extends TransactionLoader
             sql = getInsertSql(lender);
             insert(sql);
         }
+    }
+
+    public Logger getLogger()
+    {
+        return log;
     }
 
     public BorrowLookup getBorrowLookup()
@@ -158,11 +167,7 @@ public class BorrowLoader extends TransactionLoader
         {
             transactionNo = DEFAULT_BORROW_NUMBER;
         }
-        if (transactionNo.length() > 50)
-        {
-            warn("Truncating invoice number", transactionNo);
-            transactionNo = transactionNo.substring(0, 50);
-        }
+        transactionNo = truncate(transactionNo, 50, "invoice number");
         borrow.setInvoiceNumber(transactionNo);
         
         // IsClosed
@@ -257,9 +262,9 @@ public class BorrowLoader extends TransactionLoader
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
                             "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate, " +
-                            "Remarks, Text1, Text2,  TimestampCreated, YesNo1";
+                            "Remarks, Text1, Text2,  TimestampCreated, Version, YesNo1";
         
-        String[] values = new String[14];
+        String[] values = new String[15];
         
         values[0]  = SqlUtils.sqlString( borrow.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( borrow.getCreatedByAgent().getId());
@@ -274,23 +279,25 @@ public class BorrowLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( borrow.getText1());
         values[11] = SqlUtils.sqlString( borrow.getText2());
         values[12] = SqlUtils.sqlString( borrow.getTimestampCreated());
-        values[13] = SqlUtils.sqlString( borrow.getYesNo1());
+        values[13] = SqlUtils.one();
+        values[14] = SqlUtils.sqlString( borrow.getYesNo1());
             
         return SqlUtils.getInsertSql("borrow", fieldNames, values);
     }
     
     private String getInsertSql(BorrowAgent borrowAgent)
     {
-        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, TimestampCreated";
+        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( borrowAgent.getBorrow().getId());
         values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
         values[3] = SqlUtils.sqlString( borrowAgent.getRole());
         values[4] = SqlUtils.now();
-
+        values[5] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
     }
     

@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistName.TYPE;
@@ -16,6 +18,8 @@ import edu.ku.brc.specify.datamodel.AgentVariant;
 
 public class BotanistNameLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(BotanistNameLoader.class);
+    
     private BotanistLookup botanistLookup;
     
 	public BotanistNameLoader(File csvFile, Statement sqlStatement, BotanistLookup botanistLookup)
@@ -40,6 +44,11 @@ public class BotanistNameLoader extends CsvToSqlLoader
         // convert agentvariant to sql and insert
         String sql = getInsertSql(agentVariant);
         insert(sql);
+	}
+	
+	public Logger getLogger()
+	{
+	    return log;
 	}
 	
     // botanistId, nameType, name
@@ -113,14 +122,15 @@ public class BotanistNameLoader extends CsvToSqlLoader
 
     private String getInsertSql(AgentVariant agentVariant)
     {
-        String fieldNames = "AgentID, Name, VarType, TimestampCreated";
+        String fieldNames = "AgentID, Name, VarType, TimestampCreated, Version";
         
-        String[] values = new String[4];
+        String[] values = new String[5];
         
         values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
         values[1] = SqlUtils.sqlString( agentVariant.getName());
         values[2] = SqlUtils.sqlString( agentVariant.getVarType());
         values[3] = SqlUtils.now();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }

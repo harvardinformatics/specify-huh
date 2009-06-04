@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -16,6 +18,8 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublAuthorLoader extends CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(PublAuthorLoader.class);
+    
     private PublicationLookup   publicationLookup;
     private BotanistLookup      botanistLookup;
     
@@ -53,6 +57,11 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	private PublAuthor parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 3)
@@ -120,15 +129,16 @@ public class PublAuthorLoader extends CsvToSqlLoader
 	
 	private String getInsertSql(Author author)
 	{
-		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated";
+		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated, Version";
 
-		String[] values = new String[4];
+		String[] values = new String[5];
 
 		values[0] = SqlUtils.sqlString( author.getAgent().getId());
 		values[1] = SqlUtils.sqlString( author.getReferenceWork().getId());
 		values[2] = SqlUtils.sqlString( author.getOrderNumber());
 		values[3] = SqlUtils.now();
-
+		values[4] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}
 }

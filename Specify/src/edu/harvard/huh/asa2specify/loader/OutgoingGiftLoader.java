@@ -18,6 +18,8 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -30,6 +32,8 @@ import edu.ku.brc.specify.datamodel.DeaccessionAgent;
 
 public class OutgoingGiftLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
+    
     private static final String DEFAULT_DEACCESSION_NUMBER = "none";
     
     private OutgoingGiftLookup outGiftLookup;
@@ -65,6 +69,11 @@ public class OutgoingGiftLoader extends TransactionLoader
             sql = getInsertSql(receiver);
             insert(sql);
         }
+    }
+    
+    public Logger getLogger()
+    {
+        return log;
     }
     
     public OutgoingGiftLookup getOutGoingGiftLookup()
@@ -190,34 +199,36 @@ public class OutgoingGiftLoader extends TransactionLoader
     private String getInsertSql(Deaccession deaccession)
     {
         String fieldNames = "CreatedByAgentID, DeaccessionDate, DeaccessionNumber, Number1, " +
-                            "Remarks, Text1, Text2, Type, TimestampCreated, YesNo1";
+                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[10];
+        String[] values = new String[11];
 
-        values[0] = SqlUtils.sqlString( deaccession.getCreatedByAgent().getId());
-        values[1] = SqlUtils.sqlString( deaccession.getDeaccessionDate());
-        values[2] = SqlUtils.sqlString( deaccession.getDeaccessionNumber());
-        values[3] = SqlUtils.sqlString( deaccession.getNumber1());
-        values[4] = SqlUtils.sqlString( deaccession.getRemarks());
-        values[5] = SqlUtils.sqlString( deaccession.getText1());
-        values[6] = SqlUtils.sqlString( deaccession.getText2());
-        values[7] = SqlUtils.sqlString( deaccession.getType());
-        values[8] = SqlUtils.sqlString( deaccession.getTimestampCreated());
-        values[9] = SqlUtils.sqlString( deaccession.getYesNo1());
+        values[0]  = SqlUtils.sqlString( deaccession.getCreatedByAgent().getId());
+        values[1]  = SqlUtils.sqlString( deaccession.getDeaccessionDate());
+        values[2]  = SqlUtils.sqlString( deaccession.getDeaccessionNumber());
+        values[3]  = SqlUtils.sqlString( deaccession.getNumber1());
+        values[4]  = SqlUtils.sqlString( deaccession.getRemarks());
+        values[5]  = SqlUtils.sqlString( deaccession.getText1());
+        values[6]  = SqlUtils.sqlString( deaccession.getText2());
+        values[7]  = SqlUtils.sqlString( deaccession.getType());
+        values[8]  = SqlUtils.sqlString( deaccession.getTimestampCreated());
+        values[9]  = SqlUtils.one();
+        values[10] = SqlUtils.sqlString( deaccession.getYesNo1());
         
         return SqlUtils.getInsertSql("deaccession", fieldNames, values);
     }
     
     private String getInsertSql(DeaccessionAgent deaccessionAgent)
     {
-        String fieldNames = "AgentID, DeaccessionID, Role, TimestampCreated";
+        String fieldNames = "AgentID, DeaccessionID, Role, TimestampCreated, Version";
 
-        String[] values = new String[4];
+        String[] values = new String[5];
 
         values[0] = SqlUtils.sqlString( deaccessionAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( deaccessionAgent.getDeaccession().getId());
         values[2] = SqlUtils.sqlString( deaccessionAgent.getRole());
         values[3] = SqlUtils.now();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("deaccessionagent", fieldNames, values);
     } 

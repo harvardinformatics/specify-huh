@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaTaxon;
 import edu.harvard.huh.asa.AsaTaxon.ENDANGERMENT;
@@ -26,6 +28,8 @@ import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
 public class TaxonLoader extends TreeLoader
 {
+    private static final Logger log  = Logger.getLogger(TaxonLoader.class);
+    
 	private TaxonTreeDef treeDef;
 	
 	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
@@ -81,7 +85,7 @@ public class TaxonLoader extends TreeLoader
 
 	    if (treeDefItem == null)
 	    {
-	        Integer taxonTreeDefItemId = getInt("taxontreedefitem", "TaxonTreeDefID", "RankID", rankId);
+	        Integer taxonTreeDefItemId = getInt("taxontreedefitem", "TaxonTreeDefItemID", "RankID", rankId);
 
 	        treeDefItem = new TaxonTreeDefItem();
 	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
@@ -109,7 +113,7 @@ public class TaxonLoader extends TreeLoader
 		
 		if (rankId <= taxonRankIdsByType.get("family"))
 		{
-		    info("Processing " + taxon.getName());
+		    getLogger().info("Processing " + taxon.getName());
 		    if (frame != null)
 		    {
 		        frame.setDesc("Loading " + taxon.getName() + "...");
@@ -132,6 +136,11 @@ public class TaxonLoader extends TreeLoader
 		}
 	}
 
+	public Logger getLogger()
+    {
+        return log;
+    }
+	
 	public void numberNodes() throws LocalException
 	{
 		numberNodes("taxon", "TaxonID");
@@ -364,16 +373,17 @@ public class TaxonLoader extends TreeLoader
 	
     private String getInsertSql(TaxonCitation taxonCitation)
     {
-        String fieldNames = "TaxonID, ReferenceWorkID, Text1, Text2, TimestampCreated";
+        String fieldNames = "TaxonID, ReferenceWorkID, Text1, Text2, TimestampCreated, Version";
         
-        String[] values = new String[5];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
         values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
         values[2] = SqlUtils.sqlString( taxonCitation.getText1());
         values[3] = SqlUtils.sqlString( taxonCitation.getText2());
         values[4] = SqlUtils.now();
-
+        values[5] = SqlUtils.one();
+        
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }
 }

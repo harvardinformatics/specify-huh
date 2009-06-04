@@ -3,6 +3,8 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.Optr;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -12,6 +14,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 // Run this class first.
 public class OptrLoader extends CsvToSqlLoader
 {    
+    private static final Logger log  = Logger.getLogger(OptrLoader.class);
+    
     private OptrLookup optrLookup;
     
 	public OptrLoader(File csvFile, Statement specifySqlStatement) throws LocalException
@@ -57,6 +61,11 @@ public class OptrLoader extends CsvToSqlLoader
 		insert(sql);
 	}
 
+    public Logger getLogger()
+    {
+        return log;
+    }
+    
 	private Optr parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 4)
@@ -123,9 +132,9 @@ public class OptrLoader extends CsvToSqlLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, FirstName, GUID, LastName, Remarks, TimestampCreated";
+			"AgentType, FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[6];
+		String[] values = new String[7];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
 		values[1] = SqlUtils.sqlString( agent.getFirstName());
@@ -133,7 +142,8 @@ public class OptrLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( agent.getLastName());
 		values[4] = SqlUtils.sqlString( agent.getRemarks());
 		values[5] = SqlUtils.now();
-
+		values[6] = SqlUtils.one();
+		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 }

@@ -19,6 +19,8 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import edu.harvard.huh.asa.OutgoingExchange;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -29,6 +31,8 @@ import edu.ku.brc.specify.datamodel.ExchangeOut;
 
 public class OutgoingExchangeLoader extends TransactionLoader
 {
+    private static final Logger log  = Logger.getLogger(OutgoingExchangeLoader.class);
+            
     private OutgoingExchangeLookup outExchangeLookup;
     
     public OutgoingExchangeLoader(File csvFile,  Statement sqlStatement) throws LocalException
@@ -47,6 +51,11 @@ public class OutgoingExchangeLoader extends TransactionLoader
         
         String sql = getInsertSql(exchangeOut);
         insert(sql);
+    }
+    
+    public Logger getLogger()
+    {
+        return log;
     }
     
     public OutgoingExchangeLookup getOutgoingExchangeLookup()
@@ -204,9 +213,9 @@ public class OutgoingExchangeLoader extends TransactionLoader
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, " +
                             "ExchangeDate, Number1, QuantityExchanged, Remarks, SentToOrganizationID, " +
-                            "SrcGeography, Text1, Text2, TimestampCreated, YesNo1";
+                            "SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[14];
+        String[] values = new String[15];
 
         values[0]  = SqlUtils.sqlString( exchangeOut.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeOut.getCreatedByAgent().getId());
@@ -221,7 +230,8 @@ public class OutgoingExchangeLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( exchangeOut.getText1());
         values[11] = SqlUtils.sqlString( exchangeOut.getText2());
         values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
-        values[13] = SqlUtils.sqlString( exchangeOut.getYesNo1());
+        values[13] = SqlUtils.one();
+        values[14] = SqlUtils.sqlString( exchangeOut.getYesNo1());
         
         return SqlUtils.getInsertSql("exchangeout", fieldNames, values);
     }
