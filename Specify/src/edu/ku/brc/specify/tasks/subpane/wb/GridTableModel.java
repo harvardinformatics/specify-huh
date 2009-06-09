@@ -52,14 +52,19 @@ public class GridTableModel extends SpreadSheetModel
     private static final Logger log = Logger.getLogger(GridTableModel.class);
             
     protected Workbench          workbench;
-    protected boolean            isInImageMode    = false;
-    protected boolean            isUserEdit       = true;
+    protected boolean            isInImageMode        = false;
+    protected boolean            isInFilteredPushMode = false;
+    protected boolean            isUserEdit           = true;
     protected ImageIcon          blankIcon = IconManager.getIcon("Blank", IconManager.IconSize.Std16);
     protected ImageIcon          imageIcon = IconManager.getIcon("CardImage", IconManager.IconSize.Std16);
     
-    protected Vector<WorkbenchTemplateMappingItem> headers          = new Vector<WorkbenchTemplateMappingItem>();
-    protected WorkbenchTemplateMappingItem         imageMappingItem = null;
+    protected Vector<WorkbenchTemplateMappingItem> headers           = new Vector<WorkbenchTemplateMappingItem>();
+    protected WorkbenchTemplateMappingItem         imageMappingItem  = null;
+    protected WorkbenchTemplateMappingItem         queryProgressItem = null;
 
+    protected Integer imageColIndex = null;
+    protected Integer fpColIndex    = null;
+    
     public GridTableModel(final Workbench    workbench)
     {
         super();
@@ -83,6 +88,11 @@ public class GridTableModel extends SpreadSheetModel
         {
             headers.add(imageMappingItem);
         }
+        
+        if (queryProgressItem != null)
+        {
+            headers.add(queryProgressItem);
+        }
     }
     
     /**
@@ -102,10 +112,18 @@ public class GridTableModel extends SpreadSheetModel
     }
 
     /**
+     * @return whether it is connected to the fp network or not.
+     */
+    boolean isInFilteredPushMode()
+    {
+        return isInFilteredPushMode;
+    }
+
+    /**
      * Sets the model into image mode so it can add a the image column to the spreadsheet.
      * @param isInImageMode
      */
-    public void setInImageMode(boolean isInImageMode)
+    void setInImageMode(boolean isInImageMode)
     {
         if (!this.isInImageMode && isInImageMode)
         {
@@ -122,16 +140,64 @@ public class GridTableModel extends SpreadSheetModel
                 };
                 imageMappingItem.initialize();
                 imageMappingItem.setCaption(UIRegistry.getResourceString("WB_IMAGE"));
-                imageMappingItem.setViewOrder((short)headers.size());
+                imageColIndex = headers.size();
+                imageMappingItem.setViewOrder((short) imageColIndex.intValue());
             }
             headers.add(imageMappingItem);
             
         } else if (this.isInImageMode && !isInImageMode)
         {
             headers.remove(imageMappingItem);
+            imageColIndex = null;
         }
         this.isInImageMode = isInImageMode;
         fireTableStructureChanged();
+    }
+
+    /**
+     * Sets the model into filtered push mode so it can add a query progress column to the spreadsheet.
+     * @param isInImageMode
+     */
+    void setInFilteredPushMode(boolean isInFilteredPushMode)
+    {
+        if (!this.isInFilteredPushMode && isInFilteredPushMode)
+        {
+            if (queryProgressItem == null)
+            {
+                queryProgressItem = new WorkbenchTemplateMappingItem()
+                {
+                    @Override
+                    public String getFieldName()
+                    {
+                        return "QueryProgress";
+                    }
+
+                };
+                queryProgressItem.initialize();
+                queryProgressItem.setCaption(UIRegistry.getResourceString("WB_FP_QUERYPROGRESS"));
+                fpColIndex = headers.size();
+                queryProgressItem.setViewOrder((short) fpColIndex.intValue());
+            }
+            headers.add(queryProgressItem);
+            
+        } else if (this.isInFilteredPushMode && !isInFilteredPushMode)
+        {
+            headers.remove(queryProgressItem);
+            fpColIndex = null;
+        }
+        
+        this.isInFilteredPushMode = isInFilteredPushMode;
+        fireTableStructureChanged();
+    }
+    
+    public Integer getImageColumnIndex()
+    {
+        return imageColIndex;
+    }
+
+    public Integer getFpColumnIndex()
+    {
+        return fpColIndex;
     }
 
     /* (non-Javadoc)
@@ -207,7 +273,11 @@ public class GridTableModel extends SpreadSheetModel
     {
         if (isInImageMode)
         {
-            return column != headers.size() - 1;
+            if (column == imageColIndex) return false;
+        }
+        if (isInFilteredPushMode)
+        {
+            if (column == fpColIndex) return false;
         }
         return true;
     }
@@ -239,7 +309,12 @@ public class GridTableModel extends SpreadSheetModel
     @Override
     public void setValueAt(Object value, int row, int column)
     {
-        if (isInImageMode && column == headers.size() - 1)
+        if (isInImageMode && column == imageColIndex)
+        {
+            return;
+        }
+        
+        if (isInFilteredPushMode && column == fpColIndex)
         {
             return;
         }
@@ -442,9 +517,12 @@ public class GridTableModel extends SpreadSheetModel
             headers.clear();
         }
         
-        workbench        = null;
-        headers          = null;
-        imageMappingItem = null;
+        workbench         = null;
+        headers           = null;
+        imageMappingItem  = null;
+        queryProgressItem = null;
+        imageColIndex     = null;
+        fpColIndex        = null;
     }
     
 }

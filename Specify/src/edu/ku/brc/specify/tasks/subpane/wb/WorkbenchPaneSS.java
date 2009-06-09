@@ -238,6 +238,9 @@ public class WorkbenchPaneSS extends BaseSubPane
     
     // begin Filtered Push
     protected JButton               filteredPushBtn        = null;
+    protected boolean               isConnectedToFp        = false;
+    protected TableColumnExt        fpColExt               = null;
+    protected int                   fpColIndex             = -1;
     // end Filtered Push
     
     protected JButton               convertGeoRefFormatBtn = null;
@@ -342,11 +345,16 @@ public class WorkbenchPaneSS extends BaseSubPane
 
         // Put the model in image mode, and never change it.
         // Now we're showing/hiding the image column using JXTable's column hiding features.
+        model.setInFilteredPushMode(true);
         model.setInImageMode(true);
-        int imageColIndex = model.getColumnCount() - 1;
+        int fpColIndex = model.getFpColumnIndex();           // TODO: there's a better way
+        int imageColIndex = model.getImageColumnIndex();
+        fpColExt = spreadSheet.getColumnExt(fpColIndex);
         imageColExt = spreadSheet.getColumnExt(imageColIndex);
+        
+        fpColExt.setVisible(false);
         imageColExt.setVisible(false);
-
+        
         model.addTableModelListener(new TableModelListener() {
             public void tableChanged(TableModelEvent e)
             {
@@ -615,17 +623,40 @@ public class WorkbenchPaneSS extends BaseSubPane
         }
         else
         {
-            filteredPushBtn = createIconBtn("FP", IconManager.IconSize.NonStd,  // TODO: change from biogeomancer to fp
-                    "WB_DO_FILTEREDPUSH_LOOKUP", false, new ActionListener()
+            filteredPushBtn = createIconBtn("FP_off", IconManager.IconSize.NonStd,  // TODO: change from biogeomancer to fp
+                    "WB_FP_ONLINE", false, new ActionListener()
                     {
                         public void actionPerformed(ActionEvent ae)
                         {
-                            spreadSheet.clearSorter();
-                            doFilteredPushQuery(new FilteredPushServiceProvider());
+                            final ImageIcon onlineIcon = IconManager.getIcon("FP_on", IconManager.IconSize.NonStd);
+                            final ImageIcon offlineIcon = IconManager.getIcon("FP_off", IconManager.IconSize.NonStd);
+                            
+                            final String onlineText = getResourceString("WB_FP_OFFLINE");
+                            final String offlineText = getResourceString("WB_FP_ONLINE");
+                            
+                            if (! isConnectedToFp) // TODO: I don't think this is the right way to do this
+                            {
+                                boolean success = connectToFilteredPush();
+                                if (success)
+                                {
+                                    setFpColumnVisible(true);
+                                    filteredPushBtn.setIcon(onlineIcon);
+                                    filteredPushBtn.setToolTipText(onlineText);
+                                }
+                            }
+                            else
+                            {
+                                setFpColumnVisible(false);
+                                disconnectFromFilteredPush();
+                                filteredPushBtn.setIcon(offlineIcon);
+                                filteredPushBtn.setToolTipText(offlineText);
+                            }
                         }
                     });
             
-            // only enable it if the workbench has the proper columns in it
+            filteredPushBtn.setEnabled(true);
+            
+            /*// only enable it if the workbench has the proper columns in it
             String[] missingColumnsForFP = getMissingButRequiredColumnsForFilteredPush();
             if (missingColumnsForFP.length > 0)
             {
@@ -642,7 +673,7 @@ public class WorkbenchPaneSS extends BaseSubPane
             else
             {
                 filteredPushBtn.setEnabled(true);
-            }
+            }*/
         }
         // end Filtered Push
         
@@ -1286,6 +1317,11 @@ public class WorkbenchPaneSS extends BaseSubPane
         {
             imageColExt.setVisible(true);
         }
+        
+        // re-get the column extension object
+        int fpColIndex = model.getColumnCount() - 2;
+        fpColExt = spreadSheet.getColumnExt(fpColIndex);
+        fpColExt.setVisible(false);
 
         int currentRecord = resultsetController.getCurrentIndex();
         spreadSheet.setRowSelectionInterval(currentRecord, currentRecord);
@@ -1545,11 +1581,13 @@ public class WorkbenchPaneSS extends BaseSubPane
             if (currentPanelType == PanelType.Spreadsheet && currentRow != -1)
             {
                 spreadSheet.setRowSelectionInterval(currentRow, currentRow);
-                spreadSheet.setColumnSelectionInterval(0, spreadSheet.getColumnCount()-1);
+                Integer i = model.getFpColumnIndex();
+                int j = model.getImageColumnIndex(); 
+                spreadSheet.setColumnSelectionInterval(0, i != null && i < j ? i : j);
                 spreadSheet.scrollToRow(Math.min(currentRow+4, model.getRowCount()));
             }
             
-            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(spreadSheet.getTableHeader().getColumnModel().getColumnCount()-1);
+            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(model.getImageColumnIndex());
             column.setCellRenderer(new DefaultTableCellRenderer()
             {
                 @Override
@@ -1564,6 +1602,80 @@ public class WorkbenchPaneSS extends BaseSubPane
                         String filename = FilenameUtils.getBaseName(cardImageFullPath);
                         filename = FilenameUtils.getName(cardImageFullPath);
                         lbl.setText(filename);
+                        lbl.setHorizontalAlignment(SwingConstants.CENTER);
+                    }
+                    return lbl;
+                }
+
+            });
+            spreadSheet.repaint();
+        }
+    }
+    
+    /**
+     * Shows / Hides the Image Window. 
+     */
+    public void toggleFpOnline()
+    {
+        if (spreadSheet.getCellEditor() != null)
+        {
+            spreadSheet.getCellEditor().stopCellEditing();
+        }
+        
+        setFpColumnVisible(!isConnectedToFp);
+    }
+    
+    
+    /**
+     * Shows / Hides the filtered push query progress column. 
+     */
+    public void setFpColumnVisible(boolean visible)
+    {
+        if (spreadSheet.getCellEditor() != null)
+        {
+            spreadSheet.getCellEditor().stopCellEditing();
+        }
+
+        if (!visible)
+        {            
+            // set the image window and the image column invisible
+            fpColExt.setVisible(false);
+        }
+        else
+        {
+            
+            // when a user hits the "show image" button, for some reason the selection gets nullified
+            // so we'll grab it here, then set it at the end of this method
+
+            spreadSheet.getSelectionModel().addListSelectionListener(workbenchRowChangeListener);
+            
+            // set the query progress column visible
+            fpColExt.setVisible(true);
+
+            
+            // Without this code below the fp column doesn't get selected
+            // when toggling 
+            if (currentPanelType == PanelType.Spreadsheet && currentRow != -1)
+            {
+                spreadSheet.setRowSelectionInterval(currentRow, currentRow);
+                Integer i = model.getImageColumnIndex();
+                int j = model.getFpColumnIndex(); 
+                spreadSheet.setColumnSelectionInterval(0, i != null && i < j ? i : j);
+                spreadSheet.scrollToRow(Math.min(currentRow+4, model.getRowCount()));
+            }
+            
+            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(model.getFpColumnIndex());
+            column.setCellRenderer(new DefaultTableCellRenderer()
+            {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int tblRow, int tblColumn)
+                {
+                    JLabel lbl = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, tblRow, tblColumn);
+
+                    if (true)
+                    {
+                        String queryProgress = "..."; // TODO: get timestamp of last query results
+                        lbl.setText(queryProgress);
                         lbl.setHorizontalAlignment(SwingConstants.CENTER);
                     }
                     return lbl;
@@ -3266,12 +3378,15 @@ public class WorkbenchPaneSS extends BaseSubPane
             formPane.cleanup();
         }
 
+        // TODO: fp shutdown
+        
         formPane    = null;
         findPanel   = null;
         spreadSheet = null;
         workbench   = null;
         model       = null;
         imageColExt = null;
+        fpColExt    = null;
         columns     = null;
         imageFrame  = null;
         headers     = null;
@@ -4129,5 +4244,27 @@ public class WorkbenchPaneSS extends BaseSubPane
         shutdownLock.decrementAndGet();
     }
     
+    private boolean connectToFilteredPush()
+    {
+        if (! isConnectedToFp)
+        {
+            isConnectedToFp = true;
+            
+            // check for new messages
+
+            // highlight the magic fields
+            
+            //
+        }
+        return true;
+    }
+    
+    private void disconnectFromFilteredPush()
+    {
+        if (isConnectedToFp)
+        {
+            isConnectedToFp = false;
+        }
+    }
 }
 

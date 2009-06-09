@@ -67,6 +67,7 @@ import edu.ku.brc.af.core.AppResourceIFace;
 import edu.ku.brc.af.core.ContextMgr;
 import edu.ku.brc.af.core.NavBox;
 import edu.ku.brc.af.core.NavBoxAction;
+import edu.ku.brc.af.core.NavBoxButton;
 import edu.ku.brc.af.core.NavBoxItemIFace;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
@@ -96,6 +97,7 @@ import edu.ku.brc.helpers.ImageFilter;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.UIFileFilter;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.datamodel.FilteredPushMessage;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
@@ -221,6 +223,8 @@ public class WorkbenchTask extends BaseTask
             
             int wbTblId    = Workbench.getClassTableId(); 
             
+            // Actions //
+            
             RolloverCommand roc = null;
             NavBox navBox = new NavBox(getResourceString("Actions"));
             //if (!AppContextMgr.isSecurityOn() || getPermissions().canAdd())
@@ -249,6 +253,8 @@ public class WorkbenchTask extends BaseTask
             
             navBoxes.add(navBox);
             
+            // Data Sets //
+            
             int dataSetCount = 0;
             DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
             try
@@ -274,7 +280,8 @@ public class WorkbenchTask extends BaseTask
             }
 
             
-            // Then add
+            // Reports //
+            
             if (commands != null && (!AppContextMgr.isSecurityOn() || canViewReports()))
             {
                 NavBox reportsNavBox = new NavBox(getResourceString("Reports"));
@@ -347,6 +354,38 @@ public class WorkbenchTask extends BaseTask
             // Add these last and in order
             // TEMPLATES navBoxes.addElement(templateNavBox);
             navBoxes.add(workbenchNavBox);
+            
+            // Begin Filtered Push
+            NavBox fpNoticesBox = new NavBox(getResourceString("WB_FP_NOTICES"), false, true);
+            
+            session = DataProviderFactory.getInstance().createSession();
+            try
+            {
+                List<?> list    = session.getDataList("From FilteredPushMessage where AcknowledgedDate is null order by name");
+                Vector<NavBoxItemIFace> noticesList = new Vector<NavBoxItemIFace>();
+
+                for (Object obj : list)
+                {
+                    FilteredPushMessage message = (FilteredPushMessage) obj;
+                    log.debug("Adding message: " + message.getName());
+                    noticesList.add(makeDnDNavBtn(fpNoticesBox, message.getName(), null, null, null, false, true));
+                }
+                
+            } catch (Exception ex)
+            {
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(WorkbenchTask.class, ex);
+                log.error(ex);
+                ex.printStackTrace();
+                
+            } finally
+            {
+                session.close();    
+            }
+            
+            navBoxes.add(fpNoticesBox);
+            
+            // End Filtered Push
             
             updateNavBoxUI(dataSetCount);
         }
