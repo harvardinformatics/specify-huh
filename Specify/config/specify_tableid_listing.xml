@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 135 or 526
+    Last used ID is 136 or 526
     
     126 are available
     
@@ -172,6 +172,7 @@
         	<display view="ObjectAttachment" newobjdlg="FieldNotebookPageSetAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
+        <table name="edu.ku.brc.specify.datamodel.FilteredPushMessage" abbrev="fpmsg" id="136" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">
             <display view="Geography" dataobjformatter="Geography" searchdlg="GeographySearch" newobjdlg="GeographyDisplay"/>

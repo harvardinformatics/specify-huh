@@ -101,6 +101,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.FilteredPushMessage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeoCoordDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Geography"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeographyTreeDef"/>
