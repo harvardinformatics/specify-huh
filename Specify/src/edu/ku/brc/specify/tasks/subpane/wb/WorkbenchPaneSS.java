@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.tasks.subpane.wb;
 
-
 import static edu.ku.brc.ui.UIHelper.createButton;
 import static edu.ku.brc.ui.UIHelper.createDuplicateJGoodiesDef;
 import static edu.ku.brc.ui.UIHelper.createIconBtn;
@@ -47,6 +46,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.net.ConnectException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EventObject;
@@ -139,9 +140,7 @@ import edu.ku.brc.services.biogeomancer.GeoCoordGeoLocateProvider;
 import edu.ku.brc.services.biogeomancer.GeoCoordProviderListenerIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordServiceProviderIFace;
 import edu.ku.brc.services.filteredpush.FilteredPushProviderListenerIFace;
-import edu.ku.brc.services.filteredpush.FilteredPushServiceProvider;
 import edu.ku.brc.services.filteredpush.FilteredPushServiceProviderIFace;
-import edu.ku.brc.services.filteredpush.SpecifyFPRecord;
 import edu.ku.brc.services.mapping.LocalityMapper;
 import edu.ku.brc.services.mapping.SimpleMapLocation;
 import edu.ku.brc.services.mapping.LocalityMapper.MapLocationIFace;
@@ -156,6 +155,7 @@ import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
+import edu.ku.brc.specify.datamodel.WorkbenchRowFpMsg;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
 import edu.ku.brc.specify.rstools.ExportFileConfigurationFactory;
@@ -347,7 +347,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         // Now we're showing/hiding the image column using JXTable's column hiding features.
         model.setInFilteredPushMode(true);
         model.setInImageMode(true);
-        int fpColIndex = model.getFpColumnIndex();           // TODO: there's a better way
+        int fpColIndex = model.getQueryProgIndex();           // TODO: there's a better way
         int imageColIndex = model.getImageColumnIndex();
         fpColExt = spreadSheet.getColumnExt(fpColIndex);
         imageColExt = spreadSheet.getColumnExt(imageColIndex);
@@ -1308,7 +1308,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         // the above call results in new TableColumnExt objects for each column, it appears
         
         // re-get the column extension object
-        int imageColIndex = model.getColumnCount() - 1;
+        int imageColIndex = getCurrentImgColIndex();
         imageColExt = spreadSheet.getColumnExt(imageColIndex);
         imageColExt.setVisible(false);
         
@@ -1319,7 +1319,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         }
         
         // re-get the column extension object
-        int fpColIndex = model.getColumnCount() - 2;
+        int fpColIndex = getCurrentFpColIndex();
         fpColExt = spreadSheet.getColumnExt(fpColIndex);
         fpColExt.setVisible(false);
 
@@ -1581,13 +1581,13 @@ public class WorkbenchPaneSS extends BaseSubPane
             if (currentPanelType == PanelType.Spreadsheet && currentRow != -1)
             {
                 spreadSheet.setRowSelectionInterval(currentRow, currentRow);
-                Integer i = model.getFpColumnIndex();
-                int j = model.getImageColumnIndex(); 
-                spreadSheet.setColumnSelectionInterval(0, i != null && i < j ? i : j);
+                Integer cols = model.getColumnCount();
+                Integer hiddenCols = model.getHiddenColumnCount();
+                spreadSheet.setColumnSelectionInterval(0, cols - hiddenCols);
                 spreadSheet.scrollToRow(Math.min(currentRow+4, model.getRowCount()));
             }
             
-            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(model.getImageColumnIndex());
+            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(getCurrentImgColIndex());
             column.setCellRenderer(new DefaultTableCellRenderer()
             {
                 @Override
@@ -1644,40 +1644,41 @@ public class WorkbenchPaneSS extends BaseSubPane
         else
         {
             
-            // when a user hits the "show image" button, for some reason the selection gets nullified
-            // so we'll grab it here, then set it at the end of this method
-
-            spreadSheet.getSelectionModel().addListSelectionListener(workbenchRowChangeListener);
-            
             // set the query progress column visible
             fpColExt.setVisible(true);
-
             
             // Without this code below the fp column doesn't get selected
             // when toggling 
             if (currentPanelType == PanelType.Spreadsheet && currentRow != -1)
             {
                 spreadSheet.setRowSelectionInterval(currentRow, currentRow);
-                Integer i = model.getImageColumnIndex();
-                int j = model.getFpColumnIndex(); 
-                spreadSheet.setColumnSelectionInterval(0, i != null && i < j ? i : j);
+                Integer cols = model.getColumnCount();
+                Integer hiddenCols = model.getHiddenColumnCount();
+                spreadSheet.setColumnSelectionInterval(0, cols - hiddenCols);
                 spreadSheet.scrollToRow(Math.min(currentRow+4, model.getRowCount()));
             }
             
-            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(model.getFpColumnIndex());
+            TableColumn column = spreadSheet.getTableHeader().getColumnModel().getColumn(getCurrentFpColIndex());
             column.setCellRenderer(new DefaultTableCellRenderer()
             {
                 @Override
                 public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int tblRow, int tblColumn)
                 {
                     JLabel lbl = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, tblRow, tblColumn);
-
-                    if (true)
+                    int modelRow = spreadSheet.convertRowIndexToModel(tblRow);
+                    WorkbenchRow wbRow = workbench.getRow(modelRow);
+                    
+                    List<WorkbenchRowFpMsg> msgs = new ArrayList<WorkbenchRowFpMsg>(); // TODO: this needs to be improved
+                    msgs.addAll(wbRow.getWorkbenchRowFpMsgs());
+                    
+                    if (msgs.size() > 0)
                     {
-                        String queryProgress = "..."; // TODO: get timestamp of last query results
-                        lbl.setText(queryProgress);
+                        Collections.sort(msgs);
+                        String lastReceived = (new SimpleDateFormat()).format(msgs.get(0).getFpMessage().getReceivedDate().getTime());
+                        lbl.setText(lastReceived);
                         lbl.setHorizontalAlignment(SwingConstants.CENTER);
                     }
+
                     return lbl;
                 }
 
@@ -4265,6 +4266,24 @@ public class WorkbenchPaneSS extends BaseSubPane
         {
             isConnectedToFp = false;
         }
+    }
+    
+    private int getCurrentImgColIndex()
+    {
+        int imgColIndex = model.getImageColumnIndex();
+        int fpColIndex  = model.getQueryProgIndex();
+        
+        if (imgColIndex > fpColIndex && !fpColExt.isVisible()) return imgColIndex - 1;
+        else return imgColIndex;
+    }
+    
+    private int getCurrentFpColIndex()
+    {
+        int imgColIndex = model.getImageColumnIndex();
+        int fpColIndex  = model.getQueryProgIndex();
+        
+        if (fpColIndex > imgColIndex && !imageColExt.isVisible()) return fpColIndex - 1;
+        else return fpColIndex;
     }
 }
 
