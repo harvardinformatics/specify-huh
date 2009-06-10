@@ -85,6 +85,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     protected String                 bioGeomancerResults;
     protected Set<WorkbenchDataItem> workbenchDataItems;
     protected Set<WorkbenchRowImage> workbenchRowImages;
+    protected Set<WorkbenchRowFpMsg> workbenchRowFpMsgs;
     protected Workbench              workbench;
     protected Byte                   uploadStatus;
     protected String                 lat1Text;
@@ -99,10 +100,10 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     protected SoftReference<ImageIcon> fullSizeImageSR = null;
     
     // Transient Data Members
-    protected Hashtable<Short, WorkbenchDataItem>            items         = new Hashtable<Short, WorkbenchDataItem>();
-    protected LoadStatus                                     loadStatus    = LoadStatus.None;
-    protected Exception                                      loadException = null;
-    protected ImageIcon                                      imgIcon       = null;
+    protected Hashtable<Short, WorkbenchDataItem> items         = new Hashtable<Short, WorkbenchDataItem>();
+    protected LoadStatus                          loadStatus    = LoadStatus.None;
+    protected Exception                           loadException = null;
+    protected ImageIcon                           imgIcon       = null;
 
     
     /**
@@ -133,6 +134,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         rowNumber          = null;
         workbenchDataItems = new HashSet<WorkbenchDataItem>();
         workbenchRowImages = new HashSet<WorkbenchRowImage>();
+        workbenchRowFpMsgs = new HashSet<WorkbenchRowFpMsg>();
         uploadStatus       = UPLD_NONE;
         lat1Text           = null;
         lat2Text           = null;
@@ -154,6 +156,11 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         if (getWorkbenchRowImages() != null)
         {
             getWorkbenchRowImages().size();
+        }
+        
+        if (getWorkbenchRowFpMsgs() != null)
+        {
+            getWorkbenchRowFpMsgs().size();
         }
     }
     
@@ -534,6 +541,18 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
 
     @OneToMany(mappedBy = "workbenchRow")
     @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
+    public Set<WorkbenchRowFpMsg> getWorkbenchRowFpMsgs()
+    {
+        return workbenchRowFpMsgs;
+    }
+
+    public void setWorkbenchRowFpMsgs(Set<WorkbenchRowFpMsg> workbenchRowFpMsgs)
+    {
+        this.workbenchRowFpMsgs = workbenchRowFpMsgs;
+    }
+
+    @OneToMany(mappedBy = "workbenchRow")
+    @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
     public Set<WorkbenchRowImage> getWorkbenchRowImages()
     {
         return workbenchRowImages;
@@ -767,6 +786,19 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         short colInx = item.getColumnNumber();
         items.remove(colInx);
         workbenchDataItems.remove(item);
+        item.setWorkbenchRow(null);
+        return item;
+    }
+    
+    /**
+     * Removes an fp message from the Row.
+     * 
+     * @param item the item to be removed
+     * @return the same items that was removed
+     */
+    public WorkbenchRowFpMsg delete(final WorkbenchRowFpMsg item)
+    {
+        workbenchRowFpMsgs.remove(item);
         item.setWorkbenchRow(null);
         return item;
     }
