@@ -24,13 +24,12 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.Transient;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "fpmessage")
-public class FilteredPushMessage extends DataModelObjBase
+public class FilteredPushMessage 
 {
     // Fields    
 
@@ -53,39 +52,7 @@ public class FilteredPushMessage extends DataModelObjBase
     {
         this.fpMessageId = fpMessageId;
     }
-    
-    @Transient
-    @Override
-    public Class<?> getDataClass()
-    {
-        return FilteredPushMessage.class;
-    }
-    
-    @Transient
-    @Override
-    public Integer getId()
-    {
-        return fpMessageId;
-    }
-    
-    @Transient
-    @Override
-    public int getTableId()
-    {
-        return 136;
-    }
-    
-    @Override
-    public void initialize()
-    {
-        super.init();
-        
-        fpMessageId      = null;
-        name             = null;
-        acknowledgedDate = null;
-        receivedDate     = null;
-    }
-    
+
     @Id
     @GeneratedValue
     @Column(name = "FpMessageID", unique = false, nullable = false, insertable = true, updatable = true)
@@ -144,5 +111,10 @@ public class FilteredPushMessage extends DataModelObjBase
     public void setUri(String uri)
     {
         this.uri = uri;
+    }
+    
+    public int compareTo(FilteredPushMessage o)
+    {
+        return getReceivedDate().compareTo(o.getReceivedDate());
     }
 }
