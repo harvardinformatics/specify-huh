@@ -1674,7 +1674,7 @@ public class WorkbenchPaneSS extends BaseSubPane
                     if (msgs.size() > 0)
                     {
                         Collections.sort(msgs);
-                        String lastReceived = (new SimpleDateFormat()).format(msgs.get(0).getFpMessage().getReceivedDate().getTime());
+                        String lastReceived = (new SimpleDateFormat()).format(msgs.get(msgs.size()-1).getFpMessage().getReceivedDate().getTime());
                         lbl.setText(lastReceived);
                         lbl.setHorizontalAlignment(SwingConstants.CENTER);
                     }
