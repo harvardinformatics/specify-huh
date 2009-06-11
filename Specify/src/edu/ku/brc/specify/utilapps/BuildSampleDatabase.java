@@ -8860,18 +8860,14 @@ public class BuildSampleDatabase
         FilteredPushMessage fpMessage1 = new FilteredPushMessage();
         fpMessage1.setName("S. J. Davies 981201 (annotation)"); // 178877
         fpMessage1.setUri("http://asaweb.huh.harvard.edu:8080/databases/specimens?id=178877");
-        fpMessage1.setTimestampCreated(now);
         fpMessage1.setReceivedDate(receivedDate);
-        fpMessage1.setVersion(1);
         persist(fpMessage1);
         
         receivedDate.add(Calendar.DAY_OF_YEAR, -1);
         FilteredPushMessage fpMessage2 = new FilteredPushMessage();
         fpMessage2.setName("B. A. Krukoff 4723 (duplicate)"); // 155693
         fpMessage2.setUri("http://asaweb.huh.harvard.edu:8080/databases/specimens?id=155693");
-        fpMessage2.setTimestampCreated(now);
         fpMessage2.setReceivedDate(receivedDate);
-        fpMessage2.setVersion(1);
         persist(fpMessage2);
     }
 }
