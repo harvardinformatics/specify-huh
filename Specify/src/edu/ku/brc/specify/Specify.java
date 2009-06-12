@@ -574,8 +574,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         if (doFpStartUp)
         {
             // set up FilteredPushListener
-            boolean isConnectedToFP = FilteredPushMgr.getInstance().connectToFilteredPush();
-            AppContextMgr.getInstance().setFp(isConnectedToFP);
+            FilteredPushMgr.getInstance().connectToFilteredPush();
         }
     }
     
@@ -725,18 +724,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             secLbl.setToolTipText(getResourceString("Specify.SEC_" + (isSecurityOn ? "ON" : "OFF")));
         }
 
-        JLabel fpLbl = statusField.getSectionLabel(4); // MMK
-        if (fpLbl != null)
-        {
-            boolean isFpOn = AppContextMgr.isFpOn();
-            log.debug("Setting FP status: " + isFpOn);
-            
-            fpLbl.setIcon(IconManager.getImage(isFpOn ? "FpOn" : "FpOff", IconManager.IconSize.Std16));
-            fpLbl.setHorizontalAlignment(SwingConstants.CENTER);
-            fpLbl.setHorizontalTextPosition(SwingConstants.LEFT);
-            fpLbl.setText("");
-            fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? "ON" : "OFF")));
-        }
+        setFpConnectionStatus();
 
         add(statusField, BorderLayout.SOUTH);
     }
@@ -2631,6 +2619,25 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         statusField.setSectionToolTipText(1, DBTableIdMgr.getInstance().getTitleForId(Collection.getClassTableId()));
         
         AppPreferences.getLocalPrefs().put("CURRENT_DB", databaseName);
+    }
+    
+    /**
+     * Update the Filtered Push connection icon in the status bar
+     */
+    public void setFpConnectionStatus() // TODO: this class should be a listener for FP commands
+    {
+        JLabel fpLbl = statusField.getSectionLabel(4); // FP MMK TODO: check for null status field?
+        if (fpLbl != null)
+        {
+            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+            log.debug("Setting FP status: " + isFpOn);
+            
+            fpLbl.setIcon(IconManager.getImage(isFpOn ? "FpOn" : "FpOff", IconManager.IconSize.Std16));
+            fpLbl.setHorizontalAlignment(SwingConstants.CENTER);
+            fpLbl.setHorizontalTextPosition(SwingConstants.LEFT);
+            fpLbl.setText("");
+            fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? "ON" : "OFF")));
+        }
     }
 
     /* (non-Javadoc)

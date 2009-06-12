@@ -16,32 +16,30 @@ package edu.ku.brc.specify.tasks;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JPanel;
-
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.NavBox;
+import edu.ku.brc.af.core.NavBoxButton;
+import edu.ku.brc.af.core.NavBoxItemIFace;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.ToolBarItemDesc;
-import edu.ku.brc.af.core.UsageTracker;
+import edu.ku.brc.af.tasks.subpane.BaseSubPane;
 import edu.ku.brc.af.tasks.subpane.FilteredPushPane;
 import edu.ku.brc.af.tasks.subpane.SimpleDescPane;
-import edu.ku.brc.specify.tasks.DataEntryTask.DroppableFormRecordSetAccepter;
-import edu.ku.brc.stats.StatsMgr;
+import edu.ku.brc.services.filteredpush.FilteredPushMgr;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.IconManager;
-import edu.ku.brc.ui.JTiledPanel;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
-import edu.ku.brc.ui.UIRegistry;
 
 public class FilteredPushTask extends BaseTask
 {
@@ -50,15 +48,36 @@ public class FilteredPushTask extends BaseTask
     
     public static final String FILTEREDPUSH  = "FilteredPush";
     
-    protected Element panelDOM;
+    private Element panelDOM;
+    private SubPaneIFace fpPane;
+    private NavBoxButton fpConnectionBtn;
     
+    // TODO: FP MMK this whole calss is an ugly mess
+    private final String fpConnectLink = "fp_connect_link"; // see config/../fp_navpanel.xml
+    private final String fpDisconnectLink = "fp_disconnect_link";
+    private final String fpConnectedStatus = "fp_connected_status";
+    private final String fpDisconnectedStatus = "fp_disconnected_status";
+    private final String fpConnectErrorStatus = "fp_error_status";
+
+    private final String fpConnectedIconName = "fp_on_mmk";
+    private final String fpDisconnectedIconName = "fp_off_mmk";
+
+    private final String fpConnectStr = getResourceString(fpConnectLink);
+    private final String fpDisconnectStr = getResourceString(fpDisconnectLink);
+    private final String fpIsOnStr = getResourceString(fpConnectedStatus);
+    private final String fpIsOffStr = getResourceString(fpDisconnectedStatus);
+    private final String fpConnectErrorStr = getResourceString(fpConnectErrorStatus);
+    
+    private NavBoxButton fpConnectBtn = (NavBoxButton) NavBox.createBtn(fpConnectStr, fpDisconnectedIconName, IconManager.STD_ICON_SIZE, new DisplayAction(fpConnectLink));
+    private NavBoxButton fpDisconnectBtn = (NavBoxButton) NavBox.createBtn(fpDisconnectStr, fpConnectedIconName, IconManager.STD_ICON_SIZE, new DisplayAction(fpDisconnectLink));
+
     public FilteredPushTask()
     {
         super(FILTEREDPUSH, getResourceString(FILTEREDPUSH));
         CommandDispatcher.register(FILTEREDPUSH, this);
     }
 
-    // from StatsTask
+    // Initialize the left nav panel
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.core.Taskable#initialize()
      */
@@ -87,11 +106,32 @@ public class FilteredPushTask extends BaseTask
             // XXX This needs to be made generic so everyone can use it
             //
             List<?> boxes = panelDOM.selectNodes("/boxes/box"); //$NON-NLS-1$
-            for ( Iterator<?> iter = boxes.iterator(); iter.hasNext(); )
+            for ( Iterator<?> boxIter = boxes.iterator(); boxIter.hasNext(); )
             {
-                Element box = (Element) iter.next();
-                NavBox navBox = new NavBox(UIRegistry.getResourceString(box.attributeValue("title"))); //$NON-NLS-1$
+                Element box = (Element) boxIter.next();
+                NavBox navBox = new NavBox(getResourceString(box.attributeValue("title"))); //$NON-NLS-1$
 
+                List<?> items = box.selectNodes("item"); //$NON-NLS-1$
+                for ( Iterator<?> itemIter = items.iterator(); itemIter.hasNext(); )
+                {
+                    Element item = (Element) itemIter.next();
+                    String itemName  = item.attributeValue("name"); //$NON-NLS-1$
+                    String itemTitle = item.attributeValue("title"); //$NON-NLS-1$
+                    String itemIcon     = item.attributeValue("icon"); //$NON-NLS-1$
+                    
+                    ActionListener action = new DisplayAction(itemName);
+                    NavBoxItemIFace btn = NavBox.createBtn(getResourceString(itemTitle), itemIcon, IconManager.STD_ICON_SIZE, action);
+
+                    log.debug("FilteredPushTask.initialize() item title: " + itemTitle);
+                    navBox.add(btn);
+
+                    if (itemName.equals(fpConnectLink))
+                    {
+                        fpConnectionBtn = (NavBoxButton) btn;
+                        updateConnectBtn();
+                    }
+
+                }
                 navBoxes.add(navBox);
             }
         }
@@ -131,23 +171,86 @@ public class FilteredPushTask extends BaseTask
         return starterPane;
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.tasks.BaseTask#isSingletonPane()
+     */
+    @Override
+    public boolean isSingletonPane()  // TODO: FP MMK clicking the task button always creates a new pane
+    {
+        return true;
+    }
+    
     /**
      * Looks up statName and creates the appropriate SubPane
      * @param statName the name of the stat to be displayed
      */
     private void createFpPane(final String fpName)
     {
-        // Create stat pane return a non-null panel for charts and null for non-charts
-        // Of coarse, it could pass back nul if a chart was missed named
-        // but error would be shown inside the StatsMgr for that case
-        JPanel panel = new JTiledPanel();
-        if (panel != null)
+
+        BaseSubPane newPane = null;
+        if (fpName.equals(fpConnectLink))
         {
-            SimpleDescPane pane = new SimpleDescPane(fpName, this, panel);
-            addSubPaneToMgr(pane);
+            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+            String title = fpIsOnStr;
+            if (!isFpOn)
+            {
+                boolean success = FilteredPushMgr.getInstance().connectToFilteredPush();
+                if (!success)
+                {
+                    title = fpConnectErrorStr;
+                }
+                updateConnectBtn();
+            }
+            newPane = new SimpleDescPane(getResourceString(fpName), this, title);
         }
+        else if (fpName.equals(fpDisconnectLink))
+        {
+            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+            String title = fpIsOffStr;
+            if (isFpOn)
+            {
+                FilteredPushMgr.getInstance().disconnectFromFilteredPush();
+                updateConnectBtn();
+            }
+            newPane = new SimpleDescPane(getResourceString(fpName), this, title);
+        }
+        else
+        {
+            newPane = new SimpleDescPane(getResourceString(fpName), this, "Coming soon!");
+        }
+
+        if (starterPane != null)
+        {
+            SubPaneMgr.getInstance().replacePane(starterPane, newPane);
+            starterPane = null;
+        }
+        else if (fpPane != null)
+        {
+            SubPaneMgr.getInstance().replacePane(fpPane, newPane);
+        }
+        fpPane = newPane;
     }
     
+    private void updateConnectBtn()
+    {
+        boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+        log.debug("updateConnectBtn: " + isFpOn);
+
+        Container jComponent = fpConnectionBtn.getUIComponent().getParent();
+        
+        jComponent.remove(fpConnectionBtn);
+        if (isFpOn)
+        {
+            fpConnectionBtn = fpDisconnectBtn;
+        }
+        else
+        {
+            fpConnectionBtn = fpConnectBtn;
+        }
+        jComponent.add(fpConnectionBtn);
+        jComponent.repaint();
+    }
+
     /**
     *
     * @author rods

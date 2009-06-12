@@ -17,14 +17,22 @@ package edu.ku.brc.services.filteredpush;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import org.apache.log4j.Logger;
+
+import edu.ku.brc.specify.Specify;
+
 public class FilteredPushMgr
 {
+    protected static final Logger  log = Logger.getLogger(FilteredPushMgr.class);
+            
     protected static FilteredPushMgr instance = null;
     
     protected static FilteredPushServiceProvider fpService;
     
     public static final String factoryName = "edu.ku.brc.services.filteredpush.FilteredPushMgrFactory"; //$NON-NLS-1$
 
+    private boolean isFpOn;
+    
     public static FilteredPushMgr getInstance()
     {
         if (instance != null)
@@ -58,14 +66,29 @@ public class FilteredPushMgr
         return null;
     }
     
-    public boolean connectToFilteredPush()
+    public boolean isFpOn()
     {
-        return getFilteredPushService().connect();
+        return isFpOn;
+    }
+
+    public boolean connectToFilteredPush()  // this should happen as a result of an FP command so that listeners know
+    {
+        log.debug("FilteredPushMgr.connectToFilteredPush");
+
+        isFpOn = getFilteredPushService().connect();
+        Specify.getSpecify().setFpConnectionStatus();
+        
+        return isFpOn;
     }
     
-    public void disconnectFromFilteredPush()
+    public void disconnectFromFilteredPush() // this should happen as a result of an FP command so that listeners know
     {
+        log.debug("FilteredPushMgr.disconnectFromFilteredPush");
+        
+        isFpOn = false;
+        
         getFilteredPushService().disconnect();
+        Specify.getSpecify().setFpConnectionStatus();
     }
     
     private FilteredPushServiceProvider getFilteredPushService()
