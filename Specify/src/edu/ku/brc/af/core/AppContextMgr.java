@@ -219,6 +219,8 @@ public abstract class AppContextMgr
     public Taskable getTaskFromTableId(int tableId) { return null; }
     
     public static boolean isSecurityOn() { return getInstance().isSecurity(); }
+    
+    public static boolean isFpOn() { return getInstance().isFp(); }
 
     /**
      * Copies all the fields except the data.
@@ -352,5 +354,17 @@ public abstract class AppContextMgr
      * @param secVal true to turn on security
      */
     public abstract boolean setSecurity(final boolean secVal);
+    
+    
+    /**
+     * @return whether Filtered Push has been turned on
+     */
+    public abstract boolean isFp();
+
+    
+    /**
+     * @param secVal true to turn on Filtered Push
+     */
+    public abstract boolean setFp(final boolean fpVal);
 
 }

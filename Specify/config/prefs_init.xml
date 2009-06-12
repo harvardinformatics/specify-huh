@@ -67,4 +67,13 @@
         </pref>
     </section>
     
+    <!-- FP MMK -->
+    <section title="FilteredPush">
+        <pref name="FilteredPush" title="FilteredPush" icon="FilteredPush" panelClass="edu.ku.brc.specify.prefs.FpPrefs" viewsetname="FpPrefs" viewname="FpPrefs" help="PrefsFp">
+            <defperm name="Manager"       perm="true,true,true,true"/>
+            <defperm name="FullAccess"    perm="true,true,true,true"/>
+            <defperm name="LimitedAccess" perm="true,true,true,true"/>
+            <defperm name="Guest"         perm="false,false,false,false"/>
+        </pref>
+    </section>
 </prefs>

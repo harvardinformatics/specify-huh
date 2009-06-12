@@ -18,6 +18,8 @@
     
     <icon name="DiGIR"             file="DigirShovel.png"/>
     
-    <icon name="FP_off"            file="fp_off.png"/>
-    <icon name="FP_on"             file="fp_on.png"/>
+    <!-- FP MMK -->
+    <icon name="FilteredPush"      file="fp_off_mk.gif"/>
+    <icon name="FP_off"            file="fp_off_mk.gif"/>
+    <icon name="FP_on"             file="fp_on_mk.gif"/>
 </icons>

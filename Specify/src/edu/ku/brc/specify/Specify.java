@@ -152,6 +152,7 @@ import edu.ku.brc.dbsupport.QueryExecutor;
 import edu.ku.brc.exceptions.ExceptionTracker;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.services.filteredpush.FilteredPushMgr;
 import edu.ku.brc.specify.config.DebugLoggerDialog;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.config.FeedBackDlg;
@@ -566,6 +567,16 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         dbLoginPanel = UIHelper.doLogin(usrPwdProvider, false, false, this, "SpecifyLargeIcon", getTitle(), null, "SpecifyWhite32"); // true means do auto login if it can, second bool means use dialog instead of frame
         localPrefs.load();
+        
+        // FP MMK TODO: should this go here?
+        boolean doFpStartUp = AppPreferences.getLocalPrefs().getBoolean("fp.autologin", false);
+        log.debug("Doing auto-startup for Filtered Push: " + doFpStartUp);
+        if (doFpStartUp)
+        {
+            // set up FilteredPushListener
+            boolean isConnectedToFP = FilteredPushMgr.getInstance().connectToFilteredPush();
+            AppContextMgr.getInstance().setFp(isConnectedToFP);
+        }
     }
     
 
@@ -595,6 +606,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         //System.setProperty(UserAndMasterPasswordMgr.factoryName,               "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(BackupServiceFactory.factoryName,            "edu.ku.brc.af.core.db.MySQLBackupService");                   // Needed for Backup and Restore //$NON-NLS-1$
         System.setProperty(ExceptionTracker.factoryName,                "edu.ku.brc.specify.config.SpecifyExceptionTracker");                   // Needed for Backup and Restore //$NON-NLS-1$
+ 
+        // MMK TODO: FP is this the right place to implement this?
+        System.setProperty(FilteredPushMgr.factoryName, "edu.ku.brc.services.filteredpush.FilteredPushMgr");
     }
 
     /**
@@ -694,7 +708,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
         mainPanel = new MainPanel();
 
-        int[] sections = {5, 5, 5, 1};
+        int[] sections = {5, 5, 5, 1, 1}; // MMK: add a spot in the status bar for fp status icon
         statusField = new JStatusBar(sections);
         statusField.setErrorIcon(IconManager.getIcon("Error", IconManager.IconSize.Std16)); //$NON-NLS-1$
         statusField.setWarningIcon(IconManager.getIcon("Warning", IconManager.IconSize.Std16)); //$NON-NLS-1$
@@ -709,6 +723,19 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             secLbl.setHorizontalTextPosition(SwingConstants.LEFT);
             secLbl.setText("");
             secLbl.setToolTipText(getResourceString("Specify.SEC_" + (isSecurityOn ? "ON" : "OFF")));
+        }
+
+        JLabel fpLbl = statusField.getSectionLabel(4); // MMK
+        if (fpLbl != null)
+        {
+            boolean isFpOn = AppContextMgr.isFpOn();
+            log.debug("Setting FP status: " + isFpOn);
+            
+            fpLbl.setIcon(IconManager.getImage(isFpOn ? "FpOn" : "FpOff", IconManager.IconSize.Std16));
+            fpLbl.setHorizontalAlignment(SwingConstants.CENTER);
+            fpLbl.setHorizontalTextPosition(SwingConstants.LEFT);
+            fpLbl.setText("");
+            fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? "ON" : "OFF")));
         }
 
         add(statusField, BorderLayout.SOUTH);
@@ -1339,7 +1366,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                     });
 
         
-            cbMenuItem = new JCheckBoxMenuItem("Security Activated"); //$NON-NLS-1$
+            cbMenuItem = new JCheckBoxMenuItem("Security Activated"); //$NON-NLS-1$ // TODO: mmk: add menu item for fp
             menu.add(cbMenuItem);
             cbMenuItem.setSelected(AppContextMgr.isSecurityOn());
             cbMenuItem.addActionListener(new ActionListener() {

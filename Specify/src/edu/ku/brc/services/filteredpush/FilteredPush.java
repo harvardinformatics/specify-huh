@@ -16,17 +16,16 @@ package edu.ku.brc.services.filteredpush;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
-import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.util.Pair;
 import edu.umb.cs.filteredpush.client.QueryImpl;
+import edu.umb.cs.filteredpush.network.CommunicationImpl;
 
 public class FilteredPush
 {
@@ -93,7 +92,19 @@ public class FilteredPush
         // get the "where" fields (collector name and number)
         TreeMap<String, String> conditions = new TreeMap<String, String>();
         
-        for (Pair<String, String> keyValuePair : keyValuePairs)
+        // TODO: what if fields are empty? include them, requiring the match to have that field empty?
+        
+        // TODO: does it make sense to send a query with no key-value pairs?
+        
+        // TODO: should Specify know about fields required by FP?
+        
+        // TODO: how does FP notify us of an error?  how does Specify translate that to the user?
+        
+        // TODO: should the Specify user even know that this is FP?  how thin of a wrapper is Specify's FP plugin?
+        
+        String collectorAndNumber = "Brown&RSC100"; // key for fuzzy matching
+        
+        /*for (Pair<String, String> keyValuePair : keyValuePairs)
         {
             String key = keyValuePair.getFirst();
             String value = keyValuePair.getSecond();
@@ -102,31 +113,30 @@ public class FilteredPush
             {
                 conditions.put(key, value);
             }
-        }
+        }*/
         
-        QueryImpl qu = new QueryImpl();
-        StringBuffer result = new StringBuffer();
+        QueryImpl qi = new QueryImpl();
         
-        System.err.print("getFilteredPushResponse: select ");
-        for (String selectField : filteredPushSelectFields)
-        {
-            System.err.print(selectField + ", ");
-            result.append(selectField + "\t");
-        }
-        System.err.println();
-        result.deleteCharAt(result.lastIndexOf("\t"));
-        result.append("\n");
-        result.append(result.toString());
-        result.append(result.toString());
+        //com.sendDuplicatesFindingMessage(message, collectorAndNumber);
 
-        System.err.print(" where ");
-        for (String key : conditions.keySet())
+        final InputStream is = qi.query(filteredPushSelectFields, conditions, collectorAndNumber);
+
+        if (is == null)
         {
-            System.err.println(key + "='" + conditions.get(key) + "' and ");
+            return null;
         }
-        System.err.println();
-        
-        final BufferedReader bfr = new BufferedReader(new InputStreamReader(qu.query(filteredPushSelectFields, conditions)));
+
+        final InputStreamReader isr = new InputStreamReader(is);
+        if (isr == null)
+        {
+            return null;
+        }
+
+        final BufferedReader bfr = new BufferedReader(isr);
+        if (bfr == null)
+        {
+            return null;
+        }
 
         StringBuffer response = new StringBuffer();
         String record = bfr.readLine();
@@ -139,9 +149,7 @@ public class FilteredPush
         }
         
         return response.toString();
-        
-/*        System.err.print(result.toString());
-        return result.toString();*/
+
     }
     
     // note to self: this is tied to filteredPushSelectFields:
@@ -150,6 +158,11 @@ public class FilteredPush
     public static List<FilteredPushResult> parse(String response) {
                 
         List<FilteredPushResult> results = new ArrayList<FilteredPushResult>();
+
+        if (response == null)
+        {
+            return results;
+        }
 
         String[] fpRecords = response.split("\\n+");
         for (String fpRecord : fpRecords) {

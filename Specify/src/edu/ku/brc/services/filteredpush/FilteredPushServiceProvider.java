@@ -20,8 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -36,14 +34,8 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.UsageTracker;
-import edu.ku.brc.services.biogeomancer.GeoCoordDataIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordGeoLocateProvider;
-import edu.ku.brc.services.biogeomancer.GeoLocateResultsChooser;
-import edu.ku.brc.services.geolocate.client.GeorefResult;
-import edu.ku.brc.services.geolocate.client.GeorefResultSet;
-import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
-import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
 import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.ProgressDialog;
 import edu.ku.brc.ui.UIHelper;
@@ -68,6 +60,16 @@ public class FilteredPushServiceProvider implements FilteredPushServiceProviderI
         // empty block
     }
     
+    public boolean connect()
+    {
+        return true;
+    }
+
+    public void disconnect()
+    {
+        ;
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.services.biogeomancer.GeoCoordServiceProviderIFace#processGeoRefData(java.util.List)
      */
@@ -78,7 +80,7 @@ public class FilteredPushServiceProvider implements FilteredPushServiceProviderI
         this.listener    = listenerArg;
         this.helpContext = helpContextArg;
         
-        UsageTracker.incrUsageCount("WB.GeoLocateRows"); //$NON-NLS-1$ // TODO
+        //UsageTracker.incrUsageCount("WB.GeoLocateRows"); //$NON-NLS-1$ // TODO
         
         log.info("Performing Filtered Push query of selected records"); //$NON-NLS-1$
         

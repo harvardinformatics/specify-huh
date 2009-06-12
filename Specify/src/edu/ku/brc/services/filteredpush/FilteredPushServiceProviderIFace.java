@@ -23,5 +23,9 @@ public interface FilteredPushServiceProviderIFace
 
     void processFilteredPushData(List<WorkbenchRow> selectedWBRows,
                                  FilteredPushProviderListenerIFace filteredPushProviderListenerIFace, String string);
+    
+    public boolean connect();
+    
+    public void disconnect();
 
 }

@@ -23,7 +23,10 @@
 		<plugin class="edu.ku.brc.specify.tasks.SystemSetupTask" addui="true"/>
 		
 		<plugin class="edu.ku.brc.specify.tasks.WorkbenchTask" addui="true"/>
-
+		
+		<!-- FP MMK -->
+		<plugin class="edu.ku.brc.specify.tasks.FilteredPushTask" addui="true"/>
+		
 		<!-- Remove the comments from the line below to see the security administration task on the main toolbar --> 
 		<plugin class="edu.ku.brc.specify.tasks.SecurityAdminTask" addui="true"/>
 		

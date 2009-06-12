@@ -231,6 +231,8 @@
     <icon name="SecurityOff"           file="security_off.png" sizes="all"/>
     <icon name="Login"                 file="login.png" sizes="all"/>
     <icon name="MySQL"                 file="mysql_logo.png" sizes="all"/>
-    
-    
+
+    <!-- FP MMK -->
+    <icon name="FpOn"                  file="fp_on_mk.gif" sizes="all"/>
+    <icon name="FpOff"                 file="fp_off_mk.gif" sizes="all"/>
 </icons>

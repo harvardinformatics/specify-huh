@@ -14,13 +14,9 @@
  */
 package edu.ku.brc.services.filteredpush;
 
-import java.util.Hashtable;
-import java.util.Set;
-
-import javax.swing.JTextArea;
-import javax.swing.text.JTextComponent;
-
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
+import java.util.Set;
 
 import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;

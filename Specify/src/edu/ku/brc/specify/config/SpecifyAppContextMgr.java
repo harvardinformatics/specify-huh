@@ -187,7 +187,8 @@ public class SpecifyAppContextMgr extends AppContextMgr
     protected int                      openSessionCount = 0;
     
     protected Boolean         isSecurityOn         = null;
-    
+    protected Boolean         isFpOn               = null;
+
     /**
      * Singleton Constructor.
      */
@@ -3042,6 +3043,30 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return status;
     }
 
+    /**
+     * @return true if Filtered Push is on
+     */
+    public boolean isFp() // MMK
+    {
+        if (isFpOn == null)
+        {
+            isFpOn = false;
+        }
+        return isFpOn;
+    }
+    
+    /**
+     * @param fpVal
+     */
+    public boolean setFp(final boolean fpVal) // MMK
+    {
+        boolean status = true;
+
+        isFpOn = fpVal;
+        
+        return status;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.core.AppContextMgr#clear()
      */

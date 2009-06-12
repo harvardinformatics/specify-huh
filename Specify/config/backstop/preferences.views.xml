@@ -74,6 +74,15 @@
             </altviews>
         </view>
         
+        <!-- MMK -->
+        <view
+        	name="FpPrefs"
+        	class="java.util.prefs.Preferences">
+        	<desc><![CDATA[Filtered Push Options Preference Form.]]></desc>
+        	<altviews>
+        		<altview name="FpPref" viewdef="FpPrefs" label="FP_PREFS" mode="edit" validated="true"/>
+        	</altviews>
+        </view>
     </views>
 
     <!-- ***************************************************************************************** -->
@@ -713,6 +722,30 @@
             </rows>
         </viewdef>
         
+        <!-- FP MMK -->
+        <viewdef
+        	type="form"
+        	name="FpPrefs"
+        	class="java.util.prefs.Preferences"
+        	gettable="edu.ku.brc.af.prefs.PrefsGettableImpl"
+        	settable="edu.ku.brc.af.prefs.PrefsSettableImpl"
+        	useresourcelabels="true">
+        	
+        	<desc><![CDATA[Filtered Push Preference Form.]]></desc>
+        	
+        	<columnDef>p,2px,p,p:g,f:p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+	            <row>
+    	        	<cell type="separator" label="FP_AUTOLOGIN" colspan="5"/>
+				</row>
+            	<row>
+               		<cell type="label" labelfor="fpautologin" label=""/>
+                    <cell type="field" id="fpautologin" name="fp.autologin" uitype="checkbox" label="FP_DO_AUTOLOGIN" colspan="2"/> 
+                </row>
+            </rows>
+        </viewdef>
         
     </viewdefs>
 </viewset>
