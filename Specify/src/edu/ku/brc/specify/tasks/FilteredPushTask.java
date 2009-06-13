@@ -52,15 +52,15 @@ public class FilteredPushTask extends BaseTask
     private SubPaneIFace fpPane;
     private NavBoxButton fpConnectionBtn;
     
-    // TODO: FP MMK this whole calss is an ugly mess
+    // TODO: FP MMK this whole class is an ugly mess
     private final String fpConnectLink = "fp_connect_link"; // see config/../fp_navpanel.xml
     private final String fpDisconnectLink = "fp_disconnect_link";
     private final String fpConnectedStatus = "fp_connected_status";
     private final String fpDisconnectedStatus = "fp_disconnected_status";
     private final String fpConnectErrorStatus = "fp_error_status";
 
-    private final String fpConnectedIconName = "fp_on_mmk";
-    private final String fpDisconnectedIconName = "fp_off_mmk";
+    private final String fpConnectedIconName = "FpOn"; // see econfig/icons.xml
+    private final String fpDisconnectedIconName = "FpOff";
 
     private final String fpConnectStr = getResourceString(fpConnectLink);
     private final String fpDisconnectStr = getResourceString(fpDisconnectLink);
