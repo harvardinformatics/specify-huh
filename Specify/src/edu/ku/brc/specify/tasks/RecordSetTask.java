@@ -90,6 +90,7 @@ import edu.ku.brc.ui.RolloverCommand;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.DataActionEvent;
+import edu.ku.brc.ui.dnd.FpPublish;
 import edu.ku.brc.ui.dnd.Trash;
 /**
  * Takes care of offering up record sets, updating, deleting and creating them.
@@ -106,6 +107,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
     // Static Data Members
     public static final String RECORD_SET     = "Record_Set";
     public static final String SAVE_RECORDSET = "Save";
+    public static final String FP_PUB_RECORDSET = "FpPublish";
     
     public static final DataFlavor RECORDSET_FLAVOR = new DataFlavor(RecordSetTask.class, RECORD_SET);
     
@@ -124,6 +126,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         super(RECORD_SET, getResourceString(RECORD_SET));
         
         draggableFlavors.add(Trash.TRASH_FLAVOR);
+        draggableFlavors.add(FpPublish.FP_PUB_FLAVOR);
         //draggableFlavors.add(RecordSetTask.RECORDSET_FLAVOR);
         
         CommandDispatcher.register(RECORD_SET, this);
@@ -272,6 +275,11 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         final RolloverCommand roc = (RolloverCommand)makeDnDNavBtn(navBox, recordSet.getName(), RECORD_SET, null, 
                                                                    delCmdAction, 
                                                                    true, true);// true means make it draggable
+
+        boolean fpPubOK = true; // TODO: FP MMK implement
+        CommandAction fpPubCmdAction = fpPubOK ? new CommandAction(RECORD_SET, FP_PUB_RECORDSET, recordSet) : null;
+        roc.setFpPublishCommandAction(fpPubCmdAction);
+
         roc.setData(recordSet);
         addPopMenu(roc, delOK, modOK);
         
@@ -495,6 +503,14 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         }
     }
 
+    /**
+     * Share a record set with the Filtered Push network
+     */
+    protected void fpPublishRecordSet(final RecordSetIFace recordSet)
+    {
+        // TODO: FP MMK implement fpPublishRecordSet()
+        log.debug("RecordSetTask: fpPublishRecordSet");
+    }
     
     /**
      * Delete a record set
@@ -1146,7 +1162,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
      * @param cmdAction the command to be processed
      */
     protected void processRecordSetCommands(final CommandAction cmdAction)
-    {
+    {        
         if (cmdAction.isAction(SAVE_RECORDSET))
         {
             Object data = cmdAction.getData();
@@ -1222,9 +1238,28 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         } else if (cmdAction.isAction("DELETEITEMS"))
         {
             processDeleteRSItems(cmdAction);
-        }
-        
 
+        } else if (cmdAction.isAction(FP_PUB_RECORDSET))
+        {
+            RecordSetIFace recordSet = null;
+            if (cmdAction.getData() instanceof RecordSetIFace)
+            {
+                recordSet = (RecordSetIFace)cmdAction.getData();
+                
+            } else if (cmdAction.getData() instanceof RolloverCommand)
+            {
+                RolloverCommand roc = (RolloverCommand)cmdAction.getData();
+                if (roc.getData() instanceof RecordSetIFace)
+                {
+                    recordSet = (RecordSetIFace)roc.getData();
+                }
+            }
+            
+            if (recordSet != null)
+            {
+                fpPublishRecordSet(recordSet);
+            }
+        }
     }
 
     /* (non-Javadoc)

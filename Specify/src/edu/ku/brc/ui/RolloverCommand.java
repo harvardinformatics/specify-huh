@@ -61,6 +61,7 @@ import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
 import edu.ku.brc.ui.dnd.DataActionEvent;
 import edu.ku.brc.ui.dnd.DndDeletable;
+import edu.ku.brc.ui.dnd.DndFpPublishable;
 import edu.ku.brc.ui.dnd.DragAndDropLock;
 import edu.ku.brc.ui.dnd.GhostActionable;
 import edu.ku.brc.ui.dnd.GhostMouseInputAdapter;
@@ -78,7 +79,7 @@ import edu.ku.brc.ui.dnd.ShadowFactory;
  *
  */
 @SuppressWarnings("serial")
-public class RolloverCommand extends JPanel implements GhostActionable, DndDeletable
+public class RolloverCommand extends JPanel implements GhostActionable, DndDeletable, DndFpPublishable
 {
     protected static Color           transparentWhite = new Color(255, 255, 255, 180);
     protected static Color           focusColor  = Color.BLUE;
@@ -128,6 +129,9 @@ public class RolloverCommand extends JPanel implements GhostActionable, DndDelet
 
     // DndDeletable
     protected CommandAction          deleteCmdAction = null;
+    
+    // DndFpPublishable
+    protected CommandAction          fpPublishCmdAction = null;
 
     /**
      * Constructs a UI component with a label and an icon which can be clicked to execute an action.
@@ -1010,6 +1014,35 @@ public class RolloverCommand extends JPanel implements GhostActionable, DndDelet
     public Icon getIcon()
     {
         return imgIcon;
+    }
+
+    //-----------------------------------------------
+    // DndFpPublishable Interface
+    //-----------------------------------------------
+
+    /**
+     * Asks the object to send a request for itself to be published on the FP network.
+     * @return return true
+     */
+    @Override
+    public boolean fpPublishRequest()
+    {
+        if (fpPublishCmdAction != null)
+        {
+            CommandDispatcher.dispatch(fpPublishCmdAction);
+        }
+        return true;
+    }
+
+    /**
+     * The command that will be dispatched when "fpPublishRequest" is called
+     * @param deleteCmdAction the command that will publish the item
+     */
+    @Override
+    public void setFpPublishCommandAction(CommandAction cmdAction)
+    {
+        this.fpPublishCmdAction = cmdAction;
+        
     }
 
 }
