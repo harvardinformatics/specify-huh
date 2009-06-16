@@ -1,3 +1,7 @@
+package edu.ku.brc.specify.datamodel.busrules;
+
+import edu.ku.brc.af.ui.forms.BaseBusRules;
+
 /* Copyright (C) 2009, University of Kansas Center for Research
  * 
  * Specify Software Project, specify@ku.edu, Biodiversity Institute,
@@ -17,3 +21,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+public class CollectingEventBusRules extends BaseBusRules
+{
+    
+}
