@@ -114,6 +114,7 @@ import edu.ku.brc.af.ui.forms.validation.ValTristateCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValidatedJPanel;
 import edu.ku.brc.af.ui.weblink.WebLinkButton;
 import edu.ku.brc.exceptions.ConfigurationException;
+import edu.ku.brc.services.filteredpush.FpFormViewObj;
 import edu.ku.brc.ui.ColorChooser;
 import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.CommandAction;
@@ -2308,7 +2309,9 @@ public class ViewFactory
                 validator.setDataChangeNotification(true);
             }
 
-            FormViewObj formViewObj = new FormViewObj(view, altView, parentView, validator, options, bgColor);
+            FormViewObj formViewObj = new FpFormViewObj(view, altView, parentView, validator, options, bgColor); // TODO: FP MMK temporary!
+            log.debug("ViewFactory.buildFormViewable " + formViewObj.getName());
+            
             if (!formViewObj.isBuildValid())
             {
                 return null;

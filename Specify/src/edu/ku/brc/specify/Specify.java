@@ -153,6 +153,7 @@ import edu.ku.brc.exceptions.ExceptionTracker;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.services.filteredpush.FilteredPushMgr;
+import edu.ku.brc.services.filteredpush.FpFormViewObj;
 import edu.ku.brc.specify.config.DebugLoggerDialog;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.config.FeedBackDlg;
@@ -1036,6 +1037,25 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         UIRegistry.registerAction("ConfigCarryForward", configCarryForwardAction); //$NON-NLS-1$
         mb.add(dataMenu);
 
+        // TODO: FP MMK put this somewhere, make it conditional somehow, do something, I dunno...
+        // Configure Carry Forward
+        Action configFilteredPushAction = new AbstractAction(getResourceString("Specify.CONFIG_FP_MENU")) { //$NON-NLS-1$
+            public void actionPerformed(ActionEvent e)
+            {
+                FormViewObj fvo = getCurrentFVO();
+                if (fvo != null && fvo instanceof FpFormViewObj)
+                {
+                    ((FpFormViewObj) fvo).configureFilteredPush();
+                }
+            }
+        };
+        configFilteredPushAction.setEnabled(false);
+        JMenuItem configFPWMI = new JMenuItem(configFilteredPushAction);
+        dataMenu.add(configFPWMI);
+        UIRegistry.register("ConfigFilteredPush", configFPWMI); //$NON-NLS-1$
+        UIRegistry.registerAction("ConfigFilteredPush", configFilteredPushAction); //$NON-NLS-1$
+        mb.add(dataMenu);
+        
         //---------------------------------------
         // Carry Forward Menu Item (On / Off)
         Action carryForwardAction = new AbstractAction(getResourceString("Specify.CARRY_FORWARD_CHECKED_MENU")) { //$NON-NLS-1$
