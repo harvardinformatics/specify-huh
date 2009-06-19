@@ -76,6 +76,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     // Transient
     protected Class<?>          dataFieldClass = null;
     protected DBFieldInfo       fieldInfo      = null;
+    protected boolean           isFpMagic; // FP MMK
     
     // Constructors
 
@@ -115,6 +116,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         isExportableToContent = true;
         isIncludedInTitle     = false;
         isRequired            = false;
+        isFpMagic             = false; // FP MMK
         
         workbenchDataItems = new HashSet<WorkbenchDataItem>();
         
@@ -381,6 +383,17 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         this.isRequired = isRequired;
     }
 
+    @Transient
+    public boolean getIsFpMagic()
+    {
+        return this.isFpMagic;
+    }
+    
+    public void setIsFpMagic(boolean isFpMagic)
+    {
+        this.isFpMagic = isFpMagic;
+    }
+
     /**
      * 
      */
@@ -507,6 +520,8 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         wbtmi.timestampModified     = null;
         wbtmi.modifiedByAgent          = null;
 
+        wbtmi.isFpMagic = isFpMagic; // FP MMK
+        
         return wbtmi;
     }
 

@@ -23,6 +23,7 @@ import static edu.ku.brc.ui.UIHelper.createIconBtn;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.AWTKeyStroke;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -228,6 +229,11 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         int maxWidthOffset = 0;
         for (WorkbenchTemplateMappingItem wbtmi : headers)
         {
+            // TODO: FP MMK need to make this configurable
+            if (wbtmi.getCaption().equals("Collectors") || wbtmi.getCaption().equals("CollectorNumber"))
+            {
+                wbtmi.setIsFpMagic(true);
+            }
             // Create the InputPanel and make it draggable
             InputPanel panel = new InputPanel(wbtmi, wbtmi.getCaption(), createUIComp(wbtmi), this, clickable);
 
@@ -481,9 +487,10 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
      * Creates a JTextArea in a ScrollPane.
      * @return the scollpane
      */
-    protected JScrollPane createTextArea(final short len, final short rows)
+    protected JScrollPane createTextArea(final short len, final short rows, final boolean isFpMagic)
     {
         ValTextArea textArea = new ValTextArea("", rows, len);
+        textArea.setRequired(isFpMagic); // TODO: FP MMK I can't tell if this is working
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.getDocument().addDocumentListener(docListener);
@@ -507,7 +514,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                             wbtmi.getFieldType(),
                             wbtmi.getDataFieldLength(), 
                             getColumns(wbtmi),
-                            getRows(wbtmi));
+                            getRows(wbtmi),
+                            wbtmi.getIsFpMagic()); // FP MMK
     }
     
     /**
@@ -603,7 +611,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                                       final Short    fieldType,
                                       final Short    fieldLength, 
                                       final short    columns,
-                                      final short    rows)
+                                      final short    rows,
+                                      final boolean  isFpMagic)
     {
         //System.out.println(wbtmi.getCaption()+" "+wbtmi.getDataType()+" "+wbtmi.getFieldLength());
         Class<?> dbFieldType = dbFieldTypeArg;
@@ -622,14 +631,15 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             //ValFormattedTextField txt = new ValFormattedTextField("Date"); 
             //txt.setColumns(columns == -1 ? DEFAULT_TEXTFIELD_COLS : columns);
             ValTextField txt = new ValTextField(columns);
+            txt.setRequired(isFpMagic); // FP MMK
             txt.getDocument().addDocumentListener(docListener);
             comp      = txt;
             focusComp = comp;
-            
         }
         else if (dbFieldType.equals(Boolean.class)) // strings
         {
             ValCheckBox checkBox = new ValCheckBox(caption, false, false);
+            checkBox.setRequired(isFpMagic); // FP MMK
             checkBox.addChangeListener(changeListener);
             comp      = checkBox;
             focusComp = comp;
@@ -637,6 +647,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         else if (useTextField(fieldName, fieldType, fieldLength))
         {
             ValTextField txt = new ValTextField(columns);
+            txt.setRequired(isFpMagic); // FP MMK
             txt.getDocument().addDocumentListener(docListener);
             txt.setInputVerifier(new LengthInputVerifier(caption, fieldLength));
             comp      = txt;
@@ -644,12 +655,12 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         }
         else
         {
-            JScrollPane taScrollPane = createTextArea(columns, rows);
+            JScrollPane taScrollPane = createTextArea(columns, rows, isFpMagic);
             ((JTextArea)taScrollPane.getViewport().getView()).setInputVerifier(new LengthInputVerifier(caption, fieldLength));
             comp = taScrollPane;
             focusComp = taScrollPane.getViewport().getView();
         }
-        
+
         focusComp.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e)
             {
@@ -713,7 +724,8 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
                                         fieldType, 
                                         wbtmi.getDataFieldLength(), 
                                         fieldLen,
-                                        rows));
+                                        rows,
+                                        wbtmi.getIsFpMagic()));  // FP MMK
         
         ignoreChanges = true;
         ((JTextComponent)inputPanel.getComp()).setText(oldComp.getText());

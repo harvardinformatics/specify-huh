@@ -44,7 +44,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.swing.AbstractAction;
@@ -75,6 +77,7 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jdesktop.swingx.decorator.*;
 
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.ui.IconManager;
@@ -129,6 +132,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
     //no editing allowed when isReadOnly is true
     protected boolean isReadOnly = false;
     
+    private Set<String> magicColumnNames;
+    
     /**
      * Constructor for Spreadsheet from model
      * @param model
@@ -138,9 +143,38 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         super(model);
         
         this.model = model;
+        
+        this.magicColumnNames = new HashSet<String>();
+        this.magicColumnNames.add("Collectors");
+        this.magicColumnNames.add("CollectorNumber");
+        
+        addHighlighter(getFpMagicHighlighter()); // FP MMK
         buildSpreadsheet();
+        
     }
     
+    // FP MMK
+    private Highlighter getFpMagicHighlighter()
+    {
+        return new ConditionalHighlighter() {
+
+            @Override
+            public Component highlight(Component arg0, ComponentAdapter arg1)
+            {
+                if (arg0 !=  null && test(arg1)) arg0.setBackground(Color.yellow);
+                return arg0;
+            }
+
+            @Override
+            protected boolean test(ComponentAdapter arg0)
+            {
+                if (arg0 == null) return false;
+                return (magicColumnNames.contains(arg0.getColumnName(arg0.column)));
+            }
+            
+        };
+    }
+
     /**
      * @return the Find Replace Panel.
      */

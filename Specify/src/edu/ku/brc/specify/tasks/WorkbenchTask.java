@@ -166,6 +166,8 @@ public class WorkbenchTask extends BaseTask
     public static final String     EXPORT_TEMPLATE       = "WB.ExportTemplate";
     public static final String     NEW_WORKBENCH_FROM_TEMPLATE = "WB.NewDataSetFromTemplate";
     
+    private  static final String   WB_FP_MESSAGE         = "WB.FpMessage";
+    
     public static final String     IMAGES_FILE_PATH      = "wb.imagepath";
     public static final String     IMPORT_FILE_PATH      = "wb.importfilepath";
     public static final String     EXPORT_FILE_PATH      = "wb.exportfilepath";
@@ -364,11 +366,17 @@ public class WorkbenchTask extends BaseTask
                 List<?> list    = session.getDataList("From FilteredPushMessage where AcknowledgedDate is null order by name");
                 Vector<NavBoxItemIFace> noticesList = new Vector<NavBoxItemIFace>();
 
+                
                 for (Object obj : list)
                 {
                     FilteredPushMessage message = (FilteredPushMessage) obj;
                     log.debug("Adding message: " + message.getName());
-                    noticesList.add(makeDnDNavBtn(fpNoticesBox, message.getName(), null, null, null, false, true));
+                    
+                    CommandAction cmdAction = new CommandAction(WORKBENCH, WB_FP_MESSAGE, Workbench.getClassTableId());
+                    cmdAction.getProperties().put("fpmessage", message);
+                    
+                    roc = (RolloverCommand) makeDnDNavBtn(fpNoticesBox, message.getName(), "Email", cmdAction, null, false, true);
+                    noticesList.add((NavBoxItemIFace) roc);
                 }
                 
             } catch (Exception ex)
@@ -3427,6 +3435,9 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     
                 }
             }
+        } else if (cmdAction.isAction(WB_FP_MESSAGE))
+        {
+            doFpMessage(cmdAction);
         }
     }
     
@@ -3501,5 +3512,17 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
 		return new BasicPermisionPanel("WorkbenchTask.PermTitle", "WorkbenchTask.PermEnable", "WorkbenchTask.PermUpload", null, null);
 	}
     
-    
+    private void doFpMessage(CommandAction cmdAction)
+    {
+        FilteredPushMessage fpmessage = (FilteredPushMessage) cmdAction.getProperties().get("fpmessage");
+        
+        // display message
+        log.debug("displaying message for " + fpmessage.getUri());
+
+        // set AcknowledgedDate
+        log.debug("setting acknowledge date to " + Calendar.getInstance().toString());
+
+        // mark as read (Checkmark?)
+        log.debug("marking message as read");
+    }
 }

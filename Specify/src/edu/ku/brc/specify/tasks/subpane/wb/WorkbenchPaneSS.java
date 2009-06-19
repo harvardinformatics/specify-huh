@@ -623,7 +623,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         }
         else
         {
-            filteredPushBtn = createIconBtn("FP_off", IconManager.IconSize.NonStd,  // TODO: change from biogeomancer to fp
+            filteredPushBtn = createIconBtn("FP_off", IconManager.IconSize.NonStd,  // TODO: hook this up
                     "WB_FP_ONLINE", false, new ActionListener()
                     {
                         public void actionPerformed(ActionEvent ae)
