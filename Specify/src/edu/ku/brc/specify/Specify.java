@@ -152,6 +152,8 @@ import edu.ku.brc.dbsupport.QueryExecutor;
 import edu.ku.brc.exceptions.ExceptionTracker;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.services.filteredpush.FilteredPushEvent;
+import edu.ku.brc.services.filteredpush.FilteredPushListenerIFace;
 import edu.ku.brc.services.filteredpush.FilteredPushMgr;
 import edu.ku.brc.services.filteredpush.FpFormViewObj;
 import edu.ku.brc.specify.config.DebugLoggerDialog;
@@ -270,6 +272,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     private String               appBuildVersion     = "(Unknown)"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
+
+    private FilteredPushListenerIFace fpListener; // FP MMK
 
     /**
      * Constructor.
@@ -570,6 +574,8 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         localPrefs.load();
         
         // FP MMK TODO: should this go here?
+        FilteredPushMgr.getInstance().registerListener(getFilteredPushListener());
+
         boolean doFpStartUp = AppPreferences.getLocalPrefs().getBoolean("fp.autologin", false);
         log.debug("Doing auto-startup for Filtered Push: " + doFpStartUp);
         if (doFpStartUp)
@@ -2650,13 +2656,16 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         if (fpLbl != null)
         {
             boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
-            log.debug("Setting FP status: " + isFpOn);
+            boolean hasNewMsgs = FilteredPushMgr.getInstance().hasNewMessages();
+
+            log.debug("Setting FP connection status: " + isFpOn);
+            log.debug("Setting FP messages status: "+ hasNewMsgs);
             
-            fpLbl.setIcon(IconManager.getImage(isFpOn ? "FpOn" : "FpOff", IconManager.IconSize.Std16));
+            fpLbl.setIcon(IconManager.getImage(isFpOn ? (hasNewMsgs ? "FpMsg" : "FpOn") : "FpOff", IconManager.IconSize.Std16));
             fpLbl.setHorizontalAlignment(SwingConstants.CENTER);
             fpLbl.setHorizontalTextPosition(SwingConstants.LEFT);
             fpLbl.setText("");
-            fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? "ON" : "OFF")));
+            fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? ( hasNewMsgs ? "MSG" : "ON") : "OFF")));
         }
     }
 
@@ -2949,6 +2958,23 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
       }
   }
   
+  private FilteredPushListenerIFace getFilteredPushListener()
+  {
+      if (fpListener == null)
+      {
+          fpListener = new FilteredPushListenerIFace()
+          {
+              @Override
+              public void notification(FilteredPushEvent e)
+              {
+                  setFpConnectionStatus();
+                
+              }
+          };
+      }
+      return fpListener;
+  }
+
   /**
    * @return
    */
@@ -2976,7 +3002,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
           //ex.printStackTrace();
       } 
   }*/
-  
+
   /**
    *
    */

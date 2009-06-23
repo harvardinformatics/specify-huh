@@ -55,7 +55,7 @@ import edu.ku.brc.ui.ToggleButtonChooserDlg;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
-public class FpFormViewObj extends FormViewObj implements FilteredPushListener
+public class FpFormViewObj extends FormViewObj implements FilteredPushListenerIFace
 {
     private static final Logger log = Logger.getLogger(FpFormViewObj.class);
     

@@ -16,9 +16,13 @@ package edu.ku.brc.services.filteredpush;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.dbsupport.RecordSetIFace;
+import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.specify.Specify;
 
 public class FilteredPushMgr
@@ -27,11 +31,23 @@ public class FilteredPushMgr
             
     protected static FilteredPushMgr instance = null;
     
-    protected static FilteredPushServiceProvider fpService;
+    protected static FilteredPushServer fpServer;
     
     public static final String factoryName = "edu.ku.brc.services.filteredpush.FilteredPushMgrFactory"; //$NON-NLS-1$
 
     private boolean isFpOn;
+    private boolean hasNewMessages;
+
+    private static Set<FilteredPushListenerIFace> listeners = new HashSet<FilteredPushListenerIFace>();
+
+    private FilteredPushListenerIFace operator = new FilteredPushListenerIFace()
+                                                 {
+                                                    @Override
+                                                    public void notification(FilteredPushEvent e)
+                                                    {
+                                                        receivedMessage(e);
+                                                    }
+                                                 };
     
     public static FilteredPushMgr getInstance()
     {
@@ -71,11 +87,16 @@ public class FilteredPushMgr
         return isFpOn;
     }
 
+    public boolean hasNewMessages()
+    {
+        return hasNewMessages;
+    }
+
     public boolean connectToFilteredPush()  // this should happen as a result of an FP command so that listeners know
     {
         log.debug("FilteredPushMgr.connectToFilteredPush");
 
-        isFpOn = getFilteredPushService().connect();
+        isFpOn = getFilteredPushServer().connect();
         Specify.getSpecify().setFpConnectionStatus();
         
         return isFpOn;
@@ -87,17 +108,54 @@ public class FilteredPushMgr
         
         isFpOn = false;
         
-        getFilteredPushService().disconnect();
+        getFilteredPushServer().disconnect();
         Specify.getSpecify().setFpConnectionStatus();
     }
     
-    private FilteredPushServiceProvider getFilteredPushService()
+    public void registerListener(FilteredPushListenerIFace listener)
     {
-        if (fpService == null)
+        if (listener != null) this.listeners.add(listener);
+    }
+
+    private FilteredPushServer getFilteredPushServer()
+    {
+        if (fpServer == null)
         {
-            fpService = new FilteredPushServiceProvider();
+            fpServer = new FilteredPushServer(getOperator());
         }
         
-        return fpService;
+        return fpServer;
+    }
+    
+    public void publish(RecordSetIFace recordSet)
+    {
+        log.debug("FilteredPushMgr.publish");
+    }
+    
+    public void query(RecordSetItemIFace recordSetItem)
+    {
+        log.debug("FilteredPushMgr.query");
+    }
+    
+    private FilteredPushListenerIFace getOperator()
+    {
+        return operator;
+    }
+
+    private void receivedMessage(FilteredPushEvent e)
+    {
+        log.debug("FilteredPushMgr.receivedMessage: " + e.getMessage());
+        
+        hasNewMessages = true;
+        
+        for (FilteredPushListenerIFace listener : getListeners())
+        {
+            listener.notification(e);
+        }
+    }
+    
+    private Set<FilteredPushListenerIFace> getListeners()
+    {
+        return listeners;
     }
 }
