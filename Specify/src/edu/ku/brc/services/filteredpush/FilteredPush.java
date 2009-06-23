@@ -119,7 +119,8 @@ public class FilteredPush
         
         //com.sendDuplicatesFindingMessage(message, collectorAndNumber);
 
-        final InputStream is = qi.query(filteredPushSelectFields, conditions, collectorAndNumber);
+        // TODO: zhimin's got a new interface
+        final InputStream is = null;//qi.query(filteredPushSelectFields, conditions, collectorAndNumber);
 
         if (is == null)
         {
