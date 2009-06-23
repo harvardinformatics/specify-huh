@@ -235,4 +235,5 @@
     <!-- FP MMK -->
     <icon name="FpOn"                  file="fp_on_mk.gif" sizes="all"/>
     <icon name="FpOff"                 file="fp_off_mk.gif" sizes="all"/>
+    <icon name="FpMsg"                 file="fp_msg_mk.gif" sizes="all"/>
 </icons>

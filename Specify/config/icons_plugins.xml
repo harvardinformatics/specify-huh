@@ -22,4 +22,5 @@
     <icon name="FilteredPush"      file="fp_off_mk.gif"/>
     <icon name="FP_off"            file="fp_off_mk.gif"/>
     <icon name="FP_on"             file="fp_on_mk.gif"/>
+    <icon name="FP_msg"            file="fp_msg_mk.gif"/>
 </icons>
