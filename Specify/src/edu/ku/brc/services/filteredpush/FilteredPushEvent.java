@@ -16,5 +16,5 @@ package edu.ku.brc.services.filteredpush;
 
 public interface FilteredPushEvent
 {
-
+    public String getMessage();
 }
