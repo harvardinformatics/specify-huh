@@ -27,9 +27,12 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.ContextMgr;
 import edu.ku.brc.af.core.NavBox;
 import edu.ku.brc.af.core.NavBoxButton;
+import edu.ku.brc.af.core.NavBoxIFace;
 import edu.ku.brc.af.core.NavBoxItemIFace;
+import edu.ku.brc.af.core.NavBoxMgr;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.ToolBarItemDesc;
@@ -50,27 +53,12 @@ public class FilteredPushTask extends BaseTask
     
     private Element panelDOM;
     private SubPaneIFace fpPane;
-    private NavBoxButton fpConnectionBtn;
     
-    // TODO: FP MMK this whole class is an ugly mess
-    private final String fpConnectLink = "fp_connect_link"; // see config/../fp_navpanel.xml
-    private final String fpDisconnectLink = "fp_disconnect_link";
-    private final String fpConnectedStatus = "fp_connected_status";
-    private final String fpDisconnectedStatus = "fp_disconnected_status";
-    private final String fpConnectErrorStatus = "fp_error_status";
-
-    private final String fpConnectedIconName = "FpOn"; // see econfig/icons.xml
-    private final String fpDisconnectedIconName = "FpOff";
-
-    private final String fpConnectStr = getResourceString(fpConnectLink);
-    private final String fpDisconnectStr = getResourceString(fpDisconnectLink);
-    private final String fpIsOnStr = getResourceString(fpConnectedStatus);
-    private final String fpIsOffStr = getResourceString(fpDisconnectedStatus);
-    private final String fpConnectErrorStr = getResourceString(fpConnectErrorStatus);
+    // When requestedContext(Taskable) is called on ContextMgr, it calls NavBoxMgr.register(Taskable).
+    // In that method, this class's getNavBoxes() method is called, which is where this item gets
+    // populated.
+    protected Vector<NavBoxIFace>  extendedNavBoxes = new Vector<NavBoxIFace>();
     
-    private NavBoxButton fpConnectBtn = (NavBoxButton) NavBox.createBtn(fpConnectStr, fpDisconnectedIconName, IconManager.STD_ICON_SIZE, new DisplayAction(fpConnectLink));
-    private NavBoxButton fpDisconnectBtn = (NavBoxButton) NavBox.createBtn(fpDisconnectStr, fpConnectedIconName, IconManager.STD_ICON_SIZE, new DisplayAction(fpDisconnectLink));
-
     public FilteredPushTask()
     {
         super(FILTEREDPUSH, getResourceString(FILTEREDPUSH));
@@ -86,6 +74,8 @@ public class FilteredPushTask extends BaseTask
         if (!isInitialized)
         {
             super.initialize(); // sets isInitialized to false
+            
+            extendedNavBoxes.clear();
             
             try
             {
@@ -125,16 +115,19 @@ public class FilteredPushTask extends BaseTask
                     log.debug("FilteredPushTask.initialize() item title: " + itemTitle);
                     navBox.add(btn);
 
-                    if (itemName.equals(fpConnectLink))
-                    {
-                        fpConnectionBtn = (NavBoxButton) btn;
-                        updateConnectBtn();
-                    }
-
                 }
                 navBoxes.add(navBox);
             }
         }
+        
+        // TODO: FP MMK just tucking this away for safekeeping
+        RecordSetTask rsTask = (RecordSetTask)ContextMgr.getTaskByClass(RecordSetTask.class);
+        List<NavBoxIFace> nbs = rsTask.getNavBoxes();
+        if (nbs != null)
+        {
+            extendedNavBoxes.addAll(nbs);
+        }
+        
         isShowDefault = true;
     }
     
@@ -187,37 +180,7 @@ public class FilteredPushTask extends BaseTask
     private void createFpPane(final String fpName)
     {
 
-        BaseSubPane newPane = null;
-        if (fpName.equals(fpConnectLink))
-        {
-            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
-            String title = fpIsOnStr;
-            if (!isFpOn)
-            {
-                boolean success = FilteredPushMgr.getInstance().connectToFilteredPush();
-                if (!success)
-                {
-                    title = fpConnectErrorStr;
-                }
-                updateConnectBtn();
-            }
-            newPane = new SimpleDescPane(getResourceString(fpName), this, title);
-        }
-        else if (fpName.equals(fpDisconnectLink))
-        {
-            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
-            String title = fpIsOffStr;
-            if (isFpOn)
-            {
-                FilteredPushMgr.getInstance().disconnectFromFilteredPush();
-                updateConnectBtn();
-            }
-            newPane = new SimpleDescPane(getResourceString(fpName), this, title);
-        }
-        else
-        {
-            newPane = new SimpleDescPane(getResourceString(fpName), this, "Coming soon!");
-        }
+        BaseSubPane newPane = new SimpleDescPane(getResourceString(fpName), this, "Coming soon!");
 
         if (starterPane != null)
         {
@@ -230,27 +193,39 @@ public class FilteredPushTask extends BaseTask
         }
         fpPane = newPane;
     }
-    
-    private void updateConnectBtn()
+
+    /*
+     *  (non-Javadoc)
+     * @see edu.ku.brc.specify.core.Taskable#getNavBoxes()
+     */
+    @Override
+    public java.util.List<NavBoxIFace> getNavBoxes()
     {
-        boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
-        log.debug("updateConnectBtn: " + isFpOn);
+        initialize();
 
-        Container jComponent = fpConnectionBtn.getUIComponent().getParent();
+        extendedNavBoxes.clear();
+        extendedNavBoxes.addAll(navBoxes);
+
+        QueryTask qTask = (QueryTask)ContextMgr.getTaskByClass(QueryTask.class);
+        List<NavBoxIFace> qnbs = qTask.getNavBoxes();
+        if (qnbs != null)
+        {
+            String title = getResourceString("QUERIES"); // see QueryTask initialize()
+            for (NavBoxIFace qnb : qnbs)
+            {
+                if (title.equals(qnb.getName())) extendedNavBoxes.add(qnb);
+            }
+        }
         
-        jComponent.remove(fpConnectionBtn);
-        if (isFpOn)
+        RecordSetTask rsTask = (RecordSetTask)ContextMgr.getTaskByClass(RecordSetTask.class);
+        List<NavBoxIFace> rsnbs = rsTask.getNavBoxes();
+        if (rsnbs != null)
         {
-            fpConnectionBtn = fpDisconnectBtn;
+            extendedNavBoxes.addAll(rsnbs);
         }
-        else
-        {
-            fpConnectionBtn = fpConnectBtn;
-        }
-        jComponent.add(fpConnectionBtn);
-        jComponent.repaint();
+        return extendedNavBoxes;
     }
-
+    
     /**
     *
     * @author rods

@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <boxes>
-	<box name="fp_status_title" title="fp_status_title">
-		<item name="fp_connect_link" title="fp_connect_link" icon="FpOff"/>
-	</box>
-	<box name="fp_configure_title" title="fp_configure_title">
-		<item name="fp_configure_link" title="fp_configure_link" icon="Configure"/>
-	</box>
-	<box name="fp_subscrips_title" title="fp_subscrips_title" icon="EMail"/>
+	<box name="fp_subscrips_title" title="fp_subscrips_title" icon="Email"/>
 </boxes>
