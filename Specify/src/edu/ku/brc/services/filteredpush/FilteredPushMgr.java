@@ -97,7 +97,7 @@ public class FilteredPushMgr
         log.debug("FilteredPushMgr.connectToFilteredPush");
 
         isFpOn = getFilteredPushServer().connect();
-        Specify.getSpecify().setFpConnectionStatus();
+        Specify.getSpecify().updateFpConnectionStatus(); // TODO: FP MMK generate an event here?
         
         return isFpOn;
     }
@@ -109,7 +109,7 @@ public class FilteredPushMgr
         isFpOn = false;
         
         getFilteredPushServer().disconnect();
-        Specify.getSpecify().setFpConnectionStatus();
+        Specify.getSpecify().updateFpConnectionStatus(); // TODO: FP MMK generate an event here?
     }
     
     public void registerListener(FilteredPushListenerIFace listener)

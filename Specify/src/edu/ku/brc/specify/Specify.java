@@ -75,6 +75,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -274,7 +275,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     protected static CacheManager cacheManager        = new CacheManager();
 
     private FilteredPushListenerIFace fpListener; // FP MMK
-
+    protected JMenuItem               fpConnMenuItem; // FP MMK
     /**
      * Constructor.
      */
@@ -731,7 +732,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             secLbl.setToolTipText(getResourceString("Specify.SEC_" + (isSecurityOn ? "ON" : "OFF")));
         }
 
-        setFpConnectionStatus();
+        updateFpConnectionStatus();
 
         add(statusField, BorderLayout.SOUTH);
     }
@@ -1295,7 +1296,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                             FormDisplayer fd = new FormDisplayer();
                             fd.createViewListing(UIRegistry.getUserHomeDir());
                         }
-                    });
+                    }); //$NON-NLS-1$ // TODO: mmk: add menu item for fp
             ttle = "Specify.FORM_FIELD_LIST";//$NON-NLS-1$ 
             mneu = "Specify.FORM_FIELD_LIST_MNEU";//$NON-NLS-1$ 
             desc = "Specify.FORM_FIELD_LIST";//$NON-NLS-1$ 
@@ -1407,6 +1408,28 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                             topFrame.setSize(PREFERRED_WIDTH, PREFERRED_HEIGHT);
                         }});
         }
+        
+        // FP MMK
+        
+        //----------------------------------------------------
+        //-- Filtered Push Menu
+        //----------------------------------------------------
+        
+        JMenu fpMenu = UIHelper.createLocalizedMenu(mb, "Specify.FP_MENU", "Specify.FP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
+        String fpConTitle = UIRegistry.getResourceString("Specify.FP_MENU_CONN_STATUS");
+        fpConnMenuItem = new JCheckBoxMenuItem(fpConTitle);
+        fpMenu.add(fpConnMenuItem);
+        fpConnMenuItem.setSelected(FilteredPushMgr.getInstance().isFpOn());
+        fpConnMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae)
+            {
+                boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+                if (!isFpOn) FilteredPushMgr.getInstance().connectToFilteredPush();
+                else FilteredPushMgr.getInstance().disconnectFromFilteredPush();
+                
+                updateFpConnectionStatus();
+            }
+        });
         
         //----------------------------------------------------
         //-- Helper Menu
@@ -2648,25 +2671,28 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     }
     
     /**
-     * Update the Filtered Push connection icon in the status bar
+     * Update the Filtered Push connection menu item and icon in the status bar
      */
-    public void setFpConnectionStatus() // TODO: this class should be a listener for FP commands
+    public void updateFpConnectionStatus() // TODO: this class should be a listener for FP commands
     {
+        boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
+
+        log.debug("Updating FP connection status: " + isFpOn);
+
         JLabel fpLbl = statusField.getSectionLabel(4); // FP MMK TODO: check for null status field?
         if (fpLbl != null)
         {
-            boolean isFpOn = FilteredPushMgr.getInstance().isFpOn();
             boolean hasNewMsgs = FilteredPushMgr.getInstance().hasNewMessages();
-
-            log.debug("Setting FP connection status: " + isFpOn);
             log.debug("Setting FP messages status: "+ hasNewMsgs);
-            
+
             fpLbl.setIcon(IconManager.getImage(isFpOn ? (hasNewMsgs ? "FpMsg" : "FpOn") : "FpOff", IconManager.IconSize.Std16));
             fpLbl.setHorizontalAlignment(SwingConstants.CENTER);
             fpLbl.setHorizontalTextPosition(SwingConstants.LEFT);
             fpLbl.setText("");
             fpLbl.setToolTipText(getResourceString("Specify.FP_" + (isFpOn ? ( hasNewMsgs ? "MSG" : "ON") : "OFF")));
         }
+        
+        fpConnMenuItem.setSelected(isFpOn);
     }
 
     /* (non-Javadoc)
@@ -2967,7 +2993,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
               @Override
               public void notification(FilteredPushEvent e)
               {
-                  setFpConnectionStatus();
+                  updateFpConnectionStatus();
                 
               }
           };
