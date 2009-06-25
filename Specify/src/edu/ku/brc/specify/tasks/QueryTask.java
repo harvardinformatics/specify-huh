@@ -116,6 +116,7 @@ import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.dnd.FpPublish;
 import edu.ku.brc.ui.dnd.Trash;
 import edu.ku.brc.util.Pair;
 
@@ -138,7 +139,10 @@ public class QueryTask extends BaseTask
     public static final String QUERY_RESULTS_REPORT = "QueryResultsReport";
     protected static final String XML_PATH_PREF     = "Query.XML.Dir";
     
+    public static final String FP_PUB_RECORDSET = "FpPublish"; // FP MMK
+    
     public static final DataFlavor QUERY_FLAVOR = new DataFlavor(QueryTask.class, QUERY);
+    
     
     protected QueryBldrPane                               queryBldrPane             = null;
     protected SoftReference<TableTree>                    tableTree                 = null;
@@ -953,7 +957,15 @@ public class QueryTask extends BaseTask
         if (canDelete)
         {
             roc.addDragDataFlavor(Trash.TRASH_FLAVOR);
-        }        
+        }
+        
+        // FP MMK
+        roc.addDragDataFlavor(FpPublish.FP_PUB_FLAVOR);
+
+        boolean fpPubOK = true; // TODO: FP MMK implement
+        CommandAction fpPubCmdAction = fpPubOK ? new CommandAction(QUERY, FP_PUB_RECORDSET, recordSet) : null;
+        roc.setFpPublishCommandAction(fpPubCmdAction);
+        
         return nbi;
     }
     
@@ -1368,6 +1380,28 @@ public class QueryTask extends BaseTask
 			}
 			CommandDispatcher.dispatch(cmd);
 		}
+        
+        else if (cmdAction.isAction(FP_PUB_RECORDSET)) // TODO: FP MMK: should this be an if or else if?  Should I put a return in the previous block?
+        {
+            RecordSetIFace recordSet = null;
+            if (cmdAction.getData() instanceof RecordSetIFace)
+            {
+                recordSet = (RecordSetIFace)cmdAction.getData();
+                
+            } else if (cmdAction.getData() instanceof RolloverCommand)
+            {
+                RolloverCommand roc = (RolloverCommand)cmdAction.getData();
+                if (roc.getData() instanceof RecordSetIFace)
+                {
+                    recordSet = (RecordSetIFace)roc.getData();
+                }
+            }
+            
+            if (recordSet != null)
+            {
+                fpPublishRecordSet(recordSet);
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -2048,4 +2082,12 @@ public class QueryTask extends BaseTask
         }
     }
     
+    /**
+     * Share a record set with the Filtered Push network
+     */
+    protected void fpPublishRecordSet(final RecordSetIFace recordSet)
+    {
+        // TODO: FP MMK implement fpPublishRecordSet(); note that there are importQueries and exportQueries methods in this class already
+        log.debug("RecordSetTask: fpPublishRecordSet");
+    }
 }
