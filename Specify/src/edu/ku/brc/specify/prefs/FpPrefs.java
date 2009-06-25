@@ -22,6 +22,7 @@ package edu.ku.brc.specify.prefs;
 import java.util.prefs.BackingStoreException;
 
 import javax.swing.JCheckBox;
+import javax.swing.JTextField;
 
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.GenericPrefsPanel;
@@ -38,6 +39,7 @@ import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 public class FpPrefs extends GenericPrefsPanel
 {
     protected static final String FP_AUTOLOGIN = "fp.autologin";
+    protected static final String FP_MSG_CHK_INTERVAL="fp.msgchkinterval";
     
     /**
      * 
@@ -65,6 +67,14 @@ public class FpPrefs extends GenericPrefsPanel
             {
                 chkbx.setSelected(AppPreferences.getLocalPrefs().getBoolean(FP_AUTOLOGIN, false));
             }
+            
+            JTextField textfld = form.getCompById("fpmsgchkinterval");
+            if (textfld != null)
+            {
+                // TODO: FP MMK where do you state the default?  Surely not here.
+                textfld.setText(String.valueOf(AppPreferences.getLocalPrefs().getInt(FP_MSG_CHK_INTERVAL, 5)));
+            }
+            
         }
     }
     
@@ -81,8 +91,19 @@ public class FpPrefs extends GenericPrefsPanel
             AppPreferences localPrefs  = AppPreferences.getLocalPrefs();
             
             ValCheckBox chk = form.getCompById("fpautologin");
-            localPrefs.putBoolean(FP_AUTOLOGIN, (Boolean)chk.getValue());
+            localPrefs.putBoolean(FP_AUTOLOGIN, chk.isSelected());
             
+            JTextField txt = form.getCompById("fpmsginterval");
+            
+            try
+            {
+                localPrefs.putInt(FP_MSG_CHK_INTERVAL, Integer.parseInt(txt.getText()));
+            }
+            catch (NumberFormatException e)
+            {
+                ;
+            }
+
             try
             {
                 localPrefs.flush();

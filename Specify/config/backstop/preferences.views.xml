@@ -733,17 +733,29 @@
         	
         	<desc><![CDATA[Filtered Push Preference Form.]]></desc>
         	
-        	<columnDef>p,2px,p,p:g,f:p:g</columnDef>
+        	<columnDef>p,2px,p,2px,p,p:g,f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
 	            <row>
-    	        	<cell type="separator" label="FP_AUTOLOGIN" colspan="5"/>
+    	        	<cell type="separator" label="FP_AUTOLOGIN" colspan="7"/>
 				</row>
             	<row>
                		<cell type="label" labelfor="fpautologin" label=""/>
-                    <cell type="field" id="fpautologin" name="fp.autologin" uitype="checkbox" label="FP_DO_AUTOLOGIN" colspan="2"/> 
+                    <cell type="field" id="fpautologin" name="fp.autologin" uitype="checkbox" label="FP_DO_AUTOLOGIN"/> 
                 </row>
+                <row>
+                	<cell type="panel" id="fpmsgchkpanel" name="fpmsgchkpanel" coldef="p,2px,p,2px,p,2px,f:p:g" rowdef="p" colspan="6">
+                		<rows>
+                			<row>
+                				<cell type="label" label=""/>
+                    			<cell type="label" labelfor="fpmsgchkinterval" label="FP_MSG_CHK_INTERVAL"/>
+                    			<cell type="field" cols="2" id="fpmsgchkinterval" uitype="text"/>
+                   				<cell type="label" label="FP_MSG_CHK_UNIT"/>
+                    		</row>
+                    	</rows>
+                    </cell>
+				</row>
             </rows>
         </viewdef>
         
