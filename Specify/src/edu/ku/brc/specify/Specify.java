@@ -1409,15 +1409,15 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                         }});
         }
         
-        // FP MMK
+        // TODO: FP MMK poplulate the task bar and menu bar via TaskMgr.registerWithUI
         
         //----------------------------------------------------
         //-- Filtered Push Menu
         //----------------------------------------------------
         
         JMenu fpMenu = UIHelper.createLocalizedMenu(mb, "Specify.FP_MENU", "Specify.FP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        String fpConTitle = UIRegistry.getResourceString("Specify.FP_MENU_CONN_STATUS");
-        fpConnMenuItem = new JCheckBoxMenuItem(fpConTitle);
+        String fpConnTitle = UIRegistry.getResourceString("Specify.FP_MENU_CONN_STATUS");
+        fpConnMenuItem = new JCheckBoxMenuItem(fpConnTitle);
         fpMenu.add(fpConnMenuItem);
         fpConnMenuItem.setSelected(FilteredPushMgr.getInstance().isFpOn());
         fpConnMenuItem.addActionListener(new ActionListener() {
@@ -1430,6 +1430,19 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 updateFpConnectionStatus();
             }
         });
+        
+        String fpConfTitle = UIRegistry.getResourceString("Specify.FP_MENU_CONF");
+        JMenuItem fpConfMenuItem = new JMenuItem(fpConfTitle);
+        fpMenu.add(fpConfMenuItem);
+        fpConfMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                // TODO FP MMK Auto-generated method stub
+                
+            }
+        });
+        
         
         //----------------------------------------------------
         //-- Helper Menu
