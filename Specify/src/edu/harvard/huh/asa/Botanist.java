@@ -21,6 +21,7 @@ public class Botanist
 	private  String remarks;
 	private Integer createdById;
 	private    Date dateCreated;
+	private  String uri;
 	
     private final static Pattern groupPattern = Pattern.compile("&|et al| and ");
     private final static Pattern orgPattern   = Pattern.compile("Bureau of|Commission|Committee|Consortium|Department|Expedition|Group|Herbarium|Missionaries|Museum|National|Nurseries|Nursery|Program|Research|School|Scientific|Service|Society|Survey|University");
@@ -48,6 +49,8 @@ public class Botanist
 	public Integer getCreatedById() { return createdById; }
 	
 	public Date getDateCreated() { return dateCreated; }
+	
+	public String getUri() { return uri; }
 		
 	public void setId(Integer id) { this.id = id; }
 	
@@ -72,6 +75,8 @@ public class Botanist
 	public void setCreatedById(Integer createdById) { this.createdById = createdById; }
 	
 	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
+	
+	public void setUri(String uri) { this.uri = uri; }
 	
 	public String getFirstName()
 	{

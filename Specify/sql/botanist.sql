@@ -10,6 +10,7 @@ select b.id,
        decode(b.end_precision_id, 113402, '?', 113403, 'circa', '') as end_precision,
        regexp_replace(b.remarks, '[[:space:]]+', ' ') as remarks,
        b.created_by_id,
-       to_char(b.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created
+       to_char(b.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       regexp_replace(b.uri, '[[:space:]]+', ' ') as url
 
 from botanist b

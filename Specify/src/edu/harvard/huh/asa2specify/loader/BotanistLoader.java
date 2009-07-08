@@ -109,7 +109,7 @@ public class BotanistLoader extends AuditedObjectLoader
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
     private Botanist parse(String[] columns) throws LocalException
     {
-        if (columns.length < 12)
+        if (columns.length < 13)
         {
             throw new LocalException("Not enough columns");
         }
@@ -129,6 +129,7 @@ public class BotanistLoader extends AuditedObjectLoader
             botanist.setRemarks( SqlUtils.iso8859toUtf8( columns[9]  ));
             botanist.setCreatedById(  SqlUtils.parseInt( columns[10] ));
             botanist.setDateCreated( SqlUtils.parseDate( columns[11] ));
+            botanist.setUri(                             columns[12] );
         }
         catch (NumberFormatException e)
         {
@@ -210,26 +211,31 @@ public class BotanistLoader extends AuditedObjectLoader
         Date dateCreated = botanist.getDateCreated();
         agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 
+        // URL
+        String url = botanist.getUri();
+        agent.setUrl(url);
+
         return agent;
 	}
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "AgentType, CreatedByAgentID, DateOfBirth, DateOfDeath, " +
-				            "FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
+				            "FirstName, GUID, LastName, Remarks, TimestampCreated, URL, Version";
 
-		String[] values = new String[10];
+		String[] values = new String[11];
 
-		values[0] = SqlUtils.sqlString( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[2] = SqlUtils.sqlString( agent.getDateOfBirth());
-		values[3] = SqlUtils.sqlString( agent.getDateOfDeath());
-		values[4] = SqlUtils.sqlString( agent.getFirstName());
-		values[5] = SqlUtils.sqlString( agent.getGuid());
-	    values[6] = SqlUtils.sqlString( agent.getLastName());
-	    values[7] = SqlUtils.sqlString( agent.getRemarks());
-		values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[9] = SqlUtils.one();
+		values[0]  = SqlUtils.sqlString( agent.getAgentType());
+		values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[2]  = SqlUtils.sqlString( agent.getDateOfBirth());
+		values[3]  = SqlUtils.sqlString( agent.getDateOfDeath());
+		values[4]  = SqlUtils.sqlString( agent.getFirstName());
+		values[5]  = SqlUtils.sqlString( agent.getGuid());
+	    values[6]  = SqlUtils.sqlString( agent.getLastName());
+	    values[7]  = SqlUtils.sqlString( agent.getRemarks());
+		values[8]  = SqlUtils.sqlString( agent.getTimestampCreated());
+		values[9]  = SqlUtils.sqlString( agent.getUrl());
+		values[10] = SqlUtils.one();
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -237,9 +243,9 @@ public class BotanistLoader extends AuditedObjectLoader
 	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
 	{
 	    String[] fieldNames = { "AgentType", "CreatedByAgentID","DateOfBirth", "DateOfDeath", "FirstName",
-	    		                "GUID", "LastName", "Remarks", "TimestampCreated" };
+	    		                "GUID", "LastName", "Remarks", "TimestampCreated, URL" };
 
-	    String[] values = new String[9];
+	    String[] values = new String[10];
 
 	    values[0] = SqlUtils.sqlString( agent.getAgentType());
 	    values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
@@ -250,6 +256,7 @@ public class BotanistLoader extends AuditedObjectLoader
 	    values[6] = SqlUtils.sqlString( agent.getLastName());
 	    values[7] = SqlUtils.sqlString( agent.getRemarks());
 	    values[8] = SqlUtils.sqlString( agent.getTimestampCreated());
+	    values[9] = SqlUtils.sqlString( agent.getUrl());
 
 	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", SqlUtils.sqlString(agentId));
 	}
