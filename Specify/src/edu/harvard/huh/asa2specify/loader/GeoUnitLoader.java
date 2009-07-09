@@ -562,9 +562,9 @@ public class GeoUnitLoader extends TreeLoader
 			else return COUNTRY_SUBREGION_RANK;
 		}
 		else if ( parentRank.equals( SUBCOUNTRY_ISL_RANK ) ) {
-			if ( type.equals( COUNTY_TYPE ) )     return COUNTRY_RANK;
+			if ( type.equals( COUNTY_TYPE ) )     return COUNTY_RANK;
 			else if ( type.equals( STATE_TYPE ) ) return STATE_RANK;
-			else if ( type.equals( OTHER_TYPE ) ) return COUNTRY_SUBREGION_RANK;
+			else if ( type.equals( OTHER_TYPE ) ) return OTHER_RANK;
 		}
 		else if ( parentRank.equals( TERRITORY_RANK ) ) {
 			if ( name.indexOf( "Island" ) >= 0 ) return SUBCOUNTRY_ISL_RANK;
