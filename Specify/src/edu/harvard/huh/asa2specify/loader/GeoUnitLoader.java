@@ -337,7 +337,7 @@ public class GeoUnitLoader extends TreeLoader
 		
 		// Abbreviation
 		
-	    // AcceptedGeography
+	    // AcceptedGeography TODO: is this correct?
         geography.setAcceptedGeography(nullIdGeography);
 
 		// CommonName

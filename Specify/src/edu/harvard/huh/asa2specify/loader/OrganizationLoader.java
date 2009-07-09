@@ -95,6 +95,8 @@ public class OrganizationLoader extends AuditedObjectLoader
                 getLogger().warn(rec() + "Ignoring remarks: " + agent.getRemarks());
             }
         	
+        	getLogger().warn(rec() + "Replacing url: " + agent.getUrl());
+        	
             String sql = getUpdateSql(agent, agentId);
             update(sql);
         }
