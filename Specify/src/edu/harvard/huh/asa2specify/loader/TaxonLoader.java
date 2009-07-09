@@ -47,6 +47,8 @@ public class TaxonLoader extends TreeLoader
 		
 		this.treeDef = getTaxonTreeDef();
 		
+		// this must match config/botany/taxon_init.xml
+		
 		taxonRankIdsByType.put("life",             0);
 		taxonRankIdsByType.put("kingdom",         10);
 		taxonRankIdsByType.put("\"Major Group\"", 20);
@@ -54,6 +56,7 @@ public class TaxonLoader extends TreeLoader
 		taxonRankIdsByType.put("class",           60);
 		taxonRankIdsByType.put("order",          100);
 		taxonRankIdsByType.put("family",         140);
+		taxonRankIdsByType.put("tribe",          160);
 		taxonRankIdsByType.put("genus",          180);
 		taxonRankIdsByType.put("subgenus",       190);
 		taxonRankIdsByType.put("species",        220);
