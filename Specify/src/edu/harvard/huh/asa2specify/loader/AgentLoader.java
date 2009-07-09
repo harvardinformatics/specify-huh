@@ -33,7 +33,7 @@ public class AgentLoader extends CsvToSqlLoader
     private final static Pattern auPattern  = Pattern.compile("^(australia)$", Pattern.CASE_INSENSITIVE);
     private final static Pattern caPattern  = Pattern.compile("^(canada)$", Pattern.CASE_INSENSITIVE);
 
-    private final static Pattern countryPattern = Pattern.compile("^\\s*(argentina|armenia|australia|austria|barbados|bolivia|belgium|(bra[sz]il(ia)?)|brunei|bulgaria|cambodia|canada|chile|colombia|costa\\s+rica|cuba|(czech(oslovakia|\\s+republic)|denmark|dominican\\s+republic|ecuador|egypt|((england|scotland)(,? u\\.?k\\.?)?)|estonia|finland|fiji|france|german\\s+democratic\\s+republic|((federal\\s+republic\\s+of\\s+)?germany)|great\\s+britain|french\\s+guiana|guam|guyana|honduras|hong\\s+kong|hungary|iceland|india|indonesia|ireland|israel|italy|jamaica|japan|((s(\\.|outh)\\s+)?korea(,\\s+south)?)|luxembourg|malaysia|mexico|((the\\s+)?netherlands)|(new\\s+(caledonia|zealand))|norway|pakistan|panama|papua\\s+new\\s+guinea|((people'?s\\s+)?republic\\s+of\\s+)?china)|peru|philippines|poland|portugal|puerto\\s+rico|r\\.o\\.c\\.|romania|russia|singapore|slovakia|solomon\\s+islands|south\\s+africa|spain|sri\\s+lanka|sweden|switzerland|(taiwan(\\s+r\\.o\\.c\\.)?)|thailand|(u\\.?k\\.?)|united\\s+kingdom|(u\\.\\s*s\\.\\s*a\\.|usa|united\\s+states)|uraguay|venezuela|zimbabwe)\\s*$", Pattern.CASE_INSENSITIVE);
+    private final static Pattern countryPattern = Pattern.compile("^\\s*(argentina|armenia|australia|austria|barbados|bolivia|belgium|(bra[sz]il(ia)?)|brunei|bulgaria|cambodia|canada|chile|colombia|costa\\s+rica|cuba|(czech(oslovakia|\\s+republic)|denmark|dominican\\s+republic|ecuador|egypt|((england|scotland)(,? u\\.?k\\.?)?)|estonia|finland|fiji|france|german\\s+democratic\\s+republic|((federal\\s+republic\\s+of\\s+)?germany)|great\\s+britain|french\\s+guiana|guam|guyana|honduras|hong\\s+kong|hungary|iceland|india|indonesia|ireland|israel|italy|jamaica|japan|((s(\\.|outh)\\s+)?korea(,\\s+south)?)|luxembourg|malaysia|mexico|((the\\s+)?netherlands)|(new\\s+(caledonia|zealand))|norway|pakistan|panama|papua\\s+new\\s+guinea|((people'?s\\s+)?republic\\s+of\\s+)?china)|p\\.\\s+r\\.\\s+china|peru|philippines|poland|portugal|puerto\\s+rico|r\\.o\\.c\\.|romania|russia|singapore|slovakia|solomon\\s+islands|south\\s+africa|spain|sri\\s+lanka|sweden|switzerland|(taiwan(\\s+r\\.o\\.c\\.)?)|thailand|(u\\.?k\\.?)|united\\s+kingdom|(u\\.\\s*s\\.\\s*a\\.|usa|united\\s+states)|uraguay|venezuela|vietnam|zimbabwe)\\s*$", Pattern.CASE_INSENSITIVE);
     private final static Pattern zipPattern     = Pattern.compile("^\\s*(\\d{5}(-?\\d{4})?)\\s*$");
     private final static Pattern cszPattern     = Pattern.compile("^\\s*([a-z ]+),\\s+([a-z\\s]+)\\s+(\\d{5}(-?\\d{4})?)\\s*$", Pattern.CASE_INSENSITIVE);
     private final static Pattern csPattern      = Pattern.compile("^\\s*([a-z ]+),\\s+([a-z\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
@@ -112,7 +112,7 @@ public class AgentLoader extends CsvToSqlLoader
             }
         	
             String sql = getUpdateSql(agent, agentId);
-            //update(sql);
+            update(sql);
         }
         else
         {
@@ -126,7 +126,7 @@ public class AgentLoader extends CsvToSqlLoader
         if (correspAddress != null)
         {
 		    String sql = getInsertSql(correspAddress);
-		    //insert(sql);
+		    insert(sql);
         }
 		
         // Shipping address
@@ -134,7 +134,7 @@ public class AgentLoader extends CsvToSqlLoader
         if (shippingAddress != null)
         {
         	String sql = getInsertSql(shippingAddress);
-        	//insert(sql);
+        	insert(sql);
         }
 	}
 	
@@ -285,6 +285,8 @@ public class AgentLoader extends CsvToSqlLoader
 		if (addressString == null && fax == null && phone == null) return null;
 		
 	    Address address = parseAddress(addressString);
+	    
+	    if (address == null) return null;
         
         // Agent
         address.setAgent(agent);
@@ -317,6 +319,8 @@ public class AgentLoader extends CsvToSqlLoader
 		
 	    Address address = parseAddress(addressString);
 	    
+	    if (address == null) return null;
+
 	    // Agent
 	    address.setAgent(agent);
 	    
