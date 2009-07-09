@@ -850,7 +850,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         {            
             if (!specimenItem.hasExsiccata())
             {
-                Container container = lookupContainer(subcollectionId);
+                container = lookupContainer(subcollectionId);
 
                 Integer containerId = container.getId();
                 container.setContainerId(containerId);    
