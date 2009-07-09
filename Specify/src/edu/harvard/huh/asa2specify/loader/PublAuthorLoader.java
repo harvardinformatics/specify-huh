@@ -49,10 +49,10 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		Integer publicationId = publAuthor.getPublicationId();
 		setCurrentRecordId(publicationId);
 		
-		// convert BotanistRoleCountry into AgentGeography
+		// convert PublAuthor into Author
 		Author author = convert(publAuthor);
 
-		// convert agentspecialty to sql and insert
+		// convert author to sql and insert
 		String sql = getInsertSql(author);
 		insert(sql);
 	}
@@ -112,7 +112,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		{
 			orderNumber ++;
 		}
-		author.setOrderNumber((short) orderNumber);
+		author.setOrderNumber((short) orderNumber); // TODO: compare with ordinal, warn if different?
 		
 		return author;
 	}

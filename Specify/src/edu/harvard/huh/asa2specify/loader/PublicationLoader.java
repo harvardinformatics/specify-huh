@@ -207,11 +207,11 @@ public class PublicationLoader extends AuditedObjectLoader
 		String guid = getGuid(publicationId);
 		journal.setGuid(guid);
 
-		// ISBN
+		// ISSN
 		String issn = publication.getIssn();
 		if (issn != null)
 		{
-			issn = truncate(issn, 16, "ISBN");
+			issn = truncate(issn, 16, "ISSN");
 			journal.setIssn(issn);
 		}
 
