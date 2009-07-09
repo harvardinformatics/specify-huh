@@ -86,4 +86,34 @@ public class AsaAgent
     public void setUri(String uri) { this.uri = uri; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
+    
+    public String getFirstName()
+    {
+        if (name.contains( " " ) )
+        {
+            // If there's at least one space, the first name is everything up to the last space
+            int spaceIndex = name.lastIndexOf( ' ' );
+
+            return name.substring( 0, spaceIndex).trim();  
+        }
+        else
+        {
+            return null;
+        }
+    }
+    
+    public String getLastName()
+    {
+        if (name.contains( " " ) )
+        {
+            int spaceIndex = name.lastIndexOf( ' ' );
+
+            // If there's at least one space, the last name is everything after the last space
+            return name.substring( spaceIndex+1 ).trim();
+        }
+        else
+        {
+            return name;
+        }
+    }
 }
