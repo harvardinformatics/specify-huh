@@ -817,6 +817,7 @@ public class BuildSampleDatabase
             ttdi.getTreeEntries().add(tx);
             tx.setName("Life"); // I18N
             tx.setFullName("Life");
+            tx.setVersion(1);
             persist(ttdi);
             persist(tx);
         }
