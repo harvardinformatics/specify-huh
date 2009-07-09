@@ -243,7 +243,7 @@ public class BotanistLoader extends AuditedObjectLoader
 	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
 	{
 	    String[] fieldNames = { "AgentType", "CreatedByAgentID","DateOfBirth", "DateOfDeath", "FirstName",
-	    		                "GUID", "LastName", "Remarks", "TimestampCreated, URL" };
+	    		                "GUID", "LastName", "Remarks", "TimestampCreated", "URL" };
 
 	    String[] values = new String[10];
 
