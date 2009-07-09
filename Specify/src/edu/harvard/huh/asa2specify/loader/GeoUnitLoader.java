@@ -407,7 +407,7 @@ public class GeoUnitLoader extends TreeLoader
 		Integer parentRankId = getInt("geography", "RankID", "GeographyID", parent.getId());
 		
 		Integer rankId = getGeoTreeDefItem(name, rank, parentRankId);
-		checkNull(rankId, "rank id" + name);
+		checkNull(rankId, "rank id for " + name);
 		geography.setRankId( rankId );
 		
 		if (parent != null && rankId <= parentRankId)
@@ -570,9 +570,10 @@ public class GeoUnitLoader extends TreeLoader
 			if ( name.indexOf( "Island" ) >= 0 ) return SUBCOUNTRY_ISL_RANK;
 		}
 		else if ( parentRank.equals( COUNTRY_SUBREGION_RANK ) ) {
-			if ( type.equals( STATE_TYPE ) )      return STATE_RANK;
-			else if ( type.equals( CITY_TYPE ) )  return CITY_RANK;
-			else if ( type.equals( OTHER_TYPE ) ) return OTHER_RANK;
+			if ( type.equals( STATE_TYPE ) )       return STATE_RANK;
+			else if ( type.equals( COUNTY_TYPE ) ) return COUNTY_RANK;
+			else if ( type.equals( CITY_TYPE ) )   return CITY_RANK;
+			else if ( type.equals( OTHER_TYPE ) )  return OTHER_RANK;
 		}
 		else if ( parentRank.equals( STATE_RANK ) && 
 				( type.equals( OTHER_TYPE ) || type.equals( STATE_TYPE ) ) ) {
