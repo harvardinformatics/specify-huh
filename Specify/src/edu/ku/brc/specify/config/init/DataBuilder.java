@@ -1249,6 +1249,8 @@ public class DataBuilder
         taxon.initialize();
         taxon.setDefinition(ttd);
         taxon.setName(name);
+        taxon.setFullName(name);
+        taxon.setVersion(1);
         taxon.setCommonName(commonName);
         taxon.setParent(parent);
         taxon.setIsAccepted(true);
