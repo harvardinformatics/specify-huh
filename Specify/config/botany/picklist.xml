@@ -22,14 +22,12 @@
   </picklist>
   <picklist name="Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
     <items>
-      <picklistitem title="No Data" value="No Data"/>
-      <picklistitem title="flowering" value="flowering"/>
-      <picklistitem title="flowering and fruiting" value="flowering and fruiting"/>
-      <picklistitem title="fruiting" value="fruiting"/>
-      <picklistitem title="mature" value="mature"/>
-      <picklistitem title="seed" value="seed"/>
-      <picklistitem title="seedling" value="seedling"/>
-      <picklistitem title="senescent" value="senescent"/>
+      <picklistitem title="not determined" value="not determined"/>
+      <picklistitem title="flower" value="flower"/>
+      <picklistitem title="flower and fruit" value="flower and fruit"/>
+      <picklistitem title="fruit" value="fruit"/>
+      <picklistitem title="sterile" value="sterile"/>
+      <picklistitem title="sporophyte" value="sporophyte"/>
     </items>
   </picklist>
 </list>
