@@ -45,7 +45,7 @@ from
        bdate d
 
 where
-       si.specimen_id=s.id and
+       s.id=si.specimen_id(+) and
        s.collector_id=b.id(+) and
        s.date_id=d.id
 

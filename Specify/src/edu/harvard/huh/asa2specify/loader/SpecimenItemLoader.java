@@ -71,6 +71,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private REPRO_STATUS         reproStatus      = null;
 	private Integer              subcollectionId  = null;
 	
+	// This is the next available barcode for items without them.
+	private int nextBarcode;
+
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
 	                          File seriesBotanists,
@@ -101,11 +104,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    SpecimenItem specimenItem = parse(columns);
 		
 		Integer specimenItemId = specimenItem.getId();
-		setCurrentRecordId(specimenItemId);
 		
 		Integer newSpecimenId = specimenItem.getSpecimenId();
 		checkNull(newSpecimenId, "specimen id");
 		
+		setCurrentRecordId(specimenItemId != null ? specimenItemId : newSpecimenId );
+	      
         // if this specimen item shares a specimen with the previous one,
         // then its preparation shares a collection object (and maybe a container)
         if (newSpecimenId.equals(specimenId))
@@ -326,6 +330,16 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     @Override
     protected void postLoad() throws LocalException
     {
+        try
+        {
+            saveObjects();
+        }
+        catch (Exception e)
+        {
+            String guid = collectionObject.getGuid();
+            getLogger().error("Problem saving records for " + guid, e);
+        }
+        
         getLogger().info("Enabling keys");
         
         String[] tables = { "collectionobject", "collectingevent", "collector", "preparation" };
@@ -429,8 +443,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         {
         	REPRO_STATUS status;
             if (reproStatus.equals(REPRO_STATUS.NotDetermined) ||
-                    newReproStatus.equals(REPRO_STATUS.FlowerAndFruit) && 
-                        (reproStatus.equals(REPRO_STATUS.Flower) || reproStatus.equals(REPRO_STATUS.Fruit)))
+                    (newReproStatus.equals(REPRO_STATUS.FlowerAndFruit) && 
+                        (reproStatus.equals(REPRO_STATUS.Flower) || reproStatus.equals(REPRO_STATUS.Fruit))))
             {
                 status = newReproStatus;
             }
@@ -519,7 +533,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	private void addPreparation(Preparation preparation)
 	{
-	    preparations.add(preparation);
+	    if (preparation != null) preparations.add(preparation);
 	}
 
 	private void addExsiccataItem(ExsiccataItem exsiccataItem)
@@ -662,6 +676,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    // Remarks (habitat)
 	    collectingEvent.setRemarks(habitat);
 	    
+	    // VerbatimDate
+	    String verbatimDate = bdate.getText();
+	    if (verbatimDate!= null) verbatimDate = truncate(verbatimDate, 50, "date text");
+	    collectingEvent.setVerbatimDate(verbatimDate);
+	        
 	    return collectingEvent;
 	}
 	
@@ -669,7 +688,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Preparation getPreparation(SpecimenItem specimenItem, CollectionObject collectionObject, Integer collectionMemberId)
 		throws LocalException
 	{
-	    Preparation preparation = new Preparation();
+        if (specimenItem.getId() == null) return null;
+        
+        Preparation preparation = new Preparation();
 
 	    // CollectionMemberId
 	    preparation.setCollectionMemberId(collectionMemberId);
@@ -700,9 +721,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    if (barcode == null)
 	    {
 	        getLogger().warn(rec() + "Null barcode");
-	        barcode = specimenItemId;
 	    }
-        preparation.setSampleNumber(formatBarcode(barcode));
+	    else
+	    {
+	        preparation.setSampleNumber(formatBarcode(barcode));
+	    }
         
         // Text1 (voucher)
         String voucher = specimenItem.getVoucher(); // TODO: investigate specimen.voucher
@@ -767,17 +790,26 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         collectionObject.setCatalogedDatePrecision(catalogedDatePrecision);
 
         // CatalogNumber
+        Integer barcode = null;
+
         Integer specimenItemId = specimenItem.getId();
-        checkNull(specimenItemId, "specimen item id");
-        
-        Integer barcode = lookupBarcode(specimenItemId);
-        if (barcode == null) barcode = specimenItem.getBarcode();
+        if (specimenItemId != null)
+        {
+            barcode = lookupBarcode(specimenItemId);
+            if (barcode == null) barcode = specimenItem.getBarcode();
+        }
+        else
+        {
+            getLogger().warn(rec() + "Null specimen item");
+            barcode = nextBarcode();
+        }
 
         checkNull(barcode, "barcode");
         
         String catalogNumber = formatBarcode(barcode);
         collectionObject.setCatalogNumber(catalogNumber);
 
+        
         // CollectionMemberID
         Integer collectionId = collection.getId();
         collectionObject.setCollectionMemberId(collectionId);
@@ -837,6 +869,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         collectionObject.setYesNo1(specimenItem.isCultivated()); // TODO: implement cultivated specimens
 
         return collectionObject;
+	}
+
+	private int nextBarcode()
+	{
+	    return nextBarcode++;
 	}
 
 	private Container getContainer(SpecimenItem specimenItem, Integer collectionMemberId) throws LocalException
@@ -925,6 +962,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // Identifier (seriesNo)
         series.setIdentifier( (seriesAbbrev == null ? "" : seriesAbbrev + " ") + seriesNo );
 
+        // Remarks
+        series.setRemarks("[series]");
+
         return series;
 	}
 
@@ -982,9 +1022,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     {
         String fieldNames = "DisciplineID, EndDate, EndDatePrecision, EndDateVerbatim, " +
         		            "LocalityID, Remarks, StartDate, StartDatePrecision, StartDateVerbatim, " +
-                            "TimestampCreated, Version";
+                            "TimestampCreated, VerbatimDate, Version";
 
-        String[] values = new String[11];
+        String[] values = new String[12];
         
         values[0]  = SqlUtils.sqlString( collectingEvent.getDiscipline().getDisciplineId());
         values[1]  = SqlUtils.sqlString( collectingEvent.getEndDate());
@@ -996,7 +1036,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[7]  = SqlUtils.sqlString( collectingEvent.getStartDatePrecision());
         values[8]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
         values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.one();
+        values[10] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
+        values[11] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }
