@@ -350,7 +350,6 @@ public class LoadHUHdatabase
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
-                                                                              taxonLookup,
                                                                               botanistLookup);
             int subcollectionRecords = subcollectionLoader.loadRecords();
             log.info("Loaded " + subcollectionRecords + " subcollection records");

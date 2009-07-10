@@ -15,13 +15,11 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
-import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
-import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
 
 // Run this class after TaxonLoader.
@@ -36,7 +34,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
 	}
 	
     private AsaIdMapper subcollMapper;
-    private TaxonLookup taxonLookup;
     private BotanistLookup botanistLookup;
     
     private SubcollectionLookup subcollLookup;
@@ -46,7 +43,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
 	public SubcollectionLoader(File csvFile,
 	                           Statement sqlStatement,
 	                           File subcollToBotanist,
-	                           TaxonLookup taxonLookup,
 	                           BotanistLookup botanistLookup)
 	    throws LocalException
 	{
@@ -55,7 +51,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		this.subcollMapper = new AsaIdMapper(subcollToBotanist);
 		
 		this.botanistLookup = botanistLookup;
-		this.taxonLookup    = taxonLookup;
 	}
 	
 	@Override
@@ -83,11 +78,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
             sql = getInsertSql(exsiccata);
             Integer exsiccataId = insert(sql);
             exsiccata.setExsiccataId(exsiccataId);
-            
-            // create a taxon citation
-            TaxonCitation taxonCitation = getTaxonCitation(subcollection, referenceWork);
-            sql = getInsertSql(taxonCitation);
-            insert(sql);
 
             // find matching agent for author or create one
             Agent agent = null;
@@ -205,12 +195,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
 	    return subcollMapper.map(subcollectionId);
 	}
 
-	
-	private Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
-	{
-	    return taxonLookup.getById(asaTaxonId);
-	}
-
 	private Agent lookupBotanist(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getById(botanistId);
@@ -229,7 +213,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
     	{
     	    subcollection.setId(           SqlUtils.parseInt( columns[0]  ));
     	    subcollection.setCollectionCode(                  columns[1]  );
-    	    subcollection.setTaxonGroupId( SqlUtils.parseInt( columns[2]  ));
+    	    subcollection.setTaxonGroup(                      columns[2]  );
     	    subcollection.setName(                            columns[3]  );
     	    subcollection.setAuthor(                          columns[4]  );
     	    subcollection.setSpecimenCount(                   columns[5]  );
@@ -262,19 +246,11 @@ public class SubcollectionLoader extends AuditedObjectLoader
         container.setCreatedByAgent(createdByAgent);
         
         // Description
-        String specimenCount = subcollection.getSpecimenCount();
-        String      location = subcollection.getLocation();
-        String       cabinet = subcollection.getCabinet();
-        String       remarks = subcollection.getRemarks();
+        String description = getDescription(subcollection);
         
-        if (specimenCount != null && location != null && cabinet != null && remarks != null)
-        {
-            String description = "Specimen count: " + specimenCount == null ? "" : specimenCount + ";" +
-                                 "Location: "       +      location == null ? "" : location      + ";" +
-                                 "Cabinet:"         +       cabinet == null ? "" : cabinet       + ";" +
-                                 "Remarks:"         +       remarks == null ? "" : remarks       + ";";
-            
-            description = truncate(description, 255, "count/location/cabinet/remarks");
+        if (description != null)
+        { 
+            description = truncate(description, 255, "taxon-group/count/location/cabinet/remarks");
             container.setDescription(description);
         }
         
@@ -317,7 +293,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
         referenceWork.setReferenceWorkType(ReferenceWork.BOOK);
      
         // Remarks
-        String remarks = subcollection.getRemarks();
+        String remarks = getDescription(subcollection);
         referenceWork.setRemarks(remarks);
         
         // TimestampCreated
@@ -333,6 +309,30 @@ public class SubcollectionLoader extends AuditedObjectLoader
         return referenceWork;
     }
     
+    private String getDescription(Subcollection subcollection)
+    {
+        String    taxonGroup = subcollection.getTaxonGroup();
+        String specimenCount = subcollection.getSpecimenCount();
+        String      location = subcollection.getLocation();
+        String       cabinet = subcollection.getCabinet();
+        String       remarks = subcollection.getRemarks();
+        
+        if (specimenCount != null && location != null && cabinet != null && remarks != null)
+        {
+            String description = "";
+            if (taxonGroup != null) description = "Taxon group: " + taxonGroup + "; ";
+            
+            description = "Specimen count: " + specimenCount == null ? "" : specimenCount + "; " +
+                          "Location: "       +      location == null ? "" : location      + "; " +
+                          "Cabinet:"         +       cabinet == null ? "" : cabinet       + "; " +
+                          "Remarks:"         +       remarks == null ? "" : remarks       + ";";
+            
+            return description;
+        }
+        
+        return null;
+    }
+
     private Exsiccata getExsiccata(Subcollection subcollection, ReferenceWork referenceWork) throws LocalException
     {	
         Exsiccata exsiccata = new Exsiccata();
@@ -416,24 +416,6 @@ public class SubcollectionLoader extends AuditedObjectLoader
         author.setReferenceWork(referenceWork);
         
     	return author;
-    }
-
-    private TaxonCitation getTaxonCitation(Subcollection subcollection, ReferenceWork referenceWork)
-    	throws LocalException
-    {	
-        TaxonCitation taxonCitation = new TaxonCitation();
-        
-        // Taxon
-        Integer taxonGroupId = subcollection.getTaxonGroupId();
-    	checkNull(taxonGroupId, "taxon group id");
-    	
-        Taxon taxon = lookupTaxon(taxonGroupId);
-        taxonCitation.setTaxon(taxon);
-        
-        // ReferenceWork
-        taxonCitation.setReferenceWork(referenceWork);
-
-        return taxonCitation;
     }
     
     private String getInsertSql(Container container) throws LocalException

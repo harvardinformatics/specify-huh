@@ -4,17 +4,47 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Enumeration;
 import java.util.Vector;
 
-import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.harvard.huh.asa2specify.loader.*;
+import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
+import edu.harvard.huh.asa2specify.loader.AgentLoader;
+import edu.harvard.huh.asa2specify.loader.BorrowLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistNameLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistSpecialtyLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
+import edu.harvard.huh.asa2specify.loader.DeterminationLoader;
+import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
+import edu.harvard.huh.asa2specify.loader.InGeoBatchLoader;
+import edu.harvard.huh.asa2specify.loader.InReturnBatchLoader;
+import edu.harvard.huh.asa2specify.loader.IncomingExchangeLoader;
+import edu.harvard.huh.asa2specify.loader.IncomingGiftLoader;
+import edu.harvard.huh.asa2specify.loader.LoanItemLoader;
+import edu.harvard.huh.asa2specify.loader.LoanLoader;
+import edu.harvard.huh.asa2specify.loader.OptrLoader;
+import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
+import edu.harvard.huh.asa2specify.loader.OutGeoBatchLoader;
+import edu.harvard.huh.asa2specify.loader.OutReturnBatchLoader;
+import edu.harvard.huh.asa2specify.loader.OutgoingExchangeLoader;
+import edu.harvard.huh.asa2specify.loader.OutgoingGiftLoader;
+import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
+import edu.harvard.huh.asa2specify.loader.PublicationLoader;
+import edu.harvard.huh.asa2specify.loader.PurchaseLoader;
+import edu.harvard.huh.asa2specify.loader.SeriesLoader;
+import edu.harvard.huh.asa2specify.loader.ShipmentLoader;
+import edu.harvard.huh.asa2specify.loader.SiteLoader;
+import edu.harvard.huh.asa2specify.loader.SpecimenItemLoader;
+import edu.harvard.huh.asa2specify.loader.StaffCollectionLoader;
+import edu.harvard.huh.asa2specify.loader.SubcollectionLoader;
+import edu.harvard.huh.asa2specify.loader.TaxonBatchLoader;
+import edu.harvard.huh.asa2specify.loader.TaxonLoader;
+import edu.harvard.huh.asa2specify.loader.TypeSpecimenLoader;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
@@ -107,7 +137,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doPubAuth     = false; // 14
         boolean doTax         = false; // 15
         boolean doSubcoll     = false; // 16
-        boolean doSpec        = false; // 17
+        boolean doSpec        = true; // 17
         boolean doDet         = false; // 18
         boolean doType        = false; // 19
         boolean doBorrow      = false; // 20
@@ -118,7 +148,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doOutGift     = false; // 25
         boolean doPurch       = false; // 26
         boolean doStaffColl   = false; // 27
-        boolean doShip        = true; // 28
+        boolean doShip        = false; // 28
         boolean doTaxBatch    = false; // 29
         boolean doInGeoBatch  = false; // 30
         boolean doInRetBatch  = false; // 31
@@ -287,7 +317,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
-                                                                              taxonLookup,
                                                                               botanistLookup);
             if (doSubcoll)
             {

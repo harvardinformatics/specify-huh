@@ -1,6 +1,6 @@
 select s.id,
        (select acronym from organization where id=s.herbarium_id) as collection_code,
-       s.taxon_group_id,
+       (select decode(name, 'Unknown', '', name) from st_lookup where id=s.taxon_group_id) as taxon_group,
        regexp_replace(s.name, '[[:space:]]+', ' ') as name,
        regexp_replace(s.author, '[[:space:]]+', ' ') as author,
        /* bn.botanist_id, */

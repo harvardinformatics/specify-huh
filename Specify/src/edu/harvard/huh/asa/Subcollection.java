@@ -6,7 +6,7 @@ public class Subcollection
 {
 	private Integer id;
 	private  String collectionCode;
-	private Integer taxonGroupId;
+	private  String taxonGroup;
 	private  String name;
 	private  String author;
 	private  String specimenCount;
@@ -22,7 +22,7 @@ public class Subcollection
 
 	public String getCollectionCode() { return collectionCode; }
 
-	public Integer getTaxonGroupId() { return taxonGroupId; }
+	public String getTaxonGroup() { return taxonGroup; }
 
 	public String getName() { return name; }
 	
@@ -44,7 +44,7 @@ public class Subcollection
 
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 
-    public void setTaxonGroupId(Integer taxonGroupId) { this.taxonGroupId = taxonGroupId; }
+    public void setTaxonGroup(String taxonGroup) { this.taxonGroup = taxonGroup; }
 	
     public void setName(String name) { this.name = name; }
 	
