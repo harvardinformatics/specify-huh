@@ -500,18 +500,4 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}
-    
-    private String getInsertSql(TaxonCitation taxonCitation)
-    {
-        String fieldNames = "TaxonID, ReferenceWorkID, TimestampCreated, Version";
-        
-        String[] values = new String[4];
-        
-        values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
-        values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[2] = SqlUtils.now();
-        values[3] = SqlUtils.one();
-        
-        return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
-    }
 }
