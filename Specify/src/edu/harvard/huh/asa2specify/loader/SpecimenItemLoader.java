@@ -72,7 +72,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Integer              subcollectionId  = null;
 	
 	// This is the next available barcode for items without them.
-	private int nextBarcode;
+	// Check with specimen_item_id_barcode.csv
+	private int nextBarcode = 900000006;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
@@ -336,7 +337,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
         catch (Exception e)
         {
-            String guid = collectionObject.getGuid();
+            String guid = collectionObject == null ? "null" : collectionObject.getGuid();
             getLogger().error("Problem saving records for " + guid, e);
         }
         
@@ -855,7 +856,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         // Text1 (reproStatus/phenology)
         reproStatus = specimenItem.getReproStatus();
-        collectionObject.setText1(SpecimenItem.toString(reproStatus));
+        if (reproStatus != null) collectionObject.setText1(SpecimenItem.toString(reproStatus));
           
         // Text2 (substrate)
         String substrate = specimenItem.getSubstrate();

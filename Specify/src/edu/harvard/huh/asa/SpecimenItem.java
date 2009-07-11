@@ -11,6 +11,8 @@ public class SpecimenItem
 
 	public static REPRO_STATUS parseReproStatus(String string) throws AsaException
 	{
+	    if (string == null) return null;
+	    
 	    for (REPRO_STATUS reproStatus : REPRO_STATUS.values())
 	    {
 	        if (ReproStatusNames[reproStatus.ordinal()].equals(string)) return reproStatus;
