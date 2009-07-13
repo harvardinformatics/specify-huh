@@ -286,7 +286,7 @@ public class AgentLoader extends CsvToSqlLoader
 		
 	    Address address = parseAddress(addressString);
 	    
-	    if (address == null) return null;
+	    if (address == null) address = new Address();
         
         // Agent
         address.setAgent(agent);
