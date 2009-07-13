@@ -136,13 +136,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         taxon.setIsAccepted(true);
         determination.setTaxon(taxon); 
         
-        // Confidence TODO: enum for confidence
-        String qualifier = asaDet.getQualifier();
-        if (qualifier != null)
-        {
-        	qualifier = truncate(qualifier, 50, "qualifier");
-            determination.setConfidence(qualifier);
-        }
+        // Confidence
         
         // DeterminedDate
         BDate bdate = asaDet.getDate();
@@ -184,6 +178,14 @@ public class DeterminationLoader extends CsvToSqlLoader
         Integer ordinal = asaDet.getOrdinal();
         determination.setNumber1((float) ordinal);
 
+        // Qualifier TODO: enum for confidence
+        String qualifier = asaDet.getQualifier();
+        if (qualifier != null)
+        {
+            qualifier = truncate(qualifier, 50, "qualifier");
+            determination.setConfidence(qualifier);
+        }
+        
         // Remarks TODO: Maureen, check your notes on this field and label_text
         String remarks = asaDet.getRemarks();
         determination.setRemarks(remarks);
@@ -203,23 +205,23 @@ public class DeterminationLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, Confidence, DeterminedDate, " +
-        		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Remarks, " +
-        		            "TimestampCreated, Version";
+        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, DeterminedDate, " +
+        		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Qualifier, " +
+        		            "Remarks, TimestampCreated, Version";
 
         String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
         values[2]  = SqlUtils.sqlString( determination.getTaxon().getId());
-        values[3]  = SqlUtils.sqlString( determination.getConfidence());
-        values[4]  = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[5]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[6]  = SqlUtils.sqlString( determination.getIsCurrent());
-        values[7]  = SqlUtils.sqlString( determination.getYesNo1());
-        values[8]  = SqlUtils.sqlString( determination.getText1());
-        values[9]  = SqlUtils.sqlString( determination.getText2());
-        values[10] = SqlUtils.sqlString( determination.getNumber1());
+        values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
+        values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
+        values[5]  = SqlUtils.sqlString( determination.getIsCurrent());
+        values[6]  = SqlUtils.sqlString( determination.getYesNo1());
+        values[7]  = SqlUtils.sqlString( determination.getText1());
+        values[8]  = SqlUtils.sqlString( determination.getText2());
+        values[9]  = SqlUtils.sqlString( determination.getNumber1());
+        values[10] = SqlUtils.sqlString( determination.getQualifier());
         values[11] = SqlUtils.sqlString( determination.getRemarks());
         values[12] = SqlUtils.now();
         values[13] = SqlUtils.one();

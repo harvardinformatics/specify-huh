@@ -155,10 +155,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         CollectionObject collectionObject = getSpecimenLookup().getById(specimenId);
         determination.setCollectionObject(collectionObject);
         
-        // Confidence TODO: make enum for conditionality
-        String conditionality = typeSpecimen.getConditionality();
-        if ( conditionality != null && conditionality.length() > 50 )
-        determination.setConfidence(conditionality);
+        // Confidence
         
         // DeterminedDate
         BDate bdate = typeSpecimen.getDate();
@@ -181,6 +178,12 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         
         // IsCurrent
         determination.setIsCurrent(true);
+        
+        // Qualifier TODO: make enum for conditionality
+        String conditionality = typeSpecimen.getConditionality();
+        if (conditionality != null) conditionality = truncate(conditionality, 16, "conditionality");
+        determination.setQualifier(conditionality);
+        
         
         // Remarks TODO: Maureen, check your notes on this field and label_text
         String remarks = typeSpecimen.getRemarks();
@@ -308,18 +311,18 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
-        		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, " +
+        String fieldNames = "CollectionMemberID, CollectionObjectID, DeterminedDate, " +
+        		            "DeterminedDatePrecision, IsCurrent, Qualifier, Remarks, TaxonID, Text1, " +
         		            "TimestampCreated, TypeStatusName, Version, YesNo2";
 
         String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
-        values[2]  = SqlUtils.sqlString( determination.getConfidence());
-        values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[5]  = SqlUtils.sqlString( determination.getIsCurrent());
+        values[2]  = SqlUtils.sqlString( determination.getDeterminedDate());
+        values[3]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
+        values[4]  = SqlUtils.sqlString( determination.getIsCurrent());
+        values[5]  = SqlUtils.sqlString( determination.getQualifier());
         values[6]  = SqlUtils.sqlString( determination.getRemarks());
         values[7]  = SqlUtils.sqlString( determination.getTaxon().getId());
         values[8]  = SqlUtils.sqlString( determination.getText1());
