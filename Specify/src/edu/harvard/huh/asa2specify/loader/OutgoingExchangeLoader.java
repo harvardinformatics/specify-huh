@@ -188,9 +188,14 @@ public class OutgoingExchangeLoader extends TransactionLoader
  
     private short getQuantity(OutgoingExchange outgoingExchange)
     {
+        
         Integer itemCount = outgoingExchange.getItemCount();
         Integer typeCount = outgoingExchange.getTypeCount();
         Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
+        
+        if (itemCount == null) itemCount = 0;
+        if (typeCount == null) typeCount = 0;
+        if (nonSpecimenCount == null) nonSpecimenCount = 0;
         
         return (short) (itemCount + typeCount + nonSpecimenCount);
     }
