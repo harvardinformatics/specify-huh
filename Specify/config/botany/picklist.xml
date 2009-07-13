@@ -7,17 +7,37 @@
   </picklist>
   <picklist name="CollObjPrepMeth" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
-      <picklistitem title="Sheet" value="sheet"/>
+      <picklistitem title="on sheet" value="on sheet"/>
+      <picklistitem title="in packet" value="in packet"/>
+      <picklistitem title="in box" value="in box"/>
+      <picklistitem title="in bag" value="in bag"/>
+      <picklistitem title="in spirit medium" value="in spirit medium"/>
+      <picklistitem title="wood" value="wood"/>
+      <picklistitem title="on microscope slide" value="on microscope slide"/>
+      <picklistitem title="DNA sample" value="DNA sample"/>
+      <picklistitem title="photograph" value="photograph"/>
+      <picklistitem title="drawing" value="drawing"/>
+      <picklistitem title="protolog on sheet" value="protolog on sheet"/>
+      <picklistitem title="other" value="other"/>
     </items>
   </picklist>
   <picklist name="TypeStatus" issystem="true" type="0" readonly="true" sizelimit="6">
     <items>
-      <picklistitem title="No Data" value="No Data"/>
-      <picklistitem title="Cotype" value="Cotype"/>
+      <picklistitem title="Epitype" value="Epitype"/>
+      <picklistitem title="Isoepitype" value="Isoepitype"/>
       <picklistitem title="Holotype" value="Holotype"/>
-      <picklistitem title="Paratype" value="Paratype"/>
+      <picklistitem title="Isotype" value="Isotype"/>
+      <picklistitem title="Lectotype" value="Lectotype"/>
+      <picklistitem title="Isolectotype" value="Isolectotype"/>
+      <picklistitem title="Neotype" value="Neotype"/>
+      <picklistitem title="Isoneotype" value="Isoneotype"/>
       <picklistitem title="Syntype" value="Syntype"/>
+      <picklistitem title="Isosyntype" value="Isosyntype"/>
+      <picklistitem title="[Neosyntype]" value="[Neosyntype]"/>
       <picklistitem title="Type" value="Type"/>
+      <picklistitem title="Type material" value="Type material"/>
+      <picklistitem title="Drawing of type" value="Drawing of type"/>
+      <picklistitem title="Photograph of type" value="Photograph of type"/>
     </items>
   </picklist>
   <picklist name="Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
