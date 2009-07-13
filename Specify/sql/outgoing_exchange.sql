@@ -1,4 +1,4 @@
-select t.id,
+select t.id, /* There will be one row for each geo_batch associated with an outgoing exch. */
        (select name from st_lookup where id=t.type_id) as transaction_type,
        t.agent_id,
        (select acronym from organization where id=t.local_unit_id) as local_unit,
@@ -17,9 +17,8 @@ select t.id,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
 
-       to_char((select min(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
-       to_char((select max(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
-       (select name from geo_name where type_id=110701 and geo_unit_id=ogb.geo_region_id) as geo_unit,
+       to_char((select min(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
+       to_char((select max(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,       (select name from geo_name where type_id=110701 and geo_unit_id=ogb.geo_region_id) as geo_unit,
        ogb.item_count,
        ogb.type_count,
        ogb.non_specimen_count

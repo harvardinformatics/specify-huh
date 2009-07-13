@@ -17,9 +17,8 @@ select t.id,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
 
-       to_char((select min(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
-       to_char((select max(date_due) from due_date where id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
-       (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
+       to_char((select min(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
+       to_char((select max(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,       (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon
 
 from herb_transaction t,
