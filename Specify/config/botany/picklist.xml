@@ -5,7 +5,7 @@
       <picklistitem title="cut" value="cut"/>
     </items>
   </picklist>
-  <picklist name="CollObjPrepMeth" issystem="true" type="0" readonly="true" sizelimit="5">
+  <picklist name="CollObjPrepMeth" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="on sheet" value="on sheet"/>
       <picklistitem title="in packet" value="in packet"/>
@@ -21,7 +21,7 @@
       <picklistitem title="other" value="other"/>
     </items>
   </picklist>
-  <picklist name="TypeStatus" issystem="true" type="0" readonly="true" sizelimit="6">
+  <picklist name="TypeStatus" issystem="true" type="0" readonly="true" sizelimit="15">
     <items>
       <picklistitem title="Epitype" value="Epitype"/>
       <picklistitem title="Isoepitype" value="Isoepitype"/>
@@ -33,7 +33,7 @@
       <picklistitem title="Isoneotype" value="Isoneotype"/>
       <picklistitem title="Syntype" value="Syntype"/>
       <picklistitem title="Isosyntype" value="Isosyntype"/>
-      <picklistitem title="[Neosyntype]" value="[Neosyntype]"/>
+      <picklistitem title="[Neosyntype]" value="Neosyntype"/>
       <picklistitem title="Type" value="Type"/>
       <picklistitem title="Type material" value="Type material"/>
       <picklistitem title="Drawing of type" value="Drawing of type"/>
