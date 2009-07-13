@@ -5,8 +5,8 @@ select a.id,
        regexp_replace(a.name, '[[:space:]]+', ' ') as name,
        regexp_replace(a.title, '[[:space:]]+', ' ') as title,
        regexp_replace(a.specialty, '[[:space:]]+', ' ') as specialty,
-       regexp_replace(a.corresp_address, '[[:space:]]+', ' ') as corresp_address,
-       regexp_replace(a.shipping_address, '[[:space:]]+', ' ') as shipping_address,
+       regexp_replace(regexp_replace(a.corresp_address, '[[:cntrl:]]+', '^'), '[[:space:]]+', ' ') as corresp_address,
+       regexp_replace(regexp_replace(a.shipping_address, '[[:cntrl:]]+', '^'), '[[:space:]]+', ' ') as shipping_address,
        regexp_replace(a.email, '[[:space:]]+', ' ') as email,
        regexp_replace(a.phone, '[[:space:]]+', ' ') as phone,
        regexp_replace(a.fax, '[[:space:]]+', ' ') as fax,
@@ -14,3 +14,5 @@ select a.id,
        regexp_replace(a.remarks, '[[:space:]]+', ' ') as remarks
 from
        agent a
+order by
+       a.name
