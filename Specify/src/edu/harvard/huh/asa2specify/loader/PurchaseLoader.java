@@ -52,14 +52,14 @@ public class PurchaseLoader extends TransactionLoader
         Integer accessionId = insert(sql);
         accession.setAccessionId(accessionId);
         
-        AccessionAgent preparer = getAccessionAgent(purchase, accession, ROLE.preparer);
+        AccessionAgent preparer = getAccessionAgent(purchase, accession, ROLE.Receiver);
         if (preparer != null)
         {
             sql = getInsertSql(preparer);
             insert(sql);
         }
         
-        AccessionAgent contributor = getAccessionAgent(purchase, accession, ROLE.contributor);
+        AccessionAgent contributor = getAccessionAgent(purchase, accession, ROLE.Contributor);
         if (contributor != null)
         {
             sql = getInsertSql(contributor);
@@ -115,7 +115,7 @@ public class PurchaseLoader extends TransactionLoader
         
         // Remarks
         String remarks = accession.getRemarks();
-        accession.setRemarks(remarks);
+        purchase.setRemarks(remarks);
         
         // Text1 (description)
         String description = purchase.getDescription();
@@ -130,7 +130,7 @@ public class PurchaseLoader extends TransactionLoader
         accession.setText3(boxCount);
         
         // Type
-        accession.setType(ACCESSION_TYPE.purchase.name());
+        accession.setType(ACCESSION_TYPE.Purchase.name());
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = purchase.isAcknowledged();
@@ -172,11 +172,11 @@ public class PurchaseLoader extends TransactionLoader
             // Agent
             Agent agent = null;
 
-            if (role.equals(ROLE.preparer) || role.equals(ROLE.collector))
+            if (role.equals(ROLE.Preparer) || role.equals(ROLE.Collector))
             {
                 agent = lookupAffiliate(transaction);
             }
-            else if (role.equals(ROLE.contributor))
+            else if (role.equals(ROLE.Contributor))
             {
                 agent = lookupAgent(transaction);
             }

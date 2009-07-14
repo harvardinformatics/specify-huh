@@ -72,14 +72,14 @@ public class BorrowLoader extends TransactionLoader
         Integer borrowId = insert(sql);
         borrow.setBorrowId(borrowId);
         
-        BorrowAgent borrower = getBorrowAgent(asaBorrow, borrow, ROLE.borrower, collectionMemberId); // "for use by"
+        BorrowAgent borrower = getBorrowAgent(asaBorrow, borrow, ROLE.Borrower, collectionMemberId); // "for use by"
         if (borrower != null)
         {
             sql = getInsertSql(borrower);
             insert(sql);
         }
         
-        BorrowAgent lender = getBorrowAgent(asaBorrow, borrow, ROLE.lender, collectionMemberId); // "contact"
+        BorrowAgent lender = getBorrowAgent(asaBorrow, borrow, ROLE.Lender, collectionMemberId); // "contact"
         if (lender != null)
         {
             sql = getInsertSql(lender);
@@ -225,11 +225,11 @@ public class BorrowLoader extends TransactionLoader
         // Agent
         Agent agent = null;
 
-        if (role.equals(ROLE.borrower))
+        if (role.equals(ROLE.Borrower))
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.lender))
+        else if (role.equals(ROLE.Lender))
         {
             agent = lookupAgent(transaction);
         }
@@ -245,7 +245,7 @@ public class BorrowLoader extends TransactionLoader
         borrowAgent.setBorrow(borrow);
         
         // Remarks
-        if (role.equals(ROLE.borrower))
+        if (role.equals(ROLE.Borrower))
         {
             String forUseBy = transaction.getForUseBy();
             String remarks = "(" + forUseBy + ")";

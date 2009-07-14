@@ -63,7 +63,7 @@ public class LoanLoader extends TransactionLoader
         Integer loanId = insert(sql);
         loan.setLoanId(loanId);
         
-        LoanAgent borrower = getLoanAgent(asaLoan, loan, ROLE.borrower, collectionMemberId); // "contact"
+        LoanAgent borrower = getLoanAgent(asaLoan, loan, ROLE.Borrower, collectionMemberId); // "contact"
         if (borrower != null)
         {
             sql = getInsertSql(borrower);
@@ -245,11 +245,11 @@ public class LoanLoader extends TransactionLoader
         // Agent
         Agent agent = null;
 
-        if (role.equals(ROLE.preparer))
+        if (role.equals(ROLE.Preparer))
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.borrower))
+        else if (role.equals(ROLE.Borrower))
         {
             agent = lookupAgent(transaction);
         }
@@ -268,7 +268,7 @@ public class LoanLoader extends TransactionLoader
         String forUseBy = transaction.getForUseBy();
         String userType = transaction.getUserType().name();
         
-        if (role.equals(ROLE.borrower)) // "for use by"
+        if (role.equals(ROLE.Borrower)) // "for use by"
         {
             String remarks = "For use by " + (forUseBy != null ? forUseBy : "") + "(" + userType + ")";
             loan.setRemarks(remarks);

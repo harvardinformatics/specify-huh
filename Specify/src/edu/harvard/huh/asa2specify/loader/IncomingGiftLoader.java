@@ -62,13 +62,13 @@ public class IncomingGiftLoader extends TransactionLoader
         Integer giftId = insert(sql);
         gift.setGiftId(giftId);
         
-        GiftAgent receiver = getGiftAgent(incomingGift, gift, ROLE.receiver, collectionMemberId);
+        GiftAgent receiver = getGiftAgent(incomingGift, gift, ROLE.Receiver, collectionMemberId);
         if (receiver != null)
         {
             sql = getInsertSql(receiver);
             insert(sql);
         }
-        GiftAgent donor = getGiftAgent(incomingGift, gift, ROLE.donor, collectionMemberId);
+        GiftAgent donor = getGiftAgent(incomingGift, gift, ROLE.Donor, collectionMemberId);
         if (donor != null)
         {
             sql = getInsertSql(donor);
@@ -193,11 +193,11 @@ public class IncomingGiftLoader extends TransactionLoader
         // Agent
         Agent agent = null;
 
-        if (role.equals(ROLE.receiver))
+        if (role.equals(ROLE.Receiver))
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.donor))
+        else if (role.equals(ROLE.Donor))
         {
             agent = lookupAgent(transaction);
         }

@@ -50,20 +50,20 @@ public class OutgoingGiftLoader extends TransactionLoader
         Integer transactionId = outgoingGift.getId();
         setCurrentRecordId(transactionId);
         
-        Deaccession deaccession = getDeaccession(outgoingGift, ACCESSION_TYPE.gift);
+        Deaccession deaccession = getDeaccession(outgoingGift, ACCESSION_TYPE.Gift);
         
         String sql = getInsertSql(deaccession);
         Integer deaccessionId = insert(sql);
         deaccession.setDeaccessionId(deaccessionId);
         
-        DeaccessionAgent donor = getDeaccessionAgent(outgoingGift, deaccession, ROLE.donor);
+        DeaccessionAgent donor = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Donor);
         if (donor != null)
         {
             sql = getInsertSql(donor);
             insert(sql);
         }
 
-        DeaccessionAgent receiver = getDeaccessionAgent(outgoingGift, deaccession, ROLE.receiver);
+        DeaccessionAgent receiver = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Receiver);
         if (receiver != null)
         {
             sql = getInsertSql(receiver);
@@ -172,11 +172,11 @@ public class OutgoingGiftLoader extends TransactionLoader
         // Agent
         Agent agent = null;
 
-        if (role.equals(ROLE.donor))
+        if (role.equals(ROLE.Donor))
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.receiver))
+        else if (role.equals(ROLE.Receiver))
         {
             agent = lookupAgent(transaction);
         }

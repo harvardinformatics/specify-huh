@@ -52,7 +52,7 @@ public class StaffCollectionLoader extends TransactionLoader
         Integer accessionId = insert(sql);
         accession.setAccessionId(accessionId);
         
-        AccessionAgent collector = getAccessionAgent(staffCollection, accession, ROLE.collector);
+        AccessionAgent collector = getAccessionAgent(staffCollection, accession, ROLE.Collector);
         if (collector != null)
         {
             sql = getInsertSql(collector);
@@ -148,7 +148,7 @@ public class StaffCollectionLoader extends TransactionLoader
         accession.setText3(boxCount);
         
         // Type
-        accession.setType(ACCESSION_TYPE.cln.name());
+        accession.setType(ACCESSION_TYPE.Collection.name());
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = staffCollection.isAcknowledged();
@@ -165,11 +165,11 @@ public class StaffCollectionLoader extends TransactionLoader
             // Agent
             Agent agent = null;
 
-            if (role.equals(ROLE.preparer) || role.equals(ROLE.collector))
+            if (role.equals(ROLE.Preparer) || role.equals(ROLE.Collector))
             {
                 agent = lookupAffiliate(transaction);
             }
-            else if (role.equals(ROLE.contributor))
+            else if (role.equals(ROLE.Contributor))
             {
                 agent = lookupAgent(transaction);
             }
