@@ -62,13 +62,16 @@
       <picklistitem title="Complete" value="complete"/>
     </items>
   </picklist>
-  <picklist name="ShipmentMethod" issystem="true" type="0" readonly="true" sizelimit="5">
+  <picklist name="ShipmentMethod" issystem="true" type="0" readonly="true" sizelimit="8">
     <items>
-      <picklistitem title="DHL" value="dhl"/>
-      <picklistitem title="Fed Ex" value="fedex"/>
-      <picklistitem title="By Hand" value="hand"/>
-      <picklistitem title="UPS" value="ups"/>
-      <picklistitem title="USPS" value="usps"/>
+      <picklistitem title="Air" value="Air"/>
+      <picklistitem title="Express" value="Express"/>
+      <picklistitem title="Library rate" value="Library rate"/>
+      <picklistitem title="Sea mail" value="Sea mail"/>
+      <picklistitem title="First class" value="First class"/>
+      <picklistitem title="Ground" value="Ground"/>
+      <picklistitem title="Priority" value="Priority"/>
+      <picklistitem title="NA/Unknown" value="NA/Unknown"/>
     </items>
   </picklist>
   <picklist name="AccessionType" issystem="true" type="0" readonly="true" sizelimit="2">
@@ -88,22 +91,36 @@
       <picklistitem title="Label Name" value="4"/>
     </items>
   </picklist>
-  <picklist name="AccessionRole" issystem="true" type="0" readonly="true" sizelimit="5">
+  <picklist name="AccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Collector" value="collector"/>
-      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Borrower" value="borrower"/>
+      <picklistitem title="Benefactor" value="benefactor"/>
+      <picklistitem title="Contributor" value="contributor"/>
       <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Reviewer" value="reviewer"/>
+      <picklistitem title="Guest" value="guest"/>
+      <picklistitem title="Lender" value="lender"/>
+      <picklistitem title="Other" value="other"/>
+      <picklistitem title="Preparer" value="preparer"/>
       <picklistitem title="Receiver" value="receiver"/>
+      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
- <!-- <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="5">
+ <!-- <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Collector" value="collector"/>
-      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Borrower" value="borrower"/>
+      <picklistitem title="Benefactor" value="benefactor"/>
+      <picklistitem title="Contributor" value="contributor"/>
       <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Reviewer" value="reviewer"/>
+      <picklistitem title="Guest" value="guest"/>
+      <picklistitem title="Lender" value="lender"/>
+      <picklistitem title="Other" value="other"/>
+      <picklistitem title="Preparer" value="preparer"/>
       <picklistitem title="Receiver" value="receiver"/>
+      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
     <picklist name="DeaccessionType" issystem="true" type="0" readonly="true" sizelimit="5">
