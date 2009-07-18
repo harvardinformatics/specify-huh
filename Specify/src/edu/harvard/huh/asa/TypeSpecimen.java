@@ -34,6 +34,7 @@ public class TypeSpecimen
     private  String nle2Collation;
     private  String nle2Date;
     private  String remarks;
+    private Integer ordinal;
     
     public Integer getId() { return id; }
     
@@ -71,6 +72,8 @@ public class TypeSpecimen
     
     public String getRemarks() { return remarks; }
     
+    public Integer getOrdinal() { return ordinal; }
+    
     public void setId(Integer id) { this.id = id; }
     
     public void setSpecimenId(Integer specimenId) { this.specimenId = specimenId; }
@@ -106,4 +109,6 @@ public class TypeSpecimen
     public void setNle2Date(String nle2Date) { this.nle2Date = nle2Date; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
+    
+    public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
 }

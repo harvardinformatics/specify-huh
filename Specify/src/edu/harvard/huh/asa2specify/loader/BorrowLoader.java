@@ -203,9 +203,9 @@ public class BorrowLoader extends TransactionLoader
         String description = asaBorrow.getDescription();
         borrow.setText1(description);
         
-        // Text2
-        String forUseBy = asaBorrow.getForUseBy();
-        borrow.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsage(asaBorrow);
+        borrow.setText2(usage);
         
         // TimestampCreated
         Date dateCreated = asaBorrow.getDateCreated();
@@ -214,6 +214,10 @@ public class BorrowLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaBorrow.isAcknowledged();
         borrow.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(asaBorrow.getRequestType());
+        borrow.setYesNo2(isTheirs);
         
         return borrow;
     }
@@ -257,14 +261,14 @@ public class BorrowLoader extends TransactionLoader
         
         return borrowAgent;
     }
-    
+
     private String getInsertSql(Borrow borrow)
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
                             "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate, " +
-                            "Remarks, Text1, Text2,  TimestampCreated, Version, YesNo1";
+                            "Remarks, Text1, Text2,  TimestampCreated, Version, YesNo1, YesNo2";
         
-        String[] values = new String[15];
+        String[] values = new String[16];
         
         values[0]  = SqlUtils.sqlString( borrow.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( borrow.getCreatedByAgent().getId());
@@ -281,7 +285,8 @@ public class BorrowLoader extends TransactionLoader
         values[12] = SqlUtils.sqlString( borrow.getTimestampCreated());
         values[13] = SqlUtils.one();
         values[14] = SqlUtils.sqlString( borrow.getYesNo1());
-            
+        values[15] = SqlUtils.sqlString( borrow.getYesNo2());
+        
         return SqlUtils.getInsertSql("borrow", fieldNames, values);
     }
     

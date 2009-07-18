@@ -95,7 +95,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     
     private TypeSpecimen parse(String[] columns) throws LocalException
     {
-        if (columns.length < 20)
+        if (columns.length < 21)
         {
             throw new LocalException("Not enough columns");
         }
@@ -128,6 +128,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             typeSpecimen.setNle2Collation(                        columns[17] );
             typeSpecimen.setNle2Date(                             columns[18] );
             typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[19] ));
+            typeSpecimen.setOrdinal(           SqlUtils.parseInt( columns[20] ));
         }
         catch (NumberFormatException e)
         {
@@ -178,6 +179,10 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         
         // IsCurrent
         determination.setIsCurrent(true);
+        
+        // Number1 (ordinal)
+        Integer ordinal = typeSpecimen.getOrdinal();
+        if (ordinal != null) determination.setNumber1((float) ordinal);
         
         // Qualifier TODO: make enum for conditionality
         String conditionality = typeSpecimen.getConditionality();

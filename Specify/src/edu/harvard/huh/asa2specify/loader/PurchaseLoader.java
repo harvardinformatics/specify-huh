@@ -114,8 +114,8 @@ public class PurchaseLoader extends TransactionLoader
         accession.setNumber1((float) transactionId);
         
         // Remarks
-        String remarks = accession.getRemarks();
-        purchase.setRemarks(remarks);
+        String remarks = purchase.getRemarks();
+        accession.setRemarks(remarks);
         
         // Text1 (description)
         String description = purchase.getDescription();

@@ -37,7 +37,8 @@ select t.container_id,
        t.cit_date,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
-       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created
+       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       t.basionym_id
 
 from taxon t
 start with t.container_id is null

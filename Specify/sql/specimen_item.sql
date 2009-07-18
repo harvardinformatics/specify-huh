@@ -37,7 +37,11 @@ select si.id,
        regexp_replace(s.series_no, '[[:space:]]+', ' ') as series_number,
        regexp_replace(si.container, '[[:space:]]+', ' ') as container,
        si.subcollection_id,
-       decode((select author from subcollection where id=si.subcollection_id), null, '', 'true') as has_exsiccata
+       decode((select author from subcollection where id=si.subcollection_id), null, '', 'true') as has_exsiccata,
+       si.replicates,
+       si.location || decode(si.temp_location, '', null, '; temporarily held: ' || si.temp_location) as location
+       s.vernacular_name,
+       s.distribution
 from
        specimen_item si,
        specimen s,

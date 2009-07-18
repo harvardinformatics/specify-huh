@@ -21,7 +21,8 @@ select ts.id,
        ts.nle2_publication_id,
        regexp_replace(ts.nle2_collation, '[[:space:]]+', ' ') as nle2_collation,
        regexp_replace(ts.nle2_date, '[[:space:]]+', ' ') as nle2_date,
-       regexp_replace(ts.remarks, '[[:space:]]+', ' ') as remarks
+       regexp_replace(ts.remarks, '[[:space:]]+', ' ') as remarks,
+       ts.ordinal as ordinal
 
 from type_specimen ts, specimen s
 

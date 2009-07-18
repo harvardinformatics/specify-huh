@@ -121,8 +121,6 @@ public class LoanLoader extends TransactionLoader
     {
         Loan loan = new Loan();
         
-        // TODO: their are some loans with forUseBy = ours, do we note that somewhere?
-        
         // TODO: AddressOfRecord
         
         // CreatedByAgentID
@@ -197,7 +195,7 @@ public class LoanLoader extends TransactionLoader
         
         // SpecialConditions
         
-        // TODO: SrcGeography
+        // TODO: SrcGeography?
         
         // SrcTaxonomy
         String higherTaxon = asaLoan.getHigherTaxon();
@@ -223,9 +221,9 @@ public class LoanLoader extends TransactionLoader
         String description = asaLoan.getDescription();
         loan.setText1(description);
         
-        // Text2
-        String forUseBy = asaLoan.getForUseBy();
-        loan.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsage(asaLoan);
+        loan.setText2(usage);
         
         // TimestampCreated
         Date dateCreated = asaLoan.getDateCreated();
@@ -234,8 +232,23 @@ public class LoanLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaLoan.isAcknowledged();
         loan.setYesNo1(isAcknowledged);
-                        
+                       
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(asaLoan.getRequestType());
+        loan.setYesNo2(isTheirs);
+        
         return loan;
+    }
+    
+    @Override
+    protected String getUsage(Transaction transaction)
+    {
+        String user = transaction.getForUseBy();
+        if (user == null) user = "?";
+        
+        String userType = transaction.getUserType().name();
+        
+        return "(user: " + user + ", " + user + "type: " + userType + ")";
     }
     
     private LoanAgent getLoanAgent(Transaction transaction, Loan loan, ROLE role, Integer collectionMemberId) throws LocalException

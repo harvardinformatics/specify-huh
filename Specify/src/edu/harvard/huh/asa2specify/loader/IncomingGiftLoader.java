@@ -16,28 +16,23 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.IncomingGift;
 import edu.harvard.huh.asa.Transaction;
-import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.IncomingGiftLookup;
+import edu.ku.brc.specify.datamodel.Accession;
+import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Gift;
-import edu.ku.brc.specify.datamodel.GiftAgent;
 
 public class IncomingGiftLoader extends TransactionLoader
 {
     private static final Logger log  = Logger.getLogger(IncomingGiftLoader.class);
-    
-    private static final String DEFAULT_GIFT_NUMBER = "none";
-    
-    private IncomingGiftLookup inGiftLookup;
     
     public IncomingGiftLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
@@ -51,24 +46,19 @@ public class IncomingGiftLoader extends TransactionLoader
         Integer transactionId = incomingGift.getId();
         setCurrentRecordId(transactionId);
         
-        String code = incomingGift.getLocalUnit();
-        checkNull(code, "local unit");
+        Accession accession = getAccession(incomingGift);
         
-        Integer collectionMemberId = getCollectionId(code);
+        String sql = getInsertSql(accession);
+        Integer accessionId = insert(sql);
+        accession.setAccessionId(accessionId);
         
-        Gift gift = getGift(incomingGift);
-        
-        String sql = getInsertSql(gift);
-        Integer giftId = insert(sql);
-        gift.setGiftId(giftId);
-        
-        GiftAgent receiver = getGiftAgent(incomingGift, gift, ROLE.Receiver, collectionMemberId);
+        AccessionAgent receiver = getAccessionAgent(incomingGift, accession, ROLE.Receiver);
         if (receiver != null)
         {
             sql = getInsertSql(receiver);
             insert(sql);
         }
-        GiftAgent donor = getGiftAgent(incomingGift, gift, ROLE.Donor, collectionMemberId);
+        AccessionAgent donor = getAccessionAgent(incomingGift, accession, ROLE.Donor);
         if (donor != null)
         {
             sql = getInsertSql(donor);
@@ -80,184 +70,194 @@ public class IncomingGiftLoader extends TransactionLoader
     {
         return log;
     }
-    
-    public IncomingGiftLookup getIncomingGiftLookup()
-    {
-        if (inGiftLookup == null)
-        {
-            inGiftLookup = new IncomingGiftLookup() {
-
-                public Gift getById(Integer transactionId) throws LocalException
-                {
-                    Gift gift = new Gift();
-                    
-                    Integer giftId = getInt("gift", "GiftID", "Number1", transactionId);
-                    
-                    gift.setGiftId(giftId);
-                    
-                    return gift;
-                }
-                
-            };
-        }
-        return inGiftLookup;
-    }
 
     private IncomingGift parse(String[] columns) throws LocalException
     {        
         IncomingGift incomingGift = new IncomingGift();
         
-        parse(columns, incomingGift);
+        int i = parse(columns, incomingGift);
+        
+        if (columns.length < i + 8)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        incomingGift.setGeoUnit(                             columns[i + 0] );
+        incomingGift.setItemCount(        SqlUtils.parseInt( columns[i + 1] ));
+        incomingGift.setTypeCount(        SqlUtils.parseInt( columns[i + 2] ));
+        incomingGift.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 3] ));
+        incomingGift.setDiscardCount(     SqlUtils.parseInt( columns[i + 4] ));
+        incomingGift.setDistributeCount(  SqlUtils.parseInt( columns[i + 5] ));
+        incomingGift.setReturnCount(      SqlUtils.parseInt( columns[i + 6] ));
+        incomingGift.setCost(           SqlUtils.parseFloat( columns[i + 7] ));
 
         return incomingGift;
     }
     
-    private Gift getGift(IncomingGift inGift) throws LocalException
+    private Accession getAccession(IncomingGift inGift) throws LocalException
     {
-        Gift gift = new Gift();
+        Accession accession = new Accession();
 
         // TODO: AddressOfRecord
         
-        // CreatedByAgentID
+        // CreatedByAgent
         Integer creatorOptrId = inGift.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        gift.setCreatedByAgent(createdByAgent);
+        accession.setCreatedByAgent(createdByAgent);
         
-        // DisciplineID
-        gift.setDiscipline(getBotanyDiscipline());
+        // AccessionCondition
+        String accessionCondition = getDescription(inGift);
+        accessionCondition = truncate(accessionCondition, 255, "accession condition");
+        accession.setAccessionCondition(accessionCondition);
         
-        // DivisionID
-        gift.setDivision(getBotanyDivision());
-        
-        // GiftDate
-        Date openDate = inGift.getOpenDate();
-        if (openDate != null)
-        {
-            gift.setGiftDate(DateUtils.toCalendar(openDate));
-        }
-        
-        // GiftNumber
+        // AccessionNumber
         String transactionNo = inGift.getTransactionNo();
         if ( transactionNo == null)
         {
-            transactionNo = DEFAULT_GIFT_NUMBER;
+            transactionNo = DEFAULT_ACCESSION_NUMBER;
         }
-        transactionNo = truncate(transactionNo, 50, "transaction number");
-        gift.setGiftNumber(transactionNo);
+        transactionNo = truncate(transactionNo, 50, "invoice number");
+        accession.setAccessionNumber(transactionNo);
+        
+        // DateAccessioned
+        Date openDate = inGift.getOpenDate();
+        if (openDate != null)
+        {
+            accession.setDateAccessioned(DateUtils.toCalendar(openDate));
+        }
+        
+        // Division
+        accession.setDivision(getBotanyDivision());
         
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = inGift.getId();
-        if (transactionId == null)
-        {
-            throw new LocalException("No transaction id");
-        }
-        gift.setNumber1((float) transactionId);
+        checkNull(transactionId, "transaction id");
         
-        // PurposeOfGift
-        PURPOSE purpose = inGift.getPurpose();
-        String purposeOfGift = Transaction.toString(purpose);
-        purposeOfGift = truncate(purposeOfGift, 64, "purpose");
-        gift.setPurposeOfGift(purposeOfGift);
+        accession.setNumber1((float) transactionId);
         
         // Remarks
         String remarks = inGift.getRemarks();
-        gift.setRemarks(remarks);
-        
-        // TODO: SrcGeography
-        
-        // TODO: SrcTaxonomy
+        accession.setRemarks(remarks);
         
         // Text1 (description)
         String description = inGift.getDescription();
-        gift.setText1(description);
+        accession.setText1(description);
         
-        // Text2
-        String forUseBy = inGift.getForUseBy();
-        gift.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsage(inGift);
+        accession.setText2(usage);
         
-        // TimestampCreated
-        Date dateCreated = inGift.getDateCreated();
-        gift.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        // Text3 (boxCount)
+        String boxCount = inGift.getBoxCount();
+        accession.setText3(boxCount);
+        
+        // Type
+        accession.setType(ACCESSION_TYPE.Gift.name());
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = inGift.isAcknowledged();
-        gift.setYesNo1(isAcknowledged);
+        accession.setYesNo1(isAcknowledged);
         
-        return gift;
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(inGift.getRequestType());
+        accession.setYesNo2(isTheirs);
+        
+        return accession;
+    }
+
+    private String getDescription(IncomingGift inGift)
+    {
+        String geoUnit = inGift.getGeoUnit();
+        if (geoUnit == null) geoUnit = "";
+        else geoUnit = geoUnit + ": ";
+
+        Integer itemCount = inGift.getItemCount();
+        Integer typeCount = inGift.getTypeCount();
+        Integer nonSpecimenCount = inGift.getNonSpecimenCount();
+
+        Integer discardCount = inGift.getDiscardCount();
+        Integer distributeCount = inGift.getDistributeCount();
+        Integer returnCount = inGift.getReturnCount();
+        
+        Float cost = inGift.getCost();
+        
+        Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount, cost };
+        String pattern = "{0}{1} items, {2} types, {3} non-specimens; {4} discarded, {5} distributed, {6} returned; cost: {7}";
+
+        return MessageFormat.format(pattern, args);
     }
     
-    private GiftAgent getGiftAgent(Transaction transaction, Gift gift, ROLE role, Integer collectionMemberId) throws LocalException
+    private AccessionAgent getAccessionAgent(Transaction transaction, Accession accession, ROLE role)
+        throws LocalException
     {
-        GiftAgent giftAgent = new GiftAgent();
-        
+        AccessionAgent accessionAgent = new AccessionAgent();
+
         // Agent
         Agent agent = null;
 
-        if (role.equals(ROLE.Receiver))
+        if (role.equals(ROLE.Donor))
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.Donor))
+        else if (role.equals(ROLE.Receiver))
         {
             agent = lookupAgent(transaction);
         }
-        
+
         if (agent == null || agent.getId() == null) return null;
-        
-        giftAgent.setAgent(agent);
-        
-        // CollectionMemberID
-        giftAgent.setCollectionMemberId(collectionMemberId);
-        
-        // GiftID
-        giftAgent.setGift(gift);
-        
+
+        accessionAgent.setAgent(agent);
+
+        // Deaccession
+        accessionAgent.setAccession(accession);
+
         // Remarks
-        
+
         // Role
-        giftAgent.setRole(role.name());
-        
-        return giftAgent;
+        accessionAgent.setRole(role.name());
+
+        return accessionAgent;
     }
     
-    private String getInsertSql(Gift gift)
+    private String getInsertSql(Accession accession)
     {
-        String fieldNames = "CreatedByAgentID, DisciplineID, DivisionID, GiftDate, GiftNumber, " +
-                            "Number1, PurposeOfGift, Remarks, Text1, Text2, TimestampCreated, " +
-                            "Version, YesNo1";
+        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
+                            "DivisionID, Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, " +
+                            "Version, YesNo1, YesNo2";
+
+        String[] values = new String[15];
+
+        values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
+        values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
+        values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
+        values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
+        values[4]  = SqlUtils.sqlString( accession.getDivision().getId());
+        values[5]  = SqlUtils.sqlString( accession.getNumber1());
+        values[6]  = SqlUtils.sqlString( accession.getRemarks());
+        values[7]  = SqlUtils.sqlString( accession.getText1());
+        values[8]  = SqlUtils.sqlString( accession.getText2());
+        values[9]  = SqlUtils.sqlString( accession.getText3());
+        values[10] = SqlUtils.sqlString( accession.getType());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.one();
+        values[13] = SqlUtils.sqlString( accession.getYesNo1());
+        values[14] = SqlUtils.sqlString( accession.getYesNo1());
         
-        String[] values = new String[13];
-        
-        values[0]  = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
-        values[1]  = SqlUtils.sqlString( gift.getDiscipline().getId());
-        values[2]  = SqlUtils.sqlString( gift.getDivision().getId());
-        values[3]  = SqlUtils.sqlString( gift.getGiftDate());
-        values[4]  = SqlUtils.sqlString( gift.getGiftNumber());
-        values[5]  = SqlUtils.sqlString( gift.getNumber1());
-        values[6]  = SqlUtils.sqlString( gift.getPurposeOfGift());
-        values[7]  = SqlUtils.sqlString( gift.getRemarks());
-        values[8]  = SqlUtils.sqlString( gift.getText1());
-        values[9]  = SqlUtils.sqlString( gift.getText2());
-        values[10] = SqlUtils.sqlString( gift.getTimestampCreated());
-        values[11] = SqlUtils.one();
-        values[12] = SqlUtils.sqlString( gift.getYesNo1());
-        
-        return SqlUtils.getInsertSql("gift", fieldNames, values);
+        return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
-    
-    private String getInsertSql(GiftAgent borrowAgent)
+
+    private String getInsertSql(AccessionAgent accessionAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, GiftID, Role, TimestampCreated, Version";
+        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated, Version";
 
-        String[] values = new String[6];
+        String[] values = new String[5];
 
-        values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
-        values[2] = SqlUtils.sqlString( borrowAgent.getGift().getId());
-        values[3] = SqlUtils.sqlString( borrowAgent.getRole());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[0] = SqlUtils.sqlString( accessionAgent.getAccession().getId());
+        values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
+        values[2] = SqlUtils.sqlString( accessionAgent.getRole());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.one();
         
-        return SqlUtils.getInsertSql("giftagent", fieldNames, values);
+        return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }
 }

@@ -175,7 +175,7 @@ public class TaxonLoader extends TreeLoader
 
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 21)
+	    if (columns.length < 22)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -205,6 +205,7 @@ public class TaxonLoader extends TreeLoader
 		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[18] ));
 		    taxon.setCreatedById(           SqlUtils.parseInt( columns[19] ));
 		    taxon.setDateCreated(          SqlUtils.parseDate( columns[20] ));
+		    taxon.setBasionymId(            SqlUtils.parseInt( columns[21] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -241,10 +242,6 @@ public class TaxonLoader extends TreeLoader
 		fullName = truncate(fullName, 255, "full name");
 		specifyTaxon.setFullName(fullName);
 
-		// GroupNumber TODO: keep taxon group in GroupNumber?
-		GROUP group = asaTaxon.getGroup();
-		specifyTaxon.setGroupNumber(AsaTaxon.toString(group));
-
 	    // isAccepted TODO: map taxon status to isAccepted
         STATUS status = asaTaxon.getStatus();
         specifyTaxon.setIsAccepted( status != STATUS.NomRej && status != STATUS.NomInvalid && status != STATUS.NomSuperfl);
@@ -258,6 +255,10 @@ public class TaxonLoader extends TreeLoader
 		checkNull(name, "name");
 		name = truncate(name, 64, "name");
 		specifyTaxon.setName(name);
+		
+		// Number1
+		Integer basionymId = asaTaxon.getBasionymId();
+		if (basionymId != null) specifyTaxon.setNumber1(basionymId);
 
 		// Parent
 		Taxon parent = null;
@@ -302,6 +303,10 @@ public class TaxonLoader extends TreeLoader
 		
 		specifyTaxon.setDefinitionItem(defItem);
 		
+		// Text1 (group)
+		GROUP group = asaTaxon.getGroup();
+		specifyTaxon.setText1(AsaTaxon.toString(group));
+	        
 		// TimestampCreated
         Date dateCreated = asaTaxon.getDateCreated();
         specifyTaxon.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
@@ -348,28 +353,29 @@ public class TaxonLoader extends TreeLoader
 	
 	private String getInsertSql(Taxon taxon)
 	{
-		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, GroupNumber, " +
-				            "IsAccepted, IsHybrid, Name, ParentID, RankID, Remarks, TaxonomicSerialNumber, " +
-				            "TaxonTreeDefID, TaxonTreeDefItemID, TimestampCreated, Version";
+		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, IsAccepted, " +
+				            "IsHybrid, Name, Number1, ParentID, RankID, Remarks, TaxonomicSerialNumber, " +
+				            "TaxonTreeDefID, TaxonTreeDefItemID, Text1, TimestampCreated, Version";
 
-		String[] values = new String[16];
+		String[] values = new String[17];
 
 		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
 		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
 		values[2]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
 		values[3]  = SqlUtils.sqlString( taxon.getFullName());
-		values[4]  = SqlUtils.sqlString( taxon.getGroupNumber());
-		values[5]  = SqlUtils.sqlString( taxon.getIsAccepted());
-		values[6]  = SqlUtils.sqlString( taxon.getIsHybrid());
-		values[7]  = SqlUtils.sqlString( taxon.getName());
+		values[4]  = SqlUtils.sqlString( taxon.getIsAccepted());
+		values[5]  = SqlUtils.sqlString( taxon.getIsHybrid());
+		values[6]  = SqlUtils.sqlString( taxon.getName());
+		values[7]  = SqlUtils.sqlString( taxon.getNumber1());
 		values[8]  = SqlUtils.sqlString( taxon.getParent().getId());
-		values[9]  = SqlUtils.sqlString( taxon.getRankId());
+		values[9] = SqlUtils.sqlString( taxon.getRankId());
 		values[10] = SqlUtils.sqlString( taxon.getRemarks());
 		values[11] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
 		values[12] = SqlUtils.sqlString( taxon.getDefinition().getId());
 		values[13] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
-		values[14] = SqlUtils.sqlString( taxon.getTimestampCreated());
-		values[15] = SqlUtils.sqlString( taxon.getVersion());
+		values[14] = SqlUtils.sqlString( taxon.getText1());
+		values[15] = SqlUtils.sqlString( taxon.getTimestampCreated());
+		values[16] = SqlUtils.sqlString( taxon.getVersion());
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}

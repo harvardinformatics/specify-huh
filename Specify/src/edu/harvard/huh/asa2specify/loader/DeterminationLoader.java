@@ -176,7 +176,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         
         // Number1 (ordinal)
         Integer ordinal = asaDet.getOrdinal();
-        determination.setNumber1((float) ordinal);
+        if (ordinal != null) determination.setNumber1((float) ordinal);
 
         // Qualifier TODO: enum for confidence
         String qualifier = asaDet.getQualifier();

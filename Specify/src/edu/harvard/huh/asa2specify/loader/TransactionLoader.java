@@ -5,6 +5,7 @@ import java.sql.Statement;
 
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.Transaction.REQUEST_TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
@@ -122,5 +123,24 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         if (affiliateId == null) return null;
         
         else return AffiliateLookup.getById(affiliateId);
+    }
+    
+    protected String getUsage(Transaction transaction)
+    {
+        String user = transaction.getForUseBy();
+        if (user == null) user = "?";
+        
+        String userType = transaction.getUserType().name();
+        
+        String purpose  = transaction.getPurpose().name();
+        
+        return "(user: " + user + ", " + user + "type: " + userType + ", " + "purpose: " + purpose + ")";
+    }
+    
+    protected Boolean isTheirs(REQUEST_TYPE requestType)
+    {
+        if (requestType.equals(REQUEST_TYPE.Theirs)) return true;
+        else if (requestType.equals(REQUEST_TYPE.Ours)) return false;
+        else return null;
     }
 }

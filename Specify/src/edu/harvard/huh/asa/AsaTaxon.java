@@ -80,7 +80,8 @@ public class AsaTaxon
 	private       String remarks;
 	private      Integer createdById;
 	private         Date dateCreated;
-	   
+	private      Integer basionymId;
+	
     public Integer getParentId() { return parentId; }
     
 	public Integer getId() { return id; }
@@ -123,6 +124,8 @@ public class AsaTaxon
 	
 	public Date getDateCreated() { return dateCreated; }
 	
+	public Integer getBasionymId() { return basionymId; }
+	
 	public void setId(Integer id) { this.id = id; }
     
     public void setParentId(Integer parentId) { this.parentId = parentId; }
@@ -164,4 +167,6 @@ public class AsaTaxon
 	public void setCreatedById(Integer createdById) { this.createdById = createdById; }
 	
 	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
+	
+	public void setBasionymId(Integer basionymId) { this.basionymId = basionymId; }
 }

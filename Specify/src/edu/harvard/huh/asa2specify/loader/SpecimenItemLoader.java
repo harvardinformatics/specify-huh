@@ -28,6 +28,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Discipline;
@@ -59,6 +60,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	// and need the collection object to be saved first
 	private Container            container        = null;
 	private CollectionObject     collectionObject = null;
+	private CollectionObjectAttribute collObjAttr = null;
 	private Collector            collector        = null;
 	private CollectingEvent      collectingEvent  = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
@@ -67,13 +69,17 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	// These items need to be remembered for comparison with
 	// other specimen items' values
-	private Integer              specimenId       = null;
-	private REPRO_STATUS         reproStatus      = null;
-	private Integer              subcollectionId  = null;
+	private Integer      specimenId       = null;
+	private REPRO_STATUS reproStatus      = null;
+	private Integer      subcollectionId  = null;
+	private Integer      replicates       = null;
+	private String       vernacularName   = null;
+	private String       distribution     = null;
+	private String       containerStr     = null;
 	
 	// This is the next available barcode for items without them.
 	// Check with specimen_item_id_barcode.csv
-	private int nextBarcode = 900000006;
+	private int nextBarcode = 900000008;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
@@ -121,10 +127,16 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             Preparation preparation = getPreparation(specimenItem, collectionObject, collectionId);
             addPreparation(preparation);
 
+            // merge collectionobjectattr; warn if changed
+            updateContainerStr(specimenItem);
+
+            // merge replicates; warn if changed
+            updateReplicates(specimenItem);
+            
             // merge repro status; warn if changed
             updateReproStatus(specimenItem);
 
-            // merge subcollection; warn if 
+            // merge subcollection; warn if changed
             updateSubcollection(specimenItem, collectionId);
             
             // OtherIdentifier TODO: connect series (organization) agent as collector?
@@ -147,6 +159,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         specimenId      = newSpecimenId;
         reproStatus     = null;
         subcollectionId = null;
+        replicates      = null;
+        vernacularName  = null;
+        distribution    = null;
+        containerStr    = null;
         
         if (collectionObject != null)
         {
@@ -179,8 +195,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             // CollectingEvent
             collectingEvent = getCollectingEvent(specimenItem, getBotanyDiscipline());
 
+            // CollectionObjectAttribute
+            collObjAttr = getCollObjAttr(specimenItem, collectionId);
+            
             // CollectionObject
-            collectionObject = getCollectionObject(specimenItem, collection, container, collectingEvent);
+            collectionObject = getCollectionObject(specimenItem, collection, container, collectingEvent, collObjAttr);
 
             // Collector
             collector = getCollector(specimenItem, collectingEvent, collectionId);
@@ -369,7 +388,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 40)
+		if (columns.length < 44)
 		{
 			throw new LocalException("Not enough columns");
 		}
@@ -421,6 +440,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             specimenItem.setContainer(                          columns[37] );
             specimenItem.setSubcollectionId( SqlUtils.parseInt( columns[38] ));
             specimenItem.setHasExsiccata( Boolean.parseBoolean( columns[39] ));
+            specimenItem.setReplicates(      SqlUtils.parseInt( columns[40] ));
+            specimenItem.setLocation(                           columns[41] );
+            specimenItem.setVernacularName(                     columns[42] );
+            specimenItem.setDistribution(                       columns[43] );
 		}
         catch (NumberFormatException e)
         {
@@ -434,6 +457,28 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return specimenItem;
 	}
 
+	private void updateContainerStr(SpecimenItem specimenItem) throws LocalException
+	{	    
+        String newContainerStr = specimenItem.getContainer();
+        if (newContainerStr != null && !newContainerStr.equals(containerStr))
+        {
+            getLogger().warn(rec() + "Changing containerStr from " + containerStr + " to " + newContainerStr);
+            containerStr = newContainerStr;
+            collObjAttr.setText3(containerStr);
+        }
+	       
+	}
+
+	private void updateReplicates(SpecimenItem specimenItem) throws LocalException
+	{
+	    Integer newReplicates = specimenItem.getReplicates();
+	    if (newReplicates != null && !newReplicates.equals(replicates))
+	    {
+	        if (replicates != null) getLogger().warn(rec() + "Changing replicates from " + replicates + " to " + newReplicates);
+	        replicates = newReplicates;
+	        collectionObject.setNumber1((float) replicates);
+	    }
+	}
 
 	private void updateReproStatus(SpecimenItem specimenItem) throws LocalException
 	{
@@ -728,7 +773,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	        preparation.setSampleNumber(formatBarcode(barcode));
 	    }
         
-        // Text1 (voucher)
+	    // StorageLocation (location/temp location)
+	    String location = specimenItem.getLocation();
+	    if (location != null) location = truncate(location, 50, "location");
+	    preparation.setStorageLocation(location);
+
+	    // Text1 (voucher)
         String voucher = specimenItem.getVoucher(); // TODO: investigate specimen.voucher
         preparation.setText1(voucher);
 
@@ -771,7 +821,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return collection;
 	}
 
-	private CollectionObject getCollectionObject(SpecimenItem specimenItem, Collection collection, Container container, CollectingEvent collectingEvent) throws LocalException
+	private CollectionObject getCollectionObject(SpecimenItem specimenItem,
+	                                             Collection collection,
+	                                             Container container,
+	                                             CollectingEvent collectingEvent,
+	                                             CollectionObjectAttribute collObjAttr) throws LocalException
 	{
 		CollectionObject collectionObject = new CollectionObject();
 
@@ -821,6 +875,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // CollectingEvent
         collectionObject.setCollectingEvent(collectingEvent);
 
+        // CollectionObjectAttribute TODO: change to CollectionObjectAttr?
+        collectionObject.setCollectionObjectAttribute(collObjAttr);
+
         // Container (subcollection)
         collectionObject.setContainer(container);
 		
@@ -850,6 +907,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    String guid = getGuid(specimenId);
         collectionObject.setGuid(guid);
         
+        // Number1
+        Integer replicates = specimenItem.getReplicates();
+        if (replicates != null) collectionObject.setNumber1((float) replicates);
+        
          // Remarks
         String remarks = specimenItem.getRemarks();
         collectionObject.setRemarks(remarks);
@@ -872,6 +933,37 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return collectionObject;
 	}
 
+	private CollectionObjectAttribute getCollObjAttr(SpecimenItem specimenItem, Integer collectionMemberId) throws LocalException
+	{
+	    CollectionObjectAttribute collObjAttr = new CollectionObjectAttribute();
+	    
+	    // CollectionMemberID
+	    collObjAttr.setCollectionMemberId(collectionMemberId);
+
+	    // Text1 (vernacular name)
+	    vernacularName = specimenItem.getVernacularName();
+	    collObjAttr.setText1(vernacularName);
+	    
+	    // Text2 (distribution)
+	    distribution = specimenItem.getDistribution();
+	    collObjAttr.setText2(distribution);
+	    
+	    // Text3 (container)
+	    containerStr = specimenItem.getContainer();
+	    collObjAttr.setText3(containerStr);
+	    
+	    return collObjAttr;
+	}
+
+	private boolean containsData(CollectionObjectAttribute collObjAttr)
+	{
+	    if (collObjAttr.getText1() != null) return true;
+	    if (collObjAttr.getText2() != null) return true;
+	    if (collObjAttr.getText3() != null) return true;
+        
+	    return false;
+	}
+	
 	private int nextBarcode()
 	{
 	    return nextBarcode++;
@@ -1064,11 +1156,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
 		String fieldNames = "CatalogerID, CatalogedDate, CatalogedDatePrecision, CatalogNumber, " +
-							"CollectionID, CollectionMemberID, CollectingEventID, ContainerID, " +
-							"CreatedByAgentID, Description, FieldNumber, GUID, Remarks, Text1, " +
-							"Text2, TimestampCreated, Version, YesNo1";
+							"CollectionID, CollectionMemberID, CollectingEventID, CollectionObjectAttributeID, " +
+							"ContainerID, CreatedByAgentID, Description, FieldNumber, GUID, Number1, Remarks, " +
+							"Text1, Text2, TimestampCreated, Version, YesNo1";
 
-		String[] values = new String[18];
+		String[] values = new String[20];
 		
 		values[0]  = SqlUtils.sqlString( collectionObject.getCataloger().getAgentId());
 		values[1]  = SqlUtils.sqlString( collectionObject.getCatalogedDate());
@@ -1077,28 +1169,46 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[4]  = SqlUtils.sqlString( collectionObject.getCollection().getId());
 		values[5]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId());
 		values[6]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId());
-		values[7]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
-		values[8]  = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
-		values[9]  = SqlUtils.sqlString( collectionObject.getDescription());
-		values[10] = SqlUtils.sqlString( collectionObject.getFieldNumber());
-		values[11] = SqlUtils.sqlString( collectionObject.getGuid());
-		values[12] = SqlUtils.sqlString( collectionObject.getRemarks());
-		values[13] = SqlUtils.sqlString( collectionObject.getText1());
-		values[14] = SqlUtils.sqlString( collectionObject.getText2());
-		values[15] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
-        values[16] = SqlUtils.one();
-		values[17] = SqlUtils.sqlString( collectionObject.getYesNo1());		
+		values[7]  = SqlUtils.sqlString( collectionObject.getCollectionObjectAttribute().getId());
+		values[8]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
+		values[9]  = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
+		values[10] = SqlUtils.sqlString( collectionObject.getDescription());
+		values[11] = SqlUtils.sqlString( collectionObject.getFieldNumber());
+		values[12] = SqlUtils.sqlString( collectionObject.getGuid());
+		values[13] = SqlUtils.sqlString( collectionObject.getNumber1());
+		values[14] = SqlUtils.sqlString( collectionObject.getRemarks());
+		values[15] = SqlUtils.sqlString( collectionObject.getText1());
+		values[16] = SqlUtils.sqlString( collectionObject.getText2());
+		values[17] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
+        values[18] = SqlUtils.one();
+		values[19] = SqlUtils.sqlString( collectionObject.getYesNo1());		
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
 		
+    private String getInsertSql(CollectionObjectAttribute collObjAttr) throws LocalException
+    {
+        String fieldNames = "CollectionMemberID, Text1, Text2, Text3, TimestampCreated, Version";
+        
+        String[] values = new String[6];
+        
+        values[0] = SqlUtils.sqlString( collObjAttr.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( collObjAttr.getText1());
+        values[2] = SqlUtils.sqlString( collObjAttr.getText2());
+        values[3] = SqlUtils.sqlString( collObjAttr.getText3());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.one();
+        
+        return SqlUtils.getInsertSql("collectionobjectattribute", fieldNames, values);
+    }
 
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, Number1, Number2, PrepTypeID, " +
-				            "Remarks, SampleNumber, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+				            "Remarks, SampleNumber, StorageLocation, Text1, Text2, TimestampCreated, " +
+				            "Version, YesNo1, YesNo2";
 
-		String[] values = new String[13];
+		String[] values = new String[14];
 		
 		values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( preparation.getCollectionObject().getId());
@@ -1107,12 +1217,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[4]  = SqlUtils.sqlString( preparation.getPrepType().getId());
 		values[5]  = SqlUtils.sqlString( preparation.getRemarks());
 		values[6]  = SqlUtils.sqlString( preparation.getSampleNumber());
-		values[7]  = SqlUtils.sqlString( preparation.getText1());
-		values[8]  = SqlUtils.sqlString( preparation.getText2());
-        values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.one();
-		values[11] = SqlUtils.sqlString( preparation.getYesNo1());
-		values[12] = SqlUtils.sqlString( preparation.getYesNo2());
+		values[7]  = SqlUtils.sqlString( preparation.getStorageLocation());
+		values[8]  = SqlUtils.sqlString( preparation.getText1());
+		values[9]  = SqlUtils.sqlString( preparation.getText2());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.one();
+		values[12] = SqlUtils.sqlString( preparation.getYesNo1());
+		values[13] = SqlUtils.sqlString( preparation.getYesNo2());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
@@ -1186,15 +1297,23 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         String sql;  // this variable is going to be re-used.
 
         // save the current container if necessary
-        if (container.getName() != null && container.getContainerId() == null)
+        if (container.getName() != null && container.getId() == null)
         {
         	sql = getInsertSql(container);
         	Integer containerId = insert(sql);
         	container.setContainerId(containerId);
         }
 
+        // save the current collection object attributes object if necessary
+        if (collObjAttr != null && collObjAttr.getId() == null && containsData(collObjAttr))
+        {
+            sql = getInsertSql(collObjAttr);
+            Integer collObjAttrId = insert(sql);
+            collObjAttr.setCollectionObjectAttributeId(collObjAttrId);
+        }
+
         // save the current CollectingEvent
-        if (collectingEvent != null)
+        if (collectingEvent != null && collectingEvent.getId() == null)
         {
             sql = getInsertSql(collectingEvent);
             Integer collectingEventId = insert(sql);
@@ -1202,7 +1321,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
         
         // save the current Collector
-        if (collector != null)
+        if (collector != null && collector.getId() == null)
         {
             sql = getInsertSql(collector);
             Integer collectorId = insert(sql);
@@ -1243,6 +1362,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         collectingEvent  = null;
         collector        = null;
         collectionObject = null;
+        collObjAttr      = new CollectionObjectAttribute();
         container        = new Container();
         preparations.clear();
         otherIdentifiers.clear();

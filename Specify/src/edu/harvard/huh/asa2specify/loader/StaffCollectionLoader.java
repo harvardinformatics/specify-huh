@@ -132,7 +132,7 @@ public class StaffCollectionLoader extends TransactionLoader
         accession.setNumber1((float) transactionId);
         
         // Remarks
-        String remarks = accession.getRemarks();
+        String remarks = staffCollection.getRemarks();
         accession.setRemarks(remarks);
         
         // Text1 (description)

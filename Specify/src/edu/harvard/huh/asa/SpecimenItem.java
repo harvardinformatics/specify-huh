@@ -57,7 +57,11 @@ public class SpecimenItem
 	private      Integer catalogedById;	
 	private        BDate collDate;
 	private      Boolean hasExsiccata;
-
+	private      Integer replicates;
+	private       String location;
+	private       String vernacularName;
+	private       String distribution;
+	
 	public Integer getId() { return this.id; }
 	
 	public Integer getSpecimenId() { return this.specimenId; }
@@ -121,6 +125,14 @@ public class SpecimenItem
 	public Integer getCatalogedById() { return this.catalogedById; }
 	
 	public Boolean hasExsiccata() { return this.hasExsiccata; }
+	
+	public Integer getReplicates() { return this.replicates; }
+	
+	public String getLocation() { return this.location; }
+	
+	public String getVernacularName() { return this.vernacularName; }
+	
+	public String getDistribution() { return this.distribution; }
 
 	public void setId(Integer id) { this.id = id; }
 	
@@ -185,4 +197,12 @@ public class SpecimenItem
 	public void setSubcollectionId(Integer subcollectionId) { this.subcollectionId = subcollectionId; }
 	
 	public void setHasExsiccata(Boolean hasExsiccata) { this.hasExsiccata = hasExsiccata; }
+	
+	public void setReplicates(Integer replicates) { this.replicates = replicates; }
+	
+	public void setLocation(String location) { this.location = location; }
+	
+	public void setVernacularName(String vernacularName) { this.vernacularName = vernacularName; }
+	
+	public void setDistribution(String distribution) { this.distribution = distribution; }
 }
