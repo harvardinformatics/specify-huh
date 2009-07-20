@@ -952,15 +952,17 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    containerStr = specimenItem.getContainer();
 	    collObjAttr.setText3(containerStr);
 	    
+	    // YesNo1 (isCultivated)
+	    
 	    return collObjAttr;
 	}
 
 	private boolean containsData(CollectionObjectAttribute collObjAttr)
 	{
-	    if (collObjAttr.getText1() != null) return true;
-	    if (collObjAttr.getText2() != null) return true;
-	    if (collObjAttr.getText3() != null) return true;
-        
+	    if (collObjAttr.getText1()  != null) return true;
+	    if (collObjAttr.getText2()  != null) return true;
+	    if (collObjAttr.getText3()  != null) return true;
+        if (collObjAttr.getYesNo1() != null) return true;
 	    return false;
 	}
 	
@@ -1188,9 +1190,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		
     private String getInsertSql(CollectionObjectAttribute collObjAttr) throws LocalException
     {
-        String fieldNames = "CollectionMemberID, Text1, Text2, Text3, TimestampCreated, Version";
+        String fieldNames = "CollectionMemberID, Text1, Text2, Text3, TimestampCreated, Version, YesNo1";
         
-        String[] values = new String[6];
+        String[] values = new String[7];
         
         values[0] = SqlUtils.sqlString( collObjAttr.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( collObjAttr.getText1());
@@ -1198,6 +1200,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( collObjAttr.getText3());
         values[4] = SqlUtils.now();
         values[5] = SqlUtils.one();
+        values[6] = SqlUtils.sqlString( collObjAttr.getYesNo1());
         
         return SqlUtils.getInsertSql("collectionobjectattribute", fieldNames, values);
     }

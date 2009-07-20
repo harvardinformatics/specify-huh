@@ -125,6 +125,9 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         else return AffiliateLookup.getById(affiliateId);
     }
     
+    /**
+     * (user: [for_use_by], type: [user_type], purpose: [purpose])
+     */
     protected String getUsage(Transaction transaction)
     {
         String user = transaction.getForUseBy();
@@ -134,7 +137,24 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         
         String purpose  = transaction.getPurpose().name();
         
-        return "(user: " + user + ", " + user + "type: " + userType + ", " + "purpose: " + purpose + ")";
+        return "(user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
+    }
+    
+    /**
+     * ([localUnit], user: [for_use_by], type: [user_type], purpose: [purpose])
+     */
+    protected String getUsageWithLocalUnit(Transaction transaction)
+    {
+        String localUnit = transaction.getLocalUnit();
+        
+        String user = transaction.getForUseBy();
+        if (user == null) user = "?";
+        
+        String userType = transaction.getUserType().name();
+        
+        String purpose  = transaction.getPurpose().name();
+        
+        return "(" + localUnit + "user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
     }
     
     protected Boolean isTheirs(REQUEST_TYPE requestType)

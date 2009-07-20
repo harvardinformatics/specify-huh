@@ -221,7 +221,7 @@ public class LoanLoader extends TransactionLoader
         String description = asaLoan.getDescription();
         loan.setText1(description);
         
-        // Text2 (forUseBy, userType, purpose)
+        // Text2 (localUnit, forUseBy, userType, boxCount)
         String usage = getUsage(asaLoan);
         loan.setText2(usage);
         
@@ -240,15 +240,23 @@ public class LoanLoader extends TransactionLoader
         return loan;
     }
     
+    /**
+     * ([localUnit], user: [for_use_by], type: [user_type], box count: [boxCount])
+     */
     @Override
     protected String getUsage(Transaction transaction)
     {
+        
+        String localUnit = transaction.getLocalUnit();
+        
         String user = transaction.getForUseBy();
         if (user == null) user = "?";
         
         String userType = transaction.getUserType().name();
         
-        return "(user: " + user + ", " + user + "type: " + userType + ")";
+        String boxCount = transaction.getBoxCount();
+        
+        return "("+ localUnit + ", user: " + user + ", " + "type: " + userType + (boxCount != null ? " box count: " + boxCount : "") + ")";
     }
     
     private LoanAgent getLoanAgent(Transaction transaction, Loan loan, ROLE role, Integer collectionMemberId) throws LocalException

@@ -48,6 +48,7 @@ public class IncomingExchangeLoader extends TransactionLoader
         
         String sql = getInsertSql(exchangeIn);
         insert(sql);
+        
     }
     
     public Logger getLogger()
@@ -121,6 +122,10 @@ public class IncomingExchangeLoader extends TransactionLoader
         }
         exchangeIn.setNumber1((float) transactionId);
         
+        // Number2 (cost)
+        Float cost = inExchange.getCost();
+        exchangeIn.setNumber2(cost);
+        
         // QuantityExchanged
         short quantity = getQuantity(inExchange);
         exchangeIn.setQuantityExchanged(quantity);
@@ -146,9 +151,9 @@ public class IncomingExchangeLoader extends TransactionLoader
         String description = getDescription(inExchange);
         exchangeIn.setText1(description);
         
-        // Text2 (forUseBy)
-        String forUseBy = inExchange.getForUseBy();
-        exchangeIn.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsage(inExchange);
+        exchangeIn.setText2(usage);
         
         // TimestampCreated
         Date dateCreated = inExchange.getDateCreated();
@@ -157,6 +162,10 @@ public class IncomingExchangeLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = inExchange.isAcknowledged();
         exchangeIn.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(inExchange.getRequestType());
+        exchangeIn.setYesNo2(isTheirs);
         
         return exchangeIn;
     }
@@ -199,10 +208,10 @@ public class IncomingExchangeLoader extends TransactionLoader
     private String getInsertSql(ExchangeIn exchangeIn)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, ExchangeDate, " +
-                            "Number1, ReceivedFromOrganizationID, Remarks, SrcGeography, Text1, Text2, " +
-                            "TimestampCreated, Version, YesNo1";
+                            "Number1, Number2, ReceivedFromOrganizationID, Remarks, SrcGeography, Text1, Text2, " +
+                            "TimestampCreated, Version, YesNo1, YesNo2";
         
-        String[] values = new String[14];
+        String[] values = new String[16];
         
         values[0]  = SqlUtils.sqlString( exchangeIn.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeIn.getCreatedByAgent().getId());
@@ -210,14 +219,16 @@ public class IncomingExchangeLoader extends TransactionLoader
         values[3]  = SqlUtils.sqlString( exchangeIn.getDivision().getId());
         values[4]  = SqlUtils.sqlString( exchangeIn.getExchangeDate());
         values[5]  = SqlUtils.sqlString( exchangeIn.getNumber1());
-        values[6]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());
-        values[7]  = SqlUtils.sqlString( exchangeIn.getRemarks());
-        values[8]  = SqlUtils.sqlString( exchangeIn.getSrcGeography());
-        values[9]  = SqlUtils.sqlString( exchangeIn.getText1());
-        values[10] = SqlUtils.sqlString( exchangeIn.getText2());
-        values[11] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
-        values[12] = SqlUtils.one();
-        values[13] = SqlUtils.sqlString( exchangeIn.getYesNo1());
+        values[6]  = SqlUtils.sqlString( exchangeIn.getNumber2());
+        values[7]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());
+        values[8]  = SqlUtils.sqlString( exchangeIn.getRemarks());
+        values[9]  = SqlUtils.sqlString( exchangeIn.getSrcGeography());
+        values[10] = SqlUtils.sqlString( exchangeIn.getText1());
+        values[11] = SqlUtils.sqlString( exchangeIn.getText2());
+        values[12] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
+        values[13] = SqlUtils.one();
+        values[14] = SqlUtils.sqlString( exchangeIn.getYesNo1());
+        values[15] = SqlUtils.sqlString( exchangeIn.getYesNo2());
         
         return SqlUtils.getInsertSql("exchangein", fieldNames, values);
     }

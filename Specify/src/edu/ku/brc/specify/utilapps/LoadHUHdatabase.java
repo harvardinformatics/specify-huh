@@ -424,8 +424,6 @@ public class LoadHUHdatabase
             log.info("Loaded " + inGiftRecords + " incoming gift records");
             frame.setOverall(steps++);
             
-            IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
-            
             frame.setDesc("Loading loans...");
             LoanLoader loanLoader =
                 new LoanLoader(new File(dir, "loan.csv"), statement);
@@ -495,16 +493,7 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
-            
-            frame.setDesc("Loading in_geo batches...");
-            InGeoBatchLoader inGeoBatchLoader = new InGeoBatchLoader(new File(dir, "in_geo_batch.csv"),
-                                                                     statement,
-                                                                     inGiftLookup);
-            inGeoBatchLoader.setFrame(frame);
-            int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
-            log.info("Loaded " + inGeoBatchRecords + " in geo batch records");
-            frame.setOverall(steps++);
-            
+                        
             frame.setDesc("Loading in_return batches...");
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
                                                                               statement,

@@ -171,9 +171,9 @@ public class OutgoingExchangeLoader extends TransactionLoader
         }
         exchangeOut.setText1(description);
         
-        // Text2 (forUseBy)
-        String forUseBy = outExchange.getForUseBy();
-        exchangeOut.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsageWithLocalUnit(outExchange);
+        exchangeOut.setText2(usage);
         
         // TimestampCreated
         Date dateCreated = outExchange.getDateCreated();
@@ -182,6 +182,10 @@ public class OutgoingExchangeLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outExchange.isAcknowledged();
         exchangeOut.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(outExchange.getRequestType());
+        exchangeOut.setYesNo2(isTheirs);
         
         return exchangeOut;
     }
@@ -212,15 +216,15 @@ public class OutgoingExchangeLoader extends TransactionLoader
         String pattern = "{0} items, {1} types, {2} non-specimens{3}";
 
         return MessageFormat.format(pattern, args);
-    }
+    }    
     
     private String getInsertSql(ExchangeOut exchangeOut)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, " +
                             "ExchangeDate, Number1, QuantityExchanged, Remarks, SentToOrganizationID, " +
-                            "SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1";
+                            "SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
 
-        String[] values = new String[15];
+        String[] values = new String[16];
 
         values[0]  = SqlUtils.sqlString( exchangeOut.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeOut.getCreatedByAgent().getId());
@@ -237,6 +241,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
         values[13] = SqlUtils.one();
         values[14] = SqlUtils.sqlString( exchangeOut.getYesNo1());
+        values[15] = SqlUtils.sqlString( exchangeOut.getYesNo2());
         
         return SqlUtils.getInsertSql("exchangeout", fieldNames, values);
     }

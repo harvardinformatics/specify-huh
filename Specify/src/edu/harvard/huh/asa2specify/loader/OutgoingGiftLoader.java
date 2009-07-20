@@ -146,9 +146,9 @@ public class OutgoingGiftLoader extends TransactionLoader
         String description = outGift.getDescription();
         deaccession.setText1(description);
         
-        // Text2
-        String forUseBy = outGift.getForUseBy();
-        deaccession.setText2(forUseBy);
+        // Text2 (localUnit, forUseBy, userType, purpose)
+        String usage = getUsageWithLocalUnit(outGift);
+        deaccession.setText2(usage);
         
         // TimestampCreated
         Date dateCreated = outGift.getDateCreated();
@@ -160,6 +160,10 @@ public class OutgoingGiftLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outGift.isAcknowledged();
         deaccession.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(outGift.getRequestType());
+        deaccession.setYesNo2(isTheirs);
         
         return deaccession;
     }
@@ -199,9 +203,9 @@ public class OutgoingGiftLoader extends TransactionLoader
     private String getInsertSql(Deaccession deaccession)
     {
         String fieldNames = "CreatedByAgentID, DeaccessionDate, DeaccessionNumber, Number1, " +
-                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1";
+                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1, YesNo2";
 
-        String[] values = new String[11];
+        String[] values = new String[12];
 
         values[0]  = SqlUtils.sqlString( deaccession.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( deaccession.getDeaccessionDate());
@@ -214,6 +218,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[8]  = SqlUtils.sqlString( deaccession.getTimestampCreated());
         values[9]  = SqlUtils.one();
         values[10] = SqlUtils.sqlString( deaccession.getYesNo1());
+        values[11] = SqlUtils.sqlString( deaccession.getYesNo2());
         
         return SqlUtils.getInsertSql("deaccession", fieldNames, values);
     }

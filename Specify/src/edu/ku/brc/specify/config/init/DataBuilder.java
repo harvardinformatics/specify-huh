@@ -44,6 +44,7 @@ import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
 import edu.ku.brc.af.auth.specify.principal.GroupPrincipal;
 import edu.ku.brc.af.auth.specify.principal.UserPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.db.PickListIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.AttributeIFace;
@@ -2825,7 +2826,24 @@ public class DataBuilder
         try
         {
             String dirName = disciplineDirName != null ? disciplineDirName + File.separator : "";
-            File pickListFile = new File(XMLHelper.getConfigDirPath(dirName + "picklist.xml"));
+            
+            File pickListFile = null;
+            
+            // check local prefs for alternate picklist config dir
+            AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+            String altpath = localPrefs.get("picklist.configdir", null);
+            
+            if (altpath != null)
+            {
+                File altdir = new File(altpath, dirName);
+                if (altdir.exists()) pickListFile = new File(altdir, "picklist.xml");
+            }
+            
+            if (pickListFile == null)
+            {
+                pickListFile = new File(XMLHelper.getConfigDirPath(dirName + "picklist.xml"));
+            }
+            
             if (pickListFile.exists())
             {
                 //System.out.println(FileUtils.readFileToString(pickListFile));

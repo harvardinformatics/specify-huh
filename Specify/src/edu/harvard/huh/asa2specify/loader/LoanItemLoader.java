@@ -83,7 +83,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 	
 	private LoanItem parse(String[] columns) throws LocalException
 	{
-    	if (columns.length < 7)
+    	if (columns.length < 8)
     	{
     		throw new LocalException("Not enough columns");
     	}
@@ -98,6 +98,7 @@ public class LoanItemLoader extends CsvToSqlLoader
     		loanItem.setTransferredFrom(                columns[4] );
     		loanItem.setTransferredTo(                  columns[5] );
     		loanItem.setCollection(                     columns[6] );
+    		loanItem.setLocalUnit(                      columns[7] );
     	}
     	catch (NumberFormatException e)
     	{
@@ -113,12 +114,24 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// CollectionMemberID
 		String code = loanItem.getCollection();
+		if (code == null)
+		{
+		    getLogger().warn(rec() + " has no collection (barcode not found?)");
+		    code = loanItem.getLocalUnit();
+		}
 		checkNull(code, "collection code");
 		Integer collectionMemberId = getCollectionId(code);
 		loanPreparation.setCollectionMemberId(collectionMemberId);
 		
+		// InComments
+		Date returnDate = loanItem.getReturnDate();
+		if (returnDate != null)
+		{
+		    loanPreparation.setInComments(DateUtils.toString(returnDate));
+		}
+
 		// IsResolved
-		boolean isResolved = loanItem.getReturnDate() != null;
+		boolean isResolved = returnDate != null;
 		loanPreparation.setIsResolved(isResolved);
 		
 		// LoanID
@@ -193,21 +206,22 @@ public class LoanItemLoader extends CsvToSqlLoader
 
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
-		String fieldNames = "CollectionMemberID, IsResolved, LoanID, OutComments, PreparationID, " +
+		String fieldNames = "CollectionMemberID, InComments, IsResolved, LoanID, OutComments, PreparationID, " +
 				            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, Version";
 		
-		String[] values = new String[10];
+		String[] values = new String[11];
 		
-		values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
-		values[1] = SqlUtils.sqlString( loanPreparation.getIsResolved());
-		values[2] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-		values[3] = SqlUtils.sqlString( loanPreparation.getOutComments());
-		values[4] = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[5] = SqlUtils.sqlString( loanPreparation.getQuantity());
-		values[6] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-		values[7] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-		values[8] = SqlUtils.now();
-		values[9] = SqlUtils.one();
+		values[0]  = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
+		values[1]  = SqlUtils.sqlString( loanPreparation.getInComments());
+		values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
+		values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+		values[4]  = SqlUtils.sqlString( loanPreparation.getOutComments());
+		values[5]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+		values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}

@@ -165,6 +165,20 @@ public class IncomingGiftLoader extends TransactionLoader
         return accession;
     }
 
+    /**
+     * (user: [for_use_by], type: [user_type])
+     */
+    @Override
+    protected String getUsage(Transaction transaction)
+    {
+        String user = transaction.getForUseBy();
+        if (user == null) user = "?";
+        
+        String userType = transaction.getUserType().name();
+        
+        return "(user: " + user + ", " + "type: " + userType + ")";
+    }
+    
     private String getDescription(IncomingGift inGift)
     {
         String geoUnit = inGift.getGeoUnit();

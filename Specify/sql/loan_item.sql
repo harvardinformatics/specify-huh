@@ -1,15 +1,18 @@
-select l.id,
-       l.loan_id,
-       to_char(l.return_date, 'YYYY-MM-DD HH24:MI:SS') as return_date,
-       regexp_replace(l.barcode, '[[:space:]]+', ' ') as barcode,
-       regexp_replace(l.transferred_from, '[[:space:]]+', ' ') as transferred_from,
-       regexp_replace(l.transferred_to, '[[:space:]]+', ' ') as transferred_to,
-       (select acronym from organization where id=s.herbarium_id) as collection
+select li.id,
+       li.loan_id,
+       to_char(li.return_date, 'YYYY-MM-DD HH24:MI:SS') as return_date,
+       regexp_replace(li.barcode, '[[:space:]]+', ' ') as barcode,
+       regexp_replace(li.transferred_from, '[[:space:]]+', ' ') as transferred_from,
+       regexp_replace(li.transferred_to, '[[:space:]]+', ' ') as transferred_to,
+       (select acronym from organization where id=s.herbarium_id) as collection,
+       (select acronym from organization where id=ht.local_unit_id) as local_unit
 
-from loan_item l,
+from loan_item li,
+     herb_transaction ht,
      (select specimen_id, barcode from specimen_item) si,
      (select id, herbarium_id from specimen) s
 
 where l.barcode=si.barcode(+) and
-      si.specimen_id=s.id(+)
+      si.specimen_id=s.id(+) and
+      li.loan_id=ht.id
 

@@ -139,9 +139,9 @@ public class StaffCollectionLoader extends TransactionLoader
         String description = staffCollection.getDescription();
         accession.setText1(description);
         
-        // Text2 (forUseBy)
-        String forUseBy = staffCollection.getForUseBy();
-        accession.setText2(forUseBy);
+        // Text2 (purpose, forUseBy, userType)
+        String usage = getUsage(staffCollection);
+        accession.setText2(usage);
         
         // Text3 (boxCount)
         String boxCount = staffCollection.getBoxCount();
@@ -153,6 +153,10 @@ public class StaffCollectionLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = staffCollection.isAcknowledged();
         accession.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(staffCollection.getRequestType());
+        accession.setYesNo2(isTheirs);
         
         return accession;
     }
@@ -214,9 +218,9 @@ public class StaffCollectionLoader extends TransactionLoader
     private String getInsertSql(Accession accession)
     {
         String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, DivisionID, " +
-        		            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, Version, YesNo1";
+        		            "Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, Version, YesNo1, YesNo2";
 
-        String[] values = new String[14];
+        String[] values = new String[15];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
@@ -232,7 +236,8 @@ public class StaffCollectionLoader extends TransactionLoader
         values[11] = SqlUtils.now();
         values[12] = SqlUtils.one();
         values[13] = SqlUtils.sqlString( accession.getYesNo1());
-
+        values[14] = SqlUtils.sqlString( accession.getYesNo2());
+        
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
 

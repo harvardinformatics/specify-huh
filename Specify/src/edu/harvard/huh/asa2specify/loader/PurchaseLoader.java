@@ -121,9 +121,9 @@ public class PurchaseLoader extends TransactionLoader
         String description = purchase.getDescription();
         accession.setText1(description);
         
-        // Text2 (forUseBy)
-        String forUseBy = purchase.getForUseBy();
-        accession.setText2(forUseBy);
+        // Text2 (forUseBy, userType, purpose)
+        String usage = getUsage(purchase);
+        accession.setText2(usage);
         
         // Text3 (boxCount)
         String boxCount = purchase.getBoxCount();
@@ -135,6 +135,10 @@ public class PurchaseLoader extends TransactionLoader
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = purchase.isAcknowledged();
         accession.setYesNo1(isAcknowledged);
+        
+        // YesNo2 (requestType = "theirs")
+        Boolean isTheirs = isTheirs(purchase.getRequestType());
+        accession.setYesNo2(isTheirs);
         
         return accession;
     }
@@ -222,9 +226,9 @@ public class PurchaseLoader extends TransactionLoader
     {
         String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
                             "DivisionID, Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, " +
-                            "Version, YesNo1";
+                            "Version, YesNo1, YesNo2";
 
-        String[] values = new String[14];
+        String[] values = new String[15];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
@@ -240,7 +244,8 @@ public class PurchaseLoader extends TransactionLoader
         values[11] = SqlUtils.now();
         values[12] = SqlUtils.one();
         values[13] = SqlUtils.sqlString( accession.getYesNo1());
-
+        values[14] = SqlUtils.sqlString( accession.getYesNo2());
+        
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
 

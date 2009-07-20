@@ -21,7 +21,6 @@ import edu.harvard.huh.asa2specify.loader.BotanistSpecialtyLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
 import edu.harvard.huh.asa2specify.loader.DeterminationLoader;
 import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
-import edu.harvard.huh.asa2specify.loader.InGeoBatchLoader;
 import edu.harvard.huh.asa2specify.loader.InReturnBatchLoader;
 import edu.harvard.huh.asa2specify.loader.IncomingExchangeLoader;
 import edu.harvard.huh.asa2specify.loader.IncomingGiftLoader;
@@ -51,7 +50,6 @@ import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
-import edu.harvard.huh.asa2specify.lookup.IncomingGiftLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
@@ -137,24 +135,23 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doPubAuth     = false; // 14
         boolean doTax         = false; // 15
         boolean doSubcoll     = false; // 16
-        boolean doSpec        = true; // 17
+        boolean doSpec        = false; // 17
         boolean doDet         = false; // 18
         boolean doType        = false; // 19
-        boolean doBorrow      = false; // 20
-        boolean doInEx        = false; // 21
-        boolean doInGift      = false; // 22
-        boolean doLoan        = false; // 23
-        boolean doOutEx       = false; // 24
-        boolean doOutGift     = false; // 25
-        boolean doPurch       = false; // 26
-        boolean doStaffColl   = false; // 27
-        boolean doShip        = false; // 28
-        boolean doTaxBatch    = false; // 29
-        boolean doInGeoBatch  = false; // 30
-        boolean doInRetBatch  = false; // 31
-        boolean doLoanIt      = false; // 32
-        boolean doOutGeoBatch = false; // 33
-        boolean doOutRetBatch = false; // 34
+        boolean doBorrow      = true; // 20
+        boolean doInEx        = true; // 21
+        boolean doInGift      = true; // 22
+        boolean doLoan        = true; // 23
+        boolean doOutEx       = true; // 24
+        boolean doOutGift     = true; // 25
+        boolean doPurch       = true; // 26
+        boolean doStaffColl   = true; // 27
+        boolean doShip        = true; // 28
+        boolean doTaxBatch    = true; // 29
+        boolean doInRetBatch  = true; // 30
+        boolean doLoanIt      = true; // 31
+        boolean doOutGeoBatch = true; // 32
+        boolean doOutRetBatch = true; // 33
         
         try
         {
@@ -394,8 +391,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + inGiftRecords + " incoming gift records");
             }
             
-            IncomingGiftLookup inGiftLookup = inGiftLoader.getIncomingGiftLookup();
-            
             LoanLoader loanLoader =
                 new LoanLoader(new File(dir, "loan.csv"), statement);
             
@@ -470,15 +465,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             }
             
             TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
-            
-            InGeoBatchLoader inGeoBatchLoader = new InGeoBatchLoader(new File(dir, "in_geo_batch.csv"),
-                                                                     statement,
-                                                                     inGiftLookup);
-            if (doInGeoBatch)
-            {
-                int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
-                log.info("Processed " + inGeoBatchRecords + " in geo batch records");
-            }
             
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
                                                                               statement,
