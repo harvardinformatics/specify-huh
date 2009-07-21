@@ -222,6 +222,10 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	
     	shipment.setShipper(shipper);
     	
+    	// ShipmentDate (actionDate)
+    	Date actionDate = outReturnBatch.getActionDate();
+    	if (actionDate != null) shipment.setShipmentDate(DateUtils.toCalendar(actionDate));
+
     	// ShipmentMethod (method)
     	String method = outReturnBatch.getMethod().name();
     	shipment.setShipmentMethod(method);
