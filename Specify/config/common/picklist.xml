@@ -25,33 +25,33 @@
   </picklist>
   <picklist name="LoanAgentRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Borrower" value="borrower"/>
-      <picklistitem title="Benefactor" value="benefactor"/>
-      <picklistitem title="Contributor" value="contributor"/>
-      <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Guest" value="guest"/>
-      <picklistitem title="Lender" value="lender"/>
-      <picklistitem title="Other" value="other"/>
-      <picklistitem title="Preparer" value="preparer"/>
-      <picklistitem title="Receiver" value="receiver"/>
-      <picklistitem title="Sponsor" value="sponsor"/>
-      <picklistitem title="Staff" value="staff"/>
-      <picklistitem title="Student" value="student"/>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Student" value="Student"/>
     </items>
   </picklist>
   <picklist name="BorrowRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Borrower" value="borrower"/>
-      <picklistitem title="Benefactor" value="benefactor"/>
-      <picklistitem title="Contributor" value="contributor"/>
-      <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Guest" value="guest"/>
-      <picklistitem title="Lender" value="lender"/>
-      <picklistitem title="Other" value="other"/>
-      <picklistitem title="Preparer" value="preparer"/>
-      <picklistitem title="Receiver" value="receiver"/>
-      <picklistitem title="Sponsor" value="sponsor"/>
-      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
       <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
