@@ -253,4 +253,25 @@
       <picklistitem title="CITES III" value="CITES III"/>
     </items>
   </picklist>
+  <picklist name="LocalityName" type="0" issystem="false" readonly="true" sizelimit="1">
+    <items>
+      <picklistitem title="Unnamed locality" value="Unnamed locality"/>
+    </items>
+  </picklist>
+  <picklist name="LatLongMethod" type="0" issystem="false" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem name="GPS" value="GPS"/>
+      <picklistitem name="gazetteer" value="gazetteer"/>
+      <picklistitem name="other" value="other"/>
+      <picklistitem name="unknown" value="unknown"/>
+    </items>
+  </picklist>
+  <picklist name="ElevMethod" type="0" issystem="false" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem name="GPS" value="GPS"/>
+      <picklistitem name="altimeter" value="altimeter"/>
+      <picklistitem name="other" value="other"/>
+      <picklistitem name="unknown" value="unknown"/>
+    </items>
+  </picklist>
 </list>
