@@ -565,6 +565,8 @@
                     <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles"/>
+                    <cell type="label" labelfor="abbrev"/>
+                    <cell type="field" id="abbrev" name="abbreviation" uitype="text" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -574,57 +576,63 @@
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="middleInitial" uitype="text" colspan="3"/>
                 </row>
+                <!-- "Dates of Birth/Death: -->
+                <row>
+                	<cell type="label" labelfor="19" />
+                	<cell type="field" id="19" name="dateOfBirth" uitype="formattedtext" uifieldformatter="Date"/>
+                	<cell type="label" labelfor="20" />
+                	<cell type="field" id="20" name="dateOfDeath" uitype="formattedtext" uifieldformatter="Date"/>
+                </row>
                 <!-- "GUID:" <row>
                 	<cell type="label" labelfor="11" />
                 	<cell type="field" id="11" name="guid" uitype="text" cols="20" />
                 </row> -->
-                <!-- "Job Title:" <row>
+                <!-- "Job Title:" -->
+                <row>
                 	<cell type="label" labelfor="14" />
-                	<cell type="field" id="14" name="jobTitle" uitype="text" cols="20" />
-                </row>-->
-                <!-- "Initials:" <row>
+                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="5" />
+                </row>
+                <!-- "Initials:"
+                <row>
                 	<cell type="label" labelfor="12" />
                 	<cell type="field" id="12" name="initials" uitype="text" cols="20" />
-                </row> -->
+                </row>
                 <row>
                     <cell type="label" labelfor="8"/>
                     <cell type="field" id="8" name="abbreviation" uitype="text" cols="20"/>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="email" uitype="text" colspan="5" cols="32"/>
                     <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=7"/>
-                </row>
-                <!-- "URL:" <row>
-                	<cell type="label" labelfor="17" />
-                	<cell type="field" id="17" name="url" uitype="text" cols="20" />
                 </row> -->
-                <!-- "Author Name:" <row>
+                <!-- "URL:" -->
+                <row>
+                	<cell type="label" labelfor="17" />
+                	<cell type="field" id="17" name="url" uitype="text" colspan="5" />
+                </row>
+                <!-- "Author Name:"
+                <row>
                 	<cell type="label" labelfor="21" />
                 	<cell type="field" id="21" name="authorName" uitype="text" cols="20" />
-                </row>-->
-                <!-- "Collector Name:" <row>
+                </row> -->
+                <!-- "Collector Name:"
+                <row>
                 	<cell type="label" labelfor="18" />
                 	<cell type="field" id="18" name="collectorName" uitype="text" cols="20" />
-                </row>-->
-                <!-- "Label Name:" <row>
+                </row> -->
+                <!-- "Label Name:"
+                <row>
                 	<cell type="label" labelfor="15" />
                 	<cell type="field" id="15" name="labelName" uitype="text" cols="20" />
-                </row>-->
-                <!-- "Date of Birth: <row>
-                	<cell type="label" labelfor="19" />
-                	<cell type="field" id="19" name="dateOfBirth" uitype="formattedtext" uifieldformatter="Date"/>
-                </row>-->
-                <!-- "Date of Death:" <row>
-                	<cell type="label" labelfor="20" />
-                	<cell type="field" id="20" name="dateOfDeath" uitype="formattedtext" uifieldformatter="Date"/>
-                </row>-->
+                </row> -->
                 <!-- "Interests:" <row>
                 	<cell type="label" labelfor="13" />
                 	<cell type="field" id="13" name="interests" uitype="textareabrief" rows="2" cols="20" />
                 </row>-->
-                <!-- "Remarks:" <row>
+                <!-- "Remarks:" -->
+                <row>
                 	<cell type="label" labelfor="16" />
-                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="2" cols="20" />
-                </row>-->
+                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
+                </row>
 
 			    <row>
                     <cell type="subview" viewname="Address" id="9" name="addresses" colspan="14"/>
@@ -1333,6 +1341,10 @@
                 <row>
                     <cell type="label" labelfor="remarks"/>
                     <cell type="field" id="remarks" uitype="textareabrief" rows="2" name="remarks" colspan="8"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="geographyCode" cols="2"/>
+                	<cell type="field" id="geographyCode" uitype="text" cols="2" name="geographyCode" colspan="4"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="GeographySubform" id="children" name="children" colspan="11"/>
