@@ -17,3 +17,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+package edu.ku.brc.specify.datamodel.busrules;
+
+import edu.ku.brc.af.ui.forms.BaseBusRules;
+
+public class CollectingEventBusRules extends BaseBusRules
+{
+    
+}
