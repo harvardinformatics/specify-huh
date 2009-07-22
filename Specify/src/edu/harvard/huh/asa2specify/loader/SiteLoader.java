@@ -134,7 +134,7 @@ public class SiteLoader extends CsvToSqlLoader
 		// Disicpline
 		locality.setDiscipline(getBotanyDiscipline());
 
-		// ElevationMethod		
+		// ElevationMethod TODO: enum for elevation method
 		String elevMethod = site.getElevMethod();
 		if (elevMethod != null)
 		{
