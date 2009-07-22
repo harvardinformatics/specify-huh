@@ -619,7 +619,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
                 if (discipline != null)
                 {
-                    Agent.setUserAgent(spUser, discipline.getAgents());
+                    Agent.setUserAgent(spUser, spUser.getAgents()); // MMK: this was discipline.getAgents()
                     
                     AppContextMgr am = AppContextMgr.getInstance();
                 	am.setClassObject(TaxonTreeDef.class,              discipline.getTaxonTreeDef());
