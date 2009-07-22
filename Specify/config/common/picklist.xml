@@ -220,4 +220,37 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
+  <picklist name="TaxonGroup" type="0" issystem="false" readonly="true" sizelimit="7">
+    <items>
+      <picklistitem title="Fungi & Lichens" value="Fungi & Lichens"/>
+      <picklistitem title="Monera" value="Monera"/>
+      <picklistitem title="Vascular plants" value="Vascular plants"/>
+      <picklistitem title="Mosses" value="Mosses"/>
+      <picklistitem title="Hepatics" value="Hepatics"/>
+      <picklistitem title="Algae" value="Algae"/>
+      <picklistitem title="Diatoms" value="Diatoms"/>
+    </items>
+  </picklist>
+  <picklist name="TaxonStatus" type="0" issystem="false" readonly="true" sizelimit="10">
+    <items>
+      <picklistitem title="nom. leg." value="nom. leg."/>
+      <picklistitem title="nom. nov." value="nom. nov."/>
+      <picklistitem title="nom. cons." value="nom. cons."/>
+      <picklistitem title="nom. rej." value="nom. rej."/>
+      <picklistitem title="nom. superfl." value="nom. superfl."/>
+      <picklistitem title="synonym" value="synonym"/>
+      <picklistitem title="later homonym" value="later homonym"/>
+      <picklistitem title="orth. var." value="orth. var."/>
+      <picklistitem title="nom. invalid." value="nom. invalid."/>
+      <picklistitem title="unknown" value="unknown"/>
+    </items>
+  </picklist>
+  <picklist name="CitesStatus" type="0" issystem="false" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="[none]" value="[none]"/>
+      <picklistitem title="CITES I" value="CITES I"/>
+      <picklistitem title="CITES II" value="CITES II"/>
+      <picklistitem title="CITES III" value="CITES III"/>
+    </items>
+  </picklist>
 </list>

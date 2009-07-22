@@ -21297,7 +21297,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text1">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -21493,7 +21493,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="citesStatus">
+      <item name="citesStatus" type="java.lang.String" isUIFormatter="false" pickListName="CitesStatus" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -21920,13 +21920,13 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="TaxonGroup" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Taxon Group</text>
           </str>
         </names>
         <descs>
@@ -21968,13 +21968,13 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" pickListName="TaxonStatus" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>Status</text>
           </str>
         </names>
         <descs>
