@@ -205,7 +205,7 @@ public class BotanistLoader extends AuditedObjectLoader
 
 		// Remarks
         String remarks = botanist.getRemarks();
-        String datesType = "[date type: " + botanist.getDatesType() + "]";
+        String datesType = "[dates type: " + botanist.getDatesType() + "] ";
         agent.setRemarks(remarks == null ? datesType : datesType + remarks);
 
         // TimestampCreated
