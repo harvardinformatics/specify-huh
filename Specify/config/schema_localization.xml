@@ -9308,11 +9308,11 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Determiner Text</text>
           </str>
         </names>
         <descs>
@@ -9339,11 +9339,11 @@
       </item>
       <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Label</text>
           </str>
         </names>
         <descs>
@@ -9355,11 +9355,11 @@
       </item>
       <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>Label Text</text>
           </str>
         </names>
         <descs>
@@ -9545,11 +9545,11 @@
       </item>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Is Fragment</text>
           </str>
         </names>
         <descs>
@@ -15001,7 +15001,7 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="latLongMethod" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="latLongMethod" type="java.lang.String" isUIFormatter="false" pickListName="LatLongMethod" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -15017,7 +15017,7 @@
           </str>
         </descs>
       </item>
-      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" pickListName="ElevMethod" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -15396,7 +15396,7 @@
         </names>
         <descs/>
       </item>
-      <item name="localityName" type="java.lang.String">
+      <item name="localityName" type="java.lang.String" isUIFormatter="false" pickListName="LocalityName" isRequired="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
