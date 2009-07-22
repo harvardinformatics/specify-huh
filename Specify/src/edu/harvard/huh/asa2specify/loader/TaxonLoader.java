@@ -307,6 +307,9 @@ public class TaxonLoader extends TreeLoader
 		GROUP group = asaTaxon.getGroup();
 		specifyTaxon.setText1(AsaTaxon.toString(group));
 	        
+		// Text2 (status)
+		specifyTaxon.setText2(AsaTaxon.toString(status));
+
 		// TimestampCreated
         Date dateCreated = asaTaxon.getDateCreated();
         specifyTaxon.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
@@ -355,9 +358,9 @@ public class TaxonLoader extends TreeLoader
 	{
 		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, IsAccepted, " +
 				            "IsHybrid, Name, Number1, ParentID, RankID, Remarks, TaxonomicSerialNumber, " +
-				            "TaxonTreeDefID, TaxonTreeDefItemID, Text1, TimestampCreated, Version";
+				            "TaxonTreeDefID, TaxonTreeDefItemID, Text1, Text2, TimestampCreated, Version";
 
-		String[] values = new String[17];
+		String[] values = new String[18];
 
 		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
 		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
@@ -374,8 +377,9 @@ public class TaxonLoader extends TreeLoader
 		values[12] = SqlUtils.sqlString( taxon.getDefinition().getId());
 		values[13] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
 		values[14] = SqlUtils.sqlString( taxon.getText1());
-		values[15] = SqlUtils.sqlString( taxon.getTimestampCreated());
-		values[16] = SqlUtils.sqlString( taxon.getVersion());
+		values[15] = SqlUtils.sqlString( taxon.getText2());
+		values[16] = SqlUtils.sqlString( taxon.getTimestampCreated());
+		values[17] = SqlUtils.sqlString( taxon.getVersion());
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}
