@@ -32,6 +32,7 @@ public class SpecimenItem
 	private       String collectorNo;
 	private       String herbariumCode;
 	private      Integer siteId;
+	private      Integer seriesId;
 	private       String seriesName;
 	private       String seriesNo;
 	private       String seriesAbbrev;
@@ -114,6 +115,8 @@ public class SpecimenItem
 	
 	public Date getCatalogedDate() { return this.catalogedDate; }
 	
+	public Integer getSeriesId() { return this.seriesId; }
+	
 	public String getSeriesName() { return this.seriesName; }
 	
 	public String getSeriesNo() { return this.seriesNo; }
@@ -185,6 +188,8 @@ public class SpecimenItem
 	public void setContainer(String container) { this.container = container; }
 	
 	public void setCatalogedDate(Date catalogedDate) { this.catalogedDate = catalogedDate; }
+	
+	public void setSeriesId(Integer seriesId) { this.seriesId = seriesId; }
 	
 	public void setSeriesName(String seriesName) { this.seriesName = seriesName; }
 	
