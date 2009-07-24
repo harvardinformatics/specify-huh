@@ -26,6 +26,30 @@
             </altviews>
         </view>
 
+		<view name="AgentGeography"
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            resourcelabels="false">
+            <desc><![CDATA[AgentGeography subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="AgentGeography View" title="AgentGeography" viewdef="AgentGeography" mode="view" validated="false"/>
+                <altview name="AgentGeography Edit" title="AgentGeography" viewdef="AgentGeography" mode="edit" validated="true" default="true"/>
+                <altview name="AgentGeography Table View" viewdef="AgentGeography Table"    label="Table View" mode="view" />
+                <altview name="AgentGeography Table Edit" viewdef="AgentGeography Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="AgentSpecialty"
+            class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+            resourcelabels="false">
+            <desc><![CDATA[AgentSpecialty subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="AgentSpecialty View" title="AgentSpecialty" viewdef="AgentSpecialty" mode="view" validated="false"/>
+                <altview name="AgentSpecialty Edit" title="AgentSpecialty" viewdef="AgentSpecialty" mode="edit" validated="true" default="true"/>
+                <altview name="AgentSpecialty Table View" viewdef="AgentSpecialty Table"    label="Table View" mode="view" />
+                <altview name="AgentSpecialty Table Edit" viewdef="AgentSpecialty Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
        <view name="GroupPersons"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
@@ -546,6 +570,76 @@
             <definition>AgentVariant</definition>
         </viewdef>
         
+         <viewdef
+            type="form"
+            name="AgentGeography"
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentGeography form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,2px,190px,5px,100px,2px,p:g</columnDef>
+            <columnDef>100px,2px,190px,5px,50px,2px,478px,p,p:g</columnDef>
+            <columnDef os="mac">130px,2px,150px,5px,80px,2px,471px,p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+  		        <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="role" uitype="combobox" picklist="AgentRole"/>
+                    <cell type="label" labelfor="geography"/>
+                    <cell type="field" id="geography" uitype="querycbx" initialize="name=Geography" name="geography"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            type="formtable"
+            name="AgentGeography Table"
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentGeography grid view.]]></desc>
+            <definition>AgentGeography</definition>
+        </viewdef>
+        
+        <viewdef
+            type="form"
+            name="AgentSpecialty"
+            class="AgentSpecialty"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentSpecialty form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,2px,190px,2px,p:g</columnDef>
+            <columnDef>100px,2px,190px,5px,50px,p,p:g</columnDef>
+            <columnDef os="mac">130px,2px,150px,5px,,471px,p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+  		        <row>
+                    <cell type="label" labelfor="specialtyName"/>
+                    <cell type="field" id="specialtyName" uitype="text" name="specialtyName"/>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" uitype="text" name="remarks"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            type="formtable"
+            name="AgentSpecialty Table"
+            class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentSpecialty grid view.]]></desc>
+            <definition>AgentSpecialty</definition>
+        </viewdef>
+        
         <viewdef
             type="form"
             name="Agent"
@@ -642,6 +736,12 @@
                 </row>
 			    <row>
                     <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="14"/>
+			    </row>
+			    <row>
+                    <cell type="subview" viewname="AgentGeography" id="22" name="agentGeographies" colspan="14"/>
+			    </row>
+			    <row>
+                    <cell type="subview" viewname="AgentSpecialty" id="23" name="agentSpecialties" colspan="14"/>
 			    </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="14"/>
