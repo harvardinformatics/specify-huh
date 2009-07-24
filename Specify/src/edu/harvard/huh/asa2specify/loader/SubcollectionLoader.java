@@ -317,7 +317,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
         String       cabinet = subcollection.getCabinet();
         String       remarks = subcollection.getRemarks();
         
-        if (specimenCount != null && location != null && cabinet != null && remarks != null)
+        if (specimenCount != null || location != null || cabinet != null || remarks != null)
         {
             String description = "";
             if (taxonGroup != null) description = "Taxon group: " + taxonGroup + "; ";
