@@ -1069,7 +1069,8 @@
                     <cell type="label" labelfor="21"/>
                     <cell type="field" id="21" name="originalDueDate" uitype="formattedtext" uifieldformatter="Date"/>
                     <cell type="field" id="20" name="yesNo1" uitype="checkbox" initialize="editable=true"/>
-                    <cell type="field" id="7" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true" colspan="3"/>
+                    <!-- <cell type="field" id="7" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true" colspan="3"/> -->
+					<cell type="field" id="isTheirs" name="yesNo2" uitype="checkbox" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1079,6 +1080,14 @@
                     <cell type="field" id="2" name="isClosed" uitype="checkbox" initialize="editable=true"/>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="dateClosed" uitype="formattedtext" uifieldformatter="Date"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="description"/>
+                	<cell type="field" id="description" name="text1" uitype="text" colspan="12"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="forUseBy"/>
+                	<cell type="field" id="forUseBy" name="text2" uitype="text" colspan="12"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="5"/>
@@ -3279,6 +3288,18 @@
                     <cell type="field" id="3" name="shipmentMethod"  uitype="combobox" picklist="ShipmentMethod" />
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="shippedBy" uitype="querycbx" initialize="name=Agent" />
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="isCostEstimated" name="yesNo1" uitype="checkbox"/>
+                    <cell type="label" labelfor="insuredForAmount"/>
+                    <cell type="field" id="insuredForAmount" name="insuredForAmount" uitype="text"/>
+                    <cell type="label" labelfor="shipper"/>
+                    <cell type="field" id="shipper" name="shipper" uitype="querycbx" initialize="name=Agent" />
+                </row>
+                <row>
+                	<cell type="label" labelfor="customsNo"/>
+                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="4"/>
                 </row>
                 <!--<row>
                     <cell type="label" labelfor="5"/>
