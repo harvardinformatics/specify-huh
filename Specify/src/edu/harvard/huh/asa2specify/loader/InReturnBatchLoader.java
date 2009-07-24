@@ -147,7 +147,7 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
         values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
     }

@@ -324,7 +324,7 @@ public class LoanLoader extends TransactionLoader
         values[13] = SqlUtils.sqlString( loan.getText1());
         values[14] = SqlUtils.sqlString( loan.getText2());
         values[15] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[16] = SqlUtils.one();
+        values[16] = SqlUtils.zero();
         values[17] = SqlUtils.sqlString( loan.getYesNo1());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
@@ -341,7 +341,7 @@ public class LoanLoader extends TransactionLoader
         values[2] = SqlUtils.sqlString( loanAgent.getLoan().getId());
         values[3] = SqlUtils.sqlString( loanAgent.getRole());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
     }

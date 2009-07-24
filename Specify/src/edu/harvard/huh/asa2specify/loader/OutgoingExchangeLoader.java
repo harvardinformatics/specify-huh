@@ -239,7 +239,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( exchangeOut.getText1());
         values[11] = SqlUtils.sqlString( exchangeOut.getText2());
         values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
-        values[13] = SqlUtils.one();
+        values[13] = SqlUtils.zero();
         values[14] = SqlUtils.sqlString( exchangeOut.getYesNo1());
         values[15] = SqlUtils.sqlString( exchangeOut.getYesNo2());
         

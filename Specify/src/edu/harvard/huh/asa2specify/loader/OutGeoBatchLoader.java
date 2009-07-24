@@ -150,7 +150,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 	    values[1] = SqlUtils.sqlString( deaccessionPrep.getQuantity());
 	    values[2] = SqlUtils.sqlString( deaccessionPrep.getRemarks());
 	    values[3] = SqlUtils.now();
-	    values[4] = SqlUtils.one();
+	    values[4] = SqlUtils.zero();
 	    
 	    return SqlUtils.getInsertSql("deaccessionpreparation", fields, values);
 	}

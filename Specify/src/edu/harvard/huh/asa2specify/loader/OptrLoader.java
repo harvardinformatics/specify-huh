@@ -142,7 +142,7 @@ public class OptrLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( agent.getLastName());
 		values[4] = SqlUtils.sqlString( agent.getRemarks());
 		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.one();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

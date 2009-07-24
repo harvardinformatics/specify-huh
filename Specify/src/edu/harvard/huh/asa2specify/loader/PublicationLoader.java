@@ -262,7 +262,7 @@ public class PublicationLoader extends AuditedObjectLoader
 		values[3] = SqlUtils.sqlString( journal.getJournalName());
 		values[4] = SqlUtils.sqlString( journal.getText1());
         values[5] = SqlUtils.sqlString( journal.getTimestampCreated());
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
 		return SqlUtils.getInsertSql("journal", fieldNames, values);
 	}
@@ -285,7 +285,7 @@ public class PublicationLoader extends AuditedObjectLoader
         values[8]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
         values[9]  = SqlUtils.sqlString( referenceWork.getTitle());
 		values[10] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[11] = SqlUtils.one();
+		values[11] = SqlUtils.zero();
 		values[12] = SqlUtils.sqlString( referenceWork.getWorkDate());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    

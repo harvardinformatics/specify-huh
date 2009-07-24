@@ -234,7 +234,7 @@ public class StaffCollectionLoader extends TransactionLoader
         values[9]  = SqlUtils.sqlString( accession.getText3());
         values[10] = SqlUtils.sqlString( accession.getType());
         values[11] = SqlUtils.now();
-        values[12] = SqlUtils.one();
+        values[12] = SqlUtils.zero();
         values[13] = SqlUtils.sqlString( accession.getYesNo1());
         values[14] = SqlUtils.sqlString( accession.getYesNo2());
         
@@ -251,7 +251,7 @@ public class StaffCollectionLoader extends TransactionLoader
         values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
         values[2] = SqlUtils.sqlString( accessionAgent.getRole());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }

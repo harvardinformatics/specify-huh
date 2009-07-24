@@ -216,7 +216,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[6]  = SqlUtils.sqlString( deaccession.getText2());
         values[7]  = SqlUtils.sqlString( deaccession.getType());
         values[8]  = SqlUtils.sqlString( deaccession.getTimestampCreated());
-        values[9]  = SqlUtils.one();
+        values[9]  = SqlUtils.zero();
         values[10] = SqlUtils.sqlString( deaccession.getYesNo1());
         values[11] = SqlUtils.sqlString( deaccession.getYesNo2());
         
@@ -233,7 +233,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[1] = SqlUtils.sqlString( deaccessionAgent.getDeaccession().getId());
         values[2] = SqlUtils.sqlString( deaccessionAgent.getRole());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("deaccessionagent", fieldNames, values);
     } 

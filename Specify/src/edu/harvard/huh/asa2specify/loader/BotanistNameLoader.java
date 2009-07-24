@@ -130,7 +130,7 @@ public class BotanistNameLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( agentVariant.getName());
         values[2] = SqlUtils.sqlString( agentVariant.getVarType());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }

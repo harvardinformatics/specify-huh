@@ -264,7 +264,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 		values[7]  = SqlUtils.sqlString( agent.getLastName());
 		values[8]  = SqlUtils.sqlString( agent.getRemarks());
         values[9]  = SqlUtils.sqlString( agent.getTimestampCreated());
-        values[10] = SqlUtils.one();
+        values[10] = SqlUtils.zero();
         
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -279,7 +279,7 @@ public class AffiliateLoader extends AuditedObjectLoader
         values[1] = SqlUtils.sqlString( address.getAgent().getId());
         values[2] = SqlUtils.sqlString( address.getPhone1());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

@@ -431,7 +431,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( container.getName());
         values[4] = SqlUtils.sqlString( container.getNumber());
         values[5] = SqlUtils.sqlString( container.getTimestampCreated());
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
@@ -449,7 +449,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		values[3] = SqlUtils.sqlString( referenceWork.getRemarks());
 		values[4] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
 		values[5] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[6] = SqlUtils.one();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
@@ -466,7 +466,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( agent.getGuid());
         values[4] = SqlUtils.sqlString( agent.getLastName());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
@@ -481,7 +481,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
     	values[1] = SqlUtils.sqlString( exsiccata.getTitle());
     	values[2] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
     	values[3] = SqlUtils.now();
-    	values[4] = SqlUtils.one();
+    	values[4] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }
@@ -496,7 +496,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		values[1] = String.valueOf( author.getReferenceWork().getId());
 		values[2] = String.valueOf( author.getOrderNumber());
 		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.one();
+		values[4] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

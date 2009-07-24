@@ -261,7 +261,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 		values[5] = SqlUtils.sqlString( agent.getRemarks());
 		values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
 		values[7] = SqlUtils.sqlString( agent.getUrl());
-		values[8] = SqlUtils.one();
+		values[8] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -289,7 +289,7 @@ public class OrganizationLoader extends AuditedObjectLoader
     	values[2] = SqlUtils.sqlString( address.getState());
     	values[3] = SqlUtils.sqlString( address.getCountry());
     	values[4] = SqlUtils.now();
-    	values[5] = SqlUtils.one();
+    	values[5] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }

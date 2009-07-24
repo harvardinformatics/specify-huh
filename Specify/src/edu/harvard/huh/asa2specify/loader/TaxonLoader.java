@@ -395,7 +395,7 @@ public class TaxonLoader extends TreeLoader
         values[2] = SqlUtils.sqlString( taxonCitation.getText1());
         values[3] = SqlUtils.sqlString( taxonCitation.getText2());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }

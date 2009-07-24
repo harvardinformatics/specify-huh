@@ -226,7 +226,7 @@ public class IncomingExchangeLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( exchangeIn.getText1());
         values[11] = SqlUtils.sqlString( exchangeIn.getText2());
         values[12] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
-        values[13] = SqlUtils.one();
+        values[13] = SqlUtils.zero();
         values[14] = SqlUtils.sqlString( exchangeIn.getYesNo1());
         values[15] = SqlUtils.sqlString( exchangeIn.getYesNo2());
         

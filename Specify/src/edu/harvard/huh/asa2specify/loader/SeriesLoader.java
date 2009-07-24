@@ -9,6 +9,7 @@ import edu.harvard.huh.asa.Series;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
@@ -18,8 +19,15 @@ public class SeriesLoader extends CsvToSqlLoader
 {
     private static final Logger log  = Logger.getLogger(SeriesLoader.class);
     
+    private SeriesLookup seriesLookup;
+    
 	private AsaIdMapper seriesToBotanistMapper;
     private BotanistLookup botanistLookup;
+        
+    static String getGuid(Integer seriesId)
+    {
+        return seriesId + " series";
+    }
     
     public SeriesLoader(File csvFile,
                         Statement sqlStatement,
@@ -32,6 +40,28 @@ public class SeriesLoader extends CsvToSqlLoader
 		this.botanistLookup = botanistLookup;
 	}
 
+    public SeriesLookup getSeriesLookup()
+    {
+        if (seriesLookup == null)
+        {
+            seriesLookup = new SeriesLookup() {
+                public Agent getById(Integer seriesId) throws LocalException
+                {
+                    Agent agent = new Agent(); // TODO: this doesn't account for affiliate botanists
+                    
+                    Integer botanistId = getBotanistId(seriesId);
+                    String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : SeriesLoader.getGuid(seriesId);
+                    
+                    Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+
+                    agent.setAgentId(agentId);
+                    
+                    return agent;
+                }
+            };
+        }
+        return seriesLookup;
+    }
     @Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -138,11 +168,6 @@ public class SeriesLoader extends CsvToSqlLoader
 		
 		return agent;
 	}
-    
-	private String getGuid(Integer seriesId)
-	{
-		return seriesId + " series";
-	}
 	
     private String getInsertSql(Agent agent) throws LocalException
 	{
@@ -156,7 +181,7 @@ public class SeriesLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( agent.getLastName());
 		values[4] = SqlUtils.sqlString( agent.getRemarks());
 		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.one();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);    
 	}

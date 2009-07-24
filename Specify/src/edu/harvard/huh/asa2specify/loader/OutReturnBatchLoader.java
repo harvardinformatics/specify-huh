@@ -290,7 +290,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
 		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
 		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.one();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("borrowreturnmaterial", fields, values);
 	}
@@ -313,7 +313,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
 		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.one();
+		values[10] = SqlUtils.zero();
 		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
 		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
 		

@@ -132,7 +132,7 @@ public class BotanistTeamLoader extends CsvToSqlLoader
     	values[2] = SqlUtils.sqlString( groupPerson.getMember().getId());
     	values[3] = SqlUtils.sqlString( groupPerson.getOrderNumber());
     	values[4] = SqlUtils.now();
-    	values[5] = SqlUtils.one();
+    	values[5] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }

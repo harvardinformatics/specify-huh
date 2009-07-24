@@ -288,7 +288,7 @@ public class SiteLoader extends CsvToSqlLoader
 		values[16] = SqlUtils.sqlString( locality.getRemarks());
 		values[17] = SqlUtils.sqlString( locality.getSrcLatLongUnit());
 		values[18] = SqlUtils.now();
-		values[19] = SqlUtils.one();
+		values[19] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("locality", fieldNames, values);
 	}

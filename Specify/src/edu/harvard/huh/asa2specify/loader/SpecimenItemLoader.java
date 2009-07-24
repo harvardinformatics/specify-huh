@@ -19,6 +19,7 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.SiteLookup;
@@ -52,8 +53,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private BotanistLookup botanistLookup;
 	private SubcollectionLookup subcollLookup;
 	private SiteLookup siteLookup;
-	
-	private AsaIdMapper seriesBotanists;
+	private SeriesLookup seriesLookup;
 	private AsaIdMapper specimenIdBarcodes;
 	
 	// These objects are all related to the collection object
@@ -62,6 +62,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private CollectionObject     collectionObject = null;
 	private CollectionObjectAttribute collObjAttr = null;
 	private Collector            collector        = null;
+	private Collector            seriesCollector  = null;
 	private CollectingEvent      collectingEvent  = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
@@ -76,6 +77,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private String       vernacularName   = null;
 	private String       distribution     = null;
 	private String       containerStr     = null;
+	private Boolean      isCultivated     = null;
 	
 	// This is the next available barcode for items without them.
 	// Check with specimen_item_id_barcode.csv
@@ -87,11 +89,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	                          File specimenIdBarcodes,
 	                          BotanistLookup botanistLookup,
 	                          SubcollectionLookup subcollLookup,
+	                          SeriesLookup seriesLookup,
 	                          SiteLookup siteLookup) throws LocalException 
 	{
 		super(csvFile, sqlStatement);
-		
-		this.seriesBotanists = new AsaIdMapper(seriesBotanists);
+
 		this.specimenIdBarcodes = new AsaIdMapper(specimenIdBarcodes);
 		
 		this.prepTypesByNameAndColl = new Hashtable<String, PrepType>();
@@ -99,6 +101,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		this.botanistLookup  = botanistLookup;
 		this.subcollLookup   = subcollLookup;
 		this.siteLookup      = siteLookup;
+        this.seriesLookup    = seriesLookup;
 		this.prepLookup      = getPreparationLookup();
 		this.containerLookup = getContainerLookup();
 		
@@ -138,10 +141,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
             // merge subcollection; warn if changed
             updateSubcollection(specimenItem, collectionId);
-            
-            // OtherIdentifier TODO: connect series (organization) agent as collector?
-            OtherIdentifier series = getSeriesIdentifier(specimenItem, collectionObject, collectionId);
-            addOtherIdentifier(series);
 
             // TODO: create accessions from provenance?
             OtherIdentifier accession = getAccessionIdentifier(specimenItem, collectionObject, collectionId);
@@ -163,6 +162,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         vernacularName  = null;
         distribution    = null;
         containerStr    = null;
+        isCultivated    = null;
         
         if (collectionObject != null)
         {
@@ -204,11 +204,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             // Collector
             collector = getCollector(specimenItem, collectingEvent, collectionId);
 
+            // Series collector
+            seriesCollector = getSeriesCollector(specimenItem, collectingEvent, collectionId);
+            
             // ExsiccataItem
             ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
             addExsiccataItem(exsiccataItem);
 
-            // OtherIdentifiers TODO: connect series (organization) agent as collector?
+            // OtherIdentifiers
             OtherIdentifier series = getSeriesIdentifier(specimenItem, collectionObject, collectionId);
             addOtherIdentifier(series);
 
@@ -376,9 +379,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         execute(sql);
     }
     
-    private Integer lookupSeries(Integer seriesId)
+    private Agent lookupSeries(Integer seriesId) throws LocalException
     {
-        return seriesBotanists.map(seriesId);
+        return seriesLookup.getById(seriesId);
     }
     
     private Integer lookupBarcode(Integer specimenItemId)
@@ -388,7 +391,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 44)
+		if (columns.length < 45)
 		{
 			throw new LocalException("Not enough columns");
 		}
@@ -430,20 +433,21 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             specimenItem.setReference(                          columns[27] );
             specimenItem.setNote(                               columns[28] );
             specimenItem.setHerbariumCode(                      columns[29] );
-            specimenItem.setSeriesName(                         columns[30] );
-            specimenItem.setSiteId(          SqlUtils.parseInt( columns[31] ));
-            specimenItem.setCollectorId(     SqlUtils.parseInt( columns[32] ));
-            specimenItem.setCatalogedById(   SqlUtils.parseInt( columns[33] ));
-            specimenItem.setFormat(                             columns[34] );
-            specimenItem.setSeriesAbbrev(                       columns[35] );
-            specimenItem.setSeriesNo(                           columns[36] );
-            specimenItem.setContainer(                          columns[37] );
-            specimenItem.setSubcollectionId( SqlUtils.parseInt( columns[38] ));
-            specimenItem.setHasExsiccata( Boolean.parseBoolean( columns[39] ));
-            specimenItem.setReplicates(      SqlUtils.parseInt( columns[40] ));
-            specimenItem.setLocation(                           columns[41] );
-            specimenItem.setVernacularName(                     columns[42] );
-            specimenItem.setDistribution(                       columns[43] );
+            specimenItem.setSeriesId(        SqlUtils.parseInt( columns[30] ));
+            specimenItem.setSeriesName(                         columns[31] );
+            specimenItem.setSiteId(          SqlUtils.parseInt( columns[32] ));
+            specimenItem.setCollectorId(     SqlUtils.parseInt( columns[33] ));
+            specimenItem.setCatalogedById(   SqlUtils.parseInt( columns[34] ));
+            specimenItem.setFormat(                             columns[35] );
+            specimenItem.setSeriesAbbrev(                       columns[36] );
+            specimenItem.setSeriesNo(                           columns[37] );
+            specimenItem.setContainer(                          columns[38] );
+            specimenItem.setSubcollectionId( SqlUtils.parseInt( columns[39] ));
+            specimenItem.setHasExsiccata( Boolean.parseBoolean( columns[40] ));
+            specimenItem.setReplicates(      SqlUtils.parseInt( columns[41] ));
+            specimenItem.setLocation(                           columns[42] );
+            specimenItem.setVernacularName(                     columns[43] );
+            specimenItem.setDistribution(                       columns[44] );
 		}
         catch (NumberFormatException e)
         {
@@ -516,7 +520,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	{
 	    return botanistLookup.getById(botanistId);
 	}
-
+	   
 	private Exsiccata lookupExsiccata(Integer subCollectionId) throws LocalException
 	{
 	    return subcollLookup.getExsiccataById(subcollectionId);
@@ -616,9 +620,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	private Collector getCollector(SpecimenItem specimenItem, CollectingEvent collectingEvent, Integer collectionMemberId) throws LocalException
 	{
-	    // TODO: if there's a series, should it be a collector?
-	    
-        Collector collector = new Collector();
+	    Collector collector = new Collector();
 
         // Agent
         Integer botanistId = specimenItem.getCollectorId();
@@ -638,6 +640,32 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
         // OrderNumber
         collector.setOrderNumber(1);
+        
+        return collector;
+	}
+	
+	private Collector getSeriesCollector(SpecimenItem specimenItem, CollectingEvent collectingEvent, Integer collectionMemberId) throws LocalException
+	{        
+        Collector collector = new Collector();
+
+        // Agent
+        Integer seriesId = specimenItem.getSeriesId();
+        if (seriesId == null) return null;
+        
+        Agent agent = lookupSeries(seriesId);
+        collector.setAgent(agent);
+
+        // CollectingEvent
+        collector.setCollectingEvent(collectingEvent);
+        
+        // CollectionMemberId
+        collector.setCollectionMemberId(collectionMemberId);
+        
+        // IsPrimary
+        collector.setIsPrimary(collector == null);
+
+        // OrderNumber
+        collector.setOrderNumber(collector == null ? 1 : 2);
         
         return collector;
 	}
@@ -953,6 +981,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    collObjAttr.setText3(containerStr);
 	    
 	    // YesNo1 (isCultivated)
+	    isCultivated = specimenItem.isCultivated();
+	    collObjAttr.setYesNo1(isCultivated);
 	    
 	    return collObjAttr;
 	}
@@ -1132,7 +1162,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[8]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
         values[9]  = SqlUtils.now();
         values[10] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
-        values[11] = SqlUtils.one();
+        values[11] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }
@@ -1150,7 +1180,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( collector.getIsPrimary());
         values[4] = SqlUtils.sqlString( collector.getOrderNumber());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("collector", fieldNames, values);
     }
@@ -1182,7 +1212,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[15] = SqlUtils.sqlString( collectionObject.getText1());
 		values[16] = SqlUtils.sqlString( collectionObject.getText2());
 		values[17] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
-        values[18] = SqlUtils.one();
+        values[18] = SqlUtils.zero();
 		values[19] = SqlUtils.sqlString( collectionObject.getYesNo1());		
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
@@ -1199,7 +1229,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[2] = SqlUtils.sqlString( collObjAttr.getText2());
         values[3] = SqlUtils.sqlString( collObjAttr.getText3());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[5] = SqlUtils.zero();
         values[6] = SqlUtils.sqlString( collObjAttr.getYesNo1());
         
         return SqlUtils.getInsertSql("collectionobjectattribute", fieldNames, values);
@@ -1224,7 +1254,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[8]  = SqlUtils.sqlString( preparation.getText1());
 		values[9]  = SqlUtils.sqlString( preparation.getText2());
         values[10] = SqlUtils.now();
-        values[11] = SqlUtils.one();
+        values[11] = SqlUtils.zero();
 		values[12] = SqlUtils.sqlString( preparation.getYesNo1());
 		values[13] = SqlUtils.sqlString( preparation.getYesNo2());
         
@@ -1240,7 +1270,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[0] = SqlUtils.sqlString( exsiccataItem.getCollectionObject().getId());
 		values[1] = SqlUtils.sqlString( exsiccataItem.getExsiccata().getId());
 		values[2] = SqlUtils.now();
-		values[3] = SqlUtils.one();
+		values[3] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
 	}
@@ -1258,7 +1288,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( otherIdentifier.getInstitution());
         values[4] = SqlUtils.sqlString( otherIdentifier.getRemarks());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("otheridentifier", fieldNames, values);
     }
@@ -1272,7 +1302,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[0] = SqlUtils.sqlString( container.getName());
         values[1] = SqlUtils.sqlString( container.getCollectionMemberId());
         values[2] = SqlUtils.now();
-        values[3] = SqlUtils.one();
+        values[3] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
@@ -1331,6 +1361,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             collector.setCollectorId(collectorId);
         }
         
+        // save the series Collector
+        if (seriesCollector != null && seriesCollector.getId() == null)
+        {
+            sql = getInsertSql(seriesCollector);
+            Integer collectorId = insert(sql);
+            seriesCollector.setCollectorId(collectorId);
+        }
+
         // save the current CollectionObject
         sql = getInsertSql(collectionObject);
         Integer collectionObjectId = insert(sql);

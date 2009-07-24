@@ -221,7 +221,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
 		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
 		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.one();
+		values[10] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}
@@ -239,7 +239,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
 		values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
 		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.one();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
 	}

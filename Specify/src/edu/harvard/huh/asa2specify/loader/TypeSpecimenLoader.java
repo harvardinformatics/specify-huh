@@ -333,7 +333,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[8]  = SqlUtils.sqlString( determination.getText1());
         values[9]  = SqlUtils.now();
         values[10] = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[11] = SqlUtils.one();
+        values[11] = SqlUtils.zero();
         values[12] = SqlUtils.sqlString( determination.getYesNo2());
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
@@ -351,7 +351,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[2] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
         values[3] = SqlUtils.sqlString( determinationCitation.getRemarks());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }

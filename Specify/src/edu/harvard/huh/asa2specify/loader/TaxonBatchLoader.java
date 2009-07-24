@@ -322,7 +322,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
 	    values[4] = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
 	    values[5] = SqlUtils.sqlString( borrowMaterial.getQuantity());
 	    values[6] = SqlUtils.now();
-	    values[7] = SqlUtils.one();
+	    values[7] = SqlUtils.zero();
 	    
 	    return SqlUtils.getInsertSql("borrowmaterial", fields, values);
 	}
@@ -345,7 +345,7 @@ public class TaxonBatchLoader extends CsvToSqlLoader
         values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
         values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
         values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.one();
+        values[10] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }

@@ -283,7 +283,7 @@ public class BorrowLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( borrow.getText1());
         values[11] = SqlUtils.sqlString( borrow.getText2());
         values[12] = SqlUtils.sqlString( borrow.getTimestampCreated());
-        values[13] = SqlUtils.one();
+        values[13] = SqlUtils.zero();
         values[14] = SqlUtils.sqlString( borrow.getYesNo1());
         values[15] = SqlUtils.sqlString( borrow.getYesNo2());
         
@@ -301,7 +301,7 @@ public class BorrowLoader extends TransactionLoader
         values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
         values[3] = SqlUtils.sqlString( borrowAgent.getRole());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
     }
