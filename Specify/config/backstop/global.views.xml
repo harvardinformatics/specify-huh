@@ -586,8 +586,8 @@
             
             <rows>
   		        <row>
-                    <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="role" uitype="combobox" picklist="AgentRole"/>
+                    <cell type="label" labelfor="role"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="AgentRole"/>
                     <cell type="label" labelfor="geography"/>
                     <cell type="field" id="geography" uitype="querycbx" initialize="name=Geography" name="geography"/>
                 </row>
@@ -1047,6 +1047,12 @@
                     <cell type="field" id="2" name="journalAbbreviation" uitype="text"/>
                 </row>
                 <row>
+                    <cell type="label" labelfor="issn"/>
+                    <cell type="field" id="issn" name="issn" uitype="text"/>
+                    <cell type="label" labelfor="bph"/>
+                    <cell type="field" id="bph" name="text1" uitype="text"/>
+                </row>
+                <row>
                     <cell type="subview" viewname="ReferenceWorkSub" id="3" name="referenceWorks" colspan="8" initialize="addsearch=true"/>
                 </row>
             </rows>
@@ -1068,6 +1074,12 @@
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="journalAbbreviation" uitype="text" cols="3"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="issn"/>
+                    <cell type="field" id="issn" name="issn" uitype="text"/>
+                    <cell type="label" labelfor="bph"/>
+                    <cell type="field" id="bph" name="text1" uitype="text" cols="3"/>
+                </row>
             </rows>
         </viewdef>
         
@@ -1087,6 +1099,8 @@
                 <row>
                     <cell type="label" labelfor="8"/>
                     <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="ReferenceWorkType"/>
+                    <cell type="label" labelfor="isbn"/>
+                    <cell type="field" id="isbn" name="isbn" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -1099,18 +1113,29 @@
                     <cell type="field" id="3" name="placeOfPublication" uitype="text" cols="50"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="workDate" uitype="text" cols="10"/>
+                    <cell type="label" labelfor="7"/>
+                    <cell type="field" id="7" name="libraryNumber" uitype="text" cols="10"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="volume" uitype="text" cols="10"/>
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="pages" uitype="text"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="workDate" uitype="text" colspan="9"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="18"/>
                     <cell type="field" id="18" name="journal" uitype="querycbx" initialize="name=Journal;title=Journal" colspan="5"/>
-                    <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="libraryNumber" uitype="text"/>
+
+                </row>
+                <row>
+                	<cell type="label" labelfor="url"/>
+                	<cell type="field" id="url" uitype="text" name="url" colspan="9"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="remarks"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="Authors" id="10" name="authors" initialize="name=Agent" colspan="12"/>
