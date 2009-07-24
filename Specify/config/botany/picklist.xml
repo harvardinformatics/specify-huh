@@ -21,7 +21,7 @@
       <picklistitem title="other" value="other"/>
     </items>
   </picklist>
-  <picklist name="TypeStatus" issystem="true" type="0" readonly="true" sizelimit="15">
+  <picklist name="HUH TypeStatus" issystem="false" type="0" readonly="true" sizelimit="15">
     <items>
       <picklistitem title="Epitype" value="Epitype"/>
       <picklistitem title="Isoepitype" value="Isoepitype"/>
@@ -33,7 +33,7 @@
       <picklistitem title="Isoneotype" value="Isoneotype"/>
       <picklistitem title="Syntype" value="Syntype"/>
       <picklistitem title="Isosyntype" value="Isosyntype"/>
-      <picklistitem title="[Neosyntype]" value="Neosyntype"/>
+      <picklistitem title="[Neosyntype]" value="[Neosyntype]"/>
       <picklistitem title="Type" value="Type"/>
       <picklistitem title="Type material" value="Type material"/>
       <picklistitem title="Drawing of type" value="Drawing of type"/>
