@@ -50,4 +50,10 @@
       <picklistitem title="sporophyte" value="sporophyte"/>
     </items>
   </picklist>
+  <picklist name="AgentRole" issytem="false" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="Author" value="Author"/>
+      <picklistitem title="Collector" value="Collector"/>
+  	</items>
+  </picklist>
 </list>
