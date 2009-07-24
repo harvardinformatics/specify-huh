@@ -287,6 +287,8 @@ public class LoadHUHdatabase
             log.info("Loaded " + seriesRecords + " series records");
             frame.setOverall(steps++);
             
+            SeriesLookup seriesLookup = seriesLoader.getSeriesLookup();
+            
             frame.setDesc("Loading affiliates...");
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
                                                                   statement,
@@ -365,6 +367,7 @@ public class LoadHUHdatabase
                                                                            new File(dir, "specimen_item_id_barcode.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
+                                                                           seriesLookup,
                                                                            siteLookup);
             specimenItemLoader.setFrame(frame);
             int specimenItemRecords = specimenItemLoader.loadRecords();

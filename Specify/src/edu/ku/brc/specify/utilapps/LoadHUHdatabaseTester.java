@@ -57,6 +57,7 @@ import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
+import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.SiteLookup;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
@@ -254,6 +255,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + seriesRecords + " series records");
             }
          
+            SeriesLookup seriesLookup = seriesLoader.getSeriesLookup();
+            
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
                                                                   statement,
                                                                   new File(dir, "affiliate_botanist.csv"),
@@ -329,6 +332,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                            new File(dir, "specimen_item_id_barcode.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
+                                                                           seriesLookup,
                                                                            siteLookup);
             if (doSpec)
             {
