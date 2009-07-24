@@ -3503,11 +3503,11 @@
       </item>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Their Request?</text>
           </str>
         </names>
         <descs>
@@ -3551,11 +3551,11 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Description</text>
           </str>
         </names>
         <descs>
@@ -3567,11 +3567,11 @@
       </item>
       <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>For use by</text>
           </str>
         </names>
         <descs>
@@ -3645,7 +3645,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Extension Granted</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs>
@@ -19847,11 +19847,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text1" type="java.lang.String">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Customs No.</text>
           </str>
         </names>
         <descs>
@@ -19952,11 +19952,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="number2" type="java.lang.Float">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Number2</text>
+            <text>Cost</text>
           </str>
         </names>
         <descs>
@@ -20126,11 +20126,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="yesNo1" type="java.lang.Boolean">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Cost Estimated?</text>
           </str>
         </names>
         <descs>
