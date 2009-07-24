@@ -5777,7 +5777,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>Substrate</text>
           </str>
         </names>
         <descs>
@@ -17627,11 +17627,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="yesNo1">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Oversize</text>
           </str>
         </names>
         <descs/>
@@ -17686,11 +17686,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="yesNo2">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Male</text>
           </str>
         </names>
         <descs/>
@@ -17708,11 +17708,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="text1" type="java.lang.String">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Voucher</text>
           </str>
         </names>
         <descs>
@@ -17724,11 +17724,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="number1">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Number1</text>
+            <text>Item number</text>
           </str>
         </names>
         <descs/>
@@ -28620,7 +28620,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text3</text>
+            <text>Container</text>
           </str>
         </names>
         <descs/>
@@ -28741,7 +28741,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text1</text>
+            <text>Vernacular name</text>
           </str>
         </names>
         <descs/>
@@ -28851,7 +28851,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text2</text>
+            <text>Distribution</text>
           </str>
         </names>
         <descs/>
@@ -30825,7 +30825,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="role" isUIFormatter="false" isRequired="false">
+      <item name="role" isUIFormatter="false" isRequired="false" pickListName="AgentRole">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
