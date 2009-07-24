@@ -13005,11 +13005,11 @@
       </item>
       <item name="text1" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text1</text>
+            <text>BPH/BPH2</text>
           </str>
         </names>
         <descs>
