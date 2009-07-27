@@ -2,7 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,12 +11,11 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.OutReturnBatch;
-import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
-import edu.harvard.huh.asa2specify.lookup.TaxonBatchLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
@@ -25,7 +23,7 @@ import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.BorrowReturnMaterial;
 import edu.ku.brc.specify.datamodel.Shipment;
 
-// Run this class after TransactionLoader, ShipmentLoader, and TaxonBatchLoader
+// Run this class after BorrowLoader, LoanLoader, and ShipmentLoader
 
 public class OutReturnBatchLoader extends CsvToSqlLoader
 {
@@ -33,7 +31,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     
     private static final String DEFAULT_SHIPPING_NUMBER = "none";
     
-	private TaxonBatchLookup borrowMaterialLookup;
+	private BorrowMaterialLookup borrowMaterialLookup;
 	private CarrierLookup carrierLookup;
 	private BorrowLookup borrowLookup;
 	
@@ -41,13 +39,13 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	
 	public OutReturnBatchLoader(File csvFile,
 			                    Statement sqlStatement,
-			                    TaxonBatchLookup taxonBatchLookup,
+			                    BorrowMaterialLookup borrowMaterialLookup,
 			                    CarrierLookup carrierLookup,
 			                    BorrowLookup borrowLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
-		this.borrowMaterialLookup = taxonBatchLookup;
+		this.borrowMaterialLookup = borrowMaterialLookup;
 		this.carrierLookup = carrierLookup;
 		this.borrowLookup = borrowLookup;
 		
@@ -77,7 +75,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	
 	private OutReturnBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 16)
+		if (columns.length < 14)
 		{
 			throw new LocalException("Not enough columns");
 		}
@@ -88,19 +86,17 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 			outReturnBatch.setId(                 SqlUtils.parseInt( columns[0]  ));
 			outReturnBatch.setTransactionId(      SqlUtils.parseInt( columns[1]  ));
 			outReturnBatch.setCollectionCode(                        columns[2]  );
-			outReturnBatch.setType(           Transaction.parseType( columns[3]  ));
-			outReturnBatch.setItemCount(          SqlUtils.parseInt( columns[4]  ));
-			outReturnBatch.setTypeCount(          SqlUtils.parseInt( columns[5]  ));
-			outReturnBatch.setNonSpecimenCount(   SqlUtils.parseInt( columns[6]  ));	
-			outReturnBatch.setBoxCount(                              columns[7]  );
-			outReturnBatch.setIsAcknowledged(  Boolean.parseBoolean( columns[8]  ));
-			outReturnBatch.setActionDate(        SqlUtils.parseDate( columns[9]  ));
-			outReturnBatch.setCarrier(     AsaShipment.parseCarrier( columns[10] ));
-			outReturnBatch.setMethod(       AsaShipment.parseMethod( columns[11] ));
-			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[12] ));
-			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[13] ));
-			outReturnBatch.setNote(                                  columns[14] );
-			outReturnBatch.setTransactionNo(                         columns[15] );
+			outReturnBatch.setItemCount(          SqlUtils.parseInt( columns[3]  ));
+			outReturnBatch.setTypeCount(          SqlUtils.parseInt( columns[4]  ));
+			outReturnBatch.setNonSpecimenCount(   SqlUtils.parseInt( columns[5]  ));	
+			outReturnBatch.setBoxCount(                              columns[6]  );
+			outReturnBatch.setIsAcknowledged(  Boolean.parseBoolean( columns[7]  ));
+			outReturnBatch.setActionDate(        SqlUtils.parseDate( columns[8]  ));
+			outReturnBatch.setCarrier(     AsaShipment.parseCarrier( columns[9]  ));
+			outReturnBatch.setMethod(       AsaShipment.parseMethod( columns[10] ));
+			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[11] ));
+			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[12] ));
+			outReturnBatch.setNote(                                  columns[13] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -122,7 +118,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		Integer transactionId = outReturnBatch.getTransactionId();
 		checkNull(transactionId, "transaction id");
 		
-		BorrowMaterial borrowMaterial = lookupTaxonBatch(transactionId);
+		BorrowMaterial borrowMaterial = lookupBorrowMaterial(transactionId);
 		borrowReturnMaterial.setBorrowMaterial(borrowMaterial);
 
 		// CollectionMemberID (collectionCode)
@@ -133,11 +129,11 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		borrowReturnMaterial.setCollectionMemberId(collectionMemberId);
 		
 		// Quantity
-		short quantity = getQuantity(outReturnBatch);
+		short quantity = outReturnBatch.getQuantity();
 		borrowReturnMaterial.setQuantity(quantity);
 		
-		// Remarks (note)
-		String note = outReturnBatch.getNote();
+		// Remarks (type and non-specimen count)
+		String note = outReturnBatch.getItemCountNote();
 		borrowReturnMaterial.setRemarks(note);
 		
 		// ReturnedDate (actionDate)
@@ -151,23 +147,14 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		return borrowReturnMaterial;
 	}
 	
-	private BorrowMaterial lookupTaxonBatch(Integer transactionId) throws LocalException
+	private BorrowMaterial lookupBorrowMaterial(Integer transactionId) throws LocalException
 	{
-		return borrowMaterialLookup.getBorrowMaterial(transactionId);
+		return borrowMaterialLookup.getById(transactionId);
 	}
 	
 	private Borrow lookupBorrow(Integer transactionId) throws LocalException
 	{
 		return borrowLookup.getById(transactionId);
-	}
-	
-	private short getQuantity(OutReturnBatch outReturnBatch)
-	{
-	    Integer itemCount = outReturnBatch.getItemCount();
-	    Integer typeCount = outReturnBatch.getTypeCount();
-	    Integer nonSpecimenCount = outReturnBatch.getNonSpecimenCount();
-
-	    return (short) (itemCount + typeCount + nonSpecimenCount);
 	}
 	
 	private Shipment getShipment(OutReturnBatch outReturnBatch) throws LocalException
@@ -201,23 +188,16 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     		}
     		catch (NumberFormatException e)
     		{
-    			; // this field was already saved in TransactionLoader
+    			;
     		}
     	}
 
-    	// Number1 (shipment.ordinal)
-    	shipment.setNumber1((float) 1.0);
-    	
-    	// Number2 (cost)
-    	Float cost = outReturnBatch.getCost();
-    	shipment.setNumber2(cost);
-    	
-    	// Remarks (shipment.description)
-    	String description = getDescription(outReturnBatch);
-    	shipment.setRemarks(description);
+    	// Number1 (cost)
+        Float cost = outReturnBatch.getCost();
+        shipment.setNumber1(cost);
     	
     	// Shipper (carrier)
-    	String carrier = outReturnBatch.getCarrier().name();
+    	String carrier = AsaShipment.toString(outReturnBatch.getCarrier());
     	Agent shipper = lookupCarrier(carrier);
     	
     	shipment.setShipper(shipper);
@@ -227,7 +207,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	if (actionDate != null) shipment.setShipmentDate(DateUtils.toCalendar(actionDate));
 
     	// ShipmentMethod (method)
-    	String method = outReturnBatch.getMethod().name();
+    	String method = AsaShipment.toString(outReturnBatch.getMethod());
     	shipment.setShipmentMethod(method);
     	
     	// ShipmentNumber (shipment.trackingNumber)
@@ -237,15 +217,19 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	shipmentNumber = truncate(shipmentNumber, 50, "transaction number");
     	shipment.setShipmentNumber(shipmentNumber);
     	
+    	// Remarks (shipment.description)
+    	String note = outReturnBatch.getNote();
+    	shipment.setRemarks(note);
+
     	// Text1 (shipment.customsNo)
     	    	
-    	// YesNo1 (isEstimatedCost)
-    	Boolean isEstimatedCost = outReturnBatch.isEstimatedCost();
-    	shipment.setYesNo1(isEstimatedCost);
+    	// YesNo1 (acknowledgedFlag)
+        Boolean isAcknowledged = outReturnBatch.isAcknowledged();
+        shipment.setYesNo1(isAcknowledged);
     	
-    	// YesNo2 (acknowledgedFlag)
-    	Boolean isAcknowledged = outReturnBatch.isAcknowledged();
-    	shipment.setYesNo2(isAcknowledged);
+    	// YesNo2 (isCostEstimated)
+        Boolean isEstimatedCost = outReturnBatch.isEstimatedCost();
+        shipment.setYesNo2(isEstimatedCost);
     	
 		return shipment;
 	}
@@ -261,22 +245,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	}
     	return carrier;
     }
-    
-	private String getDescription(OutReturnBatch taxonBatch)
-	{
-		String boxCount = taxonBatch.getBoxCount();
-		if (boxCount == null) boxCount = "0";
-		
-	    Integer itemCount = taxonBatch.getItemCount();
-	    Integer typeCount = taxonBatch.getTypeCount();
-	    Integer nonSpecimenCount = taxonBatch.getNonSpecimenCount();
 
-	    Object[] args = {boxCount, itemCount, typeCount, nonSpecimenCount };
-	    String pattern = "{0} box(es): {1} items, {2} types, {3} non-specimens";
-	    
-	    return MessageFormat.format(pattern, args);
-	}
-	
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
 		String fields = "BorrowMaterialID, CollectionMemberID, Quantity, " +
@@ -298,7 +267,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	private String getInsertSql(Shipment shipment)
 	{
 		String fields = "BorrowID, CollectionMemberID, NumberOfPackages, " +
-				        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
+				        "Number1, Remarks, ShipperID, ShipmentDate, ShipmentMethod, " +
 				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
 		String[] values = new String[13];
@@ -307,9 +276,9 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		values[1]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
 		values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
 		values[3]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[4]  = SqlUtils.sqlString( shipment.getNumber2());
-		values[5]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[6]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[4]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[5]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
 		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
 		values[9]  = SqlUtils.now();

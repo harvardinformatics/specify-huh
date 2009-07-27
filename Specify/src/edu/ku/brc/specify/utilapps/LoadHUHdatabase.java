@@ -410,6 +410,7 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
+            BorrowMaterialLookup borrowMaterialLookup = borrowLoader.getBorrowMaterialLookup();
             
             frame.setDesc("Loading incoming exchanges...");
             IncomingExchangeLoader inExchangeLoader =
@@ -528,7 +529,7 @@ public class LoadHUHdatabase
             frame.setDesc("Loading out_return batches...");
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,
-                                                                                 taxonBatchLookup,
+                                                                                 borrowMaterialLookup,
                                                                                  carrierLookup,
                                                                                  borrowLookup);
             outReturnBatchLoader.setFrame(frame);

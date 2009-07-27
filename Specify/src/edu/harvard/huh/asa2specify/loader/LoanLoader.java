@@ -102,17 +102,7 @@ public class LoanLoader extends TransactionLoader
     {        
         AsaLoan asaLoan = new AsaLoan();
         
-        int i = parse(columns, asaLoan);
-        
-        if (columns.length < i + 4)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        asaLoan.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        asaLoan.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));           
-        asaLoan.setHigherTaxon(                         columns[i + 2] );
-        asaLoan.setTaxon(                               columns[i + 3] );
+        super.parse(columns, asaLoan);
 
         return asaLoan;
     }

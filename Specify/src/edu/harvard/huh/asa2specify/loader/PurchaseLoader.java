@@ -147,24 +147,8 @@ public class PurchaseLoader extends TransactionLoader
     {        
         Purchase purchase = new Purchase();
         
-        int i = parse(columns, purchase);
-        
-        if (columns.length < i + 10)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        purchase.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        purchase.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
-        purchase.setGeoUnit(                             columns[i + 2] );
-        purchase.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
-        purchase.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
-        purchase.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
-        purchase.setDiscardCount(     SqlUtils.parseInt( columns[i + 6] ));
-        purchase.setDistributeCount(  SqlUtils.parseInt( columns[i + 7] ));
-        purchase.setReturnCount(      SqlUtils.parseInt( columns[i + 8] ));
-        purchase.setCost(           SqlUtils.parseFloat( columns[i + 9] ));
-        
+        super.parse(columns, purchase);
+
         return purchase;
     }
     

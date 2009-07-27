@@ -28,7 +28,7 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 
-public class IncomingExchangeLoader extends TransactionLoader
+public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(IncomingExchangeLoader.class);
     
@@ -60,24 +60,8 @@ public class IncomingExchangeLoader extends TransactionLoader
     {        
         IncomingExchange inExchange = new IncomingExchange();
         
-        int i = parse(columns, inExchange);
-        
-        if (columns.length < i + 10)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        inExchange.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        inExchange.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
-        inExchange.setGeoUnit(                             columns[i + 2] );
-        inExchange.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
-        inExchange.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
-        inExchange.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
-        inExchange.setDiscardCount(     SqlUtils.parseInt( columns[i + 6] ));
-        inExchange.setDistributeCount(  SqlUtils.parseInt( columns[i + 7] ));
-        inExchange.setReturnCount(      SqlUtils.parseInt( columns[i + 8] ));
-        inExchange.setCost(           SqlUtils.parseFloat( columns[i + 9] ));
-        
+        super.parse(columns, inExchange);
+
         return inExchange;
     }
     

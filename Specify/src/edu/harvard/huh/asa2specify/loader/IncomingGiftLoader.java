@@ -73,25 +73,11 @@ public class IncomingGiftLoader extends TransactionLoader
 
     private IncomingGift parse(String[] columns) throws LocalException
     {        
-        IncomingGift incomingGift = new IncomingGift();
+        IncomingGift inGift = new IncomingGift();
         
-        int i = parse(columns, incomingGift);
-        
-        if (columns.length < i + 8)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        incomingGift.setGeoUnit(                             columns[i + 0] );
-        incomingGift.setItemCount(        SqlUtils.parseInt( columns[i + 1] ));
-        incomingGift.setTypeCount(        SqlUtils.parseInt( columns[i + 2] ));
-        incomingGift.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 3] ));
-        incomingGift.setDiscardCount(     SqlUtils.parseInt( columns[i + 4] ));
-        incomingGift.setDistributeCount(  SqlUtils.parseInt( columns[i + 5] ));
-        incomingGift.setReturnCount(      SqlUtils.parseInt( columns[i + 6] ));
-        incomingGift.setCost(           SqlUtils.parseFloat( columns[i + 7] ));
+        super.parse(columns, inGift);
 
-        return incomingGift;
+        return inGift;
     }
     
     private Accession getAccession(IncomingGift inGift) throws LocalException

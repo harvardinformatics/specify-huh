@@ -69,24 +69,8 @@ public class StaffCollectionLoader extends TransactionLoader
     {        
         StaffCollection staffCollection = new StaffCollection();
         
-        int i = parse(columns, staffCollection);
-        
-        if (columns.length < i + 10)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        staffCollection.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        staffCollection.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
-        staffCollection.setGeoUnit(                             columns[i + 2] );
-        staffCollection.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
-        staffCollection.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
-        staffCollection.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
-        staffCollection.setDiscardCount(     SqlUtils.parseInt( columns[i + 6] ));
-        staffCollection.setDistributeCount(  SqlUtils.parseInt( columns[i + 7] ));
-        staffCollection.setReturnCount(      SqlUtils.parseInt( columns[i + 8] ));
-        staffCollection.setCost(           SqlUtils.parseFloat( columns[i + 9] ));
-        
+        super.parse(columns, staffCollection);
+
         return staffCollection;
     }
     

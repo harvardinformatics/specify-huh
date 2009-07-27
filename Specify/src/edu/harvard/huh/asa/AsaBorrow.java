@@ -14,28 +14,7 @@
  */
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class AsaBorrow extends Transaction
+public class AsaBorrow extends TaxonBatchTransaction
 {
-    private Date   originalDueDate;
-    private Date   currentDueDate;
-    private String higherTaxon;
-    private String taxon;
     
-    public Date getOriginalDueDate() { return originalDueDate; }
-    
-    public Date getCurrentDueDate() { return currentDueDate; }
-    
-    public String getHigherTaxon() { return higherTaxon; }
-    
-    public String getTaxon() { return taxon; }
-    
-    public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
-    
-    public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
-    
-    public void setHigherTaxon(String higherTaxon) { this.higherTaxon = higherTaxon; }
-    
-    public void setTaxon(String taxon) { this.taxon = taxon; }
 }

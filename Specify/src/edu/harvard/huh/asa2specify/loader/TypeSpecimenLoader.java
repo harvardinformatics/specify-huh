@@ -210,7 +210,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         String verifiedBy = typeSpecimen.getVerifiedBy();
         determination.setText1(verifiedBy);
         
-        // TypeStatusName
+        // TypeStatusName TODO: enum for type status name
         String typeStatus = typeSpecimen.getTypeStatus();
         checkNull(typeStatus, "type status");
         

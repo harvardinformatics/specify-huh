@@ -1062,6 +1062,7 @@
             <columnDef os="mac">130px,2px,142px,5px,170px,2px,142px,10px,200px,5px,80px,2px,142px,0px,15px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             
+            <!-- Needs text1 (purpose) -->
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -1082,13 +1083,13 @@
                     <cell type="field" id="4" name="dateClosed" uitype="formattedtext" uifieldformatter="Date"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="description"/>
-                	<cell type="field" id="description" name="text1" uitype="text" colspan="12"/>
+                	<cell type="label" labelfor="purpose"/>
+                	<cell type="field" id="purpose" name="text1" uitype="text" colspan="12"/>
                 </row>
-                <row>
+                <!-- <row>
                 	<cell type="label" labelfor="forUseBy"/>
                 	<cell type="field" id="forUseBy" name="text2" uitype="text" colspan="12"/>
-                </row>
+                </row> -->
                 <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
@@ -1172,6 +1173,10 @@
                 <row>
                     <cell type="label" labelfor="3" />
                     <cell type="field" id="3" name="description" uitype="text" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="inComments" />
+                    <cell type="field" id="inComments" name="inComments" uitype="textareabrief" rows="2" colspan="14"/>
                 </row>
             </rows>
         </viewdef>
@@ -2029,6 +2034,20 @@
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="quantityExchanged" uitype="text"/>
                 </row>-->
+                <row>
+                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
+                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox"/>
+                	<cell type="label" labelfor="cost"/>
+                	<cell type="field" id="cost" name="number2" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="srcGeography"/>
+                	<cell type="field" id="srcGeography" name="srcGeography" uitype="querycbx" initialize="name=Geography"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="details"/>
+                    <cell type="field" id="details" name="text1" uitype="textareabrief" rows="2" colspan="10"/>
+                </row>
                 <row>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="descriptionOfMaterial" uitype="text" colspan="10"/>

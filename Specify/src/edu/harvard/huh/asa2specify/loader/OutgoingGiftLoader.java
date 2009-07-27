@@ -30,7 +30,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.DeaccessionAgent;
 
-public class OutgoingGiftLoader extends TransactionLoader
+public class OutgoingGiftLoader extends CountableTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
     
@@ -102,8 +102,15 @@ public class OutgoingGiftLoader extends TransactionLoader
     {        
         OutgoingGift outgoingGift = new OutgoingGift();
         
-        parse(columns, outgoingGift);
+        int i = super.parse(columns, outgoingGift);
+        
+        if (columns.length < i + 1)
+        {
+            throw new LocalException("Not enough columns");
+        }
 
+        outgoingGift.setGeoUnit( columns[i + 0] );
+        
         return outgoingGift;
     }
     

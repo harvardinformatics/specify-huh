@@ -29,7 +29,7 @@ import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 
-public class OutgoingExchangeLoader extends TransactionLoader
+public class OutgoingExchangeLoader extends CountableTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingExchangeLoader.class);
             
@@ -84,19 +84,14 @@ public class OutgoingExchangeLoader extends TransactionLoader
     {        
         OutgoingExchange outExchange = new OutgoingExchange();
         
-        int i = parse(columns, outExchange);
+        int i = super.parse(columns, outExchange);
         
-        if (columns.length < i + 6)
+        if (columns.length < i + 1)
         {
             throw new LocalException("Not enough columns");
         }
         
-        outExchange.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        outExchange.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));
-        outExchange.setGeoUnit(                             columns[i + 2] );
-        outExchange.setItemCount(        SqlUtils.parseInt( columns[i + 3] ));
-        outExchange.setTypeCount(        SqlUtils.parseInt( columns[i + 4] ));
-        outExchange.setNonSpecimenCount( SqlUtils.parseInt( columns[i + 5] ));
+        outExchange.setGeoUnit( columns[i + 0] );
         
         return outExchange;
     }
@@ -209,11 +204,9 @@ public class OutgoingExchangeLoader extends TransactionLoader
         Integer itemCount = outgoingExchange.getItemCount();
         Integer typeCount = outgoingExchange.getTypeCount();
         Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
-
-        Date originalDateDue = outgoingExchange.getOriginalDueDate();
         
-        Object[] args = { itemCount, typeCount, nonSpecimenCount, DateUtils.toString(originalDateDue) };
-        String pattern = "{0} items, {1} types, {2} non-specimens{3}";
+        Object[] args = { itemCount, typeCount, nonSpecimenCount };
+        String pattern = "{0} items, {1} types, {2} non-specimens";
 
         return MessageFormat.format(pattern, args);
     }    

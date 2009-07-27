@@ -4,17 +4,12 @@ import java.util.Date;
 
 import edu.harvard.huh.asa.AsaShipment.CARRIER;
 import edu.harvard.huh.asa.AsaShipment.METHOD;
-import edu.harvard.huh.asa.Transaction.TYPE;
 
-public class OutReturnBatch
+public class OutReturnBatch extends CountableTransaction
 {
 	private Integer id;
 	private Integer transactionId;
 	private String  collectionCode;
-	private TYPE    type;
-	private Integer itemCount;
-	private Integer typeCount;
-	private Integer nonSpecimenCount;
 	private String  boxCount;
 	private Boolean isAcknowledged;
 	private Date    actionDate;
@@ -23,21 +18,12 @@ public class OutReturnBatch
 	private Float   cost;
 	private Boolean isEstimatedCost;
 	private String  note;
-	private String  transactionNo;
 	
 	public Integer getId() { return id; }
 	
 	public Integer getTransactionId() { return transactionId; }
 	
 	public String getCollectionCode() { return collectionCode; }
-	
-	public TYPE getTransactionType() { return type; }
-	
-	public Integer getItemCount() { return itemCount; }
-	
-	public Integer getTypeCount() { return typeCount; }
-	
-	public Integer getNonSpecimenCount() { return nonSpecimenCount; }
 	
 	public String getBoxCount() { return boxCount; }
 	
@@ -55,23 +41,13 @@ public class OutReturnBatch
 	
 	public String getNote() { return note; }
 	
-	public String getTransactionNo() { return transactionNo; }
-	
 	public void setId(Integer id) { this.id = id; }
 	
 	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
 	
 	public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 	
-	public void setType(TYPE type) { this.type = type; }
-	
-	public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
-	
-	public void setTypeCount(Integer typeCount) { this.typeCount = typeCount; }
-	
 	public void setBoxCount(String boxCount) { this.boxCount = boxCount; }
-	
-	public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
 	
 	public void setIsAcknowledged(Boolean isAcknowledged) { this.isAcknowledged = isAcknowledged; }
 	
@@ -86,6 +62,4 @@ public class OutReturnBatch
     public void setIsEstimatedCost(Boolean isEstimatedCost) { this.isEstimatedCost = isEstimatedCost; }
 	
 	public void setNote(String note) { this.note = note; }
-	
-	public void setTransactionNo(String transactionNo) { this.transactionNo = transactionNo; }
 }

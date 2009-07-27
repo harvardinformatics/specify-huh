@@ -28,18 +28,21 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
+import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
+import edu.ku.brc.specify.datamodel.BorrowMaterial;
 
-public class BorrowLoader extends TransactionLoader
+public class BorrowLoader extends CountableTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(BorrowLoader.class);
     
     private static final String DEFAULT_BORROW_NUMBER = "none";
     
-    private BorrowLookup borrowLookup;
+    private BorrowLookup         borrowLookup;
+    private BorrowMaterialLookup borrowMaterialLookup;
     
     public BorrowLoader(File csvFile,
                         Statement sqlStatement,
@@ -54,6 +57,9 @@ public class BorrowLoader extends TransactionLoader
               agentLookup);
    }
 
+    // Loads records from asa tables herb_transaction (type='borrow') and taxon_batch.
+    // The complimentary direction of these transactions are out_return batch records.
+    // There are no associated shipment records.
     public void loadRecord(String[] columns) throws LocalException
     {
         AsaBorrow asaBorrow = parse(columns);
@@ -85,6 +91,10 @@ public class BorrowLoader extends TransactionLoader
             sql = getInsertSql(lender);
             insert(sql);
         }
+        
+        BorrowMaterial borrowMaterial = getBorrowMaterial(asaBorrow, borrow, collectionMemberId);
+        sql = getInsertSql(borrowMaterial);
+        insert(sql);
     }
 
     public Logger getLogger()
@@ -113,22 +123,34 @@ public class BorrowLoader extends TransactionLoader
         }
         return borrowLookup;
     }
+    
+    public BorrowMaterialLookup getBorrowMaterialLookup()
+    {
+        if (borrowMaterialLookup == null)
+        {
+            borrowMaterialLookup = new BorrowMaterialLookup()
+            {
+                @Override
+                public BorrowMaterial getById(Integer transactionId) throws LocalException
+                {
+                    BorrowMaterial borrowMaterial = new BorrowMaterial();
+                    
+                    Integer borrowMaterialId = getInt("borrowmaterial", "BorrowMaterialID", "MaterialNumber", transactionId);
+                    
+                    borrowMaterial.setBorrowMaterialId(borrowMaterialId);
+                    
+                    return borrowMaterial;
+                }
+            };
+        }
+        return borrowMaterialLookup;
+    }
 
     private AsaBorrow parse(String[] columns) throws LocalException
     {        
         AsaBorrow asaBorrow = new AsaBorrow();
         
-        int i = parse(columns, asaBorrow);
-        
-        if (columns.length < i + 4)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        asaBorrow.setOriginalDueDate( SqlUtils.parseDate( columns[i + 0] ));
-        asaBorrow.setCurrentDueDate(  SqlUtils.parseDate( columns[i + 1] ));           
-        asaBorrow.setHigherTaxon(                         columns[i + 2] );
-        asaBorrow.setTaxon(                               columns[i + 3] );
+        super.parse(columns, asaBorrow);
 
         return asaBorrow;
     }
@@ -199,13 +221,15 @@ public class BorrowLoader extends TransactionLoader
         String remarks = asaBorrow.getRemarks();
         borrow.setRemarks(remarks);
                 
-        // Text1 (description)
-        String description = asaBorrow.getDescription();
+        // Text1 (purpose)
+        String description = Transaction.toString(asaBorrow.getPurpose());
         borrow.setText1(description);
         
-        // Text2 (forUseBy, userType, purpose)
-        String usage = getUsage(asaBorrow);
-        borrow.setText2(usage);
+        // Text2 (for use by?)
+        if (asaBorrow.getForUseBy() != null)
+        {
+            getLogger().warn(rec() + "ignoring for_use_by: " + asaBorrow.getForUseBy());
+        }
         
         // TimestampCreated
         Date dateCreated = asaBorrow.getDateCreated();
@@ -248,12 +272,11 @@ public class BorrowLoader extends TransactionLoader
         // LoanID
         borrowAgent.setBorrow(borrow);
         
-        // Remarks
+        // Remarks (borrow.userType)
         if (role.equals(ROLE.Borrower))
         {
-            String forUseBy = transaction.getForUseBy();
-            String remarks = "(" + forUseBy + ")";
-            borrowAgent.setRemarks(remarks);
+            String userType = Transaction.toString(transaction.getUserType());
+            borrowAgent.setRemarks(userType);
         }
         
         // Role
@@ -262,6 +285,87 @@ public class BorrowLoader extends TransactionLoader
         return borrowAgent;
     }
 
+    private BorrowMaterial getBorrowMaterial(AsaBorrow asaBorrow, Borrow borrow, Integer collectionMemberId) throws LocalException
+    {
+        BorrowMaterial borrowMaterial = new BorrowMaterial();
+        
+        // Borrow
+        borrowMaterial.setBorrow(borrow);
+        
+        // CollectionMemberID (collectionCode)
+        borrowMaterial.setCollectionMemberId(collectionMemberId);
+        
+        // Description (higherTaxon, taxon)
+        String higherTaxon = asaBorrow.getHigherTaxon();
+        String taxon       = asaBorrow.getTaxon();
+
+        if (higherTaxon != null || taxon != null)
+        {
+            String description = null;
+            
+            if (higherTaxon == null) description = taxon;
+            else if (taxon == null) description = higherTaxon;
+            else description = higherTaxon + " " + taxon;
+            
+            description = truncate(description, 50, "description");
+            borrowMaterial.setDescription(description);
+        }
+   
+        // InComments (box count, type & non-specimen counts, description)
+        String description = asaBorrow.getDescription();
+        String boxCount = asaBorrow.getBoxCount();
+        Integer typeCount = asaBorrow.getTypeCount();
+        Integer nonSpecimenCount = asaBorrow.getNonSpecimenCount();
+        
+        if (description != null || boxCount != null || (typeCount != null && typeCount > 0) || (nonSpecimenCount != null && nonSpecimenCount > 0))
+        {
+            String counts = null;
+
+            if (boxCount != null || typeCount != null || nonSpecimenCount != null)
+            {
+                String itemCounts = asaBorrow.getItemCountNote();
+                
+                if (boxCount != null)
+                {
+                    try
+                    {
+                        int boxes = Integer.parseInt(boxCount);
+                        boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
+                    }
+                    catch (NumberFormatException nfe)
+                    {
+                        ;
+                    }
+                    boxCount = boxCount + ".";
+                }
+                
+                if (boxCount == null) counts =  itemCounts;
+                else if (itemCounts == null) counts = boxCount;
+                else counts = boxCount + "  " + itemCounts;
+            }
+            
+            String inComments = null;
+
+            if (counts == null) inComments = description;
+            else if (description == null) inComments = counts;
+            else inComments = counts + "  " + description;
+            
+            borrowMaterial.setInComments(inComments);
+        }
+        
+        // MaterialNumber (transactionId)
+        String asaBorrowId = String.valueOf(asaBorrow.getId());
+        checkNull(asaBorrowId, "transaction id");
+        
+        borrowMaterial.setMaterialNumber(asaBorrowId);
+        
+        // Quantity (itemCount + typeCount + nonSpecimenCount)
+        short quantity = asaBorrow.getQuantity();
+        borrowMaterial.setQuantity(quantity);
+        
+        return borrowMaterial;
+    }
+    
     private String getInsertSql(Borrow borrow)
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
@@ -292,18 +396,38 @@ public class BorrowLoader extends TransactionLoader
     
     private String getInsertSql(BorrowAgent borrowAgent)
     {
-        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Remarks, Role, TimestampCreated, Version";
 
-        String[] values = new String[6];
+        String[] values = new String[7];
 
         values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( borrowAgent.getBorrow().getId());
         values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
-        values[3] = SqlUtils.sqlString( borrowAgent.getRole());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[3] = SqlUtils.sqlString( borrowAgent.getRemarks());
+        values[4] = SqlUtils.sqlString( borrowAgent.getRole());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
+    }
+    
+    private String getInsertSql(BorrowMaterial borrowMaterial)
+    {
+        String fields = "BorrowID, CollectionMemberID, Description, InComments, " +
+                        "MaterialNumber, Quantity, TimestampCreated, Version";
+            
+        String[] values = new String[8];
+        
+        values[0] = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
+        values[1] = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
+        values[2] = SqlUtils.sqlString( borrowMaterial.getDescription());
+        values[3] = SqlUtils.sqlString( borrowMaterial.getInComments());
+        values[4] = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
+        values[5] = SqlUtils.sqlString( borrowMaterial.getQuantity());
+        values[6] = SqlUtils.now();
+        values[7] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }
     
 }

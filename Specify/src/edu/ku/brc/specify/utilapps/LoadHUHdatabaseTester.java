@@ -47,6 +47,7 @@ import edu.harvard.huh.asa2specify.loader.TypeSpecimenLoader;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
+import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
@@ -376,7 +377,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             }
             
             BorrowLookup borrowLookup = borrowLoader.getBorrowLookup();
-            
+            BorrowMaterialLookup borrowMaterialLookup = borrowLoader.getBorrowMaterialLookup();
+
             IncomingExchangeLoader inExchangeLoader =
                 new IncomingExchangeLoader(new File(dir, "incoming_exchange.csv"), statement);
 
@@ -500,7 +502,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,
-                                                                                 taxonBatchLookup,
+                                                                                 borrowMaterialLookup,
                                                                                  carrierLookup,
                                                                                  borrowLookup);
             if (doOutRetBatch)

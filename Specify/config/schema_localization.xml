@@ -3555,7 +3555,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Description</text>
+            <text>Purpose</text>
           </str>
         </names>
         <descs>
@@ -4006,13 +4006,13 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Description</text>
+            <text>Taxon</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Description of the material. `e.g. Bufo bufo skull`.</text>
+            <text>Higher taxon and taxon.</text>
           </str>
         </descs>
       </item>
@@ -4178,7 +4178,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Notes concerning the receipt of the material.</text>
+            <text>Notes concerning the receipt of the material; box count, type and non-specimen counts included in quantity, and description.</text>
           </str>
         </descs>
       </item>
@@ -10187,11 +10187,11 @@
       </item>
       <item name="number2" type="java.lang.Float" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Number2</text>
+            <text>Cost</text>
           </str>
         </names>
         <descs>
@@ -10230,11 +10230,11 @@
       </item>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Their Request?</text>
           </str>
         </names>
         <descs>
@@ -10327,11 +10327,11 @@
       </item>
       <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs>
@@ -10394,11 +10394,11 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Details</text>
           </str>
         </names>
         <descs>

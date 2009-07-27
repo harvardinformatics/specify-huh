@@ -14,58 +14,7 @@
  */
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class StaffCollection extends Transaction
+public class StaffCollection extends InGeoBatchTransaction
 {
-    private Date   originalDueDate;
-    private Date   currentDueDate;
-    private String  geoUnit;
-    private Integer itemCount;
-    private Integer typeCount;
-    private Integer nonSpecimenCount;
-    private Integer discardCount;
-    private Integer distributeCount;
-    private Integer returnCount;
-    private Float   cost;
     
-    public Date getOriginalDueDate() { return originalDueDate; }
-    
-    public Date getCurrentDueDate() { return currentDueDate; }
-    
-    public String getGeoUnit() { return geoUnit; }
-    
-    public Integer getItemCount() { return itemCount; }
-    
-    public Integer getTypeCount() { return typeCount; }
-    
-    public Integer getNonSpecimenCount() { return nonSpecimenCount; }
-    
-    public Integer getDiscardCount() { return discardCount; }
-    
-    public Integer getDistributeCount() { return distributeCount; }
-    
-    public Integer getReturnCount() { return returnCount; }
-    
-    public Float getCost() { return cost; }
-    
-    public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
-    
-    public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
-    
-    public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
-    
-    public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
-    
-    public void setTypeCount(Integer typeCount) { this.typeCount = typeCount; }
-    
-    public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
-    
-    public void setDiscardCount(Integer discardCount) { this.discardCount = discardCount; }
-    
-    public void setDistributeCount(Integer distributeCount) { this.distributeCount = distributeCount; }
-    
-    public void setReturnCount(Integer returnCount) { this.returnCount = returnCount; }
-    
-    public void setCost(Float cost) { this.cost = cost; }
 }
