@@ -7,6 +7,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.LoanItem;
+import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -25,39 +26,50 @@ public class LoanItemLoader extends CsvToSqlLoader
     private PreparationLookup prepLookup;
     private LoanLookup        loanLookup;
     
+    private AsaIdMapper barcodeSpecimenItemId;
+    
 	public LoanItemLoader(File csvFile,
 	                      Statement sqlStatement,
 	                      PreparationLookup prepLookup,
-	                      LoanLookup loanLookup) throws LocalException
+	                      LoanLookup loanLookup,
+	                      File barcodeSpecimenItemIds) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.prepLookup = prepLookup;
 		this.loanLookup = loanLookup;
+		this.barcodeSpecimenItemId = new AsaIdMapper(barcodeSpecimenItemIds);
 	}
 
 	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		LoanItem loanItem = parse(columns);
-		
-		Integer loanItemId = loanItem.getId();
-		setCurrentRecordId(loanItemId);
-		
-		LoanPreparation loanPreparation = getLoanPreparation(loanItem);
+        
+        Integer loanItemId = loanItem.getId();
+        setCurrentRecordId(loanItemId);
+        
+        String code = loanItem.getLocalUnit();
+        checkNull(code, "local unit");
+        
+        Integer collectionMemberId = getCollectionId(code);
+
+		LoanPreparation loanPreparation = getLoanPreparation(loanItem, collectionMemberId);
 		
 		String sql = getInsertSql(loanPreparation);
 		Integer loanPreparationId = insert(sql);
 		loanPreparation.setLoanPreparationId(loanPreparationId);
 		
-		LoanReturnPreparation loanReturnPreparation = getLoanReturnPreparation(loanItem, loanPreparation);
-		if (loanReturnPreparation != null)
+		if (loanItem.getReturnDate() != null)
 		{
-			loanReturnPreparation.setCollectionMemberId(loanPreparation.getCollectionMemberId());
-			loanReturnPreparation.setLoanPreparation(loanPreparation);
-			
-			sql = getInsertSql(loanReturnPreparation);
-			insert(sql);
+		    LoanReturnPreparation loanReturnPreparation =
+		        getLoanReturnPreparation(loanItem, loanPreparation, collectionMemberId);
+
+		    loanReturnPreparation.setCollectionMemberId(loanPreparation.getCollectionMemberId());
+		    loanReturnPreparation.setLoanPreparation(loanPreparation);
+
+		    sql = getInsertSql(loanReturnPreparation);
+		    insert(sql);
 		}
 	}
 
@@ -65,6 +77,11 @@ public class LoanItemLoader extends CsvToSqlLoader
 	{
 	    return log;
 	}
+	
+	private Integer lookupBarcode(Integer barcode)
+    {
+        return barcodeSpecimenItemId.map(barcode);
+    }
 	
 	private String formatBarcode(Integer barcode) throws LocalException
 	{
@@ -76,6 +93,11 @@ public class LoanItemLoader extends CsvToSqlLoader
 	    return prepLookup.getByBarcode(barcode);
 	}
 
+	private Preparation lookupSpecimenItem(Integer specimenItemId) throws LocalException
+	{
+	    return prepLookup.getBySpecimenItemId(specimenItemId);
+	}
+	
 	private Loan lookupLoan(Integer transactionId) throws LocalException
 	{
 	    return loanLookup.getById(transactionId);
@@ -108,30 +130,20 @@ public class LoanItemLoader extends CsvToSqlLoader
     	return loanItem;
 	}
 
-	private LoanPreparation getLoanPreparation(LoanItem loanItem) throws LocalException
+	private LoanPreparation getLoanPreparation(LoanItem loanItem, Integer collectionMemberId) throws LocalException
 	{
 		LoanPreparation loanPreparation = new LoanPreparation();
 		
 		// CollectionMemberID
-		String code = loanItem.getCollection();
-		if (code == null)
-		{
-		    getLogger().warn(rec() + " has no collection (barcode not found?)");
-		    code = loanItem.getLocalUnit();
-		}
-		checkNull(code, "collection code");
-		Integer collectionMemberId = getCollectionId(code);
 		loanPreparation.setCollectionMemberId(collectionMemberId);
 		
 		// InComments
-		Date returnDate = loanItem.getReturnDate();
-		if (returnDate != null)
-		{
-		    loanPreparation.setInComments(DateUtils.toString(returnDate));
-		}
+		String transferredFrom = loanItem.getTransferredFrom();
+		if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
+		loanPreparation.setInComments(transferredFrom);
 
 		// IsResolved
-		boolean isResolved = returnDate != null;
+		boolean isResolved = loanItem.getReturnDate() != null;
 		loanPreparation.setIsResolved(isResolved);
 		
 		// LoanID
@@ -140,28 +152,19 @@ public class LoanItemLoader extends CsvToSqlLoader
 		loanPreparation.setLoan(loan);
 		
 		// OutComments
-		StringBuffer outComments = new StringBuffer();
-		
-		String transferredFrom = loanItem.getTransferredFrom();
-		if (transferredFrom != null) 
-		{
-			outComments.append("Transferred from: ");
-			outComments.append(transferredFrom);
-		}
-		
-		String transferredTo = loanItem.getTransferredTo();
-		if (transferredTo != null)
-		{
-			if (outComments.length() > 0) outComments.append("; ");
-			outComments.append("Transferred to: ");
-			outComments.append(transferredTo);
-		}
-		
-		loanPreparation.setOutComments(outComments.toString());
-		
+        String transferredTo = loanItem.getTransferredTo();
+        if (transferredTo != null) transferredTo = "Transferred to " + transferredTo + ".";
+        loanPreparation.setOutComments(transferredTo);
+
 		// PreparationID
-		String barcode = formatBarcode(loanItem.getBarcode());
-	    Preparation preparation = lookupSpecimenItem(barcode);
+		Preparation preparation = null;
+		
+		Integer barcode = loanItem.getBarcode();
+		Integer specimenItemId = lookupBarcode(barcode);
+		String catalogNumber = formatBarcode(barcode);
+
+		if (specimenItemId != null) preparation = lookupSpecimenItem(specimenItemId);
+		else preparation = lookupSpecimenItem(catalogNumber);
 		
 		loanPreparation.setPreparation(preparation);
 		
@@ -169,33 +172,27 @@ public class LoanItemLoader extends CsvToSqlLoader
 		loanPreparation.setQuantity(1);
 		
 		// QuantityResolved/QuantityReturned
-		int q = isResolved? 1 : 0;
-
-		loanPreparation.setQuantityResolved(q);
-		loanPreparation.setQuantityReturned(q);
+		loanPreparation.setQuantityResolved(isResolved ? 1 : 0);
+		loanPreparation.setQuantityReturned(isResolved ? 1 : 0);
 
 		return loanPreparation;
 	}
 	
 	private LoanReturnPreparation getLoanReturnPreparation(LoanItem loanItem,
-	                                                       LoanPreparation loanPreparation) throws LocalException
-	{
-		if (loanItem.getReturnDate() == null) return null;
-		
+	                                                       LoanPreparation loanPreparation,
+	                                                       Integer collectionMemberId) throws LocalException
+	{		
 		LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
 		
 		// CollectionMemberID
-		String collectionCode = loanItem.getCollection();
-		Integer collectionMemberId = getCollectionId(collectionCode);
 		loanReturnPreparation.setCollectionMemberId(collectionMemberId);
 
 		// LoanPreparation
 		loanReturnPreparation.setLoanPreparation(loanPreparation);
 		
-		// QuantityResolved/QuantityReturned TODO: resolved?  returned?
-		int q = 1;
-		loanReturnPreparation.setQuantityResolved(q);
-		loanReturnPreparation.setQuantityReturned(q);
+		// QuantityResolved/QuantityReturned
+		loanReturnPreparation.setQuantityResolved(1);
+		loanReturnPreparation.setQuantityReturned(1);
 		
 		// ReturnedDate
 		Date returnDate = loanItem.getReturnDate();

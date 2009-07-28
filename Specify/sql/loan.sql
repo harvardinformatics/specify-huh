@@ -17,13 +17,15 @@ select t.id,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
 
+       tb.item_count,
+       tb.type_count,
+       tb.non_specimen_count,
+
        to_char((select min(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
        to_char((select max(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
        (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
        regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from,
-
-       items.quantity as quantity,
        return_items.quantity as quantity_returned
 
 from herb_transaction t,
@@ -32,24 +34,13 @@ from herb_transaction t,
      (select ht.id as loan_id,
              sum(b.item_count + b.type_count + b.non_specimen_count) as quantity
       from herb_transaction ht,
-           ((select herb_transaction_id as loan_id, item_count, type_count, non_specimen_count from taxon_batch) union
-            (select loan_id, 1 as item_count, 0 as type_count, 0 as non_specimen_count from loan_item)) b
+           (select id, herb_transaction_id as loan_id, item_count, 0 as type_count, non_specimen_count from in_return_batch) b
       where ht.id=b.loan_id
       group by ht.id
-     ) items,
-
-      (select ht.id as loan_id,
-              sum(b.item_count + b.type_count + b.non_specimen_count) as quantity
-       from herb_transaction ht,
-            ((select herb_transaction_id as loan_id, item_count, 0 as type_count, non_specimen_count from in_return_batch) union
-             (select loan_id, 1 as item_count, 0 as type_count, 0 as non_specimen_count from loan_item where return_date is not null)) b
-       where ht.id=b.loan_id
-       group by ht.id
-      ) return_items
+     ) return_items
 
 where (select name from st_lookup where id=t.type_id) = 'loan' and
       t.id=tb.herb_transaction_id and
-      t.id=items.loan_id(+) and
       t.id=return_items.loan_id(+)
 
 order by t.id

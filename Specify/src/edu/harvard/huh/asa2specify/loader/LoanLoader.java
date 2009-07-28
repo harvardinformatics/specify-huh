@@ -23,26 +23,46 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.AsaLoan;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
+import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
-import edu.harvard.huh.asa2specify.loader.TransactionLoader;
+import edu.harvard.huh.asa2specify.lookup.LoanPreparationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanAgent;
+import edu.ku.brc.specify.datamodel.LoanPreparation;
 
-public class LoanLoader extends TransactionLoader
+public class LoanLoader extends TaxonBatchTransactionLoader
 {
     private static final Logger log = Logger.getLogger(LoanLoader.class);
     
     private static final String DEFAULT_LOAN_NUMBER = "none";
 
-    private LoanLookup loanLookup;
+    private AsaStringMapper nameToBotanistMapper;
+    private BotanistLookup botanistLookup;
     
-    public LoanLoader(File csvFile,  Statement sqlStatement) throws LocalException
+    private LoanLookup loanLookup;
+    private LoanPreparationLookup loanPrepLookup;
+    
+    public LoanLoader(File csvFile,
+                      Statement sqlStatement,
+                      BotanistLookup botanistLookup,
+                      AffiliateLookup affiliateLookup,
+                      AgentLookup agentLookup,
+                      File nameToBotanist) throws LocalException
     {
-        super(csvFile, sqlStatement);
+        super(csvFile,
+              sqlStatement,
+              botanistLookup,
+              affiliateLookup,
+              agentLookup);
+        
+        this.nameToBotanistMapper = new AsaStringMapper(nameToBotanist);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -59,14 +79,61 @@ public class LoanLoader extends TransactionLoader
         
         Loan loan = getLoan(asaLoan);
         
+        String forUseBy = asaLoan.getForUseBy();
+        Agent borrowerAgent = null;
+        Agent contactAgent = null;
+        
+        if (forUseBy != null)
+        {
+            contactAgent = lookupAgent(asaLoan);
+            
+            Integer botanistId = getBotanistId(forUseBy);
+            
+            if (botanistId != null)
+            { 
+                borrowerAgent = lookup(botanistId);
+            }
+            else
+            {
+                // Text1 (for use by)
+                String userType = Transaction.toString(asaLoan.getUserType());
+                loan.setText1(forUseBy + "(" + userType + ")");
+            }
+        }
+        else
+        {
+            borrowerAgent = lookupAgent(asaLoan);
+        }
+
         String sql = getInsertSql(loan);
         Integer loanId = insert(sql);
         loan.setLoanId(loanId);
         
-        LoanAgent borrower = getLoanAgent(asaLoan, loan, ROLE.Borrower, collectionMemberId); // "contact"
-        if (borrower != null)
+        if (contactAgent != null)
         {
-            sql = getInsertSql(borrower);
+            LoanAgent contact = getLoanAgent(loan, contactAgent, ROLE.Contact, null, collectionMemberId);
+            
+            if (contact != null)
+            {
+                sql = getInsertSql(contact);
+                insert(sql);
+            }
+        }
+        
+        if (borrowerAgent != null)
+        {
+            LoanAgent borrower = getLoanAgent(loan, borrowerAgent, ROLE.Borrower, Transaction.toString(asaLoan.getUserType()), collectionMemberId);
+            if (borrower != null)
+            {
+                sql = getInsertSql(borrower);
+                insert(sql);
+            }
+        }
+
+        LoanPreparation loanPrep = getLoanPreparation(asaLoan, loan, collectionMemberId);
+        if (loanPrep != null)
+        {
+            sql = getInsertSql(loanPrep);
             insert(sql);
         }
     }
@@ -87,6 +154,7 @@ public class LoanLoader extends TransactionLoader
                 {
                     Loan loan = new Loan();
                     
+                    // if this changes, you will have to change getLoanPrepLookup as well.
                     Integer loanId = getInt("loan", "LoanID", "Number1", transactionId);
                     
                     loan.setLoanId(loanId);
@@ -98,12 +166,46 @@ public class LoanLoader extends TransactionLoader
         return loanLookup;
     }
     
+    public LoanPreparationLookup getLoanPrepLookup()
+    {
+        if (loanPrepLookup == null)
+        {
+            loanPrepLookup = new LoanPreparationLookup()
+            {
+                @Override
+                public LoanPreparation getLotById(Integer transactionId) throws LocalException
+                {
+                    LoanPreparation loanPrep = new LoanPreparation();
+              
+                    Integer loanPrepId =
+                        getInt("select LoanPreparationID from loanpreparation where " +
+                        	"PreparationID is null and LoanID=(select LoanID from loan where Number1=" + transactionId + ")");
+                    
+                    loanPrep.setLoanPreparationId(loanPrepId);
+                    
+                    return loanPrep;
+                }
+            };
+        }
+        return loanPrepLookup;
+    }
+
+    private Integer getBotanistId(String name)
+    {
+        return nameToBotanistMapper.map(name);
+    }
+    
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getById(botanistId);
+    }
+    
     private AsaLoan parse(String[] columns) throws LocalException
     {        
         AsaLoan asaLoan = new AsaLoan();
         
         super.parse(columns, asaLoan);
-
+        
         return asaLoan;
     }
     
@@ -185,8 +287,6 @@ public class LoanLoader extends TransactionLoader
         
         // SpecialConditions
         
-        // TODO: SrcGeography?
-        
         // SrcTaxonomy
         String higherTaxon = asaLoan.getHigherTaxon();
         String taxon = asaLoan.getTaxon();
@@ -207,14 +307,6 @@ public class LoanLoader extends TransactionLoader
         	loan.setSrcTaxonomy(srcTaxonomy);
         }
         
-        // Text1 (description)
-        String description = asaLoan.getDescription();
-        loan.setText1(description);
-        
-        // Text2 (localUnit, forUseBy, userType, boxCount)
-        String usage = getUsage(asaLoan);
-        loan.setText2(usage);
-        
         // TimestampCreated
         Date dateCreated = asaLoan.getDateCreated();
         loan.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
@@ -230,43 +322,48 @@ public class LoanLoader extends TransactionLoader
         return loan;
     }
     
-    /**
-     * ([localUnit], user: [for_use_by], type: [user_type], box count: [boxCount])
-     */
-    @Override
-    protected String getUsage(Transaction transaction)
+    private LoanPreparation getLoanPreparation(AsaLoan asaLoan, Loan loan, Integer collectionMemberId) throws LocalException
     {
+        LoanPreparation loanPreparation = new LoanPreparation();
         
-        String localUnit = transaction.getLocalUnit();
+        // CollectionMemberID (collectionCode)
+        loanPreparation.setCollectionMemberId(collectionMemberId);
         
-        String user = transaction.getForUseBy();
-        if (user == null) user = "?";
+        // Description (higherTaxon, taxon)
+        String taxonDescription = getTaxonDescription(asaLoan);
+        taxonDescription = truncate(taxonDescription, 50, "taxon description");
+        loanPreparation.setDescriptionOfMaterial(taxonDescription);
+   
+        // IsResolved
+        boolean isClosed = asaLoan.getCloseDate() != null;
         
-        String userType = transaction.getUserType().name();
+        int quantity = asaLoan.getBatchQuantity();
+        int quantityReturned = asaLoan.getBatchQuantityReturned() == null ? 0 : asaLoan.getBatchQuantityReturned();
+
+        loanPreparation.setIsResolved(quantityReturned == quantity && isClosed);
+
+        // Loan
+        loanPreparation.setLoan(loan);
         
-        String boxCount = transaction.getBoxCount();
+        // OutComments (box count, type & non-specimen counts, description)
+        String outComments = getCountsDescription(asaLoan);
+        loanPreparation.setOutComments(outComments);
         
-        return "("+ localUnit + ", user: " + user + ", " + "type: " + userType + (boxCount != null ? " box count: " + boxCount : "") + ")";
+        // Quantity (itemCount + typeCount + nonSpecimenCount)
+        loanPreparation.setQuantity(quantity);
+        
+        // QuantityResolved/Returned
+        loanPreparation.setQuantityResolved(quantityReturned);
+        loanPreparation.setQuantityReturned(quantityReturned);
+
+        return loanPreparation;
     }
-    
-    private LoanAgent getLoanAgent(Transaction transaction, Loan loan, ROLE role, Integer collectionMemberId) throws LocalException
+
+    private LoanAgent getLoanAgent(Loan loan, Agent agent, ROLE role, String userType, Integer collectionMemberId) throws LocalException
     {
         LoanAgent loanAgent = new LoanAgent();
         
         // Agent
-        Agent agent = null;
-
-        if (role.equals(ROLE.Preparer))
-        {
-            agent = lookupAffiliate(transaction);
-        }
-        else if (role.equals(ROLE.Borrower))
-        {
-            agent = lookupAgent(transaction);
-        }
-
-        if (agent == null || agent.getId() == null) return null;
-        
         loanAgent.setAgent(agent);
         
         // CollectionMemberID
@@ -276,25 +373,19 @@ public class LoanLoader extends TransactionLoader
         loanAgent.setLoan(loan);
         
         // Remarks
-        String forUseBy = transaction.getForUseBy();
-        String userType = transaction.getUserType().name();
-        
-        if (role.equals(ROLE.Borrower)) // "for use by"
-        {
-            String remarks = "For use by " + (forUseBy != null ? forUseBy : "") + "(" + userType + ")";
-            loan.setRemarks(remarks);
-        }
+        loan.setRemarks(userType);
         
         // Role
         loanAgent.setRole(role.name());
         
         return loanAgent;
     }
+    
     private String getInsertSql(Loan loan)
     {
         String fieldNames = "CreatedByAgentID, CurrentDueDate, DateClosed, DisciplineId, DivisionId, " +
                             "IsClosed, LoanDate, LoanNumber, Number1, OriginalDueDate, PurposeOfLoan, " +
-                            "Remarks, SrcTaxonomy, Text1, Text2, TimestampCreated, Version, YesNo1";
+                            "Remarks, SrcTaxonomy, Text1, TimestampCreated, Version, YesNo1, YesNo2";
         
         String[] values = new String[18];
         
@@ -312,27 +403,49 @@ public class LoanLoader extends TransactionLoader
         values[11] = SqlUtils.sqlString( loan.getRemarks());
         values[12] = SqlUtils.sqlString( loan.getSrcTaxonomy());
         values[13] = SqlUtils.sqlString( loan.getText1());
-        values[14] = SqlUtils.sqlString( loan.getText2());
-        values[15] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[16] = SqlUtils.zero();
-        values[17] = SqlUtils.sqlString( loan.getYesNo1());
+        values[14] = SqlUtils.sqlString( loan.getTimestampCreated());
+        values[15] = SqlUtils.zero();
+        values[16] = SqlUtils.sqlString( loan.getYesNo1());
+        values[17] = SqlUtils.sqlString( loan.getYesNo2());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
     }
     
     private String getInsertSql(LoanAgent loanAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, LoanID, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, CollectionMemberID, LoanID, Remarks, Role, TimestampCreated, Version";
             
-        String[] values = new String[6];
+        String[] values = new String[7];
         
         values[0] = SqlUtils.sqlString( loanAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( loanAgent.getCollectionMemberId());
         values[2] = SqlUtils.sqlString( loanAgent.getLoan().getId());
-        values[3] = SqlUtils.sqlString( loanAgent.getRole());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[3] = SqlUtils.sqlString( loanAgent.getRemarks());
+        values[4] = SqlUtils.sqlString( loanAgent.getRole());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
+    }
+    
+    private String getInsertSql(LoanPreparation loanPreparation)
+    {
+        String fieldNames = "CollectionMemberID, DescriptionOfMaterial, IsResolved, LoanID, OutComments, " +
+                            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, Version";
+        
+        String[] values = new String[10];
+        
+        values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
+        values[2] = SqlUtils.sqlString( loanPreparation.getIsResolved());
+        values[3] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+        values[4] = SqlUtils.sqlString( loanPreparation.getOutComments());
+        values[5] = SqlUtils.sqlString( loanPreparation.getQuantity());
+        values[6] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+        values[7] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+        values[8] = SqlUtils.now();
+        values[9] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }
 }

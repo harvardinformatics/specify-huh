@@ -40,7 +40,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     protected static final String DEFAULT_ACCESSION_NUMBER   = "none";
 	
 	// config/common/picklist
-	protected enum ROLE { Borrower, Benefactor, Collector, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
+	protected enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
 	
 	protected enum ACCESSION_TYPE { Gift, Collection, Disposal, Field_work, Lost, Other, Purchase };
 	

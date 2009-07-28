@@ -52,6 +52,7 @@ import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
+import edu.harvard.huh.asa2specify.lookup.LoanPreparationLookup;
 import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
@@ -397,8 +398,12 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + inGiftRecords + " incoming gift records");
             }
             
-            LoanLoader loanLoader =
-                new LoanLoader(new File(dir, "loan.csv"), statement);
+            LoanLoader loanLoader = new LoanLoader(new File(dir, "loan.csv"),
+                                                   statement,
+                                                   botanistLookup,
+                                                   affiliateLookup,
+                                                   agentLookup,
+                                                   new File(dir, "loan_botanist.csv"));
             
             if (doLoan)
             {
@@ -407,6 +412,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             }
 
             LoanLookup loanLookup = loanLoader.getLoanLookup();
+            LoanPreparationLookup loanPrepLookup = loanLoader.getLoanPrepLookup();
             
             OutgoingExchangeLoader outExchangeLoader =
                 new OutgoingExchangeLoader(new File(dir, "outgoing_exchange.csv"), statement);
@@ -484,7 +490,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
                                                                statement,
                                                                prepLookup,
-                                                               loanLookup);
+                                                               loanLookup,
+                                                               new File(dir, "barcode_specimen_item_id.csv"));
             if (doLoanIt)
             {
                 int loanItemRecords = loanItemLoader.loadRecords();

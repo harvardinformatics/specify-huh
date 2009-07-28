@@ -324,6 +324,7 @@ public abstract class CsvToSqlLoader
 
         return id;
     }
+    
     protected Integer insert(String sql) throws LocalException
     {
         getLogger().debug(sql);

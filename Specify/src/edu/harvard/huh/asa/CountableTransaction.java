@@ -33,7 +33,7 @@ public class CountableTransaction extends Transaction
     
     public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
 
-    public short getQuantity()
+    public short getBatchQuantity()
     {
         Integer itemCount = this.getItemCount();
         Integer typeCount = this.getTypeCount();

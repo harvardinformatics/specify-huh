@@ -23,6 +23,7 @@ public class TaxonBatchTransaction extends CountableTransaction
     private String  higherTaxon;
     private String  taxon;
     private String  transferredFrom;
+    private Integer quantityReturned;
     
     public Date getOriginalDueDate() { return originalDueDate; }
     
@@ -34,6 +35,8 @@ public class TaxonBatchTransaction extends CountableTransaction
     
     public String getTransferredFrom() { return transferredFrom; }
     
+    public Integer getBatchQuantityReturned() { return quantityReturned; }
+    
     public void setOriginalDueDate(Date originalDueDate) { this.originalDueDate = originalDueDate; }
     
     public void setCurrentDueDate(Date currentDueDate) { this.currentDueDate = currentDueDate; }
@@ -43,4 +46,6 @@ public class TaxonBatchTransaction extends CountableTransaction
     public void setTaxon(String taxon) { this.taxon = taxon; }
     
     public void setTransferredFrom(String transferredFrom) { this.transferredFrom = transferredFrom; }
+    
+    public void setBatchQuantityReturned(Integer quantityReturned) { this.quantityReturned = quantityReturned; }
 }

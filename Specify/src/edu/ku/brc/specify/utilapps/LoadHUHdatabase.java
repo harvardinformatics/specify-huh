@@ -429,14 +429,19 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             frame.setDesc("Loading loans...");
-            LoanLoader loanLoader =
-                new LoanLoader(new File(dir, "loan.csv"), statement);
+            LoanLoader loanLoader = new LoanLoader(new File(dir, "loan.csv"),
+                                                   statement,
+                                                   botanistLookup,
+                                                   affiliateLookup,
+                                                   agentLookup,
+                                                   new File(dir, "loan_botanist.csv"));
             loanLoader.setFrame(frame);
             int loanLoaderRecords = loanLoader.loadRecords();
             log.info("Loaded " + loanLoaderRecords + " loan records");
             frame.setOverall(steps++);
             
             LoanLookup loanLookup = loanLoader.getLoanLookup();
+            LoanPreparationLookup loanPrepLookup = loanLoader.getLoanPrepLookup();
             
             frame.setDesc("Loading outgoing exchanges...");
             OutgoingExchangeLoader outExchangeLoader =
@@ -511,7 +516,8 @@ public class LoadHUHdatabase
             LoanItemLoader loanItemLoader = new LoanItemLoader(new File(dir, "loan_item.csv"),
                                                                statement,
                                                                prepLookup,
-                                                               loanLookup);
+                                                               loanLookup,
+                                                               new File(dir, "barcode_specimen_item_id.csv"));
             loanItemLoader.setFrame(frame);
             int loanItemRecords = loanItemLoader.loadRecords();
             log.info("Loaded " + loanItemRecords + " loan item records");

@@ -129,7 +129,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		borrowReturnMaterial.setCollectionMemberId(collectionMemberId);
 		
 		// Quantity
-		short quantity = outReturnBatch.getQuantity();
+		short quantity = outReturnBatch.getBatchQuantity();
 		borrowReturnMaterial.setQuantity(quantity);
 		
 		// Remarks (type and non-specimen count)

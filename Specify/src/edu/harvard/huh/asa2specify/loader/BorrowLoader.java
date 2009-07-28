@@ -35,7 +35,7 @@ import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
 
-public class BorrowLoader extends CountableTransactionLoader
+public class BorrowLoader extends TaxonBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(BorrowLoader.class);
     
@@ -151,7 +151,7 @@ public class BorrowLoader extends CountableTransactionLoader
         AsaBorrow asaBorrow = new AsaBorrow();
         
         super.parse(columns, asaBorrow);
-
+        
         return asaBorrow;
     }
     
@@ -296,62 +296,21 @@ public class BorrowLoader extends CountableTransactionLoader
         borrowMaterial.setCollectionMemberId(collectionMemberId);
         
         // Description (higherTaxon, taxon)
-        String higherTaxon = asaBorrow.getHigherTaxon();
-        String taxon       = asaBorrow.getTaxon();
-
-        if (higherTaxon != null || taxon != null)
-        {
-            String description = null;
-            
-            if (higherTaxon == null) description = taxon;
-            else if (taxon == null) description = higherTaxon;
-            else description = higherTaxon + " " + taxon;
-            
-            description = truncate(description, 50, "description");
-            borrowMaterial.setDescription(description);
-        }
+        String taxonDescription = getTaxonDescription(asaBorrow);
+        taxonDescription = truncate(taxonDescription, 50, "taxon description");
+        borrowMaterial.setDescription(taxonDescription);
    
         // InComments (box count, type & non-specimen counts, description)
-        String description = asaBorrow.getDescription();
-        String boxCount = asaBorrow.getBoxCount();
-        Integer typeCount = asaBorrow.getTypeCount();
-        Integer nonSpecimenCount = asaBorrow.getNonSpecimenCount();
+        String inComments = getCountsDescription(asaBorrow);
+        borrowMaterial.setInComments(inComments);
         
-        if (description != null || boxCount != null || (typeCount != null && typeCount > 0) || (nonSpecimenCount != null && nonSpecimenCount > 0))
-        {
-            String counts = null;
+        // IsResolved
+        //boolean isClosed = asaBorrow.getCloseDate() != null;
+        
+        int quantity = asaBorrow.getBatchQuantity();
+        int quantityReturned = asaBorrow.getBatchQuantityReturned() == null ? 0 : asaBorrow.getBatchQuantityReturned();
 
-            if (boxCount != null || typeCount != null || nonSpecimenCount != null)
-            {
-                String itemCounts = asaBorrow.getItemCountNote();
-                
-                if (boxCount != null)
-                {
-                    try
-                    {
-                        int boxes = Integer.parseInt(boxCount);
-                        boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
-                    }
-                    catch (NumberFormatException nfe)
-                    {
-                        ;
-                    }
-                    boxCount = boxCount + ".";
-                }
-                
-                if (boxCount == null) counts =  itemCounts;
-                else if (itemCounts == null) counts = boxCount;
-                else counts = boxCount + "  " + itemCounts;
-            }
-            
-            String inComments = null;
-
-            if (counts == null) inComments = description;
-            else if (description == null) inComments = counts;
-            else inComments = counts + "  " + description;
-            
-            borrowMaterial.setInComments(inComments);
-        }
+        //borrowMaterial.setIsResolved(quantityReturned == quantity && isClosed);
         
         // MaterialNumber (transactionId)
         String asaBorrowId = String.valueOf(asaBorrow.getId());
@@ -360,8 +319,11 @@ public class BorrowLoader extends CountableTransactionLoader
         borrowMaterial.setMaterialNumber(asaBorrowId);
         
         // Quantity (itemCount + typeCount + nonSpecimenCount)
-        short quantity = asaBorrow.getQuantity();
-        borrowMaterial.setQuantity(quantity);
+        borrowMaterial.setQuantity((short) quantity);
+        
+        // QuantityResolved/Returned
+        borrowMaterial.setQuantityResolved((short) quantityReturned);
+        borrowMaterial.setQuantityReturned((short) quantityReturned);
         
         return borrowMaterial;
     }
@@ -413,10 +375,10 @@ public class BorrowLoader extends CountableTransactionLoader
     
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
-        String fields = "BorrowID, CollectionMemberID, Description, InComments, " +
-                        "MaterialNumber, Quantity, TimestampCreated, Version";
+        String fields = "BorrowID, CollectionMemberID, Description, InComments, MaterialNumber, " +
+                        "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, Version";
             
-        String[] values = new String[8];
+        String[] values = new String[10];
         
         values[0] = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
         values[1] = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
@@ -424,8 +386,10 @@ public class BorrowLoader extends CountableTransactionLoader
         values[3] = SqlUtils.sqlString( borrowMaterial.getInComments());
         values[4] = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
         values[5] = SqlUtils.sqlString( borrowMaterial.getQuantity());
-        values[6] = SqlUtils.now();
-        values[7] = SqlUtils.zero();
+        values[6] = SqlUtils.sqlString( borrowMaterial.getQuantityResolved());
+        values[7] = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
+        values[8] = SqlUtils.now();
+        values[9] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }
