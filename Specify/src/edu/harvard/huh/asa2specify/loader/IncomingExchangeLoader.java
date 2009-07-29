@@ -16,7 +16,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -60,8 +59,15 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
     {        
         IncomingExchange inExchange = new IncomingExchange();
         
-        super.parse(columns, inExchange);
+        int i = super.parse(columns, inExchange);
 
+        if (columns.length < i + i)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        inExchange.setAffiliateName( columns[i +0] );
+        
         return inExchange;
     }
     
@@ -111,7 +117,7 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         exchangeIn.setNumber2(cost);
         
         // QuantityExchanged
-        short quantity = getQuantity(inExchange);
+        short quantity = inExchange.getBatchQuantity();
         exchangeIn.setQuantityExchanged(quantity);
         
         // ReceivedFromOrganization ("contact")
@@ -131,13 +137,17 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         
         // SrcTaxonomy
         
-        // Text1 (description)
-        String description = getDescription(inExchange);
+        // Text1 (boxCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount)
+        String description = inExchange.getItemCountNote();
         exchangeIn.setText1(description);
         
-        // Text2 (forUseBy, userType, purpose)
-        String usage = getUsage(inExchange);
-        exchangeIn.setText2(usage);
+        // Text2 (localUnit, transactionNo, affiliate)
+        String transactionNo = inExchange.getTransactionNo();
+        String affiliateName = inExchange.getAffiliateName();
+        
+        String text2 = transactionNo + (affiliateName == null ? "" : ".  For use by " + affiliateName);
+ 
+        exchangeIn.setText2(text2);
         
         // TimestampCreated
         Date dateCreated = inExchange.getDateCreated();
@@ -152,41 +162,6 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         exchangeIn.setYesNo2(isTheirs);
         
         return exchangeIn;
-    }
-    
-    private short getQuantity(IncomingExchange inExchange)
-    {
-        Integer itemCount = inExchange.getItemCount();
-        Integer typeCount = inExchange.getTypeCount();
-        Integer nonSpecimenCount = inExchange.getNonSpecimenCount();
-
-        Integer discardCount = inExchange.getDiscardCount();
-        Integer distributeCount = inExchange.getDistributeCount();
-        Integer returnCount = inExchange.getReturnCount();
-        
-        return (short) (itemCount + typeCount + nonSpecimenCount - discardCount - distributeCount - returnCount);
-    }
-
-    private String getDescription(IncomingExchange inExchange)
-    {
-        String geoUnit = inExchange.getGeoUnit();
-        if (geoUnit == null) geoUnit = "";
-        else geoUnit = geoUnit + ": ";
-
-        Integer itemCount = inExchange.getItemCount();
-        Integer typeCount = inExchange.getTypeCount();
-        Integer nonSpecimenCount = inExchange.getNonSpecimenCount();
-
-        Integer discardCount = inExchange.getDiscardCount();
-        Integer distributeCount = inExchange.getDistributeCount();
-        Integer returnCount = inExchange.getReturnCount();
-        
-        Float cost = inExchange.getCost();
-        
-        Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount, cost };
-        String pattern = "{0}{1} items, {2} types, {3} non-specimens; {4} discarded, {5} distributed, {6} returned; cost: {7}";
-
-        return MessageFormat.format(pattern, args);
     }
     
     private String getInsertSql(ExchangeIn exchangeIn)

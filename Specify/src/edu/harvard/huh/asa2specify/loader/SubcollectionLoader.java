@@ -20,7 +20,6 @@ import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
-import edu.ku.brc.specify.datamodel.TaxonCitation;
 
 // Run this class after TaxonLoader.
 

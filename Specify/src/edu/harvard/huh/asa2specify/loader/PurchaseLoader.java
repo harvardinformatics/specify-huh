@@ -16,7 +16,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -30,7 +29,7 @@ import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class PurchaseLoader extends TransactionLoader
+public class PurchaseLoader extends InGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(PurchaseLoader.class);
     
@@ -59,7 +58,7 @@ public class PurchaseLoader extends TransactionLoader
             insert(sql);
         }
         
-        AccessionAgent contributor = getAccessionAgent(purchase, accession, ROLE.Contributor);
+        AccessionAgent contributor = getAccessionAgent(purchase, accession, ROLE.Benefactor);
         if (contributor != null)
         {
             sql = getInsertSql(contributor);
@@ -84,9 +83,9 @@ public class PurchaseLoader extends TransactionLoader
         accession.setCreatedByAgent(createdByAgent);
         
         // AccesionCondition
-        String accessionCondition = getDescription(purchase);
-        accessionCondition = truncate(accessionCondition, 255, "accession condition");
-        accession.setAccessionCondition(accessionCondition);
+        String description = purchase.getDescription();
+        if (description != null) description = truncate(description, 255, "accession condition");
+        accession.setAccessionCondition(description);
         
         // AccessionNumber
         String transactionNo = purchase.getTransactionNo();
@@ -117,20 +116,20 @@ public class PurchaseLoader extends TransactionLoader
         String remarks = purchase.getRemarks();
         accession.setRemarks(remarks);
         
-        // Text1 (description)
-        String description = purchase.getDescription();
-        accession.setText1(description);
+        // Text1 (itemCount, typeCount, nonSpecimenCount)
+        String itemCountNote = purchase.getItemCountNote();
+        accession.setText1(itemCountNote);
         
-        // Text2 (forUseBy, userType, purpose)
-        String usage = getUsage(purchase);
-        accession.setText2(usage);
+        // Text2 (purpose)
+        String purpose = Transaction.toString(purchase.getPurpose());
+        accession.setText2(purpose);
         
-        // Text3 (boxCount)
-        String boxCount = purchase.getBoxCount();
-        accession.setText3(boxCount);
+        // Text3 (geoUnit)
+        String geoUnit = purchase.getGeoUnit();
+        accession.setText3(geoUnit);
         
         // Type
-        accession.setType(ACCESSION_TYPE.Purchase.name());
+        accession.setType(TransactionLoader.toString(ACCESSION_TYPE.Purchase));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = purchase.isAcknowledged();
@@ -182,28 +181,6 @@ public class PurchaseLoader extends TransactionLoader
             accessionAgent.setRole(role.name());
             
             return accessionAgent;
-    }
-
-    private String getDescription(Purchase purchase)
-    {
-        String geoUnit = purchase.getGeoUnit();
-        if (geoUnit == null) geoUnit = "";
-        else geoUnit = geoUnit + ": ";
-
-        Integer itemCount = purchase.getItemCount();
-        Integer typeCount = purchase.getTypeCount();
-        Integer nonSpecimenCount = purchase.getNonSpecimenCount();
-
-        Integer discardCount = purchase.getDiscardCount();
-        Integer distributeCount = purchase.getDistributeCount();
-        Integer returnCount = purchase.getReturnCount();
-        
-        Float cost = purchase.getCost();
-        
-        Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount, cost };
-        String pattern = "{0}{1} items, {2} types, {3} non-specimens; {4} discarded, {5} distributed, {6} returned; cost: {7}";
-
-        return MessageFormat.format(pattern, args);
     }
     
     private String getInsertSql(Accession accession)

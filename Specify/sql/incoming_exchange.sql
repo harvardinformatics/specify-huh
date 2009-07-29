@@ -23,7 +23,8 @@ select t.id,
        igb.discard_count,
        igb.distribute_count,
        igb.return_count,
-       igb.cost
+       igb.cost,
+       (select a.given_name || ' ' || a.surname from affiliate a where a.id=t.affiliate_id) as affiliate_name
 
 from herb_transaction t,
      in_geo_batch igb

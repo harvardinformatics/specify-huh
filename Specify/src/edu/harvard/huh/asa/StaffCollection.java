@@ -16,5 +16,25 @@ package edu.harvard.huh.asa;
 
 public class StaffCollection extends InGeoBatchTransaction
 {
-    
+    /**
+     * "Collection includes [itemCount] general collections, [nonSpecimenCount] non-specimens,
+     *  and [typeCount] types."
+     */
+    @Override
+    public String getItemCountNote()
+    {
+        Integer itemCount = getItemCount();
+        Integer typeCount = getTypeCount();
+        Integer nonSpecimenCount = getNonSpecimenCount();
+        
+        if (typeCount == null) typeCount = 0;
+        if (nonSpecimenCount == null) nonSpecimenCount = 0;
+        
+        String itemCountNote = itemCount + " general collection" + (itemCount == 1 ? "" : "s");
+        String nonSpecimenNote = nonSpecimenCount + " non-specimen" + (nonSpecimenCount == 1 ? "" : "s");
+        String typeNote = typeCount + " type" + (typeCount == 1 ? "" : "s");
+        
+        return "Collection includes " +  itemCountNote + ", " + nonSpecimenNote + ", and " +
+               typeNote + ".";
+    }
 }

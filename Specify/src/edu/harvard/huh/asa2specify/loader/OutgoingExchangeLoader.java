@@ -16,7 +16,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -29,7 +28,7 @@ import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 
-public class OutgoingExchangeLoader extends CountableTransactionLoader
+public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingExchangeLoader.class);
             
@@ -138,7 +137,7 @@ public class OutgoingExchangeLoader extends CountableTransactionLoader
         exchangeOut.setNumber1((float) transactionId);
         
         // QuantityExchanged
-        short quantity = getQuantity(outExchange);
+        short quantity = outExchange.getBatchQuantity();
         exchangeOut.setQuantityExchanged(quantity);
         
         // Remarks
@@ -158,17 +157,17 @@ public class OutgoingExchangeLoader extends CountableTransactionLoader
         
         // SrcTaxonomy
 
-        // Text1 (item, type, non-specimen counts; original date due)
-        String description = getDescription(outExchange);
-        if (description != null)
-        {
-            description = truncate(description, 120, "description");
-        }
+        // Text1 (boxCount, typeCount, nonSpecimenCount)
+        String description = outExchange.getItemCountNote();
         exchangeOut.setText1(description);
         
-        // Text2 (forUseBy, userType, purpose)
-        String usage = getUsageWithLocalUnit(outExchange);
-        exchangeOut.setText2(usage);
+        // Text2 (localUnit, agent)
+        String localUnit = outExchange.getLocalUnit();
+        String agentName = outExchange.getForUseBy();
+        
+        String text2 = localUnit + (agentName == null ? "" : ".  For use by " + agentName);
+ 
+        exchangeOut.setText2(text2);
         
         // TimestampCreated
         Date dateCreated = outExchange.getDateCreated();
@@ -184,33 +183,7 @@ public class OutgoingExchangeLoader extends CountableTransactionLoader
         
         return exchangeOut;
     }
- 
-    private short getQuantity(OutgoingExchange outgoingExchange)
-    {
-        
-        Integer itemCount = outgoingExchange.getItemCount();
-        Integer typeCount = outgoingExchange.getTypeCount();
-        Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
-        
-        if (itemCount == null) itemCount = 0;
-        if (typeCount == null) typeCount = 0;
-        if (nonSpecimenCount == null) nonSpecimenCount = 0;
-        
-        return (short) (itemCount + typeCount + nonSpecimenCount);
-    }
-    
-    private String getDescription(OutgoingExchange outgoingExchange)
-    {
-        Integer itemCount = outgoingExchange.getItemCount();
-        Integer typeCount = outgoingExchange.getTypeCount();
-        Integer nonSpecimenCount = outgoingExchange.getNonSpecimenCount();
-        
-        Object[] args = { itemCount, typeCount, nonSpecimenCount };
-        String pattern = "{0} items, {1} types, {2} non-specimens";
-
-        return MessageFormat.format(pattern, args);
-    }    
-    
+      
     private String getInsertSql(ExchangeOut exchangeOut)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, " +

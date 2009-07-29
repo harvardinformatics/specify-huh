@@ -14,11 +14,21 @@
  */
 package edu.harvard.huh.asa;
 
-public class IncomingExchange extends InGeoBatchTransaction
+public class OutGeoBatchTransaction extends CountableTransaction
 {
-    private String affiliateName;
+    private String  geoUnit;
     
-    public String getAffiliateName() { return affiliateName; }
+    public String getGeoUnit() { return geoUnit; }
     
-    public void setAffiliateName(String affiliateName) { this.affiliateName = affiliateName; }
+    /**
+     * "[boxCount] boxes.  Quantity contains [nonSpecimenCount] non-specimens and [typeCount] types."
+     */
+    @Override
+    public String getItemCountNote()
+    {
+        String boxCountNote = getBoxCountNote();
+        String itemCountNote = super.getItemCountNote();
+
+        return boxCountNote + "  " + itemCountNote + ".";
+    }
 }

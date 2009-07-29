@@ -43,7 +43,12 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 	protected enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
 	
 	protected enum ACCESSION_TYPE { Gift, Collection, Disposal, Field_work, Lost, Other, Purchase };
-	
+	protected static String[] AccessionTypeNames = { "Gift", "Collection", "Disposal", "Field work", "Lost", "Other", "Purchase" };
+
+	protected static String toString(ACCESSION_TYPE accessionType)
+    {
+        return AccessionTypeNames[accessionType.ordinal()];
+    }
 
 	private static BotanistLookup BotanistLookup;
 	private static AgentLookup AgentLookup;

@@ -162,7 +162,7 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         deaccession.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // Type
-        deaccession.setType(type.name());
+        deaccession.setType(TransactionLoader.toString(type));
 
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outGift.isAcknowledged();

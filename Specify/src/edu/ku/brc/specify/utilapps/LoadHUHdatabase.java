@@ -490,23 +490,11 @@ public class LoadHUHdatabase
             frame.setOverall(steps++);
             
             CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
-            
-            frame.setDesc("Loading taxon batches...");
-            TaxonBatchLoader taxonBatchLoader = new TaxonBatchLoader(new File(dir, "taxon_batch.csv"),
-                                                                     statement,
-                                                                     borrowLookup,
-                                                                     loanLookup);
-            taxonBatchLoader.setFrame(frame);
-            int taxonBatchRecords = taxonBatchLoader.loadRecords();
-            log.info("Loaded " + taxonBatchRecords + " taxon batch records");
-            frame.setOverall(steps++);
-            
-            TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
                         
             frame.setDesc("Loading in_return batches...");
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
                                                                               statement,
-                                                                              taxonBatchLookup);
+                                                                              loanPrepLookup);
             inReturnBatchLoader.setFrame(frame);
             int inReturnBatchRecords = inReturnBatchLoader.loadRecords();
             log.info("Loaded " + inReturnBatchRecords + " in return batch records");

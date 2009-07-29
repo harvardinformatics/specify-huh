@@ -25,7 +25,7 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 // Run this class after BorrowLoader, LoanLoader, and ShipmentLoader
 
-public class OutReturnBatchLoader extends CsvToSqlLoader
+public class OutReturnBatchLoader extends ReturnBatchLoader
 {
     private static final Logger log  = Logger.getLogger(OutReturnBatchLoader.class);
     
@@ -75,28 +75,22 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 	
 	private OutReturnBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 14)
+        OutReturnBatch outReturnBatch = new OutReturnBatch();
+	 
+        int i = super.parse(columns, outReturnBatch);
+		
+        if (columns.length < i + 5)
 		{
 			throw new LocalException("Not enough columns");
 		}
-		
-		OutReturnBatch outReturnBatch = new OutReturnBatch();
+
 		try
 		{
-			outReturnBatch.setId(                 SqlUtils.parseInt( columns[0]  ));
-			outReturnBatch.setTransactionId(      SqlUtils.parseInt( columns[1]  ));
-			outReturnBatch.setCollectionCode(                        columns[2]  );
-			outReturnBatch.setItemCount(          SqlUtils.parseInt( columns[3]  ));
-			outReturnBatch.setTypeCount(          SqlUtils.parseInt( columns[4]  ));
-			outReturnBatch.setNonSpecimenCount(   SqlUtils.parseInt( columns[5]  ));	
-			outReturnBatch.setBoxCount(                              columns[6]  );
-			outReturnBatch.setIsAcknowledged(  Boolean.parseBoolean( columns[7]  ));
-			outReturnBatch.setActionDate(        SqlUtils.parseDate( columns[8]  ));
-			outReturnBatch.setCarrier(     AsaShipment.parseCarrier( columns[9]  ));
-			outReturnBatch.setMethod(       AsaShipment.parseMethod( columns[10] ));
-			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[11] ));
-			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[12] ));
-			outReturnBatch.setNote(                                  columns[13] );
+			outReturnBatch.setCarrier(     AsaShipment.parseCarrier( columns[i + 0] ));
+			outReturnBatch.setMethod(       AsaShipment.parseMethod( columns[i + 1] ));
+			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[i + 2] ));
+			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[i + 3] ));
+			outReturnBatch.setNote(                                  columns[i + 4] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -133,8 +127,8 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
 		borrowReturnMaterial.setQuantity(quantity);
 		
 		// Remarks (type and non-specimen count)
-		String note = outReturnBatch.getItemCountNote();
-		borrowReturnMaterial.setRemarks(note);
+		String remarks = getRemarks(outReturnBatch);
+		borrowReturnMaterial.setRemarks(remarks);
 		
 		// ReturnedDate (actionDate)
 		Date actionDate = outReturnBatch.getActionDate();
@@ -211,8 +205,7 @@ public class OutReturnBatchLoader extends CsvToSqlLoader
     	shipment.setShipmentMethod(method);
     	
     	// ShipmentNumber (shipment.trackingNumber)
-    	String shipmentNumber = outReturnBatch.getTransactionNo();
-    	if (shipmentNumber == null) shipmentNumber = DEFAULT_SHIPPING_NUMBER;
+    	String shipmentNumber = DEFAULT_SHIPPING_NUMBER;
     	
     	shipmentNumber = truncate(shipmentNumber, 50, "transaction number");
     	shipment.setShipmentNumber(shipmentNumber);

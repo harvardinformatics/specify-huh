@@ -76,6 +76,29 @@ public class Transaction
         return UserTypeNames[userType.ordinal()];
     }
     
+    /**
+     * boxCount is an integer? [boxCount] boxes. : [boxCount]
+     */
+    public String getBoxCountNote()
+    {
+        String boxCount = getBoxCount();
+        
+        if (boxCount != null)
+        {
+            try
+            {
+                int boxes = Integer.parseInt(boxCount);
+                boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
+            }
+            catch (NumberFormatException nfe)
+            {
+                ;
+            }
+            return boxCount + ".";
+        }
+        return null;
+    }
+    
     private       Integer id;
 	private          TYPE type;
 	private       Integer agentId;

@@ -41,7 +41,6 @@ import edu.harvard.huh.asa2specify.loader.SiteLoader;
 import edu.harvard.huh.asa2specify.loader.SpecimenItemLoader;
 import edu.harvard.huh.asa2specify.loader.StaffCollectionLoader;
 import edu.harvard.huh.asa2specify.loader.SubcollectionLoader;
-import edu.harvard.huh.asa2specify.loader.TaxonBatchLoader;
 import edu.harvard.huh.asa2specify.loader.TaxonLoader;
 import edu.harvard.huh.asa2specify.loader.TypeSpecimenLoader;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
@@ -63,7 +62,7 @@ import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.SiteLookup;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
-import edu.harvard.huh.asa2specify.lookup.TaxonBatchLookup;
+
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
@@ -141,20 +140,19 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doSpec        = false; // 17
         boolean doDet         = false; // 18
         boolean doType        = false; // 19
-        boolean doBorrow      = true; // 20
-        boolean doInEx        = true; // 21
-        boolean doInGift      = true; // 22
-        boolean doLoan        = true; // 23
-        boolean doOutEx       = true; // 24
-        boolean doOutGift     = true; // 25
-        boolean doPurch       = true; // 26
-        boolean doStaffColl   = true; // 27
-        boolean doShip        = true; // 28
-        boolean doTaxBatch    = true; // 29
-        boolean doInRetBatch  = true; // 30
-        boolean doLoanIt      = true; // 31
-        boolean doOutGeoBatch = true; // 32
-        boolean doOutRetBatch = true; // 33
+        boolean doBorrow      = false; // 20
+        boolean doInEx        = false; // 21
+        boolean doInGift      = false; // 22
+        boolean doLoan        = false; // 23
+        boolean doOutEx       = false; // 24
+        boolean doOutGift     = false; // 25
+        boolean doPurch       = false; // 26
+        boolean doStaffColl   = false; // 27
+        boolean doShip        = false; // 28
+        boolean doInRetBatch  = false; // 29
+        boolean doLoanIt      = false; // 30
+        boolean doOutGeoBatch = false; // 31
+        boolean doOutRetBatch = false; // 32
         
         try
         {
@@ -466,21 +464,9 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             CarrierLookup carrierLookup = shipmentLoader.getCarrierLookup();
             
-            TaxonBatchLoader taxonBatchLoader = new TaxonBatchLoader(new File(dir, "taxon_batch.csv"),
-                                                                     statement,
-                                                                     borrowLookup,
-                                                                     loanLookup);
-            if (doTaxBatch)
-            {
-                int taxonBatchRecords = taxonBatchLoader.loadRecords();
-                log.info("Processed " + taxonBatchRecords + " taxon batch records");
-            }
-            
-            TaxonBatchLookup taxonBatchLookup = taxonBatchLoader.getTaxonBatchLookup();
-            
             InReturnBatchLoader inReturnBatchLoader = new InReturnBatchLoader(new File(dir, "in_return_batch.csv"),
                                                                               statement,
-                                                                              taxonBatchLookup);
+                                                                              loanPrepLookup);
             if (doInRetBatch)
             {
                 int inReturnBatchRecords = inReturnBatchLoader.loadRecords();

@@ -1,7 +1,6 @@
 select orb.id,
        orb.herb_transaction_id,
        (select acronym from organization where id=t.local_unit_id) as collection_code,
-       (select name from st_lookup where id=t.type_id) as type,
        orb.item_count,
        orb.type_count,
        orb.non_specimen_count,
@@ -12,8 +11,7 @@ select orb.id,
        (select name from st_lookup where id=orb.method_id) as method,
        orb.cost,
        decode(orb.cost_estimated_flag, 1,'true', '') as is_estimated_cost,
-       regexp_replace(orb.note, '[[:space:]]+', ' ') as note,
-       t.transaction_no
+       regexp_replace(orb.note, '[[:space:]]+', ' ') as note
 
 from out_return_batch orb,
      herb_transaction t

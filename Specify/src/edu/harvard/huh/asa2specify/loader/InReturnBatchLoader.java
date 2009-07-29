@@ -7,29 +7,27 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.InReturnBatch;
-import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.TaxonBatchLookup;
+import edu.harvard.huh.asa2specify.lookup.LoanPreparationLookup;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 
-public class InReturnBatchLoader extends CsvToSqlLoader
+public class InReturnBatchLoader extends ReturnBatchLoader
 {
     private static final Logger log  = Logger.getLogger(InReturnBatchLoader.class);
     
-	private TaxonBatchLookup taxonBatchLookup;
+	private LoanPreparationLookup loanPrepLookup;
 	
 	public InReturnBatchLoader(File csvFile,
 			                   Statement sqlStatement,
-			                   TaxonBatchLookup taxonBatchLookup) throws LocalException
+			                   LoanPreparationLookup loanPrepLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
-		this.taxonBatchLookup = taxonBatchLookup;
+		this.loanPrepLookup = loanPrepLookup;
 	}
 
 	@Override
@@ -53,40 +51,22 @@ public class InReturnBatchLoader extends CsvToSqlLoader
 	
 	private InReturnBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 10)
+        InReturnBatch inReturnBatch = new InReturnBatch();
+
+        int i = super.parse(columns, inReturnBatch);
+
+	    if (columns.length < i + 1)
 		{
 			throw new LocalException("Not enough columns");
 		}
-		
-		InReturnBatch inReturnBatch = new InReturnBatch();
-		try
-		{	
-			inReturnBatch.setId(                SqlUtils.parseInt( columns[0] ));
-			inReturnBatch.setTransactionId(     SqlUtils.parseInt( columns[1] ));
-			inReturnBatch.setCollectionCode(                       columns[2] );
-			inReturnBatch.setType(          Transaction.parseType( columns[3] ));
-			inReturnBatch.setItemCount(         SqlUtils.parseInt( columns[4] ));
-            inReturnBatch.setNonSpecimenCount(  SqlUtils.parseInt( columns[5] ));
-			inReturnBatch.setBoxCount(                             columns[6] );
-			inReturnBatch.setIsAcknowledged( Boolean.parseBoolean( columns[7] ));
-			inReturnBatch.setActionDate(       SqlUtils.parseDate( columns[8] ));
-			inReturnBatch.setTransferredTo(                        columns[9] );
-		}
-		catch (NumberFormatException e)
-		{
-			throw new LocalException("Couldn't parse numeric field", e);
-		}
-		catch (AsaException e)
-		{
-			throw new LocalException("Couldn't parse field", e);
-		}
+
+	    inReturnBatch.setTransferredTo( columns[i + 0] );
 		
 		return inReturnBatch;
 	}
 	
     private LoanReturnPreparation getLoanReturnPreparation(InReturnBatch inReturnBatch) throws LocalException
     {
-    	// TODO: assign boxCount
     	
         LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
         
@@ -101,17 +81,24 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         Integer transactionId = inReturnBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
         
-        LoanPreparation loanPreparation = lookupTaxonBatch(transactionId);
+        LoanPreparation loanPreparation = lookupLoanPrep(transactionId);
         loanReturnPreparation.setLoanPreparation(loanPreparation);
         
         // QuantityResolved/QuantityReturned (itemCount)
-        Integer quantity = getQuantity(inReturnBatch);
+        int quantity = inReturnBatch.getBatchQuantity();
         loanReturnPreparation.setQuantityResolved(quantity);
         loanReturnPreparation.setQuantityReturned(quantity);
         
-        // Remarks (transferredTo)
-        String transferredTo = inReturnBatch.getTransferredTo();
-        loanReturnPreparation.setRemarks(transferredTo);
+        // Remarks (item/type/nonsp counts, boxCount, isAcknowledged, transferredTo)
+        String remarks = getRemarks(inReturnBatch);
+        String transferNote = inReturnBatch.getTransferNote();
+        
+        if (remarks != null || transferNote != null)
+        {
+            if (remarks == null) remarks = transferNote;
+            else remarks = remarks + "  " + transferNote;
+        }
+        loanReturnPreparation.setRemarks(remarks);
         
         // ReturnedDate
         Date actionDate = inReturnBatch.getActionDate();
@@ -123,15 +110,10 @@ public class InReturnBatchLoader extends CsvToSqlLoader
         
         return loanReturnPreparation;
     }
-	
-    private int getQuantity(InReturnBatch inReturnBatch)
-    {
-        return inReturnBatch.getItemCount() + inReturnBatch.getNonSpecimenCount();
-    }
     
-    private LoanPreparation lookupTaxonBatch(Integer transactionId) throws LocalException
+    private LoanPreparation lookupLoanPrep(Integer transactionId) throws LocalException
     {
-    	return taxonBatchLookup.getLoanPreparation(transactionId);
+    	return loanPrepLookup.getLotById(transactionId);
     }
 
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)

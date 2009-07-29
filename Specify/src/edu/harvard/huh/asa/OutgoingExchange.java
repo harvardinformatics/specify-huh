@@ -14,7 +14,7 @@
  */
 package edu.harvard.huh.asa;
 
-public class OutgoingExchange extends CountableTransaction
+public class OutgoingExchange extends OutGeoBatchTransaction
 {
 
     private String  geoUnit;

@@ -1,7 +1,6 @@
 select irb.id,
        irb.herb_transaction_id,
        (select acronym from organization where id=t.id) as collection_code,
-       (select name from st_lookup where id=t.type_id) as type,
        irb.item_count,
        irb.non_specimen_count,
        irb.box_count,

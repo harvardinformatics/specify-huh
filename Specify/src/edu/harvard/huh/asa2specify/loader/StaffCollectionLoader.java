@@ -16,7 +16,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -30,7 +29,7 @@ import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
 
-public class StaffCollectionLoader extends TransactionLoader
+public class StaffCollectionLoader extends InGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(StaffCollectionLoader.class);
     
@@ -86,9 +85,9 @@ public class StaffCollectionLoader extends TransactionLoader
         accession.setCreatedByAgent(createdByAgent);
         
         // AccesionCondition
-        String accessionCondition = getDescription(staffCollection);
-        accessionCondition = truncate(accessionCondition, 255, "accession condition");
-        accession.setAccessionCondition(accessionCondition);
+        String description = staffCollection.getDescription();
+        if (description != null) description = truncate(description, 255, "accession condition");
+        accession.setAccessionCondition(description);
         
         // AccessionNumber
         String transactionNo = staffCollection.getTransactionNo();
@@ -119,20 +118,20 @@ public class StaffCollectionLoader extends TransactionLoader
         String remarks = staffCollection.getRemarks();
         accession.setRemarks(remarks);
         
-        // Text1 (description)
-        String description = staffCollection.getDescription();
-        accession.setText1(description);
+        // Text1 (itemCount, typeCount, nonSpecimenCount)
+        String itemCountNote = staffCollection.getItemCountNote();
+        accession.setText1(itemCountNote);
         
-        // Text2 (purpose, forUseBy, userType)
-        String usage = getUsage(staffCollection);
-        accession.setText2(usage);
+        // Text2 (purpose)
+        String purpose = Transaction.toString(staffCollection.getPurpose());
+        accession.setText2(purpose);
         
-        // Text3 (boxCount)
-        String boxCount = staffCollection.getBoxCount();
-        accession.setText3(boxCount);
+        // Text3 (geoUnit)
+        String geoUnit = staffCollection.getGeoUnit();
+        accession.setText3(geoUnit);
         
         // Type
-        accession.setType(ACCESSION_TYPE.Collection.name());
+        accession.setType(TransactionLoader.toString(ACCESSION_TYPE.Collection));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = staffCollection.isAcknowledged();
@@ -175,28 +174,6 @@ public class StaffCollectionLoader extends TransactionLoader
             accessionAgent.setRole(role.name());
             
             return accessionAgent;
-    }
-
-    private String getDescription(StaffCollection staffCollection)
-    {
-        String geoUnit = staffCollection.getGeoUnit();
-        if (geoUnit == null) geoUnit = "";
-        else geoUnit = geoUnit + ": ";
-
-        Integer itemCount = staffCollection.getItemCount();
-        Integer typeCount = staffCollection.getTypeCount();
-        Integer nonSpecimenCount = staffCollection.getNonSpecimenCount();
-
-        Integer discardCount = staffCollection.getDiscardCount();
-        Integer distributeCount = staffCollection.getDistributeCount();
-        Integer returnCount = staffCollection.getReturnCount();
-        
-        Float cost = staffCollection.getCost();
-        
-        Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount, cost };
-        String pattern = "{0}{1} items, {2} types, {3} non-specimens; {4} discarded, {5} distributed, {6} returned; cost: {7}";
-
-        return MessageFormat.format(pattern, args);
     }
     
     private String getInsertSql(Accession accession)
