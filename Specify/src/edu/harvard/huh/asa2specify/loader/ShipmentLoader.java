@@ -29,7 +29,9 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
+
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.Shipment;
@@ -194,11 +196,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	
     	// InsuredForAmount (isInsured)
     	Boolean isInsured = asaShipment.isInsured();
-    	
-    	if (isInsured)
-    	{
-    		shipment.setInsuredForAmount("insured");
-    	}
+    	shipment.setInsuredForAmount(isInsured ? "insured" : "not insured");
     	
     	// NumberOfPackages (transaction boxCount)
     	String boxCount = asaShipment.getBoxCount();
@@ -211,20 +209,21 @@ public class ShipmentLoader extends CsvToSqlLoader
     		}
     		catch (NumberFormatException e)
     		{
-    			; // this field was already saved in TransactionLoader
+    			; // this field, from herb_transaction, is also saved in TransactionLoader
     		}
     	}
 
-    	// Number1 (ordinal)
+        
+        // Number1 (cost)
+        Float cost = asaShipment.getCost();
+        shipment.setNumber1(cost);
+        
+        // Number2 (ordinal)
     	Integer ordinal = asaShipment.getOrdinal();
     	if (ordinal != null)
     	{
-    		shipment.setNumber1((float) ordinal);
+    		shipment.setNumber2((float) ordinal);
     	}
-    	
-    	// Number2 (cost)
-    	Float cost = asaShipment.getCost();
-    	shipment.setNumber2(cost);
     	
     	// Remarks (description)
     	String description = asaShipment.getDescription();
@@ -253,11 +252,14 @@ public class ShipmentLoader extends CsvToSqlLoader
     	String customsNumber = asaShipment.getCustomsNumber();
     	shipment.setText1(customsNumber);
     	    	
-    	// YesNo1 (isEstimatedCost)
-    	Boolean isEstimatedCost = asaShipment.isEstimatedCost();
-    	shipment.setYesNo1(isEstimatedCost);
-    	
-    	// YesNo2 (outReturnBatch.isAcknowledged)
+    	// Text2 (transactionId)
+    	shipment.setText2("Asa transaction id: " + String.valueOf(transactionId));
+
+    	// YesNo1 (acknowledgedFlag)
+        
+        // YesNo2 (isCostEstimated)
+        Boolean isEstimatedCost = asaShipment.isEstimatedCost();
+        shipment.setYesNo2(isEstimatedCost);
     	
     	return shipment;
     }
@@ -315,14 +317,14 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	return loanLookup.getById(transactionId);
     }
-    
+
 	private String getInsertSql(Shipment shipment)
     {
 		String fields = "CollectionMemberID, ExchangeOutID, InsuredForAmount, LoanID, NumberOfPackages, " +
-                        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, ShipmentNumber, " +
-                        "TimestampCreated, Version, YesNo1";
+                        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, ShipmentNumber, Text1, " +
+                        "Text2, TimestampCreated, Version, YesNo2";
 
-		String[] values = new String[14];
+		String[] values = new String[16];
 
 		values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
@@ -335,9 +337,11 @@ public class ShipmentLoader extends CsvToSqlLoader
 		values[8]  = SqlUtils.sqlString( shipment.getShipper().getId());
 		values[9]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[10] = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[11] = SqlUtils.now();
-		values[12] = SqlUtils.zero();
-		values[13] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[11] = SqlUtils.sqlString( shipment.getText1());
+		values[12] = SqlUtils.sqlString( shipment.getText2());
+		values[13] = SqlUtils.now();
+		values[14] = SqlUtils.zero();
+		values[15] = SqlUtils.sqlString( shipment.getYesNo1());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }
