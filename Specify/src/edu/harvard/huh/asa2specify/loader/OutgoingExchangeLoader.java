@@ -21,6 +21,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.OutgoingExchange;
+import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -99,6 +100,8 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
     {
         ExchangeOut exchangeOut = new ExchangeOut();
 
+        TYPE type = outExchange.getType();
+
         // TODO: AddressOfRecord
         
         // CatalogedByID
@@ -150,10 +153,13 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
         exchangeOut.setAgentSentTo(agentSentTo);
         
         // SrcGeography
-        String geoUnit = outExchange.getGeoUnit();
-        checkNull(geoUnit, "src geography");
-        geoUnit = truncate(geoUnit, 32, "src geography");
-        exchangeOut.setSrcGeography(geoUnit);
+        if (type.equals(TYPE.OutExchange))
+        {
+            String geoUnit = outExchange.getGeoUnit();
+            checkNull(geoUnit, "src geography");
+            geoUnit = truncate(geoUnit, 32, "src geography");
+            exchangeOut.setSrcGeography(geoUnit);
+        }
         
         // SrcTaxonomy
 
