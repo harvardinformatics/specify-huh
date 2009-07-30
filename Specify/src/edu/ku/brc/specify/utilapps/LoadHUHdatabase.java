@@ -455,7 +455,10 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading outgoing gifts...");
             OutgoingGiftLoader outGiftLoader =
-                new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"), statement);
+                new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"),
+                                       statement,
+                                       botanistLookup,
+                                       new File(dir, "out_gift_botanist.csv"));
             outGiftLoader.setFrame(frame);
             int outGiftRecords = outGiftLoader.loadRecords();
             log.info("Loaded " + outGiftRecords + " outgoing gift records");

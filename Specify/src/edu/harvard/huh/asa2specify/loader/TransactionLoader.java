@@ -145,23 +145,6 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         return "(user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
     }
     
-    /**
-     * ([localUnit], user: [for_use_by], type: [user_type], purpose: [purpose])
-     */
-    protected String getUsageWithLocalUnit(Transaction transaction)
-    {
-        String localUnit = transaction.getLocalUnit();
-        
-        String user = transaction.getForUseBy();
-        if (user == null) user = "?";
-        
-        String userType = transaction.getUserType().name();
-        
-        String purpose  = transaction.getPurpose().name();
-        
-        return "(" + localUnit + "user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
-    }
-    
     protected Boolean isTheirs(REQUEST_TYPE requestType)
     {
         if (requestType.equals(REQUEST_TYPE.Theirs)) return true;

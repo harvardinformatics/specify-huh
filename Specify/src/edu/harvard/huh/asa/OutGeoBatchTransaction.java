@@ -20,6 +20,8 @@ public class OutGeoBatchTransaction extends CountableTransaction
     
     public String getGeoUnit() { return geoUnit; }
     
+    public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
+    
     /**
      * "[boxCount] boxes.  Quantity contains [nonSpecimenCount] non-specimens and [typeCount] types."
      */

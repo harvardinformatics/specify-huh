@@ -424,7 +424,10 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             OutgoingExchangeLookup outExchangeLookup = outExchangeLoader.getOutgoingExchangeLookup();
             
             OutgoingGiftLoader outGiftLoader =
-                new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"), statement);
+                new OutgoingGiftLoader(new File(dir, "outgoing_gift.csv"),
+                                       statement,
+                                       botanistLookup,
+                                       new File(dir, "out_gift_botanist.csv"));
             
             if (doOutGift)
             {

@@ -16,14 +16,17 @@ select t.id,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+
        igb.item_count,
        igb.type_count,
        igb.non_specimen_count,
+
        (select name from geo_name where type_id=110701 and geo_unit_id=igb.geo_region_id) as geo_unit,
        igb.discard_count,
        igb.distribute_count,
        igb.return_count,
        igb.cost,
+
        (select a.given_name || ' ' || a.surname from affiliate a where a.id=t.affiliate_id) as affiliate_name
 
 from herb_transaction t,

@@ -16,9 +16,11 @@ select t.id,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+
        igb.item_count,
        igb.type_count,
        igb.non_specimen_count,
+
        (select name from geo_name where type_id=110701 and geo_unit_id=igb.geo_region_id) as geo_unit,
        igb.discard_count,
        igb.distribute_count,
@@ -30,3 +32,5 @@ from herb_transaction t,
 
 where t.id=igb.herb_transaction_id(+) and
       (select name from st_lookup where id=t.type_id) = 'incoming gift'
+
+order by t.id

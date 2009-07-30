@@ -22,25 +22,38 @@ import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.Transaction.PURPOSE;
+import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.DeaccessionAgent;
 
-public class OutgoingGiftLoader extends CountableTransactionLoader
+public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
     
     private static final String DEFAULT_DEACCESSION_NUMBER = "none";
     
+    private AsaStringMapper nameToBotanistMapper;
+    
+    private BotanistLookup botanistLookup;
+
     private OutgoingGiftLookup outGiftLookup;
     
-    public OutgoingGiftLoader(File csvFile,  Statement sqlStatement) throws LocalException
+    public OutgoingGiftLoader(File csvFile,
+                              Statement sqlStatement,
+                              BotanistLookup botanistLookup,
+                              File nameToBotanist) throws LocalException
     {
         super(csvFile, sqlStatement);
+        
+        this.botanistLookup = botanistLookup;
+        this.nameToBotanistMapper = new AsaStringMapper(nameToBotanist);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -51,23 +64,52 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         setCurrentRecordId(transactionId);
         
         Deaccession deaccession = getDeaccession(outgoingGift, ACCESSION_TYPE.Gift);
+
+        String forUseBy = outgoingGift.getForUseBy();
+        Agent contactAgent = null;
+        Agent receiverAgent = null;
+        
+        if (forUseBy != null)
+        {
+            contactAgent = lookupAgent(outgoingGift);
+
+            Integer botanistId = getBotanistId(forUseBy);
+            
+            if (botanistId != null)
+            { 
+                receiverAgent = lookup(botanistId);
+                deaccession.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), null));
+            }
+            else
+            {                
+                deaccession.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), forUseBy));
+            }
+        }
         
         String sql = getInsertSql(deaccession);
         Integer deaccessionId = insert(sql);
         deaccession.setDeaccessionId(deaccessionId);
-        
-        DeaccessionAgent donor = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Donor);
-        if (donor != null)
-        {
-            sql = getInsertSql(donor);
-            insert(sql);
-        }
 
-        DeaccessionAgent receiver = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Receiver);
-        if (receiver != null)
+        if (contactAgent != null)
         {
-            sql = getInsertSql(receiver);
-            insert(sql);
+            DeaccessionAgent contact = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Contact);
+            
+            if (contact != null)
+            {
+                sql = getInsertSql(contact);
+                insert(sql);
+            }
+        }
+        
+        if (receiverAgent != null)
+        {
+            DeaccessionAgent receiver = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Receiver);
+            
+            if (receiver != null)
+            {
+                sql = getInsertSql(receiver);
+                insert(sql);
+            }
         }
     }
     
@@ -98,18 +140,21 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         return outGiftLookup;
     }
     
+    private Integer getBotanistId(String name)
+    {
+        return nameToBotanistMapper.map(name);
+    }
+    
+    private Agent lookup(Integer botanistId) throws LocalException
+    {
+        return botanistLookup.getById(botanistId);
+    }
+    
     private OutgoingGift parse(String[] columns) throws LocalException
     {        
         OutgoingGift outgoingGift = new OutgoingGift();
         
-        int i = super.parse(columns, outgoingGift);
-        
-        if (columns.length < i + 1)
-        {
-            throw new LocalException("Not enough columns");
-        }
-
-        outgoingGift.setGeoUnit( columns[i + 0] );
+        super.parse(columns, outgoingGift);
         
         return outgoingGift;
     }
@@ -137,7 +182,7 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
             transactionNo = DEFAULT_DEACCESSION_NUMBER;
         }
         
-        transactionNo = truncate(transactionNo, 50, "loan number");    
+        transactionNo = truncate(transactionNo, 50, "deaccession number");    
         deaccession.setDeaccessionNumber(transactionNo);
             
         // Number1 (id) TODO: temporary!! remove when done!
@@ -149,13 +194,16 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         String remarks = outGift.getRemarks();
         deaccession.setRemarks(remarks);
         
-        // Text1 (description)
+        // Text1 (description, boxCount, itemCount, typeCount, nonSpecimenCount)
+        String itemCountNote = outGift.getItemCountNote();
         String description = outGift.getDescription();
-        deaccession.setText1(description);
         
-        // Text2 (localUnit, forUseBy, userType, purpose)
-        String usage = getUsageWithLocalUnit(outGift);
-        deaccession.setText2(usage);
+        String text1 = itemCountNote + (description == null ? "" : "  " + description);
+        deaccession.setText1(text1);
+        
+        // Text2 (localUnit, purpose, forUseBy)
+        String text2 = getText2(outGift.getLocalUnit(), outGift.getPurpose(), outGift.getForUseBy());
+        deaccession.setText2(text2);
         
         // TimestampCreated
         Date dateCreated = outGift.getDateCreated();
@@ -169,12 +217,18 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         deaccession.setYesNo1(isAcknowledged);
         
         // YesNo2 (requestType = "theirs")
-        Boolean isTheirs = isTheirs(outGift.getRequestType());
-        deaccession.setYesNo2(isTheirs);
         
         return deaccession;
     }
 
+    /**
+     * "[localUnit], [purpose].  For use by [forUseBy]."
+     */
+    private String getText2(String localUnit, PURPOSE purpose, String forUseBy)
+    {
+        return localUnit + ", " + Transaction.toString(purpose) + "." + (forUseBy == null ? "" : "  For use by " + forUseBy + ".");
+    }
+    
     private DeaccessionAgent getDeaccessionAgent(Transaction transaction, Deaccession deaccession, ROLE role)
         throws LocalException
     {
@@ -210,9 +264,9 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
     private String getInsertSql(Deaccession deaccession)
     {
         String fieldNames = "CreatedByAgentID, DeaccessionDate, DeaccessionNumber, Number1, " +
-                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1, YesNo2";
+                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[12];
+        String[] values = new String[11];
 
         values[0]  = SqlUtils.sqlString( deaccession.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( deaccession.getDeaccessionDate());
@@ -225,7 +279,6 @@ public class OutgoingGiftLoader extends CountableTransactionLoader
         values[8]  = SqlUtils.sqlString( deaccession.getTimestampCreated());
         values[9]  = SqlUtils.zero();
         values[10] = SqlUtils.sqlString( deaccession.getYesNo1());
-        values[11] = SqlUtils.sqlString( deaccession.getYesNo2());
         
         return SqlUtils.getInsertSql("deaccession", fieldNames, values);
     }

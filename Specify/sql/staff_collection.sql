@@ -19,6 +19,7 @@ select t.id,
        igb.item_count,
        igb.type_count,
        igb.non_specimen_count,
+
        (select name from geo_name where type_id=110701 and geo_unit_id=igb.geo_region_id) as geo_unit,
        igb.discard_count,
        igb.distribute_count,
