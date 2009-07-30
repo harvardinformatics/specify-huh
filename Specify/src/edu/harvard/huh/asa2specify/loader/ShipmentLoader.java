@@ -31,7 +31,6 @@ import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
 
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.Shipment;

@@ -16,4 +16,5 @@ select s.id,
 from shipment s,
      herb_transaction t
 
-where s.herb_transaction_id=t.id
+where s.herb_transaction_id=t.id and
+      (select name from st_lookup where id=t.type_id) != 'outgoing miscellaneous'
