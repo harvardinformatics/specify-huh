@@ -29,9 +29,11 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
+import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
+import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.Shipment;
 
@@ -48,11 +50,13 @@ public class ShipmentLoader extends CsvToSqlLoader
 	private CarrierLookup carrierLookup;
 	private LoanLookup loanLookup;
 	private OutgoingExchangeLookup outExchangeLookup;
+	private OutgoingGiftLookup outGiftLookup;
 	
     public ShipmentLoader(File csvFile, 
     		              Statement sqlStatement,
     		              LoanLookup loanLookup,
-    		              OutgoingExchangeLookup outExchangeLookup) throws LocalException
+    		              OutgoingExchangeLookup outExchangeLookup,
+    		              OutgoingGiftLookup outGiftLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
 
@@ -62,6 +66,7 @@ public class ShipmentLoader extends CsvToSqlLoader
         this.shippers = new HashMap<String, Agent>();
         this.carrierLookup = getCarrierLookup();
         this.outExchangeLookup = outExchangeLookup;
+        this.outGiftLookup = outGiftLookup;
     }
 
     @Override
@@ -157,7 +162,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	Shipment shipment = new Shipment();
     	
-    	// Borrow/ExchangeOut/Gift/Loan (Loan, OutExchange, OutGift, OutMiscExch, OutSpecialExch)
+    	// ExchangeOut/Gift/Loan (Loan, OutExchange, OutGift, OutMiscExch, OutSpecialExch)
     	Integer transactionId = asaShipment.getTransactionId();
     	checkNull(transactionId, "transaction id");
     	
@@ -167,11 +172,13 @@ public class ShipmentLoader extends CsvToSqlLoader
     	{
     		ExchangeOut exchangeOut = lookupExchangeOut(transactionId);
     		shipment.setExchangeOut(exchangeOut);
+    		shipment.setGift(new Gift());
     		shipment.setLoan(new Loan());
     	}
     	else if (type.equals(TYPE.OutGift))
     	{
-    		getLogger().warn(rec() + "No link in Specify to deaccession");
+    		Gift gift = lookupGift(transactionId);
+    		shipment.setGift(gift);
     		shipment.setExchangeOut(new ExchangeOut());
     		shipment.setLoan(new Loan());
     	}
@@ -180,6 +187,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     		Loan loan = lookupLoan(transactionId);
     		shipment.setLoan(loan);
     		shipment.setExchangeOut(new ExchangeOut());
+    		shipment.setGift(new Gift());
     	}
     	else
     	{
@@ -311,6 +319,11 @@ public class ShipmentLoader extends CsvToSqlLoader
     {
     	return outExchangeLookup.getById(transactionId);
     }
+
+    private Gift lookupGift(Integer transactionId) throws LocalException
+    {
+        return outGiftLookup.getById(transactionId);
+    }
     
     private Loan lookupLoan(Integer transactionId) throws LocalException
     {
@@ -319,28 +332,29 @@ public class ShipmentLoader extends CsvToSqlLoader
 
 	private String getInsertSql(Shipment shipment)
     {
-		String fields = "CollectionMemberID, ExchangeOutID, InsuredForAmount, LoanID, NumberOfPackages, " +
-                        "Number1, Number2, Remarks, ShipperID, ShipmentMethod, ShipmentNumber, Text1, " +
-                        "Text2, TimestampCreated, Version, YesNo2";
+		String fields = "CollectionMemberID, ExchangeOutID, GiftID, InsuredForAmount, LoanID, " +
+                        "NumberOfPackages, Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
+                        "ShipmentNumber, Text1, Text2, TimestampCreated, Version, YesNo2";
 
-		String[] values = new String[16];
+		String[] values = new String[17];
 
 		values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
-		values[2]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
-		values[3]  = SqlUtils.sqlString( shipment.getLoan().getId());
-		values[4]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-		values[5]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[6]  = SqlUtils.sqlString( shipment.getNumber2());
-		values[7]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[8]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[9]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[10] = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[11] = SqlUtils.sqlString( shipment.getText1());
-		values[12] = SqlUtils.sqlString( shipment.getText2());
-		values[13] = SqlUtils.now();
-		values[14] = SqlUtils.zero();
-		values[15] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[2]  = SqlUtils.sqlString( shipment.getGift().getId());
+		values[3]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
+		values[4]  = SqlUtils.sqlString( shipment.getLoan().getId());
+		values[5]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+		values[6]  = SqlUtils.sqlString( shipment.getNumber1());
+		values[7]  = SqlUtils.sqlString( shipment.getNumber2());
+		values[8]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[9]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[10] = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[11] = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[12] = SqlUtils.sqlString( shipment.getText1());
+		values[13] = SqlUtils.sqlString( shipment.getText2());
+		values[14] = SqlUtils.now();
+		values[15] = SqlUtils.zero();
+		values[16] = SqlUtils.sqlString( shipment.getYesNo1());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }

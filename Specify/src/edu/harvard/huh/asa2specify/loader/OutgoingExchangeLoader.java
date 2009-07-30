@@ -84,14 +84,7 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
     {        
         OutgoingExchange outExchange = new OutgoingExchange();
         
-        int i = super.parse(columns, outExchange);
-        
-        if (columns.length < i + 1)
-        {
-            throw new LocalException("Not enough columns");
-        }
-        
-        outExchange.setGeoUnit( columns[i + 0] );
+        super.parse(columns, outExchange);
         
         return outExchange;
     }

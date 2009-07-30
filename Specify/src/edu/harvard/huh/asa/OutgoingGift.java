@@ -14,13 +14,8 @@
  */
 package edu.harvard.huh.asa;
 
-public class OutgoingGift extends CountableTransaction
+public class OutgoingGift extends OutGeoBatchTransaction
 {
-    private String geoUnit;
-    
-    public String getGeoUnit() { return geoUnit; }
-    
-    public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
     
     /**
      * "[boxCount] boxes.  Gift includes [itemCount] general collections, [nonSpecimenCount] non-specimens,

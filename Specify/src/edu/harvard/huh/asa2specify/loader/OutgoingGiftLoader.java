@@ -30,14 +30,14 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Deaccession;
-import edu.ku.brc.specify.datamodel.DeaccessionAgent;
+import edu.ku.brc.specify.datamodel.Gift;
+import edu.ku.brc.specify.datamodel.GiftAgent;
 
-public class OutgoingGiftLoader extends TransactionLoader
+public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
     
-    private static final String DEFAULT_DEACCESSION_NUMBER = "none";
+    private static final String DEFAULT_GIFT_NUMBER = "none";
     
     private AsaStringMapper nameToBotanistMapper;
     
@@ -63,7 +63,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         Integer transactionId = outgoingGift.getId();
         setCurrentRecordId(transactionId);
         
-        Deaccession deaccession = getDeaccession(outgoingGift, ACCESSION_TYPE.Gift);
+        Gift gift = getGift(outgoingGift);
 
         String forUseBy = outgoingGift.getForUseBy();
         Agent contactAgent = null;
@@ -78,21 +78,21 @@ public class OutgoingGiftLoader extends TransactionLoader
             if (botanistId != null)
             { 
                 receiverAgent = lookup(botanistId);
-                deaccession.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), null));
+                gift.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), null));
             }
             else
             {                
-                deaccession.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), forUseBy));
+                gift.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), forUseBy));
             }
         }
         
-        String sql = getInsertSql(deaccession);
-        Integer deaccessionId = insert(sql);
-        deaccession.setDeaccessionId(deaccessionId);
+        String sql = getInsertSql(gift);
+        Integer giftId = insert(sql);
+        gift.setGiftId(giftId);
 
         if (contactAgent != null)
         {
-            DeaccessionAgent contact = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Contact);
+            GiftAgent contact = getGiftAgent(outgoingGift, gift, ROLE.Contact);
             
             if (contact != null)
             {
@@ -103,7 +103,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         
         if (receiverAgent != null)
         {
-            DeaccessionAgent receiver = getDeaccessionAgent(outgoingGift, deaccession, ROLE.Receiver);
+            GiftAgent receiver = getGiftAgent(outgoingGift, gift, ROLE.Receiver);
             
             if (receiver != null)
             {
@@ -125,15 +125,15 @@ public class OutgoingGiftLoader extends TransactionLoader
             outGiftLookup = new OutgoingGiftLookup() {
 
                 @Override
-                public Deaccession getById(Integer transactionId) throws LocalException
+                public Gift getById(Integer transactionId) throws LocalException
                 {
-                    Deaccession deaccession = new Deaccession();
+                    Gift gift = new Gift();
                     
-                    Integer deaccessionId = getInt("deaccession", "DeaccessionID", "Number1", transactionId);
+                    Integer deaccessionId = getInt("gift", "GiftID", "Number1", transactionId);
                     
-                    deaccession.setDeaccessionId(deaccessionId);
+                    gift.setGiftId(deaccessionId);
                     
-                    return deaccession;
+                    return gift;
                 }  
             };
         }
@@ -159,40 +159,40 @@ public class OutgoingGiftLoader extends TransactionLoader
         return outgoingGift;
     }
     
-    private Deaccession getDeaccession(OutgoingGift outGift, ACCESSION_TYPE type) throws LocalException
+    private Gift getGift(OutgoingGift outGift) throws LocalException
     {
-        Deaccession deaccession = new Deaccession();
+        Gift gift = new Gift();
         
         // CreatedByAgentID
         Integer creatorOptrId = outGift.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        deaccession.setCreatedByAgent(createdByAgent);
+        gift.setCreatedByAgent(createdByAgent);
         
-        // DeaccessionDate
+        // GiftDate
         Date openDate = outGift.getOpenDate();
         if (openDate != null)
         {
-            deaccession.setDeaccessionDate(DateUtils.toCalendar(openDate));
+            gift.setGiftDate(DateUtils.toCalendar(openDate));
         }
             
-        // DeaccessionNumber
+        // GiftNumber
         String transactionNo = outGift.getTransactionNo();
         if ( transactionNo == null)
         {
-            transactionNo = DEFAULT_DEACCESSION_NUMBER;
+            transactionNo = DEFAULT_GIFT_NUMBER;
         }
         
-        transactionNo = truncate(transactionNo, 50, "deaccession number");    
-        deaccession.setDeaccessionNumber(transactionNo);
+        transactionNo = truncate(transactionNo, 50, "gift number");    
+        gift.setGiftNumber(transactionNo);
             
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = outGift.getId();
         checkNull(transactionId, "transaction id");
-        deaccession.setNumber1((float) transactionId);
+        gift.setNumber1((float) transactionId);
         
         // Remarks
         String remarks = outGift.getRemarks();
-        deaccession.setRemarks(remarks);
+        gift.setRemarks(remarks);
         
         // Text1 (description, boxCount)
         String boxCountNote = outGift.getBoxCountNote();
@@ -206,26 +206,23 @@ public class OutgoingGiftLoader extends TransactionLoader
             else if (description == null) text1 = boxCountNote;
             else text1 = boxCountNote + "  " + description;
         }
-        deaccession.setText1(text1);
+        gift.setText1(text1);
         
         // Text2 (localUnit, purpose, forUseBy)
         String text2 = getText2(outGift.getLocalUnit(), outGift.getPurpose(), outGift.getForUseBy());
-        deaccession.setText2(text2);
+        gift.setText2(text2);
         
         // TimestampCreated
         Date dateCreated = outGift.getDateCreated();
-        deaccession.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
-        // Type
-        deaccession.setType(TransactionLoader.toString(type));
+        gift.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outGift.isAcknowledged();
-        deaccession.setYesNo1(isAcknowledged);
+        gift.setYesNo1(isAcknowledged);
         
         // YesNo2 (requestType = "theirs")
         
-        return deaccession;
+        return gift;
     }
 
     /**
@@ -236,10 +233,10 @@ public class OutgoingGiftLoader extends TransactionLoader
         return localUnit + ", " + Transaction.toString(purpose) + "." + (forUseBy == null ? "" : "  For use by " + forUseBy + ".");
     }
     
-    private DeaccessionAgent getDeaccessionAgent(Transaction transaction, Deaccession deaccession, ROLE role)
+    private GiftAgent getGiftAgent(Transaction transaction, Gift gift, ROLE role)
         throws LocalException
     {
-        DeaccessionAgent deaccessionAgent = new DeaccessionAgent();
+        GiftAgent giftAgent = new GiftAgent();
 
         // Agent
         Agent agent = null;
@@ -255,53 +252,52 @@ public class OutgoingGiftLoader extends TransactionLoader
 
         if (agent == null || agent.getId() == null) return null;
 
-        deaccessionAgent.setAgent(agent);
+        giftAgent.setAgent(agent);
 
         // Deaccession
-        deaccessionAgent.setDeaccession(deaccession);
+        giftAgent.setGift(gift);
 
         // Remarks
 
         // Role
-        deaccessionAgent.setRole(role.name());
+        giftAgent.setRole(role.name());
         
-        return deaccessionAgent;
+        return giftAgent;
     }
 
-    private String getInsertSql(Deaccession deaccession)
+    private String getInsertSql(Gift gift)
     {
-        String fieldNames = "CreatedByAgentID, DeaccessionDate, DeaccessionNumber, Number1, " +
-                            "Remarks, Text1, Text2, Type, TimestampCreated, Version, YesNo1";
+        String fieldNames = "CreatedByAgentID, GiftDate, GiftNumber, Number1, " +
+                            "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[11];
+        String[] values = new String[10];
 
-        values[0]  = SqlUtils.sqlString( deaccession.getCreatedByAgent().getId());
-        values[1]  = SqlUtils.sqlString( deaccession.getDeaccessionDate());
-        values[2]  = SqlUtils.sqlString( deaccession.getDeaccessionNumber());
-        values[3]  = SqlUtils.sqlString( deaccession.getNumber1());
-        values[4]  = SqlUtils.sqlString( deaccession.getRemarks());
-        values[5]  = SqlUtils.sqlString( deaccession.getText1());
-        values[6]  = SqlUtils.sqlString( deaccession.getText2());
-        values[7]  = SqlUtils.sqlString( deaccession.getType());
-        values[8]  = SqlUtils.sqlString( deaccession.getTimestampCreated());
-        values[9]  = SqlUtils.zero();
-        values[10] = SqlUtils.sqlString( deaccession.getYesNo1());
+        values[0] = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
+        values[1] = SqlUtils.sqlString( gift.getGiftDate());
+        values[2] = SqlUtils.sqlString( gift.getGiftNumber());
+        values[3] = SqlUtils.sqlString( gift.getNumber1());
+        values[4] = SqlUtils.sqlString( gift.getRemarks());
+        values[5] = SqlUtils.sqlString( gift.getText1());
+        values[6] = SqlUtils.sqlString( gift.getText2());
+        values[7] = SqlUtils.sqlString( gift.getTimestampCreated());
+        values[8] = SqlUtils.zero();
+        values[9] = SqlUtils.sqlString( gift.getYesNo1());
         
-        return SqlUtils.getInsertSql("deaccession", fieldNames, values);
+        return SqlUtils.getInsertSql("gift", fieldNames, values);
     }
     
-    private String getInsertSql(DeaccessionAgent deaccessionAgent)
+    private String getInsertSql(GiftAgent giftAgent)
     {
         String fieldNames = "AgentID, DeaccessionID, Role, TimestampCreated, Version";
 
         String[] values = new String[5];
 
-        values[0] = SqlUtils.sqlString( deaccessionAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( deaccessionAgent.getDeaccession().getId());
-        values[2] = SqlUtils.sqlString( deaccessionAgent.getRole());
+        values[0] = SqlUtils.sqlString( giftAgent.getAgent().getId());
+        values[1] = SqlUtils.sqlString( giftAgent.getGift().getId());
+        values[2] = SqlUtils.sqlString( giftAgent.getRole());
         values[3] = SqlUtils.now();
         values[4] = SqlUtils.zero();
         
-        return SqlUtils.getInsertSql("deaccessionagent", fieldNames, values);
+        return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     } 
 }

@@ -486,7 +486,8 @@ public class LoadHUHdatabase
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
                                                                loanLookup,
-                                                               outExchangeLookup);
+                                                               outExchangeLookup,
+                                                               outGiftLookup);
             shipmentLoader.setFrame(frame);
             int shipmentRecords = shipmentLoader.loadRecords();
             log.info("Loaded " + shipmentRecords + " shipment records");
@@ -513,16 +514,7 @@ public class LoadHUHdatabase
             int loanItemRecords = loanItemLoader.loadRecords();
             log.info("Loaded " + loanItemRecords + " loan item records");
             frame.setOverall(steps++);
-            
-            frame.setDesc("Loading out_geo batches...");
-            OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
-                                                                        statement,
-                                                                        outGiftLookup);
-            outGeoBatchLoader.setFrame(frame);
-            int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
-            log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
-            frame.setOverall(steps++);
-            
+                        
             frame.setDesc("Loading out_return batches...");
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,

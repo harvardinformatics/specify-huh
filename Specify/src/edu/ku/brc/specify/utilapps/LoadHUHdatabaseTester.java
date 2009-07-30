@@ -28,7 +28,6 @@ import edu.harvard.huh.asa2specify.loader.LoanItemLoader;
 import edu.harvard.huh.asa2specify.loader.LoanLoader;
 import edu.harvard.huh.asa2specify.loader.OptrLoader;
 import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
-import edu.harvard.huh.asa2specify.loader.OutGeoBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutReturnBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingExchangeLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingGiftLoader;
@@ -151,8 +150,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doShip        = false; // 28
         boolean doInRetBatch  = false; // 29
         boolean doLoanIt      = false; // 30
-        boolean doOutGeoBatch = false; // 31
-        boolean doOutRetBatch = false; // 32
+        boolean doOutRetBatch = false; // 31
         
         try
         {
@@ -458,7 +456,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
                                                                loanLookup,
-                                                               outExchangeLookup);
+                                                               outExchangeLookup,
+                                                               outGiftLookup);
             if (doShip)
             {
                 int shipmentRecords = shipmentLoader.loadRecords();
@@ -485,15 +484,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int loanItemRecords = loanItemLoader.loadRecords();
                 log.info("Processed " + loanItemRecords + " loan item records");
-            }
-            
-            OutGeoBatchLoader outGeoBatchLoader = new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
-                                                                        statement,
-                                                                        outGiftLookup);
-            if (doOutGeoBatch)
-            {
-                int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
-                log.info("Processed " + outGeoBatchRecords + " out geo batch records");
             }
             
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
