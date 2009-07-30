@@ -33,7 +33,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.DeaccessionAgent;
 
-public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
+public class OutgoingGiftLoader extends TransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
     
@@ -194,11 +194,18 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         String remarks = outGift.getRemarks();
         deaccession.setRemarks(remarks);
         
-        // Text1 (description, boxCount, itemCount, typeCount, nonSpecimenCount)
-        String itemCountNote = outGift.getItemCountNote();
+        // Text1 (description, boxCount)
+        String boxCountNote = outGift.getBoxCountNote();
         String description = outGift.getDescription();
         
-        String text1 = itemCountNote + (description == null ? "" : "  " + description);
+        String text1 = null;
+        
+        if (boxCountNote != null || description != null)
+        {
+            if (boxCountNote == null) text1 = description;
+            else if (description == null) text1 = boxCountNote;
+            else text1 = boxCountNote + "  " + description;
+        }
         deaccession.setText1(text1);
         
         // Text2 (localUnit, purpose, forUseBy)

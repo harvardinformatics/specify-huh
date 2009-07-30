@@ -2,7 +2,6 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
 
@@ -16,7 +15,7 @@ import edu.harvard.huh.asa2specify.lookup.OutgoingGiftLookup;
 import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 
-public class OutGeoBatchLoader extends CsvToSqlLoader
+public class OutGeoBatchLoader extends CountableBatchLoader
 {
     private static final Logger log  = Logger.getLogger(OutGeoBatchLoader.class);
     
@@ -35,7 +34,9 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		OutGeoBatch outGeoBatch = parse(columns);
+		
 		Integer outGeoBatchId = outGeoBatch.getId();
+		
 		setCurrentRecordId(outGeoBatchId);
 		
 		TYPE type = outGeoBatch.getType();
@@ -60,31 +61,25 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 	
 	private OutGeoBatch parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 7)
-		{
-			throw new LocalException("Not enough columns");
-		}
-		
-		OutGeoBatch outGeoBatch = new OutGeoBatch();
-		try
-		{			
-			outGeoBatch.setId(               SqlUtils.parseInt( columns[0] ));
-			outGeoBatch.setTransactionId(    SqlUtils.parseInt( columns[1] ));
-			outGeoBatch.setType(         Transaction.parseType( columns[2] ));
-			outGeoBatch.setGeoUnit(                             columns[3] );
-			outGeoBatch.setItemCount(        SqlUtils.parseInt( columns[4] ));
-			outGeoBatch.setTypeCount(        SqlUtils.parseInt( columns[5] ));
-			outGeoBatch.setNonSpecimenCount( SqlUtils.parseInt( columns[6] ));			
-		}
-		catch (NumberFormatException e)
-		{
-			throw new LocalException("Couldn't parse numeric field", e);
-		}
-		catch (AsaException e)
-		{
-		    throw new LocalException("Couldn't parse transaction type", e);
-		}
-		
+	    OutGeoBatch outGeoBatch = new OutGeoBatch();
+	    
+	    int i = super.parse(columns, outGeoBatch);
+
+        if (columns.length < i + 2)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        try
+        {
+            outGeoBatch.setType( Transaction.parseType( columns[i + 0] ));
+        }
+        catch (AsaException e)
+        {
+            throw new LocalException("Couldn't parse transaction type", e);
+        }
+        outGeoBatch.setGeoUnit( columns[i + 1] );
+
 		return outGeoBatch;
 	}
 	
@@ -100,39 +95,18 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 	    deaccessionPrep.setDeaccession(deaccession);
 	    
 	    // Quantity
-	    short quantity = getQuantity(outGeoBatch);
+	    short quantity = outGeoBatch.getBatchQuantity();
 	    deaccessionPrep.setQuantity(quantity);
 	    
 	    // Remarks
-	    String description = getDescription(outGeoBatch);
+	    String geoUnit = outGeoBatch.getGeoUnit();
+	    String itemCountNote = outGeoBatch.getItemCountNote();
+	    
+	    String description = geoUnit + ".  " + itemCountNote;
+	    
 	    deaccessionPrep.setRemarks(description);
 	    
 	    return deaccessionPrep;
-	}
-
-	private short getQuantity(OutGeoBatch outGeoBatch)
-	{
-	    Integer itemCount = outGeoBatch.getItemCount();
-	    Integer typeCount = outGeoBatch.getTypeCount();
-	    Integer nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
-	    
-	    return (short) (itemCount + typeCount + nonSpecimenCount);
-	}
-	
-	private String getDescription(OutGeoBatch outGeoBatch)
-	{
-	    String geoUnit = outGeoBatch.getGeoUnit();
-	    if (geoUnit == null) geoUnit = "";
-	    else geoUnit = geoUnit + ": ";
-
-	    Integer itemCount = outGeoBatch.getItemCount();
-	    Integer typeCount = outGeoBatch.getTypeCount();
-	    Integer nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
-
-	    Object[] args = {geoUnit, itemCount, typeCount, nonSpecimenCount };
-	    String pattern = "{0}{1} items, {2} types, {3} non-specimens";
-
-	    return MessageFormat.format(pattern, args);
 	}
 
 	private Deaccession lookupOutGift(Integer transactionId) throws LocalException

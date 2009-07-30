@@ -2,41 +2,38 @@ package edu.harvard.huh.asa;
 
 import edu.harvard.huh.asa.Transaction.TYPE;
 
-public class OutGeoBatch
+public class OutGeoBatch extends CountableBatch
 {	
-	private Integer id;
-	private Integer transactionId;
-	private    TYPE type;
-	private  String geoUnit;
-	private Integer itemCount;
-	private Integer typeCount;
-	private Integer nonSpecimenCount;
-	
-	public Integer getId() { return id; }
-	
-	public Integer getTransactionId() { return transactionId; }
+    private TYPE   type;
+	private String geoUnit;
 	
 	public TYPE getType() { return type; }
 	
 	public String getGeoUnit() { return geoUnit; }
-	
-	public Integer getItemCount() { return itemCount; }
-	
-	public Integer getTypeCount() { return typeCount; }
-	
-	public Integer getNonSpecimenCount() { return nonSpecimenCount; }
-	
-	public void setId(Integer id) { this.id = id; }
-	
-	public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
+		
+	public void setType(TYPE type) { this.type = type; }
 	
 	public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
 	
-	public void setType(TYPE type) { this.type = type; }
-	
-	public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
-	
-	public void setTypeCount(Integer typeCount) { this.typeCount = typeCount; }
-	
-	public void setNonSpecimenCount(Integer nonSpecimenCount) { this.nonSpecimenCount = nonSpecimenCount; }
+    /**
+     * "Quantity includes [itemCount] general collections, [nonSpecimenCount] non-specimens,
+     *  and [typeCount] types."
+     */
+    @Override
+    public String getItemCountNote()
+    {        
+        Integer itemCount = getItemCount();
+        Integer typeCount = getTypeCount();
+        Integer nonSpecimenCount = getNonSpecimenCount();
+        
+        if (typeCount == null) typeCount = 0;
+        if (nonSpecimenCount == null) nonSpecimenCount = 0;
+        
+        String itemCountNote = itemCount + " general collection" + (itemCount == 1 ? "" : "s");
+        String nonSpecimenNote = nonSpecimenCount + " non-specimen" + (nonSpecimenCount == 1 ? "" : "s");
+        String typeNote = typeCount + " type" + (typeCount == 1 ? "" : "s");
+        
+        return "Quantity includes " +  itemCountNote + ", " + 
+               nonSpecimenNote + ", and " + typeNote + ".";
+    }
 }

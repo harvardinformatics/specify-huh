@@ -15,16 +15,10 @@ select t.id,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
-       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created
 
-       ogb.item_count,
-       ogb.type_count,
-       ogb.non_specimen_count
+from herb_transaction t
 
-from herb_transaction t,
-     out_geo_batch ogb
-
-where t.id=ogb.herb_transaction_id(+) and
-      (select name from st_lookup where id=t.type_id) = 'outgoing gift'
+where (select name from st_lookup where id=t.type_id) = 'outgoing gift'
 
 order by t.id
