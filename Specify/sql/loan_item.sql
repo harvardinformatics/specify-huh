@@ -16,3 +16,9 @@ where l.barcode=si.barcode(+) and
       si.specimen_id=s.id(+) and
       li.loan_id=ht.id
 
+/* select li.loan_id, li.barcode
+from loan_item li, specimen_item si
+where li.barcode=si.barcode(+)
+group by li.barcode, li.loan_id
+having count(si.barcode) < 1
+order by li.loan_id, li.barcode */
