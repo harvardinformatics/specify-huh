@@ -23,31 +23,31 @@
   </picklist>
   <picklist name="HUH TypeStatus" issystem="false" type="0" readonly="true" sizelimit="15">
     <items>
-      <picklistitem title="Epitype" value="Epitype"/>
-      <picklistitem title="Isoepitype" value="Isoepitype"/>
-      <picklistitem title="Holotype" value="Holotype"/>
-      <picklistitem title="Isotype" value="Isotype"/>
-      <picklistitem title="Lectotype" value="Lectotype"/>
-      <picklistitem title="Isolectotype" value="Isolectotype"/>
-      <picklistitem title="Neotype" value="Neotype"/>
-      <picklistitem title="Isoneotype" value="Isoneotype"/>
-      <picklistitem title="Syntype" value="Syntype"/>
-      <picklistitem title="Isosyntype" value="Isosyntype"/>
-      <picklistitem title="[Neosyntype]" value="[Neosyntype]"/>
-      <picklistitem title="Type" value="Type"/>
-      <picklistitem title="Type material" value="Type material"/>
-      <picklistitem title="Drawing of type" value="Drawing of type"/>
-      <picklistitem title="Photograph of type" value="Photograph of type"/>
+		<picklistitem title="Epitype" value="Epitype"/>
+		<picklistitem title="Isoepitype" value="Isoepitype"/>
+		<picklistitem title="Holotype" value="Holotype"/>
+		<picklistitem title="Isotype" value="Isotype"/>
+		<picklistitem title="Lectotype" value="Lectotype"/>
+		<picklistitem title="Isolectotype" value="Isolectotype"/>
+		<picklistitem title="Neotype" value="Neotype"/>
+		<picklistitem title="Isoneotype" value="Isoneotype"/>
+		<picklistitem title="Syntype" value="Syntype"/>
+		<picklistitem title="Isosyntype" value="Isosyntype"/>
+		<picklistitem title="[Neosyntype]" value="Neosyntype"/>
+		<picklistitem title="Type" value="Type"/>
+		<picklistitem title="Type material" value="TypeMaterial"/>
+		<picklistitem title="Drawing of type" value="DrawingOfType"/>
+		<picklistitem title="Photograph of type" value="PhotoOfType"/>
     </items>
   </picklist>
   <picklist name="Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
     <items>
-      <picklistitem title="not determined" value="not determined"/>
-      <picklistitem title="flower" value="flower"/>
-      <picklistitem title="flower and fruit" value="flower and fruit"/>
-      <picklistitem title="fruit" value="fruit"/>
-      <picklistitem title="sterile" value="sterile"/>
-      <picklistitem title="sporophyte" value="sporophyte"/>
+      <picklistitem title="not determined" value="NotDetermined"/>
+      <picklistitem title="flower" value="Flower"/>
+      <picklistitem title="flower and fruit" value="FlowerAndFruit"/>
+      <picklistitem title="fruit" value="Fruit"/>
+      <picklistitem title="sterile" value="Sterile"/>
+      <picklistitem title="sporophyte" value="Sporophyte"/>
     </items>
   </picklist>
   <picklist name="AgentRole" issytem="false" type="0" readonly="true" sizelimit="2">
