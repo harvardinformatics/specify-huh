@@ -75,12 +75,33 @@
       <picklistitem title="NA/Unknown" value="NA/Unknown"/>
     </items>
   </picklist>
+    <picklist name="HUH ShipmentMethod" issystem="false" type="0" readonly="true" sizelimit="8">
+    <items>
+      <picklistitem title="Air" value="Air"/>
+      <picklistitem title="Express" value="Express"/>
+      <picklistitem title="Library rate" value="LibraryRate"/>
+      <picklistitem title="Sea mail" value="SeaMail"/>
+      <picklistitem title="First class" value="FirstClass"/>
+      <picklistitem title="Ground" value="Ground"/>
+      <picklistitem title="Priority" value="Priority"/>
+      <picklistitem title="NA/Unknown" value="Unknown"/>
+    </items>
+  </picklist>
   <picklist name="AccessionType" issystem="true" type="0" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="Gift" value="gift"/>
       <picklistitem title="Collection" value="cln"/>
       <picklistitem title="Field Work" value="field_work"/>
       <picklistitem title="Purchase" value="purchase"/>
+    </items>
+  </picklist>
+    <picklist name="HUH AccessionType" issystem="false" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="Gift" value="Gift"/>
+      <picklistitem title="Collection" value="Collection"/>
+      <picklistitem title="Field Work" value="FieldWork"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Purchase" value="Purchase"/>
     </items>
   </picklist>
   <picklist name="AgentVariant" issystem="true" type="0" readonly="true" sizelimit="-1">
@@ -108,7 +129,7 @@
       <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
- <!-- <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
+  <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="Borrower" value="borrower"/>
       <picklistitem title="Benefactor" value="benefactor"/>
@@ -131,7 +152,7 @@
             <picklistitem title="Lost" value="lost"/>
             <picklistitem title="Other" value="other"/>
         </items>
-    </picklist> -->
+    </picklist>
   <picklist name="ReferenceWorkType" issystem="true" type="0" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="Book" value="0"/>
@@ -223,9 +244,9 @@
   </picklist>
   <picklist name="TaxonGroup" type="0" issystem="false" readonly="true" sizelimit="7">
     <items>
-      <picklistitem title="Fungi & Lichens" value="Fungi & Lichens"/>
+      <picklistitem title="Fungi and Lichens" value="FungiLichens"/>
       <picklistitem title="Monera" value="Monera"/>
-      <picklistitem title="Vascular plants" value="Vascular plants"/>
+      <picklistitem title="Vascular plants" value="Vascular"/>
       <picklistitem title="Mosses" value="Mosses"/>
       <picklistitem title="Hepatics" value="Hepatics"/>
       <picklistitem title="Algae" value="Algae"/>
@@ -234,24 +255,24 @@
   </picklist>
   <picklist name="TaxonStatus" type="0" issystem="false" readonly="true" sizelimit="10">
     <items>
-      <picklistitem title="nom. leg." value="nom. leg."/>
-      <picklistitem title="nom. nov." value="nom. nov."/>
-      <picklistitem title="nom. cons." value="nom. cons."/>
-      <picklistitem title="nom. rej." value="nom. rej."/>
-      <picklistitem title="nom. superfl." value="nom. superfl."/>
-      <picklistitem title="synonym" value="synonym"/>
-      <picklistitem title="later homonym" value="later homonym"/>
-      <picklistitem title="orth. var." value="orth. var."/>
-      <picklistitem title="nom. invalid." value="nom. invalid."/>
-      <picklistitem title="unknown" value="unknown"/>
+      <picklistitem title="nom. leg." value="NomLeg"/>
+      <picklistitem title="nom. nov." value="NomNov"/>
+      <picklistitem title="nom. cons." value="NomCons"/>
+      <picklistitem title="nom. rej." value="NomRej"/>
+      <picklistitem title="nom. superfl." value="NomSuperfl"/>
+      <picklistitem title="synonym" value="Synonym"/>
+      <picklistitem title="later homonym" value="LaterHomonym"/>
+      <picklistitem title="orth. var." value="OrthVar"/>
+      <picklistitem title="nom. invalid." value="NomInvalid"/>
+      <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
   <picklist name="CitesStatus" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
-      <picklistitem title="[none]" value="[none]"/>
-      <picklistitem title="CITES I" value="CITES I"/>
-      <picklistitem title="CITES II" value="CITES II"/>
-      <picklistitem title="CITES III" value="CITES III"/>
+      <picklistitem title="[none]" value="None"/>
+      <picklistitem title="CITES I" value="CitesI"/>
+      <picklistitem title="CITES II" value="CitesII"/>
+      <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
   <picklist name="LocalityName" type="0" issystem="false" readonly="true" sizelimit="1">
@@ -261,18 +282,18 @@
   </picklist>
   <picklist name="LatLongMethod" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
-      <picklistitem name="GPS" value="GPS"/>
-      <picklistitem name="gazetteer" value="gazetteer"/>
-      <picklistitem name="other" value="other"/>
-      <picklistitem name="unknown" value="unknown"/>
+      <picklistitem title="GPS" value="GPS"/>
+      <picklistitem title="gazetteer" value="gazetteer"/>
+      <picklistitem title="other" value="other"/>
+      <picklistitem title="unknown" value="unknown"/>
     </items>
   </picklist>
   <picklist name="ElevMethod" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
-      <picklistitem name="GPS" value="GPS"/>
-      <picklistitem name="altimeter" value="altimeter"/>
-      <picklistitem name="other" value="other"/>
-      <picklistitem name="unknown" value="unknown"/>
+      <picklistitem title="GPS" value="GPS"/>
+      <picklistitem title="altimeter" value="altimeter"/>
+      <picklistitem title="other" value="other"/>
+      <picklistitem title="unknown" value="unknown"/>
     </items>
   </picklist>
 </list>
