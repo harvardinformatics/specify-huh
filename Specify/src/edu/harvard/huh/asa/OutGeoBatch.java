@@ -26,6 +26,7 @@ public class OutGeoBatch extends CountableBatch
         Integer typeCount = getTypeCount();
         Integer nonSpecimenCount = getNonSpecimenCount();
         
+        if (itemCount == null) itemCount = 0;
         if (typeCount == null) typeCount = 0;
         if (nonSpecimenCount == null) nonSpecimenCount = 0;
         

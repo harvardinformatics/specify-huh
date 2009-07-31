@@ -46,17 +46,17 @@ public class AsaTaxon
 
     public static String toString(STATUS status)
     {
-        return StatusNames[status.ordinal()];
+        return status.name();
     }
     
     public static String toString(ENDANGERMENT endangerment)
     {
-        return EndangermentNames[endangerment.ordinal()];
+        return endangerment.name();
     }
 
     public static String toString(GROUP group)
     {
-        return GroupNames[group.ordinal()];
+        return group.name();
     }
 
     private      Integer parentId;

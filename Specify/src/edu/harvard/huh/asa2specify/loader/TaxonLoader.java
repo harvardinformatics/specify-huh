@@ -76,7 +76,7 @@ public class TaxonLoader extends TreeLoader
 	{
 	    TaxonTreeDef t = new TaxonTreeDef();
 
-	    Integer taxonTreeDefId = getInt("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
+	    Integer taxonTreeDefId = getId("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
 	    t.setTaxonTreeDefId(taxonTreeDefId);
 
 	    return t;
@@ -161,7 +161,7 @@ public class TaxonLoader extends TreeLoader
 
 					String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
 
-					Integer taxonId = getInt("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
+					Integer taxonId = getId("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
 
 					taxon.setTaxonId(taxonId);
 

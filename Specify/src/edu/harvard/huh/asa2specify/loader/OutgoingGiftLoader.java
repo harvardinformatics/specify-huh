@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
+import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -168,6 +169,9 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         gift.setCreatedByAgent(createdByAgent);
         
+        // DisciplineID
+        gift.setDiscipline(getBotanyDiscipline());
+        
         // GiftDate
         Date openDate = outGift.getOpenDate();
         if (openDate != null)
@@ -260,28 +264,29 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         // Remarks
 
         // Role
-        giftAgent.setRole(role.name());
+        giftAgent.setRole(Transaction.toString(role));
         
         return giftAgent;
     }
 
     private String getInsertSql(Gift gift)
     {
-        String fieldNames = "CreatedByAgentID, GiftDate, GiftNumber, Number1, " +
+        String fieldNames = "CreatedByAgentID, DisciplineID, GiftDate, GiftNumber, Number1, " +
                             "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[10];
+        String[] values = new String[11];
 
-        values[0] = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
-        values[1] = SqlUtils.sqlString( gift.getGiftDate());
-        values[2] = SqlUtils.sqlString( gift.getGiftNumber());
-        values[3] = SqlUtils.sqlString( gift.getNumber1());
-        values[4] = SqlUtils.sqlString( gift.getRemarks());
-        values[5] = SqlUtils.sqlString( gift.getText1());
-        values[6] = SqlUtils.sqlString( gift.getText2());
-        values[7] = SqlUtils.sqlString( gift.getTimestampCreated());
-        values[8] = SqlUtils.zero();
-        values[9] = SqlUtils.sqlString( gift.getYesNo1());
+        values[0]  = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
+        values[1]  = SqlUtils.sqlString( gift.getDiscipline().getId());
+        values[2]  = SqlUtils.sqlString( gift.getGiftDate());
+        values[3]  = SqlUtils.sqlString( gift.getGiftNumber());
+        values[4]  = SqlUtils.sqlString( gift.getNumber1());
+        values[5]  = SqlUtils.sqlString( gift.getRemarks());
+        values[6]  = SqlUtils.sqlString( gift.getText1());
+        values[7]  = SqlUtils.sqlString( gift.getText2());
+        values[8]  = SqlUtils.sqlString( gift.getTimestampCreated());
+        values[9]  = SqlUtils.zero();
+        values[10] = SqlUtils.sqlString( gift.getYesNo1());
         
         return SqlUtils.getInsertSql("gift", fieldNames, values);
     }

@@ -52,7 +52,7 @@ public class SeriesLoader extends CsvToSqlLoader
                     Integer botanistId = getBotanistId(seriesId);
                     String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : SeriesLoader.getGuid(seriesId);
                     
-                    Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+                    Integer agentId = getId("agent", "AgentID", "GUID", guid);
 
                     agent.setAgentId(agentId);
                     

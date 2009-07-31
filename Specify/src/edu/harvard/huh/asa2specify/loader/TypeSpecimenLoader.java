@@ -19,6 +19,7 @@ import java.sql.Statement;
 
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.TypeSpecimen;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -103,13 +104,13 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         TypeSpecimen typeSpecimen = new TypeSpecimen();     
         try
         {
-            typeSpecimen.setId(            SqlUtils.parseInt( columns[0] ));
-            typeSpecimen.setSpecimenId(    SqlUtils.parseInt( columns[1] ));
-            typeSpecimen.setCollectionCode(                   columns[2] );
-            typeSpecimen.setTaxonId(       SqlUtils.parseInt( columns[3] ));
-            typeSpecimen.setTypeStatus(                       columns[4] );
-            typeSpecimen.setConditionality(                   columns[5] );
-            typeSpecimen.setIsFragment( Boolean.parseBoolean( columns[6] ));
+            typeSpecimen.setId(                SqlUtils.parseInt( columns[0] ));
+            typeSpecimen.setSpecimenId(        SqlUtils.parseInt( columns[1] ));
+            typeSpecimen.setCollectionCode(                       columns[2] );
+            typeSpecimen.setTaxonId(           SqlUtils.parseInt( columns[3] ));
+            typeSpecimen.setTypeStatus( TypeSpecimen.parseStatus( columns[4] ));
+            typeSpecimen.setConditionality(                       columns[5] );
+            typeSpecimen.setIsFragment(     Boolean.parseBoolean( columns[6] ));
 
             BDate bdate = new BDate();
             typeSpecimen.setDate( bdate );
@@ -133,6 +134,10 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         catch (NumberFormatException e)
         {
             throw new LocalException("Couldn't parse numeric field", e);
+        }
+        catch (AsaException e)
+        {
+            throw new LocalException("Couldn't parse type status field", e);
         }
         
         return typeSpecimen;
@@ -173,7 +178,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         else if (startYear != null)
         {
-            getLogger().warn("Invalid verification date: " +
+            getLogger().warn(rec() + "Invalid verification date: " +
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
         
@@ -210,9 +215,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         String verifiedBy = typeSpecimen.getVerifiedBy();
         determination.setText1(verifiedBy);
         
-        // TypeStatusName TODO: enum for type status name
-        String typeStatus = typeSpecimen.getTypeStatus();
-        checkNull(typeStatus, "type status");
+        // TypeStatusName
+        String typeStatus = TypeSpecimen.toString(typeSpecimen.getTypeStatus());
         
         typeStatus = truncate(typeStatus, 50, "type status");
         determination.setTypeStatusName(typeStatus);

@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.StaffCollection;
 import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
+import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -131,7 +133,7 @@ public class StaffCollectionLoader extends InGeoBatchTransactionLoader
         accession.setText3(geoUnit);
         
         // Type
-        accession.setType(TransactionLoader.toString(ACCESSION_TYPE.Collection));
+        accession.setType(Transaction.toString(ACCESSION_TYPE.Collection));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = staffCollection.isAcknowledged();
@@ -171,7 +173,7 @@ public class StaffCollectionLoader extends InGeoBatchTransactionLoader
             // Remarks
 
             // Role
-            accessionAgent.setRole(role.name());
+            accessionAgent.setRole(Transaction.toString(role));
             
             return accessionAgent;
     }

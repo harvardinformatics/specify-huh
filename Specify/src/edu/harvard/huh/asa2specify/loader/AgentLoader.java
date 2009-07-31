@@ -77,7 +77,7 @@ public class AgentLoader extends CsvToSqlLoader
 					
                     String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : getGuid(asaAgentId);
 
-					Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+					Integer agentId = getId("agent", "AgentID", "GUID", guid);
 
 					agent.setAgentId(agentId);
 

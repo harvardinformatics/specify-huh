@@ -14,6 +14,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa2specify.IdNotFoundException;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
@@ -166,7 +167,7 @@ public abstract class CsvToSqlLoader
         Integer collectionId = collectionIdsByCode.get(code);
         if (collectionId == null)
         {
-            collectionId = getInt("collection", "CollectionID", "Code", code);
+            collectionId = getId("collection", "CollectionID", "Code", code);
 
             collectionIdsByCode.put(code, collectionId);
         }
@@ -179,7 +180,7 @@ public abstract class CsvToSqlLoader
         {
             botanyDiscipline = new Discipline();
 
-            Integer disciplineId = getInt("discipline", "DisciplineID", "Name", "Botany");
+            Integer disciplineId = getId("discipline", "DisciplineID", "Name", "Botany");
 
             botanyDiscipline.setDisciplineId(disciplineId);
         }
@@ -192,7 +193,7 @@ public abstract class CsvToSqlLoader
         {
             botanyDivision = new Division();
 
-            Integer divisionId = getInt("division", "DivisionID", "Name", "Botany");
+            Integer divisionId = getId("division", "DivisionID", "Name", "Botany");
 
             botanyDivision.setDivisionId(divisionId);
         }
@@ -231,14 +232,14 @@ public abstract class CsvToSqlLoader
      * Compose and execute a query to return an Integer.  Throws exception if not found.
      * @throws LocalException
      */
-    protected Integer getInt(String table, String intField, String field, String value)
+    protected Integer getId(String table, String intField, String field, String value)
     throws LocalException
     {
         Integer id = queryForInt(table, intField, field, value);
 
         if (id == null)
         {
-            throw new LocalException("Couldn't find " + intField + " for " + field + "=" + value);
+            throw new IdNotFoundException("Couldn't find " + intField + " for " + field + "=" + value);
         }
 
         return id;
@@ -251,7 +252,7 @@ public abstract class CsvToSqlLoader
     protected Integer getInt(String table, String intField, String field, Integer value)
     throws LocalException
     {
-        return getInt(table, intField, field, String.valueOf(value));
+        return getId(table, intField, field, String.valueOf(value));
     }
 
 

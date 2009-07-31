@@ -169,7 +169,7 @@ public class OutgoingMiscLoader extends TransactionLoader
         }
         
         // ShipmentMethod (method)
-        String method = outMisc.getMethod().name();
+        String method = AsaShipment.toString(outMisc.getMethod());
         shipment.setShipmentMethod(method);
         
         // ShipmentNumber (trackingNumber)
@@ -186,7 +186,7 @@ public class OutgoingMiscLoader extends TransactionLoader
         shipment.setShippedTo(shippedTo);
         
         // Shipper (carrier)
-        String carrier = outMisc.getCarrier().name();
+        String carrier = AsaShipment.toString(outMisc.getCarrier());
         Agent shipper = lookupCarrier(carrier);
         
         shipment.setShipper(shipper);

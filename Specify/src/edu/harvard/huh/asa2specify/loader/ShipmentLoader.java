@@ -97,7 +97,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     			{
     				Agent agent = new Agent();
     				
-    				Integer agentId = getInt("agent", "AgentID", "LastName", carrierName);
+    				Integer agentId = getId("agent", "AgentID", "LastName", carrierName);
     				
     				agent.setAgentId(agentId);
     				
@@ -191,7 +191,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	}
     	else
     	{
-    		throw new LocalException("Invalid transaction type " + type.name());
+    		throw new LocalException("Invalid transaction type " + Transaction.toString(type));
     	}
     	
     	// CollectionMemberId (transaction localUnit)
@@ -237,13 +237,13 @@ public class ShipmentLoader extends CsvToSqlLoader
     	shipment.setRemarks(description);
     	
     	// Shipper (carrier)
-    	String carrier = asaShipment.getCarrier().name();
+    	String carrier = AsaShipment.toString(asaShipment.getCarrier());
     	Agent shipper = getAgentByCarrierName(carrier);
     	
     	shipment.setShipper(shipper);
     	
     	// ShipmentMethod (method)
-    	String method = asaShipment.getMethod().name();
+    	String method = AsaShipment.toString(asaShipment.getMethod());
     	shipment.setShipmentMethod(method);
     	
     	// ShipmentNumber (trackingNumber)

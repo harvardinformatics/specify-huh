@@ -6,6 +6,7 @@ import java.sql.Statement;
 
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -110,18 +111,22 @@ public class SiteLoader extends CsvToSqlLoader
 			site.setId(                SqlUtils.parseInt( columns[0]  ));
 			site.setGeoUnitId(         SqlUtils.parseInt( columns[1]  ));
 			site.setLocality(                             columns[2]  );
-			site.setMethod(                               columns[3]  );
+			site.setMethod(      Site.parseLatLongMethod( columns[3]  ));
 			site.setLatitudeA(  SqlUtils.parseBigDecimal( columns[4]  ));
 			site.setLongitudeA( SqlUtils.parseBigDecimal( columns[5]  ));
 			site.setLatitudeB(  SqlUtils.parseBigDecimal( columns[6]  ));
 			site.setLongitudeB( SqlUtils.parseBigDecimal( columns[7]  ));
 			site.setElevFrom(   SqlUtils.parseBigDecimal( columns[8]  ));
 			site.setElevTo(     SqlUtils.parseBigDecimal( columns[9]  ));
-			site.setElevMethod(                           columns[10] );
+			site.setElevMethod(     Site.parseElevMethod( columns[10] ));
 		}
 		catch (NumberFormatException e)
 		{
 			throw new LocalException("Couldn't parse numeric field", e);
+		}
+		catch (AsaException e)
+		{
+		    throw new LocalException("Couldn't parse elev/lat-long method", e);
 		}
 
 		return site;
@@ -135,12 +140,9 @@ public class SiteLoader extends CsvToSqlLoader
 		locality.setDiscipline(getBotanyDiscipline());
 
 		// ElevationMethod TODO: enum for elevation method
-		String elevMethod = site.getElevMethod();
-		if (elevMethod != null)
-		{
-			elevMethod = truncate(elevMethod, 50, "elevation method");
-			locality.setElevationMethod( elevMethod );
-		}
+		String elevMethod = Site.toString(site.getElevMethod());
+		if (elevMethod != null) elevMethod = truncate(elevMethod, 50, "elevation method");
+		locality.setElevationMethod( elevMethod );
 
 		// Geography
 		Geography geography = null;
@@ -182,12 +184,9 @@ public class SiteLoader extends CsvToSqlLoader
 		}
 
 		// LatLongMethod TODO: keep lat-long method?
-		String method = site.getLatLongMethod();
-		if (method != null)
-		{
-			method = truncate(method, 50, "lat/long method");
-			locality.setLatLongMethod(method);
-		}
+		String method = Site.toString(site.getLatLongMethod());
+		if (method != null) method = truncate(method, 50, "lat/long method");
+		locality.setLatLongMethod(method);
 
 		// LocalityName is a required field, but we don't use it
 		locality.setLocalityName(UNNAMED);

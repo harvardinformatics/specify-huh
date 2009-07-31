@@ -34,7 +34,7 @@ public class BotanistName
     
     public static String toString(TYPE type)
     {
-    	return TypeNames[type.ordinal()];
+    	return type.name();
     }
 
     public Integer getBotanistId() { return botanistId; }

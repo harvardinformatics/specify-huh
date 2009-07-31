@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.AsaLoan;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
+import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -331,7 +332,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // Description (higherTaxon, taxon)
         String taxonDescription = getTaxonDescription(asaLoan);
-        taxonDescription = truncate(taxonDescription, 50, "taxon description");
+        if (taxonDescription != null) taxonDescription = truncate(taxonDescription, 50, "taxon description");
         loanPreparation.setDescriptionOfMaterial(taxonDescription);
    
         // IsResolved
@@ -340,7 +341,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         int quantity = asaLoan.getBatchQuantity();
         int quantityReturned = asaLoan.getBatchQuantityReturned() == null ? 0 : asaLoan.getBatchQuantityReturned();
 
-        loanPreparation.setIsResolved(quantityReturned == quantity && isClosed);
+        // yes, that's a >=. grumble, grumble.
+        loanPreparation.setIsResolved(quantityReturned >= quantity && isClosed);
+
+        if (quantityReturned > quantity)
+        {
+            getLogger().warn(rec() + "More items returned than sent.");
+        }
 
         // Loan
         loanPreparation.setLoan(loan);
@@ -376,7 +383,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         loan.setRemarks(userType);
         
         // Role
-        loanAgent.setRole(role.name());
+        loanAgent.setRole(Transaction.toString(role));
         
         return loanAgent;
     }

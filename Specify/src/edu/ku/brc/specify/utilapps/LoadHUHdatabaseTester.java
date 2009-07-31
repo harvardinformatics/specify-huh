@@ -134,11 +134,17 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doAgent       = false; // 12
         boolean doPub         = false; // 13
         boolean doPubAuth     = false; // 14
+        
         boolean doTax         = false; // 15
+        
         boolean doSubcoll     = false; // 16
+        
         boolean doSpec        = false; // 17
+        
         boolean doDet         = false; // 18
+        
         boolean doType        = false; // 19
+        
         boolean doBorrow      = false; // 20
         boolean doInEx        = false; // 21
         boolean doInGift      = false; // 22
@@ -169,6 +175,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int geoUnitRecords = geoUnitLoader.loadRecords();
                 log.info("Processed " + geoUnitRecords + " geo_unit records");
+                log.info("Numbering geography tree...");
                 geoUnitLoader.numberNodes();
                 log.info("Numbered geography tree");
             }
@@ -182,7 +189,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + localityRecords + " site records");
             }
             SiteLookup siteLookup = siteLoader.getSiteLookup();
-
+            
             BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"),
                                                                statement,
                                                                new File(dir, "botanist_optr.csv"),
@@ -305,7 +312,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int taxonRecords = taxonLoader.loadRecords(); 
                 log.info("Processed " + taxonRecords + " taxonRecords");
-
+                log.info("Numbering taxon tree...");
                 taxonLoader.numberNodes();
                 log.info("Numbered taxon tree");
             }

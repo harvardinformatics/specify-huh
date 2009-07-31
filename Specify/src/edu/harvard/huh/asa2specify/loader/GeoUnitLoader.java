@@ -191,7 +191,7 @@ public class GeoUnitLoader extends TreeLoader
     {
         GeographyTreeDef g = new GeographyTreeDef();
 
-        Integer geoTreeDefId = getInt("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
+        Integer geoTreeDefId = getId("geographytreedef", "GeographyTreeDefID", "Name", "Geography");
 
         g.setGeographyTreeDefId(geoTreeDefId);
 
@@ -276,7 +276,7 @@ public class GeoUnitLoader extends TreeLoader
 
                     String guid = getGuid(geoUnitId);
 
-                    Integer geographyId = getInt("geography", "GeographyID", "GUID", guid);
+                    Integer geographyId = getId("geography", "GeographyID", "GUID", guid);
 
                     geography.setGeographyId(geographyId);
 

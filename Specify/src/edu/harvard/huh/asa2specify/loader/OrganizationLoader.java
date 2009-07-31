@@ -56,7 +56,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 
 					String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : getGuid(organizationId);
 					
-					Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+					Integer agentId = getId("agent", "AgentID", "GUID", guid);
 					
 					agent.setAgentId(agentId);
 					

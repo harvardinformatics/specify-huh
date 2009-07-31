@@ -36,20 +36,9 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     // TODO: assign userType
     
     // TODO: assign boxCount
-    
+
     protected static final String DEFAULT_ACCESSION_NUMBER   = "none";
-	
-	// config/common/picklist
-	protected enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
-	
-	protected enum ACCESSION_TYPE { Gift, Collection, Disposal, Field_work, Lost, Other, Purchase };
-	protected static String[] AccessionTypeNames = { "Gift", "Collection", "Disposal", "Field work", "Lost", "Other", "Purchase" };
-
-	protected static String toString(ACCESSION_TYPE accessionType)
-    {
-        return AccessionTypeNames[accessionType.ordinal()];
-    }
-
+    
 	private static BotanistLookup BotanistLookup;
 	private static AgentLookup AgentLookup;
 	private static AffiliateLookup AffiliateLookup;
@@ -138,9 +127,9 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         String user = transaction.getForUseBy();
         if (user == null) user = "?";
         
-        String userType = transaction.getUserType().name();
+        String userType = Transaction.toString(transaction.getUserType());
         
-        String purpose  = transaction.getPurpose().name();
+        String purpose  = Transaction.toString(transaction.getPurpose());
         
         return "(user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
     }

@@ -16,11 +16,15 @@ package edu.harvard.huh.asa;
 
 public class TypeSpecimen
 {
+    // from st_lookup category 111
+    public static enum STATUS             {  Epitype,   Isoepitype,   Holotype,   Isotype,   Lectotype,   Isolectotype,   Neotype,   Isoneotype,   Syntype,   Isosyntype,    Neosyntype,    Type,   TypeMaterial,    DrawingOfType,     PhotoOfType         };
+    private static String[] StatusNames = { "Epitype", "Isoepitype", "Holotype", "Isotype", "Lectotype", "Isolectotype", "Neotype", "Isoneotype", "Syntype", "Isosyntype", "[Neosyntype]", "Type", "Type material", "Drawing of type", "Photograph of type" };
+    
     private Integer id;
     private Integer specimenId;
     private  String collectionCode;
     private Integer taxonId;
-    private  String typeStatus;
+    private  STATUS typeStatus;
     private  String conditionality;
     private Boolean isFragment;
     private   BDate date;
@@ -36,6 +40,20 @@ public class TypeSpecimen
     private  String remarks;
     private Integer ordinal;
     
+    public static STATUS parseStatus(String string) throws AsaException
+    {
+        for (STATUS status : STATUS.values())
+        {
+            if (StatusNames[status.ordinal()].equals(string)) return status;
+        }
+        throw new AsaException("Invalid type status: " + string);
+    }
+    
+    public static String toString(STATUS status)
+    {
+        return status.name();
+    }
+    
     public Integer getId() { return id; }
     
     public Integer getSpecimenId() { return specimenId; }
@@ -44,7 +62,7 @@ public class TypeSpecimen
     
     public Integer getTaxonId() { return taxonId; }
     
-    public String getTypeStatus() { return typeStatus; }
+    public STATUS getTypeStatus() { return typeStatus; }
     
     public String getConditionality() { return conditionality; }
     
@@ -80,7 +98,7 @@ public class TypeSpecimen
     
     public void setTaxonId(Integer taxonId) { this.taxonId = taxonId; }
 
-    public void setTypeStatus(String typeStatus) { this.typeStatus = typeStatus; }
+    public void setTypeStatus(STATUS typeStatus) { this.typeStatus = typeStatus; }
     
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
     

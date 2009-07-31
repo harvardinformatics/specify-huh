@@ -81,7 +81,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	
 	// This is the next available barcode for items without them.
 	// Check with specimen_item_id_barcode.csv
-	private int nextBarcode = 900000008;
+	private int nextBarcode = 900000012;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
@@ -243,7 +243,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 				{
 					Container container = new Container();
 					
-					Integer containerId = getInt("container", "ContainerID", "Name", name);
+					Integer containerId = getId("container", "ContainerID", "Name", name);
 					
 					container.setContainerId(containerId);
 					
@@ -279,7 +279,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                     
                     String guid = getGuid(specimenId);
                     
-                    Integer collectionObjectId = getInt("collectionobject", "CollectionObjectID", "GUID", guid);
+                    Integer collectionObjectId = getId("collectionobject", "CollectionObjectID", "GUID", guid);
                     
                     collectionObject.setCollectionObjectId(collectionObjectId);
                     
@@ -328,7 +328,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 {
                     Preparation preparation = new Preparation();
                     
-                    Integer preparationId = getInt("preparation", "PreparationID","SampleNumber", barcode);
+                    Integer preparationId = getId("preparation", "PreparationID","SampleNumber", barcode);
                     
                     preparation.setPreparationId(preparationId);
                     

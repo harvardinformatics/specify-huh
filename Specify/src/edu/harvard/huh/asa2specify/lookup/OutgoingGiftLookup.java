@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Deaccession;
+import edu.ku.brc.specify.datamodel.Gift;
 
 public interface OutgoingGiftLookup
 {
-    public Deaccession getById(Integer transactionId) throws LocalException;
+    public Gift getById(Integer transactionId) throws LocalException;
 }

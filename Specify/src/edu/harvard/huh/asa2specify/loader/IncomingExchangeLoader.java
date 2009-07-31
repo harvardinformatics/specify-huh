@@ -61,7 +61,7 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         
         int i = super.parse(columns, inExchange);
 
-        if (columns.length < i + i)
+        if (columns.length < i + 1)
         {
             throw new LocalException("Not enough columns");
         }

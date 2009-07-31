@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.AsaBorrow;
 import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -280,7 +281,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         }
         
         // Role
-        borrowAgent.setRole(role.name());
+        borrowAgent.setRole(Transaction.toString(role));
         
         return borrowAgent;
     }

@@ -46,12 +46,12 @@ public class AsaShipment
     
     public static String toString(CARRIER carrier)
     {
-        return CarrierNames[carrier.ordinal()];
+        return carrier.name();
     }
 
     public static String toString(METHOD method)
     {
-        return MethodNames[method.ordinal()];
+        return method.name();
     }
     
     private Integer id;

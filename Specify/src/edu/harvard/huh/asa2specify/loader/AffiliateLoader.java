@@ -55,7 +55,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 					Integer botanistId = getBotanistId(affiliateId);
 					String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : AffiliateLoader.getGuid(affiliateId);
 					
-			        Integer agentId = getInt("agent", "AgentID", "GUID", guid);
+			        Integer agentId = getId("agent", "AgentID", "GUID", guid);
 
 			        agent.setAgentId(agentId);
 			        

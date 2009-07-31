@@ -165,7 +165,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
                 {
                     Container container = new Container();
                     
-                    Integer containerId = getInt("container", "ContainerID", "Name", name);
+                    Integer containerId = getId("container", "ContainerID", "Name", name);
                     
                     container.setContainerId(containerId);
                     

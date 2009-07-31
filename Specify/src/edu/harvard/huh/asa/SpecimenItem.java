@@ -22,7 +22,7 @@ public class SpecimenItem
 	
 	public static String toString(REPRO_STATUS reproStatus)
 	{
-		return ReproStatusNames[reproStatus.ordinal()];
+		return reproStatus.name();
 	}
 	
     private      Integer id;

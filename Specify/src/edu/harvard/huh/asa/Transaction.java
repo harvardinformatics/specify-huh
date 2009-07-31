@@ -20,6 +20,12 @@ public class Transaction
 	public static enum USER_TYPE            {  Staff,   Student,   Visitor,   Unknown  };
 	private static String[] UserTypeNames = { "staff", "student", "visitor", "unknown" };
 		
+
+    // config/common/picklist
+    public enum ACCESSION_TYPE { Gift, Collection, Disposal, FieldWork, Lost, Other, Purchase };
+    
+    public enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
+	
 	public static TYPE parseType(String string) throws AsaException
 	{
 	    for (TYPE type : TYPE.values())
@@ -58,22 +64,32 @@ public class Transaction
 	
     public static String toString(TYPE type)
     {
-        return TypeNames[type.ordinal()];
+        return type.name();
     }
 
     public static String toString(REQUEST_TYPE type)
     {
-        return RequestTypeNames[type.ordinal()];
+        return type.name();
     }
     
     public static String toString(PURPOSE purpose)
     {
-        return PurposeNames[purpose.ordinal()];
+        return purpose.name();
     }
     
     public static String toString(USER_TYPE userType)
     {
-        return UserTypeNames[userType.ordinal()];
+        return userType.name();
+    }
+   
+    public static String toString(ACCESSION_TYPE accessionType)
+    {
+        return accessionType.name();
+    }
+    
+    public static String toString(ROLE role)
+    {
+        return role.name().toLowerCase();
     }
     
     /**
