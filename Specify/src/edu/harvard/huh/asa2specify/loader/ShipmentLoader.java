@@ -354,7 +354,7 @@ public class ShipmentLoader extends CsvToSqlLoader
 		values[13] = SqlUtils.sqlString( shipment.getText2());
 		values[14] = SqlUtils.now();
 		values[15] = SqlUtils.zero();
-		values[16] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[16] = SqlUtils.sqlString( shipment.getYesNo2());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }
