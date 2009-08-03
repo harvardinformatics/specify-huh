@@ -109,7 +109,7 @@ public class BotanistLoader extends AuditedObjectLoader
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
     private Botanist parse(String[] columns) throws LocalException
     {
-        if (columns.length < 13)
+        if (columns.length < 15)
         {
             throw new LocalException("Not enough columns");
         }
@@ -130,6 +130,8 @@ public class BotanistLoader extends AuditedObjectLoader
             botanist.setCreatedById(  SqlUtils.parseInt( columns[10] ));
             botanist.setDateCreated( SqlUtils.parseDate( columns[11] ));
             botanist.setUri(                             columns[12] );
+            botanist.setAuthorNote(                      columns[13] );
+            botanist.setCollectorNote(                   columns[14] );
         }
         catch (NumberFormatException e)
         {
@@ -205,8 +207,18 @@ public class BotanistLoader extends AuditedObjectLoader
 
 		// Remarks
         String remarks = botanist.getRemarks();
-        String datesType = "[dates type: " + botanist.getDatesType() + "] ";
-        agent.setRemarks(remarks == null ? datesType : datesType + remarks);
+        String authorNote = botanist.getAuthorNote();
+        String collectorNote = botanist.getCollectorNote();
+        String datesType = "[dates type: " + botanist.getDatesType() + "]";
+        
+        if (remarks != null) remarks = remarks + " " + datesType;
+        else remarks = datesType;
+        
+        if (authorNote != null) remarks = remarks + " [author note: " + authorNote + "]";
+        
+        if (collectorNote != null) remarks = remarks + " [collector note: " + collectorNote + "]";
+        
+        agent.setRemarks(remarks);
 
         // TimestampCreated
         Date dateCreated = botanist.getDateCreated();
