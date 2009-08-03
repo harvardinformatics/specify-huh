@@ -11,6 +11,16 @@ select b.id,
        regexp_replace(b.remarks, '[[:space:]]+', ' ') as remarks,
        b.created_by_id,
        to_char(b.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
-       regexp_replace(b.uri, '[[:space:]]+', ' ') as url
+       regexp_replace(b.uri, '[[:space:]]+', ' ') as url, 
 
-from botanist b
+       regexp_replace(author.note, '[[:space:]]+', ' ') as author_note,
+       regexp_replace(collector.note, '[[:space:]]+', ' ') as collector_note
+
+from botanist b,
+     (select botanist_id, note from botanist_role where type_id=110901) author,
+     (select botanist_id, note from botanist_role where type_id=110902) collector
+
+where b.id=author.botanist_id(+) and
+      b.id=collector.botanist_id(+)
+
+order by b.id
