@@ -1062,7 +1062,6 @@
             <columnDef os="mac">130px,2px,142px,5px,170px,2px,142px,10px,200px,5px,80px,2px,142px,0px,15px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             
-            <!-- Needs text1 (purpose) -->
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -1084,7 +1083,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="purpose"/>
-                	<cell type="field" id="purpose" name="text1" uitype="text" colspan="12"/>
+                	<cell type="field" id="purpose" name="text1" uitype="combobox" picklist="HUH Transaction Purposes" colspan="12"/>
                 </row>
                 <!-- <row>
                 	<cell type="label" labelfor="forUseBy"/>

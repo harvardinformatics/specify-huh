@@ -75,7 +75,7 @@
       <picklistitem title="NA/Unknown" value="NA/Unknown"/>
     </items>
   </picklist>
-    <picklist name="HUH ShipmentMethod" issystem="false" type="0" readonly="true" sizelimit="8">
+    <picklist name="HUH Shipment Method" issystem="false" type="0" readonly="true" sizelimit="8">
     <items>
       <picklistitem title="Air" value="Air"/>
       <picklistitem title="Express" value="Express"/>
@@ -87,6 +87,15 @@
       <picklistitem title="NA/Unknown" value="Unknown"/>
     </items>
   </picklist>
+    <picklist name="HUH Transaction Purposes" issystem="false" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="for id" value="ForID"/>
+      <picklistitem title="for study" value="ForStudy"/>
+      <picklistitem title="unrestricted" value="Unrestricted"/>
+      <picklistitem title="for dna Sampling" value="ForDnaSampling"/>
+      <picklistitem title="for exhibition" value="ForExhibition"/>
+    </items>
+  </picklist>
   <picklist name="AccessionType" issystem="true" type="0" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="Gift" value="gift"/>
@@ -95,7 +104,7 @@
       <picklistitem title="Purchase" value="purchase"/>
     </items>
   </picklist>
-    <picklist name="HUH AccessionType" issystem="false" type="0" readonly="true" sizelimit="2">
+    <picklist name="HUH Accession Type" issystem="false" type="0" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="Gift" value="Gift"/>
       <picklistitem title="Collection" value="Collection"/>
@@ -242,7 +251,7 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
-  <picklist name="TaxonGroup" type="0" issystem="false" readonly="true" sizelimit="7">
+  <picklist name="HUH Taxon Group" type="0" issystem="false" readonly="true" sizelimit="7">
     <items>
       <picklistitem title="Fungi and Lichens" value="FungiLichens"/>
       <picklistitem title="Monera" value="Monera"/>
@@ -253,7 +262,7 @@
       <picklistitem title="Diatoms" value="Diatoms"/>
     </items>
   </picklist>
-  <picklist name="TaxonStatus" type="0" issystem="false" readonly="true" sizelimit="10">
+  <picklist name="HUH Taxon Status" type="0" issystem="false" readonly="true" sizelimit="10">
     <items>
       <picklistitem title="nom. leg." value="NomLeg"/>
       <picklistitem title="nom. nov." value="NomNov"/>
@@ -267,7 +276,7 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="CitesStatus" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Cites Status" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="[none]" value="None"/>
       <picklistitem title="CITES I" value="CitesI"/>
@@ -275,12 +284,12 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
-  <picklist name="LocalityName" type="0" issystem="false" readonly="true" sizelimit="1">
+  <picklist name="HUH Locality Name" type="0" issystem="false" readonly="true" sizelimit="1">
     <items>
       <picklistitem title="Unnamed locality" value="Unnamed locality"/>
     </items>
   </picklist>
-  <picklist name="LatLongMethod" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Lat-Long Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
       <picklistitem title="gazetteer" value="gazetteer"/>
@@ -288,7 +297,7 @@
       <picklistitem title="unknown" value="unknown"/>
     </items>
   </picklist>
-  <picklist name="ElevMethod" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Elev Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
       <picklistitem title="altimeter" value="altimeter"/>

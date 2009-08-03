@@ -21,7 +21,7 @@
       <picklistitem title="other" value="other"/>
     </items>
   </picklist>
-  <picklist name="HUH TypeStatus" issystem="false" type="0" readonly="true" sizelimit="15">
+  <picklist name="HUH Type Status" issystem="false" type="0" readonly="true" sizelimit="15">
     <items>
 		<picklistitem title="Epitype" value="Epitype"/>
 		<picklistitem title="Isoepitype" value="Isoepitype"/>

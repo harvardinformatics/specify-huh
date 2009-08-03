@@ -1350,10 +1350,15 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Date Of Death</text>
+            <text>End Date</text>
           </str>
         </names>
-        <descs/>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The date a botanist died, stopped collecting, or stopped publishing.</text>
+          </str>
+        </descs>
       </item>
       <item name="agentAttachments" type="OneToMany">
         <version>0</version>
@@ -1587,13 +1592,13 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Date Of Birth</text>
+            <text>Start Date</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Date agent was born.</text>
+            <text>The date the botanist was born, started collecting, or started publishing.</text>
           </str>
         </descs>
       </item>
