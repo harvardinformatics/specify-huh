@@ -21259,11 +21259,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text2">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text 2</text>
+            <text>Status</text>
           </str>
         </names>
         <descs/>
@@ -21306,7 +21306,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text 1</text>
+            <text>Group</text>
           </str>
         </names>
         <descs/>
