@@ -276,7 +276,7 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Cites Status" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH CITES Status" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="[none]" value="None"/>
       <picklistitem title="CITES I" value="CitesI"/>
