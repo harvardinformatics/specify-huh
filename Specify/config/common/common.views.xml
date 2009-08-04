@@ -3141,9 +3141,9 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1" label="yesNo1"/>
-                	<cell type="field" id="isMale" uitype="checkbox" name="yesNo2" label="yesNo2"/>
-                	<cell type="field" id="isFemale" uitype="checkbox" name="yesNo3" label="yesNo3"/>
+                	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
+                	<cell type="field" id="isMale" uitype="checkbox" name="yesNo2"/>
+                	<cell type="field" id="isFemale" uitype="checkbox" name="yesNo3"/>
                 	<cell type="label" labelfor="reference"/>
                 	<cell type="field" id="reference" name="text2" uitype="text" colspan="3"/>
                 </row>
