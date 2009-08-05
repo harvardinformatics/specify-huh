@@ -21931,7 +21931,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Taxon Group</text>
+            <text>Collation</text>
           </str>
         </names>
         <descs>
@@ -21979,7 +21979,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Status</text>
+            <text>Date</text>
           </str>
         </names>
         <descs>
