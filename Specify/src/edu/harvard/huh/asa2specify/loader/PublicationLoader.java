@@ -166,7 +166,11 @@ public class PublicationLoader extends AuditedObjectLoader
 		String remarks = publication.getRemarks();
 		referenceWork.setRemarks(remarks);
 		
-        // TimestampCreated
+		// Text1 (abbreviation)
+		String abbrev = publication.getAbbreviation();
+		if (journal == null) referenceWork.setText1(abbrev);
+
+		// TimestampCreated
         Date dateCreated = publication.getDateCreated();
         referenceWork.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
@@ -270,9 +274,9 @@ public class PublicationLoader extends AuditedObjectLoader
 	private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
 		String fieldNames = "CreatedByAgentID, GUID, ISBN, JournalID, PlaceOfPublication, Publisher, " +
-				            "ReferenceWorkType, Remarks, TimestampCreated, Title, URL, Version, WorkDate";
+				            "ReferenceWorkType, Remarks, Text1, TimestampCreated, Title, URL, Version, WorkDate";
 
-		String[] values = new String[13];
+		String[] values = new String[14];
 
 		values[0]  = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
 		values[1]  = SqlUtils.sqlString( referenceWork.getGuid());
@@ -282,11 +286,12 @@ public class PublicationLoader extends AuditedObjectLoader
 		values[5]  = SqlUtils.sqlString( referenceWork.getPublisher());
 		values[6]  = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
 		values[7]  = SqlUtils.sqlString( referenceWork.getRemarks());
-        values[8]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
-        values[9]  = SqlUtils.sqlString( referenceWork.getTitle());
-		values[10] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[11] = SqlUtils.zero();
-		values[12] = SqlUtils.sqlString( referenceWork.getWorkDate());
+		values[8]  = SqlUtils.sqlString( referenceWork.getText1());
+        values[9]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
+        values[10] = SqlUtils.sqlString( referenceWork.getTitle());
+		values[11] = SqlUtils.sqlString( referenceWork.getUrl());
+		values[12] = SqlUtils.zero();
+		values[13] = SqlUtils.sqlString( referenceWork.getWorkDate());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
