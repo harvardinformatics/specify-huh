@@ -320,22 +320,38 @@ public class TaxonLoader extends TreeLoader
 
         // UnitName1
         String parAuthor = asaTaxon.getParAuthor();
+        Integer parAuthorId = asaTaxon.getParAuthorId();
+        
         if (parAuthor != null) parAuthor = truncate(parAuthor, 50, "par author");
+        else if (parAuthorId != null) getLogger().warn(rec() + "missing par author name");
+        
         specifyTaxon.setUnitName1(parAuthor);
         
         // UnitName2
         String parExAuthor = asaTaxon.getParExAuthor();
+        Integer parExAuthorId = asaTaxon.getParExAuthorId();
+        
         if (parExAuthor != null) parExAuthor = truncate(parExAuthor, 50, "par ex author");
+        else if (parExAuthorId != null) getLogger().warn(rec() + "missing par ex author name");
+        
         specifyTaxon.setUnitName1(parExAuthor);
         
         // UnitName3
         String stdAuthor = asaTaxon.getStdAuthor();
+        Integer stdAuthorId = asaTaxon.getStdAuthorId();
+        
         if (stdAuthor != null) stdAuthor = truncate(stdAuthor, 50, "std author");
+        else if (stdAuthorId != null) getLogger().warn(rec() + "missing std author name");
+        
         specifyTaxon.setUnitName1(stdAuthor);
         
         // UnitName4
         String stdExAuthor = asaTaxon.getStdExAuthor();
+        Integer stdExAuthorId = asaTaxon.getStdExAuthorId();
+        
         if (stdExAuthor != null) stdExAuthor = truncate(stdExAuthor, 50, "std ex author");
+        else if (stdExAuthorId != null) getLogger().warn(rec() + "missing std ex author name");
+        
         specifyTaxon.setUnitName1(stdExAuthor);
         
         // Version
