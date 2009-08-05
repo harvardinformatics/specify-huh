@@ -19134,11 +19134,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text1" type="java.lang.String">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Abbreviation</text>
           </str>
         </names>
         <descs>
