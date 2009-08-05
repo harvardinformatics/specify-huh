@@ -21084,7 +21084,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Unit Name3</text>
+            <text>Standard Author</text>
           </str>
         </names>
         <descs/>
@@ -21118,7 +21118,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Unit Name1</text>
+            <text>Parenthetical Author</text>
           </str>
         </names>
         <descs/>
@@ -21216,7 +21216,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Unit Name2</text>
+            <text>Parenthetical ex Author</text>
           </str>
         </names>
         <descs/>
@@ -21327,7 +21327,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Unit Name4</text>
+            <text>Standard ex Author</text>
           </str>
         </names>
         <descs/>
