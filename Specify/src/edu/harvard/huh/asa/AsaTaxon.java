@@ -81,6 +81,10 @@ public class AsaTaxon
 	private      Integer createdById;
 	private         Date dateCreated;
 	private      Integer basionymId;
+	private       String parAuthor;
+	private       String parExAuthor;
+	private       String stdAuthor;
+	private       String stdExAuthor;
 	
     public Integer getParentId() { return parentId; }
     
@@ -126,6 +130,14 @@ public class AsaTaxon
 	
 	public Integer getBasionymId() { return basionymId; }
 	
+	public String getParAuthor() { return parAuthor; }
+	
+	public String getParExAuthor() { return parExAuthor; }
+	
+	public String getStdAuthor() { return stdAuthor; }
+	
+	public String getStdExAuthor() { return stdExAuthor; }
+	
 	public void setId(Integer id) { this.id = id; }
     
     public void setParentId(Integer parentId) { this.parentId = parentId; }
@@ -169,4 +181,12 @@ public class AsaTaxon
 	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 	
 	public void setBasionymId(Integer basionymId) { this.basionymId = basionymId; }
+	
+	public void setParAuthor(String parAuthor) { this.parAuthor = parAuthor; }
+	
+	public void setParExAuthor(String parExAuthor) { this.parExAuthor = parExAuthor; }
+	
+	public void setStdAuthor(String stdAuthor) { this.stdAuthor = stdAuthor; }
+	
+	public void setStdExAuthor(String stdExAuthor) { this.stdExAuthor = stdExAuthor; }
 }

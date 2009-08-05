@@ -175,7 +175,7 @@ public class TaxonLoader extends TreeLoader
 
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 22)
+	    if (columns.length < 26)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -206,6 +206,10 @@ public class TaxonLoader extends TreeLoader
 		    taxon.setCreatedById(           SqlUtils.parseInt( columns[19] ));
 		    taxon.setDateCreated(          SqlUtils.parseDate( columns[20] ));
 		    taxon.setBasionymId(            SqlUtils.parseInt( columns[21] ));
+		    taxon.setParAuthor(                                columns[22] );
+		    taxon.setParExAuthor(                              columns[23] );
+		    taxon.setStdAuthor(                                columns[24] );
+		    taxon.setStdExAuthor(                              columns[25] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -314,6 +318,26 @@ public class TaxonLoader extends TreeLoader
         Date dateCreated = asaTaxon.getDateCreated();
         specifyTaxon.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
 
+        // UnitName1
+        String parAuthor = asaTaxon.getParAuthor();
+        if (parAuthor != null) parAuthor = truncate(parAuthor, 50, "par author");
+        specifyTaxon.setUnitName1(parAuthor);
+        
+        // UnitName2
+        String parExAuthor = asaTaxon.getParExAuthor();
+        if (parExAuthor != null) parExAuthor = truncate(parExAuthor, 50, "par ex author");
+        specifyTaxon.setUnitName1(parExAuthor);
+        
+        // UnitName3
+        String stdAuthor = asaTaxon.getStdAuthor();
+        if (stdAuthor != null) stdAuthor = truncate(stdAuthor, 50, "std author");
+        specifyTaxon.setUnitName1(stdAuthor);
+        
+        // UnitName4
+        String stdExAuthor = asaTaxon.getStdExAuthor();
+        if (stdExAuthor != null) stdExAuthor = truncate(stdExAuthor, 50, "std ex author");
+        specifyTaxon.setUnitName1(stdExAuthor);
+        
         // Version
         specifyTaxon.setVersion(1);
 
@@ -358,9 +382,10 @@ public class TaxonLoader extends TreeLoader
 	{
 		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, IsAccepted, " +
 				            "IsHybrid, Name, Number1, ParentID, RankID, Remarks, TaxonomicSerialNumber, " +
-				            "TaxonTreeDefID, TaxonTreeDefItemID, Text1, Text2, TimestampCreated, Version";
+				            "TaxonTreeDefID, TaxonTreeDefItemID, Text1, Text2, TimestampCreated, " +
+				            "UnitName1, UnitName2, UnitName3, UnitName4, Version";
 
-		String[] values = new String[18];
+		String[] values = new String[22];
 
 		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
 		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
@@ -371,7 +396,7 @@ public class TaxonLoader extends TreeLoader
 		values[6]  = SqlUtils.sqlString( taxon.getName());
 		values[7]  = SqlUtils.sqlString( taxon.getNumber1());
 		values[8]  = SqlUtils.sqlString( taxon.getParent().getId());
-		values[9] = SqlUtils.sqlString( taxon.getRankId());
+		values[9]  = SqlUtils.sqlString( taxon.getRankId());
 		values[10] = SqlUtils.sqlString( taxon.getRemarks());
 		values[11] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
 		values[12] = SqlUtils.sqlString( taxon.getDefinition().getId());
@@ -379,7 +404,11 @@ public class TaxonLoader extends TreeLoader
 		values[14] = SqlUtils.sqlString( taxon.getText1());
 		values[15] = SqlUtils.sqlString( taxon.getText2());
 		values[16] = SqlUtils.sqlString( taxon.getTimestampCreated());
-		values[17] = SqlUtils.sqlString( taxon.getVersion());
+		values[17] = SqlUtils.sqlString( taxon.getUnitName1());
+		values[18] = SqlUtils.sqlString( taxon.getUnitName2());
+		values[19] = SqlUtils.sqlString( taxon.getUnitName3());
+		values[20] = SqlUtils.sqlString( taxon.getUnitName4());
+		values[21] = SqlUtils.sqlString( taxon.getVersion());
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}
