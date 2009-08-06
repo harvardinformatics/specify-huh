@@ -6198,11 +6198,11 @@
       </item>
       <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Cultivated</text>
           </str>
         </names>
         <descs>
@@ -28577,11 +28577,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="yesNo1">
         <version>0</version>
-        <isHidden>false</isHidden>
+        <isHidden>true</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Is Cultivated</text>
+            <text>Yes No1</text>
           </str>
         </names>
         <descs/>
@@ -28746,7 +28746,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Vernacular name</text>
+            <text>Vernacular Name</text>
           </str>
         </names>
         <descs/>
