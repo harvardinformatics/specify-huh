@@ -3108,9 +3108,9 @@
             <desc><![CDATA[Preparation for Collection Object form.]]></desc>
             <enableRules/>
 
-            <columnDef os="exp">p,2px,120px,5px:g,p,2px,223px,5px:g,p,2px,151px,2px,70px,p:g</columnDef>
-            <columnDef>100px,2px,120px,5px,100px,2px,223px,5px,70px,2px,126px,2px,70px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,180px,5px,130px,2px,255px,5px,100px,2px,174px,2px,70px,p:g</columnDef>
+            <columnDef os="exp">p,2px,130px,5px:g,p,2px,223px,5px:g,p,2px,151px,2px,70px,p:g</columnDef>
+            <columnDef>100px,2px,130px,5px,100px,2px,223px,5px,70px,2px,126px,2px,70px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,190px,5px,130px,2px,255px,5px,100px,2px,174px,2px,70px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -3124,8 +3124,8 @@
                     <cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="countAmt" uitype="text" />
+                    <cell type="label" labelfor="itemNo"/>
+                    <cell type="field" id="itemNo" name="number1" uitype="text"/>
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="preparedByAgent" uitype="querycbx" initialize="name=Agent"/>
                     <cell type="label" labelfor="4"/>
@@ -3134,8 +3134,8 @@
                 <row>
                 	<cell type="label" labelfor="sampleNumber"/>
                     <cell type="field" id="sampleNumber" name="sampleNumber" uitype="text" />
-                    <cell type="label" labelfor="itemNo"/>
-                    <cell type="field" id="itemNo" name="number1" uitype="text"/>
+                    <cell type="label" labelfor="reference"/>
+                	<cell type="field" id="reference" name="text2" uitype="text"/>
                     <cell type="label" labelfor="voucher"/>
                     <cell type="field" id="voucher" name="text1" uitype="text" colspan="3"/>
                 </row>
@@ -3144,8 +3144,6 @@
                 	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
                 	<cell type="field" id="isMale" uitype="checkbox" name="yesNo2"/>
                 	<cell type="field" id="isFemale" uitype="checkbox" name="yesNo3"/>
-                	<cell type="label" labelfor="reference"/>
-                	<cell type="field" id="reference" name="text2" uitype="text" colspan="3"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="storageLocation"/>
