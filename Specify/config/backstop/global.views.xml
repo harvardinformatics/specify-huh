@@ -1392,7 +1392,7 @@
                     <cell type="label" labelfor="text2"/>
                     <cell type="field" id="text2" uitype="combobox" name="text2" picklist="HUH Taxon Status" colspan="5"/>
                     <cell type="label" labelfor="taxonomicSerialNumber"/>
-					<cell type="field" id="taxonomicSerialNumber" uitype="text" name="taxonomicSerialNumber" colspan="6"/>
+					<cell type="field" id="taxonomicSerialNumber" uitype="text" name="taxonomicSerialNumber" colspan="6" readonly="true"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="text1"/>
