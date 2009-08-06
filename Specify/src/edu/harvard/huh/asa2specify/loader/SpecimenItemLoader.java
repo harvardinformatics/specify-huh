@@ -77,7 +77,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private String       vernacularName   = null;
 	private String       distribution     = null;
 	private String       containerStr     = null;
-	private Boolean      isCultivated     = null;
 	
 	// This is the next available barcode for items without them.
 	// Check with specimen_item_id_barcode.csv
@@ -162,7 +161,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         vernacularName  = null;
         distribution    = null;
         containerStr    = null;
-        isCultivated    = null;
         
         if (collectionObject != null)
         {
@@ -277,9 +275,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 {
                     CollectionObject collectionObject = new CollectionObject();
                     
-                    String guid = getGuid(specimenId);
+                    String altCatalogNumber = getAltCatalogNumber(specimenId);
                     
-                    Integer collectionObjectId = getId("collectionobject", "CollectionObjectID", "GUID", guid);
+                    Integer collectionObjectId = getId("collectionobject", "CollectionObjectID", "AltCatalogNumber", altCatalogNumber);
                     
                     collectionObject.setCollectionObjectId(collectionObjectId);
                     
@@ -546,7 +544,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return prepLookup.formatBarcode(barcode);
 	}
 
-    private String getGuid(Integer specimenId)
+    private String getAltCatalogNumber(Integer specimenId)
 	{
 		return String.valueOf(specimenId);
 	}
@@ -778,7 +776,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         // Number2 (specimenItemId) TODO: temporary
         Integer specimenItemId = specimenItem.getId();
-        preparation.setNumber1((float) specimenItemId);
+        preparation.setNumber2((float) specimenItemId);
         
         // PrepType
         String format = specimenItem.getFormat();
@@ -857,6 +855,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	{
 		CollectionObject collectionObject = new CollectionObject();
 
+        // AltCatalogNumber
+        Integer specimenId = specimenItem.getSpecimenId();
+        checkNull(specimenId, "specimen id");
+        
+        String altCatalogNumber = getAltCatalogNumber(specimenId);
+        collectionObject.setAltCatalogNumber(altCatalogNumber);
+        
         // Cataloger
         Integer createdById = specimenItem.getCatalogedById();
         checkNull(createdById, "created by id");
@@ -928,13 +933,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             collectionObject.setFieldNumber(collectorNo);
         }
         
-        // GUID
-	    Integer specimenId = specimenItem.getSpecimenId();
-	    checkNull(specimenId, "specimen id");
-	    
-	    String guid = getGuid(specimenId);
-        collectionObject.setGuid(guid);
-        
         // Number1
         Integer replicates = specimenItem.getReplicates();
         if (replicates != null) collectionObject.setNumber1((float) replicates);
@@ -979,10 +977,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    // Text3 (container)
 	    containerStr = specimenItem.getContainer();
 	    collObjAttr.setText3(containerStr);
-	    
-	    // YesNo1 (isCultivated)
-	    isCultivated = specimenItem.isCultivated();
-	    collObjAttr.setYesNo1(isCultivated);
 	    
 	    return collObjAttr;
 	}
@@ -1187,26 +1181,26 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     
     private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
-		String fieldNames = "CatalogerID, CatalogedDate, CatalogedDatePrecision, CatalogNumber, " +
+		String fieldNames = "AltCatalogNumber, CatalogerID, CatalogedDate, CatalogedDatePrecision, CatalogNumber, " +
 							"CollectionID, CollectionMemberID, CollectingEventID, CollectionObjectAttributeID, " +
-							"ContainerID, CreatedByAgentID, Description, FieldNumber, GUID, Number1, Remarks, " +
-							"Text1, Text2, TimestampCreated, Version, YesNo1";
+							"ContainerID, CreatedByAgentID, Description, FieldNumber, Number1, Remarks, Text1, " +
+							"Text2, TimestampCreated, Version, YesNo1";
 
 		String[] values = new String[20];
 		
-		values[0]  = SqlUtils.sqlString( collectionObject.getCataloger().getAgentId());
-		values[1]  = SqlUtils.sqlString( collectionObject.getCatalogedDate());
-		values[2]  = SqlUtils.sqlString( collectionObject.getCatalogedDatePrecision());
-		values[3]  = SqlUtils.sqlString( collectionObject.getCatalogNumber());
-		values[4]  = SqlUtils.sqlString( collectionObject.getCollection().getId());
-		values[5]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId());
-		values[6]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId());
-		values[7]  = SqlUtils.sqlString( collectionObject.getCollectionObjectAttribute().getId());
-		values[8]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
-		values[9]  = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
-		values[10] = SqlUtils.sqlString( collectionObject.getDescription());
-		values[11] = SqlUtils.sqlString( collectionObject.getFieldNumber());
-		values[12] = SqlUtils.sqlString( collectionObject.getGuid());
+		values[0]  = SqlUtils.sqlString( collectionObject.getAltCatalogNumber());
+		values[1]  = SqlUtils.sqlString( collectionObject.getCataloger().getAgentId());
+		values[2]  = SqlUtils.sqlString( collectionObject.getCatalogedDate());
+		values[3]  = SqlUtils.sqlString( collectionObject.getCatalogedDatePrecision());
+		values[4]  = SqlUtils.sqlString( collectionObject.getCatalogNumber());
+		values[5]  = SqlUtils.sqlString( collectionObject.getCollection().getId());
+		values[6]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId());
+		values[7]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId());
+		values[8]  = SqlUtils.sqlString( collectionObject.getCollectionObjectAttribute().getId());
+		values[9]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
+		values[10] = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
+		values[11] = SqlUtils.sqlString( collectionObject.getDescription());
+		values[12] = SqlUtils.sqlString( collectionObject.getFieldNumber());
 		values[13] = SqlUtils.sqlString( collectionObject.getNumber1());
 		values[14] = SqlUtils.sqlString( collectionObject.getRemarks());
 		values[15] = SqlUtils.sqlString( collectionObject.getText1());
@@ -1220,9 +1214,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		
     private String getInsertSql(CollectionObjectAttribute collObjAttr) throws LocalException
     {
-        String fieldNames = "CollectionMemberID, Text1, Text2, Text3, TimestampCreated, Version, YesNo1";
+        String fieldNames = "CollectionMemberID, Text1, Text2, Text3, TimestampCreated, Version";
         
-        String[] values = new String[7];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( collObjAttr.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( collObjAttr.getText1());
@@ -1230,7 +1224,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( collObjAttr.getText3());
         values[4] = SqlUtils.now();
         values[5] = SqlUtils.zero();
-        values[6] = SqlUtils.sqlString( collObjAttr.getYesNo1());
         
         return SqlUtils.getInsertSql("collectionobjectattribute", fieldNames, values);
     }
