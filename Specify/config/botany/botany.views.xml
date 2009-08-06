@@ -88,7 +88,7 @@
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="accession" uitype="querycbx" initialize="name=AccessionCO;title=AccessionCO" isrequired="false"/>
                     <cell type="label" labelfor="14"/>
-                    <cell type="field" id="14" name="altCatalogNumber" uitype="text"/>
+                    <cell type="field" id="14" name="altCatalogNumber" uitype="text" readonly="true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
@@ -99,24 +99,57 @@
                     <cell type="field" id="2" name="projectNumber" uitype="text"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="Determination" id="6" name="determinations" colspan="12" rows="5"/>
+                	<cell type="label" labelfor="fieldNumber"/>
+                	<cell type="field" id="fieldNumber" name="fieldNumber" uitype="text"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEventSub" id="21" label="Collection Information" name="collectingEvent" colspan="12" rows="5"/>
                 </row>
-                <row>
-                    <cell type="subview" viewname="Preparation" id="8" name="preparations" defaulttype="table" colspan="12" rows="3"/>
-                </row>
-                <row>
+                
+               <row>
                     <cell type="separator" label="Attributes" colspan="12"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="20"/>
                     <cell type="field" id="20" name="text1" uitype="combobox"/>
+                    <cell type="label" labelfor="distribution"/>
+                    <cell type="field" id="distribution" uitype="text" name="collectionObjectAttribute.text2"/>
+                    <cell type="field" id="isCultivated" name="yesNo1" uitype="checkbox"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="vernacularName"/>
+                    <cell type="field" id="vernacularName" name="collectionObjectAttribute.text1" uitype="text"/>
+                    <cell type="label" labelfor="containerStr"/>
+                    <cell type="field" id="containerStr" uitype="text" name="collectionObjectAttribute.text3"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="replicates"/>
+                    <cell type="field" id="replicates" name="number1" uitype="text" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="text2"/>
+                    <cell type="field" id="text2" name="text2" uitype="text" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="18"/>
                     <cell type="field" id="18" name="description" uitype="textareabrief" rows="2" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
+                </row>
+                
+                <row>
+                    <cell type="subview" viewname="Preparation" id="8" name="preparations" colspan="12" rows="3"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="Determination" id="6" name="determinations" colspan="12" rows="5"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" colspan="12"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="Container" id="container" name="container" colspan="12"/>
                 </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="12"/>
@@ -136,6 +169,10 @@
                     <cell type="field" id="11" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
                 
+                <!-- <row>
+                    <cell type="subview" viewname="CollectionObjectAttributeSub" id="collObjAttr" label="Collection Object Attributes" name="collectionObjectAttribute" colspan="12" rows="5"/>
+                </row> -->
+
             </rows>
         </viewdef>
         
@@ -236,15 +273,20 @@
                     <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectingEventAttachments" initialize="align=right;btn=true;icon=CollectingEventAttachment"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="verbatimDate"/>
+                	<cell type="field" id="verbatimDate" name="verbatimDate" uitype="text" colspan="3"/>
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="9" rows="3"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="locality" uitype="querycbx" initialize="name=Locality;title=Locality" colspan="8"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="remarks" uitype="textareabrief" rows="2" colspan="8"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="10" rows="3"/>
                 </row>
             </rows>
         </viewdef>
