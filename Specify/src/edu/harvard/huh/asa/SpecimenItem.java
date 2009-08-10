@@ -63,6 +63,8 @@ public class SpecimenItem
 	private       String vernacularName;
 	private       String distribution;
 	
+	private Boolean hasCollectingTrip;
+	
 	public Integer getId() { return this.id; }
 	
 	public Integer getSpecimenId() { return this.specimenId; }
@@ -136,6 +138,16 @@ public class SpecimenItem
 	public String getVernacularName() { return this.vernacularName; }
 	
 	public String getDistribution() { return this.distribution; }
+	
+	public boolean hasCollectingTrip()
+	{
+	    if (this.hasCollectingTrip ==  null)
+	    {
+	        this.hasCollectingTrip = isCollectingTrip(this.container);
+	    }
+	    
+	    return this.hasCollectingTrip;
+	}
 
 	public void setId(Integer id) { this.id = id; }
 	
@@ -210,4 +222,11 @@ public class SpecimenItem
 	public void setVernacularName(String vernacularName) { this.vernacularName = vernacularName; }
 	
 	public void setDistribution(String distribution) { this.distribution = distribution; }
+	
+    private boolean isCollectingTrip(String string)
+    {
+        if (string == null) return false;
+        
+        return string.toLowerCase().matches(".*(cruise|xpedit|xpedic|xplora|xcurs|iter|itinera|journey|survey).*");
+    }
 }

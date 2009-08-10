@@ -19,14 +19,19 @@ import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.CollectingTripLookup;
 import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.SiteLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
+import edu.ku.brc.dbsupport.AttributeIFace;
+import edu.ku.brc.specify.conversion.GenericDBConversion;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AttributeDef;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.CollectingTrip;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
@@ -39,16 +44,22 @@ import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.PreparationAttr;
 
 public class SpecimenItemLoader extends AuditedObjectLoader
 {
     private static final Logger log  = Logger.getLogger(SpecimenItemLoader.class);
+    
+    private static final String ProvenanceFieldName = "Provenance";
+    
+    private AttributeDef provenanceAttrDef;
     
 	private Hashtable<String, PrepType> prepTypesByNameAndColl;
 	
 	private SpecimenLookup collObjLookup;
 	private PreparationLookup prepLookup;
 	private ContainerLookup containerLookup;
+	private CollectingTripLookup collTripLookup;
 	
 	private BotanistLookup botanistLookup;
 	private SubcollectionLookup subcollLookup;
@@ -64,6 +75,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Collector            collector        = null;
 	private Collector            seriesCollector  = null;
 	private CollectingEvent      collectingEvent  = null;
+	private CollectingTrip       collectingTrip   = null;
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
 	private Set<ExsiccataItem>   exsiccataItems   = new HashSet<ExsiccataItem>();
@@ -103,6 +115,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         this.seriesLookup    = seriesLookup;
 		this.prepLookup      = getPreparationLookup();
 		this.containerLookup = getContainerLookup();
+		this.collTripLookup  = getCollectingTripLookup();
 		
 		init();
 	}
@@ -129,7 +142,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             Preparation preparation = getPreparation(specimenItem, collectionObject, collectionId);
             addPreparation(preparation);
 
-            // merge collectionobjectattr; warn if changed
+            // merge collectionobjectattr/collectingtrip; warn if changed
             updateContainerStr(specimenItem);
 
             // merge replicates; warn if changed
@@ -141,10 +154,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             // merge subcollection; warn if changed
             updateSubcollection(specimenItem, collectionId);
 
-            // TODO: create accessions from provenance?
+            // maybe add an OtherIdentifier for accession
             OtherIdentifier accession = getAccessionIdentifier(specimenItem, collectionObject, collectionId);
             addOtherIdentifier(accession);
-            
+
             // ExsiccataItem
             ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
             addExsiccataItem(exsiccataItem);
@@ -190,8 +203,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             // Container
             container = getContainer(specimenItem, collectionId);
 
+            // CollectingTrip
+            collectingTrip = getCollectingTrip(specimenItem, getBotanyDiscipline());
+
             // CollectingEvent
-            collectingEvent = getCollectingEvent(specimenItem, getBotanyDiscipline());
+            collectingEvent = getCollectingEvent(specimenItem, collectingTrip, getBotanyDiscipline());
 
             // CollectionObjectAttribute
             collObjAttr = getCollObjAttr(specimenItem, collectionId);
@@ -265,6 +281,28 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		return containerLookup;
 	}
 
+	public CollectingTripLookup getCollectingTripLookup()
+	{
+	    if (collTripLookup == null)
+	    {
+	        collTripLookup = new CollectingTripLookup() {
+	            public CollectingTrip queryByName(String name) throws LocalException
+	            {	                
+	                Integer collectingTripId = queryForInt("collectingtrip", "CollectingTripID", "CollectingTripName", name);
+
+	                if (collectingTripId == null) return null;
+	                
+	                CollectingTrip collectingTrip = new CollectingTrip();
+	                
+	                collectingTrip.setCollectingTripId(collectingTripId);
+	                
+	                return collectingTrip;
+	            }
+	        };
+	    }
+	    return collTripLookup;
+	}
+	
 	public SpecimenLookup getSpecimenLookup()
     {
         if (collObjLookup == null)
@@ -339,6 +377,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	
     protected void preLoad() throws LocalException
     {
+        // disable keys
         String[] tables = { "collectionobject", "collectingevent", "collector", "preparation" };
         
         for (String table : tables)
@@ -346,11 +385,22 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             String sql = "alter table " + table + " disable keys";
             execute(sql);
         }
+        
+        // create attributedef for provenance preparationattr
+        Short stringDataType = AttributeIFace.FieldType.StringType.getType();
+        Short prepTableType = GenericDBConversion.TableType.Preparation.getType();
+
+        provenanceAttrDef = getAttributeDef(stringDataType, prepTableType, ProvenanceFieldName);
+        
+        String sql = getInsertSql(provenanceAttrDef);
+        Integer attributeDefId = insert(sql);
+        provenanceAttrDef.setAttributeDefId(attributeDefId);
     }
-    
+
     @Override
     protected void postLoad() throws LocalException
     {
+        // save the last specimen record
         try
         {
             saveObjects();
@@ -361,6 +411,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             getLogger().error("Problem saving records for " + guid, e);
         }
         
+        // enable keys
         getLogger().info("Enabling keys");
         
         String[] tables = { "collectionobject", "collectingevent", "collector", "preparation" };
@@ -371,9 +422,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             execute(sql);
         }
         
-        // TODO: probably drop this index after import
+        // TODO: probably drop these indexes after import
         getLogger().info("Creating sample number index");
         String sql =  "create index samplenum on preparation(SampleNumber)";
+        execute(sql);
+        
+        getLogger().info("Creating alt catalog number index");
+        sql =  "create index altcatnum on collectionobject(AltCatalogNumber)";
         execute(sql);
     }
     
@@ -466,9 +521,17 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         {
             getLogger().warn(rec() + "Changing containerStr from " + containerStr + " to " + newContainerStr);
             containerStr = newContainerStr;
-            collObjAttr.setText3(containerStr);
-        }
-	       
+            
+            if (! specimenItem.hasCollectingTrip())
+            {
+                collObjAttr.setText3(containerStr);
+            }
+            else
+            {
+                collectingTrip = getCollectingTrip(specimenItem);
+                collectingEvent.setCollectingTrip(collectingTrip);
+            }
+        } 
 	}
 
 	private void updateReplicates(SpecimenItem specimenItem) throws LocalException
@@ -522,6 +585,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Exsiccata lookupExsiccata(Integer subCollectionId) throws LocalException
 	{
 	    return subcollLookup.getExsiccataById(subcollectionId);
+	}
+
+	private CollectingTrip lookupCollectingTrip(String name) throws LocalException
+	{
+	    return collTripLookup.queryByName(name);
 	}
 	
 	private Container lookupContainer(String name) throws LocalException
@@ -595,7 +663,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    exsiccataItems.add(exsiccataItem);
 	}
 	
-
 	private void addOtherIdentifier(OtherIdentifier otherIdentifier)
 	{
 	    if (otherIdentifier == null) return;
@@ -614,7 +681,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	    otherIdentifiers.add(otherIdentifier);
 	}
-
 
 	private Collector getCollector(SpecimenItem specimenItem, CollectingEvent collectingEvent, Integer collectionMemberId) throws LocalException
 	{
@@ -668,9 +734,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return collector;
 	}
 
-	private CollectingEvent getCollectingEvent(SpecimenItem specimenItem, Discipline discipline) throws LocalException
+	private CollectingEvent getCollectingEvent(SpecimenItem specimenItem, CollectingTrip collectingTrip, Discipline discipline) throws LocalException
 	{
 		CollectingEvent collectingEvent = new CollectingEvent();
+
+		// CollectingTrip
+		collectingEvent.setCollectingTrip(collectingTrip);
 
 		// DisciplineID
         collectingEvent.setDiscipline(discipline);
@@ -756,14 +825,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return collectingEvent;
 	}
 	
-	
 	private Preparation getPreparation(SpecimenItem specimenItem, CollectionObject collectionObject, Integer collectionMemberId)
 		throws LocalException
 	{
         if (specimenItem.getId() == null) return null;
         
         Preparation preparation = new Preparation();
-
+        preparation.setPreparationAttrs(new HashSet<PreparationAttr>());
+        
 	    // CollectionMemberId
 	    preparation.setCollectionMemberId(collectionMemberId);
 	    
@@ -829,10 +898,33 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 preparation.setYesNo3(true);
             }
         }
+
+        // add PreparationAttr for provenances
+        String provenanceStr = specimenItem.getProvenance();
+        if (provenanceStr != null)
+        {
+            String[] provenances = provenanceStr.split(";");
+
+            for (String provenance : provenances)
+            {
+                PreparationAttr prepAttr = new PreparationAttr();
+
+                prepAttr.setDefinition(getProvenanceAttrDef());
+                prepAttr.setCollectionMemberId(collectionMemberId);
+                prepAttr.setPreparation(preparation);
+                prepAttr.setStrValue(provenance.trim());
+                
+                preparation.getPreparationAttrs().add(prepAttr);
+            }
+        }
         
         return preparation;
 	}
 
+	private AttributeDef getProvenanceAttrDef()
+	{
+	    return provenanceAttrDef;
+	}
 
 	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
 	{
@@ -976,11 +1068,62 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    
 	    // Text3 (container)
 	    containerStr = specimenItem.getContainer();
-	    collObjAttr.setText3(containerStr);
+	    if (!specimenItem.hasCollectingTrip()) collObjAttr.setText3(containerStr);
 	    
 	    return collObjAttr;
 	}
+   
+    private AttributeDef getAttributeDef(Short dataType, Short tableType, String fieldName) throws LocalException
+    {
+        AttributeDef attributeDef = new AttributeDef();
+        
+        attributeDef.setDataType(dataType);
+        attributeDef.setDiscipline(getBotanyDiscipline());
+        attributeDef.setFieldName(fieldName);
+        attributeDef.setTableType(tableType);
+        
+        return attributeDef;
+    }
+        
+    private CollectingTrip getCollectingTrip(SpecimenItem specimenItem) throws LocalException
+    {
+        return getCollectingTrip(specimenItem, getBotanyDiscipline());
+    }
+    
+    private CollectingTrip getCollectingTrip(SpecimenItem specimenItem, Discipline discipline) throws LocalException
+    {
+        if (specimenItem.hasCollectingTrip())
+        {
+            String container = specimenItem.getContainer();
+            checkNull(container, "container");
+            
+            String collectingTripName = truncate(container, 64, "collecting trip name");
+            
+            CollectingTrip existingTrip = lookupCollectingTrip(collectingTripName);
 
+            if (existingTrip == null)
+            {          
+                collectingTrip = new CollectingTrip();
+
+                // CollectingTripName
+                collectingTrip.setCollectingTripName(collectingTripName);
+
+                // Discipline
+                collectingTrip.setDiscipline(discipline);
+
+                // Remarks
+                collectingTrip.setRemarks(container);
+            }
+            else
+            {
+                Integer collectingTripId = existingTrip.getId();
+                collectingTrip.setCollectingTripId(collectingTripId);
+            }
+        }
+        
+        return collectingTrip;
+    }
+    
 	private boolean containsData(CollectionObjectAttribute collObjAttr)
 	{
 	    if (collObjAttr.getText1()  != null) return true;
@@ -1090,11 +1233,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private OtherIdentifier getAccessionIdentifier(SpecimenItem specimenItem, CollectionObject collectionObject, Integer collectionMemberId)
 	{
 	    String accessionNo = specimenItem.getAccessionNo();
-	    if (accessionNo == null) accessionNo = "NA";
 	    
-	    String provenance = specimenItem.getProvenance();
-	    
-	    if (accessionNo.equals("NA") && provenance == null)
+	    if (accessionNo == null)
 	    {
 	        return null;
 	    }
@@ -1114,7 +1254,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    otherIdentifier.setInstitution(specimenItem.getHerbariumCode());
 
 	    // Remarks
-	    otherIdentifier.setRemarks(provenance);
+	    otherIdentifier.setRemarks("[accession]");
 	    
 	    return otherIdentifier;
 	}
@@ -1139,24 +1279,25 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	
 	private String getInsertSql(CollectingEvent collectingEvent) throws LocalException
     {
-        String fieldNames = "DisciplineID, EndDate, EndDatePrecision, EndDateVerbatim, " +
+        String fieldNames = "CollectingTripID, DisciplineID, EndDate, EndDatePrecision, EndDateVerbatim, " +
         		            "LocalityID, Remarks, StartDate, StartDatePrecision, StartDateVerbatim, " +
                             "TimestampCreated, VerbatimDate, Version";
 
-        String[] values = new String[12];
+        String[] values = new String[13];
         
-        values[0]  = SqlUtils.sqlString( collectingEvent.getDiscipline().getDisciplineId());
-        values[1]  = SqlUtils.sqlString( collectingEvent.getEndDate());
-        values[2]  = SqlUtils.sqlString( collectingEvent.getEndDatePrecision());
-        values[3]  = SqlUtils.sqlString( collectingEvent.getEndDateVerbatim());
-        values[4]  = SqlUtils.sqlString( collectingEvent.getLocality().getLocalityId());
-        values[5]  = SqlUtils.sqlString( collectingEvent.getRemarks());
-        values[6]  = SqlUtils.sqlString( collectingEvent.getStartDate());
-        values[7]  = SqlUtils.sqlString( collectingEvent.getStartDatePrecision());
-        values[8]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
-        values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
-        values[11] = SqlUtils.zero();
+        values[0]  = SqlUtils.sqlString( collectingEvent.getCollectingTrip().getId());
+        values[1]  = SqlUtils.sqlString( collectingEvent.getDiscipline().getDisciplineId());
+        values[2]  = SqlUtils.sqlString( collectingEvent.getEndDate());
+        values[3]  = SqlUtils.sqlString( collectingEvent.getEndDatePrecision());
+        values[4]  = SqlUtils.sqlString( collectingEvent.getEndDateVerbatim());
+        values[5]  = SqlUtils.sqlString( collectingEvent.getLocality().getLocalityId());
+        values[6]  = SqlUtils.sqlString( collectingEvent.getRemarks());
+        values[7]  = SqlUtils.sqlString( collectingEvent.getStartDate());
+        values[8]  = SqlUtils.sqlString( collectingEvent.getStartDatePrecision());
+        values[9]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
+        values[12] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }
@@ -1299,8 +1440,57 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
+
+    // See edu.ku.brc.specify.conversion.GenericDBConversion
+    private String getInsertSql(AttributeDef attributeDef)
+    {
+        String fieldNames = "DataType, DisciplineID, FieldName, TableType, TimestampCreated, Version";
+        
+        String[] values = new String[6];
+        
+        values[0] = SqlUtils.sqlString( attributeDef.getDataType());
+        values[1] = SqlUtils.sqlString( attributeDef.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( attributeDef.getFieldName());
+        values[3] = SqlUtils.sqlString( attributeDef.getTableType());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("attributedef", fieldNames, values);
+    }
 	
-	private PrepType getPrepType(String format, Integer collectionId) throws LocalException
+    private String getInsertSql(PreparationAttr preparationAttr)
+    {
+        String fieldNames = "AttributeDefID, CollectionMemberID, PreparationId, " +
+        		            "StrValue, TimestampCreated, Version";
+        
+        String[] values = new String[6];
+        
+        values[0] = SqlUtils.sqlString( preparationAttr.getDefinition().getId());
+        values[1] = SqlUtils.sqlString( preparationAttr.getCollectionMemberId());
+        values[2] = SqlUtils.sqlString( preparationAttr.getPreparation().getId());
+        values[3] = SqlUtils.sqlString( preparationAttr.getStrValue());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("preparationattr", fieldNames, values);
+    }
+
+    private String getInsertSql(CollectingTrip collectingTrip)
+    {
+        String fieldNames = "CollectingTripName, DisciplineID, Remarks, TimestampCreated, Version";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( collectingTrip.getCollectingTripName());
+        values[1] = SqlUtils.sqlString( collectingTrip.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( collectingTrip.getRemarks());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("collectingtrip", fieldNames, values);
+    }
+
+    private PrepType getPrepType(String format, Integer collectionId) throws LocalException
 	{
 	    String key = format + " " + collectionId;
 	    
@@ -1338,7 +1528,15 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             collObjAttr.setCollectionObjectAttributeId(collObjAttrId);
         }
 
-        // save the current CollectingEvent
+        // save the current collecting trip if necessary
+        if (collectingTrip != null && collectingTrip.getId() == null && collectingTrip.getCollectingTripName() != null)
+        {
+            sql = getInsertSql(collectingTrip);
+            Integer collectingTripId = insert(sql);
+            collectingTrip.setCollectingTripId(collectingTripId);
+        }
+
+        // save the current collecting event
         if (collectingEvent != null && collectingEvent.getId() == null)
         {
             sql = getInsertSql(collectingEvent);
@@ -1371,7 +1569,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         for (Preparation preparation : preparations)
         {
             sql = getInsertSql(preparation);
-            insert(sql);
+            Integer preparationId = insert(sql);
+            preparation.setPreparationId(preparationId);
+            
+            for (PreparationAttr prepAttr : preparation.getPreparationAttrs())
+            {
+                sql = getInsertSql(prepAttr);
+                insert(sql);
+            }
         }
 
         // save the current OtherIdentifiers
@@ -1398,6 +1603,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         collectionObject = null;
         collObjAttr      = new CollectionObjectAttribute();
         container        = new Container();
+        collectingTrip   = new CollectingTrip();
         preparations.clear();
         otherIdentifiers.clear();
         exsiccataItems.clear();
