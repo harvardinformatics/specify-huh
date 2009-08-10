@@ -1256,6 +1256,10 @@
                     <cell type="field" id="6" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="collectingTrip"/>
+                	<cell type="field" id="collectingTrip" name="collectingTrip" uitype="querycbx" initialize="name=CollectingTrip" colspan="10"/>
+                </row>
+                <row>
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="12" rows="3"/>
                 </row>
                 <row>
@@ -3231,7 +3235,7 @@
             <rows>
             	<row>
             		<cell type="label" labelfor="attrDef"/>
-            		<cell type="field" id="attrDef" name="definition" uitype="querycbx" initialize="name=AttributeDef;title=Type"/>
+            		<cell type="field" id="attrDef" name="definition" uitype="querycbx" initialize="name=AttributeDef;title=Type" default="Provenance"/>
             		<cell type="field" id="strValue" name="strValue" uitype="text"/>
             	</row>
             </rows>
