@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dialog resourcelabels="">
     <dialog type="search" viewset="Search" view="AccessionSearch"          name="AccessionSearch"          class="edu.ku.brc.specify.datamodel.Accession"      idfield="accessionId" helpcontext="CBXQSearch"/>
-    <dialog type="search" viewset="Search" view="AgentSearch"              name="AgentSearch"              class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
+	<dialog type="search" viewset="Search" view="AgentSearch"              name="AgentSearch"              class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AppraisalSearch"          name="AppraisalSearch"          class="edu.ku.brc.specify.datamodel.Appraisal"      idfield="appraisalId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AttachmentSearch"         name="AttachmentSearch"         class="edu.ku.brc.specify.datamodel.Attachment"     idfield="attachmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AutoNumberingSchemeSearch" name="AutoNumberingSchemeSearch" class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" idfield="autoNumberingSchemeId" helpcontext="CBXQSearch"/>
@@ -33,6 +33,7 @@
     <dialog type="display" view="AgentVariant"       name="AgentVariant"             class="edu.ku.brc.specify.datamodel.AgentVariant" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Appraisal"          name="AppraisalDisplay"         class="edu.ku.brc.specify.datamodel.Appraisal" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AttachmentsForm"    name="AttachmentsForm"          class="edu.ku.brc.specify.datamodel.Attachment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="AttributeDef"       name="AttributeDef"             class="edu.ku.brc.specify.datamodel.AttributeDef" helpcontext="CBXQSearch"/>
     <dialog type="display" view="AutoNumberingScheme" name="AutoNumberingScheme"     class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Author"             name="AuthorDisplay"            class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BioStrat"           name="BioStratDisplay"          class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
@@ -56,6 +57,7 @@
     <dialog type="display" view="Locality"           name="LocalityDisplay"          class="edu.ku.brc.specify.datamodel.Locality" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Permit"             name="PermitDisplay"            class="edu.ku.brc.specify.datamodel.Permit"  helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Preparation"        name="PreparationDisplay"       class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="PreparationAttr"    name="PreparationAttr"          class="edu.ku.brc.specify.datamodel.PreparationAttr" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ProjectSub"         name="ProjectSubDisplay"        class="edu.ku.brc.specify.datamodel.Project" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ReferenceWork"      name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="RepositoryAgreement" name="RepositoryAgreementDisplay" class="edu.ku.brc.specify.datamodel.RepositoryAgreement" helpcontext="CBXQViewEdit"/>
