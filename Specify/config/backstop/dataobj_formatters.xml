@@ -80,6 +80,19 @@
         </switch>
     </format>
 
+	<format
+		name="AttributeDef"
+		title="AttributeDef"
+		class="edu.ku.brc.specify.datamodel.AttributeDef"
+		default="true"
+		>
+		<switch single="true">
+			<fields>
+				<field>fieldName</field>
+			</fields>
+		</switch>
+	</format>
+    
     <format
         name="AutoNumberingScheme"
         title="AutoNumberingScheme"
@@ -511,6 +524,20 @@
         </switch>
     </format>
 
+	<format
+        name="PreparationAttr"
+        title="Provenance"
+        class="edu.ku.brc.specify.datamodel.PreparationAttr"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field formatter="AttributeDef">definition</field>
+                <field>strValue</field>
+            </fields>
+        </switch>
+    </format>
+    
     <format
         name="ReferenceWork"
         title="ReferenceWork"
