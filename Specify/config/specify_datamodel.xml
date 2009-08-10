@@ -315,6 +315,7 @@
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="modifiedByAgent" columnname="ModifiedByAgentID" updatable="false" required="false" save="false"/>
     </table>
     <table classname="edu.ku.brc.specify.datamodel.AttributeDef" table="attributedef" tableid="16" searchable="false" abbrv="atd">
+      <display view="AttributeDef" searchdlg="AttributeDef" newobjdlg="AttributeDef"/>
       <field column="DataType" name="dataType" type="java.lang.Short" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="FieldName" name="fieldName" type="java.lang.String" length="32" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="TableType" name="tableType" type="java.lang.Short" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
@@ -2195,6 +2196,7 @@
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Preparation" relationshipname="preparation" columnname="PreparationID" othersidename="preparationAttachments" updatable="false" required="true" save="false"/>
     </table>
     <table classname="edu.ku.brc.specify.datamodel.PreparationAttr" table="preparationattr" tableid="64" searchable="true" abbrv="ppa">
+	  <display view="PreparationAttr" searchdlg="PreparationAttr" newobjdlg="PreparationAttr"/>
       <field column="CollectionMemberID" name="collectionMemberId" type="java.lang.Integer" indexName="PrepAttrColMemIDX" updatable="true" required="true" unique="false" indexed="true" partialDate="false"/>
       <field column="DoubleValue" name="dblValue" type="java.lang.Double" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="StrValue" name="strValue" type="java.lang.String" length="255" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
