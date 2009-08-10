@@ -344,6 +344,10 @@
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="remarks" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
+                <row>
+                	<cell type="label" labelfor="collectingTrip"/>
+                	<cell type="field" id="collectingTrip" name="collectingTrip" uitype="querycbx" initialize="name=CollectingTrip" colspan="8"/>
+                </row>
             </rows>
         </viewdef>
 
