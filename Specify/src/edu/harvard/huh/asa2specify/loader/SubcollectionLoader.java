@@ -317,14 +317,31 @@ public class SubcollectionLoader extends AuditedObjectLoader
         String       remarks = subcollection.getRemarks();
         
         if (specimenCount != null || location != null || cabinet != null || remarks != null)
-        {
-            String description = "";
-            if (taxonGroup != null) description = "Taxon group: " + taxonGroup + "; ";
-            
-            description = "Specimen count: " + specimenCount == null ? "" : specimenCount + "; " +
-                          "Location: "       +      location == null ? "" : location      + "; " +
-                          "Cabinet:"         +       cabinet == null ? "" : cabinet       + "; " +
-                          "Remarks:"         +       remarks == null ? "" : remarks       + ";";
+        {            
+            if (taxonGroup != null)    taxonGroup    = "Taxon group: "    + taxonGroup;
+            if (specimenCount != null) specimenCount = "Specimen count: " + specimenCount;
+            if (location != null)      location      = "Location: "       + location;
+            if (cabinet != null)       cabinet       = "Cabinet: "        + cabinet;
+            if (remarks != null)       remarks       = "Remarks: "        + remarks;
+
+            String description = taxonGroup;
+
+            if (specimenCount != null)
+            {
+                description = (description == null ? specimenCount : "; " + specimenCount);
+            }
+            if (location != null)
+            {
+                description = (description == null ? location : "; " + location);
+            }
+            if (cabinet != null)
+            {
+                description = (description == null ? cabinet : "; " + cabinet);
+            }
+            if (remarks != null)
+            {
+                description = (description == null ? remarks : "; " + remarks);
+            }
             
             return description;
         }
