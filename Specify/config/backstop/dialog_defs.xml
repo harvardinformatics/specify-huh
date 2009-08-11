@@ -12,6 +12,7 @@
     <dialog type="search" viewset="Search" view="DisciplineSearch"         name="DisciplineSearch"         class="edu.ku.brc.specify.datamodel.Discipline"     idfield="disciplineId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DivisionSearch"           name="DivisionSearch"           class="edu.ku.brc.specify.datamodel.Division"       idfield="divisionId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DeterminationSearch"      name="DeterminationSearch"      class="edu.ku.brc.specify.datamodel.Determination"  idfield="determinationId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="ExsiccataSearch"          name="ExsiccataSearch"          class="edu.ku.brc.specify.datamodel.Exsiccata"      idfield="exsiccataId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeographySearch"          name="GeographySearch"          class="edu.ku.brc.specify.datamodel.Geography"      idfield="geographyId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeologicTimePeriodSearch" name="ChronosStratSearch"       class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="JournalSearch"            name="JournalSearch"            class="edu.ku.brc.specify.datamodel.Journal"        idfield="journalId" helpcontext="CBXQSearch"/>
@@ -44,6 +45,7 @@
     <dialog type="display" view="CollectingTrip"     name="CollectingTripDisplay"    class="edu.ku.brc.specify.datamodel.CollectingTrip" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Determination"      name="DeterminationDisplay"     class="edu.ku.brc.specify.datamodel.Determination" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Exsiccata"          name="ExsiccataDisplay"         class="edu.ku.brc.specify.datamodel.Exsiccata" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="FieldNotebookPage"  name="FieldNotebookPageDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPage" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ChronosStrat"       name="ChronosStratDisplay"      class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Geography"          name="GeographyDisplay"         class="edu.ku.brc.specify.datamodel.Geography" helpcontext="CBXQViewEdit"/>
