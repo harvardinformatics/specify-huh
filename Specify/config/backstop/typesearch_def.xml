@@ -33,6 +33,7 @@
     <typesearch tableid="87"  name="CollectingTrip"         searchfield="collectingTripName" displaycols="collectingTripName" format="%s"  dataobjformatter=""/>
     <typesearch tableid="26"  name="Discipline"             searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="96"  name="Division"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
+	<typesearch tableid="89"  name="Exsiccata"              searchfield="title"           displaycols="title"              format="%s"     dataobjformatter=""/> 
     <typesearch tableid="3"   name="Geography"              searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter="Geography"/>
     <typesearch tableid="46"  name="GeologicTimePeriod"     searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
     <typesearch tableid="51"  name="Journal"                searchfield="journalName"     displaycols="journalName"        format="%s"     dataobjformatter=""/>
