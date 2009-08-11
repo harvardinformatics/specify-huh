@@ -328,19 +328,19 @@ public class SubcollectionLoader extends AuditedObjectLoader
 
             if (specimenCount != null)
             {
-                description = (description == null ? specimenCount : "; " + specimenCount);
+                description = (description == null ? specimenCount : description + "; " + specimenCount);
             }
             if (location != null)
             {
-                description = (description == null ? location : "; " + location);
+                description = (description == null ? location : description + "; " + location);
             }
             if (cabinet != null)
             {
-                description = (description == null ? cabinet : "; " + cabinet);
+                description = (description == null ? cabinet : description + "; " + cabinet);
             }
             if (remarks != null)
             {
-                description = (description == null ? remarks : "; " + remarks);
+                description = (description == null ? remarks : description + "; " + remarks);
             }
             
             return description;
