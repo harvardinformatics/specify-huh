@@ -102,7 +102,7 @@
         </view>
 
         <view name="DeterminationCitation"
-            class="DeterminationCitation"
+            class="edu.ku.brc.specify.datamodel.DeterminationCitation"
             resourcelabels="false">
             <desc><![CDATA[Taxon data entry form.]]></desc>
             <altviews>
@@ -112,9 +112,30 @@
                 <altview name="DeterminationCitation Table Edit" viewdef="DeterminationCitation Table" mode="edit"/>
             </altviews>
         </view>
-    </views>
-    
-    
+        
+        <view name="Exsiccata"
+        	class="edu.ku.brc.specify.datamodel.Exsiccata"
+        	resourcelabels="false">
+        	<desc><![CDATA[Exsiccata data entry form.]]></desc>
+        	<altviews>
+        		<altview name="Exsiccata View" viewdef="Exsiccata" mode="view"/>
+        		<altview name="Exsiccata Edit" viewdef="Exsiccata" mode="edit"/>
+        	</altviews>
+        </view>
+        
+        <view name="Exsiccatae"
+        	class="edu.ku.brc.specify.datamodel.ExsiccataItem"
+        	resourcelabels="false">
+        	<desc><![CDATA[The Exsiccata Item subform for Collection Object form.]]></desc>
+        	<altviews>
+        		<altview name="ExsiccataItem View" viewdef="ExsiccataItem" mode="view"/>
+        		<altview name="ExsiccataItem Edit" viewdef="ExsiccataItem" mode="edit"/>
+        		<altview name="ExsiccataItem Table View" viewdef="ExsiccataItem Table" mode="view"/>
+        		<altview name="ExsiccataItem Table Edit" viewdef="ExsiccataItem Table" mode="edit"/>
+        	</altviews>
+        </view>
+        
+	</views>
     <viewdefs>
         
         <viewdef
@@ -200,6 +221,9 @@
                 </row>
                 <row>
                     <cell type="subview" viewname="Container" id="container" name="container" colspan="12"/>
+                </row>
+                <row>
+                	<cell type="subview" viewname="Exsiccatae" id="exsiccatae" name="exsiccataItems" initialize="name=ExsiccataItem" colspan="12"/>
                 </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="12"/>
@@ -524,5 +548,64 @@
             </rows>
         </viewdef>
         
+        <viewdef
+        	type="formtable"
+        	name="ExsiccataItem Table"
+        	class="edu.ku.brc.specify.datamodel.ExsiccataItem"
+        	gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+        	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+        	<desc><![CDATA[Exsiccata Item]]></desc>
+			<definition>ExsiccataItem</definition>
+        </viewdef>
+        
+        <viewdef
+        	type="form"
+        	name="ExsiccataItem"
+        	class="edu.ku.brc.specify.datamodel.ExsiccataItem"
+        	gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+        	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+        	<desc><![CDATA[Exsiccata Item]]></desc>
+        	
+        	<columnDef os="exp">p,     2px, 225px, 5px:g, p,     2px, 225px, 5px:g,   p,     2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 225px, 5px,   100px, 2px, 225px, 5px,     100px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 225px, 5px,   138px, 2px, 225px, 5px,     138px, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+        	<rows>
+        		<row>
+	        		<cell type="label" labelfor="exsiccata"/>
+    	    		<cell type="field" id="exsiccata" name="exsiccata" uitype="querycbx" initialize="name=Exsiccata" colspan="3"/>
+    	    	</row>
+    	    	<row>
+    	    		<cell type="label" labelfor="fascicle"/>
+    	    		<cell type="field" id="fascicle" name="fascicle" uitype="text"/>
+    	    		<cell type="label" labelfor="number"/>
+    	    		<cell type="field" id="number" name="number" uitype="text"/>
+    	    	</row>
+        	</rows>
+        </viewdef>
+        
+        <viewdef
+        	type="form"
+        	name="Exsiccata"
+        	class="edu.ku.brc.specify.datamodel.Exsiccata"
+        	gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+        	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+        	<desc><![CDATA[Exsiccata]]></desc>
+        	
+        	<columnDef os="exp">p,     2px, 255px, 2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 255px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 255px, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+            	<row>
+            		<cell type="label" labelfor="referenceWork"/>
+            		<cell type="field" id="referenceWork" name="referenceWork" uitype="querycbx" initialize="name=ReferenceWork"/>
+            	</row>
+            </rows>
+        </viewdef>
+        
     </viewdefs>
+    
 </viewset>
