@@ -135,7 +135,7 @@
         	</altviews>
         </view>
         
-        <view name="LocalitySub"
+        <!-- <view name="LocalitySub"
             class="edu.ku.brc.specify.datamodel.Locality"
             resourcelabels="false">
             <desc><![CDATA[The Locality Subform.]]></desc>
@@ -143,7 +143,7 @@
                 <altview name="Locality Table View" viewdef="Locality Table"   mode="view"/>
                 <altview name="Locality Table Edit" viewdef="Locality Table"   mode="edit" default="true"/>
             </altviews>
-        </view>
+        </view> -->
         
 	</views>
     <viewdefs>
@@ -616,7 +616,7 @@
             </rows>
         </viewdef>
         
-        <viewdef
+        <!-- <viewdef
             type="formtable"
             name="Locality Table"
             class="edu.ku.brc.specify.datamodel.Locality"
@@ -650,7 +650,7 @@
                 </row>
 
             </rows>
-        </viewdef>
+        </viewdef> -->
         
     </viewdefs>
     
