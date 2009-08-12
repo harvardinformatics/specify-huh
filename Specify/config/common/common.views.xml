@@ -2652,7 +2652,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="localityName"/>
-                    <cell type="field" id="localityName" name="localityName" uitype="combobox" picklist="LocalityName" colspan="14"/>
+                    <cell type="field" id="localityName" name="localityName" uitype="combobox" picklist="HUH Locality Name" colspan="14"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="geography"/>
