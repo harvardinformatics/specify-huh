@@ -292,17 +292,17 @@
   <picklist name="HUH Lat-Long Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
-      <picklistitem title="gazetteer" value="gazetteer"/>
-      <picklistitem title="other" value="other"/>
-      <picklistitem title="unknown" value="unknown"/>
+      <picklistitem title="gazetteer" value="Gazetteer"/>
+      <picklistitem title="other" value="Other"/>
+      <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
   <picklist name="HUH Elev Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
-      <picklistitem title="altimeter" value="altimeter"/>
-      <picklistitem title="other" value="other"/>
-      <picklistitem title="unknown" value="unknown"/>
+      <picklistitem title="altimeter" value="Altimeter"/>
+      <picklistitem title="other" value="Other"/>
+      <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
 </list>
