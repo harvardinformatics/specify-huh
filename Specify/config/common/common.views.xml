@@ -2641,12 +2641,12 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Locality]]></desc>
             
-            <columnDef os="exp">p,2px,85px,5px:g,p,2px,85px,5px:g,p,2px,116px,5px:g,p,2px,88px,0px,p,p:g</columnDef>
-            <columnDef>100px,2px,85px,5px,100px,2px,85px,5px,115px,2px,116px,5px,115px,2px,88px,0px,15px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,120px,5px,116px,2px,120px,5px,137px,2px,120px,5px,146px,2px,120px,0px,15px,p:g</columnDef>
+            <columnDef os="exp">p,2px,85px,5px:g,p,2px,85px,5px:g,p,2px,150px,5px:g,p,2px,88px,0px,p,p:g</columnDef>
+            <columnDef>100px,2px,85px,5px,100px,2px,85px,5px,115px,2px,150px,5px,115px,2px,88px,0px,15px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,120px,5px,116px,2px,120px,5px,150px,2px,120px,5px,146px,2px,120px,0px,15px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <enableRules>
-                <rule id="georef"><![CDATA[localityName.isNotEmpty() && geography.isNotEmpty()]]></rule>
+                <rule id="georef"><![CDATA[remarks.isNotEmpty() && geography.isNotEmpty()]]></rule>
             </enableRules>
             
             <rows>
@@ -2667,11 +2667,11 @@
                     <cell type="field" id="2" name="datum" uitype="text"/>
                     <cell type="label" label="" colspan="3"/>
                     <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="latLongMethod" uitype="combobox" picklist="LatLongMethod"/>
+                    <cell type="field" id="6" name="latLongMethod" uitype="combobox" picklist="HUH Lat-Long Method"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="14"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="text" rows="2" colspan="14"/>
                 </row>
                 <row>  
                     <cell type="subview" id="7" name="geoCoordDetails" viewname="GeoCoordDetail" colspan="17"/> 
@@ -2688,7 +2688,7 @@
                     <cell type="label" labelfor="10"/>
                     <cell type="field" id="10" name="maxElevation" uitype="text" cols="20"/>
                     <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="elevationMethod" uitype="combobox" picklist="ElevMethod" cols="20"/>
+                    <cell type="field" id="11" name="elevationMethod" uitype="combobox" picklist="HUH Elev Method" cols="20"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="elevationAccuracy" uitype="text" cols="20"/>
                 </row>
@@ -2700,7 +2700,7 @@
                         <rows>
                             <row>
                                 <cell type="label" label=" "/>
-                                <cell type="field" id="georef" name="this" uitype="plugin" initialize="name=LocalityGeoRef;title=Geo Ref;geoid=geography;locid=localityName;llid=5" colspan="1"/>
+                                <cell type="field" id="georef" name="this" uitype="plugin" initialize="name=LocalityGeoRef;title=Geo Ref;geoid=geography;locid=remarks;llid=5" colspan="1"/>
                                 <cell type="field" id="ge" name="this" uitype="plugin" initialize="name=LocalityGoogleEarth;title=Google Earth;watch=5" colspan="1"/>
                             </row>
                         </rows>
