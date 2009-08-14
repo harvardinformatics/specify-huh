@@ -20,7 +20,9 @@ import java.sql.Statement;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.AsaDetermination;
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
+import edu.harvard.huh.asa.AsaDetermination.QUALIFIER;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -83,7 +85,7 @@ public class DeterminationLoader extends CsvToSqlLoader
             determination.setSpecimenId( SqlUtils.parseInt( columns[1] ));
             determination.setCollectionCode(                columns[2] );
             determination.setTaxonId(    SqlUtils.parseInt( columns[3] ));
-            determination.setQualifier(                     columns[4] );
+            determination.setQualifier( AsaDetermination.parseQualifier( columns[4] ));
             
             BDate bdate = new BDate();
             determination.setDate( bdate );
@@ -103,7 +105,10 @@ public class DeterminationLoader extends CsvToSqlLoader
         {
             throw new LocalException("Couldn't parse numeric field", e);
         }
-        
+        catch (AsaException e)
+        {
+            throw new LocalException("Couldn't parse qualifier type", e);
+        }
         return determination;
     }
     
@@ -178,12 +183,11 @@ public class DeterminationLoader extends CsvToSqlLoader
         Integer ordinal = asaDet.getOrdinal();
         if (ordinal != null) determination.setNumber1((float) ordinal);
 
-        // Qualifier TODO: enum for confidence
-        String qualifier = asaDet.getQualifier();
+        // Qualifier
+        QUALIFIER qualifier = asaDet.getQualifier();
         if (qualifier != null)
         {
-            qualifier = truncate(qualifier, 50, "qualifier");
-            determination.setConfidence(qualifier);
+            determination.setQualifier(AsaDetermination.toString(qualifier));
         }
         
         // Remarks TODO: Maureen, check your notes on this field and label_text
