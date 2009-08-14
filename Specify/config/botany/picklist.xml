@@ -5,7 +5,23 @@
       <picklistitem title="cut" value="cut"/>
     </items>
   </picklist>
-  <picklist name="CollObjPrepMeth" issystem="true" type="0" readonly="true" sizelimit="12">
+  <picklist name="HUH Agent Role" issytem="false" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="Author" value="Author"/>
+      <picklistitem title="Collector" value="Collector"/>
+  	</items>
+  </picklist>
+  <picklist name="HUH Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
+    <items>
+      <picklistitem title="not determined" value="NotDetermined"/>
+      <picklistitem title="flower" value="Flower"/>
+      <picklistitem title="flower and fruit" value="FlowerAndFruit"/>
+      <picklistitem title="fruit" value="Fruit"/>
+      <picklistitem title="sterile" value="Sterile"/>
+      <picklistitem title="sporophyte" value="Sporophyte"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Preparation Types" issystem="false" type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="on sheet" value="on sheet"/>
       <picklistitem title="in packet" value="in packet"/>
@@ -39,21 +55,5 @@
 		<picklistitem title="Drawing of type" value="DrawingOfType"/>
 		<picklistitem title="Photograph of type" value="PhotoOfType"/>
     </items>
-  </picklist>
-  <picklist name="Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
-    <items>
-      <picklistitem title="not determined" value="NotDetermined"/>
-      <picklistitem title="flower" value="Flower"/>
-      <picklistitem title="flower and fruit" value="FlowerAndFruit"/>
-      <picklistitem title="fruit" value="Fruit"/>
-      <picklistitem title="sterile" value="Sterile"/>
-      <picklistitem title="sporophyte" value="Sporophyte"/>
-    </items>
-  </picklist>
-  <picklist name="AgentRole" issytem="false" type="0" readonly="true" sizelimit="2">
-    <items>
-      <picklistitem title="Author" value="Author"/>
-      <picklistitem title="Collector" value="Collector"/>
-  	</items>
   </picklist>
 </list>

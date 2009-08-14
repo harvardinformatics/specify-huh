@@ -57,7 +57,7 @@
     <isHidden>false</isHidden>
     <isSystem>false</isSystem>
     <items>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="Phenology" isRequired="false">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Phenology" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <isSystem>false</isSystem>

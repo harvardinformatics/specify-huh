@@ -1783,7 +1783,7 @@
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="5"/>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="qualifier" uitype="text"/>
+                    <cell type="field" id="8" name="qualifier" uitype="combobox" picklist="HUH Det Qualifier"/>
                     <cell type="label" labelfor="9"/>
                     <cell type="field" id="9" name="addendum" uitype="text"/>            
                     
@@ -1797,7 +1797,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="TypeStatus"/>
+                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                     
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent"  />

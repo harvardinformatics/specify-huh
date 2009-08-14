@@ -9268,7 +9268,7 @@
         </descs>
         <spExportSchemaItems/>
       </item>
-      <item name="qualifier" isUIFormatter="false" isRequired="false">
+      <item name="qualifier" isUIFormatter="false" isRequired="false" pickListName="HUH Det Qualifier">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -9580,7 +9580,7 @@
           </str>
         </descs>
       </item>
-      <item name="confidence" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="confidence" type="java.lang.String" isUIFormatter="false" pickListName="HUH Type Confidence" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -9613,7 +9613,7 @@
         </descs>
         <spExportSchemaItems/>
       </item>
-      <item name="typeStatusName" type="java.lang.String" isUIFormatter="false" pickListName="TypeStatus" isRequired="false">
+      <item name="typeStatusName" type="java.lang.String" isUIFormatter="false" pickListName="HUH Type Status" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -15006,7 +15006,7 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="latLongMethod" type="java.lang.String" isUIFormatter="false" pickListName="LatLongMethod" isRequired="false">
+      <item name="latLongMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Lat-Long Method" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -15022,7 +15022,7 @@
           </str>
         </descs>
       </item>
-      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" pickListName="ElevMethod" isRequired="false">
+      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Elev Method" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -15401,7 +15401,7 @@
         </names>
         <descs/>
       </item>
-      <item name="localityName" type="java.lang.String" isUIFormatter="false" pickListName="LocalityName" isRequired="true">
+      <item name="localityName" type="java.lang.String" isUIFormatter="false" pickListName="HUH Locality Name" isRequired="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
@@ -17943,7 +17943,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="prepType" type="ManyToOne" isUIFormatter="false" pickListName="PrepType" isRequired="true">
+      <item name="prepType" type="ManyToOne" isUIFormatter="false" pickListName="HUH Preparation Types" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -21257,7 +21257,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text2">
+      <item name="text2" isUIFormatter="false" pickListName="HUH Taxon Status" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -21300,7 +21300,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text1">
+      <item name="text1" isUIFormatter="false" pickListName="HUH Taxon Group" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -21498,7 +21498,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="citesStatus" type="java.lang.String" isUIFormatter="false" pickListName="CitesStatus" isRequired="false">
+      <item name="citesStatus" type="java.lang.String" isUIFormatter="false" pickListName="HUH CITES Status" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -21925,13 +21925,13 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="TaxonGroup" isRequired="false">
+      <item name="text1" type="java.lang.String">
         <version>0</version>
-        <isHidden>false</isHidden>
+        <isHidden>true</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Collation</text>
+            <text>Text1</text>
           </str>
         </names>
         <descs>
@@ -21973,13 +21973,13 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" pickListName="TaxonStatus" isRequired="false">
+      <item name="text2" type="java.lang.String">
         <version>0</version>
-        <isHidden>false</isHidden>
+        <isHidden>true</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Date</text>
+            <text>Text2</text>
           </str>
         </names>
         <descs>
@@ -30830,7 +30830,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="role" isUIFormatter="false" isRequired="false" pickListName="AgentRole">
+      <item name="role" isUIFormatter="false" isRequired="false" pickListName="HUH Agent Role">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
