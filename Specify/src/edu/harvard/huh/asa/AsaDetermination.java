@@ -16,18 +16,38 @@ package edu.harvard.huh.asa;
 
 public class AsaDetermination
 {
-    private Integer id;
-    private Integer specimenId;
-    private  String collectionCode;
-    private Integer taxonId;
-    private  String qualifier;
-    private   BDate date;
-    private Boolean isCurrent;
-    private Boolean isLabel;
-    private  String determinedBy;
-    private  String labelText;
-    private Integer ordinal;
-    private  String remarks;
+    // from st_lookup category 128
+    public static enum QUALIFIER              {  Affine, Compare, InQuestion, Not  };
+    private static String[] QualifierNames  = { "aff.",  "cf.",   "?",        "not" };
+
+    public static QUALIFIER parseQualifier(String string) throws AsaException
+    {
+        if (string == null) return null;
+        
+        for (QUALIFIER qualifier : QUALIFIER.values())
+        {
+            if (QualifierNames[qualifier.ordinal()].equals(string)) return qualifier;
+        }
+        throw new AsaException("Invalid taxon status: " + string);
+    }
+    
+    public static String toString(QUALIFIER qualifier)
+    {
+        return qualifier.name();
+    }
+    
+    private Integer   id;
+    private Integer   specimenId;
+    private String    collectionCode;
+    private Integer   taxonId;
+    private QUALIFIER qualifier;
+    private BDate     date;
+    private Boolean   isCurrent;
+    private Boolean   isLabel;
+    private String    determinedBy;
+    private String    labelText;
+    private Integer   ordinal;
+    private String    remarks;
     
     public Integer getId() { return id; }
     
@@ -37,7 +57,7 @@ public class AsaDetermination
     
     public Integer getTaxonId() { return taxonId; }
     
-    public String getQualifier() { return qualifier; }
+    public QUALIFIER getQualifier() { return qualifier; }
     
     public BDate getDate() { return date; }
     
@@ -61,7 +81,7 @@ public class AsaDetermination
     
     public void setTaxonId(Integer taxonId) { this.taxonId = taxonId; }
 
-    public void setQualifier(String qualifier) { this.qualifier = qualifier; }
+    public void setQualifier(QUALIFIER qualifier) { this.qualifier = qualifier; }
     
     public void setDate(BDate date) { this.date = date; }
     

@@ -20,25 +20,29 @@ public class TypeSpecimen
     public static enum STATUS             {  Epitype,   Isoepitype,   Holotype,   Isotype,   Lectotype,   Isolectotype,   Neotype,   Isoneotype,   Syntype,   Isosyntype,    Neosyntype,    Type,   TypeMaterial,    DrawingOfType,     PhotoOfType         };
     private static String[] StatusNames = { "Epitype", "Isoepitype", "Holotype", "Isotype", "Lectotype", "Isolectotype", "Neotype", "Isoneotype", "Syntype", "Isosyntype", "[Neosyntype]", "Type", "Type material", "Drawing of type", "Photograph of type" };
     
-    private Integer id;
-    private Integer specimenId;
-    private  String collectionCode;
-    private Integer taxonId;
-    private  STATUS typeStatus;
-    private  String conditionality;
-    private Boolean isFragment;
-    private   BDate date;
-    private  String verifiedBy;
-    private  String nle1Designator;
-    private Integer nle1PublicationId;
-    private  String nle1Collation;
-    private  String nle1Date;
-    private  String nle2Designator;
-    private Integer nle2PublicationId;
-    private  String nle2Collation;
-    private  String nle2Date;
-    private  String remarks;
-    private Integer ordinal;
+    // from st_lookup category 112
+    public static enum CONDITIONALITY              { Possible,   Probable };
+    private static String[] ConditionalityNames = { "possible", "probable" };
+    
+    private Integer        id;
+    private Integer        specimenId;
+    private String         collectionCode;
+    private Integer        taxonId;
+    private STATUS         typeStatus;
+    private CONDITIONALITY conditionality;
+    private Boolean        isFragment;
+    private BDate          date;
+    private String         verifiedBy;
+    private Integer        nle1DesignatorId;
+    private Integer        nle1PublicationId;
+    private String         nle1Collation;
+    private String         nle1Date;
+    private Integer        nle2DesignatorId;
+    private Integer        nle2PublicationId;
+    private String         nle2Collation;
+    private String         nle2Date;
+    private String         remarks;
+    private Integer        ordinal;
     
     public static STATUS parseStatus(String string) throws AsaException
     {
@@ -54,6 +58,22 @@ public class TypeSpecimen
         return status.name();
     }
     
+    public static CONDITIONALITY parseConditionality(String string) throws AsaException
+    {
+        if (string == null) return null;
+        
+        for (CONDITIONALITY conditionality: CONDITIONALITY.values())
+        {
+            if (ConditionalityNames[conditionality.ordinal()].equals(string)) return conditionality;
+        }
+        throw new AsaException("Invalid conditionality status: " + string);
+    }
+
+    public static String toString(CONDITIONALITY conditionality)
+    {
+        return conditionality.name();
+    }
+
     public Integer getId() { return id; }
     
     public Integer getSpecimenId() { return specimenId; }
@@ -64,7 +84,7 @@ public class TypeSpecimen
     
     public STATUS getTypeStatus() { return typeStatus; }
     
-    public String getConditionality() { return conditionality; }
+    public CONDITIONALITY getConditionality() { return conditionality; }
     
     public Boolean isFragment() { return isFragment; }
     
@@ -72,7 +92,7 @@ public class TypeSpecimen
     
     public String getVerifiedBy() { return verifiedBy; }
     
-    public String getNle1Designator() { return nle1Designator; }
+    public Integer getNle1DesignatorId() { return nle1DesignatorId; }
     
     public Integer getNle1PublicationId() { return nle1PublicationId; }
     
@@ -80,7 +100,7 @@ public class TypeSpecimen
     
     public String getNle1Date() { return nle1Date; }
     
-    public String getNle2Designator() { return nle2Designator; }
+    public Integer getNle2DesignatorId() { return nle2DesignatorId; }
     
     public Integer getNle2PublicationId() { return nle2PublicationId; }
     
@@ -102,7 +122,7 @@ public class TypeSpecimen
     
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
     
-    public void setConditionality(String conditionality) { this.conditionality = conditionality; }
+    public void setConditionality(CONDITIONALITY conditionality) { this.conditionality = conditionality; }
     
     public void setIsFragment(Boolean isFragment) { this.isFragment = isFragment; }
     
@@ -110,7 +130,7 @@ public class TypeSpecimen
     
     public void setVerifiedBy(String determinedBy) { this.verifiedBy = determinedBy; }
     
-    public void setNle1Designator(String nle1Designator) { this.nle1Designator = nle1Designator; }
+    public void setNle1DesignatorId(Integer nle1DesignatorId) { this.nle1DesignatorId = nle1DesignatorId; }
     
     public void setNle1PublicationId(Integer nle1PublicationId) { this.nle1PublicationId = nle1PublicationId; }
     
@@ -118,7 +138,7 @@ public class TypeSpecimen
     
     public void setNle1Date(String nle1Date) { this.nle1Date = nle1Date; }
     
-    public void setNle2Designator(String nle2Designator) { this.nle2Designator = nle2Designator; }
+    public void setNle2DesignatorId(Integer nle2DesignatorId) { this.nle2DesignatorId = nle2DesignatorId; }
     
     public void setNle2PublicationId(Integer nle2PublicationId) { this.nle2PublicationId = nle2PublicationId; }
     

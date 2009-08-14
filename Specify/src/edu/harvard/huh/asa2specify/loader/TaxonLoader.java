@@ -15,9 +15,11 @@ import edu.harvard.huh.asa.AsaTaxon.STATUS;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
@@ -36,14 +38,18 @@ public class TaxonLoader extends TreeLoader
 
 	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
 	
-	private TaxonLookup taxonLookup;
+	private TaxonLookup       taxonLookup;
 	private PublicationLookup publicationLookup;
+	private BotanistLookup    botanistLookup;
 	
-	public TaxonLoader(File csvFile, Statement sqlStatement, PublicationLookup publicationLookup) throws LocalException
+	public TaxonLoader(File csvFile, Statement sqlStatement,
+	                   PublicationLookup publicationLookup,
+	                   BotanistLookup botanistLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 
 		this.publicationLookup = publicationLookup;
+		this.botanistLookup    = botanistLookup;
 		
 		this.treeDef = getTaxonTreeDef();
 		
@@ -130,9 +136,32 @@ public class TaxonLoader extends TreeLoader
 		// TODO: create authors for taxon?
 		
 		// TaxonCitation
-		TaxonCitation taxonCitation = getTaxonCitation(asaTaxon);
-		if (taxonCitation != null)
+		Integer citPublId = asaTaxon.getCitPublId();
+		if (citPublId != null)
 		{
+		    ReferenceWork parent = lookupPublication(citPublId);
+		    ReferenceWork referenceWork = getReferenceWork(asaTaxon, parent);
+
+		    sql = getInsertSql(referenceWork);
+            Integer referenceWorkId = insert(sql);
+            referenceWork.setReferenceWorkId(referenceWorkId);
+		    
+            Integer stdAuthorId = asaTaxon.getStdAuthorId();
+            if (stdAuthorId != null)
+            {
+                Agent agent = lookupBotanist(stdAuthorId);
+                
+                Author author = getAuthor(agent, referenceWork, 1);
+                sql = getInsertSql(author);
+                insert(sql);
+            }
+            else
+            {
+                getLogger().warn(rec() + "No std author for taxon");
+            }
+            
+		    TaxonCitation taxonCitation = getTaxonCitation(taxon, referenceWork);
+
 		    taxonCitation.setTaxon(taxon);
 		    sql = getInsertSql(taxonCitation);
 		    insert(sql);
@@ -366,25 +395,79 @@ public class TaxonLoader extends TreeLoader
 		return String.valueOf(asaTaxonId);
 	}
 
-	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon) throws LocalException
-	{
-	    Integer citPublId = asaTaxon.getCitPublId();
-	    
-	    if (citPublId == null) return null;
-	        
+    private ReferenceWork getReferenceWork(AsaTaxon asaTaxon, ReferenceWork parent)
+    {
+        ReferenceWork referenceWork = new ReferenceWork();
+
+        String collation = asaTaxon.getCitCollation();
+        int indexOfColon = collation == null ? -1 : collation.indexOf(':');
+
+        // ContainedRFParent
+        referenceWork.setContainedRFParent(parent);
+        
+        // Pages
+        if (collation != null)
+        {
+            String pages = null;
+            if (indexOfColon >= 0 && indexOfColon < collation.length())
+            {
+                pages = collation.substring(collation.indexOf(':') + 1).trim();
+            }
+            else
+            {
+                pages = collation;
+            }
+            
+            if (pages != null) pages = truncate(pages, 50, "collation (pages)");
+            referenceWork.setPages(pages);
+        }
+
+        // ReferenceWorkType
+        referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
+
+        // Volume
+        if (collation != null)
+        {
+            String volume = null;
+            if (indexOfColon > 0) volume = collation.substring(0, indexOfColon).trim();
+            
+            if (volume != null) volume = truncate(volume, 25, "collation (volume)");
+            referenceWork.setVolume(volume);
+        }
+        
+        // WorkDate
+        String date = asaTaxon.getCitDate();
+        if (date != null) date = truncate(date, 25, "work date");
+        referenceWork.setWorkDate(date);
+
+        return referenceWork;
+    }
+    
+    private Author getAuthor(Agent agent, ReferenceWork referenceWork, int orderNumber)
+    {
+        Author author = new Author();
+
+        // Agent
+        author.setAgent(agent);
+        
+        // OrderNumber
+        author.setOrderIndex(orderNumber);
+        
+        // ReferenceWork
+        author.setReferenceWork(referenceWork);
+        
+        return author;
+    }
+    
+	private TaxonCitation getTaxonCitation(Taxon taxon, ReferenceWork referenceWork) throws LocalException
+	{	        
 	    TaxonCitation taxonCitation = new TaxonCitation();
 	    
 	    // ReferenceWork
-        ReferenceWork referenceWork = lookupPublication(citPublId);
         taxonCitation.setReferenceWork(referenceWork);
         
-        // Text1 (collation)
-        String citCollation = asaTaxon.getCitCollation();
-        taxonCitation.setText1(citCollation);
-        
-        // Text2 (date)
-        String citDate = asaTaxon.getCitDate();
-        taxonCitation.setText2(citDate);
+        // Taxon
+        taxonCitation.setTaxon(taxon);
 
         return taxonCitation;
 	}
@@ -392,6 +475,11 @@ public class TaxonLoader extends TreeLoader
 	private ReferenceWork lookupPublication(Integer publicationId) throws LocalException
 	{
 		return publicationLookup.getById(publicationId);
+	}
+	
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
 	}
 	
 	private String getInsertSql(Taxon taxon)
@@ -431,17 +519,47 @@ public class TaxonLoader extends TreeLoader
 	
     private String getInsertSql(TaxonCitation taxonCitation)
     {
-        String fieldNames = "TaxonID, ReferenceWorkID, Text1, Text2, TimestampCreated, Version";
+        String fieldNames = "ReferenceWorkID, TaxonID, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[4];
         
-        values[0] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
-        values[1] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[2] = SqlUtils.sqlString( taxonCitation.getText1());
-        values[3] = SqlUtils.sqlString( taxonCitation.getText2());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[0] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
+        values[1] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
+        values[2] = SqlUtils.now();
+        values[3] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
+    }
+    
+    private String getInsertSql(ReferenceWork referenceWork)
+    {
+        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, TimestampCreated, Version, Volume, WorkDate";
+        
+        String[] values = new String[7];
+        
+        values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
+        values[1] = SqlUtils.sqlString( referenceWork.getPages());
+        values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
+        values[5] = SqlUtils.sqlString( referenceWork.getVolume());
+        values[6] = SqlUtils.sqlString( referenceWork.getWorkDate());
+        
+        return SqlUtils.getInsertSql("referencework", fieldNames, values);
+    }
+    
+    private String getInsertSql(Author author)
+    {
+        String fieldNames = "AgentID, OrderNumber, ReferenceWorkID, TimestampCreated, Version";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( author.getAgent().getId());
+        values[1] = SqlUtils.sqlString( author.getOrderNumber());
+        values[2] = SqlUtils.sqlString( author.getReferenceWork().getId());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("author", fieldNames, values);
     }
 }

@@ -336,7 +336,8 @@ public class LoadHUHdatabase
             frame.setDesc("Loading taxa...");
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
                                                       statement,
-                                                      pubLookup);
+                                                      pubLookup,
+                                                      botanistLookup);
             taxonLoader.setFrame(frame);
             int taxonRecords = taxonLoader.loadRecords(); 
             log.info("Loaded " + taxonRecords + " taxonRecords");
@@ -392,7 +393,8 @@ public class LoadHUHdatabase
                                                                        statement,
                                                                        specimenLookup,
                                                                        taxonLookup,
-                                                                       pubLookup);
+                                                                       pubLookup,
+                                                                       botanistLookup);
             typeLoader.setFrame(frame);
             int typeRecords = typeLoader.loadRecords();
             log.info("Loaded " + typeRecords + " type specimen records");

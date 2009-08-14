@@ -145,18 +145,18 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         
         boolean doType        = false; // 19
         
-        boolean doBorrow      = false; // 20
-        boolean doInEx        = false; // 21
-        boolean doInGift      = false; // 22
-        boolean doLoan        = false; // 23
-        boolean doOutEx       = false; // 24
-        boolean doOutGift     = false; // 25
-        boolean doPurch       = false; // 26
-        boolean doStaffColl   = false; // 27
-        boolean doShip        = false; // 28
-        boolean doInRetBatch  = false; // 29
-        boolean doLoanIt      = false; // 30
-        boolean doOutRetBatch = false; // 31
+        boolean doBorrow      = true; // 20
+        boolean doInEx        = true; // 21
+        boolean doInGift      = true; // 22
+        boolean doLoan        = true; // 23
+        boolean doOutEx       = true; // 24
+        boolean doOutGift     = true; // 25
+        boolean doPurch       = true; // 26
+        boolean doStaffColl   = true; // 27
+        boolean doShip        = true; // 28
+        boolean doInRetBatch  = true; // 29
+        boolean doLoanIt      = true; // 30
+        boolean doOutRetBatch = true; // 31
         
         try
         {
@@ -307,7 +307,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
                                                       statement,
-                                                      pubLookup);
+                                                      pubLookup,
+                                                      botanistLookup);
             if (doTax)
             {
                 int taxonRecords = taxonLoader.loadRecords(); 
@@ -362,7 +363,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                                        statement,
                                                                        specimenLookup,
                                                                        taxonLookup,
-                                                                       pubLookup);
+                                                                       pubLookup,
+                                                                       botanistLookup);
             if (doType)
             {
                 int typeRecords = typeLoader.loadRecords();
@@ -503,7 +505,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
                 log.info("Processed " + outReturnBatchRecords + " out return batch records");
             }
-            
         }
         catch (LocalException e)
         {
