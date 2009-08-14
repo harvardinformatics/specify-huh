@@ -293,31 +293,28 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="qualifier" uitype="text"/>
-                    <cell type="label" labelfor="9"/>
-                    <cell type="field" id="9" name="addendum" uitype="text"/>            
-                    <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
-                    <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/>
+                    <cell type="field" id="8" name="qualifier" uitype="combobox" picklist="HUH Det Qualifier"/>
+                    <cell type="label" labelfor="confidence"/>
+                    <cell type="field" id="confidence" name="confidence" uitype="combobox" picklist="HUH Type Confidence"/>
+                    <cell type="label" labelfor="6"/>
+                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                 </row>
                 <row>
                         <cell type="label" labelfor="13"/>
                         <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
-                        <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox" colspan="5"/>
+                        <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
+                        <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="alternateName" uitype="text" colspan="5"/>              
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="nameUsage" uitype="combobox"/>
-                    
+                    <cell type="field" id="10" name="alternateName" uitype="text" colspan="5"/>
+                    <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox" colspan="5"/>                
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent" />
-                    <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="typeStatusName" uitype="combobox"/>
+                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="text1"/>
