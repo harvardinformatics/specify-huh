@@ -121,6 +121,15 @@ public class ShipmentLoader extends CsvToSqlLoader
     	return carrierLookup;
     }
     
+    // this is the last loader to create agent records; populate the agent_discipline table
+    // when we're done
+    @Override
+    protected void postLoad() throws LocalException
+    {
+        String sql = "insert into agent_discipline(AgentID, DisciplineID) select a.AgentID, 3 from agent a where a.AgentID>1";
+        execute(sql);
+    }
+
     private AsaShipment parse(String[] columns) throws LocalException
     {
     	if (columns.length < 14)
