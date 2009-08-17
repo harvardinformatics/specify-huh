@@ -40,10 +40,11 @@ select t.container_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
        t.basionym_id,
 
-       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.par_author_id and type_id=110105) as par_author,
+       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.par_author_id    and type_id=110105) as par_author,
        (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.par_ex_author_id and type_id=110105) as par_ex_author,
-       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.std_author_id and type_id=110105) as std_author,
-       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.std_ex_author_id and type_id=110105) as std_ex_author
+       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.std_author_id    and type_id=110105) as std_author,
+       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.std_ex_author_id and type_id=110105) as std_ex_author,
+       (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105) as cit_in_author
 
 from taxon t
 start with t.container_id is null

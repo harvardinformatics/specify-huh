@@ -85,6 +85,7 @@ public class AsaTaxon
 	private       String parExAuthor;
 	private       String stdAuthor;
 	private       String stdExAuthor;
+	private       String citInAuthor;
 	
     public Integer getParentId() { return parentId; }
     
@@ -138,6 +139,8 @@ public class AsaTaxon
 	
 	public String getStdExAuthor() { return stdExAuthor; }
 	
+	public String getCitInAuthor() { return citInAuthor; }
+	
 	public void setId(Integer id) { this.id = id; }
     
     public void setParentId(Integer parentId) { this.parentId = parentId; }
@@ -189,4 +192,6 @@ public class AsaTaxon
 	public void setStdAuthor(String stdAuthor) { this.stdAuthor = stdAuthor; }
 	
 	public void setStdExAuthor(String stdExAuthor) { this.stdExAuthor = stdExAuthor; }
+	
+	public void setCitInAuthor(String citInAuthor) { this.citInAuthor = citInAuthor; }
 }

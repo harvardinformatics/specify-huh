@@ -160,7 +160,7 @@ public class TaxonLoader extends TreeLoader
                 getLogger().warn(rec() + "No std author for taxon");
             }
             
-		    TaxonCitation taxonCitation = getTaxonCitation(taxon, referenceWork);
+		    TaxonCitation taxonCitation = getTaxonCitation(asaTaxon, taxon, referenceWork);
 
 		    taxonCitation.setTaxon(taxon);
 		    sql = getInsertSql(taxonCitation);
@@ -204,7 +204,7 @@ public class TaxonLoader extends TreeLoader
 
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 26)
+	    if (columns.length < 27)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -239,6 +239,7 @@ public class TaxonLoader extends TreeLoader
 		    taxon.setParExAuthor(                              columns[23] );
 		    taxon.setStdAuthor(                                columns[24] );
 		    taxon.setStdExAuthor(                              columns[25] );
+		    taxon.setCitInAuthor(                              columns[26] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -363,7 +364,7 @@ public class TaxonLoader extends TreeLoader
         if (parExAuthor != null) parExAuthor = truncate(parExAuthor, 50, "par ex author");
         else if (parExAuthorId != null) getLogger().warn(rec() + "missing par ex author name");
         
-        specifyTaxon.setUnitName1(parExAuthor);
+        specifyTaxon.setUnitName2(parExAuthor);
         
         // UnitName3
         String stdAuthor = asaTaxon.getStdAuthor();
@@ -372,7 +373,7 @@ public class TaxonLoader extends TreeLoader
         if (stdAuthor != null) stdAuthor = truncate(stdAuthor, 50, "std author");
         else if (stdAuthorId != null) getLogger().warn(rec() + "missing std author name");
         
-        specifyTaxon.setUnitName1(stdAuthor);
+        specifyTaxon.setUnitName3(stdAuthor);
         
         // UnitName4
         String stdExAuthor = asaTaxon.getStdExAuthor();
@@ -381,7 +382,7 @@ public class TaxonLoader extends TreeLoader
         if (stdExAuthor != null) stdExAuthor = truncate(stdExAuthor, 50, "std ex author");
         else if (stdExAuthorId != null) getLogger().warn(rec() + "missing std ex author name");
         
-        specifyTaxon.setUnitName1(stdExAuthor);
+        specifyTaxon.setUnitName4(stdExAuthor);
         
         // Version
         specifyTaxon.setVersion(1);
@@ -425,6 +426,9 @@ public class TaxonLoader extends TreeLoader
         // ReferenceWorkType
         referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
 
+        // Title
+        referenceWork.setTitle(asaTaxon.getFullName());
+
         // Volume
         if (collation != null)
         {
@@ -459,13 +463,21 @@ public class TaxonLoader extends TreeLoader
         return author;
     }
     
-	private TaxonCitation getTaxonCitation(Taxon taxon, ReferenceWork referenceWork) throws LocalException
+	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon, Taxon taxon, ReferenceWork referenceWork) throws LocalException
 	{	        
 	    TaxonCitation taxonCitation = new TaxonCitation();
 	    
 	    // ReferenceWork
         taxonCitation.setReferenceWork(referenceWork);
         
+        // Remarks
+        if (asaTaxon.getCitInAuthorId() != null)
+        {
+            String citInAuthor = asaTaxon.getCitInAuthor();
+            if (citInAuthor != null) taxonCitation.setRemarks("cited in: " + citInAuthor);
+            else getLogger().warn(rec() + "cit in author id but no cit in author name");
+        }
+
         // Taxon
         taxonCitation.setTaxon(taxon);
 
@@ -519,31 +531,34 @@ public class TaxonLoader extends TreeLoader
 	
     private String getInsertSql(TaxonCitation taxonCitation)
     {
-        String fieldNames = "ReferenceWorkID, TaxonID, TimestampCreated, Version";
+        String fieldNames = "ReferenceWorkID, Remarks, TaxonID, TimestampCreated, Version";
         
-        String[] values = new String[4];
+        String[] values = new String[5];
         
         values[0] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[1] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
-        values[2] = SqlUtils.now();
-        values[3] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( taxonCitation.getRemarks());
+        values[2] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }
     
     private String getInsertSql(ReferenceWork referenceWork)
     {
-        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, TimestampCreated, Version, Volume, WorkDate";
+        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, " +
+        		            "TimestampCreated, Title, Version, Volume, WorkDate";
         
-        String[] values = new String[7];
+        String[] values = new String[8];
         
         values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
         values[1] = SqlUtils.sqlString( referenceWork.getPages());
         values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
-        values[5] = SqlUtils.sqlString( referenceWork.getVolume());
-        values[6] = SqlUtils.sqlString( referenceWork.getWorkDate());
+        values[4] = SqlUtils.sqlString( referenceWork.getTitle());
+        values[5] = SqlUtils.zero();
+        values[6] = SqlUtils.sqlString( referenceWork.getVolume());
+        values[7] = SqlUtils.sqlString( referenceWork.getWorkDate());
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);
     }
