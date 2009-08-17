@@ -427,6 +427,8 @@ public class TaxonLoader extends TreeLoader
         referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
 
         // Title
+        String fullName = asaTaxon.getFullName();
+        fullName = truncate(fullName, 255, "title");
         referenceWork.setTitle(asaTaxon.getFullName());
 
         // Volume
