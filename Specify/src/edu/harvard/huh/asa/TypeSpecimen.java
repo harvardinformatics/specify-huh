@@ -28,6 +28,7 @@ public class TypeSpecimen
     private Integer        specimenId;
     private String         collectionCode;
     private Integer        taxonId;
+    private String         taxon;
     private STATUS         typeStatus;
     private CONDITIONALITY conditionality;
     private Boolean        isFragment;
@@ -82,6 +83,8 @@ public class TypeSpecimen
     
     public Integer getTaxonId() { return taxonId; }
     
+    public String getTaxon() { return taxon; }
+    
     public STATUS getTypeStatus() { return typeStatus; }
     
     public CONDITIONALITY getConditionality() { return conditionality; }
@@ -118,6 +121,8 @@ public class TypeSpecimen
     
     public void setTaxonId(Integer taxonId) { this.taxonId = taxonId; }
 
+    public void setTaxon(String taxon) { this.taxon = taxon; }
+    
     public void setTypeStatus(STATUS typeStatus) { this.typeStatus = typeStatus; }
     
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }

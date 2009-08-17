@@ -164,7 +164,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     
     private TypeSpecimen parse(String[] columns) throws LocalException
     {
-        if (columns.length < 21)
+        if (columns.length < 22)
         {
             throw new LocalException("Not enough columns");
         }
@@ -176,28 +176,29 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             typeSpecimen.setSpecimenId(                    SqlUtils.parseInt( columns[1] ));
             typeSpecimen.setCollectionCode(                                   columns[2] );
             typeSpecimen.setTaxonId(                       SqlUtils.parseInt( columns[3] ));
-            typeSpecimen.setTypeStatus(             TypeSpecimen.parseStatus( columns[4] ));
-            typeSpecimen.setConditionality( TypeSpecimen.parseConditionality( columns[5] ));
-            typeSpecimen.setIsFragment(                 Boolean.parseBoolean( columns[6] ));
+            typeSpecimen.setTaxon(                                            columns[4] );
+            typeSpecimen.setTypeStatus(             TypeSpecimen.parseStatus( columns[5] ));
+            typeSpecimen.setConditionality( TypeSpecimen.parseConditionality( columns[6] ));
+            typeSpecimen.setIsFragment(                 Boolean.parseBoolean( columns[7] ));
 
             BDate bdate = new BDate();
             typeSpecimen.setDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( columns[7] ));
-            bdate.setStartMonth( SqlUtils.parseInt( columns[8] ));
-            bdate.setStartDay(   SqlUtils.parseInt( columns[9] ));
+            bdate.setStartYear(  SqlUtils.parseInt( columns[8]  ));
+            bdate.setStartMonth( SqlUtils.parseInt( columns[9]  ));
+            bdate.setStartDay(   SqlUtils.parseInt( columns[10] ));
 
-            typeSpecimen.setVerifiedBy(                           columns[10] );
-            typeSpecimen.setNle1DesignatorId(  SqlUtils.parseInt( columns[11] ));
-            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( columns[12] ));
-            typeSpecimen.setNle1Collation(                        columns[13] );
-            typeSpecimen.setNle1Date(                             columns[14] );
-            typeSpecimen.setNle2DesignatorId(  SqlUtils.parseInt( columns[15] ));
-            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( columns[16] ));
-            typeSpecimen.setNle2Collation(                        columns[17] );
-            typeSpecimen.setNle2Date(                             columns[18] );
-            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[19] ));
-            typeSpecimen.setOrdinal(           SqlUtils.parseInt( columns[20] ));
+            typeSpecimen.setVerifiedBy(                           columns[11] );
+            typeSpecimen.setNle1DesignatorId(  SqlUtils.parseInt( columns[12] ));
+            typeSpecimen.setNle1PublicationId( SqlUtils.parseInt( columns[13] ));
+            typeSpecimen.setNle1Collation(                        columns[14] );
+            typeSpecimen.setNle1Date(                             columns[15] );
+            typeSpecimen.setNle2DesignatorId(  SqlUtils.parseInt( columns[16] ));
+            typeSpecimen.setNle2PublicationId( SqlUtils.parseInt( columns[17] ));
+            typeSpecimen.setNle2Collation(                        columns[18] );
+            typeSpecimen.setNle2Date(                             columns[19] );
+            typeSpecimen.setRemarks(      SqlUtils.iso8859toUtf8( columns[20] ));
+            typeSpecimen.setOrdinal(           SqlUtils.parseInt( columns[21] ));
         }
         catch (NumberFormatException e)
         {
@@ -351,6 +352,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         // ReferenceWorkType
         referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
 
+        // Title
+        String taxon = typeSpecimen.getTaxon();
+        taxon = truncate(taxon, 255, "title");
+        referenceWork.setTitle(taxon);
+
         // Volume
         if (collation != null)
         {
@@ -433,17 +439,18 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     
     private String getInsertSql(ReferenceWork referenceWork)
     {
-        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, TimestampCreated, Version, Volume, WorkDate";
+        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, TimestampCreated, Title, Version, Volume, WorkDate";
         
-        String[] values = new String[7];
+        String[] values = new String[8];
         
         values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
         values[1] = SqlUtils.sqlString( referenceWork.getPages());
         values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
-        values[5] = SqlUtils.sqlString( referenceWork.getVolume());
-        values[6] = SqlUtils.sqlString( referenceWork.getWorkDate());
+        values[4] = SqlUtils.sqlString( referenceWork.getTitle());
+        values[5] = SqlUtils.zero();
+        values[6] = SqlUtils.sqlString( referenceWork.getVolume());
+        values[7] = SqlUtils.sqlString( referenceWork.getWorkDate());
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);
     }
