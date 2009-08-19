@@ -3274,7 +3274,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Prep Type</text>
+            <text>Format</text>
           </str>
         </names>
         <descs/>
@@ -3436,7 +3436,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
@@ -3485,7 +3485,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Invoice Number</text>
+            <text>Their loan no.</text>
           </str>
         </names>
         <descs>
@@ -3693,7 +3693,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Received Date</text>
+            <text>Received On</text>
           </str>
         </names>
         <descs>
@@ -3794,7 +3794,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Date Closed</text>
+            <text>Closed On</text>
           </str>
         </names>
         <descs>
@@ -3838,7 +3838,7 @@
           </str>
         </descs>
       </item>
-      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="BorrowRole" isRequired="true">
+      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="HUH Borrow Role" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -4011,7 +4011,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Taxon</text>
+            <text>Taxa</text>
           </str>
         </names>
         <descs>
@@ -5400,7 +5400,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Prep Types</text>
+            <text>Formats</text>
           </str>
         </names>
         <descs/>
@@ -6148,7 +6148,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Catalog Number</text>
+            <text>Barcode</text>
           </str>
         </names>
         <descs>
@@ -6369,13 +6369,13 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Alt Cat Number</text>
+            <text>Asa ID Number</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Alternate Catalog Number.</text>
+            <text>Asa ID Number.</text>
           </str>
         </descs>
         <spExportSchemaItems/>
@@ -6864,7 +6864,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
@@ -9763,7 +9763,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs>
@@ -11056,7 +11056,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Geography Code</text>
+            <text>Country Code</text>
           </str>
         </names>
         <descs/>
@@ -13085,7 +13085,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Works</text>
+            <text>Publications</text>
           </str>
         </names>
         <descs/>
@@ -13843,11 +13843,11 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>For Use By</text>
           </str>
         </names>
         <descs>
@@ -14102,7 +14102,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Extension Granted</text>
+            <text>Is Acknowedged</text>
           </str>
         </names>
         <descs>
@@ -15095,7 +15095,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Locality</text>
           </str>
         </names>
         <descs>
@@ -15488,7 +15488,7 @@
     <names>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>Locality</text>
+        <text>Site</text>
       </str>
     </names>
     <descs>
@@ -15721,7 +15721,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
@@ -17775,7 +17775,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Sample Number</text>
+            <text>Barcode</text>
           </str>
         </names>
         <descs/>
@@ -17949,7 +17949,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Prep Type</text>
+            <text>Format</text>
           </str>
         </names>
         <descs/>
@@ -18354,7 +18354,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
     <names>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>Preparation Type</text>
+        <text>Format</text>
       </str>
     </names>
     <descs>
@@ -19336,7 +19336,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
     <names>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>Reference Work</text>
+        <text>Publication</text>
       </str>
     </names>
     <descs>
@@ -21226,7 +21226,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Taxonomic Serial Number</text>
+            <text>Asa ID Number</text>
           </str>
         </names>
         <descs>
@@ -21840,7 +21840,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
@@ -24719,7 +24719,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Field Number</text>
+            <text>Collector no.</text>
           </str>
         </names>
         <descs/>
@@ -31079,7 +31079,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs>
@@ -31775,7 +31775,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
@@ -31949,7 +31949,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Reference Work</text>
+            <text>Publication</text>
           </str>
         </names>
         <descs/>
