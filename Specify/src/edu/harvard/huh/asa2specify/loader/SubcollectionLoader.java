@@ -84,6 +84,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
             Integer botanistId = getBotanistId(subcollection.getId());
             if (botanistId != null)
             {
+                // find an agent
                 agent = lookupBotanist(botanistId);
             }
             else
@@ -91,16 +92,22 @@ public class SubcollectionLoader extends AuditedObjectLoader
                 // create an agent
                 agent = getAgent(subcollection);
                 
-                // convert agent to sql and insert
-                sql = getInsertSql(agent);
-                Integer authorAgentId = insert(sql);
-                agent.setAgentId(authorAgentId);
+                if (agent != null)
+                {
+                    // convert agent to sql and insert
+                    sql = getInsertSql(agent);
+                    Integer authorAgentId = insert(sql);
+                    agent.setAgentId(authorAgentId);
+                }
             }
 
-            // create an author
-            Author author = getAuthor(subcollection, agent, referenceWork);
-            sql = getInsertSql(author);
-            insert(sql);
+            if (agent != null)
+            {
+                // create an author
+                Author author = getAuthor(subcollection, agent, referenceWork);
+                sql = getInsertSql(author);
+                insert(sql);
+            }
         }
         else
         {
@@ -379,7 +386,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
     	Agent agent = new Agent();
                 
         String author = subcollection.getAuthor();
-        checkNull(author, "author");
+        if (author == null) return null;
         
         Botanist botanist = new Botanist();
         botanist.setName(author);
