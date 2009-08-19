@@ -182,7 +182,14 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
     		}
     		catch (NumberFormatException e)
     		{
-    			;
+    			if (outReturnBatch.getNote() == null)
+    			{
+    			    outReturnBatch.setNote(boxCount);
+    			}
+    			else
+    			{
+    			    getLogger().warn(rec() + "Couldn't parse box count, and didn't put it in Remarks");
+    			}
     		}
     	}
 
