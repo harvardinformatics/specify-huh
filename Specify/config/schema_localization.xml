@@ -1963,7 +1963,7 @@
         </names>
         <descs/>
       </item>
-      <item name="varType" type="java.lang.Byte" isUIFormatter="false" pickListName="AgentVariant" isRequired="true">
+      <item name="varType" type="java.lang.Byte" isUIFormatter="false" pickListName="HUH Agent Variant" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -18990,7 +18990,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="referenceWorkType" type="java.lang.Byte" isUIFormatter="false" pickListName="ReferenceWorkType" isRequired="true">
+      <item name="referenceWorkType" type="java.lang.Byte" isUIFormatter="false" pickListName="HUH Reference Work Type" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
