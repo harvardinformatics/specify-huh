@@ -35,6 +35,11 @@ public class Subcollection
 	public String getCabinet() { return cabinet; }
 	
 	public String getRemarks() { return remarks; }
+	
+	public boolean isExsiccata()
+	{
+	    return (getAuthor() != null) || (getName() != null && getName().toLowerCase().contains("exsiccata"));
+	}
 
 	public Integer getCreatedById() { return createdById; }
 
