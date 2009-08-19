@@ -53,7 +53,7 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         {   
             if (higherTaxon == null) description = taxon;
             else if (taxon == null) description = higherTaxon;
-            else description = higherTaxon + " " + taxon;
+            else description = higherTaxon + "; " + taxon;
         }
         
         return description;
