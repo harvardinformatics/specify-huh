@@ -279,6 +279,8 @@
                 <row>
                 	<cell type="label" labelfor="fieldNumber"/>
                 	<cell type="field" id="fieldNumber" name="fieldNumber" uitype="text"/>
+                	<cell type="label" labelfor="container"/>
+                	<cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="3"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEventSub" id="21" label="Collection Information" name="collectingEvent" colspan="12" rows="5"/>
@@ -325,9 +327,6 @@
                 </row>
                 <row>
                     <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" colspan="12"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="Container" id="container" name="container" colspan="12"/>
                 </row>
                 <row>
                 	<cell type="subview" viewname="Exsiccatae" id="exsiccatae" name="exsiccataItems" initialize="name=ExsiccataItem" colspan="12"/>
@@ -399,7 +398,7 @@
             <rows>
             	<row>
             		<cell type="label" labelfor="name"/>
-            		<cell type="field" id="name" name="name" uitype="text"/>
+            		<cell type="field" id="name" name="name" uitype="text" colspan="3"/>
             	</row>
             	<row>
             		<cell type="label" labelfor="description"/>
@@ -496,9 +495,13 @@
             <columnDef os="mac">130px,2px,,308px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
+            	<row>
+            		<cell type="label" labelfor="parent"/>
+            		<cell type="field" id="parent" name="referenceWork.containedRFParent.title" uitype="dsptextfield" colspan="2"/>
+            	</row>
                 <row>
                     <cell type="label" labelfor="referenceWork"/>
-                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" name="referenceWork" colspan="2"/>
+                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork;displaydlg=RefWorkTaxCitSub" name="referenceWork" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="remarks"/>
@@ -532,6 +535,10 @@
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
+            	<row>
+            		<cell type="label" labelfor="title"/>
+            		<cell type="field" id="title" name="title" uitype="text"/>
+            	</row>
             	<row>
             		<cell type="label" labelfor="referenceWork"/>
             		<cell type="field" id="referenceWork" name="referenceWork" uitype="querycbx" initialize="name=ReferenceWork"/>

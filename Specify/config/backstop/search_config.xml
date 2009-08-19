@@ -1983,5 +1983,28 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
         
+        <table id="126" tableid="89" name="ExsiccataSearch" priority="1" color="30, 144, 255">
+            <detailView icon="">
+                <sql>
+                    <![CDATA[select ExsiccataID, Title from exsiccata where (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="89" col="ExsiccataID" visible="false"/>
+                    <caption tableid="89" col="Title"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="127" tableid="31" name="ContainerSearch" priority="1" color="30, 144, 255">
+            <detailView icon="">
+                <sql>
+                    <![CDATA[select ContainerID, Name from container where CollectionMemberID = COLMEMID AND (%s)]]>
+                </sql>
+                <captions>
+                    <caption tableid="65" col="ContainerID" visible="false"/>
+                    <caption tableid="65" col="Name"/>
+                </captions>
+            </detailView>
+        </table>
     </generic>
 </searches>

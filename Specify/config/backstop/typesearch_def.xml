@@ -24,6 +24,7 @@
     <typesearch tableid="46"  name="BioStrat"               searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter="">
         SELECT %s1 FROM GeologicTimePeriod gtp JOIN gtp.definition as gtpd WHERE gtpd.geologicTimePeriodTreeDefId = GTPTREEDEFID AND gtp.isBioStrat = 1 AND %s2 ORDER BY fullName
     </typesearch>
+    <typesearch tableid="31"  name="Container"              searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="46"  name="ChronosStrat"           searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
     <typesearch tableid="97"  name="AutoNumberingScheme"    searchfield="schemeName"      displaycols="schemeName"         format="%s"     dataobjformatter=""/>
     <typesearch tableid="1"   name="CollectionObject"       searchfield="catalogNumber"   displaycols="catalogNumber"      uifieldformatter="CatalogNumber" dataobjformatter="CollectionObject"/>

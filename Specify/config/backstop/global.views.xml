@@ -1117,7 +1117,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="ReferenceWorkType"/>
+                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
                     <cell type="label" labelfor="isbn"/>
                     <cell type="field" id="isbn" name="isbn" uitype="text"/>
                 </row>
@@ -1177,7 +1177,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="ReferenceWorkType"/>
+                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -1227,7 +1227,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="ReferenceWorkType"/>
+                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="volume" uitype="text"/>
                     <cell type="label" labelfor="6"/>
