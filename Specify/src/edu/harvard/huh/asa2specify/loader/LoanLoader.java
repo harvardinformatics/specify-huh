@@ -98,7 +98,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             {
                 // Text1 (for use by)
                 String userType = Transaction.toString(asaLoan.getUserType());
-                loan.setText1(forUseBy + "(" + userType + ")");
+                loan.setText1(forUseBy + " (" + userType + ")");
             }
         }
         else
