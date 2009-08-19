@@ -64,22 +64,22 @@ public class Transaction
 	
     public static String toString(TYPE type)
     {
-        return type.name();
+        return TypeNames[type.ordinal()];
     }
 
-    public static String toString(REQUEST_TYPE type)
+    public static String toString(REQUEST_TYPE requestType)
     {
-        return type.name();
+        return RequestTypeNames[requestType.ordinal()];
     }
     
     public static String toString(PURPOSE purpose)
     {
-        return purpose.name();
+        return PurposeNames[purpose.ordinal()];
     }
     
     public static String toString(USER_TYPE userType)
     {
-        return userType.name();
+        return UserTypeNames[userType.ordinal()];
     }
    
     public static String toString(ACCESSION_TYPE accessionType)
