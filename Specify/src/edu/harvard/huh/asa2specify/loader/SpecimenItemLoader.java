@@ -612,7 +612,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return prepLookup.formatBarcode(barcode);
 	}
 
-    private String getAltCatalogNumber(Integer specimenId)
+	private String formatPrepBarcode(Integer barcode) throws LocalException
+	{
+	    String prepBarcode = prepLookup.formatBarcode(barcode);
+	    return prepBarcode.replaceFirst("^0*", "");
+	}
+
+	private String getAltCatalogNumber(Integer specimenId)
 	{
 		return String.valueOf(specimenId);
 	}
@@ -839,7 +845,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    // CollectionObject
 	    preparation.setCollectionObject(collectionObject);
 	    
-        // Number1 (itemNo)
+	    // CountAmt: this needs to be set so that the create loan preparation logic works
+	    preparation.setCountAmt(Integer.valueOf(1));
+
+	    // Number1 (itemNo)
         Integer itemNo = specimenItem.getItemNo();
         preparation.setNumber1((float) itemNo);
         
@@ -865,7 +874,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    }
 	    else
 	    {
-	        preparation.setSampleNumber(formatBarcode(barcode));
+	        preparation.setSampleNumber(formatPrepBarcode(barcode));
 	    }
         
 	    // StorageLocation (location/temp location)
@@ -1371,26 +1380,27 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
-		String fieldNames = "CollectionMemberID, CollectionObjectID, Number1, Number2, PrepTypeID, " +
-				            "Remarks, SampleNumber, StorageLocation, Text1, Text2, TimestampCreated, " +
-				            "Version, YesNo1, YesNo2";
+		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmr, Number1, Number2, " +
+				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, Text2, " +
+				            "TimestampCreated, Version, YesNo1, YesNo2";
 
-		String[] values = new String[14];
+		String[] values = new String[15];
 		
 		values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( preparation.getCollectionObject().getId());
-		values[2]  = SqlUtils.sqlString( preparation.getNumber1());
-		values[3]  = SqlUtils.sqlString( preparation.getNumber2());
-		values[4]  = SqlUtils.sqlString( preparation.getPrepType().getId());
-		values[5]  = SqlUtils.sqlString( preparation.getRemarks());
-		values[6]  = SqlUtils.sqlString( preparation.getSampleNumber());
-		values[7]  = SqlUtils.sqlString( preparation.getStorageLocation());
-		values[8]  = SqlUtils.sqlString( preparation.getText1());
-		values[9]  = SqlUtils.sqlString( preparation.getText2());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.zero();
-		values[12] = SqlUtils.sqlString( preparation.getYesNo1());
-		values[13] = SqlUtils.sqlString( preparation.getYesNo2());
+		values[2]  = SqlUtils.sqlString( preparation.getCountAmt());
+		values[3]  = SqlUtils.sqlString( preparation.getNumber1());
+		values[4]  = SqlUtils.sqlString( preparation.getNumber2());
+		values[5]  = SqlUtils.sqlString( preparation.getPrepType().getId());
+		values[6]  = SqlUtils.sqlString( preparation.getRemarks());
+		values[7]  = SqlUtils.sqlString( preparation.getSampleNumber());
+		values[8]  = SqlUtils.sqlString( preparation.getStorageLocation());
+		values[9]  = SqlUtils.sqlString( preparation.getText1());
+		values[10] = SqlUtils.sqlString( preparation.getText2());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.zero();
+		values[13] = SqlUtils.sqlString( preparation.getYesNo1());
+		values[14] = SqlUtils.sqlString( preparation.getYesNo2());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
