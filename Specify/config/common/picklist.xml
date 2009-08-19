@@ -319,4 +319,24 @@
       <picklistitem title="probable" value="Probable"/>
     </items>
   </picklist>
+  <picklist name="HUH Reference WorkType" issystem="false" type="0" readonly="true" sizelimit="7">
+    <items>
+      <picklistitem title="Book" value="0"/>
+      <picklistitem title="Electronic Media" value="1"/>
+      <picklistitem title="Paper" value="2"/>
+      <picklistitem title="Technical Report" value="3"/>
+      <picklistitem title="Thesis" value="4"/>
+      <picklistitem title="Section in Book" value="5"/>
+      <picklistitem title="Exsiccata" value="6"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Agent Variant" issystem="true" type="0" readonly="true" sizelimit="-1">
+    <items>
+      <picklistitem title="Variant" value="0"/>
+      <picklistitem title="Vernacular" value="1"/>
+      <picklistitem title="HUH Name" value="2"/>
+      <picklistitem title="Author Abbrev." value="3"/>
+      <picklistitem title="Label Name" value="4"/>
+    </items>
+  </picklist>
 </list>
