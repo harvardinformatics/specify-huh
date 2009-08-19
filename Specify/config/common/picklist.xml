@@ -335,8 +335,24 @@
       <picklistitem title="Variant" value="0"/>
       <picklistitem title="Vernacular" value="1"/>
       <picklistitem title="HUH Name" value="2"/>
-      <picklistitem title="Author Abbrev." value="3"/>
+      <picklistitem title="B &amp; P Abbrev." value="3"/>
       <picklistitem title="Label Name" value="4"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Borrow Role" issystem="true" type="0" readonly="true" sizelimit="12">
+    <items>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
 </list>
