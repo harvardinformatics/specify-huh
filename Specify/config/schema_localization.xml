@@ -3485,7 +3485,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Their loan no.</text>
+            <text>Their Loan No.</text>
           </str>
         </names>
         <descs>
@@ -3554,7 +3554,7 @@
           </str>
         </descs>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Purposes" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -13827,11 +13827,11 @@
       </item>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Their request?</text>
           </str>
         </names>
         <descs>
@@ -14102,7 +14102,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Is Acknowedged</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs>
@@ -20036,11 +20036,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="number1" type="java.lang.Float">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Number1</text>
+            <text>Cost</text>
           </str>
         </names>
         <descs>
@@ -20086,7 +20086,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="shipmentMethod" type="java.lang.String" isUIFormatter="false" pickListName="ShipmentMethod" isRequired="false">
+      <item name="shipmentMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Shipment Method" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -20104,11 +20104,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="yesNo2" type="java.lang.Boolean">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Cost Estimated</text>
           </str>
         </names>
         <descs>
@@ -20135,7 +20135,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Cost Estimated?</text>
+            <text>Is Acknowledged?</text>
           </str>
         </names>
         <descs>
