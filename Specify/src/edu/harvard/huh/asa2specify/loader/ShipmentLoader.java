@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.AsaShipment.CARRIER;
 import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -246,9 +247,18 @@ public class ShipmentLoader extends CsvToSqlLoader
     	shipment.setRemarks(description);
     	
     	// Shipper (carrier)
-    	String carrier = AsaShipment.toString(asaShipment.getCarrier());
-    	Agent shipper = getAgentByCarrierName(carrier);
+    	Agent shipper = null;
+
+    	CARRIER carrier = asaShipment.getCarrier();
     	
+    	if (! CARRIER.Unknown.equals(carrier))
+    	{
+    	    shipper = getAgentByCarrierName(AsaShipment.toString(carrier));
+    	}
+    	else
+    	{
+    	    shipper = new Agent();
+    	}
     	shipment.setShipper(shipper);
     	
     	// ShipmentMethod (method)

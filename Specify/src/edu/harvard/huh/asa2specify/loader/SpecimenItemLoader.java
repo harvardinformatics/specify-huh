@@ -332,7 +332,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         if (prepLookup == null)
         {
             prepLookup = new PreparationLookup() {
-                public String formatBarcode(Integer barcode) throws LocalException
+                public String formatCollObjBarcode(Integer barcode) throws LocalException
                 {
                     if (barcode == null)
                     {
@@ -349,6 +349,25 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                     }
                 }
                 
+                public String formatPrepBarcode(Integer barcode) throws LocalException
+                {
+                    if (barcode == null)
+                    {
+                        throw new LocalException("Null barcode");
+                    }
+                    
+                    try
+                    {
+                        String prepBarcode = formatCollObjBarcode(barcode);
+                        return prepBarcode.replaceFirst("^0*", "");
+
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        throw new LocalException("Couldn't parse barcode");
+                    }
+                }
+
                 public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException
                 {
                     Preparation preparation = new Preparation();
@@ -605,17 +624,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Locality lookupSite(Integer siteId) throws LocalException
 	{
 	    return siteLookup.queryById(siteId);
-	}
-	
-	private String formatBarcode(Integer barcode) throws LocalException
-	{
-	    return prepLookup.formatBarcode(barcode);
-	}
-
-	private String formatPrepBarcode(Integer barcode) throws LocalException
-	{
-	    String prepBarcode = prepLookup.formatBarcode(barcode);
-	    return prepBarcode.replaceFirst("^0*", "");
 	}
 
 	private String getAltCatalogNumber(Integer specimenId)
@@ -874,7 +882,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    }
 	    else
 	    {
-	        preparation.setSampleNumber(formatPrepBarcode(barcode));
+	        preparation.setSampleNumber(getPreparationLookup().formatPrepBarcode(barcode));
 	    }
         
 	    // StorageLocation (location/temp location)
@@ -995,9 +1003,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
         checkNull(barcode, "barcode");
         
-        String catalogNumber = formatBarcode(barcode);
+        String catalogNumber = getPreparationLookup().formatCollObjBarcode(barcode);
         collectionObject.setCatalogNumber(catalogNumber);
-
         
         // CollectionMemberID
         Integer collectionId = collection.getId();
@@ -1380,7 +1387,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
-		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmr, Number1, Number2, " +
+		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmt, Number1, Number2, " +
 				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, Text2, " +
 				            "TimestampCreated, Version, YesNo1, YesNo2";
 

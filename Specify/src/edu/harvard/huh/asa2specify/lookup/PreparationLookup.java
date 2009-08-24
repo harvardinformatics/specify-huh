@@ -19,7 +19,9 @@ import edu.ku.brc.specify.datamodel.Preparation;
 
 public interface PreparationLookup
 {
-    public String formatBarcode(Integer barcode) throws LocalException;
+    public String formatCollObjBarcode(Integer barcode) throws LocalException;
+    
+    public String formatPrepBarcode(Integer barcode) throws LocalException;
     
     public Preparation getBySpecimenItemId(Integer specimenItemId) throws LocalException;
     

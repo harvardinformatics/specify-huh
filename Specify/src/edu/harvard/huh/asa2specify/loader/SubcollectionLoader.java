@@ -61,8 +61,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
 		setCurrentRecordId(subcollectionId);
 		
         // if this subcollection represents an exsiccata...
-        String authorName = subcollection.getAuthor();
-        if (authorName != null)
+        if (subcollection.isExsiccata())
         {
             // get ReferenceWork object
             ReferenceWork referenceWork = getReferenceWork(subcollection);
