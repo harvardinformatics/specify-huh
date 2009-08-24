@@ -141,7 +141,7 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
             if (connection != null)
             {
                 int rv = BasicSQLUtils.update(connection, "CREATE DATABASE "+dbName);
-                if (rv == 1)
+                if (false) // mmk: going to just have to use an it_user/pass that already has these privileges (root)
                 {
                     String sql = String.format("GRANT ALL ON %s.* TO '%s'@'%s' IDENTIFIED BY '%s'", dbName, itUsername, hostName, itPassword);
                     log.debug(sql);
