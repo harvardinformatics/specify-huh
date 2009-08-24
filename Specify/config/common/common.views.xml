@@ -1317,6 +1317,10 @@
                     <cell type="label" labelfor="inComments" />
                     <cell type="field" id="inComments" name="inComments" uitype="textareabrief" rows="2" colspan="14"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="outComments" />
+                    <cell type="field" id="outComments" name="outComments" uitype="textareabrief" rows="2" colspan="14"/>
+                </row>
             </rows>
         </viewdef>
 
@@ -2623,6 +2627,7 @@
                 <row>
                 	<cell type="label" labelfor="forUseBy"/>
                 	<cell type="field" id="forUseBy" name="text1" uitype="text" colspan="5"/>
+                	<cell type="field" id="isTheirs" uitype="checkbox" name="yesNo2"/>
                 </row>
                 <row>
                      <cell type="label" labelfor="5"/>
@@ -3389,15 +3394,21 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="field" id="isCostEstimated" name="yesNo1" uitype="checkbox"/>
+                	<cell type="field" id="isCostEstimated" name="yesNo2" uitype="checkbox"/>
                     <cell type="label" labelfor="insuredForAmount"/>
                     <cell type="field" id="insuredForAmount" name="insuredForAmount" uitype="text"/>
                     <cell type="label" labelfor="shipper"/>
                     <cell type="field" id="shipper" name="shipper" uitype="querycbx" initialize="name=Agent" />
                 </row>
                 <row>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="cost"/>
+                	<cell type="field" id="cost" name="number1" uitype="text" uifieldformatter="NumericInteger"/>
                 	<cell type="label" labelfor="customsNo"/>
-                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="4"/>
+                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="5"/>
                 </row>
                 <!--<row>
                     <cell type="label" labelfor="5"/>
