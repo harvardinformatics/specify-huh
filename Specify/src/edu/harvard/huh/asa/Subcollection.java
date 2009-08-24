@@ -38,7 +38,7 @@ public class Subcollection
 	
 	public boolean isExsiccata()
 	{
-	    return (getAuthor() != null) || (getName() != null && getName().toLowerCase().contains("exsiccata"));
+	    return (getAuthor() != null) || (getName() != null && getName().toLowerCase().contains("exsiccat"));
 	}
 
 	public Integer getCreatedById() { return createdById; }
