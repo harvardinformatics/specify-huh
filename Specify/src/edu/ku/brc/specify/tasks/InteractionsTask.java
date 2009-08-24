@@ -934,7 +934,7 @@ public class InteractionsTask extends BaseTask
             prepToLoanPrepHash = new Hashtable<Integer, LoanPreparation>();
             for (LoanPreparation lp : existingLoan.getLoanPreparations())
             {
-                prepToLoanPrepHash.put(lp.getPreparation().getId(), lp);
+                if (lp.getPreparation() != null) prepToLoanPrepHash.put(lp.getPreparation().getId(), lp);
             }
         }
         
