@@ -74,7 +74,7 @@ public class Transaction
     
     public static String toString(PURPOSE purpose)
     {
-        return PurposeNames[purpose.ordinal()];
+        return purpose.name();
     }
     
     public static String toString(USER_TYPE userType)
@@ -89,13 +89,13 @@ public class Transaction
     
     public static String toString(ROLE role)
     {
-        return role.name().toLowerCase();
+        return role.name();
     }
     
     /**
      * boxCount is an integer? [boxCount] boxes. : [boxCount]
      */
-    public String getBoxCountNote()
+    public String getBoxCountNote() throws NumberFormatException
     {
         String boxCount = getBoxCount();
         
@@ -106,7 +106,7 @@ public class Transaction
                 int boxes = Integer.parseInt(boxCount);
                 boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
             }
-            catch (NumberFormatException nfe)
+            catch (NumberFormatException e)
             {
                 ;
             }
