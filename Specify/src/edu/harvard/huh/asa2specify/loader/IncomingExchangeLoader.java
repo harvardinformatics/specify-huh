@@ -167,10 +167,10 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
     private String getInsertSql(ExchangeIn exchangeIn)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, ExchangeDate, " +
-                            "Number1, Number2, ReceivedFromOrganizationID, Remarks, SrcGeography, Text1, Text2, " +
-                            "TimestampCreated, Version, YesNo1, YesNo2";
+                            "Number1, Number2, QuantityExchanged, ReceivedFromOrganizationID, Remarks, SrcGeography, " +
+                            "Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
         
-        String[] values = new String[16];
+        String[] values = new String[17];
         
         values[0]  = SqlUtils.sqlString( exchangeIn.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeIn.getCreatedByAgent().getId());
@@ -180,14 +180,15 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         values[5]  = SqlUtils.sqlString( exchangeIn.getNumber1());
         values[6]  = SqlUtils.sqlString( exchangeIn.getNumber2());
         values[7]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());
-        values[8]  = SqlUtils.sqlString( exchangeIn.getRemarks());
-        values[9]  = SqlUtils.sqlString( exchangeIn.getSrcGeography());
-        values[10] = SqlUtils.sqlString( exchangeIn.getText1());
-        values[11] = SqlUtils.sqlString( exchangeIn.getText2());
-        values[12] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
-        values[13] = SqlUtils.zero();
-        values[14] = SqlUtils.sqlString( exchangeIn.getYesNo1());
-        values[15] = SqlUtils.sqlString( exchangeIn.getYesNo2());
+        values[8]  = SqlUtils.sqlString( exchangeIn.getQuantityExchanged());
+        values[9]  = SqlUtils.sqlString( exchangeIn.getRemarks());
+        values[10] = SqlUtils.sqlString( exchangeIn.getSrcGeography());
+        values[11] = SqlUtils.sqlString( exchangeIn.getText1());
+        values[12] = SqlUtils.sqlString( exchangeIn.getText2());
+        values[13] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
+        values[14] = SqlUtils.zero();
+        values[15] = SqlUtils.sqlString( exchangeIn.getYesNo1());
+        values[16] = SqlUtils.sqlString( exchangeIn.getYesNo2());
         
         return SqlUtils.getInsertSql("exchangein", fieldNames, values);
     }
