@@ -99,6 +99,9 @@ public class OptrLoader extends CsvToSqlLoader
 		// AgentType
 		agent.setAgentType(Agent.PERSON);
 
+		// Division
+		agent.setDivision(getBotanyDivision());
+
 		// FirstName
 		String firstName = optr.getFirstName();
 		if (firstName != null)
@@ -132,17 +135,18 @@ public class OptrLoader extends CsvToSqlLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
+			"AgentType, DivisionID, FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[7];
+		String[] values = new String[8];
 
 		values[0] = SqlUtils.sqlString( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getFirstName());
-		values[2] = SqlUtils.sqlString( agent.getGuid());
-		values[3] = SqlUtils.sqlString( agent.getLastName());
-		values[4] = SqlUtils.sqlString( agent.getRemarks());
-		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.zero();
+		values[1] = SqlUtils.sqlString( agent.getDivision().getId());
+		values[2] = SqlUtils.sqlString( agent.getFirstName());
+		values[3] = SqlUtils.sqlString( agent.getGuid());
+		values[4] = SqlUtils.sqlString( agent.getLastName());
+		values[5] = SqlUtils.sqlString( agent.getRemarks());
+		values[6] = SqlUtils.now();
+		values[7] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
