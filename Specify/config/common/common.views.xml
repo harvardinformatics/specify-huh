@@ -2137,14 +2137,15 @@
                     <cell type="field" id="7" name="quantityExchanged" uitype="text"/>
                 </row>-->
                 <row>
-                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
-                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox"/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox" colspan="2"/>
+                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox" colspan="2"/>
                 	<cell type="label" labelfor="cost"/>
                 	<cell type="field" id="cost" name="number2" uitype="text"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="srcGeography"/>
-                	<cell type="field" id="srcGeography" name="srcGeography" uitype="querycbx" initialize="name=Geography"/>
+                	<cell type="field" id="srcGeography" name="srcGeography" uitype="text" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="details"/>
