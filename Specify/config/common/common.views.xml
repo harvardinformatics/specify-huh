@@ -2148,6 +2148,10 @@
                 	<cell type="field" id="srcGeography" name="srcGeography" uitype="text" colspan="10"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="forUseBy"/>
+                	<cell type="field" id="forUseBy" name="text2" uitype="text" colspan="10"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="details"/>
                     <cell type="field" id="details" name="text1" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
