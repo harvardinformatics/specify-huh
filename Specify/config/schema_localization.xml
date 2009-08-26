@@ -1781,7 +1781,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Abbreviation</text>
+            <text>Acronym</text>
           </str>
         </names>
         <descs>
@@ -5836,7 +5836,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Field Number</text>
+            <text>Collector Number</text>
           </str>
         </names>
         <descs>
