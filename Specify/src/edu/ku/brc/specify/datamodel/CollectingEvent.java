@@ -498,7 +498,44 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     {
         this.collectingEventAttachments = collectingEventAttachments;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        if (collectingTrip != null)
+        {
+            return (short)CollectingTrip.getClassTableId();
+        }
+        
+        if (collectionObjects != null && collectionObjects.size() > 0)
+        {
+            return (short)CollectionObject.getClassTableId();
+        }
+        return null;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (collectingTrip != null)
+        {
+            return collectingTrip.getId();
+        }
+        if (collectionObjects != null && collectionObjects.size() == 1)
+        {
+            return ((CollectionObject)collectionObjects.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -547,6 +584,14 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
             Collector newCollector = (Collector)collector.clone();
             newCollector.setCollectingEvent(obj);
             obj.collectors.add(newCollector);
+        }
+        
+        // Clone Attributes
+        obj.collectingEventAttribute    = collectingEventAttribute != null ? (CollectingEventAttribute)collectingEventAttribute.clone() : null;
+        obj.collectingEventAttrs        = new HashSet<CollectingEventAttr>();
+        for (CollectingEventAttr cea : collectingEventAttrs)
+        {
+            obj.collectingEventAttrs.add((CollectingEventAttr)cea.clone());
         }
          
         return obj;

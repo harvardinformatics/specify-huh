@@ -56,14 +56,17 @@ public class SummaryPanel extends BaseSetupPanel
     public SummaryPanel(final String  panelName,
                         final String  helpContext, 
                         final JButton nextBtn,
+                        final JButton prevBtn,
                         final Vector<BaseSetupPanel> panels)
     {
-        super(panelName, helpContext, nextBtn, false);
+        super(panelName, helpContext, nextBtn, prevBtn, false);
         
         this.panels = panels;
         
         table = new JTable();
         model = new DefaultTableModel();
+        //table.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
+
         
         CellConstraints cc = new CellConstraints();
         PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"), this);

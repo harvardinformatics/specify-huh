@@ -54,6 +54,7 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
     {   
         @Index (name="WorkbenchNameIDX", columnNames={"name"})
     })
+@SuppressWarnings("serial")
 public class Workbench extends DataModelObjBase implements java.io.Serializable, Comparable<Workbench>
 {
 
@@ -74,6 +75,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     protected SpPrincipal            group;
     protected String                 srcFilePath;
     protected String                 lockedByUserName;
+    
 
      // Transient Data
     protected Vector<WorkbenchRow> rows        = new Vector<WorkbenchRow>();
@@ -369,6 +371,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     public void setGroup(SpPrincipal group) {
         this.group = group;
     }
+    
     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()

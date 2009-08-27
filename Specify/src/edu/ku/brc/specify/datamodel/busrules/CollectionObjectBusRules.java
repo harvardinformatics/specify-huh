@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static edu.ku.brc.ui.UIRegistry.showLocalizedMsg;
 
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -43,6 +44,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
 import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
@@ -53,7 +55,7 @@ import edu.ku.brc.specify.datamodel.Project;
 /**
  * @author rods
  *
- * @code_status Alpha
+ * @code_status Beta
  *
  * Created Date: Jan 24, 2007
  *
@@ -234,18 +236,25 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
             {
                 try
                 {
-                    session.saveOrUpdate(ce);
+                    if (ce != null && ce.getId() != null)
+                    {
+                        CollectingEvent mergedCE = session.merge(colObj.getCollectingEvent());
+                        colObj.setCollectingEvent(mergedCE);
+                    } else
+                    {
+                        session.save(colObj.getCollectingEvent());
+                    }
                     
                 } catch (Exception ex)
                 {
+                    ex.printStackTrace();
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
-                    ex.printStackTrace();
                 }
             }
         }
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
@@ -278,6 +287,17 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
             }
         }
         return ok;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        setLSID((FormDataObjIFace)dataObj);
+
+        return super.afterSaveCommit(dataObj, session);
     }
 
     /* (non-Javadoc)
@@ -380,7 +400,14 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         {
             // So we need to clone it make a full copy when it is embedded.
             return AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent();
+            
         }
+        
+        if (fieldName.equals("collectionObjectAttribute"))
+        {
+            return true;
+        }
+        
         return false;
     }
 
@@ -467,5 +494,50 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         }
         return true;
     }
-
+    
+    public static void fixDupColObjAttrs()
+    {
+        String sql = "SELECT * FROM (SELECT CollectionObjectAttributeID, count(*) as cnt FROM collectionobject c WHERE CollectionObjectAttributeID IS NOT NULL group by CollectionObjectAttributeID) T1 WHERE cnt > 1";
+        Vector<Object[]> rows = BasicSQLUtils.query(sql);
+        if (rows != null)
+        {
+            for (Object[] row : rows)
+            {
+                DataProviderSessionIFace session = null;
+                try
+                {
+                    session = DataProviderFactory.getInstance().createSession();
+                    CollectionObjectAttribute colObjAttr = session.get(CollectionObjectAttribute.class, (Integer)row[1]);
+                    
+                    int cnt = 0;
+                    for (CollectionObject co : colObjAttr.getCollectionObjects())
+                    {
+                        if (cnt > 0)
+                        {
+                            CollectionObjectAttribute colObjAttribute = (CollectionObjectAttribute)colObjAttr.clone();
+                            co.setCollectionObjectAttribute(colObjAttribute);
+                            colObjAttribute.getCollectionObjects().add(co);
+                            
+                            session.beginTransaction();
+                            session.saveOrUpdate(colObjAttribute);
+                            session.saveOrUpdate(co);
+                            session.commit();
+                        }
+                        cnt++;
+                    }
+                    
+                } catch (Exception ex)
+                {
+                   session.rollback();
+                   ex.printStackTrace();
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                }
+            }
+        }
+    }
 }

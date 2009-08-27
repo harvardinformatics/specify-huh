@@ -91,7 +91,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         Timestamp now     = new Timestamp(System.currentTimeMillis());
         timestampCreated  = now;
-        timestampModified = null;
+        timestampModified = now;
         createdByAgent    = AppContextMgr.getInstance() == null? null : (AppContextMgr.getInstance().hasContext() ? Agent.getUserAgent() : null);
         modifiedByAgent   = null;
     }
@@ -167,7 +167,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
 
     @Version
     @Column(name="Version")
-    public int getVersion()
+    public Integer getVersion()
     {
         return version;
     }
@@ -608,12 +608,37 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     }
 
     //---------------------------------------------------------------------------
+    // Audit Support Support
+    //---------------------------------------------------------------------------
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.FormDataObjIFace#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return null;
+    }
+    
+    //---------------------------------------------------------------------------
     // Property Change Support
     //---------------------------------------------------------------------------
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#addPropertyChangeListener(java.beans.PropertyChangeListener)
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         if (changes == null)
@@ -623,9 +648,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         changes.addPropertyChangeListener(listener);
     }
 
+
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
+    @Override
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener)
     {
         if (changes == null)
@@ -704,6 +731,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         if (changes == null)
@@ -716,6 +744,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
+    @Override
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener)
     {
         if (changes == null)
@@ -772,7 +801,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     {
         return super.toString() + " : " + timestampModified;
     }
-    
+
+    //-------------------------------------------------------------------
+    //-- Static Helper methods
+    //-------------------------------------------------------------------
+
     /**
      * @param cls
      * @param id
@@ -826,11 +859,12 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
         
         // save to database
         DataProviderSessionIFace session = null;
+        boolean transOpen = false;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
             session.beginTransaction();
-            
+            transOpen = true;
             boolean doSave = true;
             if (dataObjs.length == 1)
             {
@@ -855,7 +889,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
                 }
             }
             session.commit();
-            
+            transOpen = false;
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -867,6 +901,10 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             if (doShowError)
             {
                 UIRegistry.showError(errMsg);
+            }
+            if (transOpen)
+            {
+            	session.rollback();
             }
             return false;
             

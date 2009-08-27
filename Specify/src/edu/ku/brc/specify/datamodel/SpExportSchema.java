@@ -28,10 +28,14 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 /**
  * @author rod
@@ -48,12 +52,13 @@ import javax.persistence.Transient;
 @org.hibernate.annotations.Table(appliesTo="spexportschema")
 public class SpExportSchema extends DataModelObjBase
 {
-    protected Integer    spExportSchemaId;
-    protected String     schemaName;
-    protected String     schemaVersion;
-    protected String     description;
-    protected Set<SpExportSchemaItem> spExportSchemaItems;
-    protected Discipline discipline;
+    protected Integer						spExportSchemaId;
+	protected String						schemaName;
+	protected String						schemaVersion;
+	protected String						description;
+	protected Set<SpExportSchemaItem>		spExportSchemaItems;
+	protected Set<SpExportSchemaMapping>	spExportSchemaMappings;
+	protected Discipline					discipline;
     
     /**
      * 
@@ -70,12 +75,13 @@ public class SpExportSchema extends DataModelObjBase
     public void initialize()
     {
         super.init();
-        spExportSchemaId    = null;
-        schemaName          = null;
-        schemaVersion       = null;
-        description         = null;
-        spExportSchemaItems = new HashSet<SpExportSchemaItem>();
-        discipline          = null;
+		spExportSchemaId = null;
+		schemaName = null;
+		schemaVersion = null;
+		description = null;
+		spExportSchemaItems = new HashSet<SpExportSchemaItem>();
+		spExportSchemaMappings = new HashSet<SpExportSchemaMapping>();
+		discipline = null;
     }
 
     /**
@@ -119,6 +125,14 @@ public class SpExportSchema extends DataModelObjBase
     }
     
     /**
+     * @param mappings the mappings to set
+     */
+    public void setSpExportSchemaMappings(Set<SpExportSchemaMapping> mappings)
+    {
+    	this.spExportSchemaMappings = mappings;
+    }
+    
+    /**
      * @param discipline the discipline to set
      */
     public void setDiscipline(Discipline discipline)
@@ -140,7 +154,7 @@ public class SpExportSchema extends DataModelObjBase
     /**
      * @return the schemaName
      */
-    @Column(name = "SchemaName", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "SchemaName", unique = false, nullable = true, insertable = true, updatable = true, length = 80)
     public String getSchemaName()
     {
         return schemaName;
@@ -149,7 +163,7 @@ public class SpExportSchema extends DataModelObjBase
     /**
      * @return the schemaVersion
      */
-    @Column(name = "SchemaVersion", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "SchemaVersion", unique = false, nullable = true, insertable = true, updatable = true, length = 80)
     public String getSchemaVersion()
     {
         return schemaVersion;
@@ -174,6 +188,13 @@ public class SpExportSchema extends DataModelObjBase
         return spExportSchemaItems;
     }
     
+    @ManyToMany(mappedBy = "spExportSchemas")
+    @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
+    public Set<SpExportSchemaMapping> getSpExportSchemaMappings()
+    {
+    	return spExportSchemaMappings;
+    }
+        
     /**
      * @return the schemaItem
      */
@@ -214,6 +235,16 @@ public class SpExportSchema extends DataModelObjBase
         return getClassTableId();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#isChangeNotifier()
+     */
+    @Transient
+    @Override
+    public boolean isChangeNotifier()
+    {
+        return false;
+    }
+
     /**
      * @return the Table ID for the class.
      */
@@ -221,4 +252,28 @@ public class SpExportSchema extends DataModelObjBase
     {
         return 524;
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return schemaName + " (" + schemaVersion + ")";
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+	 */
+	@Override
+	public void forceLoad()
+	{
+		super.forceLoad();
+		for (SpExportSchemaItem item : this.spExportSchemaItems)
+		{
+			item.getId();
+		}
+	}
+    
+    
 }

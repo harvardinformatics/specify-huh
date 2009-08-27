@@ -68,9 +68,9 @@ public class DisciplineSetupPanel extends JPanel implements SetupPanelIFace
     protected JTextField disciplineTxt;
     protected JTextField divisionTxt;
     
-    protected Division   division   = null;
-    protected Discipline discipline = null;
-    protected Properties props      = null;
+    protected Division   division      = null;
+    protected Discipline discipline    = null;
+    protected Properties props         = null;
     protected Vector<Discipline> dList = null;
     
     protected String helpContext;
@@ -79,7 +79,6 @@ public class DisciplineSetupPanel extends JPanel implements SetupPanelIFace
     /**
      * 
      */
-    @SuppressWarnings("unchecked")
     public DisciplineSetupPanel(final String helpContext, final JButton nextBtn)
     {
         super();
@@ -138,6 +137,23 @@ public class DisciplineSetupPanel extends JPanel implements SetupPanelIFace
     public String getHelpContext()
     {
         return helpContext;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.config.init.SetupPanelIFace#aboutToLeave(java.beans.PropertyChangeListener)
+     */
+    @Override
+    public void aboutToLeave()
+    {
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.config.init.SetupPanelIFace#enablePreviousBtn()
+     */
+    @Override
+    public boolean enablePreviousBtn()
+    {
+        return true;
     }
 
     /**

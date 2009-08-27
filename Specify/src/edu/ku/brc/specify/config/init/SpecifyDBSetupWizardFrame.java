@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -39,6 +40,7 @@ import javax.swing.WindowConstants;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.install4j.api.launcher.ApplicationLauncher;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertBlue;
@@ -54,11 +56,14 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
+import edu.ku.brc.af.ui.ProcessListUtil;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
 import edu.ku.brc.dbsupport.CustomQueryFactory;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
+import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
@@ -78,6 +83,8 @@ import edu.ku.brc.ui.IconManager.IconSize;
  */
 public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFace
 {
+    //private static final Logger  log = Logger.getLogger(SpecifyDBSetupWizardFrame.class);
+    
     /**
      * @throws HeadlessException
      */
@@ -85,7 +92,11 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
     {
         super();
         
+        UIRegistry.loadAndPushResourceBundle("specifydbsetupwiz");
+        
         new MacOSAppHandler(this);
+        
+        UIRegistry.setTopWindow(this);
         
         // Now initialize
         AppPreferences localPrefs = AppPreferences.getLocalPrefs();
@@ -115,7 +126,7 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
                     public void cancelled()
                     {
                         setVisible(false);
-                        dispose();
+                        //dispose();
                         doExit(true);
                     }
                     @Override
@@ -126,8 +137,14 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
                     @Override
                     public void finished()
                     {
-                        dispose();
-                        doExit(true);
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                dispose();
+                                doExit(true);
+                            }
+                        });
                     }
                     @Override
                     public void panelChanged(String title)
@@ -142,13 +159,53 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         
         pack();
     }
+    
+    /**
+     * Check for and kills and existing embedded MySQl processes.
+     */
+    public static void checkForMySQLProcesses()
+    {
+        List<Integer> ids = ProcessListUtil.getProcessIdWithText("3337");
+        if (ids.size() > 0)
+        {
+            if (UIHelper.promptForAction("CONTINUE", "CANCEL", "WARNING", getResourceString("Specify.EMBD_KILL_PROCS")))
+            {
+                for (Integer id : ids)
+                {
+                    ProcessListUtil.killProcess(id);
+                }
+            }
+            
+            
+            try
+            {
+                boolean cont = true;
+                while (cont)
+                {
+                    Thread.sleep(2000);
+                    
+                    ids = ProcessListUtil.getProcessIdWithText("3337");
+                    cont = ids.size()> 0;
+                }
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.af.core.FrameworkAppIFace#doExit(boolean)
      */
     public boolean doExit(boolean doAppExit)
     {
+        DBConnection.setCopiedToMachineDisk(true);
+        DBConnection.shutdown();
+        HibernateUtil.shutdown();
+        
         System.exit(0);
+        
         return true;
     }
     
@@ -249,14 +306,15 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
      */
     public static void main(String[] args)
     {
+        // Set App Name, MUST be done very first thing!
+        UIRegistry.setAppName("Specify");  //$NON-NLS-1$
+        
         try
         {
             ResourceBundle.getBundle("resources", Locale.getDefault()); //$NON-NLS-1$
             
         } catch (MissingResourceException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
             Locale.setDefault(Locale.ENGLISH);
             UIRegistry.setResourceLocale(Locale.ENGLISH);
         }
@@ -276,6 +334,22 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             e.printStackTrace();
         }
         
+        for (String s : args)
+        {
+            String[] pairs = s.split("="); //$NON-NLS-1$
+            if (pairs.length == 2)
+            {
+                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
+                {
+                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
+                } 
+            } else
+            {
+                String symbol = pairs[0].substring(2, pairs[0].length());
+                System.setProperty(symbol, symbol);
+            }
+        }
+        
         // Now check the System Properties
         String appDir = System.getProperty("appdir");
         if (StringUtils.isNotEmpty(appDir))
@@ -289,28 +363,84 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             UIRegistry.setBaseAppDataDir(appdatadir);
         }
         
-        String javadbdir = System.getProperty("javadbdir");
-        if (StringUtils.isNotEmpty(javadbdir))
+        // For Debugging Only 
+        //System.setProperty("mobile", "true");
+        
+        String mobile = System.getProperty("mobile");
+        if (StringUtils.isNotEmpty(mobile))
         {
-            UIRegistry.setJavaDBDir(javadbdir);
+            UIRegistry.setMobile(true);
+        }
+        
+        String embeddeddbdir = System.getProperty("embeddeddbdir");
+        if (StringUtils.isNotEmpty(embeddeddbdir))
+        {
+            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
+        } else
+        {
+            UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         }
         
         SwingUtilities.invokeLater(new Runnable()
         {
             public void run()
             {
-                // Set App Name, MUST be done very first thing!
-                UIRegistry.setAppName("Specify");  //$NON-NLS-1$
-                
                 // Then set this
                 IconManager.setApplicationClass(Specify.class);
                 IconManager.loadIcons(XMLHelper.getConfigDir("icons_datamodel.xml")); //$NON-NLS-1$
                 IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
                 IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
                 
+                // Load Local Prefs
+                AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+                //try {
+                //System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+(new File(UIRegistry.getAppDataDir()).getCanonicalPath())+"]");
+                //} catch (IOException ex) {}
+                
+                localPrefs.setDirPath(UIRegistry.getAppDataDir());
+                
+                // Check to see if we should check for a new version
+                String VERSION_CHECK = "version_check.auto";
+                if (localPrefs.getBoolean(VERSION_CHECK, null) == null)
+                {
+                    localPrefs.putBoolean(VERSION_CHECK, true);
+                }
+
+                String EXTRA_CHECK = "extra.check";
+                if (localPrefs.getBoolean(EXTRA_CHECK, null) == null)
+                {
+                    localPrefs.putBoolean(EXTRA_CHECK, true);
+                }
+                
                 setUpSystemProperties();
-                SpecifyDBSetupWizardFrame setup = new SpecifyDBSetupWizardFrame();
-                UIHelper.centerAndShow(setup);
+                final SpecifyDBSetupWizardFrame wizardFrame = new SpecifyDBSetupWizardFrame();
+
+                if (localPrefs.getBoolean(VERSION_CHECK, true) && localPrefs.getBoolean(EXTRA_CHECK, true))
+                {
+                    try
+                    {
+                       com.install4j.api.launcher.SplashScreen.hide();
+                       ApplicationLauncher.Callback callback = new ApplicationLauncher.Callback()
+                       {
+                           public void exited(int exitValue)
+                           {
+                               UIHelper.centerAndShow(wizardFrame);
+                           }
+                           public void prepareShutdown()
+                           {
+                               
+                           }
+                        };
+                        ApplicationLauncher.launchApplication("100", null, true, callback);
+                        
+                    } catch (Exception ex)
+                    {
+                        UIHelper.centerAndShow(wizardFrame);
+                    }
+                } else
+                {
+                    UIHelper.centerAndShow(wizardFrame);
+                }
             }
         });
     }

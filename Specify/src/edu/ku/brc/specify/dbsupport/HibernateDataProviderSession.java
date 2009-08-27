@@ -650,7 +650,24 @@ public class HibernateDataProviderSession implements DataProviderSessionIFace
         }
     }
     
+    
     /* (non-Javadoc)
+	 * @see edu.ku.brc.dbsupport.DataProviderSessionIFace#clear()
+	 */
+	@Override
+	public void clear()
+	{
+        if (session != null)
+        {
+            session.clear();
+            
+        } else
+        {
+            log.error("Session was null.", new NullPointerException("Session was null"));
+        }
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.dbsupport.DataProviderSessionIFace#close()
      */
     public void close()

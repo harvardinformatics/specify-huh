@@ -26,7 +26,6 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +45,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.LockMode;
+import org.hibernate.Session;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -62,8 +63,12 @@ import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.SpecifyUserTypes;
 import edu.ku.brc.specify.config.DisciplineType;
+import edu.ku.brc.specify.datamodel.DataType;
+import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.Institution;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.ui.HelpMgr;
@@ -90,7 +95,6 @@ public class SpecifyDBSetupWizard extends JPanel
     protected WizardType             wizardType  = WizardType.Institution;
     protected WizardListener         listener;
     
-    protected boolean                assumeDerby = false;
     protected final String           HOSTNAME    = "localhost";
     protected boolean                doLoginOnly = false;
     
@@ -108,6 +112,10 @@ public class SpecifyDBSetupWizard extends JPanel
     protected TreeDefSetupPanel      geoTDPanel;
     protected DBLocationPanel        locationPanel;
     protected UserInfoPanel          userInfoPanel;
+    protected GenericFormPanel       accessionPanel;
+    protected FormatterPickerPanel   accessionPickerGbl;
+    protected FormatterPickerPanel   accessionPickerCol;
+    protected FormatterPickerPanel   catNumPicker;
     
     protected int                    step     = 0;
     protected int                    lastStep = 0;
@@ -119,6 +127,7 @@ public class SpecifyDBSetupWizard extends JPanel
     
     protected String                 setupXMLPath;
     protected JProgressBar           progressBar;
+    protected ProgressFrame          progressFrame;
     
     
     /**
@@ -132,7 +141,7 @@ public class SpecifyDBSetupWizard extends JPanel
         this.wizardType = wizardType;
         this.listener   = listener;
         
-        UIRegistry.loadAndPushResourceBundle("specifydbsetupwiz");
+        System.setProperty(DBMSUserMgr.factoryName, "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
         
         /*setupXMLPath = UIRegistry.getUserHomeAppDir() + File.separator + "setup_prefs.xml";
         try
@@ -167,7 +176,7 @@ public class SpecifyDBSetupWizard extends JPanel
         btnBar = bbpb.getPanel();
 
         boolean doTesting = AppPreferences.getLocalPrefs().getBoolean("wizard.defaults", false);
-        if (doTesting)
+        if (doTesting && wizardType == WizardType.Institution)
         {
             props.put("hostName",   "localhost");
             props.put("dbName",     "testfish");
@@ -203,6 +212,10 @@ public class SpecifyDBSetupWizard extends JPanel
             props.put("phone", "785-864-5555");
             
             props.put("addtaxon",   true);
+        } else
+        {
+            props.put("hostName",   "localhost");
+            props.put("dbName",     "specify");
         }
 
         props.put("userType", SpecifyUserTypes.UserType.Manager.toString());
@@ -211,16 +224,16 @@ public class SpecifyDBSetupWizard extends JPanel
         
         if (wizardType == WizardType.Institution)
         {
-            dbPanel = new DatabasePanel(nextBtn, "wizard_mysql_username", true);
+            dbPanel = new DatabasePanel(nextBtn, backBtn, "wizard_mysql_username", true);
             panels.add(dbPanel);
             HelpMgr.registerComponent(helpBtn, dbPanel.getHelpContext());
             
-            panels.add(new GenericFormPanel("SA",
+            panels.add(new MasterUserPanel("SA",
                     "ENTER_SA_INFO", 
                     "wizard_master_username",
                     new String[] { "SA_USERNAME", "SA_PASSWORD"}, 
                     new String[] { "saUserName", "saPassword"}, 
-                    nextBtn, true));
+                    nextBtn, backBtn, true));
             
             panels.add(new GenericFormPanel("SECURITY", 
                     "SECURITY_INFO",
@@ -228,7 +241,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[] { "SECURITY_ON"}, 
                     new String[] { "security_on"},
                     new String[] { "checkbox"},
-                    nextBtn, true));
+                    nextBtn, backBtn, true));
 
     
             userInfoPanel = new UserInfoPanel("AGENT", 
@@ -237,7 +250,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[] { "FIRSTNAME", "LASTNAME", "MIDNAME",       "EMAIL",  null,  "USERLOGININFO", "USERNAME",    "PASSWORD"}, 
                     new String[] { "firstName", "lastName", "middleInitial", "email",  " ",   "-",             "usrUsername",  "usrPassword"}, 
                     new boolean[] { true,       true,       false,            true,    true,  false,           true,           true},
-                    nextBtn);
+                    nextBtn, backBtn);
             panels.add(userInfoPanel);
             
             panels.add(new GenericFormPanel("INST", 
@@ -246,19 +259,21 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[]  { "NAME",     "ABBREV",     null,  "INST_ADDR", "ADDR1", "ADDR2", "CITY",  "STATE", "COUNTRY", "ZIP", "PHONE"}, 
                     new String[]  { "instName", "instAbbrev", " ",   "-",         "addr1", "addr2", "city",  "state", "country", "zip", "phone"}, 
                     new boolean[] { true,       true,         false,  false,      true,    false,   true,    true,    true,      true,  true},
-                    nextBtn, true));
+                    nextBtn, backBtn, true));
 
-            panels.add(new GenericFormPanel("ACCESSIONGLOBALLY", 
+            accessionPanel = new GenericFormPanel("ACCESSIONGLOBALLY", 
                     "ENTER_ACC_INFO",
                     "wizard_choose_accession_level",
                     new String[] { "ACCGLOBALLY"}, 
                     new String[] { "accglobal"},
                     new String[] { "checkbox"},
-                    nextBtn, true));
+                    nextBtn, backBtn, true);
+            panels.add(accessionPanel);
             
             if (wizardType == WizardType.Institution)
             {
-                panels.add(new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, false));
+                accessionPickerGbl = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false);
+                panels.add(accessionPickerGbl);
             }
 
             storageTDPanel = new TreeDefSetupPanel(StorageTreeDef.class, 
@@ -267,30 +282,17 @@ public class SpecifyDBSetupWizard extends JPanel
                                                     "wizard_configure_storage_tree",
                                                     "CONFIG_TREEDEF", 
                                                     nextBtn, 
+                                                    backBtn, 
                                                     null);
             panels.add(storageTDPanel);
             
+            panels.add(new InstSetupPanel("CREATEINST", 
+                    "CREATEINST",
+                    "wizard_configure_storage_tree",
+                    new String[] { }, 
+                    new String[] { },
+                    nextBtn, backBtn, true));
         }
-        
-        /*
-        target="wizard_mysql_username"
-        target="wizard_master_username"
-        target="wizard_security_on"
-        target="wizard_create_it_user"
-        target="wizard_create_institution"
-        target="wizard_choose_accession_level"
-          target="wizard_create_accession_number"
-        target="wizard_configure_storage_tree"
-        
-        target="wizard_enter_division" url="
-        target="wizard_choose_discipline_type"
-        target="wizard_configure_taxon_tree"
-        target="wizard_preload_taxon" url="
-        target="wizard_configure_geography_tree"
-        target="wizard_create_catalog_number"
-         target="wizard_create_collection" url="
-        target="wizard_summary" url=" 
-                 */
         
         if (wizardType == WizardType.Institution ||
             wizardType == WizardType.Division)
@@ -300,7 +302,7 @@ public class SpecifyDBSetupWizard extends JPanel
                 "wizard_enter_division",
                 new String[] { "NAME",    "ABBREV"}, 
                 new String[] { "divName", "divAbbrev"}, 
-                nextBtn, true));
+                nextBtn, backBtn, true));
         }
 
         if (wizardType == WizardType.Institution || 
@@ -308,7 +310,7 @@ public class SpecifyDBSetupWizard extends JPanel
             wizardType == WizardType.Discipline)
         {
             nextBtn.setEnabled(false);
-            disciplinePanel = new DisciplinePanel("wizard_choose_discipline_type", nextBtn);
+            disciplinePanel = new DisciplinePanel("wizard_choose_discipline_type", nextBtn, backBtn);
             panels.add(disciplinePanel);
 
             taxonTDPanel = new TreeDefSetupPanel(TaxonTreeDef.class, 
@@ -317,16 +319,11 @@ public class SpecifyDBSetupWizard extends JPanel
                                                  "wizard_configure_taxon_tree",
                                                  "CONFIG_TREEDEF", 
                                                  nextBtn, 
+                                                 backBtn,
                                                  disciplinePanel);
             panels.add(taxonTDPanel);
             
-            panels.add(new GenericFormPanel("PRELOADTXN", 
-                    "PRELOADTXN_INFO",
-                    "wizard_preload_taxon",
-                    new String[] { "LOAD_TAXON"}, 
-                    new String[] { "preloadtaxon"},
-                    new String[] { "checkbox"},
-                    nextBtn, true));
+            panels.add(new TaxonLoadSetupPanel("wizard_preload_taxon", nextBtn, backBtn));
              
             geoTDPanel = new TreeDefSetupPanel(GeographyTreeDef.class, 
                                                getResourceString("Geography"), 
@@ -334,6 +331,7 @@ public class SpecifyDBSetupWizard extends JPanel
                                                "wizard_configure_geography_tree",
                                                "CONFIG_TREEDEF", 
                                                nextBtn, 
+                                               backBtn,
                                                disciplinePanel);
             panels.add(geoTDPanel);
         }
@@ -343,24 +341,28 @@ public class SpecifyDBSetupWizard extends JPanel
                     "wizard_create_collection",
                     new String[] { "NAME",     "PREFIX", }, 
                     new String[] { "collName", "collPrefix", }, 
-                    nextBtn, true));
+                    nextBtn, backBtn, true));
         
-        panels.add(new FormatterPickerPanel("CATNOFMT", "wizard_create_catalog_number", nextBtn, true));
+        catNumPicker = new FormatterPickerPanel("CATNOFMT", "wizard_create_catalog_number", nextBtn, backBtn, true);
+        panels.add(catNumPicker);
         
         if (wizardType != WizardType.Institution)
         {
             Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
             if (inst != null && !inst.getIsAccessionsGlobal())
             {
-                panels.add(new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, false));
+                accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false); 
+                panels.add(accessionPickerCol);
             }
+        } else
+        {
+            accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false); 
+            panels.add(accessionPickerCol);
         }
         
-        panels.add(new SummaryPanel("SUMMARY", "wizard_summary", nextBtn, panels));
+        panels.add(new SummaryPanel("SUMMARY", "wizard_summary", nextBtn, backBtn, panels));
          
         lastStep = panels.size();
-        
-        panels.get(0).updateBtnUI();
         
         if (backBtn != null)
         {
@@ -369,6 +371,42 @@ public class SpecifyDBSetupWizard extends JPanel
                 {
                     if (step > 0)
                     {
+                        if (disciplinePanel != null)
+                        {
+                            DisciplineType disciplineType = disciplinePanel.getDisciplineType();
+                            if (disciplineType != null && disciplineType.isPaleo() && 
+                                panels.get(step-1) instanceof TaxonLoadSetupPanel)
+                            {
+                                //step--;
+                            }
+                        }
+                        
+                        if (panels.get(step-1) == accessionPickerGbl)
+                        {
+                            if (!((Boolean)props.get("accglobal")))
+                            {
+                                step--;
+                            } 
+                        }
+
+                        if (panels.get(step-1) == accessionPickerCol)
+                        {
+                            boolean isAccGlobal;
+                            if (accessionPanel != null)
+                            {
+                                accessionPanel.getValues(props);
+                                isAccGlobal = (Boolean)props.get("accglobal");
+                            } else
+                            {
+                                Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
+                                isAccGlobal = inst != null && !inst.getIsAccessionsGlobal();
+                            }
+                            if (isAccGlobal)
+                            {
+                                step--;
+                            } 
+                        }
+
                         step--;
                         panels.get(step).doingPrev();
                         HelpMgr.registerComponent(helpBtn, panels.get(step).getHelpContext());
@@ -385,7 +423,8 @@ public class SpecifyDBSetupWizard extends JPanel
             backBtn.setEnabled(false);
         }
         
-        nextBtn.addActionListener(new ActionListener() {
+        nextBtn.addActionListener(new ActionListener() 
+        {
             public void actionPerformed(ActionEvent ae)
             {
                 if (step == lastStep-2)
@@ -408,37 +447,64 @@ public class SpecifyDBSetupWizard extends JPanel
 
                 if (step < lastStep-1)
                 {
-                    if (panels.get(step) == disciplinePanel)
+                    DisciplineType disciplineType = null;
+                    if (disciplinePanel == null)
                     {
-                        DisciplineType disciplineType = disciplinePanel.getDisciplineType();
-                        if (disciplineType.isPaleo() || disciplineType.getDisciplineType() == DisciplineType.STD_DISCIPLINES.fungi)
+                        Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
+                        disciplineType = DisciplineType.getByName(discipline.getType());
+                        
+                    } else
+                    {
+                        disciplineType = disciplinePanel.getDisciplineType();
+                    }
+                    
+                    panels.get(step).getValues(props);
+                    panels.get(step).aboutToLeave();
+                    
+                    if (disciplineType != null && disciplineType.isPaleo() && 
+                        panels.get(step) instanceof TreeDefSetupPanel &&
+                        ((TreeDefSetupPanel)panels.get(step)).getClassType() == TaxonTreeDef.class)
+                    {
+                        //step++;
+                    }
+                    
+                    if (panels.get(step) == accessionPanel)
+                    {
+                        accessionPanel.getValues(props);
+                        if (!((Boolean)props.get("accglobal")))
                         {
-                            step += 2;
+                            step++;
                         }
                     }
-                    step++;
-                    HelpMgr.registerComponent(helpBtn, panels.get(step).getHelpContext());
-                    panels.get(step).doingNext();
-                    cardLayout.show(cardPanel, Integer.toString(step));
-
-                    updateBtnBar();
-                    if (listener != null)
+                    
+                    if (panels.get(step) == catNumPicker)
                     {
-                        listener.panelChanged(getResourceString(panels.get(step).getPanelName()+".TITLE"));
+                       
+                        if (accessionPanel != null)
+                        {
+                            accessionPanel.getValues(props);
+                            boolean isAccGlobal = (Boolean)props.get("accglobal");
+                            if (isAccGlobal)
+                            {
+                                step++;
+                            }
+                        }
                     }
+                    
+                    advanceToNextPanel();
                     
                 } else
                 {
                     nextBtn.setEnabled(false);
                     
-                    configSetup();
                     if (wizardType == WizardType.Institution)
                     {
-                        createDBAndMaster();
-                        
-                    } else if (SpecifyDBSetupWizard.this.listener != null)
+                        configSetup();
+                    
+                        configureDatabase();
+                    } else
                     {
-                        SpecifyDBSetupWizard.this.listener.hide();
+                        //SpecifyDBSetupWizard.this.listener.hide();
                         SpecifyDBSetupWizard.this.listener.finished();
                     }
                 }
@@ -473,7 +539,7 @@ public class SpecifyDBSetupWizard extends JPanel
             dbPanel.updateBtnUI();
         }
 
-        PanelBuilder    builder = new PanelBuilder(new FormLayout("f:p:g", "f:p:g,10px,p"));
+        PanelBuilder builder = new PanelBuilder(new FormLayout("f:p:g", "f:p:g,10px,p"));
         builder.add(cardPanel, cc.xy(1, 1));
         builder.add(btnBar, cc.xy(1, 3));
         
@@ -490,10 +556,32 @@ public class SpecifyDBSetupWizard extends JPanel
         progressBar = new JProgressBar(0, lastStep-1);
         progressBar.setStringPainted(true);
         add(progressBar, BorderLayout.SOUTH);
+        
+        panels.get(0).updateBtnUI();
+        
     }
     
     /**
-     * @return
+     * Advance Wizard to the next panel.
+     */
+    protected void advanceToNextPanel()
+    {
+        step++;
+        HelpMgr.registerComponent(helpBtn, panels.get(step).getHelpContext());
+        panels.get(step).doingNext();
+
+        cardLayout.show(cardPanel, Integer.toString(step));
+
+        updateBtnBar();
+        if (listener != null)
+        {
+            listener.panelChanged(getResourceString(panels.get(step).getPanelName()+".TITLE"));
+        }
+
+    }
+    
+    /**
+     * @return the Discipline Type
      */
     public DisciplineType getDisciplineType()
     {
@@ -535,7 +623,7 @@ public class SpecifyDBSetupWizard extends JPanel
             nextBtn.setEnabled(panels.get(step).isUIValid());
             nextBtn.setText(getResourceString("NEXT"));
         }
-        backBtn.setEnabled(step > 0); 
+        backBtn.setEnabled(step > 0 && panels.get(step).enablePreviousBtn()); 
     }
 
     /**
@@ -555,16 +643,18 @@ public class SpecifyDBSetupWizard extends JPanel
     
     /**
      * @param fmt
+     * @param prefix
      * @param fileName
+     * @return
      */
-    protected boolean saveFormatters(final UIFieldFormatterIFace fmt, final String fileName)
+    protected boolean saveFormatters(final UIFieldFormatterIFace fmt, final String prefix, final String fileName)
     {
         if (fmt != null)
         {
             StringBuilder sb = new StringBuilder();
             fmt.toXML(sb);
             
-            String path = UIRegistry.getAppDataDir() + File.separator + fileName;
+            String path = UIRegistry.getAppDataDir() + File.separator + (prefix != null ? (prefix + "_") : "")  + fileName;
             try
             {
                 FileUtils.writeStringToFile(new File(path), sb.toString());
@@ -572,7 +662,7 @@ public class SpecifyDBSetupWizard extends JPanel
                 
             } catch (IOException ex)
             {
-                
+                ex.printStackTrace();
             }
         } else
         {
@@ -586,20 +676,6 @@ public class SpecifyDBSetupWizard extends JPanel
      */
     protected void configSetup()
     {
-        try
-        {
-            for (SetupPanelIFace panel : panels)
-            {
-                panel.getValues(props);
-            }
-            //props.storeToXML(new FileOutputStream(new File(setupXMLPath)), "SetUp Props");
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
-            
-        }
         
         if (wizardType == WizardType.Institution)
         {
@@ -628,144 +704,16 @@ public class SpecifyDBSetupWizard extends JPanel
     }
 
     /**
-     * 
-     */
-    public void createDBAndMaster()
-    {
-        final ProgressFrame frame = new ProgressFrame("Creating master user ...", "SpecifyLargeIcon");
-        //frame.getCloseBtn().setVisible(false);
-        frame.pack();
-        Dimension size = frame.getSize();
-        size.width = Math.max(size.width, 500);
-        frame.setSize(size);
-        UIHelper.centerAndShow(frame);
-        
-        final SwingWorker worker = new SwingWorker()
-        {
-            protected boolean isOK = false;
-            
-            public Object construct()
-            {
-                System.setProperty(DBMSUserMgr.factoryName, "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
-                DBMSUserMgr mgr = DBMSUserMgr.getInstance();
-                // need to call a factory here based on the type of DBMS we are using.
-                
-                String             dbName     = props.getProperty("dbName");
-                String             hostName   = props.getProperty("hostName");
-                
-                String saUsername = props.getProperty("saUserName");
-                String saPassword = props.getProperty("saPassword");
-                
-                String itUsername = props.getProperty("dbUserName");
-                String itPassword = props.getProperty("dbPassword");
-                
-                if (mgr.connectToDBMS(itUsername, itPassword, hostName))
-                {
-                    if (!mgr.doesDBExists(dbName))
-                    {
-                        try
-                        {
-                            isOK = mgr.createDatabase(dbName);
-                            
-                        } catch (Exception ex)
-                        {
-                            ex.printStackTrace();
-                        }
-                    } else
-                    {
-                        isOK = true;
-                    }
-                    
-                    if (!isOK)
-                    {
-                        mgr.close();
-                        UIRegistry.showLocalizedMsg("You were unable to create the database, you must login as root.");
-                        return null;
-                    }
-                    
-                    if (!mgr.doesUserExists(saUsername))
-                    {
-                        try
-                        {
-                            isOK = mgr.createUser(saUsername, saPassword, dbName, DBMSUserMgr.PERM_ALL);
-                            
-                        } catch (Exception ex)
-                        {
-                            ex.printStackTrace();
-                            
-                        }
-                        
-                        if (!isOK)
-                        {
-                            mgr.close();
-                            UIRegistry.showLocalizedMsg("You were unable to create the user you must be root.");
-                            return null;
-                        }
-                    } else
-                    {
-                        isOK = true;
-                    }
-                } else
-                {
-                    // No Connect Error
-                    UIRegistry.showLocalizedMsg("You were unable to to connect to the database.");
-                }
-                mgr.close();
-                
-                return null;
-            }
-
-            //Runs on the event-dispatching thread.
-            public void finished()
-            {
-                if (isOK)
-                {
-                    configureDatabase();
-                    
-                    frame.setVisible(false); // Progress Dialog
-                    frame.dispose();
-                    
-                    if (SpecifyDBSetupWizard.this.listener != null)
-                    {
-                        SpecifyDBSetupWizard.this.listener.hide();
-                    } 
-                } else
-                {
-                    frame.setVisible(false); // Progress Dialog
-                    frame.dispose();
-                    
-                    if (SpecifyDBSetupWizard.this.listener != null)
-                    {
-                        SpecifyDBSetupWizard.this.listener.hide();
-                        SpecifyDBSetupWizard.this.listener.cancelled();
-                    } 
-                }
-            }
-        };
-        SwingUtilities.invokeLater(new Runnable() {
-
-            /* (non-Javadoc)
-             * @see java.lang.Runnable#run()
-             */
-            @Override
-            public void run()
-            {
-                worker.start();
-            }
-        });
-    }
-    
-    /**
      * Sets up initial preference settings.
      */
     protected void setupLoginPrefs()
     {
-        String userName = props.getProperty("usrPassword");
+        String userName   = props.getProperty("usrUsername");
+        String password   = props.getProperty("usrPassword");
+        String saUserName = props.getProperty("saUserName");
+        String saPassword = props.getProperty("saPassword");
         
-        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(
-                                       props.getProperty("saUserName"), 
-                                       props.getProperty("saPassword"), 
-                                       userName);
+        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(saUserName, saPassword, password);
 
         DatabaseDriverInfo driverInfo = dbPanel.getDriver();
         AppPreferences ap = AppPreferences.getLocalPrefs();
@@ -778,6 +726,8 @@ public class SpecifyDBSetupWizard extends JPanel
         ap.put("login.servers",            props.getProperty("hostName"));
         ap.put("login.servers_selected",   props.getProperty("hostName"));
         ap.put("login.rememberuser",       "true");
+        ap.put("extra.check",              "true");
+        ap.put("version_check.auto",       "true");
         
         try
         {
@@ -794,6 +744,9 @@ public class SpecifyDBSetupWizard extends JPanel
         return props;
     }
     
+    /**
+     * 
+     */
     public void processDataForNonBuild()
     {
         saveFormatters(); 
@@ -807,16 +760,21 @@ public class SpecifyDBSetupWizard extends JPanel
         Object catNumFmtObj = props.get("catnumfmt");
         Object accNumFmtObj = props.get("accnumfmt");
         
+        String collectionName = props.getProperty("collName");
+        
+        Institution inst        = AppContextMgr.getInstance().getClassObject(Institution.class);
+        boolean     isAccGlobal = inst != null && inst.getIsAccessionsGlobal();
+        
         UIFieldFormatterIFace catNumFmt = catNumFmtObj instanceof UIFieldFormatterIFace ? (UIFieldFormatterIFace)catNumFmtObj : null;
         UIFieldFormatterIFace accNumFmt = accNumFmtObj instanceof UIFieldFormatterIFace ? (UIFieldFormatterIFace)accNumFmtObj : null;
         
         if (catNumFmt != null)
         {
-            saveFormatters(catNumFmt, "catnumfmt.xml");
+            saveFormatters(catNumFmt, collectionName, "catnumfmt.xml");
         }
         if (accNumFmt != null)
         {
-            saveFormatters(accNumFmt, "accnumfmt.xml");
+            saveFormatters(accNumFmt, isAccGlobal ? null : collectionName, "accnumfmt.xml");
         }
     }
 
@@ -825,143 +783,124 @@ public class SpecifyDBSetupWizard extends JPanel
      */
     public void configureDatabase()
     {
-        setupLoginPrefs();
-
-       //System.err.println(UIRegistry.getDefaultWorkingPath() + File.separator + "DerbyDatabases");
-        try
+        if (wizardType == WizardType.Institution)
         {
-            final SwingWorker worker = new SwingWorker()
+            setupLoginPrefs();
+        }
+        
+        if (SpecifyDBSetupWizard.this.listener != null)
+        {
+            SpecifyDBSetupWizard.this.listener.hide();
+        }
+
+        final SwingWorker worker = new SwingWorker()
+        {
+            protected boolean isOK = false;
+            
+            @Override
+            public Object construct()
             {
-                protected boolean isOK = false;
-                
-                public Object construct()
+                try
                 {
-                    try
+                    String             dbName     = props.getProperty("dbName");
+                    String             hostName   = props.getProperty("hostName");
+                    DatabaseDriverInfo driverInfo = (DatabaseDriverInfo)props.get("driverObj");
+                    
+                    String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, hostName, dbName);
+                    if (connStr == null)
                     {
-                        DatabaseDriverInfo driverInfo = dbPanel.getDriver();
-                        props.put("driver", driverInfo);
-                        
-                        if (driverInfo == null)
-                        {
-                            throw new RuntimeException("Couldn't find driver by name ["+driverInfo+"] in driver list.");
-                        }
-
-                        BuildSampleDatabase builder = new BuildSampleDatabase();
-                        
-                        //builder.getFrame().setIconImage(IconManager.getImage("Specify16", IconManager.IconSize.Std16).getImage());
-                        
-                        boolean proceed = true;
-                        if (checkForDatabase(props))
-                        {
-                            Object[] options = { 
-                                    getResourceString("PROCEED"), 
-                                    getResourceString("CANCEL")
-                                  };
-                            int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
-                                                                         UIRegistry.getLocalizedMessage("DEL_CUR_DB", dbPanel.getDbName()), 
-                                                                         getResourceString("DEL_CUR_DB_TITLE"), 
-                                                                         JOptionPane.YES_NO_OPTION,
-                                                                         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-                            proceed = userChoice == JOptionPane.YES_OPTION;
-                            
-                        } 
-
-                        if (proceed)
-                        {
-                            isOK = builder.buildEmptyDatabase(props);
-                            
-                            if (isOK)
-                            {
-                                saveFormatters();
-                            }
-
-                            JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
-                                    getLocalizedMessage("BLD_DONE", getResourceString(isOK ? "BLD_OK" :"BLD_NOTOK")),
-                                    getResourceString("COMPLETE"), JOptionPane.INFORMATION_MESSAGE);                                
-                        }
-                        
-                        UIRegistry.popResourceBundle();
-                            
-                        } catch (Exception ex)
-                        {
-                            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
-                            ex.printStackTrace();
-                        }
-                        return null;
+                        connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostName, dbName);
                     }
+                    
+                    String saUserName = props.getProperty("saUserName"); // Master Username
+                    String saPassword = props.getProperty("saPassword"); // Master Password
 
-                    //Runs on the event-dispatching thread.
-                    public void finished()
+                    BuildSampleDatabase bsd = new BuildSampleDatabase();
+                    
+                    progressFrame = bsd.createProgressFrame(getResourceString("CREATE_DIV"));
+                    progressFrame.adjustProgressFrame();
+                    progressFrame.setProcessPercent(true);
+                    progressFrame.setOverall(0, 12);
+                    
+                    UIHelper.centerAndShow(progressFrame);
+                    
+                    
+                    if (!UIHelper.tryLogin(driverInfo.getDriverClassName(), 
+                                           driverInfo.getDialectClassName(), 
+                                           dbName, 
+                                           connStr, 
+                                           saUserName, 
+                                           saPassword))
                     {
+                        return isOK = false;
+                    }   
+                     
+                    Session session = HibernateUtil.getCurrentSession();
+                    bsd.setSession(session);
+                    
+                    AppContextMgr  ac             = AppContextMgr.getInstance();
+                    Institution    institution    = ac.getClassObject(Institution.class);
+                    SpecifyUser    user           = ac.getClassObject(SpecifyUser.class);
+                    DisciplineType disciplineType = (DisciplineType)props.get("disciplineType");
+                    DataType       dataType       = AppContextMgr.getInstance().getClassObject(DataType.class);
+                   
+                    session.lock(institution, LockMode.NONE);
+                    session.lock(dataType, LockMode.NONE);
+                    
+                    bsd.setDataType(dataType);
+                    
+                    Division division = bsd.createEmptyDivision(institution, disciplineType, user, props, true, true);
+                    if (division != null)
+                    {
+                        isOK = division != null;
+                        
+                        progressFrame.incOverall();
+                        
                         if (isOK)
                         {
-                            HibernateUtil.shutdown();
+                            saveFormatters();
                         }
-                        if (listener != null)
-                        {
-                            listener.hide();
-                            listener.finished();
-                        }
-                    }
-                };
-                worker.start();
-            
-            } catch (Exception ex)
-            {
-                ex.printStackTrace();
-                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
-            }
-    }
-    
-    /**
-     * @param properties
-     * @return
-     */
-    private boolean checkForDatabase(final Properties properties)
-    {
-        final String dbName = properties.getProperty("dbName");
         
-        DBMSUserMgr mgr = null;
-        try
-        {
-            
-            String itUsername = properties.getProperty("dbUserName");
-            String itPassword = properties.getProperty("dbPassword");
-            String hostName   = properties.getProperty("hostName");
-            
-            mgr = DBMSUserMgr.getInstance();
-            
-            if (mgr.connectToDBMS(itUsername, itPassword, hostName))
-            {
-                if (mgr.doesDBExists(dbName))
-                {
-                    mgr.close();
-                    
-                    if (mgr.connect(itUsername, itPassword, hostName, dbName))
+                        progressFrame.setVisible(false);
+                        progressFrame.dispose();
+                    } else
                     {
-                        return mgr.doesDBHaveTables();
+                        isOK = false;
                     }
                     
+                    JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
+                                                  getLocalizedMessage("BLD_DONE", getResourceString(isOK ? "BLD_OK" :"BLD_NOTOK")),
+                                                  getResourceString("COMPLETE"), JOptionPane.INFORMATION_MESSAGE);                                
+                
+                } catch (Exception ex)
+                {
+                    //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
+                    ex.printStackTrace();
+                }
+                return null;
+            }
+    
+            //Runs on the event-dispatching thread.
+            @Override
+            public void finished()
+            {
+                if (isOK)
+                {
+                    HibernateUtil.shutdown();
+                }
+                if (listener != null)
+                {
+                    listener.hide();
+                    listener.finished();
                 }
             }
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
-            
-        } finally
-        {
-            if (mgr != null)
-            {
-                mgr.close();
-            }
-        }
-        return false;
+        };
+        worker.start();
     }
     
+    //-------------------------------------------------
+    //-- Wizard Listener
     //-------------------------------------------------
     public interface WizardListener
     {
@@ -972,6 +911,7 @@ public class SpecifyDBSetupWizard extends JPanel
         public abstract void hide();
         
         public abstract void finished();
+
     }
     
 }

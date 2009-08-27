@@ -50,7 +50,7 @@ import org.hibernate.annotations.Index;
     {   
         @Index (name="COLOBJATTRSColMemIDX", columnNames={"CollectionMemberID"})
     })
-public class CollectionObjectAttribute extends CollectionMember
+public class CollectionObjectAttribute extends CollectionMember implements Cloneable
 {
     protected Integer collectionObjectAttributeId;
     protected String text10;
@@ -946,7 +946,44 @@ public class CollectionObjectAttribute extends CollectionMember
     {
         this.yesNo7 = yesNo7;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        CollectionObjectAttribute obj    = (CollectionObjectAttribute)super.clone();
+        obj.collectionObjectAttributeId  = null;
+        obj.collectionObjects            = new HashSet<CollectionObject>();
+        
+        return obj;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)CollectionObject.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (collectionObjects != null && collectionObjects.size() == 1)
+        {
+            return ((CollectionObject)collectionObjects.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<viewset name="Paleo Views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<viewset name="Vertpaleo Views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     
     <views>
         <view name="CollectingEvent"
@@ -119,9 +119,10 @@
             <desc><![CDATA[The Collection Object form.]]></desc>
             <enableRules/>
             
-            <columnDef os="exp">p,2px,220px,5px:g,p,2px,255px,5px:g,p,2px,200px,p,p:g</columnDef>
-            <columnDef>100px,2px,200px,5px,100px,2px,210px,5px,100px,2px,101px,15px,p:g</columnDef>
+            <columnDef>100px,2px,195px,5px,96px,2px,210px,5px,94px,2px,101px,15px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,195px,5px,125px,2px,210px,5px,125px,2px,131px,15px,p:g</columnDef>
             <columnDef os="mac">130px,2px,215px,5px,138px,2px,255px,5px,138px,2px,155px,15px,p:g</columnDef>
+            <columnDef os="exp">p,2px,min(p;220px),5px:g,p,2px,p,5px:g,p,2px,200px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
@@ -199,9 +200,10 @@
             <enableRules/>
 
 
-            <columnDef os="exp">p,2px,255px,5px:g,p,2px,220px,5px:g,p,2px,70px,5px:g,p,p:g</columnDef>
-            <columnDef>100px,2px,215px,5px,85px,2px,205px,5px,80px,2px,46px,5px,75px,0px,p:g</columnDef>
+            <columnDef>100px,2px,210px,5px,75px,2px,195px,5px,80px,2px,46px,5px,85px,0px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,215px,5px,110px,2px,200px,5px,105px,2px,56px,5px,95px,0px,p:g</columnDef>
             <columnDef os="mac">130px,2px,255px,5px,120px,2px,234px,5px,127px,2px,90px,5px,80px,0px,p:g</columnDef>
+            <columnDef os="exp">p,2px,p,5px:g,p,2px,p,5px:g,p,2px,70px,5px:g,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
@@ -237,9 +239,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Collecting Event]]></desc>
 
-            <columnDef os="exp">p,2px,255px,5px:g,p,2px,255px,5px:g,p,2px,p:g,0px</columnDef>
-            <columnDef>100px,2px,210px,5px,80px,2px,210px,5px,100px,2px,111px,0px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,255px,5px,95px,2px,255px,5px,125px,2px,110px,71px,0px,p:g</columnDef>
+            <columnDef>100px,2px,210px,5px,75px,2px,210px,5px,90px,2px,111px,0px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,210px,5px,105px,2px,210px,5px,125px,2px,136px,0px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,255px,5px,95px,2px,255px,5px,125px,2px,181px,0px,p:g</columnDef>
+            <columnDef os="exp">p,2px,p,5px:g,p,2px,255px,5px:g,p,2px,p:g,0px</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -287,9 +290,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Collecting Event]]></desc>
             
-            <columnDef os="exp">p,2px,190px,5px:g,p,2px,255px,5px:g,p,2px,110px,p,p:g</columnDef>
             <columnDef>100px,2px,200px,5px,90px,2px,210px,5px,96px,2px,115px,0px,15px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,240px,5px,100px,2px,215px,5px,106px,2px,125px,0px,15px,p:g</columnDef>
             <columnDef os="mac">130px,2px,251px,5px,130px,2px,270px,5px,130px,2px,130px,0px,15px,p:g</columnDef>
+            <columnDef os="exp">p,2px,max(p;190px),5px:g,p,2px,p,5px:g,p,2px,110px,p,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -322,7 +326,7 @@
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="13" rows="3"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="CollectionObjectSub" id="11" colspan="13" name="collectionObjects" initialize="addsearch=true"/>
+                    <cell type="subview" viewname="CollectionObjectSub" id="11" colspan="13" rows="3" name="collectionObjects" initialize="addsearch=true"/>
                 </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="13"/>
@@ -341,9 +345,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Form For CollectionObjectCitation]]></desc>
 
-            <columnDef os="exp">p,2px,220px,p:g</columnDef>
-            <columnDef>100px,2px,210px,515px,p:g</columnDef>
+            <columnDef>100px,2px,210px,500px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,215px,585px,p:g</columnDef>
             <columnDef os="mac">130px,2px,241px,684px,p:g</columnDef>
+            <columnDef os="exp">p,2px,p,p:g</columnDef>
             <rowDef auto="true" sep="2px" cell="p"/>
             <rows>
 
@@ -398,9 +403,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Locality]]></desc>
             
-            <columnDef os="exp">p,2px,85px,5px:g,p,2px,85px,5px:g,p,2px,116px,5px:g,p,2px,88px,0px,p,p:g</columnDef>
             <columnDef>100px,2px,85px,5px,100px,2px,85px,5px,115px,2px,116px,5px,115px,2px,88px,0px,15px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,105px,5px,105px,2px,105px,5px,119px,2px,125px,5px,120px,2px,105px,0px,15px,p:g</columnDef>
             <columnDef os="mac">130px,2px,120px,5px,116px,2px,120px,5px,137px,2px,120px,5px,146px,2px,120px,0px,15px,p:g</columnDef>
+            <columnDef os="exp">p,2px,85px,5px:g,p,2px,85px,5px:g,p,2px,116px,5px:g,p,2px,88px,0px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <enableRules>
                 <rule id="georef"><![CDATA[localityName.isNotEmpty() && geography.isNotEmpty()]]></rule>
@@ -447,11 +453,12 @@
                     <cell type="separator" label="Plugins" colspan="17"/>
                 </row>
                 <row>
-                    <cell type="panel" id="outerPanel" name="outerPanel" coldef="p,f:-163px:g,p,f:-105px:g,p,f:p:g" rowdef="p" colspan="12">
+                    <cell type="panel" id="outerPanel" name="outerPanel" coldef="p,f:p:g,p,f:p:g,p,f:p:g,p,f:p:g" rowdef="p" colspan="12">
                         <rows>
                             <row>
                                 <cell type="label" label=" "/>
                                 <cell type="field" id="georef" name="this" uitype="plugin" initialize="name=LocalityGeoRef;title=Geo Ref;geoid=geography;locid=localityName;llid=5" colspan="1"/>
+                                <cell type="field" id="ww" name="this" uitype="plugin" initialize="name=LocalityWorldWind;title=World Wind;watch=5" colspan="1"/>
                                 <cell type="field" id="ge" name="this" uitype="plugin" initialize="name=LocalityGoogleEarth;title=Google Earth;watch=5" colspan="1"/>
                             </row>
                         </rows>
@@ -479,9 +486,10 @@
             <desc><![CDATA[Stratigraphy subform within Collection Object form.]]></desc>
             <enableRules/>
             
-            <columnDef os="exp">p,2px,220px,5px:g,p,2px,220px,5px:g,p,2px,220px,p:g</columnDef>
-            <columnDef>100px,2px,200px,5px,50px,2px,200px,5px,61px,2px,200px,0px,p:g</columnDef>
+            <columnDef>100px,2px,200px,5px,49px,2px,200px,5px,58px,2px,200px,0px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,210px,5px,74px,2px,210px,5px,82px,2px,210px,0px,p:g</columnDef>
             <columnDef os="mac">130px,2px,241px,5px,87px,2px,241px,5px,101px,2px,241px,0px,p:g</columnDef>
+            <columnDef os="exp">p,2px,p,5px:g,p,2px,p,5px:g,p,2px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>

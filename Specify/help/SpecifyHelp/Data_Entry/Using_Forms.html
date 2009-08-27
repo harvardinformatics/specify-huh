@@ -15,6 +15,11 @@
 <p>A form is a window in which data can be viewed, entered, or edited. Specify categorizes forms as Data forms, which are used to enter collection data, and Interactions, which are used to record transactions of either data or collection objects. Each discipline has access to a set of forms for both data  and interactions, specific to their discipline. The following sections describe basic concepts for using the form system. A separate section of help exists for both <a href="../Data_Entry/Data_Entry.html">Data</a> and <a href="../Interactions/Interactions.html">Interactions</a> forms.</p>
 <p><em><strong>Note:</strong></em> At this time, Specify 6 does not include a Form Editor, as was found in Specify 5. It is important to note that the forms have been created programmatically to be extremely flexible and can be exported as xml and either edited by on-site staff or emailed to the Specify staff. The original forms should not be edited from the hard drive, they must be exported and then reimported! Forms are  exported via the <a href="../Import/import_export.html">Importing/Exporting</a> tool, which exports an entire form set. Form sets reside at the Discipline level in Specify, which means that all Collections within a Discipline access the same forms, but form sets can then be reimported at any institutional level. For instance, the default form set for a discipline could be exported, edited, and reimported at a collection level, allowing all users in that collection to use the new set of forms.  If you wish to have a member of the Specify team edit the form,  and have an ISA with Specify, please contact them at <a href="mailto:specify@ku.edu">specify@ku.edu</a>.</p>
 <p>The names of tables and fields used for display within Specify, (labels), can be edited using the <a href="../SchemaConfig/schema_config.html">Schema Configuration</a> tool.</p>
+<p>Specific forms have been created for each of the operating systems. These include varying font sizes as well as static versus stretchy forms. The form layout can be chaged in the user preferences:</p>
+<ul>
+  <li class="MichaelsChanges">For Mac: Choose<em> Specify &gt; Preferences &gt; Formatting. </em> </li>
+  <li class="MichaelsChanges">For Windows and Linux: Choose <em>Edit &gt; Preferences &gt; Formatting</em>.</li>
+</ul>
 <p>&nbsp;</p>
 <h3><a name="forms_permissions"></a>Permissions</h3>
 <p>Specify includes  extensive controls for limiting access to data for each user. When starting up, Specify reads the permissions for the user based on their login information, then loads the correct tables and tools based on these permissions. For this reason, some of the controls and/or data may not be available. For example, users that belong to the Guest group and only have permission to view tables and forms will not have access to data through the Data module. They must first Query to find records, then view the data in a form. </p>
@@ -33,7 +38,8 @@
 <h4>One-to-Many</h4>
 <p>A relationship involving a primary and related table in which a single primary record links to many related records  in the related table is referred to as a one-to-many relationship. For example, several Collection Object records would be linked to a single record in the Collection Event table because all the specimens were collected during the same event.</p>
 <p><strong><a name="sub_form"></a>Sub Forms</strong></p>
-<p>Related tables with a many-to-one relationship display on a form as a Query Combo Box. Control buttons next to the Query Combo Box; </p> src="../../images/Edit-2-16x16.png" alt="a" width="16" height="16"> (edit), <img src="../../images/add.png" alt="a" width="16" height="16"/> (add), and <img src="../../images/Search-16x16.png" alt="a" width="16" height="16"/> (search), allow single records to be searched, added or edited in a pop-up sub form.<p></p>
+<p>Related tables with a many-to-one relationship display on a form as a Query Combo Box. Control buttons next to the Query Combo Box; <img src="../../images/Edit-2-16x16.png" width="16" height="16"> (edit), <img src="../../images/add.png" alt="a" width="16" height="16"/> (add), and <img src="../../images/Search-16x16.png" alt="a" width="16" height="16"/> (search), allow single records to be searched, added or edited in a pop-up sub form.
+</p> <p></p>
 <p>Related tables with a one-to-many relationship to the primary table are included on the form as a sub form with navigation controls.</p>
 <p>Data is added and edited in sub forms the same way that it is added and edited to forms. Boxes are used in the same way and required fields have a bold label.</p>
 <p>&nbsp;</p>
@@ -48,7 +54,7 @@
     <td align="left" valign="top"><u><strong>Result</strong></u></td>
   </tr>
   <tr>
-    <td align="left" valign="top"></ src="../../images/shield.png" alt="a" width="20" height="20"/></td>
+    <td align="left" valign="top"><img src="../../images/shield.png" width="20" height="20"></td>
     <td align="left" valign="top">Incomplete</td>
     <td align="left" valign="top"><p>Opens a dialog listing the incomplete fields that are required.</p>
         <p><em><strong>Note:</strong></em> The shield only appears once a change has been made inside the form and will disappear once all required fields contain data.</p></td>
@@ -141,13 +147,13 @@
 <p>&nbsp;</p>
 <p><u>Query Combo Box</u></p>
 <p><img src="../../images/text_from_field.png" alt="image" width="573" height="32"/></p>
-<p>A Query Combo Box represents a many-to-one relationship with another record in another table. Data for each record in the table is formatted to display enough fields within the table for the desired record to be recognized within a list of records. A Query Combo Box used to represent the Taxon (shown above), Geography, Storage, Lithostratigraphy and Chronostratigraphy tables will use the format for the Full Name, which is configured in the <a href="../../Trees/editing_tree_def.html#tree_ranks">Taxon Tree Definition</a>. All other tables are formatted using the <a href="../../SchemaConfig/schema_config.html#display_format">Schema Configuration tool</a>. </p>
+<p>A Query Combo Box represents a many-to-one relationship with another record in another table. Data for each record in the table is formatted to display enough fields within the table for the desired record to be recognized within a list of records. A Query Combo Box used to represent the Taxon (shown above), Geography, Storage, Lithostratigraphy and Chronostratigraphy tables will use the format for the Full Name, which is configured in the <a href="../../Trees/editing_tree_def.html#tree_ranks">Taxon Tree Definition</a>. Other queries and resulting lists are configured in the system and are not editable at this time.</p>
 <p>The Query Combo Box allows data to be searched and chosen from a related table, not typed directly into the box. Data chosen from the list links the current record with a record in a related table. This eliminates the need to retype data. It is possible to type data directly into the box, but the box will not accept the data; the data must first be added to the table by clicking the <img src="../../images/add.png" alt="add" width="16" height="16"/> (add) button and creating a new record.</p>
 <p>Choose data from a list:</p>
 <ul>
-  <li>Type the first letter, or first few letters of the term you wish to use in the box, then either click on the <img src="../../images/Down16x16.png" alt="down" width="16" height="16"/> button or use the down-arrow key on the keyboard. A list of taxa starting with the typed letter(s) will appear. </li>
+  <li>Type the first letter, or first few letters of the term you wish to use in the box, then either click on the <img src="../../images/Down16x16.png" alt="down" width="16" height="16"/> button or use the down-arrow key on the keyboard. A list of data starting with the typed letter(s) will appear. </li>
   <li>If Specify can not find a match based on the typed letters then an <img src="../../images/add_form.png" alt="add" width="81" height="27"/> button will appear. Click the button or press the enter key to add a new record. </li>
-  <li>If the required Taxon is not in the resulting list, either press the enter key when 'Add ...' is in focus, or click the <img src="../../images/add.png" alt="add" width="16" height="16"/> (add) button, to add a new record.</li>
+  <li>If the required data is not in the resulting list, either press the enter key when 'Add ...' is in focus, or click the <img src="../../images/add.png" alt="add" width="16" height="16"/> (add) button, to add a new record.</li>
   <li>Pressing the esc (escape) key will cancel the list box.</li>
 </ul>
 <p><em><strong>Note:</strong></em> Type more letters into the box to reduce the results and  expedite the search. </p>
@@ -251,6 +257,9 @@
 <p><strong>Down-arrow</strong> (<img src="../../images/Down16x16.png" width="16" height="16"/>) opens a combo box and moves focus to the next item in the box.</p>
 <p><strong>Esc.</strong> (escape key) closes a combo box.</p>
 <p><strong>Return</strong> selects a highlighted item within a list.</p>
+<p><strong>Cntl + S</strong> will save a record or Query.</p>
+<p><strong>Cntl + C</strong> will copy data within a field.</p>
+<p><strong>Cntl + P</strong> will paste data into a field.</p>
 <h3>&nbsp;</h3>
 <h4><a name="carry_forward"></a>Carry Forward </h4>
 <p>Specify 6 allows  values in specific fields to be copied from the current record into new records using <em>Carry Forward</em>. </p>

@@ -86,6 +86,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
+import org.hibernate.TypeMismatchException;
 import org.hibernate.exception.ConstraintViolationException;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -97,6 +98,7 @@ import edu.ku.brc.af.auth.PermissionSettings;
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.RecordSetFactory;
+import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBInfoBase;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
@@ -888,8 +890,30 @@ public class FormViewObj implements Viewable,
      * Adjust the Action and MenuItem for CarryForward.
      * @param isVisible whether is is visible
      */
-    private void adjustActionsAndMenus(final boolean isVisible)
+    private void adjustActionsAndMenus(final boolean isVisibleArg)
     {
+        // Temporary fix for Bug 7231
+        // A call to showView get put out on the event queue for other reasons
+        // and with a closeAll happening that call to show comes after the
+        // call to hide it. This is great, what needs to be fixed
+        // is not putting the call to showView on the event thread.
+        // the call is made in 'aboutToShow'
+        boolean isVisible = isVisibleArg;
+        if (isVisible)
+        {
+            Component p = mainComp.getParent();
+            while (p != null && !(p instanceof SubPaneIFace))
+            {
+                p = p.getParent();
+            }
+            // it isn't in the TabbedPane if the parent is null
+            if (p != null && p instanceof SubPaneIFace && p.getParent() == null)
+            {
+                isVisible = false;
+            }
+        }
+        // done with temporary fix
+        
         boolean isConfiged = isCarryForwardConfgured() && isVisible;
         enableActionAndMenu("CarryForward", isConfiged, isConfiged);
         
@@ -926,7 +950,8 @@ public class FormViewObj implements Viewable,
             
             fieldInfo.setFieldInfo(fi);
                     
-            //log.debug(fieldName);
+            log.debug("-------------------------------");
+            log.debug(fieldName);
 
             // Start by assuming it is OK to be added
             boolean isOK = true;
@@ -975,7 +1000,7 @@ public class FormViewObj implements Viewable,
                     }
                 }
                 
-                log.error("Couldn't find field ["+fieldName+"] in ["+ti.getTitle()+"]");
+                log.debug("Field ["+fieldName+"] in ["+ti.getTitle()+"]");
                 
                 // Now we go get the DBFieldInfo and DBRelationshipInfo and check to make
                 // that the field or Relationship is still a candidate for CF
@@ -1048,6 +1073,9 @@ public class FormViewObj implements Viewable,
                         fieldInfo.setLabel(label);
                         itemLabels.add(fieldInfo);
                         fieldInfo.setFieldInfo(infoBase);
+                    } else
+                    {
+                        log.error("Field NOT OK ["+fieldName+"] in ["+ti.getTitle()+"]");
                     }
                 }
             }
@@ -1520,10 +1548,10 @@ public class FormViewObj implements Viewable,
                 
                 if (parentDataObjArg instanceof FormDataObjIFace && oldDataObjArg instanceof FormDataObjIFace)
                 {
-                    boolean addSearch = mvParent != null && MultiView.isOptionOn(mvParent.getOptions(), MultiView.ADD_SEARCH_BTN);
+                    boolean hasSearch = mvParent != null && MultiView.isOptionOn(mvParent.getOptions(), MultiView.ADD_SEARCH_BTN);
                     
-                    ((FormDataObjIFace)parentDataObjArg).removeReference((FormDataObjIFace)oldDataObjArg, cellNameArg, addSearch);
-                    if (addSearch && mvParent != null && ((FormDataObjIFace)oldDataObjArg).getId() != null)
+                    ((FormDataObjIFace)parentDataObjArg).removeReference((FormDataObjIFace)oldDataObjArg, cellNameArg, true);
+                    if (hasSearch && mvParent != null && ((FormDataObjIFace)oldDataObjArg).getId() != null)
                     {
                         mvParent.getTopLevel().addToBeSavedItem(oldDataObjArg);
                     }
@@ -1869,16 +1897,20 @@ public class FormViewObj implements Viewable,
             
         } else
         {
-            boolean shouldDoCarryForward = doCarryForward && carryFwdDataObj != null && carryFwdInfo != null;
+            // 06/16/09 - rods - no longer need to override the children objects. Let them be created anyway and then set overtop of them
+            // this is because we don't know no in the business rules which ones should be created or not
+            // from the CarryForward info
+            
+            //boolean shouldDoCarryForward = doCarryForward && carryFwdDataObj != null && carryFwdInfo != null;
             
             //log.info("createNewDataObject "+hashCode() + " Session ["+(session != null ? session.hashCode() : "null")+"] ");
             FormDataObjIFace obj;
             if (classToCreate != null)
             {
-                obj = FormHelper.createAndNewDataObj(classToCreate, !shouldDoCarryForward);
+                obj = FormHelper.createAndNewDataObj(classToCreate, null);//!shouldDoCarryForward);
             } else
             {
-                obj = FormHelper.createAndNewDataObj(view.getClassName(), !shouldDoCarryForward);
+                obj = FormHelper.createAndNewDataObj(view.getClassName(), null);//!shouldDoCarryForward);
             }
             
             setNewObject(obj);
@@ -2428,7 +2460,18 @@ public class FormViewObj implements Viewable,
                 Integer dataObjId = ((FormDataObjIFace)dataObjArg).getId();
                 if (dataObjId != null)
                 {
-                    Integer count = session.getDataCount(dataObjArg.getClass(), "id", dataObjId, DataProviderSessionIFace.CompareType.Equals);
+                    DataProviderSessionIFace session1 = DataProviderFactory.getInstance().createSession();
+                    Integer count = null;
+                    try
+                    {
+                        count = session1.getDataCount(dataObjArg.getClass(), "id", dataObjId, DataProviderSessionIFace.CompareType.Equals);
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    } finally
+                    {
+                        if (session1 != null) session1.close();
+                    }
                     if (count == null || count == 0)
                     {
                         UIRegistry.showLocalizedError("FormViewObj.DATA_OBJ_MISSING");
@@ -2461,7 +2504,7 @@ public class FormViewObj implements Viewable,
                 // XXX FINAL RELEASE - Need to walk the form tree and set them manually
                 //FormHelper.updateLastEdittedInfo(dataObjArg);
                 traverseToSetModified(getMVParent());
-                
+                                
                 session.beginTransaction();
                 
                 if (numTries == 1 && deletedItems != null)
@@ -2661,18 +2704,8 @@ public class FormViewObj implements Viewable,
     /**
      * Save any changes to the current object
      */
-    @SuppressWarnings("unchecked")
     public boolean saveObject()
     {
-        /*if (formValidator != null)
-        {
-            formValidator.wasValidated(null);
-            if (!formValidator.isFormValid())
-            {
-                return false;
-            }
-        }*/
-        
         if (mvParent != null && mvParent.isTopLevel())
         {
             collectionViewState();
@@ -2702,6 +2735,7 @@ public class FormViewObj implements Viewable,
         
         if (saveState == SAVE_STATE.SaveOK)
         {
+            
             if (businessRules != null)
             {
                 businessRules.afterSaveCommit(dataObj, session);
@@ -2773,6 +2807,10 @@ public class FormViewObj implements Viewable,
             //log.debug("Form     Val: "+(formValidator != null && formValidator.hasChanged()));
             //log.debug("mvParent Val: "+(mvParent != null && mvParent.isTopLevel() && mvParent.hasChanged()));
             return true;
+        }
+        if (businessRules != null)
+        {
+            businessRules.afterSaveFailure(dataObj, session);
         }
         
         return false;
@@ -2996,8 +3034,25 @@ public class FormViewObj implements Viewable,
                         FormDataObjIFace fdo = (FormDataObjIFace)carryFwdDataObj;
                         if (fdo.getId() != null && fdo.getId().equals(((FormDataObjIFace)dataObj).getId()))
                         {
-                            carryFwdDataObj = null;
-                            // XXX should we warn the user?
+                            boolean doClear = true;
+                            if (list != null && rsController != null)
+                            {
+                                int inx = rsController.getCurrentIndex();
+                                if (inx > -1 && inx < list.size())
+                                {
+                                    carryFwdDataObj = list.get(Math.max(0, inx-1));
+                                    doClear = false;
+                                }
+                            }
+                            if (doClear)
+                            {
+                                carryFwdDataObj = null;
+                            }
+                            
+                            if (carryFwdDataObj == null)
+                            {
+                                UIRegistry.showLocalizedError("FormViewObj.NO_CF_OBJ");
+                            }
                         }
                     }
                     
@@ -3099,6 +3154,7 @@ public class FormViewObj implements Viewable,
                         }
                         session.commit();
                         session.flush();
+                        
                         if (businessRules != null)
                         {
                             businessRules.afterDeleteCommit(dbDataObj);
@@ -3919,6 +3975,12 @@ public class FormViewObj implements Viewable,
         try
         {
             dObj = tmpSession.get(tableInfo.getClassObj(), recordSetItemList.get(index).getRecordId());
+            
+        } catch (org.hibernate.ObjectNotFoundException hex)
+        {
+            hex.printStackTrace();
+            UIRegistry.showError("A data object could not be loaded:\n"+hex.toString());
+            
         } catch (Exception ex)
         {
             ex.printStackTrace();
@@ -4558,6 +4620,19 @@ public class FormViewObj implements Viewable,
                     try
                     {
                         dataObj = session.merge(dataObj);
+                    }
+                    catch (TypeMismatchException tmmex)
+                    {
+                        try
+                        {
+                            session.saveOrUpdate(dataObj);
+                        }
+                        catch (Exception ex2)
+                        {
+                            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormViewObj.class, ex2);
+                            throw new RuntimeException(ex2);
+                        }
                     }
                     catch (Exception ex2)
                     {

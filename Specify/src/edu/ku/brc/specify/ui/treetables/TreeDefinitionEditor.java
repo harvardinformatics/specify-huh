@@ -45,11 +45,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import org.apache.log4j.Logger;
@@ -82,6 +80,7 @@ import edu.ku.brc.specify.tasks.TreeTaskMgr;
 import edu.ku.brc.specify.treeutils.TreeDataService;
 import edu.ku.brc.specify.treeutils.TreeDataServiceFactory;
 import edu.ku.brc.specify.treeutils.TreeFactory;
+import edu.ku.brc.ui.BiColorTableCellRenderer;
 import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -149,7 +148,6 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
 	 * @param task
 	 * @param isEditMode
 	 */
-	@SuppressWarnings("unchecked") //$NON-NLS-1$
 	public TreeDefinitionEditor(final D treeDef, 
 	                            final String name, 
 	                            final Taskable task, 
@@ -310,6 +308,8 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
 		Set<I> defItems = treeDef.getTreeDefItems();
 		tableModel    = new TreeDefEditorTableModel<T,D,I>(defItems);
 		defItemsTable = new JTable(tableModel);
+		defItemsTable.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
+		
         defItemsTable.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -317,20 +317,31 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
             {
                 if (e.getClickCount()==2)
                 {
-                    int index = defItemsTable.getSelectedRow();
-                    editTreeDefItem(index);
+                     SwingUtilities.invokeLater(new Runnable(){
+
+						/* (non-Javadoc)
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+		                    editTreeDefItem( defItemsTable.getSelectedRow());
+						}
+                    	
+                    });
                 }
             }
         });
 		defItemsTable.setRowHeight(24);
 
 		// Center the boolean Columns
-        DefaultTableCellRenderer dcr = new DefaultTableCellRenderer();
-        dcr.setHorizontalAlignment(SwingConstants.CENTER);
+		BiColorTableCellRenderer centeredRenderer = new BiColorTableCellRenderer();
+		
 		TableColumn tc = defItemsTable.getColumnModel().getColumn(2);
-		tc.setCellRenderer(dcr);
+		tc.setCellRenderer(centeredRenderer);
         tc = defItemsTable.getColumnModel().getColumn(3);
-        tc.setCellRenderer(dcr);
+        tc.setCellRenderer(centeredRenderer);
+        
 		if (isEditMode)
 		{
 		    defItemsTable.setRowSelectionAllowed(true);
@@ -349,7 +360,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
 		defNameLabel.setFont(boldF);
 
 		// put everything in the main panel
-		this.add(new JScrollPane(defItemsTable),BorderLayout.CENTER);
+		this.add(UIHelper.createScrollPane(defItemsTable), BorderLayout.CENTER);
 		this.add(titlePanel,BorderLayout.NORTH);
 		
 		// Only add selection listener if the botton panel is there for editing
@@ -498,6 +509,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
         I uiDefItem = tableModel.get(index);
         DataProviderSessionIFace tmpSession = DataProviderFactory.getInstance().createSession();
         final I defItem = (I)tmpSession.load(uiDefItem.getClass(), uiDefItem.getTreeDefItemId());
+        log.info("loaded defItem for editing");
         if (defItem == null)
         {
             statusBar.setErrorMessage("The tree def has been changed by another user.  The def editor must be reloaded."); //$NON-NLS-1$
@@ -505,13 +517,16 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
             {
                 public void run()
                 {
-                    UIRegistry.writeGlassPaneMsg(getResourceString("TTV_Loading"), 24); //$NON-NLS-1$
+                    log.info("initializing tree editor"); //$NON-NLS-1$
+                   UIRegistry.writeGlassPaneMsg(getResourceString("TTV_Loading"), 24); //$NON-NLS-1$
                     
                     initTreeDefEditorComponent(displayedDef);
+                    log.info("initialized tree editor");
                     repaint();
                     
                     UIRegistry.clearGlassPaneMsg();
                     
+                    log.info("invoking selectionValueChanged()");
                     selectionValueChanged();
                 }
             });
@@ -522,6 +537,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
         
         // keep track of what these values are before the edits happen
         final I beforeItem = (I)TreeFactory.createNewTreeDefItem(defItem.getClass(),null,null);
+        log.info("created beforeItem"); //$NON-NLS-1$
         beforeItem.setIsInFullName(boolVal(defItem.getIsInFullName(), false));
         beforeItem.setTextBefore(defItem.getTextBefore());
         beforeItem.setTextAfter(defItem.getTextAfter());
@@ -542,8 +558,10 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
         
         // create the form dialog
         String title = getResourceString("TreeRankEditDialogTitle"); //$NON-NLS-1$
+        log.info("creating dialog"); //$NON-NLS-1$
         ViewBasedDisplayDialog dialog = new ViewBasedDisplayDialog(parentFrame, null, viewName, displayName, title, 
                                                                    closeBtnText, className, idFieldName, isEdit, options);
+        log.info("created dialog"); //$NON-NLS-1$
         dialog.setModal(true);
         dialog.setData(defItem);
         dialog.preCreateUI();
@@ -559,7 +577,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
                 boolean success;
                 I mergedItem;
                 
-                @SuppressWarnings({ "unchecked", "synthetic-access" }) //$NON-NLS-1$ //$NON-NLS-2$
+                @SuppressWarnings("synthetic-access") //$NON-NLS-1$ //$NON-NLS-2$
                 @Override
                 public Object construct()
                 {
@@ -922,7 +940,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
         newItem.setIsEnforced(isRequiredLevel);
         if (stdLevel.getRank() != -1 )
         {
-            newItem.setName(stdLevel.getName());
+            newItem.setName(stdLevel.getTitle());
         }
         // we can only set the pointers from the newItem side right now
         // otherwise, if the user cancels, we end up with 'dirty' collections in the other objects
@@ -972,7 +990,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
             {
                 boolean success;
                 
-                @SuppressWarnings({ "unchecked", "synthetic-access" }) //$NON-NLS-1$ //$NON-NLS-2$
+                @SuppressWarnings("synthetic-access") //$NON-NLS-1$ //$NON-NLS-2$
                 @Override
                 public Object construct()
                 {
@@ -1202,7 +1220,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
             boolean success;
             I mergedItem;
             
-            @SuppressWarnings({ "unchecked", "synthetic-access" }) //$NON-NLS-1$ //$NON-NLS-2$
+            @SuppressWarnings("synthetic-access") //$NON-NLS-1$ //$NON-NLS-2$
             @Override
             public Object construct()
             {
@@ -1421,7 +1439,7 @@ public class TreeDefinitionEditor <T extends Treeable<T,D,I>,
                 boolean success;
                 D mergedDef;
                 
-                @SuppressWarnings({ "unchecked", "synthetic-access" }) //$NON-NLS-1$ //$NON-NLS-2$
+                @SuppressWarnings("synthetic-access") //$NON-NLS-1$ //$NON-NLS-2$
                 @Override
                 public Object construct()
                 {

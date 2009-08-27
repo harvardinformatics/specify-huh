@@ -29,7 +29,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
 
 /**
  * 
@@ -37,10 +39,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "accessionauthorization", uniqueConstraints = { 
-        @UniqueConstraint(columnNames = { "PermitID", "AccessionID" }), 
-        @UniqueConstraint(columnNames = { "RepositoryAgreementID" })
-})
+@Table(name = "accessionauthorization")
 public class AccessionAuthorization extends DataModelObjBase implements java.io.Serializable,
         Comparable<AccessionAuthorization>
 {
@@ -139,7 +138,7 @@ public class AccessionAuthorization extends DataModelObjBase implements java.io.
     /**
      * * Permit authorizing accession
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PermitID", unique = false, nullable = false, insertable = true, updatable = true)
     public Permit getPermit()
     {
@@ -192,7 +191,27 @@ public class AccessionAuthorization extends DataModelObjBase implements java.io.
         // else
         return timestampCreated.compareTo(obj.timestampCreated);
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+   public Short getParentTableId()
+    {
+        return (short)Accession.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return accession != null ? accession.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
@@ -218,6 +237,12 @@ public class AccessionAuthorization extends DataModelObjBase implements java.io.
     @Transient
     public String getIdentityTitle()
     {
-        return permit != null ? permit.getIdentityTitle() : super.getIdentityTitle();
+        if (permit != null)
+        {
+            return permit.getIdentityTitle();
+        }
+        
+        DBTableInfo ti = DBTableIdMgr.getInstance().getInfoById(Permit.getClassTableId());
+        return ti.getTitle();
     }
 }

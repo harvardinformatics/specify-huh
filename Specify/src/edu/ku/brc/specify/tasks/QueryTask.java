@@ -84,8 +84,10 @@ import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.RecordSet;
+import edu.ku.brc.specify.datamodel.SpExportSchemaMapping;
 import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
@@ -94,7 +96,7 @@ import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.tasks.subpane.SQLQueryPane;
 import edu.ku.brc.specify.tasks.subpane.qb.ERTICaptionInfoQB;
-import edu.ku.brc.specify.tasks.subpane.qb.QBLiveJRDataSource;
+import edu.ku.brc.specify.tasks.subpane.qb.QBLiveDataSource;
 import edu.ku.brc.specify.tasks.subpane.qb.QBQueryForIdResultsHQL;
 import edu.ku.brc.specify.tasks.subpane.qb.QBReportInfoPanel;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
@@ -143,7 +145,7 @@ public class QueryTask extends BaseTask
     protected QueryBldrPane                               queryBldrPane             = null;
     protected SoftReference<TableTree>                    tableTree                 = null;
     protected SoftReference<Hashtable<String, TableTree>> tableTreeHash             = null;
-    protected final AtomicBoolean                         localizationOrTreeDefEdit = new AtomicBoolean(false);
+    protected final AtomicBoolean                         configurationHasChanged = new AtomicBoolean(false);
     
     protected Vector<ToolBarDropDownBtn> tbList           = new Vector<ToolBarDropDownBtn>();
     protected Vector<JComponent>         menus            = new Vector<JComponent>();
@@ -165,13 +167,20 @@ public class QueryTask extends BaseTask
      */
     public QueryTask()
     {
-        super(QUERY, getResourceString(QUERY));
+        this(QUERY, getResourceString(QUERY));
+    }
+    
+    /**
+     * Constructor.
+     */
+    public QueryTask(final String name, final String title)
+    {
+        super(name, title);
         
-        CommandDispatcher.register(QUERY, this);   
+        CommandDispatcher.register(name, this);   
         CommandDispatcher.register(TreeDefinitionEditor.TREE_DEF_EDITOR, this);
         CommandDispatcher.register(SchemaLocalizerDlg.SCHEMA_LOCALIZER, this);
     }
-    
     
     /**
      * Ask the user for information needed to fill in the data object. (Could be refactored with WorkBench Task)
@@ -263,8 +272,16 @@ public class QueryTask extends BaseTask
     public void preInitialize()
     {
         // Create and add the Actions NavBox first so it is at the top at the top
-        actionNavBox = new NavBox(getResourceString("QB_CREATE_QUERY"));
+        actionNavBox = new NavBox(getActionNavBoxTitle());
         addNewQCreators();
+    }
+    
+    /**
+     * @return title for the action nav box
+     */
+    protected String getActionNavBoxTitle()
+    {
+    	return getResourceString("QB_CREATE_QUERY");
     }
     
     /**
@@ -869,6 +886,14 @@ public class QueryTask extends BaseTask
         }
     }
 
+    /**
+     * @return query type
+     */
+    protected String getQueryType()
+    {
+    	return QUERY;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.core.Taskable#initialize()
      */
@@ -879,18 +904,34 @@ public class QueryTask extends BaseTask
         {
             super.initialize(); // sets isInitialized to false
 
-            navBox = new DroppableNavBox(getResourceString("QUERIES"), QUERY_FLAVOR, QUERY, SAVE_QUERY);
+            navBox = new DroppableNavBox(getQueryNavBoxTitle(), QUERY_FLAVOR, getQueryType(), SAVE_QUERY);
             loadQueries();
             
             navBoxes.add(actionNavBox);
             navBoxes.add(navBox);
  
-            ContextMgr.registerService(new ReportServiceInfo());
+            registerServices();
 
         }
         isShowDefault = true;
     }
 
+    /**
+     * register services at initialization.
+     */
+    protected void registerServices()
+    {
+    	ContextMgr.registerService(new ReportServiceInfo());    
+    }
+    
+    /**
+     * @return title for the query nav box.
+     */
+    protected String getQueryNavBoxTitle()
+    {
+    	return getResourceString("QUERIES");
+    }
+    
     /*
      *  (non-Javadoc)
      * @see edu.ku.brc.af.core.Taskable#getToolBarItems()
@@ -925,7 +966,7 @@ public class QueryTask extends BaseTask
         boolean canDelete = ((QueryTask )ContextMgr.getTaskByClass(QueryTask.class)).isPermitted();
         final RolloverCommand roc = (RolloverCommand) makeDnDNavBtn(navBox, recordSet.getName(),
                 "Query", null,
-                canDelete ? new CommandAction(QUERY, DELETE_CMD_ACT, recordSet) : null, 
+                canDelete ? new CommandAction(getQueryType(), DELETE_CMD_ACT, recordSet) : null, 
                 true, true);
         roc.setToolTip(getResourceString("QY_CLICK2EDIT"));
         roc.setData(recordSet);
@@ -949,7 +990,7 @@ public class QueryTask extends BaseTask
             }
         }
         
-        roc.addDragDataFlavor(new DataFlavorTableExt(QueryTask.class, QUERY, recordSet.getTableId()));
+        roc.addDragDataFlavor(new DataFlavorTableExt(getClass(), getQueryType(), recordSet.getTableId()));
         if (canDelete)
         {
             roc.addDragDataFlavor(Trash.TRASH_FLAVOR);
@@ -958,34 +999,71 @@ public class QueryTask extends BaseTask
     }
     
     /**
+     * @param query
+     * @return true if query is associated with a SpExportSchemaMapping
+     */
+    public static boolean isSchemaExportQuery(SpQuery query)
+    {
+    	return BasicSQLUtils.getCount("select count(*) from spexportschemaitemmapping mapping inner join spqueryfield qf "
+    			+ " on qf.spqueryfieldid = mapping.spqueryfieldid where qf.spqueryid = " + query.getId()) > 0;
+    }
+ 
+    /**
+     * @param query
+     * @return true if query should be loaded.
+     */
+    protected boolean isLoadableQuery(SpQuery query)
+    {
+    	return !isSchemaExportQuery(query);
+    }
+    
+    /**
+     * @return hql to retrieve queries for loading.
+     */
+    protected String getQueryLoaderHQL()
+	{
+		// XXX Users will probably want to share queries??
+		return "From SpQuery as sq Inner Join sq.specifyUser as user where sq.isFavorite = true AND user.specifyUserId = "
+				+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class)
+						.getSpecifyUserId() + " ORDER BY ordinal";
+	}
+    
+    /**
+     * @param session
+     * @return list of possibly loadable queries.
+     */
+    protected List<?> getQueriesForLoading(DataProviderSessionIFace session)
+    {
+    	return session.getDataList(getQueryLoaderHQL());
+    }
+    
+    /**
      * Loads the Queries from the Database
      */
     protected void loadQueries()
     {
-        // XXX Users will probably want to share queries??
-        String sqlStr = "From SpQuery as sq Inner Join sq.specifyUser as user where sq.isFavorite = true AND user.specifyUserId = "
-                + AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId()
-                + " ORDER BY ordinal";
-
         DataProviderSessionIFace session = null;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
-            List<?> queries = session.getDataList(sqlStr);
+            List<?> queries = getQueriesForLoading(session);
 
             for (Iterator<?> iter = queries.iterator(); iter.hasNext();)
             {
-                Object[] obj = (Object[]) iter.next();
-                SpQuery query = (SpQuery) obj[0];
+                Object obj = iter.next();
+                SpQuery query = (SpQuery )(obj instanceof Object[] ? ((Object[])obj)[0] : obj);
                 if (!AppContextMgr.isSecurityOn()
                         || DBTableIdMgr.getInstance().getInfoById(query.getContextTableId())
                                 .getPermissions().canView())
                 {
-                    RecordSet rs = new RecordSet();
-                    rs.initialize();
-                    rs.set(query.getName(), SpQuery.getClassTableId(), RecordSet.GLOBAL);
-                    rs.addItem(query.getSpQueryId());
-                    addToNavBox(rs);
+                    if (isLoadableQuery(query))
+                    {
+                    	RecordSet rs = new RecordSet();
+                    	rs.initialize();
+                    	rs.set(query.getName(), SpQuery.getClassTableId(), RecordSet.GLOBAL);
+                    	rs.addItem(query.getSpQueryId());
+                    	addToNavBox(rs);
+                    }
                 }
             }
 
@@ -1085,10 +1163,19 @@ public class QueryTask extends BaseTask
     
     /**
      * @param query
+     * @return QueryBldrPane for new query
+     */
+    protected QueryBldrPane getNewQbPane(SpQuery query)
+    {
+    	return new QueryBldrPane(query.getName(), this, query);
+    }
+    
+    /**
+     * @param query
      */
     protected void editQuery(final SpQuery query)
     {
-        QueryBldrPane newPane = new QueryBldrPane(query.getName(), this, query);
+        QueryBldrPane newPane = getNewQbPane(query);
         
         if (starterPane != null)
         {
@@ -1144,10 +1231,12 @@ public class QueryTask extends BaseTask
      * Save it out to persistent storage.
      * @param query the SpQuery
      */
-    protected void persistQuery(final SpQuery query)
+    protected void persistQuery(final SpQuery query, final SpExportSchemaMapping schemaMapping)
     {
         // TODO Add StaleObject Code from FormView
-        if (DataModelObjBase.save(true, query))
+    	boolean saved = schemaMapping == null ? DataModelObjBase.save(true, query) 
+    			: DataModelObjBase.save(true, query, schemaMapping);
+        if (saved)
         {
             FormHelper.updateLastEdittedInfo(query);
         }
@@ -1157,7 +1246,7 @@ public class QueryTask extends BaseTask
      * Save a record set.
      * @param recordSets the rs to be saved
      */
-    public RolloverCommand saveNewQuery(final SpQuery query, final boolean enabled)
+    public RolloverCommand saveNewQuery(final SpQuery query, final SpExportSchemaMapping schemaMapping, final boolean enabled)
     {        
         query.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
         query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
@@ -1166,7 +1255,7 @@ public class QueryTask extends BaseTask
             query.setIsFavorite(true);
         }
 
-        persistQuery(query);
+        persistQuery(query, schemaMapping);
 
         RecordSet rs = new RecordSet();
         rs.initialize();
@@ -1193,6 +1282,17 @@ public class QueryTask extends BaseTask
         UIRegistry.getStatusBar().setText(msg);
 
         return roc;
+    }
+    
+    /**
+     * @param query
+     * @param session
+     * @throws Exception
+     */
+    protected void deleteThisQuery(SpQuery query, DataProviderSessionIFace session) throws Exception
+    {
+        //assumes caller handles transaction 
+    	session.delete(query);   	
     }
     
     /**
@@ -1228,7 +1328,7 @@ public class QueryTask extends BaseTask
             {
                 session.beginTransaction();
                 transOpen = true;
-                session.delete(query);
+                deleteThisQuery(query, session);
                 session.commit();
                 transOpen = false;
                 return true;
@@ -1300,73 +1400,79 @@ public class QueryTask extends BaseTask
 		{
 			SearchResultReportServiceInfo selectedRep = null;
 			JTable dataTbl = (JTable) cmdAction.getProperties().get("jtable");
-			ResultSetTableModel rsm = (ResultSetTableModel) dataTbl.getModel();
-			QueryForIdResultsIFace results = rsm.getResults();
-			QueryBldrPane qb = results instanceof QBQueryForIdResultsHQL ? ((QBQueryForIdResultsHQL) results)
-					.getQueryBuilder()
-					: null;
-			int tableId = ((RecordSet) cmdAction.getData()).getDbTableId();
-			List<SearchResultReportServiceInfo> reps = new Vector<SearchResultReportServiceInfo>(
-					((ReportsBaseTask) ContextMgr
-							.getTaskByClass(ReportsTask.class)).getReports(
-							tableId, qb));
-			if (reps.size() == 0)
+			if (dataTbl != null)
 			{
-				log.error("no reports for query. Should't have gotten here.");
-			} else if (rsm.isLoadingCells())
-			{
-				UIRegistry
-						.writeTimedSimpleGlassPaneMsg(
-								UIRegistry
-										.getResourceString("QB_NO_REPORTS_WHILE_LOADING_RESULTS"),
-								5000, null, null, true);
-			} else
-			{
-				ChooseFromListDlg<SearchResultReportServiceInfo> dlg = new ChooseFromListDlg<SearchResultReportServiceInfo>(
-						(Frame) UIRegistry.getTopWindow(), UIRegistry
-								.getResourceString("REP_CHOOSE_SP_REPORT"),
-						reps);
-				dlg.setVisible(true);
-				if (dlg.isCancelled())
-				{
-					return;
-				}
-				selectedRep = dlg.getSelectedObject();
-				dlg.dispose();
+    			ResultSetTableModel rsm = (ResultSetTableModel) dataTbl.getModel();
+    			if (rsm != null)
+    			{
+        			QueryForIdResultsIFace results = rsm.getResults();
+        			QueryBldrPane qb = results instanceof QBQueryForIdResultsHQL ? ((QBQueryForIdResultsHQL) results)
+        					.getQueryBuilder()
+        					: null;
+        			int tableId = ((RecordSet) cmdAction.getData()).getDbTableId();
+        			List<SearchResultReportServiceInfo> reps = new Vector<SearchResultReportServiceInfo>(
+        					((ReportsBaseTask) ContextMgr
+        							.getTaskByClass(ReportsTask.class)).getReports(
+        							tableId, qb));
+        			if (reps.size() == 0)
+        			{
+        				log.error("no reports for query. Should't have gotten here.");
+        			} else if (rsm.isLoadingCells())
+        			{
+        				UIRegistry
+        						.writeTimedSimpleGlassPaneMsg(
+        								UIRegistry
+        										.getResourceString("QB_NO_REPORTS_WHILE_LOADING_RESULTS"),
+        								5000, null, null, true);
+        			} else
+        			{
+        				ChooseFromListDlg<SearchResultReportServiceInfo> dlg = new ChooseFromListDlg<SearchResultReportServiceInfo>(
+        						(Frame) UIRegistry.getTopWindow(), UIRegistry
+        								.getResourceString("REP_CHOOSE_SP_REPORT"),
+        						reps);
+        				dlg.setVisible(true);
+        				if (dlg.isCancelled())
+        				{
+        					return;
+        				}
+        				selectedRep = dlg.getSelectedObject();
+        				dlg.dispose();
+        			}
+        			if (selectedRep == null || selectedRep.getFileName() == null)
+        			{
+        				return;
+        			}
+        
+        			Object src;
+        			if (selectedRep.isLiveData())
+        			{
+        				// XXX - probably a smoother way to handle these generic issues.
+        				// (type safety warning)
+        				List<? extends ERTICaptionInfo> captions = rsm.getResults()
+        						.getVisibleCaptionInfo();
+        				src = new QBLiveDataSource(rsm,
+        						(List<ERTICaptionInfoQB>) captions, selectedRep
+        								.getRepeats());
+        			} else
+        			{
+        				src = rsm.getRecordSet(null, true);
+        			}
+        			final CommandAction cmd = new CommandAction(
+        					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
+        			cmd.setProperty("title", rsm.getResults().getTitle());
+        			cmd.setProperty("file", selectedRep.getFileName());
+        			if (selectedRep.isRequiresNewConnection())
+        			{
+        				RecordSet repRS = new RecordSet();
+        				repRS.initialize();
+        				repRS.set(selectedRep.getReportName(), SpReport
+        						.getClassTableId(), RecordSet.GLOBAL);
+        				repRS.addItem(selectedRep.getSpReportId());
+        				cmd.setProperty("spreport", repRS);
+        			}
+        			CommandDispatcher.dispatch(cmd);
+    			}
 			}
-			if (selectedRep == null || selectedRep.getFileName() == null)
-			{
-				return;
-			}
-
-			Object src;
-			if (selectedRep.isLiveData())
-			{
-				// XXX - probably a smoother way to handle these generic issues.
-				// (type safety warning)
-				List<? extends ERTICaptionInfo> captions = rsm.getResults()
-						.getVisibleCaptionInfo();
-				src = new QBLiveJRDataSource(rsm,
-						(List<ERTICaptionInfoQB>) captions, selectedRep
-								.getRepeats());
-			} else
-			{
-				src = rsm.getRecordSet(null, true);
-			}
-			final CommandAction cmd = new CommandAction(
-					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
-			cmd.setProperty("title", rsm.getResults().getTitle());
-			cmd.setProperty("file", selectedRep.getFileName());
-			if (selectedRep.isRequiresNewConnection())
-			{
-				RecordSet repRS = new RecordSet();
-				repRS.initialize();
-				repRS.set(selectedRep.getReportName(), SpReport
-						.getClassTableId(), RecordSet.GLOBAL);
-				repRS.addItem(selectedRep.getSpReportId());
-				cmd.setProperty("spreport", repRS);
-			}
-			CommandDispatcher.dispatch(cmd);
 		}
     }
 
@@ -1380,8 +1486,9 @@ public class QueryTask extends BaseTask
         
         if (cmdAction.isAction(APP_RESTART_ACT))
         {
-            isInitialized = false;
-            this.initialize();
+            configurationHasChanged.set(true);
+        	isInitialized = false;
+            initialize();
         }
     }
 
@@ -1394,7 +1501,7 @@ public class QueryTask extends BaseTask
     {
         super.doCommand(cmdAction);
         
-        if (cmdAction.isType(QUERY))
+        if (cmdAction.isType(getQueryType()))
         {
             processQueryCommands(cmdAction);
             
@@ -1402,13 +1509,13 @@ public class QueryTask extends BaseTask
         else if (cmdAction.isType(TreeDefinitionEditor.TREE_DEF_EDITOR))
         {
             //all we care to know is that a treeDefintion got changed somehow 
-            this.localizationOrTreeDefEdit.set(true);
+            this.configurationHasChanged.set(true);
         }
         else if (cmdAction.isType(SchemaLocalizerDlg.SCHEMA_LOCALIZER))
         {
             //XXX should check whether changed schema actually is the schema in use? 
             // e.g. If German schema was saved when English is in use then ignore??
-            this.localizationOrTreeDefEdit.set(true);
+            this.configurationHasChanged.set(true);
             SwingUtilities.invokeLater(new Runnable(){
                 public void run()
                 {
@@ -1424,6 +1531,7 @@ public class QueryTask extends BaseTask
         }
     }
 
+    
 
     //--------------------------------------------------------------
     // Inner Classes
@@ -1481,7 +1589,7 @@ public class QueryTask extends BaseTask
         {
             tableTreeHash = new SoftReference<Hashtable<String, TableTree>>(buildTableTreeHash(tableTree.get()));
         }
-        localizationOrTreeDefEdit.set(false);
+        configurationHasChanged.set(false);
     }
     
     
@@ -1530,7 +1638,7 @@ public class QueryTask extends BaseTask
     public synchronized boolean needToRebuildTableTree()
     {
         return tableTree == null || tableTree.get() == null || tableTreeHash == null || tableTreeHash.get() == null
-            || localizationOrTreeDefEdit.get();
+            || configurationHasChanged.get();
     }
     
     /**
@@ -1789,6 +1897,11 @@ public class QueryTask extends BaseTask
         }
         
         List<String> selectedList = null;
+        if (list.size() == 0)
+        {
+        	UIRegistry.showLocalizedMsg("QY_NO_QUERIES_TO_EXPORT");
+        	return;
+        }
         if (list.size() == 1)
         {
             selectedList = list;

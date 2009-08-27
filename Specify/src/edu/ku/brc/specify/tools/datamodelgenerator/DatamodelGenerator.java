@@ -749,12 +749,6 @@ public class DatamodelGenerator
                         continue;
                     }
                     
-                    if (method.getName().equals("getStartDate"))
-                    {
-                        int x= 0;
-                        x++;
-                    }
-                    
                     if (DEBUG)
                     {
                         System.out.println(className + " " + method.getName());
@@ -979,8 +973,6 @@ public class DatamodelGenerator
                         
         } catch (Exception ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DatamodelGenerator.class, ex);
             ex.printStackTrace();
         }  
     }

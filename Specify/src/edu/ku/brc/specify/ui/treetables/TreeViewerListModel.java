@@ -32,6 +32,7 @@ import javax.swing.AbstractListModel;
  * @author jstewart
  * @code_status Alpha
  */
+@SuppressWarnings("serial")
 public class TreeViewerListModel extends AbstractListModel
 {
     /** Logger for all messages emitted. */
@@ -52,9 +53,16 @@ public class TreeViewerListModel extends AbstractListModel
      */
     public TreeViewerListModel(TreeNode rootNode)
     {
-        nodes.add(rootNode);
-        visibleRoot = rootNode;
-        visibleSize = 1;
+    	visibleRoot = rootNode;
+        if (rootNode != null)
+        {
+        	nodes.add(rootNode);
+        	visibleSize = 1;
+        }
+        else
+        {
+        	visibleSize = 0;
+        }
     }
     
     /* (non-Javadoc)
@@ -168,7 +176,12 @@ public class TreeViewerListModel extends AbstractListModel
         }
     }
     
-    public synchronized boolean parentHasChildrenAfterNode(TreeNode parent, TreeNode node)
+    /**
+     * @param parent
+     * @param node
+     * @return
+     */
+    public synchronized boolean parentHasChildrenAfterNode(final TreeNode parent, final TreeNode node)
     {
         int nodeIndex = nodes.indexOf(node);
         for (int i = nodeIndex+1; i < nodes.size(); ++i)
@@ -182,6 +195,10 @@ public class TreeViewerListModel extends AbstractListModel
         return false;
     }
     
+    /**
+     * @param parent
+     * @return
+     */
     public synchronized TreeNode getFirstChild(TreeNode parent)
     {
     	int nodeIndex = nodes.indexOf(parent);
@@ -196,6 +213,10 @@ public class TreeViewerListModel extends AbstractListModel
         return null;
     }
     
+    /**
+     * @param id
+     * @return
+     */
     public synchronized TreeNode getNodeById(long id)
     {
         for (TreeNode t: nodes)
@@ -315,6 +336,9 @@ public class TreeViewerListModel extends AbstractListModel
         return visibleRanks;
     }
     
+    /**
+     * @param parent
+     */
     public synchronized void removeChildNodes(TreeNode parent)
     {
         //log.debug("performing removeChildNodes( " + parent + ")");
@@ -341,6 +365,9 @@ public class TreeViewerListModel extends AbstractListModel
         fireIntervalRemoved(this, parentIndex+1, parentIndex+sizeChange);
     }
     
+    /**
+     * @param parent
+     */
     protected synchronized void recursivelyRemoveChildNodesInternal(TreeNode parent)
     {
         // this algorithm should work even for nodes that are not showing children
@@ -373,11 +400,18 @@ public class TreeViewerListModel extends AbstractListModel
         return;
     }
     
+    /**
+     * @param node
+     * @return
+     */
     public synchronized boolean showingChildrenOf(TreeNode node)
     {
         return idsShowingChildren.contains(node.getId());
     }
     
+    /**
+     * @param node
+     */
     protected synchronized void nodeValuesChanged(TreeNode node)
     {
         // make sure to correct for the fact that we might be viewing just a subtree right now
@@ -389,6 +423,9 @@ public class TreeViewerListModel extends AbstractListModel
         }
     }
     
+    /**
+     * 
+     */
     public synchronized void layoutChanged()
     {
         fireContentsChanged(this,0,visibleSize-1);

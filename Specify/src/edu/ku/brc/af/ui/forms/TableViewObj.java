@@ -112,6 +112,7 @@ import edu.ku.brc.af.ui.forms.validation.ValidationListener;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
+import edu.ku.brc.ui.BiColorTableCellRenderer;
 import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.DateWrapper;
 import edu.ku.brc.ui.GetSetValueIFace;
@@ -712,8 +713,11 @@ public class TableViewObj implements Viewable,
     {
         ((DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(SwingConstants.CENTER);
         
-        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-        renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        //DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+        //renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        DefaultTableCellRenderer renderer = new BiColorTableCellRenderer(true); // Centered
+
 
         TableColumnModel tableColModel = table.getColumnModel();
         for (int i=0;i<tableColModel.getColumnCount();i++)
@@ -978,7 +982,7 @@ public class TableViewObj implements Viewable,
             parentDataObj.addReference(dObj, dataSetFieldName);
         }
         
-        final ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(altView, mainComp, dObj, isEditing, isNew);
+        final ViewBasedDisplayIFace dialog = FormHelper.createDataObjectDialog(mainComp, dObj, isEditing, isNew);
         if (dialog != null)
         {
             // Now we need to get the MultiView and add it into the MV tree
@@ -1014,11 +1018,15 @@ public class TableViewObj implements Viewable,
                     dialog.setSession(localSession);
                 }
                 
-                System.err.println(dObj);
                 dialog.setData(dObj);
-                dialog.showDisplay(true);
-                
+                if (localSession != null)
+                {
+                    localSession.close();
+                    localSession = null;
+                }
                 dialog.setSession(null);
+                
+                dialog.showDisplay(true);
                 
             } catch (Exception ex)
             {
@@ -1539,34 +1547,49 @@ public class TableViewObj implements Viewable,
         if (dataObjList != null && model != null)
         {
             DataProviderSessionIFace tmpSession = session;
-            if (tmpSession == null && !isSkippingAttach)
+            try
             {
-                tmpSession = DataProviderFactory.getInstance().createSession();
-                for (Object dObj : newObjsList)
+                // 06/29/09 - rods - Bug 7424 The attach (or merge) causes an exception
+                // Without the attach/merge it gets a different exception, but that was solved 
+                // by adding a additional items to the forceLoad of the data object 
+
+                if (tmpSession == null && !isSkippingAttach)
                 {
-                    if (dObj != null && dObj instanceof FormDataObjIFace && ((FormDataObjIFace)dObj).getId() != null)
+                    /*tmpSession = DataProviderFactory.getInstance().createSession();
+                    for (Object dObj : newObjsList)
                     {
-                        tmpSession.attach(dObj);
-                    } else
+                        if (dObj != null && dObj instanceof FormDataObjIFace && ((FormDataObjIFace)dObj).getId() != null)
+                        {
+                            tmpSession.attach(dObj);
+                        } else
+                        {
+                            //log.error("Obj in list is null!");
+                        }
+                    }
+                    */
+                }
+                isLoaded = true;
+        
+                for (int i=0;i<dataObjList.size();i++)
+                {
+                    for (int j=0;j<model.getColumnCount();j++)
                     {
-                        //log.error("Obj in list is null!");
+                        model.getValueAt(i, j);
                     }
                 }
-            }
-            isLoaded = true;
-    
-            for (int i=0;i<dataObjList.size();i++)
+            } catch (Exception ex)
             {
-                for (int j=0;j<model.getColumnCount();j++)
-                {
-                    model.getValueAt(i, j);
-                }
-            }
-            
-            if (session == null && tmpSession != null)
-            {
-                tmpSession.close();
+                ex.printStackTrace();
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TableViewObj.class, ex);
                 
+            } finally
+            {
+                if (session == null && tmpSession != null)
+                {
+                    tmpSession.close();
+                    
+                }
             }
         }
         newObjsList.clear();

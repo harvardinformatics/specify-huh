@@ -44,19 +44,6 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="text7" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <isSystem>false</isSystem>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Total Length</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
       <item name="text1" isUIFormatter="false" pickListName="BiologicalSex" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -65,6 +52,19 @@
           <str language="en">
             <version>0</version>
             <text>Sex</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="text8" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <isSystem>false</isSystem>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Range of Size</text>
           </str>
         </names>
         <descs/>
@@ -109,6 +109,19 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
+      <item name="text7" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <isSystem>false</isSystem>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Total Length</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
       <item name="text4" isUIFormatter="false" pickListName="BiologicalStage" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -117,19 +130,6 @@
           <str language="en">
             <version>0</version>
             <text>Stage</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="text8" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <isSystem>false</isSystem>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Range of Size</text>
           </str>
         </names>
         <descs/>

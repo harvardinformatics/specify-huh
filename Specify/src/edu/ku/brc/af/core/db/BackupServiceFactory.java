@@ -21,6 +21,7 @@ package edu.ku.brc.af.core.db;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -50,6 +51,10 @@ public abstract class BackupServiceFactory
     //private static final Logger log = Logger.getLogger(SecurityMgr.class);
     
     protected static BackupServiceFactory instance = null;
+    
+    protected String itUsername = null;
+    protected String itPassword = null;
+    
     
     /**
      * Protected Constructor
@@ -98,14 +103,45 @@ public abstract class BackupServiceFactory
     public abstract int getNumberofTables();
    
     /**
-     * @return
+     * 
      */
     public abstract void doBackUp();
 
     /**
-     * @return
+     * 
+     */
+    public abstract void doBackUp(PropertyChangeListener pcl);
+
+    /**
+     * 
      */
     public abstract void doRestore();
+    
+    /**
+     * Sets the IT Username and Password that should be used instead of the one username and password in the current connection.
+     * @param itUsr the username 
+     * @param itPwd the password
+     */
+    public void setUsernamePassword(final String itUsr, final String itPwd)
+    {
+        itUsername = itUsr;
+        itPassword = itPwd;
+    }
+    
+    /**
+     * @param databaseName
+     * @param restoreFilePath
+     * @param restoreMsgKey
+     * @param completionMsgKey
+     * @param pcl
+     * @param doSynchronously
+     */
+    public abstract boolean doRestoreInBackground(String                 databaseName,
+                                                  String                 restoreFilePath,
+                                                  String                 restoreMsgKey,
+                                                  String                 completionMsgKey,
+                                                  PropertyChangeListener pcl,
+                                                  boolean                doSynchronously);
     
     /**
      * @param doSendAppExit whether it should send an applications exit command
@@ -162,8 +198,8 @@ public abstract class BackupServiceFactory
         Properties stats = new Properties();
         for (String tableName : tableNames)
         {
-            int count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM "+tableName);
-            stats.put(tableName, Integer.toString(count));
+            Integer count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM "+tableName);
+            stats.put(tableName, count != null ? Integer.toString(count) : 0);
         }
         return stats;
     }

@@ -138,6 +138,8 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Set<TreatmentEvent>             treatmentEvents;
     protected Set<CollectionObjectAttachment> collectionObjectAttachments;
 
+    protected Set<ExsiccataItem>              exsiccataItems;
+    
     // Constructors
 
     /** default constructor */
@@ -212,6 +214,8 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         conservDescriptions         = new HashSet<ConservDescription>();
         treatmentEvents             = new HashSet<TreatmentEvent>();
         collectionObjectAttachments = new HashSet<CollectionObjectAttachment>();
+        
+        exsiccataItems              = new HashSet<ExsiccataItem>();
     }
     // End Initializer
     
@@ -279,7 +283,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     *      * Image, Sound, Preparation, Container(Container Label?)
+     * Image, Sound, Preparation, Container(Container Label?) - this was suppose to be in Preparation
      */
     @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getDescription() {
@@ -1090,6 +1094,18 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         this.collectionObjectAttachments = collectionObjectAttachments;
     }
 
+    @OneToMany(mappedBy = "collectionObject")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<ExsiccataItem> getExsiccataItems()
+    {
+        return exsiccataItems;
+    }
+    
+    public void setExsiccataItems(Set<ExsiccataItem> exsiccataItems)
+    {
+        this.exsiccataItems = exsiccataItems;
+    }
+    
    //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
@@ -1110,6 +1126,26 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
             }
         }
         return fieldNumber != null ? fieldNumber : super.getIdentityTitle();
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)Collection.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return collection != null ? collection.getId() : null;
     }
     
     /* (non-Javadoc)
@@ -1145,6 +1181,10 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         determinations.size();
         preparations.size();
         projects.size();
+        if (collection != null)
+        {
+            collection.getId();
+        }
     }
     
     //----------------------------------------------------------------------

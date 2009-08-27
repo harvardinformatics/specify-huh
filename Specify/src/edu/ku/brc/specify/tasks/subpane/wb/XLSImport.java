@@ -60,10 +60,14 @@ import edu.ku.brc.ui.UIRegistry;
 public class XLSImport extends DataImport implements DataImportIFace
 {
     private static final Logger log = Logger.getLogger(XLSImport.class);
-    private Vector<Integer> cardImageCols = new Vector<Integer>();
-    private int geoCol = -1;
+    
+    private Vector<Integer>              cardImageCols = new Vector<Integer>();
+    private int                          geoCol        = -1;
     protected ConfigureExternalDataIFace config;
     
+    /**
+     * @param headerRow
+     */
     private void getSystemCols(final HSSFRow headerRow)
     {
         for (int c = headerRow.getFirstCellNum(); c <= headerRow.getLastCellNum(); c++)
@@ -302,8 +306,8 @@ public class XLSImport extends DataImport implements DataImportIFace
                     }
                     catch (IOException e)
                     {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(XLSImport.class, e);
+                        //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(XLSImport.class, e);
                         UIRegistry.getStatusBar().setErrorMessage(e.getMessage());
                         StringBuilder errMsg = new StringBuilder(getResourceString("WB_IMG_IMPORT_ERROR"));
                         errMsg.append(": ");

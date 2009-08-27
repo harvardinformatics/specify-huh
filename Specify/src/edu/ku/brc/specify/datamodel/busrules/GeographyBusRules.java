@@ -20,6 +20,7 @@
 package edu.ku.brc.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Geography;
@@ -142,6 +143,17 @@ public class GeographyBusRules extends BaseTreeBusRules<Geography, GeographyTree
             return;
         }
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        setLSID((FormDataObjIFace)dataObj);
+
+        return super.afterSaveCommit(dataObj, session);
+    }
     
     /**
      * Handles the {@link #beforeSave(Object)} method if the passed in {@link Object}
@@ -166,4 +178,15 @@ public class GeographyBusRules extends BaseTreeBusRules<Geography, GeographyTree
         
         TreeTaskMgr.checkLocks();
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#getNodeClass()
+	 */
+	@Override
+	protected Class<?> getNodeClass()
+	{
+		return Geography.class;
+	}
+    
+    
 }

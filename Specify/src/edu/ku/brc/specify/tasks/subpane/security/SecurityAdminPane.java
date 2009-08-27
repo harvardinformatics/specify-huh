@@ -195,17 +195,17 @@ public class SecurityAdminPane extends BaseSubPane
         JPanel navTreePanel = createFullTreeNavPanel(); // navigation jTree gets created here 
         navTreePanel.setMinimumSize(new Dimension(200, 200));
         
-        PanelBuilder btnPB = new PanelBuilder(new FormLayout("p,4px,p,4px,p,4px,p,f:p:g", "p"));
-        JButton addUserBtn = UIHelper.createIconBtn("add-person", IconManager.IconSize.NonStd, "Add New User to Group", null); // I18N
+        PanelBuilder btnPB    = new PanelBuilder(new FormLayout("p,4px,p,4px,p,4px,p,4px,p,f:p:g", "p"));
+        JButton addUserBtn    = UIHelper.createIconBtn("add-person", IconManager.IconSize.NonStd, "Add New User to Group", null); // I18N
         JButton addExtUserBtn = UIHelper.createIconBtn("addext-person", IconManager.IconSize.NonStd, "Add Existing User to Group", null); // I18N
-        JButton delUserBtn = UIHelper.createIconBtn("del-person", IconManager.IconSize.NonStd, "Delete User from Group", null);
-        JButton rmvUserBtn = UIHelper.createIconBtn("rmv-person", IconManager.IconSize.NonStd, "Remove User from Group (does not delete the user)", null);
+        JButton addToAdminBtn = UIHelper.createIconBtn("AdminGroup", IconManager.IconSize.Std24, "Add to the Admin Group", null); // I18N
+        JButton delUserBtn    = UIHelper.createIconBtn("del-person", IconManager.IconSize.NonStd, "Delete User from Group", null);
         btnPB.add(addUserBtn,    cc.xy(1, 1));
         btnPB.add(addExtUserBtn, cc.xy(3, 1));
-        btnPB.add(rmvUserBtn,    cc.xy(5, 1));
+        btnPB.add(addToAdminBtn, cc.xy(5, 1));
         btnPB.add(delUserBtn,    cc.xy(7, 1));
         
-        navTreeContextMgr.setBtn(addUserBtn, addExtUserBtn, delUserBtn, rmvUserBtn);
+        navTreeContextMgr.setBtn(addUserBtn, addExtUserBtn, addToAdminBtn, delUserBtn);
                
         // Other components that were added to the tree panel are now created here
         // It's better to include the scrollpane with the navigation JTree in a separate panel
@@ -270,13 +270,15 @@ public class SecurityAdminPane extends BaseSubPane
 
                 if (node == null || !(node.getUserObject() instanceof DataModelObjBaseWrapper))
                 {
-                    // Nothing is selected or object type isn't relevant    
+                    // Nothing is selected or object type isn't relevant
+                    clearPanels();
                     return;
                 }
 
                 // ask if user he wants to discard changes if that's the case
                 if (!aboutToShutdown())
                 {
+                    clearPanels();
                     return;
                 }
                 
@@ -387,7 +389,7 @@ public class SecurityAdminPane extends BaseSubPane
     private DefaultTreeModel createNavigationTreeModel()
     {
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(UIRegistry.getAppName());
+        DefaultMutableTreeNode   root    = new DefaultMutableTreeNode(UIRegistry.getAppName());
 
         try
         {
@@ -622,8 +624,10 @@ public class SecurityAdminPane extends BaseSubPane
             
             DataModelObjBaseWrapper parentWrapper = (DataModelObjBaseWrapper) node.getUserObject();
 
-            if (filter==null || !parentWrapper.isGroup())
+            if (filter == null || !parentWrapper.isGroup())
+            {
                 return node.getChildCount();
+            }
 
             int childCount = 0;
             Enumeration<?> children = node.children();
@@ -645,10 +649,14 @@ public class SecurityAdminPane extends BaseSubPane
         public void setFilter(final Filter filter) 
         {
             if (this.filter == null && filter == null)
+            {
                 return;
+            }
             
             if (this.filter != null && this.filter.equals(filter))
+            {
                 return;
+            }
             
             this.filter = filter;
             
@@ -751,6 +759,15 @@ public class SecurityAdminPane extends BaseSubPane
         createInitialInfoSubPanels();
         
         return infoCards;
+    }
+    
+    /**
+     * 
+     */
+    private void clearPanels()
+    {
+        CardLayout cardLayout = (CardLayout)(infoCards.getLayout());
+        cardLayout.show(infoCards, Collection.class.getCanonicalName());
     }
     
     /**
@@ -1005,7 +1022,7 @@ public class SecurityAdminPane extends BaseSubPane
             
            if (refreshObj)
            {
-               refreshTreeNode(session);
+               refreshTreeNode();
            }
            
         } catch (Exception ex)
@@ -1028,7 +1045,7 @@ public class SecurityAdminPane extends BaseSubPane
     /**
      * 
      */
-    protected void refreshTreeNode(DataProviderSessionIFace session)
+    protected void refreshTreeNode()
     {
         if (currentDisplayPanel.setData(objWrapper, secondObjWrapper) && currentEditorPanel != null)
         {

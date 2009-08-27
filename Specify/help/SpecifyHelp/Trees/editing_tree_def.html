@@ -21,7 +21,7 @@
 </table>
 <p>The  Tree Definition tool defines the ranks available in a  tree as well as how these ranks are enforced in data entry and used in aggregating the full name. Tree Definition tools are available for each of the trees. Nodes can not be added to a tree unless the rank included in the definition.</p>
 <p>The Tree Definition is configured during both the Specify Setup Wizard and the Discipline Wizard that is run when a Discipline is added. The Tree Definition can be edited from within Specify as well.</p>
-<p> Click the <em><img src="../../images/Tree-32x32.png" alt="tree" width="20" height="20" /> Trees</em> button on the Taskbar, then select a tree from the Sidebar list under <em>Edit Tree Definition</em>.</p>
+<p> Click the <em><img src="../../images/Tree-32x32.png" alt="tree" width="20" height="20" /> Trees</em> button on the Taskbar, then select a tree from the Sidebar list under <em>Open Tree Definition</em>.</p>
 <p>The resulting window displays a hierarchical list of included Ranks in a grid view. </p>
 <p>A tree and corresponding form may not be open at the same time. If either a tree or form is open the other will only be available in view mode. For example, if user A is editing the Taxon tree definition user B will not be allowed to edit a Taxon form.</p>
 <p>Also, a tree and tree definition representing the same table can not be open at the same time. If the tree definition is open and the tree is selected the tree will replace the Definition in the same tab, therefore closing the tree definition. The Definition is not available to View and those without editing privileges may not access it.</p>
@@ -42,7 +42,7 @@
   <li><strong>Enforced</strong> ensures that the Rank can not be skipped when attaching children.</li>
 </ul>
 <p>&nbsp;</p>
-<p>Click the delete button to delete a rank. Ranks may <strong>NOT</strong> be deleted if nodes are associated with them.</p>
+<p>Click the delete button to delete a rank. Ranks may <strong>NOT</strong> be deleted if nodes are associated with them. It is important to remember that the Institution tree is shared by all collections in an institution and all other trees are shared by all collections within a single Discipline. Ranks that are not being used by your collection may have associated nodes in other collections and therefore can not be deleted.</p>
 <p>Once the change is saved the tree will update. If the tree is extremely large this may take several minutes. </p>
 <h3><strong><a name="update_tree_nodes" id="update_tree_nodes"></a>Update Trees</strong></h3>
 <p>If the save (or update) process is interrupted, the tree will need to update when Specify re-launches. A prompt will appear notifying the user that the tree is updating. A manual update can also be performed by clicking <em>System &gt; Trees &gt; Update</em> (tree type). </p>

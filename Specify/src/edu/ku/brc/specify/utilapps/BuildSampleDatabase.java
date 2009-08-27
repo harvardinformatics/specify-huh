@@ -85,6 +85,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -136,6 +137,7 @@ import com.thoughtworks.xstream.XStream;
 
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.db.BackupServiceFactory;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
@@ -150,6 +152,8 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
+import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
@@ -233,6 +237,8 @@ import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
+import edu.ku.brc.specify.dbsupport.BuildFromGeonames;
+import edu.ku.brc.specify.dbsupport.HibernateDataProviderSession;
 import edu.ku.brc.specify.dbsupport.SpecifyDeleteHelper;
 import edu.ku.brc.specify.tools.SpecifySchemaGenerator;
 import edu.ku.brc.specify.tools.schemalocale.DisciplineBasedContainer;
@@ -274,7 +280,8 @@ public class BuildSampleDatabase
     private static int SUBSPECIES_LSID        = 7;
     private static int SUBSPECIES_COMMON_NAME = 8;
     
-    protected Hashtable<String, Integer> taxonIndexes = new Hashtable<String, Integer>();
+    protected Hashtable<String, Integer> taxonExtraColsIndexes = new Hashtable<String, Integer>();
+    protected Hashtable<String, Integer> taxonIndexes          = new Hashtable<String, Integer>();
 
     protected static boolean     debugOn        = false;
     protected static final int   TIME_THRESHOLD = 3000;
@@ -317,10 +324,11 @@ public class BuildSampleDatabase
     protected StorageTreeDef      stgTreeDef = null;
     protected int                 createStep = 0;
     protected Transaction         trans      = null;
-    protected static SimpleDateFormat                       dateTimeFormatter      = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-    protected static SimpleDateFormat                       dateFormatter          = new SimpleDateFormat("yyyy-MM-dd");
+    
     protected static Timestamp                              now                    = new Timestamp(System .currentTimeMillis());
-    protected static String                                 nowStr                 = "'" + dateTimeFormatter.format(now) + "'";
+    protected static SimpleDateFormat                       dateTimeFormatter;
+    protected static SimpleDateFormat                       dateFormatter;
+    protected static String                                 nowStr;
     
     protected LinkedList<Pair<String, Integer>> recycler = new LinkedList<Pair<String, Integer>>();
     protected StringBuilder gSQLStr = new StringBuilder();
@@ -331,23 +339,47 @@ public class BuildSampleDatabase
      */
     public BuildSampleDatabase()
     {
+        dateTimeFormatter  = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        dateFormatter      = new SimpleDateFormat("yyyy-MM-dd");
+        nowStr              = "'" + dateTimeFormatter.format(now) + "'";
     }
     
+    /**
+     * @return
+     */
     public Session getSession()
     {
         return session;
     }
     
-    public void setSession(Session s)
+    /**
+     * @return
+     */
+    public DataType getDataType()
+    {
+        return dataType;
+    }
+    
+    /**
+     * @param s
+     */
+    public void setSession(final Session s)
     {
         session = s;
     }
     
+    /**
+     * @return
+     */
     public ProgressFrame getFrame()
     {
         return frame;
     }
     
+    /**
+     * @param dataObjects
+     * @param userAgent
+     */
     protected void standardQueries(final Vector<Object> dataObjects, 
                                    final Agent userAgent)
     {
@@ -390,6 +422,10 @@ public class BuildSampleDatabase
         return null;
     }
     
+    /**
+     * @param clazz
+     * @param ans
+     */
     private void addAutoNumberingScheme(final Class<?> clazz, final AutoNumberingScheme ans)
     {
         Vector<AutoNumberingScheme> numberingSchemes = numberingSchemesHash.get(clazz);
@@ -436,16 +472,15 @@ public class BuildSampleDatabase
      * @param disciplineName the disciplineType name
      * @return the entire list of DB object to be persisted
      */
-    @SuppressWarnings("unchecked")
-    public void createEmptyInstitution(final Properties props)
+    public boolean createEmptyInstitution(final Properties props, final boolean doCreateDiv, final boolean doCreateDisp)
     {
         AppContextMgr.getInstance().setHasContext(true);
         
         createStep = 0;    
         
-        frame.setProcess(0, 10);
+        if (frame != null) frame.setProcess(0, 10);
         
-        frame.setProcess(++createStep);
+        if (frame != null) frame.setProcess(++createStep);
         
         Institution institution = null;
         
@@ -453,7 +488,7 @@ public class BuildSampleDatabase
         // Create the really high-level stuff
         ////////////////////////////////
         String username = props.getProperty("usrUsername");
-        String password = props.getProperty("usrUsername");
+        String password = props.getProperty("usrPassword");
         
         startTx();
         
@@ -483,6 +518,7 @@ public class BuildSampleDatabase
         {
             stgTreeDef = createStorageTreeDef("Storage");
             institution.setStorageTreeDef(stgTreeDef);
+            stgTreeDef.getInstitutions().add(institution);
             persist(stgTreeDef);
         }
         
@@ -494,7 +530,8 @@ public class BuildSampleDatabase
         String email    = props.getProperty("email");
         String userType = props.getProperty("userType");
 
-        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution, username, email, password, userType);
+        String encrypted = Encryption.encrypt(password, password);
+        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution, username, email, encrypted, userType);
         
         ////////////////////////////////
         // Create the really high-level stuff
@@ -509,12 +546,16 @@ public class BuildSampleDatabase
         commitTx();
         
         AppContextMgr.getInstance().setClassObject(SpecifyUser.class, specifyAdminUser);
+        AppContextMgr.getInstance().setClassObject(Institution.class, institution);
         
-        frame.setProcess(++createStep);
+        if (frame != null) frame.setProcess(++createStep);
         
-        DisciplineType disciplineType = (DisciplineType)props.get("disciplineType");   
-        createEmptyDivision(institution, disciplineType, specifyAdminUser, props, false);
-        
+        if (doCreateDiv)
+        {
+            DisciplineType disciplineType = (DisciplineType)props.get("disciplineType");   
+            return createEmptyDivision(institution, disciplineType, specifyAdminUser, props, doCreateDisp, false) != null;
+        }
+        return true;
     }
     
     /**
@@ -535,9 +576,10 @@ public class BuildSampleDatabase
                                         final DisciplineType disciplineType,
                                         final SpecifyUser    specifyAdminUser, 
                                         final Properties     props,
+                                        final boolean        doCreateDisp,
                                         final boolean        doSetProgressRange)
     {
-        if (doSetProgressRange)
+        if (doSetProgressRange && frame != null)
         {
             frame.setProcess(0, 19);
         }
@@ -545,12 +587,14 @@ public class BuildSampleDatabase
         startTx();
 
         Division division = createDivision(institution, 
-                                          disciplineType.getName(), 
-                                          props.getProperty("divName"), 
-                                          props.getProperty("divAbbrev"), 
-                                          null); //props.getProperty("divTitle");
+                                           disciplineType.getName(), 
+                                           props.getProperty("divName"), 
+                                           props.getProperty("divAbbrev"), 
+                                           null); //props.getProperty("divTitle");
         
-        //AppContextMgr.getInstance().setClassObject(Division.class, division);   // Needed for creating an Agent
+        frame.incOverall();
+        
+        persist(division);
         
         String title     = props.getProperty("title",     "");
         String firstName = props.getProperty("firstName", "Test");
@@ -558,9 +602,9 @@ public class BuildSampleDatabase
         String midInit   = props.getProperty("middleInitial", "A");
         String abbrev    = props.getProperty("abbrev",     "");
         String email     = props.getProperty("email");
-        String userType  = props.getProperty("userType");
+        //String userType  = props.getProperty("userType");
 
-        System.out.println("----- User Agent -----");
+        /*System.out.println("----- User Agent -----");
         System.out.println("Title:     "+title);
         System.out.println("FirstName: "+firstName);
         System.out.println("LastName:  "+lastName);
@@ -568,6 +612,9 @@ public class BuildSampleDatabase
         System.out.println("Abbrev:    "+abbrev);
         System.out.println("Email:     "+email);
         System.out.println("UserType:  "+userType);
+        */
+        
+        frame.incOverall();
         
         Agent userAgent = createAgent(title, firstName, midInit, lastName, abbrev, email, division, null);
         
@@ -576,8 +623,17 @@ public class BuildSampleDatabase
         
         commitTx();
         
-        createEmptyDisciplineAndCollection(division, props, disciplineType, userAgent, specifyAdminUser, true, false);
+        if (doCreateDisp)
+        {
+            Pair<Discipline, Collection> dc = createEmptyDisciplineAndCollection(division, props, disciplineType, userAgent, specifyAdminUser, true, false);
+            if (dc == null)
+            {
+                return null;
+            }
+        }
         
+        frame.incOverall();
+
         return division;
     }
     
@@ -611,55 +667,81 @@ public class BuildSampleDatabase
             dispName = disciplineType.getTitle();
         }
         
-        boolean preLoadTaxon = (Boolean)props.get("preloadtaxon");
+        Object pltObj = props.get("preloadtaxon");
+        boolean preLoadTaxon = pltObj == null ? false : (Boolean)pltObj;
         
-        String taxonXML = props.getProperty("TaxonTreeDef.treedefs");
-        String geoXML   = props.getProperty("GeographyTreeDef.treedefs");
+        String taxonXML      = props.getProperty("TaxonTreeDef.treedefs");
+        String taxonFileName = props.getProperty("taxonfilename");
+        String geoXML        = props.getProperty("GeographyTreeDef.treedefs");
+        
+        Boolean usingOtherTxnFile = (Boolean)props.get("othertaxonfile");
+        
+        frame.incOverall();
         
         Discipline discipline = createEmptyDiscipline(division, dispName, disciplineType, userAgent,
-                                                      preLoadTaxon, taxonXML, geoXML);
-        
-        frame.setProcess(0, 17);
-        frame.setProcess(++createStep);
-        frame.setDesc("Loading Schema...");
-        
-        Pair<AutoNumberingScheme, AutoNumberingScheme> pair = localizeDisciplineSchema(discipline, props);
-        
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
-        
-        frame.setProcess(0, 17);
-        frame.setProcess(++createStep);
-
-        Collection collection = null;
-        if (doCollection)
+                                                      preLoadTaxon, 
+                                                      taxonFileName, 
+                                                      usingOtherTxnFile != null ? usingOtherTxnFile : false,
+                                                      taxonXML, geoXML, props);
+        if (discipline != null)
         {
-            collection = createEmptyCollection(discipline, 
-                                               props.getProperty("collPrefix").toString(), 
-                                               props.getProperty("collName").toString(),
-                                               userAgent,
-                                               specifyAdminUser,
-                                               pair.first,
-                                               pair.second,
-                                               disciplineType.isEmbeddedCollecingEvent());
+            frame.setProcess(0, 17);
+            frame.setProcess(++createStep);
+            frame.setDesc("Loading Schema..."); // I18N
+            
+            boolean isAccGlobal = false;
+            if (props.get("accglobal") == null)
+            {
+                Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
+                isAccGlobal = inst != null && inst.getIsAccessionsGlobal();
+                
+            } else
+            {
+                isAccGlobal = (Boolean)props.get("accglobal");
+            }
+            
+            // The two AutoNumberingSchemes have been committed
+            Pair<AutoNumberingScheme, AutoNumberingScheme> ansPair = localizeDisciplineSchema(discipline, props, isAccGlobal);
+            
+            // These create a new session and persist records in the Schema tables (SpLocaleContainerItem)
+            makeFieldVisible(null, discipline);
+            makeFieldVisible(disciplineType.getName(), discipline);
+            
+            frame.setProcess(0, 17);
+            frame.setProcess(++createStep);
+    
+            Collection collection = null;
+            if (doCollection)
+            {
+                // Persists the Collection
+                collection = createEmptyCollection(discipline, 
+                                                   props.getProperty("collPrefix").toString(), 
+                                                   props.getProperty("collName").toString(),
+                                                   userAgent,
+                                                   specifyAdminUser,
+                                                   ansPair.first,
+                                                   disciplineType.isEmbeddedCollecingEvent());
+            }
+            
+            startTx();
+            
+            // Adds AutoNumberScheme to Division
+            if (ansPair.second != null)
+            {
+                division.addReference(ansPair.second, "numberingSchemes");
+                persist(ansPair.second);
+                persist(division);
+            }
+            
+            commitTx();
+            
+            buildDarwinCoreSchema(discipline); // creates own DataProviderSessionIFace
+            
+            log.debug("Out createEmptyDisciplineAndCollection - createStep: "+createStep);
+            
+            return new Pair<Discipline, Collection>(discipline, collection);
         }
-        
-        startTx();
-        
-        if (pair.second != null)
-        {
-            division.addReference(pair.second, "numberingSchemes");
-            persist(division);
-        }
-        
-        commitTx();
-        
-        buildDarwinCoreSchema(discipline); // creates own DataProviderSessionIFace
-        
-        log.debug("Out createEmptyDisciplineAndCollection - createStep: "+createStep);
-        
-        return new Pair<Discipline, Collection>(discipline, collection);
-
+        return null;
     }
     
     /**
@@ -677,8 +759,11 @@ public class BuildSampleDatabase
                                             final DisciplineType disciplineType,
                                             final Agent          userAgent,
                                             final boolean        preLoadTaxon, 
+                                            final String         taxonFileName,
+                                            final boolean        usingOtherTxnFile, 
                                             final String         taxonXML, 
-                                            final String         geoXML)
+                                            final String         geoXML, 
+                                            final Properties     props)
     {
         log.debug("In createEmptyDiscipline - createStep: "+createStep);
 
@@ -689,6 +774,8 @@ public class BuildSampleDatabase
         GeographyTreeDef          geoTreeDef        = createGeographyTreeDef("Geography");
         GeologicTimePeriodTreeDef gtpTreeDef        = createGeologicTimePeriodTreeDef("Chronos Stratigraphy");
         LithoStratTreeDef         lithoStratTreeDef = createLithoStratTreeDef("LithoStrat");
+        
+        frame.incOverall();
         
         Discipline discipline = createDiscipline(division, 
                                                  disciplineType.getName(), 
@@ -706,9 +793,12 @@ public class BuildSampleDatabase
         persist(discipline);
         persist(userAgent);
         
-        commitTx();
+        //commitTx();
         
-        startTx();
+        
+        frame.incOverall();
+        
+        //startTx();
 
         frame.setProcess(++createStep);
         
@@ -734,7 +824,7 @@ public class BuildSampleDatabase
         {
             startTx();
             
-            LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
+            LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Surface", 0, false);
             LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
             LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
             LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
@@ -747,6 +837,9 @@ public class BuildSampleDatabase
             LithoStrat earthNode = new LithoStrat();
             earthNode.initialize();
             earthNode.setName("Earth");
+            earthNode.setFullName("Earth");
+            earthNode.setNodeNumber(1);
+            earthNode.setHighestChildNodeNumber(1);
             earthNode.setRankId(0);
             earthNode.setDefinition(lithoStratTreeDef);
             earthNode.setDefinitionItem(earth);
@@ -755,41 +848,29 @@ public class BuildSampleDatabase
             
             commitTx();
             
-            convertChronoStratFromXLS(gtpTreeDef);
-            
+            convertChronoStratFromXLS(gtpTreeDef); // does commits
         }
         
-        List<Object> geos        = new Vector<Object>();
+        frame.incOverall();
+        
+        List<Object> geos = new Vector<Object>();
         //List<Object> lithoStrats = isPaleo ? createSimpleLithoStrat(lithoStratTreeDef, false) : null;
-        
-        String fileName = null;
-        switch (DisciplineType.getByName(discipline.getType()).getDisciplineType())
-        {
-            case fish         : fileName = "col2008_fishes.xls"; break;
-            case herpetology  : fileName = "col2008_herps.xls"; break;
-            case paleobotany  : break;
-            case invertpaleo  : break;
-            case vertpaleo    : break;
-            case bird         : fileName = "col2008_aves.xls"; break;
-            case mammal       : fileName = "col2008_mammalia.xls"; break;
-            case insect       : fileName = "col2008_orthoptera.xls"; break;
-            case botany       : fileName = "col2008_poales.xls"; break;
-            case invertebrate : fileName = "col2008_inverts.xls"; break;
-            case fungi        : fileName = "col2008_mycology.xls"; break;
-            default: break;
-        }
         
         startTx();
         
-        boolean taxonWasBuilt = false;
-        if (!isPaleo)
+        boolean                    taxonWasBuilt = false;
+        Hashtable<String, Boolean> colNameHash   = null;
+        if (StringUtils.isNotEmpty(taxonFileName))
         {
-            Hashtable<String, Boolean> colNameHash = getColumnNamesFromXLS(fileName);
-            if (colNameHash != null)
-            {
-                taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonXML);
-            }
+            colNameHash = getColumnNamesFromXLS(taxonFileName, usingOtherTxnFile);
         }
+        
+        if (colNameHash != null)
+        {
+            taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonXML);
+        }
+        
+        frame.incOverall();
         
         log.debug(" taxonWasBuilt "+taxonWasBuilt);
         if (!taxonWasBuilt)
@@ -811,12 +892,16 @@ public class BuildSampleDatabase
             tx.setDefinitionItem(ttdi);
             ttdi.getTreeEntries().add(tx);
             tx.setName("Life"); // I18N
+            tx.setFullName(tx.getName());
+            tx.setNodeNumber(1);
+            tx.setHighestChildNodeNumber(1);
             
             persist(ttdi);
             persist(tx);
         }
         
         frame.setProcess(++createStep);
+        frame.incOverall();
         
         createGeographyDefFromXML(geos, geoTreeDef, geoXML);
         
@@ -828,15 +913,17 @@ public class BuildSampleDatabase
         commitTx();
         
         frame.setProcess(++createStep);
+        frame.incOverall();
         
         log.debug(" preLoadTaxon ["+preLoadTaxon+"]");
-        log.debug(" fileName     ["+fileName+"]");
-        if (preLoadTaxon && fileName != null)
+        log.debug(" fileName     ["+taxonFileName+"]");
+        if (preLoadTaxon && taxonFileName != null)
         {
-            convertTaxonFromXLS(taxonTreeDef, fileName); // this does a startTx() / commitTx()
+            convertTaxonFromXLS(taxonTreeDef, taxonFileName, usingOtherTxnFile); // this does a startTx() / commitTx()
         }
         
         frame.setProcess(++createStep);
+        frame.incOverall();
 
 //        startTx();
 //        
@@ -850,13 +937,78 @@ public class BuildSampleDatabase
         
         frame.setProcess(++createStep);
         
-        convertGeographyFromXLS(geoTreeDef);  // this does a startTx() / commitTx()
+        //convertGeographyFromXLS(geoTreeDef);  // this does a startTx() / commitTx()
+        
+        String itUsername = props.getProperty("dbUserName");
+        String itPassword = props.getProperty("dbPassword");
+        if (StringUtils.isEmpty(itUsername) || StringUtils.isEmpty(itPassword))
+        {
+            frame.setVisible(false);
+            
+            Pair<String, String> usrPwd = SchemaUpdateService.getITUsernamePwd();
+            frame.setVisible(true);
+            if (usrPwd != null)
+            {
+                itUsername = usrPwd.first;
+                itPassword = usrPwd.second;
+                
+            } else
+            {
+                return null;
+            }
+        }
+        
+        //convertGeographyFromXLS(discipline.getGeographyTreeDef());
+        @SuppressWarnings("unused")
+        Geography earth = createGeographyFromGeonames(discipline, userAgent, itUsername, itPassword);
         
         frame.setProcess(++createStep);
+        frame.incOverall();
         
         log.debug("Out createEmptyDiscipline - createStep: "+createStep);
         
         return discipline;
+    }
+    
+    /**
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static Vector<TaxonFileDesc> readTaxonLoadFiles()
+    {
+        try
+        {
+            String fileName = "taxonfiles.xml";
+            
+            File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
+            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
+            if (!file.exists())
+            {
+                log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
+                file = XMLHelper.getConfigDir(fileName);
+                log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
+                if (!file.exists())
+                {
+                    file = new File("Specify/demo_files/"+fileName);
+                }
+            }
+    
+            if (file == null || !file.exists() || file.isDirectory())
+            {
+                log.error("Couldn't file[" + file.getAbsolutePath() + "]");
+                return null;
+            }
+            
+            XStream xstream = new XStream();
+            TaxonFileDesc.configXStream(xstream);
+            
+            return (Vector<TaxonFileDesc>)xstream.fromXML(FileUtils.readFileToString(file));
+            
+        } catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+        return null;
     }
     
     /**
@@ -877,7 +1029,6 @@ public class BuildSampleDatabase
                                             final Agent              userAgent,
                                             final SpecifyUser        specifyAdminUser,
                                             final AutoNumberingScheme catNumScheme,
-                                            final AutoNumberingScheme accANS,
                                             final boolean             isEmbeddedCE)
     {
         log.debug("In createEmptyCollection - createStep: "+createStep);
@@ -885,12 +1036,12 @@ public class BuildSampleDatabase
         frame.setProcess(++createStep);
         
         startTx();
-
+        
         ////////////////////////////////
         // Create Collection
         ////////////////////////////////
         log.info("Creating a Collection");
-        frame.setDesc("Creating a Collection");
+        frame.setDesc("Creating a Collection"); // I18N
         
         Collection collection = createCollection(collPrefix, 
                                                  collName, 
@@ -905,6 +1056,7 @@ public class BuildSampleDatabase
         collection.getContentContacts().add(userAgent);
         
         persist(collection);
+        persist(catNumScheme);
         
         frame.setProcess(++createStep);
         
@@ -953,6 +1105,8 @@ public class BuildSampleDatabase
     /**
      * @param props
      * @param propName
+     * @param schemeName
+     * @param tableId
      * @return
      */
     public AutoNumberingScheme createAutoNumScheme(final Properties props, 
@@ -982,7 +1136,7 @@ public class BuildSampleDatabase
         if (numFormat != null)
         {
             autoNumScheme = createAutoNumberingScheme(schemeName, "", numFmtName, isNumFmtNumeric, tableId);
-            persist(autoNumScheme);
+            //persist(autoNumScheme);
         }
 
         return autoNumScheme;
@@ -991,22 +1145,46 @@ public class BuildSampleDatabase
     /**
      * @param discipline
      * @param props
+     * @param isAccGlobal
      * @return
      */
     public Pair<AutoNumberingScheme, AutoNumberingScheme> localizeDisciplineSchema(final Discipline discipline, 
-                                                                                   final Properties props)
+                                                                                   final Properties props,
+                                                                                   final boolean    isAccGlobal)
     {
-
-        AutoNumberingScheme catNumScheme = createAutoNumScheme(props, "catnumfmt", "Catalog Numbering Scheme",   CollectionObject.getClassTableId());
-        AutoNumberingScheme accNumScheme = createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId());
-
+        AutoNumberingScheme catNumScheme = createAutoNumScheme(props, "catnumfmt", "Catalog Numbering Scheme",   CollectionObject.getClassTableId()); // I18N
+        AutoNumberingScheme accNumScheme = null;
+        
+        // Check to see if we are creating from scratch
+        boolean isFromScratch = props.getProperty("instName") != null;
+        /*for (Object key : props.keySet())
+        {
+            System.out.println(key+" -> "+props.get(key));
+        }*/
+        
+        // NOTE: createAutoNumScheme persists the AutoNumberingScheme
+        if (!isAccGlobal || isFromScratch)
+        {
+            accNumScheme = createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId()); // I18N
+            
+        } else
+        {
+            DataProviderSessionIFace hSession = new HibernateDataProviderSession(session);
+            List<?> list = hSession.getDataList("FROM AutoNumberingScheme WHERE tableNumber = "+Accession.getClassTableId());
+            if (list != null && list.size() == 1)
+            {
+                accNumScheme = (AutoNumberingScheme)list.get(0);
+            }
+        }
+        
         startTx();
 
-        //Discipline discipline = (Discipline)session.merge(disciplineArg);
+        DBTableIdMgr dbMgr = new DBTableIdMgr(true);
+        dbMgr.initialize();
         
         loadSchemaLocalization(discipline, 
                                SpLocaleContainer.CORE_SCHEMA, 
-                               DBTableIdMgr.getInstance(),
+                               dbMgr,
                                catNumScheme.getFormatName(),
                                accNumScheme != null ? accNumScheme.getFormatName() : null);
         
@@ -1017,6 +1195,8 @@ public class BuildSampleDatabase
         frame.setProcess(++createStep);
 
         commitTx();
+        
+        // The two AutoNumberingSchemes have been persisted.
         
         return new Pair<AutoNumberingScheme, AutoNumberingScheme>(catNumScheme, accNumScheme);
     }
@@ -1066,14 +1246,16 @@ public class BuildSampleDatabase
     
     /**
      * @param taxonList
+     * @param colNameHash
      * @param taxonTreeDef
      * @param taxonXML
+     * @return
      */
     @SuppressWarnings("unchecked")
-    public static boolean createTaxonDefFromXML(final List<Object> taxonList, 
+    public static boolean createTaxonDefFromXML(final List<Object>               taxonList, 
                                                 final Hashtable<String, Boolean> colNameHash,
-                                                final TaxonTreeDef taxonTreeDef, 
-                                                final String       taxonXML)
+                                                final TaxonTreeDef               taxonTreeDef, 
+                                                final String                     taxonXML)
     {
         if (StringUtils.isNotEmpty(taxonXML))
         {
@@ -1086,7 +1268,7 @@ public class BuildSampleDatabase
             for (TreeDefRow row : treeDefList)
             {
                 if (row.isIncluded() || 
-                    (row.getDefName() != null && colNameHash != null && colNameHash.get(row.getDefName().toLowerCase()) != null))
+                    (row.getDefName() != null && colNameHash == null || colNameHash.get(row.getDefName().toLowerCase()) != null))
                 {
                     TaxonTreeDefItem ttdi = new TaxonTreeDefItem();
                     ttdi.initialize();
@@ -1109,6 +1291,9 @@ public class BuildSampleDatabase
                         tx.setDefinitionItem(ttdi);
                         ttdi.getTreeEntries().add(tx);
                         tx.setName("Life"); // I18N
+                        tx.setFullName("Life"); //I18N
+                        tx.setNodeNumber(1);
+                        tx.setHighestChildNodeNumber(1);
                     }
                    
                     if (parent != null)
@@ -1166,6 +1351,9 @@ public class BuildSampleDatabase
                         stg.setDefinitionItem(stdi);
                         stdi.getTreeEntries().add(stg);
                         stg.setName("Site");
+                        stg.setFullName("Site");
+                        stg.setNodeNumber(1);
+                        stg.setHighestChildNodeNumber(1);
                     }
                    
                     if (parent != null)
@@ -1284,11 +1472,13 @@ public class BuildSampleDatabase
                         pickList.setIsSystem(true);
                         if (pickList.getNumItems() > 0)
                         {
+                            log.info("Skipping PickList["+pl.getName()+"]");
                             continue;
                         }
                         
                     } else
                     {
+                        log.info("Creating PickList["+pl.getName()+"]");
                         pickList = createPickList(pl.getName(), pl.getType(), pl.getTableName(),
                                                        pl.getFieldName(), pl.getFormatter(), pl.getReadOnly(), 
                                                        pl.getSizeLimit(), pl.getIsSystem(), pl.getSortType(), collection);
@@ -2759,13 +2949,13 @@ public class BuildSampleDatabase
         persist(userAgent);
         persist(user);
         
-        LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
-        LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
-        LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
-        LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
-        LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
-        @SuppressWarnings("unused")
-        LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
+//        LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
+//        LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
+//        LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
+//        LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
+//        LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
+//        @SuppressWarnings("unused")
+//        LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
         
         frame.setProcess(++createStep);
         
@@ -2775,7 +2965,7 @@ public class BuildSampleDatabase
         
         persist(cns);
         persist(accessionNS);
-        persist(earth);
+        //persist(earth);
         
         commitTx();
         
@@ -3369,6 +3559,9 @@ public class BuildSampleDatabase
         LithoStrat earth = new LithoStrat();
         earth.initialize();
         earth.setName("Earth");
+        earth.setFullName("Earth");
+        earth.setNodeNumber(1);
+        earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
         earth.setDefinition(treeDef);
         LithoStratTreeDefItem defItem = treeDef.getDefItemByRank(0);
@@ -3445,12 +3638,76 @@ public class BuildSampleDatabase
         return earth;
     }
     
-    
+    /**
+     * @param discipline
+     * @param treeDef
+     * @return
+     */
+    public Geography createGeographyFromGeonames(final Discipline discipline, 
+                                                 final Agent      agent,
+                                                 final String     itUsername,
+                                                 final String     itPassword)
+    {
+        Geography earth = null;
+        try
+        {
+            BuildFromGeonames bldGeoNames = new BuildFromGeonames(discipline.getGeographyTreeDef(), dateFormatter.format(now), agent, itUsername, itPassword, frame);
+            
+            try
+            {
+                startTx();
+                earth = bldGeoNames.buildEarth(session);
+                commitTx();
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+                rollbackTx();
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BackupServiceFactory.class, ex);
+
+                return null;
+            }
+            
+            if (bldGeoNames.loadGeoNamesDB())
+            {
+                bldGeoNames.build(earth.getId());
+            }
+            
+            session.refresh(earth);
+            
+            GeographyTreeDef geoTreeDef = discipline.getGeographyTreeDef();
+            session.refresh(earth);
+            
+            frame.setDesc("Configuring Geography Tree...");
+            if (true)
+            {
+                NodeNumberer<Geography,GeographyTreeDef,GeographyTreeDefItem> nodeNumberer = new NodeNumberer<Geography,GeographyTreeDef,GeographyTreeDefItem>(geoTreeDef);
+                nodeNumberer.doInBackground();
+                
+            } else
+            {
+                startTx();
+                
+                TreeHelper.fixFullnameForNodeAndDescendants(earth);
+                earth.setNodeNumber(1);
+                fixNodeNumbersFromRoot(earth);
+                commitTx();
+            }
+            
+            
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
+        return earth;
+    }
     /**
      * @param treeDef
      * @return
      */
-    @SuppressWarnings("unchecked")
     public Geography convertGeographyFromXLS(final GeographyTreeDef treeDef)
     {
         frame.setDesc("Building Geography Tree...");
@@ -3481,6 +3738,9 @@ public class BuildSampleDatabase
         Geography earth = new Geography();
         earth.initialize();
         earth.setName("Earth");
+        earth.setFullName("Earth");
+        earth.setNodeNumber(1);
+        earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
         earth.setDefinition(treeDef);
         GeographyTreeDefItem defItem = treeDef.getDefItemByRank(0);
@@ -3519,6 +3779,7 @@ public class BuildSampleDatabase
                 if (counter == 0)
                 {
                     counter = 1;
+                    rows.next();
                     continue;
                 }
                 if (counter % 100 == 0)
@@ -3539,6 +3800,7 @@ public class BuildSampleDatabase
                         i++;
                     }
                 }
+                // Sets nulls to unused cells
                 for (int j=i;j<4;j++)
                 {
                     cells[j] = null;
@@ -3960,14 +4222,14 @@ public class BuildSampleDatabase
         
         if (isPaleo)
         {
-            LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
-            LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
-            LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
-            LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
-            LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
-            @SuppressWarnings("unused")
-            LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
-            persist(earth);
+//            LithoStratTreeDefItem earth     = createLithoStratTreeDefItem(lithoStratTreeDef, "Earth", 0, false);
+//            LithoStratTreeDefItem superGrp  = createLithoStratTreeDefItem(earth,     "Super Group", 100, false);
+//            LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
+//            LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
+//            LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
+//            @SuppressWarnings("unused")
+//            LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
+//            persist(earth);
         }
         
         List<Object> geos        = createSimpleGeography(geoTreeDef, true);
@@ -4543,6 +4805,9 @@ public class BuildSampleDatabase
         
         storage.setRankId(0);
         storage.setName("Storage Root");
+        storage.setFullName("Storage Root");
+        storage.setNodeNumber(1);
+        storage.setHighestChildNodeNumber(1);
         storage.setDefinition(treeDef);
         storage.setDefinitionItem(rootTTD);
         rootTTD.getTreeEntries().add(storage);
@@ -4578,6 +4843,7 @@ public class BuildSampleDatabase
         
         storage.setRankId(rankId);
         storage.setName(name);
+        storage.setFullName(name); 
         storage.setDefinition(treeDef);
         storage.setDefinitionItem(treeDefItemHash.get(rankId));
         storage.setParent(parent);
@@ -4602,28 +4868,31 @@ public class BuildSampleDatabase
     {
         TaxonTreeDefItem parent = null;
         Element root = getDOMForDiscpline(disciplineType, "taxon_init.xml");
-        for (Element node : (List<Element>)root.selectNodes("/tree/treedef/level"))
+        if (root != null)
         {
-            String  name       = getAttr(node, "name", null);
-            int     rankId     = getAttr(node, "rank", 0);
-            boolean infullname = getAttr(node, "infullname", false);
-            boolean isEnforced = getAttr(node,  "enforced", false);
-            
-            TaxonTreeDefItem tdi = new TaxonTreeDefItem();
-            tdi.initialize();
-            tdi.setName(name);
-            tdi.setRankId(rankId);
-            tdi.setIsEnforced(isEnforced);
-            tdi.setIsInFullName(infullname);
-            treeDef.getTreeDefItems().add(tdi);
-            tdi.setParent(parent);
-            if (parent != null)
+            for (Element node : (List<Element>)root.selectNodes("/tree/treedef/level"))
             {
-                parent.getChildren().add(tdi);
+                String  name       = getAttr(node, "name", null);
+                int     rankId     = getAttr(node, "rank", 0);
+                boolean infullname = getAttr(node, "infullname", false);
+                boolean isEnforced = getAttr(node,  "enforced", false);
+                
+                TaxonTreeDefItem tdi = new TaxonTreeDefItem();
+                tdi.initialize();
+                tdi.setName(name);
+                tdi.setRankId(rankId);
+                tdi.setIsEnforced(isEnforced);
+                tdi.setIsInFullName(infullname);
+                treeDef.getTreeDefItems().add(tdi);
+                tdi.setParent(parent);
+                if (parent != null)
+                {
+                    parent.getChildren().add(tdi);
+                }
+                tdi.setTreeDef(treeDef);
+                persist(tdi);
+                parent = tdi;
             }
-            tdi.setTreeDef(treeDef);
-            persist(tdi);
-            parent = tdi;
         }
     }
     
@@ -4647,6 +4916,9 @@ public class BuildSampleDatabase
         
         taxon.setRankId(0);
         taxon.setName("Taxonomy Root");
+        taxon.setFullName("Taxonomy Root");
+        taxon.setNodeNumber(1);
+        taxon.setHighestChildNodeNumber(1);
         taxon.setDefinition(treeDef);
         taxon.setDefinitionItem(rootTTD);
         rootTTD.getTreeEntries().add(taxon);
@@ -4681,6 +4953,7 @@ public class BuildSampleDatabase
         
         taxon.setRankId(rankId);
         taxon.setName(name);
+        taxon.setFullName(name);
         taxon.setCommonName(common);
         taxon.setDefinition(treeDef);
         taxon.setDefinitionItem(treeDefItemHash.get(rankId));
@@ -4698,7 +4971,7 @@ public class BuildSampleDatabase
     
     protected Element getDOMForDiscpline(final DisciplineType dType, final String fileName)
     {
-        return XMLHelper.readDOMFromConfigDir(dType.getName()+ File.separator + fileName);
+        return XMLHelper.readDOMFromConfigDir(dType.getFolder()+ File.separator + fileName);
     }
     
     
@@ -4894,7 +5167,6 @@ public class BuildSampleDatabase
     /**
      * @return returns a list of preptypes read in from preptype.xml
      */
-    @SuppressWarnings("unchecked")
     protected Vector<PrepType> loadPrepTypes(final String discipline)
     {
         return loadPrepTypes(discipline, null, null);
@@ -5058,12 +5330,6 @@ public class BuildSampleDatabase
                 addAutoNumberingScheme(Accession.class, accANS);
             }
             pair.second = accANS;
-        }
-        
-        if (pair.first == null || pair.second == null)
-        {
-            int x= 0;
-            x++;
         }
         return pair;
     }
@@ -5882,11 +6148,16 @@ public class BuildSampleDatabase
                 try
                 {
                     int imageIndex = wbRow.addImage(f);
-                    wbRowImage= wbRow.getRowImage(imageIndex);
+                    if (imageIndex > -1)
+                    {
+                        wbRowImage= wbRow.getRowImage(imageIndex);    
+                    }
                 }
                 catch (IOException e)
                 {
-                    log.error("Unable to add card image to workbench row", e);
+                    String msg = UIRegistry.getResourceString("WB_IMG_ERR_LOAD");
+                    UIRegistry.getStatusBar().setErrorMessage(msg, e);
+                    log.error(msg, e);
                 }
             }
 
@@ -6896,18 +7167,22 @@ public class BuildSampleDatabase
     {
         if (oList != null)
         {
-            int max = frame.getOrigMax();
+            int max = frame != null ? frame.getOrigMax() : 0;
             
-            frame.setProcess(0, oList.size());
+            if (frame != null) frame.setProcess(0, oList.size());
             int cnt = 0;
             for (Object o: oList)
             {
-                frame.setProcess(++cnt);
+                if (frame != null) frame.setProcess(++cnt);
                 //System.out.println("* " + cnt + " " + o.getClass().getSimpleName());
                 persist(o);
             }
-            frame.setProcess(oList.size());
-            frame.setOrigMax(max);
+            
+            if (frame != null) 
+            {
+                frame.setProcess(oList.size());
+                frame.setOrigMax(max);
+            }
         }
     }
 
@@ -7011,51 +7286,6 @@ public class BuildSampleDatabase
         
     }
     
-    /**
-     * Copies the DerbyDatabases dir to the User app dir
-     */
-    protected void copyToUserWorkingDir()
-    {
-        File src = new File(UIRegistry.getDefaultWorkingPath()+File.separator+"DerbyDatabases");
-        File dst = new File(UIRegistry.getUserHomeAppDir()+File.separator+"DerbyDatabases");
-        log.info("Copying DerbyDatabases from \n"+ src.getAbsolutePath() + "\n to \n" + dst.getAbsolutePath());
-        try
-        {
-            FileUtils.copyDirectory(src, dst);
-            
-        } catch (IOException ex)
-        {
-            ex.printStackTrace();
-        }
-    }
-    
-    /**
-     * Makes sure the Derby Directory gets created to hold the database. 
-     */
-    protected void ensureDerbyDirectory(final String driver)
-    {
-        if (StringUtils.isNotEmpty(driver) && 
-            StringUtils.contains(driver, "Derby") && 
-            StringUtils.isNotEmpty(UIRegistry.getJavaDBPath()))
-        {
-            File derbyDir = new File(UIRegistry.getJavaDBPath());
-            if (!derbyDir.exists())
-            {
-                if (!derbyDir.mkdirs())
-                {
-                    try
-                    {
-                        log.error("Couldn't create Derby Path["+derbyDir.getCanonicalPath()+"]");
-                        
-                    } catch (IOException ex)
-                    {
-                        log.error(ex);
-                    }
-                }
-            }
-        }
-    }
-    
     public ProgressFrame createProgressFrame(final String title)
     {
         if (frame == null)
@@ -7071,10 +7301,10 @@ public class BuildSampleDatabase
      */
     public void buildSetup(final String[] args)
     {
-        boolean doEmptyBuild = false;
-        String  derbyPath    = null;
+        boolean doEmptyBuild   = false;
         
-        boolean wasJavaDBSet = false;
+        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        
         if (args != null && args.length > 0)
         {
             for (String arg : args)
@@ -7093,21 +7323,15 @@ public class BuildSampleDatabase
                     {
                         UIRegistry.setBaseAppDataDir(value);
                         
-                    } else if (option.equals("-Djavadbdir"))
+                    } else if (option.equals("-Dembeddeddbdir"))
                     {
-                        UIRegistry.setJavaDBDir(value);
-                        derbyPath = UIRegistry.getJavaDBPath();
-                        wasJavaDBSet = true;
+                        UIRegistry.setEmbeddedDBDir(value);
+                        
+                    } else if (option.equals("-Dmobile"))
+                    {
+                        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultMobileEmbeddedDBPath());
                     }
                 }
-            }
-            
-            if (args.length == 2 && !args[0].startsWith("-D") && !args[1].startsWith("-D"))
-            {
-                doEmptyBuild = args[0].equals("build_empty");
-                derbyPath    = StringUtils.isNotEmpty(args[1]) ? args[1] : derbyPath;
-                hideFrame    = true;
-                log.debug("doEmptyBuild [ "+doEmptyBuild+" ]");
             }
         }
         
@@ -7116,14 +7340,9 @@ public class BuildSampleDatabase
             UIRegistry.setAppName("Specify");
         }
         
-        if (!wasJavaDBSet)
-        {
-            UIRegistry.setJavaDBDir(derbyPath != null ? derbyPath : UIRegistry.getDefaultWorkingPath() + File.separator + "DerbyDatabases");
-        }
-        
         if (hideFrame)
         {
-            System.out.println("Derby Path [ "+UIRegistry.getJavaDBPath()+" ]");
+            System.out.println("Embedded DB Path [ "+UIRegistry.getEmbeddedDBPath()+" ]");
         }
         
         // Then set this
@@ -7233,6 +7452,7 @@ public class BuildSampleDatabase
                 
                 frame.setVisible(false);
                 frame.dispose();
+                DBConnection.shutdown();
                 System.exit(0); // I didn't used to have to do this.
 
             }
@@ -7262,7 +7482,7 @@ public class BuildSampleDatabase
         {
             if (!mgr.doesUserExists(saUsername))
             {
-                isOK = mgr.createUser(saUsername, saPassword, databaseName, DBMSUserMgr.PERM_ALL);
+                isOK = mgr.createUser(saUsername, saPassword, databaseName, DBMSUserMgr.PERM_BASIC);
             } else
             {
                 isOK = true;
@@ -7274,18 +7494,6 @@ public class BuildSampleDatabase
         }
         mgr.close();
         return isOK;
-    }
-    
-    /**
-     * Pack and then sets the width to 500px.
-     */
-    public void adjustProgressFrame()
-    {
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.pack();
-        Dimension size = frame.getSize();
-        size.width = Math.max(size.width, 500);
-        frame.setSize(size);
     }
     
     /** 
@@ -7300,7 +7508,7 @@ public class BuildSampleDatabase
 
         final String dbName = props.getProperty("dbName");
         
-        adjustProgressFrame();
+        frame.adjustProgressFrame();
         
         frame.setTitle("Building Specify Database");
         if (!hideFrame)
@@ -7430,7 +7638,7 @@ public class BuildSampleDatabase
             
             if (hideFrame) System.out.println("Creating Empty Database");
             
-            createEmptyInstitution(props);
+            createEmptyInstitution(props, true, true);
 
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -7501,10 +7709,6 @@ public class BuildSampleDatabase
                          final Pair<String, String> saUser, 
                          final Pair<String, String> cmUser) throws SQLException
     {
-        boolean doingDerby = StringUtils.contains(driverName, "Derby");
-        
-        ensureDerbyDirectory(driverName);
-
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
         Dimension size = frame.getSize();
@@ -7524,7 +7728,7 @@ public class BuildSampleDatabase
         }
         
         frame.setProcessPercent(true);
-        frame.setOverall(0, 7+(doingDerby ? 1 : 0) + this.selectedChoices.size());
+        frame.setOverall(0, 7 + this.selectedChoices.size());
         frame.getCloseBtn().setVisible(false);
 
         
@@ -7551,6 +7755,27 @@ public class BuildSampleDatabase
             UIRegistry.showError(msg);
             throw new RuntimeException(msg);
         }
+        
+        String newConnStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, databaseHost, dbName, saUser.first, saUser.second, driverInfo.getName());
+        DBConnection.checkForEmbeddedDir(newConnStr);
+        
+        if (DBConnection.isEmbedded(newConnStr))
+        {
+            try
+            {
+                Class.forName(driverInfo.getDriverClassName());
+                
+                DBConnection testDB = DBConnection.createInstance(driverInfo.getDriverClassName(), driverInfo.getDialectClassName(), dbName, newConnStr, saUser.first, saUser.second);
+                
+                testDB.getConnection();
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+            DBConnection.getInstance().setDatabaseName(null);
+        }
+                
         SpecifySchemaGenerator.generateSchema(driverInfo, databaseHost, dbName, dbUser.first, dbUser.second);
 
         SwingUtilities.invokeLater(new Runnable()
@@ -7563,21 +7788,13 @@ public class BuildSampleDatabase
         });
         
         if (UIHelper.tryLogin(driverInfo.getDriverClassName(), 
-                driverInfo.getDialectClassName(), 
-                dbName, 
-                driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, databaseHost, dbName), 
-                dbUser.first, 
-                dbUser.second))
-            
-        createSpecifySAUser(databaseHost, dbUser.first, dbUser.second, saUser.first, saUser.second, dbName);
-
-        if (UIHelper.tryLogin(driverInfo.getDriverClassName(), 
                               driverInfo.getDialectClassName(), 
                               dbName, 
                               driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, databaseHost, dbName), 
                               saUser.first, 
                               saUser.second))
         {
+            createSpecifySAUser(databaseHost, dbUser.first, dbUser.second, saUser.first, saUser.second, dbName);
             
             boolean single = true;
             if (single)
@@ -7645,23 +7862,6 @@ public class BuildSampleDatabase
                     }
                     AppPreferences.getRemote().flush();
                     
-                    
-                    if (doingDerby)
-                    {
-                        SwingUtilities.invokeLater(new Runnable()
-                        {
-                            public void run()
-                            {
-                                frame.getProcessProgress().setIndeterminate(true);
-                                frame.getProcessProgress().setString("");
-                                frame.setDesc("Copying DerbyDatases to User App Dir");
-                                frame.setOverall(steps++);
-                            }
-                        });
-                        copyToUserWorkingDir();
-                    }
-                    
-
                     frame.setDesc("Build Completed.");
                     frame.setOverall(steps++);
 
@@ -7837,9 +8037,9 @@ public class BuildSampleDatabase
     public static void loadLocalization(final String            disciplineName,
                                         final SpLocaleContainer memoryContainer, 
                                         final SpLocaleContainer newContainer,
-                                        final boolean hideGenericFields,
-                                        final String catFmtName,
-                                        final String accFmtName)
+                                        final boolean           hideGenericFields,
+                                        final String            catFmtName,
+                                        final String            accFmtName)
     {
         newContainer.setName(memoryContainer.getName());
         newContainer.setType(memoryContainer.getType());
@@ -7865,7 +8065,7 @@ public class BuildSampleDatabase
             String title = nm.getText();
             if (isCollectingEvent && !isFish)
             {
-                title = "Collecting Information";
+                title = "Collecting Information"; // I18N
             }
             str.setText(title);
             str.setLanguage(nm.getLanguage());
@@ -7914,13 +8114,13 @@ public class BuildSampleDatabase
             
             loadLocalization(memoryContainer.getName(), item, newItem, dispItem, hideGenericFields, isFish);
             
-            if (isColObj && item.getName().equals("catalogNumber") && catFmtName != null)
+            if (isColObj && catFmtName != null && item.getName().equals("catalogNumber"))
             {
                 newItem.setFormat(catFmtName);
                 newItem.setIsUIFormatter(true);
             }
             
-            if (isAccession && item.getName().equals("accessionNumber") && accFmtName != null)
+            if (isAccession && accFmtName != null && item.getName().equals("accessionNumber"))
             {
                 newItem.setFormat(accFmtName);
                 newItem.setIsUIFormatter(true);
@@ -8071,7 +8271,7 @@ public class BuildSampleDatabase
         {
             localSession = DataProviderFactory.getInstance().createSession();
             String sql = "FROM SpLocaleContainer as sp INNER JOIN sp.discipline as d WHERE sp.name = '" + tableName + "' AND d.id = "+discipline.getId();
-            //System.err.println(sql);
+            System.err.println(sql);
             Object[] cols = (Object[])localSession.getData(sql);
             SpLocaleContainer container = (SpLocaleContainer)cols[0];
             if (container != null)
@@ -8134,6 +8334,11 @@ public class BuildSampleDatabase
             e.printStackTrace();
         }
         
+        if (StringUtils.isEmpty(UIRegistry.getAppName()))
+        {
+            UIRegistry.setAppName("Specify");
+        }
+        
         SwingUtilities.invokeLater(new Runnable()
         {
             public void run()
@@ -8144,29 +8349,44 @@ public class BuildSampleDatabase
         });
     }
     
+    private File getFileForTaxon(final String fileName, final boolean usingOtherTxnFile)
+    {
+        if (!usingOtherTxnFile)
+        {
+            File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
+            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
+            if (!file.exists())
+            {
+                log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
+                file = XMLHelper.getConfigDir(fileName);
+                log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
+                if (!file.exists())
+                {
+                    return new File("Specify/demo_files/"+fileName);
+                }
+            }
+    
+            if (file == null || !file.exists() || file.isDirectory())
+            {
+                log.error("Couldn't file[" + file.getAbsolutePath() + "]");
+                return null;
+            }
+            return file;
+        } 
+        
+        File file = new File(fileName);
+        return file.exists() ? file : null;
+    }
+    
     /**
      * @param fileName
      * @return
      */
-    public Hashtable<String, Boolean> getColumnNamesFromXLS(final String fileName)
+    public Hashtable<String, Boolean> getColumnNamesFromXLS(final String fileName, final boolean usingOtherTxnFile)
     {
-        
-        File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
-        log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-        if (!file.exists())
+        File file = getFileForTaxon(fileName, usingOtherTxnFile);
+        if (file == null)
         {
-            log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
-            file = XMLHelper.getConfigDir(fileName);
-            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-            if (!file.exists())
-            {
-                file = new File("Specify/demo_files/"+fileName);
-            }
-        }
-
-        if (file == null || !file.exists() || file.isDirectory())
-        {
-            log.error("Couldn't file[" + file.getAbsolutePath() + "]");
             return null;
         }
         
@@ -8213,29 +8433,15 @@ public class BuildSampleDatabase
      * @param fileName
      * @return
      */
-    @SuppressWarnings("unchecked")
-    public Taxon convertTaxonFromXLS(final TaxonTreeDef treeDef, final String fileName)
+    public Taxon convertTaxonFromXLS(final TaxonTreeDef treeDef, final String fileName, final boolean usingOtherTxnFile)
     {
         Hashtable<String, Taxon> taxonHash = new Hashtable<String, Taxon>();
         
         taxonHash.clear();
 
-        File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
-        log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-        if (!file.exists())
+        File file = getFileForTaxon(fileName, usingOtherTxnFile);
+        if (file == null)
         {
-            log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
-            file = XMLHelper.getConfigDir(fileName);
-            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-            if (!file.exists())
-            {
-                file = new File("Specify/demo_files/"+fileName);
-            }
-        }
-
-        if (file == null || !file.exists())
-        {
-            log.error("Couldn't file[" + file.getAbsolutePath() + "]");
             return null;
         }
         
@@ -8254,6 +8460,9 @@ public class BuildSampleDatabase
                 return o1.getRankId().compareTo(o2.getRankId());
             }
         });
+        
+        Connection conn = null;
+        Statement  stmt = null;
         
         TaxonTreeDefItem rootTreeDefItem = rankedItems.get(0);
         Set<Taxon>       rootKids        = rootTreeDefItem.getTreeEntries();
@@ -8279,6 +8488,7 @@ public class BuildSampleDatabase
             commitTx();
             
             String[]        cells    = new String[35];
+            String[]        header   = new String[35];
             InputStream     input    = new FileInputStream(file);
             POIFSFileSystem fs       = new POIFSFileSystem(input);
             HSSFWorkbook    workBook = new HSSFWorkbook(fs);
@@ -8298,9 +8508,9 @@ public class BuildSampleDatabase
                 });
             }
             
-            Connection conn = DBConnection.getInstance().createConnection();
+            conn = DBConnection.getInstance().createConnection();
             //conn.setAutoCommit(false);
-            Statement stmt = conn.createStatement();
+            stmt = conn.createStatement();
             
             rows = sheet.rowIterator();
             while (rows.hasNext())
@@ -8321,6 +8531,7 @@ public class BuildSampleDatabase
                         if (cell != null)
                         {
                             cells[i] = StringUtils.trim(cell.getRichStringCellValue().getString());
+                            header[i] = cells[i];
                             i++;
                         }
                     }
@@ -8343,6 +8554,22 @@ public class BuildSampleDatabase
                     }
                     loadIndexes(cells);
                     counter = 1;
+                    
+                    for (String hdr : header)
+                    {
+                        if (hdr == null) break;
+                        
+                        int inx = 0;
+                        for (TaxonTreeDefItem item : rankedItems)
+                        {
+                            if (hdr.equalsIgnoreCase(item.getName()))
+                            {
+                                System.err.println(hdr+" -> "+inx);
+                                taxonIndexes.put(hdr, inx);
+                            }
+                            inx++;
+                        }
+                    }
                     continue;
                 }
                 
@@ -8361,14 +8588,22 @@ public class BuildSampleDatabase
                     if (cell != null)
                     {
                         cells[i] = StringUtils.trim(cell.getRichStringCellValue().getString());
+                        if (i == 12 && StringUtils.isNotEmpty(cells[i]))
+                        {
+                            int x = 0;
+                            x++;
+                        }
                         i++;
                     }
                 }
 
-                convertTaxonNodes(conn, stmt, cells, numDataCols, rootNode, nodeList, rankedItems, root.getDefinition().getId());
+                convertTaxonNodes(conn, stmt, header, cells, numDataCols, rootNode, nodeList, rankedItems, root.getDefinition().getId());
     
                 counter++;
             }
+            
+            stmt.executeUpdate("UPDATE taxon SET IsAccepted = true WHERE IsAccepted IS NULL and AcceptedID IS NULL");
+            
             conn.close();
             
             input.close();
@@ -8380,6 +8615,25 @@ public class BuildSampleDatabase
         } catch (Exception ex)
         {
             ex.printStackTrace();
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BackupServiceFactory.class, ex);
+            
+        } finally
+        {
+            try
+            {
+                if (stmt != null)
+                {
+                    stmt.close();
+                }
+                if (conn != null)
+                {
+                    conn.close();
+                }
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
         }
 
         if (frame != null)
@@ -8416,11 +8670,11 @@ public class BuildSampleDatabase
             {
                 if (cells[inx] == null) break;
 
-                //System.out.println(cells[inx]+"  "+TaxonIndexNames[i]);
+                System.out.println(cells[inx]+"  "+TaxonIndexNames[i]);
                 if (cells[inx].equals(TaxonIndexNames[i]))
                 {
-                    //System.out.println("** "+TaxonIndexNames[i]+" -> "+inx);
-                    taxonIndexes.put(TaxonIndexNames[i].toLowerCase(), inx);
+                    System.out.println("** "+TaxonIndexNames[i]+" -> "+inx);
+                    taxonExtraColsIndexes.put(TaxonIndexNames[i].toLowerCase(), inx);
                     break;
                 }
             }
@@ -8441,6 +8695,7 @@ public class BuildSampleDatabase
      */
     public void convertTaxonNodes(final Connection            conn,
                                   final Statement             stmt,
+                                  final String[]              header,
                                   final String[]              levelNames,
                                   final int                   numColumns,
                                   final Pair<String, Integer> parent,
@@ -8448,6 +8703,10 @@ public class BuildSampleDatabase
                                   final Vector<TaxonTreeDefItem>      rankedItems,
                                   final int                   txTreeDefId) throws SQLException
     {
+        /*
+         * kingdom     phylum      class   order       superfamily family      genus       species   subspecies  species author  species source  species lsid    species common name family common name  subspecies author   subspecies source   subspecies lsid subspecies common name
+           Animalia    Arthropoda  Insecta Orthoptera  Acridoidea  Acrididae   Abisares    depressus             Uvarov 1938 orthoptera.speciesfile.org  urn:lsid:catalogueoflife.org:taxon:e32007de-29c1-102b-9a4a-00304854f820:ac2008                      
+         */
         String fullName = "";
         
         for (int i = 0; i < numColumns; i++)
@@ -8458,7 +8717,13 @@ public class BuildSampleDatabase
                 break;
             }
             
-            TaxonTreeDefItem ttdi = rankedItems.get(inx);
+            Integer depthInx = taxonIndexes.get(header[i]);
+            if (depthInx == null && taxonExtraColsIndexes.get(header[i]) != null)
+            {
+                break;
+            }
+            TaxonTreeDefItem ttdi = rankedItems.get(depthInx);
+            
             if (ttdi.getIsInFullName())
             {
                 if (StringUtils.isNotEmpty(ttdi.getTextBefore()))
@@ -8520,15 +8785,16 @@ public class BuildSampleDatabase
         gSQLStr.append("',");
         gSQLStr.append(txTreeDefId);
         gSQLStr.append(",");
+        gSQLStr.append('\'');
         if (StringUtils.isNotEmpty(fullName))
         {
-            gSQLStr.append('\'');
             gSQLStr.append(fullName);
-            gSQLStr.append('\'');
+            
         } else
         {
-            gSQLStr.append("null");
+            gSQLStr.append(name);
         }
+        gSQLStr.append('\'');        
         gSQLStr.append(",");
         gSQLStr.append(tdi.getId());
         gSQLStr.append(',');
@@ -8603,20 +8869,28 @@ public class BuildSampleDatabase
         {
             if (TaxonIndexNames[inx] != null)
             {
-                int index = taxonIndexes.get(TaxonIndexNames[inx].toLowerCase());
-                String data = cells[index];
-                if (StringUtils.isNotEmpty(data))
-                {
-                    sb.append(",");
-                    if (doFieldNames)
-                    {
-                        sb.append(TaxonFieldNames[inx]);
-                    } else
-                    {
-                        data = StringUtils.replace(data, "'", "\\\'");
-                        sb.append("'" + data + "'");    
-                    }
-                }
+                //XXX - temporary work-around for initialization problems (bug #7204) when botany sample
+            	//taxon is loaded. Skipping  block if gotten is null results in common names
+            	//(for botany) not being loaded.
+            	Integer gotten = taxonExtraColsIndexes.get(TaxonIndexNames[inx].toLowerCase());
+            	if (gotten != null)
+            	{
+            	
+            		int index = gotten;
+            		String data = cells[index];
+            		if (StringUtils.isNotEmpty(data))
+            		{
+            			sb.append(",");
+            			if (doFieldNames)
+            			{
+            				sb.append(TaxonFieldNames[inx]);
+            			} else
+            			{
+            				data = StringUtils.replace(data, "'", "\\\'");
+            				sb.append("'" + data + "'");    
+            			}
+            		}
+            	}
             }
         }
     }
@@ -8626,7 +8900,6 @@ public class BuildSampleDatabase
      * @param treeDef
      * @return
      */
-    @SuppressWarnings("unchecked")
     public GeologicTimePeriod convertChronoStratFromXLS(final GeologicTimePeriodTreeDef treeDef)
     {
         startTx();
@@ -8669,6 +8942,7 @@ public class BuildSampleDatabase
         GeologicTimePeriod rootNode = new GeologicTimePeriod();
         rootNode.initialize();
         rootNode.setName("Root");
+        rootNode.setFullName("Root");
         rootNode.setRankId(0);
         rootNode.setDefinition(treeDef);
         rootNode.setDefinitionItem(root);
@@ -8849,6 +9123,48 @@ public class BuildSampleDatabase
         persist(newGeo);
         
         return newGeo;
+    }
+    
+    /**
+     * @param fmt
+     */
+    public static void fixNumericCatalogNumbers(final UIFieldFormatterIFace fmt)
+    {
+        Connection conn     = DBConnection.getInstance().createConnection();
+        Statement  stmt     = null;
+        Statement  updtStmt = null;
+        try
+        {
+             stmt = conn.createStatement();
+             updtStmt = conn.createStatement();
+            
+            ResultSet rs = stmt.executeQuery("select CollectionObjectID, CatalogNumber FROM collectionobject");
+            while (rs.next())
+            {
+                int id        = rs.getInt(1);
+                String catNum = (String)fmt.formatFromUI(rs.getString(2));
+                
+                updtStmt.executeUpdate("UPDATE collectionobject SET CatalogNumber='"+catNum+"' WHERE CollectionObjectID = "+id);
+            }
+            rs.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            
+        } finally
+        {
+            try
+            {
+                stmt.close();
+                updtStmt.close();
+                conn.close();
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+        }
     }
 
 }

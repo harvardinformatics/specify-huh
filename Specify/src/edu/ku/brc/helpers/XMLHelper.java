@@ -45,8 +45,8 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.XMLChecksumUtil;
 
 
@@ -208,7 +208,6 @@ public class XMLHelper
      * Reads file from the config directory
      * @param fileName the name of the file to be read
      * @return the root DOM lement
-     * @throws Exception any file io exceptions
      */
    public static org.dom4j.Element readDOMFromConfigDir(final String fileName)
    {

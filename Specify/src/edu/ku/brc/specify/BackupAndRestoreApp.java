@@ -35,9 +35,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.sql.Timestamp;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,6 +44,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -53,6 +52,9 @@ import javax.swing.WindowConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.ExperienceBlue;
 
@@ -65,17 +67,13 @@ import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
-import edu.ku.brc.af.prefs.PrefsPanelIFace;
 import edu.ku.brc.af.tasks.BaseTask;
 import edu.ku.brc.af.ui.db.DatabaseLoginListener;
 import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.forms.FormHelper;
-import edu.ku.brc.dbsupport.DataProviderFactory;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
-import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.prefs.MySQLPrefs;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.CommandAction;
@@ -110,7 +108,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
     private JStatusBar          statusField        = null;
     private JMenuBar            menuBar            = null;
     private JFrame              topFrame           = null;
-    private PrefsPanelIFace     mainPanel          = null;
+    private MySQLPrefs          mainPanel          = null;
     private JLabel              appIcon            = null;
 
     protected boolean           hasChanged         = false;
@@ -123,7 +121,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
 
     private boolean              isWorkbenchOnly     = false;
     
-    private String               appName             = "Specify"; //$NON-NLS-1$
+    private String               appName             = "Backup and Restore"; //$NON-NLS-1$
     private String               appVersion          = "6.0"; //$NON-NLS-1$
 
     private String               appBuildVersion     = "(Unknown)"; //$NON-NLS-1$
@@ -192,7 +190,6 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         menuBar = createMenus();
         if (menuBar != null)
         {
-            //top.add(menuBar, BorderLayout.NORTH);
             topFrame.setJMenuBar(menuBar);
         }
         UIRegistry.register(UIRegistry.MENUBAR, menuBar);
@@ -211,7 +208,8 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         SpecifyAppPrefs.initialPrefs();
         
         mainPanel = new MySQLPrefs(true);
-
+        add(mainPanel, BorderLayout.CENTER);
+        
         int[] sections = {5};
         statusField = new JStatusBar(sections);
         statusField.setErrorIcon(IconManager.getIcon("Error", IconManager.IconSize.Std16)); //$NON-NLS-1$
@@ -219,6 +217,8 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         UIRegistry.setStatusBar(statusField);
 
         add(statusField, BorderLayout.SOUTH);
+        
+        topFrame.setContentPane(this);
     }
     
     /**
@@ -251,11 +251,8 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         
         appIcon = new JLabel("  "); //$NON-NLS-1$
         
-
         return toolBar;
     }
-
-
 
     /**
      * Create menus
@@ -284,8 +281,10 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
                     });
         }
 
+        HelpMgr.setAppDefHelpId("Backup_Restore");
+        
         JMenu helpMenu = UIHelper.createLocalizedMenu(mb, "Specify.HELP_MENU", "Specify.HELP_MNEU"); //$NON-NLS-1$ //$NON-NLS-2$
-        HelpMgr.createHelpMenuItem(helpMenu, "Specify"); //$NON-NLS-1$
+        HelpMgr.createHelpMenuItem(helpMenu, "Backup and Restore"); //$NON-NLS-1$
         helpMenu.addSeparator();
         
         if (UIHelper.getOSType() != UIHelper.OSTYPE.MacOSX)
@@ -310,26 +309,29 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
      */
     public void doAbout()
     {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel iconLabel = new JLabel(IconManager.getIcon("SpecifyLargeIcon")); //$NON-NLS-1$
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 8));
-        panel.add(iconLabel, BorderLayout.WEST);
-        panel.add(createLabel("<html>"+appName+" " + appVersion +  //$NON-NLS-1$ //$NON-NLS-2$
-                "<br><br>Biodiversity Research Center<br>University of Kansas<br>Lawrence, KS  USA 66045<br><br>" +  //$NON-NLS-1$
-                "www.specifysoftware.org<br>specify@ku.edu<br><br>" +  //$NON-NLS-1$
-                "<p>The Specify Software Project is<br>"+ //$NON-NLS-1$
-                "funded by the Biological Databases<br>"+ //$NON-NLS-1$
-                "and Informatics Program of the<br>"+ //$NON-NLS-1$
-                "U.S. National Science Foundation <br>(Award DBI-0446544)</P><br>" + //$NON-NLS-1$
-                "Build: " + appBuildVersion + "<br>Java Version: "+System.getProperty("java.version") + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                "</html>"), BorderLayout.EAST); //$NON-NLS-1$
-        panel.setBorder(BorderFactory.createEmptyBorder(6,6,0,6));
+        CellConstraints cc     = new CellConstraints();
+        PanelBuilder    infoPB = new PanelBuilder(new FormLayout("p,6px,f:min(400;p):g", "p:g"));
+        
+        JLabel       iconLabel = new JLabel(IconManager.getIcon("SpecifyLargeIcon"), SwingConstants.CENTER); //$NON-NLS-1$
+        PanelBuilder iconPB    = new PanelBuilder(new FormLayout("p", "20px,t:p,f:p:g"));
+        iconPB.add(iconLabel, cc.xy(1, 2));
+
+        infoPB.setDefaultDialogBorder();
+        
+        infoPB.add(iconPB.getPanel(), cc.xy(1, 1));
+        infoPB.add(createLabel(Specify.getAboutText(appName, appVersion)), cc.xy(3, 1));
+        
         String title = getResourceString("Specify.ABOUT");//$NON-NLS-1$
-        CustomDialog aboutDlg = new CustomDialog(topFrame,  title + " " +appName, true, CustomDialog.OK_BTN, panel); //$NON-NLS-1$ 
+        CustomDialog aboutDlg = new CustomDialog(topFrame,  title + " " +appName, true, CustomDialog.OK_BTN, infoPB.getPanel()); //$NON-NLS-1$ 
         String okLabel = getResourceString("Specify.CLOSE");//$NON-NLS-1$
         aboutDlg.setOkLabel(okLabel); 
+        aboutDlg.createUI();
+        aboutDlg.pack();
+        // for some strange reason I can't get the dialog to size itself correctly
+        Dimension size = aboutDlg.getSize();
+        size.height += 80;
+        aboutDlg.setSize(size);
         UIHelper.centerAndShow(aboutDlg);
-
     }
 
     /**
@@ -349,7 +351,14 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
             okToShutdown = SubPaneMgr.getInstance().aboutToShutdown();
             if (okToShutdown)
             {
-                try
+                if (mainPanel != null)
+                {
+                    mainPanel.savePrefs();
+                    AppPreferences.getLocalPrefs().flush();
+                    AppPreferences.shutdownLocalPrefs();
+                }                
+
+                /*try
                 {
                     DataProviderSessionIFace session     = null;
                     SpecifyUser              currentUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
@@ -389,14 +398,14 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BackupAndRestoreApp.class, ex);
                     
-                }
+                }*/
             }
             
         } catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BackupAndRestoreApp.class, ex);
-            ex.printStackTrace();
             
         } finally
         {
@@ -433,12 +442,12 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
      */
     public void showApp()
     {
-        JFrame f = getFrame();
-        f.setTitle(getTitle());
-        f.getContentPane().add(this, BorderLayout.CENTER);
-        f.pack();
+        
+        topFrame.pack();
+        
+        topFrame.setTitle(getTitle());
 
-        f.addWindowListener(new WindowAdapter()
+        topFrame.addWindowListener(new WindowAdapter()
                 {
                     @Override
                     public void windowClosing(WindowEvent e)
@@ -447,7 +456,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
                     }
                 });
         
-        UIHelper.centerWindow(f);
+        UIHelper.centerWindow(topFrame);
         
         /*Rectangle r = f.getBounds();
         int x = AppPreferences.getLocalPrefs().getInt("APP.X", r.x);
@@ -457,11 +466,13 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         UIHelper.positionAndFitToScreen(f, x, y, w, h);
         */
         
-        Rectangle r = f.getBounds();
+        //HelpMgr.setHelpID(topFrame, mainPanel.getHelpContext());
+        
+        Rectangle r = topFrame.getBounds();
         r.setBounds(1, 1, 600, 275);
-        f.setBounds(r);
-        UIHelper.centerWindow(f);
-        f.setVisible(true);
+        topFrame.setBounds(r);
+        UIHelper.centerWindow(topFrame);
+        topFrame.setVisible(true);
     }
     
     /**
@@ -535,14 +546,6 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         
         setupDefaultFonts();
         
-        // Insurance
-        if (StringUtils.isEmpty(UIRegistry.getJavaDBPath()))
-        {
-            File userDataDir = new File(UIRegistry.getAppDataDir() + File.separator + "DerbyDatabases"); //$NON-NLS-1$
-            UIRegistry.setJavaDBDir(userDataDir.getAbsolutePath());
-        }
-        log.debug(UIRegistry.getJavaDBPath());
-        
         // Load Local Prefs
         AppPreferences localPrefs = AppPreferences.getLocalPrefs();
         
@@ -574,8 +577,10 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         
         CommandDispatcher.register(BaseTask.APP_CMD_TYPE, this);
         
+        UIRegistry.loadAndPushResourceBundle("backuprestore");
+        dbLoginPanel = UIHelper.doLogin(null, false, false, false, this, "DatabaseIcon", getTitle(), null, "SpecifyWhite32", "Backup_Restore"); // true means do auto login if it can, second bool means use dialog instead of frame
+        UIRegistry.popResourceBundle();
         
-        dbLoginPanel = UIHelper.doLogin(null, false, false, this, "DatabaseIcon", getTitle(), null, "SpecifyWhite32"); // true means do auto login if it can, second bool means use dialog instead of frame
         localPrefs.load();
     }
     /**
@@ -584,7 +589,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
      * @param databaseNameArg the database name
      * @param userNameArg the user name
      * @param startOver tells the AppContext to start over
-     * @param firstTime indicates this is the first time in the app and it should create all the UI for the core app
+     * @param firstTime indicates this is the first time in the application and it should create all the UI for the core app
      */
     public void restartApp(final Window  window, 
                            final String  databaseNameArg, 
@@ -619,7 +624,6 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         if (dbLoginPanel != null)
         {
             dbLoginPanel.getWindow().setVisible(false);
-            dbLoginPanel = null;
         }
     }
     
@@ -650,14 +654,13 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         this.databaseName = databaseNameArg;
         this.userName     = userNameArg;
         
-        // This is used to fill who editted the object
+        // This is used to fill who edited the object
         FormHelper.setCurrentUserEditStr(userNameArg);
         
         AppPreferences.setConnectedToDB(true);
         
         restartApp(window, databaseName, userName, false, firstTime);
         
-        add((JPanel)mainPanel, BorderLayout.CENTER);
         doLayout();
 
         JToolBar toolBar = (JToolBar)UIRegistry.get(UIRegistry.TOOLBAR);
@@ -746,36 +749,54 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
    {
        log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
        // This is for Windows and Exe4J, turn the args into System Properties
+       
+       UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+       
        for (String s : args)
        {
            String[] pairs = s.split("="); //$NON-NLS-1$
            if (pairs.length == 2)
            {
-               log.debug("["+pairs[0]+"]["+pairs[1]+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
                {
                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
                } 
+           } else
+           {
+               String symbol = pairs[0].substring(2, pairs[0].length());
+               System.setProperty(symbol, symbol);
            }
        }
        
        // Now check the System Properties
-       String appDir = System.getProperty("appdir"); //$NON-NLS-1$
+       String appDir = System.getProperty("appdir");
        if (StringUtils.isNotEmpty(appDir))
        {
            UIRegistry.setDefaultWorkingPath(appDir);
        }
        
-       String appdatadir = System.getProperty("appdatadir"); //$NON-NLS-1$
+       String appdatadir = System.getProperty("appdatadir");
        if (StringUtils.isNotEmpty(appdatadir))
        {
            UIRegistry.setBaseAppDataDir(appdatadir);
        }
        
-       String javadbdir = System.getProperty("javadbdir"); //$NON-NLS-1$
-       if (StringUtils.isNotEmpty(javadbdir))
+    // For Debugging Only 
+       //System.setProperty("mobile", "true");
+       
+       String mobile = System.getProperty("mobile");
+       if (StringUtils.isNotEmpty(mobile))
        {
-           UIRegistry.setJavaDBDir(javadbdir);
+           UIRegistry.setMobile(true);
+       }
+       
+       String embeddeddbdir = System.getProperty("embeddeddbdir");
+       if (StringUtils.isNotEmpty(embeddeddbdir))
+       {
+           UIRegistry.setEmbeddedDBDir(embeddeddbdir);
+       } else
+       {
+           UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
        }
        
        SwingUtilities.invokeLater(new Runnable() {
@@ -783,11 +804,11 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
          public void run()
          {
               // Set App Name, MUST be done very first thing!
+               // This must be 'Specify'
               UIRegistry.setAppName("Specify");  //$NON-NLS-1$
-               
+              
               // Load Local Prefs
-              AppPreferences localPrefs = AppPreferences.getLocalPrefs();
-              localPrefs.setDirPath(UIRegistry.getAppDataDir());
+              AppPreferences.getLocalPrefs().setDirPath(UIRegistry.getAppDataDir());
                
               startApp();
    

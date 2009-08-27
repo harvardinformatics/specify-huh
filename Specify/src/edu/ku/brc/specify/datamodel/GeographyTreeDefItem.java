@@ -38,6 +38,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+
 @SuppressWarnings("serial")
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
@@ -331,6 +333,26 @@ public class GeographyTreeDefItem extends DataModelObjBase implements Serializab
 	}
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)GeographyTreeDef.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
     @Override
@@ -347,8 +369,25 @@ public class GeographyTreeDefItem extends DataModelObjBase implements Serializab
     {
         return 45;
     }
+
+    
     
     /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#hasTreeEntries()
+	 */
+	@Override
+	public boolean hasTreeEntries()
+	{
+		if (getId() == null)
+		{
+			return false;
+		}
+		String sql = "select distinct GeographyTreeDefItemID from geography where GeographyTreeDefItemID = "
+			+ getId();
+		return BasicSQLUtils.getNumRecords(sql) > 0;
+	}
+
+	/* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override

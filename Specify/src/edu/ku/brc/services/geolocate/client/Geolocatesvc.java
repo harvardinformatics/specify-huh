@@ -21,6 +21,7 @@ package edu.ku.brc.services.geolocate.client;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 import javax.xml.ws.WebEndpoint;
@@ -33,7 +34,7 @@ import javax.xml.ws.WebServiceClient;
  * Generated source version: 2.0
  * 
  */
-@WebServiceClient(name = "geolocatesvc", targetNamespace = "http://www.museum.tulane.edu/webservices/", wsdlLocation = "http://www.museum.tulane.edu:8080/webservices/geolocatesvc/geolocatesvc.asmx?wsdl") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+@WebServiceClient(name = "geolocatesvc", targetNamespace = "http://www.museum.tulane.edu/webservices/", wsdlLocation = "http://www.museum.tulane.edu/webservices/geolocatesvc/geolocatesvc.asmx?wsdl") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 public class Geolocatesvc
     extends Service
 {
@@ -43,7 +44,7 @@ public class Geolocatesvc
     static {
         URL url = null;
         try {
-            url = new URL("http://www.museum.tulane.edu:8080/webservices/geolocatesvc/geolocatesvc.asmx?wsdl"); //$NON-NLS-1$
+            url = new URL("http://www.museum.tulane.edu/webservices/geolocatesvc/geolocatesvc.asmx?wsdl"); //$NON-NLS-1$
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

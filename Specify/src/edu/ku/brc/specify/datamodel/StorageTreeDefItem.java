@@ -38,6 +38,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+
 @SuppressWarnings("serial")
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
@@ -334,8 +336,44 @@ public class StorageTreeDefItem extends DataModelObjBase implements Serializable
     {
         return getClassTableId();
     }
+
     
-    /**
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.TreeDefItemIface#hasTreeEntries()
+	 */
+	@Override
+	public boolean hasTreeEntries()
+	{
+		if (getId() == null)
+		{
+			return false;
+		}
+		String sql = "select distinct StorageTreeDefItemID from storage where StorageTreeDefItemID = "
+			+ getId();
+		return BasicSQLUtils.getNumRecords(sql) > 0;
+	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)StorageTreeDef.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
+	/**
      * @return the Table ID for the class.
      */
     public static int getClassTableId()

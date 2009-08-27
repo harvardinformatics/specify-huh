@@ -30,6 +30,7 @@ import javax.swing.table.AbstractTableModel;
  * Mar 8, 2007
  *
  */
+@SuppressWarnings("serial")
 public abstract class SpreadSheetModel extends AbstractTableModel
 {
     protected SpreadSheet spreadSheet = null;
@@ -55,6 +56,19 @@ public abstract class SpreadSheetModel extends AbstractTableModel
     public abstract void appendRow();
     
     public abstract int getColDataLen(final int column);
+        
+    /**
+     * @param value
+     * 
+     * Allows painting, sorting, and other operations to be postponed while
+     * large amounts of data are being updated. 
+     */
+    public abstract void setBatchMode(final boolean value);
+    
+    /**
+     * @return true if model is in batch mode.
+     */
+    public abstract boolean isBatchMode();
     
     /**
      * Cleans up references.

@@ -42,7 +42,6 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.ViewBasedDialogFactoryIFace.FRAME_TYPE;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
-import edu.ku.brc.af.ui.forms.persist.AltViewIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -584,9 +583,7 @@ public final class FormHelper
      * @param isNewObject whether it is a new object
      * @return the dialog
      */
-    public static  ViewBasedDisplayIFace createDataObjectDialog(@SuppressWarnings("unused") 
-                                                                final AltViewIFace     altView, 
-                                                                final JComponent       mainComp, 
+    public static  ViewBasedDisplayIFace createDataObjectDialog(final JComponent       mainComp, 
                                                                 final FormDataObjIFace dataObj, 
                                                                 final boolean          isEditMode,
                                                                 final boolean          isNewObject)

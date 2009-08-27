@@ -29,7 +29,6 @@ import java.util.Vector;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
@@ -37,6 +36,8 @@ import javax.swing.WindowConstants;
 import org.apache.commons.io.FilenameUtils;
 
 import edu.ku.brc.specify.datamodel.Workbench;
+import edu.ku.brc.specify.rstools.ExportFileConfigurationFactory;
+import edu.ku.brc.ui.BiColorTableCellRenderer;
 import edu.ku.brc.ui.CustomFrame;
 import edu.ku.brc.ui.UIHelper;
 
@@ -49,8 +50,6 @@ import edu.ku.brc.ui.UIHelper;
  */
 public class ImportDataFileInfo
 {
-    protected static String XLS_MIME_TYPE = "bindary/xls";
-    protected static String CSV_MIME_TYPE = "text/csv";
     protected static String MODIFIED_IMPORT_DATA = "WB_MODIFIED_IMPORT_DATA";
     
     protected DataImportIFace importer;
@@ -73,7 +72,7 @@ public class ImportDataFileInfo
         
         boolean isValid = false;
         String mimeType = getMimeType(file);
-        if (mimeType == XLS_MIME_TYPE)
+        if (mimeType == ExportFileConfigurationFactory.XLS_MIME_TYPE)
         {
              config = new ConfigureXLS(file);
             if (config.getStatus() == ConfigureExternalDataIFace.Status.Valid)
@@ -82,7 +81,7 @@ public class ImportDataFileInfo
                 isValid = true;
             }
             
-        } else if (mimeType == CSV_MIME_TYPE)
+        } else if (mimeType == ExportFileConfigurationFactory.CSV_MIME_TYPE)
         {
              config = new ConfigureCSV(file);
             if (config.getStatus() == ConfigureExternalDataIFace.Status.Valid)
@@ -106,14 +105,16 @@ public class ImportDataFileInfo
         if (importer.getTruncations().size() > 0)
         {
             JPanel mainPane = new JPanel(new BorderLayout());
-            JLabel msg = createLabel(getResourceString("WB_TRUNCATIONS"));
+            JLabel msg      = createLabel(getResourceString("WB_TRUNCATIONS"));
             msg.setFont(msg.getFont().deriveFont(Font.BOLD));
             mainPane.add(msg, BorderLayout.NORTH);
-            String[] heads = new String[3];
+            
+            String[]   heads = new String[3];
             String[][] vals = new String[importer.getTruncations().size()][3];
             heads[0] = getResourceString("WB_ROW");
             heads[1] = getResourceString("WB_COLUMN");
             heads[2] = getResourceString("WB_TRUNCATED");
+            
             int row = 0;
             for (DataImportTruncation trunc : importer.getTruncations())
             {
@@ -127,11 +128,12 @@ public class ImportDataFileInfo
             }
 
             JTable mods = new JTable(vals, heads);
+            mods.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
 
-            mainPane.add(new JScrollPane(mods), BorderLayout.CENTER);
+            mainPane.add(UIHelper.createScrollPane(mods), BorderLayout.CENTER);
 
             CustomFrame cwin = new CustomFrame(getResourceString(MODIFIED_IMPORT_DATA),
-                    CustomFrame.OKHELP, mainPane);
+                                               CustomFrame.OKHELP, mainPane);
             cwin.setHelpContext("WorkbenchImportData"); //help context could be more specific
             cwin.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             UIHelper.centerAndShow(cwin);
@@ -148,7 +150,7 @@ public class ImportDataFileInfo
             }
             mainPane.add(msgs, BorderLayout.CENTER);
             CustomFrame cwin = new CustomFrame(getResourceString(MODIFIED_IMPORT_DATA),
-                    CustomFrame.OKHELP, mainPane);
+                                               CustomFrame.OKHELP, mainPane);
             cwin.setHelpContext("WorkbenchImportData"); //help context could be more specific
             cwin.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             UIHelper.centerAndShow(cwin);
@@ -188,11 +190,11 @@ public class ImportDataFileInfo
         String extension = FilenameUtils.getExtension(file.getName()).toLowerCase();
         if (extension.equalsIgnoreCase("xls"))
         {
-            return XLS_MIME_TYPE;
+            return ExportFileConfigurationFactory.XLS_MIME_TYPE;
             
         } else if (extension.equalsIgnoreCase("csv") || extension.equalsIgnoreCase("txt"))
         {
-            return CSV_MIME_TYPE;
+            return ExportFileConfigurationFactory.CSV_MIME_TYPE;
         }
         return "";
     }

@@ -211,7 +211,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
     /**
      * 
      */
-    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 64)
+    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 255)
     public String getPassword()
     {
         return this.password;
@@ -651,12 +651,28 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
         for (SpPrincipal principal : getSpPrincipals())
         {
             if (GroupPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()) ||
-                    AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+                AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
             {
                 ++count;
             }
         }
         return count;
+    }
+    
+    /**
+     * @return true if the user is in the admin group
+     */
+    @Transient
+    public boolean isInAdminGroup() 
+    {
+        for (SpPrincipal principal : getSpPrincipals())
+        {
+            if (AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+            {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

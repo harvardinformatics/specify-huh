@@ -36,13 +36,13 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Comparator;
 import java.util.EventObject;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
@@ -75,6 +75,10 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jdesktop.swingx.decorator.Filter;
+import org.jdesktop.swingx.decorator.FilterPipeline;
+import org.jdesktop.swingx.decorator.SortController;
+import org.jdesktop.swingx.decorator.Sorter;
 
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.ui.IconManager;
@@ -82,6 +86,7 @@ import edu.ku.brc.ui.SearchableJXTable;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.UIHelper.OSTYPE;
+import edu.ku.brc.util.Pair;
 
 
 /***************************************************************************************************
@@ -93,6 +98,7 @@ import edu.ku.brc.ui.UIHelper.OSTYPE;
  * @author Thierry Manf, Rod Spears
  * 
  **************************************************************************************************/
+@SuppressWarnings("serial")
 public class SpreadSheet  extends SearchableJXTable implements ActionListener
 {
     protected static final Logger log = Logger.getLogger(SpreadSheet.class);
@@ -117,11 +123,14 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
     protected Font               cellFont;
     
     // Cell Selection
-    protected boolean            mouseDown           = false;
-    private boolean              rowSelectionStarted = false;
-
-    protected SearchReplacePanel findPanel = null;
+	protected boolean				mouseDown			= false;
+	private boolean					rowSelectionStarted	= false;
+	private Pair<Integer, Integer>	emphasizedCell		= null;
+	protected SearchReplacePanel	findPanel			= null;
     
+	protected CellRenderer          customCellRenderer  = new CellRenderer();
+	
+	
     // XXX Fix for Mac OS X Java 5 Bug
     protected int prevRowSelInx = -1;
     protected int prevColSelInx = -1;
@@ -154,7 +163,42 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         return findPanel;
     }
 
-    /**
+    
+    /* (non-Javadoc)
+	 * @see javax.swing.JTable#changeSelection(int, int, boolean, boolean)
+	 */
+	@Override
+	public void changeSelection(int rowIndex, int columnIndex, boolean toggle,
+			boolean extend)
+	{
+		super.changeSelection(rowIndex, columnIndex, toggle, extend);
+		clearEmphasis();
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.swing.JTable#clearSelection()
+	 */
+	@Override
+	public void clearSelection()
+	{
+		super.clearSelection();
+		clearEmphasis();
+	}
+
+	/**
+	 * Sets emphasized cell to null and updates ui.
+	 */
+	protected void clearEmphasis()
+	{
+		Pair<Integer, Integer> ec = emphasizedCell;
+		setEmphasizedCell(null);
+		if (ec != null)
+		{
+			getModel().fireTableCellUpdated(ec.getFirst(), ec.getSecond());
+		}
+		
+	}
+	/**
      * 
      */
     protected void buildSpreadsheet()
@@ -184,7 +228,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
 
         setRowSelectionAllowed(true);
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        
+                
         addMouseListener(new MouseAdapter() {
             /* (non-Javadoc)
              * @see java.awt.event.MouseAdapter#mousePressed(java.awt.event.MouseEvent)
@@ -259,7 +303,6 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
         if (renderer == null)
         {
-            column = getColumnModel().getColumn(0);
             renderer = column.getHeaderRenderer();
         }
         
@@ -325,7 +368,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         });
 
         resizeAndRepaint();
-        
+
         // Taken from a JavaWorld Example (But it works)
         KeyStroke cut   = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false);
         KeyStroke copy  = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false);
@@ -352,9 +395,15 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         ((JMenuItem)UIRegistry.get(UIRegistry.COPY)).addActionListener(this);
         ((JMenuItem)UIRegistry.get(UIRegistry.CUT)).addActionListener(this);
         ((JMenuItem)UIRegistry.get(UIRegistry.PASTE)).addActionListener(this);
+        
+        //add 3-state sort toggle
+        setFilters(new CustomToggleSortOrderFP());
+        
     }
     
-    /**
+    
+
+	/**
      * Appends a new Row onto the spreadsheet.
      * @param rowInx the last index
      * @param adjustPanelSize whether to resize the header panel
@@ -538,7 +587,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 //{
                     if (!isImage)
                     {
-                        JMenuItem mi = pMenu.add(new JMenuItem("Fill Down")); // I18N
+                        JMenuItem mi = pMenu.add(new JMenuItem(UIRegistry.getResourceString("SpreadSheet.FillDown")));
                         mi.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent ae)
                             {
@@ -553,7 +602,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 //{
                     if (!isImage)
                     {
-                        JMenuItem mi = pMenu.add(new JMenuItem("Fill Up")); // I18N
+                        JMenuItem mi = pMenu.add(new JMenuItem(UIRegistry.getResourceString("Spreadsheet.FillUp"))); 
                         mi.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent ae)
                             {
@@ -568,9 +617,10 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
             }
         }
         
+        
         if (!isImage)
         {        
-            JMenuItem mi = pMenu.add(new JMenuItem("Clear Cell(s)"));// I18N
+            JMenuItem mi = pMenu.add(new JMenuItem(UIRegistry.getResourceString("SpreadSheet.ClearCells")));
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ae)
                 {
@@ -585,7 +635,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         
         if (deleteAction != null)
         {
-            JMenuItem mi = pMenu.add(new JMenuItem("Delete Row(s)")); // I18N
+            JMenuItem mi = pMenu.add(new JMenuItem(UIRegistry.getResourceString("SpreadSheet.DeleteRows"))); 
             mi.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ae)
                 {
@@ -594,6 +644,88 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                 }
             });
         }
+
+        //add copy, paste, cut
+        if (!isImage) //copy, paste currently only implemented for string data
+        {
+        	boolean isSelection = getSelectedColumnCount() > 0 && getSelectedRowCount() > 0;
+        	if (pMenu.getComponentCount() > 0)
+        	{
+        		pMenu.add(new JPopupMenu.Separator());
+        	}
+        	JMenuItem mi = pMenu.add(new JMenuItem(UIRegistry
+					.getResourceString("CutMenu")));
+			mi.setEnabled(isSelection && !isImage); // copy, paste currently
+													// only implemented for
+													// string data
+			mi.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae)
+				{
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/*
+						 * (non-Javadoc)
+						 * 
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							cutOrCopy(true);
+
+						}
+
+					});
+				}
+			});
+			mi = pMenu.add(new JMenuItem(UIRegistry.getResourceString("CopyMenu")));
+			mi.setEnabled(isSelection && !isImage);
+			mi.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae)
+				{
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/*
+						 * (non-Javadoc)
+						 * 
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							cutOrCopy(false);
+
+						}
+
+					});
+				}
+			});
+			mi = pMenu
+					.add(new JMenuItem(UIRegistry.getResourceString("PasteMenu")));
+			mi.setEnabled(isSelection && !isImage && canPasteFromClipboard());
+			mi.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae)
+				{
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/*
+						 * (non-Javadoc)
+						 * 
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							paste();
+
+						}
+
+					});
+				}
+			});
+        	
+        }
+        
         pMenu.setInvoker(this);
         return pMenu;
     }
@@ -700,6 +832,120 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         return super.processKeyBinding(ks, e, condition, pressed);
     }
     
+    
+    /**
+     * @param isCut
+     * 
+     * Cut or copy selected cells into the Clipboard
+     */
+    public void cutOrCopy(final boolean isCut)
+    {
+        StringBuffer sbf = new StringBuffer();
+        // Check to ensure we have selected only a contiguous block of
+        // cells
+        int   numcols      = getSelectedColumnCount();
+        int   numrows      = getSelectedRowCount();
+        int[] rowsselected = getSelectedRows();
+        int[] colsselected = getSelectedColumns();
+        if (numcols == 0 || numrows == 0 || !((numrows - 1 == rowsselected[rowsselected.length - 1] - rowsselected[0] && numrows == rowsselected.length) && 
+              (numcols - 1 == colsselected[colsselected.length - 1] - colsselected[0] && numcols == colsselected.length)))
+        {
+            //JOptionPane.showMessageDialog(null, "Invalid Copy Selection",
+            //        "Invalid Copy Selection", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        for (int i = 0; i < numrows; i++)
+        {
+            for (int j = 0; j < numcols; j++)
+            {
+                sbf.append(getValueAt(rowsselected[i], colsselected[j]));
+                if (j < numcols - 1)
+                {
+                    sbf.append("\t");
+                }
+                if (isCut)
+                {
+                    setValueAt("", rowsselected[i], colsselected[j]);
+                }
+            }
+            if (numrows > 1)
+            {
+                sbf.append("\n");
+            }
+        }
+        StringSelection stsel  = new StringSelection(sbf.toString());
+        Clipboard       sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        sysClipboard.setContents(stsel, stsel);
+        
+    }     
+    
+    /**
+     * @return true if pastable data is present in the clipboard
+     */
+    protected boolean canPasteFromClipboard()
+    {
+        Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        return sysClipboard.isDataFlavorAvailable(DataFlavor.stringFlavor);
+    }
+    
+    /**
+     * Paste data from clipboard into spreadsheet.
+     * Currently only implemented for string data.
+     */
+    public void paste()
+    {
+        //System.out.println("Trying to Paste");
+        int[] rows = getSelectedRows();
+        int[] cols = getSelectedColumns();
+        if (rows != null && cols != null && rows.length > 0 && cols.length > 0)
+        {
+            int startRow = rows[0];
+            int startCol = cols[0];
+            try
+            {
+                Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                if (sysClipboard.isDataFlavorAvailable(DataFlavor.stringFlavor))
+                {
+                	String trstring = (String )sysClipboard.getData(DataFlavor.stringFlavor);
+                	StringTokenizer st1 = new StringTokenizer(trstring, "\n\r");
+                	for (int i = 0; st1.hasMoreTokens(); i++)
+                	{
+                		String   rowstring = st1.nextToken();
+                		//System.out.println("Row [" + rowstring+"]");
+                		String[] tokens    = StringUtils.splitPreserveAllTokens(rowstring, '\t');
+                		for (int j = 0; j < tokens.length; j++)
+                		{
+                			if (startRow + i < getRowCount() && startCol + j < getColumnCount())
+                			{
+                				int colInx = startCol + j;
+                				if (tokens[j].length() <= model.getColDataLen(colInx))
+                				{
+                					setValueAt(tokens[j], startRow + i, colInx);
+                				} else
+                				{
+                					String msg = String.format(getResourceString("UI_NEWDATA_TOO_LONG"), new Object[] { model.getColumnName(startCol + j), model.getColDataLen(colInx) } );
+                					UIRegistry.getStatusBar().setErrorMessage(msg);
+                					Toolkit.getDefaultToolkit().beep();
+                				}
+                			}
+                			//System.out.println("Putting [" + tokens[j] + "] at row=" + startRow + i + "column=" + startCol + j);
+                		}
+                	}
+                }
+            } catch (IllegalStateException ex)
+            {
+            	UIRegistry.displayStatusBarErrMsg(getResourceString("Spreadsheet.ClipboardUnavailable"));
+            }
+            catch (Exception ex)
+            {
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpreadSheet.class, ex);
+                ex.printStackTrace();
+            }
+        }
+    }
+    
     /* (non-Javadoc)
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -713,97 +959,38 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         //
         // The code in this method was tken from a JavaWorld Example
         //
-        boolean isCut = e.getActionCommand().compareTo("Cut") == 0 || e.getActionCommand().equals("x");
+        final boolean isCut = e.getActionCommand().compareTo("Cut") == 0 || e.getActionCommand().equals("x");
         if (e.getActionCommand().compareTo("Copy") == 0 ||
             e.getActionCommand().equals("c")|| 
             isCut)
         {
-            StringBuffer sbf = new StringBuffer();
-            // Check to ensure we have selected only a contiguous block of
-            // cells
-            int   numcols      = getSelectedColumnCount();
-            int   numrows      = getSelectedRowCount();
-            int[] rowsselected = getSelectedRows();
-            int[] colsselected = getSelectedColumns();
-            if (!((numrows - 1 == rowsselected[rowsselected.length - 1] - rowsselected[0] && numrows == rowsselected.length) && 
-                  (numcols - 1 == colsselected[colsselected.length - 1] - colsselected[0] && numcols == colsselected.length)))
-            {
-                //JOptionPane.showMessageDialog(null, "Invalid Copy Selection",
-                //        "Invalid Copy Selection", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            for (int i = 0; i < numrows; i++)
-            {
-                for (int j = 0; j < numcols; j++)
-                {
-                    sbf.append(getValueAt(rowsselected[i], colsselected[j]));
-                    if (j < numcols - 1)
-                    {
-                        sbf.append("\t");
-                    }
-                    if (isCut)
-                    {
-                        setValueAt("", rowsselected[i], colsselected[j]);
-                    }
-                }
-                if (numrows > 1)
-                {
-                    sbf.append("\n");
-                }
-            }
-            StringSelection stsel  = new StringSelection(sbf.toString());
-            Clipboard       sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            sysClipboard.setContents(stsel, stsel);
-            
+            SwingUtilities.invokeLater(new Runnable(){
+
+				/* (non-Javadoc)
+				 * @see java.lang.Runnable#run()
+				 */
+				@Override
+				public void run()
+				{
+					cutOrCopy(isCut);
+				}
+            	
+            });
         } else if (e.getActionCommand().compareTo("Paste") == 0 ||
                    e.getActionCommand().equals("v"))
         {
-            //System.out.println("Trying to Paste");
-            int[] rows = getSelectedRows();
-            int[] cols = getSelectedColumns();
-            if (rows != null && cols != null && rows.length > 0 && cols.length > 0)
-            {
-                int startRow = rows[0];
-                int startCol = cols[0];
-                try
-                {
-                    Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                    Transferable contents = sysClipboard.getContents(null);
-                    String trstring = (String)contents.getTransferData(DataFlavor.stringFlavor);
-                    //String trstring = (String) (sysClipboard.getContents(this).getTransferData(DataFlavor.stringFlavor));
-                    //System.out.println("String is: [" + trstring+"]");
-                    StringTokenizer st1 = new StringTokenizer(trstring, "\n\r");
-                    for (int i = 0; st1.hasMoreTokens(); i++)
-                    {
-                        String   rowstring = st1.nextToken();
-                        //System.out.println("Row [" + rowstring+"]");
-                        String[] tokens    = StringUtils.splitPreserveAllTokens(rowstring, '\t');
-                        for (int j = 0; j < tokens.length; j++)
-                        {
-                            if (startRow + i < getRowCount() && startCol + j < getColumnCount())
-                            {
-                                int colInx = startCol + j;
-                                if (tokens[j].length() <= model.getColDataLen(colInx))
-                                {
-                                    setValueAt(tokens[j], startRow + i, colInx);
-                                } else
-                                {
-                                    String msg = String.format(getResourceString("UI_NEWDATA_TOO_LONG"), new Object[] { model.getColumnName(startCol + j), model.getColDataLen(colInx) } );
-                                    UIRegistry.getStatusBar().setErrorMessage(msg);
-                                    Toolkit.getDefaultToolkit().beep();
-                                }
-                            }
-                            //System.out.println("Putting [" + tokens[j] + "] at row=" + startRow + i + "column=" + startCol + j);
-                        }
-                    }
-                } catch (Exception ex)
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpreadSheet.class, ex);
-                    ex.printStackTrace();
-                }
-            }
+            SwingUtilities.invokeLater(new Runnable(){
+
+				/* (non-Javadoc)
+				 * @see java.lang.Runnable#run()
+				 */
+				@Override
+				public void run()
+				{
+					paste();
+				}
+            	
+            });
         }
     }
     
@@ -903,7 +1090,144 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
         return super.getScrollableUnitIncrement(visibleRect, orientation, direction);
     }
 
-    /*
+
+    /**
+     * @param row
+     * @param column
+     * 
+     * Set emphasis at row and column
+     */
+    public void setEmphasizedCell(int row, int column)
+    {
+    	if (emphasizedCell == null)
+    	{
+    		emphasizedCell = new Pair<Integer, Integer>(row, column);
+    	}
+    	else
+    	{
+    		emphasizedCell.setFirst(row);
+    		emphasizedCell.setSecond(column);
+    	}
+    }
+    
+    /**
+     * 
+     * @param cell
+     * 
+     * Set the emphasized cell
+     */
+    public void setEmphasizedCell(final Pair<Integer, Integer> cell)
+    {
+    	emphasizedCell = cell;
+    }
+    
+    public boolean isEmphasizedCell(int row, int column)
+    {
+    	return emphasizedCell == null ? false :
+        	emphasizedCell.getFirst().equals(row)  && emphasizedCell.getSecond().equals(column) ?
+        			true : false;
+    }
+    
+    /* (non-Javadoc)
+	 * @see org.jdesktop.swingx.JXTable#getCellRenderer(int, int)
+	 */
+	@Override
+	public TableCellRenderer getCellRenderer(int row, int column)
+	{
+		if (isEmphasizedCell(row, column))
+		{
+			return customCellRenderer;
+		}
+		return super.getCellRenderer(row, column);
+	}
+
+
+
+    /**
+     * @return the isReadOnly
+     */
+    public boolean isReadOnly()
+    {
+        return isReadOnly;
+    }
+
+    /**
+     * @param isReadOnly the isReadOnly to set
+     */
+    public void setReadOnly(boolean isReadOnly)
+    {
+        this.isReadOnly = isReadOnly;
+    }
+
+    
+    
+
+    /**
+     * @author timbo
+     * 
+     * Makes a three-state toggle for column sort state - ascending, descending, and unsorted
+     *
+     *Copied directly from example at API documentation for org.jdesktop.swingx.JXTable
+     */
+    public class CustomToggleSortOrderFP extends FilterPipeline
+	{
+
+		/**
+		 * 
+		 */
+		public CustomToggleSortOrderFP()
+		{
+			super();
+		}
+
+		/**
+		 * @param inList
+		 */
+		public CustomToggleSortOrderFP(Filter[] inList)
+		{
+			super(inList);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.jdesktop.swingx.decorator.FilterPipeline#createDefaultSortController()
+		 */
+		@Override
+		protected SortController createDefaultSortController()
+		{
+			return new CustomSortController();
+		}
+
+		/**
+		 * @author timbo
+		 *
+		 */
+		protected class CustomSortController extends SorterBasedSortController
+		{
+
+			/* (non-Javadoc)
+			 * @see org.jdesktop.swingx.decorator.FilterPipeline.SorterBasedSortController#toggleSortOrder(int, java.util.Comparator)
+			 */
+			@Override
+			@SuppressWarnings("unchecked")
+			public void toggleSortOrder(int column, Comparator comparator)
+			{
+				Sorter currentSorter = getSorter();
+				if ((currentSorter != null)
+						&& (currentSorter.getColumnIndex() == column)
+						&& !currentSorter.isAscending())
+				{
+					setSorter(null);
+				} else
+				{
+					super.toggleSortOrder(column, comparator);
+				}
+			}
+
+		}
+	}
+
+    
+	/*
      * This class is used to customize the cells rendering.
      */
     public class CellRenderer extends JLabel implements TableCellRenderer
@@ -911,6 +1235,7 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
 
         private Border      _selectBorder;
         private EmptyBorder _emptyBorder;
+        private Border      _emphasizedBorder;
         //private Dimension   _dim;
 
         public CellRenderer()
@@ -918,9 +1243,10 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
             super();
             _emptyBorder  = new EmptyBorder(2, 2, 2, 2);
             _selectBorder = new LineBorder(Color.BLUE);
+            _emphasizedBorder = new LineBorder(Color.BLUE);
             //_selectBorder = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-            setOpaque(true);
-            setHorizontalAlignment(SwingConstants.CENTER);
+            //setOpaque(true);
+            //setHorizontalAlignment(SwingConstants.CENTER);
             //_dim = new Dimension();
             //_dim.height = 22;
             //_dim.width = 100;
@@ -940,7 +1266,20 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
                                                        int row,
                                                        int column)
         {
-            setBorder(isSelected ? _selectBorder : _emptyBorder);
+        	boolean isEmphasized = emphasizedCell == null ? false :
+            	emphasizedCell.getFirst().equals(row)  && emphasizedCell.getSecond().equals(column) ?
+            			true : false;
+        	Border border = null;
+        	if (isEmphasized)
+        	{
+        		border = _emphasizedBorder;
+        		log.info("Emphasized Cell: " + emphasizedCell.getFirst() + ", " + emphasizedCell.getSecond());
+        	}
+        	else
+        	{
+        		border = isSelected ? _selectBorder : _emptyBorder;
+        	}
+        	setBorder(border);
             setText(value.toString());
 
             return this;
@@ -949,11 +1288,8 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
 
     }
 
-    
-    //------------------------------------------------------------------------------
-    //-- Inner Classes
-    //------------------------------------------------------------------------------
-    class RowHeaderLabel extends JComponent
+	
+	class RowHeaderLabel extends JComponent
     {
         protected String rowNumStr;
         protected int    rowNum;
@@ -1235,22 +1571,5 @@ public class SpreadSheet  extends SearchableJXTable implements ActionListener
             this.table = null;
         }
     }
-
-
-    /**
-     * @return the isReadOnly
-     */
-    public boolean isReadOnly()
-    {
-        return isReadOnly;
-    }
-
-    /**
-     * @param isReadOnly the isReadOnly to set
-     */
-    public void setReadOnly(boolean isReadOnly)
-    {
-        this.isReadOnly = isReadOnly;
-    }
-
+    
 }

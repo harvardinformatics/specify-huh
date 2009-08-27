@@ -56,7 +56,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "dnasequence")
 @org.hibernate.annotations.Table(appliesTo="dnasequence", indexes =
     {   @Index (name="GenBankAccIDX", columnNames={"GenBankAccessionNumber"}),
-        @Index (name="BOLDBarCodeIDX", columnNames={"BOLDBarCodeID"}),
+        @Index (name="BOLDBarcodeIDX", columnNames={"BOLDBarcodeID"}),
         @Index (name="BOLDSampleIDX", columnNames=("BOLDSampleID"))
     })
 public class DNASequence extends CollectionMember
@@ -689,8 +689,27 @@ public class DNASequence extends CollectionMember
     //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
- 
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)CollectionObject.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return collectionObject != null ? collectionObject.getId() : null;
+    }
+    
 	/* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
      */

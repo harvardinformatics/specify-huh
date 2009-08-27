@@ -27,6 +27,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.specify.datamodel.Workbench;
@@ -47,11 +48,13 @@ import edu.ku.brc.ui.tmanfe.SpreadSheetModel;
  * Mar 8, 2007
  *
  */
+@SuppressWarnings("serial")
 public class GridTableModel extends SpreadSheetModel
 {
     private static final Logger log = Logger.getLogger(GridTableModel.class);
             
     protected Workbench          workbench;
+    protected boolean            batchMode        = false;
     protected boolean            isInImageMode    = false;
     protected boolean            isUserEdit       = true;
     protected ImageIcon          blankIcon = IconManager.getIcon("Blank", IconManager.IconSize.Std16);
@@ -60,7 +63,10 @@ public class GridTableModel extends SpreadSheetModel
     protected Vector<WorkbenchTemplateMappingItem> headers          = new Vector<WorkbenchTemplateMappingItem>();
     protected WorkbenchTemplateMappingItem         imageMappingItem = null;
 
-    public GridTableModel(final Workbench    workbench)
+    /**
+     * @param workbench
+     */
+    public GridTableModel(final Workbench workbench)
     {
         super();
         setWorkbench(workbench);
@@ -246,11 +252,26 @@ public class GridTableModel extends SpreadSheetModel
         
         if (getRowCount() >= 0)
         {
-            workbench.getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
-            fireDataChanged();
+            String currentValue = workbench.getWorkbenchRowsAsList().get(row).getData(column);
+            boolean changed = !StringUtils.equals(currentValue, value.toString());
+            if (changed)
+            {
+            	workbench.getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
+            	if (!batchMode)
+            	{
+            		fireTableCellUpdated(row, column);
+            	}
+            }
         }
     }
 
+    
+	/**
+     * @param value
+     * @param row
+     * @param column
+     * @param isUserEdit
+     */
     public void setValueAt(Object value, int row, int column, boolean isUserEdit)
     {
         //Right now, isUserEdit is only false if a GeoRefConversion is responsible for the setValueAt() call.
@@ -301,7 +322,6 @@ public class GridTableModel extends SpreadSheetModel
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#deleteRows(int[])
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void deleteRows(int[] rows)
     {
@@ -447,4 +467,35 @@ public class GridTableModel extends SpreadSheetModel
         imageMappingItem = null;
     }
     
+    /**
+     * @param column
+     * @return mapping for column
+     */
+    public WorkbenchTemplateMappingItem getColMapping(int column)
+    {
+    	return headers.get(column);
+    }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#isBatchMode()
+	 */
+	@Override
+	public boolean isBatchMode()
+	{
+		return batchMode;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#setBatchMode(boolean)
+	 */
+    /**
+     * Caller must take responsibility clearing this flag and
+     * calling fireTableChanged or other necessary methods
+     * when batch operation is completed.
+     */
+	@Override
+	public void setBatchMode(boolean value)
+	{
+		batchMode = value;
+	}
 }

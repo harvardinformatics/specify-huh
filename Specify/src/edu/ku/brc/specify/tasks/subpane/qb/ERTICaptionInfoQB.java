@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.tasks.subpane.qb;
 
+import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.ui.db.ERTICaptionInfo;
 import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
@@ -54,9 +55,11 @@ public class ERTICaptionInfoQB extends ERTICaptionInfo
                            UIFieldFormatterIFace uiFieldFormatter,
                            int     posIndex,
                            String colStringId,
-                           PickListDBAdapterIFace pickList)
+                           PickListDBAdapterIFace pickList,
+                           DBFieldInfo fieldInfo)
     {
         super(colName, colLabel, isVisible, uiFieldFormatter, posIndex);
+        this.fieldInfo = fieldInfo;
         this.colStringId = colStringId;
         this.pickList = pickList;
     }
@@ -83,7 +86,14 @@ public class ERTICaptionInfoQB extends ERTICaptionInfo
                 return this.uiFieldFormatter.formatToUI((Object[] )value);
             }
         }	
+    	//else another complication - formats for export to db
+    	if (uiFieldFormatter instanceof ExportFieldFormatter)
+    	{
+    		return this.uiFieldFormatter.formatToUI(value);
+    	}
+    	
     	//else
+    	//XXX for large picklists the next two blocks could become time-consuming...
     	if (value != null && pickList instanceof TypeCode)
         {
             PickListItemIFace item = ((TypeCode )pickList).getItemByValue(value);
@@ -93,6 +103,17 @@ public class ERTICaptionInfoQB extends ERTICaptionInfo
             }
             return value.toString();
         }
+    	if (value != null && pickList != null)
+    	{
+            for (PickListItemIFace item : pickList.getList())
+            {
+            	if (item.getValue() != null && item.getValue().equals(value))
+            	{
+            		return item.getTitle();
+            	}
+            }
+            return value.toString();
+    	}
     	//else
         return super.processValue(value);
     }

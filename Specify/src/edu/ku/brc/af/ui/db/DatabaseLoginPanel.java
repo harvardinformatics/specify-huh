@@ -36,6 +36,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -72,8 +73,11 @@ import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.DocumentAdaptor;
 import edu.ku.brc.ui.IconManager;
@@ -155,6 +159,8 @@ public class DatabaseLoginPanel extends JTiledPanel
     protected String                      ssPassword     = null;
     protected MasterPasswordProviderIFace masterUsrPwdProvider = null;
     
+    protected boolean                     doSaveUPPrefs  = true;
+    
     //--------------------------------------------------------------------
     public interface MasterPasswordProviderIFace
     {
@@ -183,17 +189,21 @@ public class DatabaseLoginPanel extends JTiledPanel
      * Constructor that has the form created from the view system
      * @param userName single signon username (for application)
      * @param password single signon password (for application)
+     * @param engageUPPrefs indicates whether the username and password should be loaded and remembered by local prefs
      * @param dbListener listener to the panel (usually the frame or dialog)
      * @param isDlg whether the parent is a dialog (false mean JFrame)
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String                userName,
                               final String                password,
+                              final boolean               engageUPPrefs,
                               final DatabaseLoginListener dbListener,  
                               final boolean               isDlg,
-                              final String                iconName)
+                              final String                iconName,
+                              final String                helpContext)
     {
-        this(userName, password, dbListener, isDlg, null, null, iconName);
+        this(userName, password, engageUPPrefs, dbListener, isDlg, null, null, iconName, helpContext);
     }
     
     /**
@@ -205,16 +215,19 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String userName,
                               final String password,
+                              final boolean               engageUPPrefs,
                               final DatabaseLoginListener dbListener,  
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
-        this(userName, password, null, dbListener, isDlg, title, appName, iconName);
+        this(userName, password, engageUPPrefs, null, dbListener, isDlg, title, appName, iconName, helpContext);
     }
 
     /**
@@ -227,15 +240,18 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final MasterPasswordProviderIFace usrPwdProvider,
+                              final boolean               engageUPPrefs,
                               final DatabaseLoginListener dbListener,  
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
-        this(null, null, usrPwdProvider, dbListener, isDlg, title, appName, iconName);
+        this(null, null, engageUPPrefs, usrPwdProvider, dbListener, isDlg, title, appName, iconName, helpContext);
     }
 
     /**
@@ -248,15 +264,18 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String userName,
                               final String password,
+                              final boolean               engageUPPrefs,
                               final MasterPasswordProviderIFace masterUsrPwdProvider,
                               final DatabaseLoginListener dbListener,  
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
         this.ssUserName  = userName;
         this.ssPassword  = password;
@@ -265,8 +284,9 @@ public class DatabaseLoginPanel extends JTiledPanel
         this.jaasContext = new JaasContext(); 
         this.title       = title;
         this.appName     = appName;
+        this.doSaveUPPrefs = engageUPPrefs;
         
-        createUI(isDlg, iconName);
+        createUI(isDlg, iconName, engageUPPrefs, helpContext);
         
         SkinItem skinItem = SkinsMgr.getSkinItem("LoginPanel");
         if (skinItem != null)
@@ -337,10 +357,17 @@ public class DatabaseLoginPanel extends JTiledPanel
     /**
      * Creates the UI for the login and hooks up any listeners.
      * @param isDlg  whether the parent is a dialog (false mean JFrame)
+     * @param iconName the icon that will be shown in the panel
+     * @param engageUPPrefs whether it should load and save the username password into the prefs
+     * @param helpContext the help context to use.
      */
     protected void createUI(final boolean isDlg,
-                            final String iconName)
+                            final String  iconName,
+                            final boolean engageUPPrefs,
+                            final String  helpContext)
     {
+        AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+        
         //Font cachedFont = UIManager.getFont("JLabel.font");
         SkinItem skinItem = SkinsMgr.getSkinItem("LoginPanel");
         if (skinItem != null)
@@ -407,7 +434,8 @@ public class DatabaseLoginPanel extends JTiledPanel
         }
 
         rememberUsernameCBX = createCheckBox(getResourceString("rememberuser")); //$NON-NLS-1$
-
+        rememberUsernameCBX.setEnabled(engageUPPrefs);
+        
         statusBar = new JStatusBar();
         statusBar.setErrorIcon(IconManager.getIcon("Error", IconManager.IconSize.Std16)); //$NON-NLS-1$
 
@@ -425,9 +453,17 @@ public class DatabaseLoginPanel extends JTiledPanel
         dbDriverCBX = createComboBox(dbDrivers);
         if (dbDrivers.size() > 0)
         {
-            String selectedStr = AppPreferences.getLocalPrefs().get("login.dbdriver_selected", "MySQL"); //$NON-NLS-1$ //$NON-NLS-2$
-            int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null));
-            dbDriverCBX.setSelectedIndex(inx > -1 ? inx : -1);
+            if (dbDrivers.size() == 1)
+            {
+                dbDriverCBX.setSelectedIndex(0);
+                dbDriverCBX.setEnabled(false);
+                
+            } else
+            {
+                String selectedStr = localPrefs.get("login.dbdriver_selected", "MySQL"); //$NON-NLS-1$ //$NON-NLS-2$
+                int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null, false));
+                dbDriverCBX.setSelectedIndex(inx > -1 ? inx : -1);
+            }
 
         } else
         {
@@ -458,11 +494,15 @@ public class DatabaseLoginPanel extends JTiledPanel
             addKeyListenerFor(loginBtn, true);
         }
 
-        rememberUsernameCBX.setSelected(AppPreferences.getLocalPrefs().getBoolean("login.rememberuser", false)); //$NON-NLS-1$
+        rememberUsernameCBX.setSelected(engageUPPrefs ? localPrefs.getBoolean("login.rememberuser", false) : false); //$NON-NLS-1$
+        
+        String userNameStr = engageUPPrefs ? localPrefs.get("login.username", "") : "";
+        String pwdStr      = engageUPPrefs ? Encryption.decrypt(localPrefs.get("login.password", "")) : "";
+        
 
         if (rememberUsernameCBX.isSelected())
         {
-            username.setText(AppPreferences.getLocalPrefs().get("login.username", "")); //$NON-NLS-1$ //$NON-NLS-2$
+            username.setText(userNameStr); //$NON-NLS-1$ //$NON-NLS-2$
             SwingUtilities.invokeLater(new Runnable()
             {
                 public void run()
@@ -472,9 +512,9 @@ public class DatabaseLoginPanel extends JTiledPanel
             });
         }
         
-        if (!UIRegistry.isRelease() || AppPreferences.getLocalPrefs().getBoolean("pwd.save", false))
+        if (!UIRegistry.isRelease() || localPrefs.getBoolean("pwd.save", false))
         {
-            password.setText(Encryption.decrypt(AppPreferences.getLocalPrefs().get("login.password", ""))); //$NON-NLS-1$ //$NON-NLS-2$
+            password.setText(pwdStr); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         cancelBtn.addActionListener(new ActionListener()
@@ -497,8 +537,7 @@ public class DatabaseLoginPanel extends JTiledPanel
             }
         });
 
-        //HelpManager.registerComponent(helpBtn, "login");
-        HelpMgr.registerComponent(helpBtn, "login"); //$NON-NLS-1$
+        HelpMgr.registerComponent(helpBtn, helpContext); //$NON-NLS-1$
 
         moreBtn.addActionListener(new ActionListener()
         {
@@ -734,26 +773,32 @@ public class DatabaseLoginPanel extends JTiledPanel
      */
     protected void save()
     {
+        AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+
         databases.getDBAdapter().save();
         servers.getDBAdapter().save();
 
-        AppPreferences.getLocalPrefs().putBoolean("login.rememberuser", rememberUsernameCBX.isSelected()); //$NON-NLS-1$
-
-        if (rememberUsernameCBX.isSelected())
+        if (doSaveUPPrefs)
         {
-            AppPreferences.getLocalPrefs().put("login.username", username.getText()); //$NON-NLS-1$
+            localPrefs.putBoolean("login.rememberuser", rememberUsernameCBX.isSelected()); //$NON-NLS-1$
 
-        } else if (AppPreferences.getLocalPrefs().exists("login.username")) //$NON-NLS-1$
-        {
-            AppPreferences.getLocalPrefs().remove("login.username"); //$NON-NLS-1$
+            if (rememberUsernameCBX.isSelected())
+            {
+                localPrefs.put("login.username", username.getText()); //$NON-NLS-1$
+    
+            } else if (localPrefs.exists("login.username")) //$NON-NLS-1$
+            {
+                localPrefs.remove("login.username"); //$NON-NLS-1$
+            }
+    
+            if (!UIRegistry.isRelease() || localPrefs.getBoolean("pwd.save", false))
+            {
+                localPrefs.put("login.password", Encryption.encrypt(new String(password.getPassword()))); //$NON-NLS-1$
+            }
         }
+        
+        localPrefs.put("login.dbdriver_selected", dbDrivers.get(dbDriverCBX.getSelectedIndex()).getName()); //$NON-NLS-1$
 
-        AppPreferences.getLocalPrefs().put("login.dbdriver_selected", dbDrivers.get(dbDriverCBX.getSelectedIndex()).getName()); //$NON-NLS-1$
-
-        if (!UIRegistry.isRelease() || AppPreferences.getLocalPrefs().getBoolean("pwd.save", false))
-        {
-            AppPreferences.getLocalPrefs().put("login.password", Encryption.encrypt(new String(password.getPassword()))); //$NON-NLS-1$
-        }
 
     }
 
@@ -897,6 +942,33 @@ public class DatabaseLoginPanel extends JTiledPanel
             @Override
             public Object construct()
             {
+                if (DBConnection.getInstance().isEmbedded() || UIRegistry.isMobile()) // isEmbdded may not be setup yet
+                {
+                    SpecifyDBSetupWizardFrame.checkForMySQLProcesses();
+                }
+                
+                if (UIRegistry.isMobile())
+                {
+                    File mobileTmpDir = DBConnection.getMobileTempDir(getDatabaseName());
+                    if (mobileTmpDir == null)
+                    {
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, new RuntimeException("Couldn't get MobileTempDir"));
+                    }
+                    
+                    UIRegistry.setEmbeddedDBDir(mobileTmpDir.getAbsolutePath());
+                    log.debug(UIRegistry.getEmbeddedDBPath());
+                    
+                    if (UIRegistry.getMobileEmbeddedDBPath() == null)
+                    {
+                        UIRegistry.setMobileEmbeddedDBDir(UIRegistry.getDefaultMobileEmbeddedDBPath(getDatabaseName()));
+                        log.debug(UIRegistry.getMobileEmbeddedDBPath());
+                    }
+                }
+                
+                String connStr = getConnectionStr();
+                DBConnection.checkForEmbeddedDir(connStr);
+                
                 eTime = System.currentTimeMillis();
                 
                 Pair<String, String> usrPwd = getMasterUsrPwd();
@@ -908,7 +980,7 @@ public class DatabaseLoginPanel extends JTiledPanel
                                                    getConnectionStr(), 
                                                    usrPwd.first, 
                                                    usrPwd.second);
-                    if (masterUsrPwdProvider != null)
+                    if (isLoggedIn && masterUsrPwdProvider != null)
                     {
                         isLoggedIn &= jaasLogin();
                     }
@@ -919,7 +991,7 @@ public class DatabaseLoginPanel extends JTiledPanel
                 }
 
                 if (isLoggedIn)
-                {                    
+                {          
                     if (StringUtils.isNotEmpty(appName))
                     {
                         SwingUtilities.invokeLater(new Runnable(){
@@ -936,37 +1008,14 @@ public class DatabaseLoginPanel extends JTiledPanel
                     if (drvInfo != null)
                     {
                         DBConnection.getInstance().setDbCloseConnectionStr(drvInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Close, getServerName(), getDatabaseName()));
+                        DBConnection.getInstance().setServerName(getServerName());
+                        DBConnection.getInstance().setDriverName(((DatabaseDriverInfo)dbDriverCBX.getSelectedItem()).getName());
+                        DBConnection.getInstance().setConnectionStr(drvInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, getServerName(), getDatabaseName()));
+                        
+                        // This needs to be done before Hibernate starts up
+                        SchemaUpdateService.getInstance().updateSchema(UIHelper.getInstall4JInstallString());
                     }
-                    
-                    // Note: this doesn't happen on the GUI thread
-                    /*DataProviderFactory.getInstance().shutdown();
-
-                    // This restarts the System
-                    try
-                    {
-                        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-                        session.close();
-
-                    } catch (Exception ex)
-                    {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DatabaseLoginPanel.class, ex);
-                        log.warn(ex);
-                        finished();
-                    }*/
-                    return null;
                 }
-                
-                /*SwingUtilities.invokeLater(new Runnable(){
-                    @Override
-                    public void run()
-                    {
-                        //Not exactly true yet, but make sure users know that this is NOT Specify starting up. 
-                        setMessage(getResourceString("INVALID_LOGIN"), true); //$NON-NLS-1$
-                    }
-                });*/
-
-                
                 return null;
             }
 
@@ -1009,10 +1058,9 @@ public class DatabaseLoginPanel extends JTiledPanel
                         if (loginCount < 1000)
                         {
                             String basePrefNameStr = getDatabaseName() + "." + getUserName() + "."; //$NON-NLS-1$ //$NON-NLS-2$
-                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "logincount", //$NON-NLS-1$
-                                    ++loginCount);
-                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "loginaccumtime", //$NON-NLS-1$
-                                    loginAccumTime);
+                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "logincount", ++loginCount);//$NON-NLS-1$
+                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "loginaccumtime", loginAccumTime);//$NON-NLS-1$
+                                    
                         }
                     }
                     

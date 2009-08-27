@@ -142,12 +142,18 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
         }
     }
     
+    /**
+     * @param parentERTP
+     * @param results
+     * @param doSequentially
+     */
     public ResultSetTableModel(final ESResultsTablePanelIFace parentERTP,
             final QueryForIdResultsIFace results,
             final boolean doSequentially)
     {
     	this(parentERTP, results, doSequentially, true);
     }
+    
     /**
      * perform initializations which must be performed before startDataAcquisition() is called.
      */
@@ -551,6 +557,16 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
         if (statusBar != null)
         {
             statusBar.incrementValue(getClass().getSimpleName());
+        }
+        
+        if (resultSet == null || results == null)
+        {
+            log.error("The " + (resultSet == null ? "resultSet" : "results") + " is null.");
+            if (propertyListener != null)
+            {
+                propertyListener.propertyChange(new PropertyChangeEvent(this, "rowCount", null, 0));
+            }
+            return;
         }
         
         List<ERTICaptionInfo> captions = results.getVisibleCaptionInfo();

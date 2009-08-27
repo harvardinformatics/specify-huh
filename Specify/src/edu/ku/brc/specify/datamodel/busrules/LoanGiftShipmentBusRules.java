@@ -19,17 +19,13 @@
 */
 package edu.ku.brc.specify.datamodel.busrules;
 
-import java.awt.Component;
-
-import javax.swing.JTextField;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
-import edu.ku.brc.af.ui.forms.validation.ValFormattedTextField;
+import edu.ku.brc.dbsupport.DataProviderFactory;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Shipment;
 
 /**
@@ -42,9 +38,66 @@ import edu.ku.brc.specify.datamodel.Shipment;
  */
 public class LoanGiftShipmentBusRules extends BaseBusRules
 {
+    //private static final Logger log = Logger.getLogger(LoanGiftShipmentBusRules.class);
 
-    private static final Logger log = Logger.getLogger(LoanGiftShipmentBusRules.class);
+    public static final String SHIPMETHOD  = "loans.shipmeth"; 
+    public static final String SHIPPEDBY   = "loans.shippedby"; 
 
+    /**
+     * @param dataClasses
+     */
+    public LoanGiftShipmentBusRules()
+    {
+        super(Shipment.class);
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeFormFill()
+     */
+    @Override
+    public void beforeFormFill()
+    {
+        Shipment shipment = (Shipment)formViewObj.getDataObj();
+        
+        if (formViewObj != null && shipment != null && shipment.getId() == null)
+        {
+            AppPreferences prefs = AppPreferences.getRemote();
+            
+            shipment.setShipmentMethod(prefs.get(SHIPMETHOD, null));
+            
+            Integer shippedByAgentId = prefs.getInt(SHIPPEDBY, null);
+            if (shippedByAgentId != null)
+            {
+                DataProviderSessionIFace session = formViewObj.getSession();
+                
+                try
+                {
+                    if (session == null)
+                    {
+                        session = DataProviderFactory.getInstance().createSession();
+                    }
+
+                    Agent shippingAgent = session.get(Agent.class, shippedByAgentId);
+                    shipment.setShippedBy(shippingAgent);
+                    
+                } catch (Exception ex)
+                {
+                    //UsageTracker.incrHandledUsageCount();
+                    //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataEntryTask.class, ex);
+                    //log.error(ex);
+                    ex.printStackTrace();
+                    
+                } finally
+                {
+                    if (session != null && formViewObj.getSession() == null)
+                    {
+                        session.close();
+                    }
+                }
+            }
+        }
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BaseBusRules#afterFillForm(java.lang.Object)
      */
@@ -58,15 +111,15 @@ public class LoanGiftShipmentBusRules extends BaseBusRules
                 MultiView multiView = formViewObj.getMVParent().getMultiViewParent();
                 if (multiView != null)
                 {
-                    FormViewObj fvo         = multiView.getCurrentViewAsFormViewObj();
+                    //FormViewObj fvo         = multiView.getCurrentViewAsFormViewObj();
                     //Shipment    shipment    = (Shipment)formViewObj.getDataObj();
                     //Loan        loan        = shipment.getLoan();
                     //Gift        gift        = shipment.getGift();
                     //ExchangeOut exchangeOut = shipment.getExchangeOut();
                     //Borrow      borrow      = shipment.getBorrow();
                     
-                    String controlName = null;
-                    /*if (loan != null)
+                    /*String controlName = null;
+                    if (loan != null)
                     {
                         if (StringUtils.isEmpty(shipment.getShipmentNumber()))
                         {
@@ -93,7 +146,7 @@ public class LoanGiftShipmentBusRules extends BaseBusRules
                             shipment.setShipmentNumber(borrow.getInvoiceNumber());
                         }
                         controlName = "invoiceNumber";
-                    }*/
+                    }
                     
                     if (controlName != null)
                     {
@@ -119,7 +172,7 @@ public class LoanGiftShipmentBusRules extends BaseBusRules
                         {
                             log.error("Couldn't find UI control 'loanNumber' on the Loan Form");
                         }
-                    }
+                    }*/
                 }
             }
         }

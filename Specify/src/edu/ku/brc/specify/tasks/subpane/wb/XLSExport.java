@@ -82,7 +82,7 @@ public class XLSExport implements DataExport
     {
         String[] headers = config.getHeaders();
         HSSFRow hssfRow = workSheet.createRow(0);
-        short col = 0;
+        int col = 0;
         for (String head : headers)
         {
             hssfRow.createCell(col++).setCellValue(new HSSFRichTextString(head));
@@ -93,14 +93,14 @@ public class XLSExport implements DataExport
      * @param workSheet
      * writes headers for imagePath and geocoord (bg) data columns
      */
-    protected void writeExtraHeaders(final HSSFSheet workSheet, Vector<Short> imgCols, short geoDataCol)
+    protected void writeExtraHeaders(final HSSFSheet workSheet, Vector<Integer> imgCols, int geoDataCol)
     {
         HSSFRow hssfRow = workSheet.getRow(0);
         if (geoDataCol != -1)
         {
         	hssfRow.createCell(geoDataCol).setCellValue(new HSSFRichTextString(DataImport.GEO_DATA_HEADING));
         }
-        for (Short c : imgCols)
+        for (Integer c : imgCols)
         {
             hssfRow.createCell(c).setCellValue(new HSSFRichTextString(DataImport.IMAGE_PATH_HEADING));
         }
@@ -211,26 +211,36 @@ public class XLSExport implements DataExport
             rowNum++;
             
             String[] headers = config.getHeaders();
-            for (short i=0;i<headers.length;i++)
+            for (int i=0;i<headers.length;i++)
             {
-                workSheet.setColumnWidth(i, (short)(StringUtils.isNotEmpty(headers[i]) ? (256 * headers[i].length()) : 2560));
+                workSheet.setColumnWidth(i, StringUtils.isNotEmpty(headers[i]) ? (256 * headers[i].length()) : 2560);
             }
             
-            //first row should always be the template
-            mappings = writeMappings((WorkbenchTemplate)data.get(0));
+            WorkbenchTemplate wbTemplate = null;
+            if (data.get(0) instanceof WorkbenchTemplate)
+            {
+            	wbTemplate = (WorkbenchTemplate )data.get(0);
+            }
+            else
+            {
+            	wbTemplate = ((WorkbenchRow )data.get(0)).getWorkbench().getWorkbenchTemplate();
+            }
+            mappings = writeMappings(wbTemplate);
         }
-        
-        if (data.size() > 1)
+        //assuming data is never empty.
+        boolean hasTemplate = data.get(0) instanceof WorkbenchTemplate;
+        boolean hasRows = hasTemplate ? data.size() > 1 : data.size() > 0;
+        if (hasRows)
 		{
 			int[] disciplinees;
-			disciplinees = bldColTypes((WorkbenchTemplate) data.get(0));
-			WorkbenchRow wbRow = (WorkbenchRow) data.get(1);
+			
+			WorkbenchRow wbRow = (WorkbenchRow) data.get(hasTemplate ? 1 : 0);
 			Workbench workBench = wbRow.getWorkbench();
 			WorkbenchTemplate template = workBench.getWorkbenchTemplate();
-			short numCols = (short) template.getWorkbenchTemplateMappingItems()
+			int numCols = template.getWorkbenchTemplateMappingItems()
 					.size();
-			short geoDataCol = -1;
-			Vector<Short> imgCols = new Vector<Short>();
+			int geoDataCol = -1;
+			Vector<Integer> imgCols = new Vector<Integer>();
 
 			disciplinees = bldColTypes(template);
 			for (Object rowObj : data)
@@ -242,7 +252,7 @@ public class XLSExport implements DataExport
 
 				WorkbenchRow row = (WorkbenchRow) rowObj;
 				HSSFRow hssfRow = workSheet.createRow(rowNum++);
-				short colNum;
+				int colNum;
 				boolean rowHasGeoData = false;
 
 				for (colNum = 0; colNum < numCols; colNum++)

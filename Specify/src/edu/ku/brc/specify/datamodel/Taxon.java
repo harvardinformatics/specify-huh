@@ -642,7 +642,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     @Column(name="IsAccepted")
     public Boolean getIsAccepted()
 	{
-		return this.isAccepted;
+		return this.isAccepted == null ? true : this.isAccepted; //see comment in initialize() for isAccecpted 
 	}
 
 	public void setIsAccepted(Boolean accepted)
@@ -849,7 +849,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     }
 
     @OneToMany(mappedBy = "taxon")
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK, CascadeType.DELETE_ORPHAN} )
 	public Set<TaxonCitation> getTaxonCitations()
 	{
 		return this.taxonCitations;
@@ -1291,7 +1291,27 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 	{
 		return new TreeOrderSiblingComparator();
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Short getParentTableId()
+    {
+        return (short)Taxon.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

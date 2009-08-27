@@ -89,7 +89,6 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
     protected JButton                       launchBtn;
     protected JButton                       editBtn     = null;
     protected ValTextField                  textField   = null;
-    protected FormViewObj                   fvo         = null;
     
     protected WebLinkDef                    webLinkDef  = null;
     
@@ -185,19 +184,6 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
         {
             watchId = properties.getProperty("watch");
         }
-        
-        /*if (!isViewMode)
-        {
-            editBtn = createButton(IconManager.getIcon("EditIcon"));
-            add(editBtn, BorderLayout.EAST);
-            
-            editBtn.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e)
-                {
-                    doEdit();
-                }
-            });
-        }*/
     }
 
     
@@ -506,6 +492,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
     /* (non-Javadoc)
      * @see javax.swing.JComponent#setEnabled(boolean)
      */
+    @Override
     public void setEnabled(final boolean enabled)
     {
         super.setEnabled(enabled);
@@ -561,6 +548,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.ui.GetSetValueIFace#setValue(java.lang.Object, java.lang.String)
      */
+    @Override
     public void setValue(Object value, String defaultValue)
     {
         super.setValue(value, defaultValue);

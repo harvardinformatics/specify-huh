@@ -84,6 +84,7 @@ import edu.ku.brc.specify.config.init.RegisterSpecify;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AutoNumberingScheme;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
@@ -112,7 +113,6 @@ import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.Treeable;
-import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
 import edu.ku.brc.specify.prefs.FormattingPrefsPanel;
 import edu.ku.brc.specify.tasks.BaseTreeTask;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
@@ -511,7 +511,6 @@ public class SpecifyAppContextMgr extends AppContextMgr
             
             if (collection != null && collectionHash.get(collection.getCollectionName()) == null)
             {
-
                 collection = null;
             }
             
@@ -582,6 +581,10 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 {
                     // Accession / Registrar / Director may not be assigned to any Collection
                     // Or for a stand alone Accessions Database there may not be any 
+                    
+                    UIRegistry.showLocalizedError("SpecifyAppContextMgr.ERR_NO_COLL");
+                    //CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit"));
+                    return null;
                 }
     
                 if (collection != null)
@@ -619,7 +622,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
                 if (discipline != null)
                 {
-                    Agent.setUserAgent(spUser, discipline.getAgents());
+                    Agent.setUserAgent(spUser, discipline);
                     
                     AppContextMgr am = AppContextMgr.getInstance();
                 	am.setClassObject(TaxonTreeDef.class,              discipline.getTaxonTreeDef());
@@ -755,7 +758,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             sb.append(" AND userType is null"); //$NON-NLS-1$
         }
         
-        log.debug(sb.toString());
+        //log.debug(sb.toString());
         
         List<?> list = sessionArg.getDataList(sb.toString());
         if (list.size() == 1)
@@ -766,12 +769,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
             appResDir.getSpPersistedAppResources();
             appResDir.getSpPersistedViewSets();
             
-            if (true)
+            // forces load of resource
+            for (SpAppResource appRes : appResDir.getSpPersistedAppResources())
             {
-                for (SpAppResource appRes : appResDir.getSpPersistedAppResources())
-                {
-                    log.debug(appRes.getName());
-                }
+                @SuppressWarnings("unused")
+                String nameStr = appRes.getName();
             }
             appResDir.setTitle(localizedTitle);
             return appResDir;
@@ -1471,6 +1473,27 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 field.setFormatter(catNumFmtr);
             }
             
+            Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+            if (!institution.getIsAccessionsGlobal())
+            {
+                for (AutoNumberingScheme ans : collection.getNumberingSchemes())
+                {
+                    if (ans.getTableNumber() != null && ans.getTableNumber().equals(Accession.getClassTableId()))
+                    {
+                        DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(Accession.getClassTableId()).getFieldByName("accessionNumber");
+                        if (field != null)
+                        {
+                            UIFieldFormatterIFace accNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(ans.getFormatName());
+                            if (accNumFmtr != null)
+                            {
+                                field.setFormatter(accNumFmtr);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            
             // We close the session here so all SpAppResourceDir get unattached to hibernate
             // because UIFieldFormatterMgr and loading views all need a session
             // and we don't want to reuse it and get a double session
@@ -1490,13 +1513,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 
                 UIFieldFormatterMgr.getInstance();
                 
-                //backStopViewSetMgr.getView("Global", "Accession"); // force the loading of all the views
-                
                 ViewLoader.setDoFieldVerification(cacheDoVerify);
             }
             
             currentStatus = CONTEXT_STATUS.OK;
-        
+            
             return currentStatus;
             
         } catch (Exception ex)
@@ -1524,9 +1545,15 @@ public class SpecifyAppContextMgr extends AppContextMgr
      * @param fmtFileName the name of the file.
      * @return true if the formatter was added
      */
-    protected boolean addFormatFromFile(final String fmtFileName)
+    protected boolean addFormatFromFile(final String fmtFileName, final boolean isCatNum)
     {
-        String  path     = UIRegistry.getAppDataDir() + File.separator + fmtFileName;
+        Collection  coll        = AppContextMgr.getInstance().getClassObject(Collection.class);
+        Institution inst        = AppContextMgr.getInstance().getClassObject(Institution.class);
+        boolean     isAccGlobal = inst != null && inst.getIsAccessionsGlobal();
+        
+        String prefix  = isCatNum || !isAccGlobal ? coll.getCollectionName() : null;
+        
+        String  path     = UIRegistry.getAppDataDir() + File.separator + (prefix != null ? (prefix + "_") : "") + fmtFileName;
         File    uifFile  = new File(path);
         boolean loadedOK = false;
         if (uifFile.exists())
@@ -1555,7 +1582,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public void checkForInitialFormats()
     {
-        if (addFormatFromFile("catnumfmt.xml") || addFormatFromFile("accsnumfmt.xml"))
+        if (addFormatFromFile("catnumfmt.xml", true) || addFormatFromFile("accnumfmt.xml", false))
         {
             UIFieldFormatterMgr.getInstance().save();
         }
@@ -1802,6 +1829,8 @@ public class SpecifyAppContextMgr extends AppContextMgr
             try
             {
                 session = DataProviderFactory.getInstance().createSession();
+                appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
+                appRes.setModifiedByAgent(Agent.getUserAgent());
                 session.beginTransaction();
                 if (!dirContainsResource)
                 {
@@ -1815,10 +1844,9 @@ public class SpecifyAppContextMgr extends AppContextMgr
                     //hibernate exceptions for newly created resources.
                     session.saveOrUpdate(spAppResource);
                 }
-                session.commit();
-                session.flush();
-                return true;
-                
+            	session.commit();
+            	session.flush();
+            	return true;
             } catch (Exception ex)
             {
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -1900,13 +1928,24 @@ public class SpecifyAppContextMgr extends AppContextMgr
         try
         {
             session = openSession();
-            for (SpAppResourceDir appResDir : spAppResourceList)
+            for (SpAppResourceDir appResDir : new ArrayList<SpAppResourceDir>(spAppResourceList))
             {
                 //log.debug(appResDir.getIdentityTitle());
                 
                 if (appResDir.getSpAppResourceDirId() != null)
                 {
-                    session.attach(appResDir);
+                    try
+                    {
+                        session.attach(appResDir);
+                        
+                    } catch (org.hibernate.HibernateException ex)
+                    {
+                        // if attach fails then go get the entire obj.
+                        SpAppResourceDir oldObj = appResDir;
+                        appResDir = session.get(SpAppResourceDir.class, appResDir.getId());
+                        spAppResourceList.remove(oldObj);
+                        spAppResourceList.add(appResDir);
+                    }
                 }
                 
                 for (AppResourceIFace appRes : appResDir.getSpAppResources())
@@ -2008,7 +2047,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         try
         {
             String xmlStr = getResourceAsXML(appRes);
-            log.debug(xmlStr);
+            //log.debug(xmlStr);
             if (StringUtils.isNotEmpty(xmlStr))
             {
                 return XMLHelper.readStrToDOM4J(xmlStr);
@@ -2814,37 +2853,41 @@ public class SpecifyAppContextMgr extends AppContextMgr
         return null;
     }
     
-    /**
-     * @param view
-     * @param isNewForm
-     * @return
+    /*
+     * 
+     * Commenting  isLockOK() because it is never used
      */
-    protected boolean isLockOK(final String    lockTitle, 
-                               final ViewIFace view, 
-                               final boolean   isNewForm)
-    {
-        Class<?> treeDefClass = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).getTreeDefClass(view);
-        if (treeDefClass != null)
-        {
-            if (TaskSemaphoreMgr.isLocked(lockTitle, treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline))
-            {
-                if (isNewForm)
-                {
-                    UIRegistry.showError("The tree is locked!");
-                    return false;
-                    
-                }
-                return false;
-            } 
-            TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(lockTitle, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false);
-            if (action != TaskSemaphoreMgr.USER_ACTION.OK)
-            {
-                UIRegistry.showError("Unable to Lock the tree!");
-                return false;
-            }
-        }
-        return true;
-    }
+//    /**
+//     * @param view
+//     * @param isNewForm
+//     * @return
+//     */
+//    protected boolean isLockOK(final String    lockTitle, 
+//                               final ViewIFace view, 
+//                               final boolean   isNewForm)
+//    {
+//        Class<?> treeDefClass = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).getTreeDefClass(view);
+//        if (treeDefClass != null)
+//        {
+//            if (TaskSemaphoreMgr.isLocked(lockTitle, treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline))
+//            {
+//                if (isNewForm)
+//                {
+//                    UIRegistry.showError("The tree is locked!");
+//                    return false;
+//                    
+//                }
+//                return false;
+//            } 
+//            TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(lockTitle, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false);
+//            if (action != TaskSemaphoreMgr.USER_ACTION.OK)
+//            {
+//                UIRegistry.showError("Unable to Lock the tree!");
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     /**
      * Checks to see if the view can be opened.
@@ -2994,6 +3037,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     /**
      * @return true if security is on
      */
+    @Override
     public boolean isSecurity()
     {
         if (isSecurityOn == null)
@@ -3013,8 +3057,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
     /**
      * @param secVal
      */
+    @Override
     public boolean setSecurity(final boolean secVal)
     {
+        isSecurityOn = secVal;
+        
         boolean status = true;
         DataProviderSessionIFace session = null;
         try

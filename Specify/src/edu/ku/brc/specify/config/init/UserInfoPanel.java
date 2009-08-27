@@ -22,15 +22,17 @@ package edu.ku.brc.specify.config.init;
 import static edu.ku.brc.ui.UIHelper.createI18NFormLabel;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 
-import com.jgoodies.forms.layout.CellConstraints;
-
 import edu.ku.brc.af.ui.PasswordStrengthUI;
 import edu.ku.brc.af.ui.forms.ViewFactory;
+import edu.ku.brc.af.ui.forms.validation.ValPlainTextDocument;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.ui.DocumentAdaptor;
+import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
@@ -43,6 +45,7 @@ import edu.ku.brc.ui.DocumentAdaptor;
 public class UserInfoPanel extends GenericFormPanel
 {
     private JTextField encryptedTF;
+    private JLabel     statusLbl;
     
     /**
      * @param name
@@ -57,9 +60,10 @@ public class UserInfoPanel extends GenericFormPanel
                          final String[] labels, 
                          final String[] fields, 
                          final boolean[] isReq, 
-                         final JButton  nextBtn)
+                         final JButton  nextBtn, 
+                         final JButton  prevBtn)
     {
-        super(name, title, helpContext, labels, fields, isReq, nextBtn, true);
+        super(name, title, helpContext, labels, fields, isReq, nextBtn, prevBtn, true);
     }
 
     /* (non-Javadoc)
@@ -68,7 +72,7 @@ public class UserInfoPanel extends GenericFormPanel
     @Override
     protected String getAdditionalRowDefs()
     {
-        return ",2px,p,2px,p";
+        return ",2px,p,20px,p";
     }
 
     /* (non-Javadoc)
@@ -82,19 +86,24 @@ public class UserInfoPanel extends GenericFormPanel
     {
         super.init(title, fields, required, types);
         
-        CellConstraints cc = new CellConstraints();
+        statusLbl = UIHelper.createLabel("");
         
         PasswordStrengthUI pwdStrength = new PasswordStrengthUI();
         builder.add(createI18NFormLabel("PWDSTRENGTH"), cc.xy(1, row));
         builder.add(pwdStrength,                        cc.xyw(3, row, 2)); row += 2;
+        builder.add(statusLbl,                          cc.xyw(3, row, 2)); row += 2;
         
         final JTextField pwdTF = (JTextField)comps.get("usrPassword");
+        ValPlainTextDocument valDoc = new ValPlainTextDocument(64);
+        pwdTF.setDocument(valDoc);
+        valDoc.addDocumentListener(createDocChangeAdaptor(pwdTF));
+        
         pwdStrength.setPasswordField(pwdTF, null);
         
-        encryptedTF = new JTextField(20);
+        encryptedTF = UIHelper.createTextField(20);
         ViewFactory.changeTextFieldUIForDisplay(encryptedTF, false);
-        //builder.add(createI18NFormLabel("ENCRYPT_KEY"), cc.xy(1, row));
-        //builder.add(encryptedTF,                        cc.xyw(3, row, 2));
+        
+        encryptedTF.setDocument(new ValPlainTextDocument(64));
         
         pwdTF.getDocument().addDocumentListener(new DocumentAdaptor() {
             @Override
@@ -104,13 +113,41 @@ public class UserInfoPanel extends GenericFormPanel
             }
         });
     }
-
-    /**
-     * @return the encrypted string for loggin in
-     */
-    public String getEncryptedStr()
-    {
-        return encryptedTF.getText();
-    }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.config.init.GenericFormPanel#isUIValid()
+     */
+    @Override
+    public boolean isUIValid()
+    {
+        boolean isValid = super.isUIValid();
+        
+        if (properties != null)
+        {
+            String dbUsername  = properties.getProperty("dbUserName");
+            String saUserName  = properties.getProperty("saUserName");
+            String usrUserName = ((JTextField)comps.get("usrUsername")).getText();
+            
+            if (usrUserName.equals(saUserName))
+            {
+                statusLbl.setText(UIRegistry.getResourceString("UR_SA_USRNAME_MATCH"));
+                nextBtn.setEnabled(false);
+                return false;
+                
+            }
+            
+            if (usrUserName.equals(dbUsername))
+            {
+                statusLbl.setText(UIRegistry.getResourceString("UR_DB_USRNAME_MATCH"));
+                nextBtn.setEnabled(false);
+                return false;
+            }
+            
+            nextBtn.setEnabled(true);
+            statusLbl.setText("");
+        }
+        
+        return isValid;
+    }
+
 }

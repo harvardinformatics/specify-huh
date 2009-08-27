@@ -21,18 +21,30 @@ package edu.ku.brc.dbsupport;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Stack;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+
+import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
+
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
+import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * A singleton that remembers all the information needed for creating a JDBC Database connection. 
  * It uses the DBConnection
- * After setting the necessary parameters you can ask it for a connection at anytime.<br><br>
- * Also, has a factory method for creating instances so users can connect to more than one database ata time.
+ * After setting the necessary parameters you can ask it for a connection at any time.<br><br>
+ * Also, has a factory method for creating instances so users can connect to more than one database at a time.
  *
  * @code_status Complete
  * 
@@ -43,6 +55,9 @@ public class DBConnection
 {
     private static final Logger log = Logger.getLogger(DBConnection.class);
     
+    private static int     dbCnt    = 0;
+    private static boolean debugCnt = false;
+    
     protected String dbUsername;
     protected String dbPassword;
     protected String dbConnectionStr;             // For Create or Open
@@ -50,6 +65,8 @@ public class DBConnection
     protected String dbDriver;
     protected String dbDialect;                   // needed for Hibernate
     protected String dbName;
+    protected String serverName;                  // Hostname
+    protected String dbDriverName;                // Hostname
     
     protected boolean argHaveBeenChecked = false;
     protected boolean skipDBNameCheck    = false;
@@ -59,7 +76,53 @@ public class DBConnection
     protected String     errMsg = ""; //$NON-NLS-1$
     
     // Static Data Members
-    protected static final DBConnection instance = new DBConnection();
+    protected static final DBConnection  instance;
+    protected static Boolean             isEmbeddedDB;
+    protected static File                embeddedDataDir;
+    protected static Stack<DBConnection> connections;
+    protected static boolean             isShuttingDown;
+    protected static File                mobileTmpDir = null;
+    protected static boolean             isCopiedToMachineDisk = false;
+    protected static boolean             isCopiedToMobileDisk  = false;
+    
+    
+    static
+    {
+        isShuttingDown  = false;
+        isEmbeddedDB    = null;
+        embeddedDataDir = null;
+        connections     = new Stack<DBConnection>();
+        instance        = new DBConnection();
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() 
+            {
+                Runtime.getRuntime().addShutdownHook(new Thread() 
+                {
+                    @Override
+                    public void run() 
+                    {
+                        if (isEmbeddedDB != null && isEmbeddedDB)
+                        {
+                            ServerLauncherSocketFactory.shutdown(embeddedDataDir, null);
+                        }
+                        
+                        // Give it a little time to shutdown
+                        /*try
+                        {
+                            Thread.sleep(3000);
+                        } catch (Exception ex) {}*/
+                        
+                        if (UIRegistry.isMobile())
+                        {
+                            copyToMobileDisk();
+                        }
+                    }
+                });
+                return null;
+            }
+        });
+    }
     
     /**
      * Protected Default constructor
@@ -67,9 +130,58 @@ public class DBConnection
      */
     protected DBConnection()
     {
-        
+        connections.push(this);
+        if (debugCnt) System.err.println("Connection Cnt: "+(++dbCnt));
     }
     
+    /**
+     * @param connectionStr
+     * @return
+     */
+    public static boolean isEmbedded(final String connectionStr)
+    {
+        return StringUtils.isNotEmpty(connectionStr) && StringUtils.contains(connectionStr, "mxj");
+    }
+    
+    /**
+     * For Embedded MySQL.
+     * @param connectionStr JDBC connection string
+     */
+    public static void checkForEmbeddedDir(final String connectionStr)
+    {
+        isEmbeddedDB = isEmbedded(connectionStr);
+        if (isEmbeddedDB)
+        {
+            String attr = "server.basedir=";
+            int inx = connectionStr.indexOf(attr);
+            if (inx > -1)
+            {
+                inx += attr.length();
+                int eInx = connectionStr.indexOf("&", inx);
+                if (eInx > -1)
+                {
+                    embeddedDataDir = new File(connectionStr.substring(inx, eInx));
+                }
+            }
+        }
+    }
+    
+    /**
+     * @return whether the database is being run in "embedded" mode
+     */
+    public boolean isEmbedded()
+    {
+        return isEmbeddedDB == null ? false : isEmbeddedDB;
+    }
+    
+    /**
+     * @return the the full file path to the embedded directory. 
+     */
+    public static File getEmbeddedDataDir()
+    {
+        return embeddedDataDir;
+    }
+
     /**
      * @param dbUsername
      * @param dbPassword
@@ -93,6 +205,12 @@ public class DBConnection
         this.dbDialect       = dbDialect;
         this.dbName          = dbName;
         this.skipDBNameCheck = dbName == null;
+        
+        connections.push(this);
+        
+        checkForEmbeddedDir(dbConnectionStr);
+        
+        if (debugCnt) System.err.println("DB Connection Cnt: "+(++dbCnt));
     }
 
     /**
@@ -119,6 +237,13 @@ public class DBConnection
      */
     public Connection createConnection()
     {
+        //ensureEmbddedDirExists();
+
+        if (UIRegistry.isMobile() && this == getInstance())
+        {
+            copyToMachineDisk();
+        }
+        
         Connection con = null;
         try
         {
@@ -153,11 +278,17 @@ public class DBConnection
             }
             Class.forName(dbDriver); // load driver
             
-            //log.debug("["+dbConnectionStr+"]["+dbUsername+"]["+dbPassword+"] ");
+            if (System.getProperty("user.name").equals("rods"))
+            {
+                log.debug("******** ["+dbConnectionStr+"]["+dbUsername+"]["+dbPassword+"] ");
+            }
+            //System.err.println("["+dbConnectionStr+"]["+dbUsername+"]["+dbPassword+"] ");
             con = DriverManager.getConnection(dbConnectionStr, dbUsername, dbPassword);
             
         } catch (SQLException sqlEX)
         {
+            sqlEX.printStackTrace();
+            
             log.error("Error in getConnection", sqlEX);
             if (sqlEX.getNextException() != null)
             {
@@ -182,8 +313,34 @@ public class DBConnection
      */
     public void close()
     {
+        if (debugCnt) System.err.println("DB Connection Cnt: "+(--dbCnt) +"  is Instance: "+(this == getInstance()));
         try
         {
+            if (connections.size() == 1 && this == getInstance())
+            {
+                connections.remove(this);
+                
+            } else if (connections.indexOf(this) > -1)
+            {
+                connections.remove(this);
+                
+            } else
+            {
+                String msg = "The DBConnection ["+this+"] has already been removed!";
+                log.error(msg);
+                //UIRegistry.showError(msg);
+            }
+            
+            if (!isShuttingDown)
+            {
+                if (this == instance)
+                {
+                    String msg = "The DBConnection.getInstance().close() should not be called. (Call DBConnection.shutdown()).";
+                    log.error(msg);
+                    UIRegistry.showError(msg);
+                }
+            }
+            
             // This is primarily for Derby non-networked database. 
             if (dbCloseConnectionStr != null)
             {
@@ -201,15 +358,6 @@ public class DBConnection
         {
             log.error(ex);
         }
-    }
-    
-    /**
-     * Returns the instance to the singleton.
-     * @return the instance to the singleton
-     */
-    public static DBConnection getInstance()
-    {
-        return instance;
     }
     
     /**
@@ -255,6 +403,38 @@ public class DBConnection
     }
     
     /**
+     * @return the serverName
+     */
+    public String getServerName()
+    {
+        return serverName;
+    }
+
+    /**
+     * @param server the server to set
+     */
+    public void setServerName(String serverName)
+    {
+        this.serverName = serverName;
+    }
+
+    /**
+     * @return the dbDriverName
+     */
+    public String getDriverName()
+    {
+        return dbDriverName;
+    }
+
+    /**
+     * @param dbDriverName the dbDriverName to set
+     */
+    public void setDriverName(String dbDriverName)
+    {
+        this.dbDriverName = dbDriverName;
+    }
+
+    /**
      * Sets the fully specified path to connect to the database.
      * i.e. jdbc:mysql://localhost/fish<br>Some databases may need to construct their fully specified path.
      * @param dbConnectionStr the full connection string
@@ -263,6 +443,8 @@ public class DBConnection
     {
         this.dbConnectionStr = dbConnectionStr;
         argHaveBeenChecked = false;
+        
+        checkForEmbeddedDir(dbConnectionStr);
     }
     
     /**
@@ -338,6 +520,25 @@ public class DBConnection
         return dbDialect;
     }
 
+    @SuppressWarnings("unused")
+    private void ensureEmbddedDirExists()
+    {
+        if (isEmbedded())
+        {
+            File embeddedDir = getEmbeddedDataDir();
+            if (!embeddedDir.exists())
+            {
+                log.debug("Created data dir["+embeddedDir.getAbsolutePath()+"]");
+                if (embeddedDir.mkdirs())
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, new Exception("The Embedded Data Dir could not be created at["+embeddedDir.getAbsolutePath()+"]"));
+
+                }
+            }
+        }
+    }
+    
     /**
      * Returns a new connection to the database. 
      * @return the JDBC connection to the database
@@ -350,15 +551,6 @@ public class DBConnection
         }
         
         return connection;
-    }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#finalize()
-     */
-    public void finalize()
-    {
-        //DataProviderFactory.getInstance().shutdown();
-        close();
     }
     
     /**
@@ -386,7 +578,184 @@ public class DBConnection
         dbConnection.setConnectionStr(dbConnectionStr);
         dbConnection.setUsernamePassword(dbUsername, dbPassword);
         
+        checkForEmbeddedDir(dbConnectionStr);
+        
         return dbConnection;
+    }
+    
+    /**
+     * Returns the instance to the singleton.
+     * @return the instance to the singleton
+     */
+    public static DBConnection getInstance()
+    {
+        return instance;
+    }
+    
+    /**
+     * Shuts down all the connections (including the main getInstance()).
+     */
+    public synchronized static void shutdown()
+    {
+        isShuttingDown = true;
+        try
+        {
+            while (!connections.isEmpty())
+            {
+                connections.pop().close();
+            }
+            connections.clear();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        isShuttingDown = false;
+        
+        /*if (UIRegistry.isMobile())
+        {
+            copyToMobileDisk();
+        }*/
+    }
+    
+    public static void clearMobileTempDir()
+    {
+        mobileTmpDir = null;
+    }
+    
+    /**
+     * @return
+     * @throws IOException
+     */
+    public static File getMobileTempDir(final String dbName)
+    {
+        if (mobileTmpDir == null && StringUtils.isNotEmpty(dbName))
+        {
+            String path = UIRegistry.getDefaultUserHomeDir();
+            
+            mobileTmpDir = new File(path + File.separator + dbName + "_data_" + Long.toString(System.currentTimeMillis()));
+            
+        } else if (StringUtils.isEmpty(dbName) && mobileTmpDir == null)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TaskSemaphoreMgr.class, new RuntimeException("dbName was null"));
+        }
+        return mobileTmpDir;
+    }
+    
+    /**
+     * @return
+     * @throws IOException
+     */
+    public static File getMobileTempDir()
+    {
+        return getMobileTempDir(null);
+    }
+
+    /**
+     * @param isCopiedToMachineDisk the isCopiedToMachineDisk to set
+     */
+    public static void setCopiedToMachineDisk(final boolean isCopiedToMachineDisk)
+    {
+        DBConnection.isCopiedToMachineDisk = isCopiedToMachineDisk;
+    }
+
+    /**
+     * @return
+     */
+    private static boolean copyToMachineDisk()
+    {
+        if (!isCopiedToMachineDisk)
+        {
+            try
+            {
+                mobileTmpDir = getMobileTempDir();
+                if (!mobileTmpDir.exists())
+                {
+                    mobileTmpDir.mkdirs();
+                }
+                
+                System.out.println("********************* copyToMachineDisk - getMobileEmbeddedDBPath["+(new File(UIRegistry.getMobileEmbeddedDBPath()).getCanonicalPath())+"] to mobileTmpDir["+mobileTmpDir.getCanonicalPath()+"]");
+                
+                File mobileEmbeddedDir = new File(UIRegistry.getMobileEmbeddedDBPath());
+                if (mobileEmbeddedDir.exists())
+                {
+                    FileUtils.copyDirectory(mobileEmbeddedDir, mobileTmpDir, true);
+                    UIRegistry.setEmbeddedDBDir(mobileTmpDir.getCanonicalPath());
+                    
+                    isCopiedToMachineDisk = true;
+                    
+                    for (Object fObj : FileUtils.listFiles(mobileTmpDir, null, true))
+                    {
+                        File f = (File)fObj;
+                        if (f.getName().endsWith("DS_Store"))
+                        {
+                            f.delete();
+                        }
+                    }
+                    return true;
+                } 
+                
+                log.error("Mobile path doesn't exist at["+mobileEmbeddedDir.getCanonicalPath()+"]");
+                
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param isCopiedToMobileDisk the isCopiedToMobileDisk to set
+     */
+    public static void setCopiedToMobileDisk(boolean isCopiedToMobileDisk)
+    {
+        DBConnection.isCopiedToMobileDisk = isCopiedToMobileDisk;
+    }
+
+    /**
+     * @return
+     */
+    private static boolean copyToMobileDisk()
+    {
+        System.out.println("########################  copyToMobileDisk  -  mobileTmpDir["+mobileTmpDir+"] isCopiedToMachineDisk ["+isCopiedToMachineDisk+"]");
+        if (!isCopiedToMobileDisk && mobileTmpDir != null && isCopiedToMachineDisk)
+        {
+            isCopiedToMobileDisk = true;
+            try
+            {
+                File mobileDir = new File(UIRegistry.getMobileEmbeddedDBPath());
+                FileUtils.deleteDirectory(mobileDir);
+                
+                System.out.println("###################################### copyToMobileDisk  -  mobileTmpDir["+mobileTmpDir+"] to mobileDir["+mobileDir.getCanonicalPath()+"]");
+                
+                FileUtils.copyDirectory(mobileTmpDir, mobileDir, true);
+                for (Object fObj : FileUtils.listFiles(mobileDir, null, true))
+                {
+                    File f = (File)fObj;
+                    if (f.getName().endsWith("DS_Store"))
+                    {
+                        f.delete();
+                    }
+                }
+                
+                for (Object fObj : FileUtils.listFiles(mobileTmpDir, null, true))
+                {
+                    File f = (File)fObj;
+                    if (f.exists() && !f.getName().equals("mysql.sock"))
+                    {
+                        f.delete();
+                    }
+                }
+                return true;
+                
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+        return false;
     }
 
 }

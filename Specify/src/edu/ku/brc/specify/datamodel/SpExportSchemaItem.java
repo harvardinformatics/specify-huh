@@ -90,7 +90,7 @@ public class SpExportSchemaItem extends DataModelObjBase
     /**
      * @return the fieldName
      */
-    @Column(name = "FieldName", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "FieldName", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
     public String getFieldName()
     {
         return fieldName;
@@ -229,6 +229,16 @@ public class SpExportSchemaItem extends DataModelObjBase
         return getClassTableId();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#isChangeNotifier()
+     */
+    @Transient
+    @Override
+    public boolean isChangeNotifier()
+    {
+        return false;
+    }
+
     /**
      * @return the Table ID for the class.
      */
@@ -236,4 +246,16 @@ public class SpExportSchemaItem extends DataModelObjBase
     {
         return 525;
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		// TODO Auto-generated method stub
+		return getFieldName();
+	}
+    
+    
 }

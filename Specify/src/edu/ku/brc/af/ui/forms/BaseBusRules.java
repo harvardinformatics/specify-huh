@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -34,14 +35,17 @@ import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.GenericLSIDGeneratorFactory;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.config.SpecifyLSIDGeneratorFactory;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -63,7 +67,7 @@ public class BaseBusRules implements BusinessRulesIFace
     protected Class<?>[]   dataClasses;
     
     /**
-     * The data class that is used within the busniess rules.
+     * The data class that is used within the business rules.
      * @param dataClass the data class
      */
     public BaseBusRules(final Class<?> ... dataClasses)
@@ -283,7 +287,7 @@ public class BaseBusRules implements BusinessRulesIFace
                 queryString += " AND " + extraColumns; 
             }
             
-            log.debug(queryString);
+            //log.debug(queryString);
             ResultSet rs = stmt.executeQuery(queryString);
             if (rs.next())
             {
@@ -613,7 +617,18 @@ public class BaseBusRules implements BusinessRulesIFace
         return true;
     }
 
+    
     /* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#afterSaveFailure(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+	 */
+	@Override
+	public void afterSaveFailure(Object dataObj,
+			DataProviderSessionIFace session)
+	{
+		// do nothing
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#beforeMerge(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
@@ -745,12 +760,15 @@ public class BaseBusRules implements BusinessRulesIFace
             
             fi = ti.getFieldByName(fieldName);
             
-            String quote  = fi.getDataClass() == String.class || fi.getDataClass() == Date.class ? "'" : "";
+            String special = QueryAdjusterForDomain.getInstance().getSpecialColumns(ti, false);
+            String quote   = fi.getDataClass() == String.class || fi.getDataClass() == Date.class ? "'" : "";
             String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s%s%s", colName, ti.getName(), fi.getColumn(), quote, fieldValue, quote);
             if (id != null)
             {
                 sql += " AND " + colName + " <> " + id;
             }
+            sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
+            
             log.debug(sql);
             
             Integer cnt = BasicSQLUtils.getCount(sql);
@@ -858,6 +876,76 @@ public class BaseBusRules implements BusinessRulesIFace
     {
         return processBusinessRules(dataObj);
     }
+    
+    /**
+     * @param data
+     */
+    protected void setLSID(final FormDataObjIFace data)
+    {
+        boolean doLSID = ((SpecifyLSIDGeneratorFactory)SpecifyLSIDGeneratorFactory.getInstance()).isPrefOn(data.getTableId());
+        if (doLSID)
+        {
+            //AppPreferences remote = AppPreferences.getRemote();
+            //String                prefix       = "Prefs.LSID.";
+            boolean               doVersioning = true;//remote.getBoolean(prefix + "UseVersioning", false);
+            UIFieldFormatterIFace formatter    = null;
+            
+            if (data.getTableId() == 1)
+            {
+                DBFieldInfo fi = DBTableIdMgr.getInstance().getInfoById(1).getFieldByColumnName("CatalogNumber");
+                formatter = fi.getFormatter();
+            }
+            
+            String lsid = GenericLSIDGeneratorFactory.getInstance().setLSIDOnId(data, doVersioning, formatter);
+            if (lsid != null)
+            {
+                FormHelper.setValue(data, "GUID", lsid);
+            }
+        }
+    }
+    
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    collection.remove(obj);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static int countDataObjectById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        int cnt = 0;
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#doesSearchObjectRequireNewParent()
@@ -922,5 +1010,4 @@ public class BaseBusRules implements BusinessRulesIFace
     {
         // no op
     }
-
 }

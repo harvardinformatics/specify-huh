@@ -22,6 +22,9 @@ package edu.ku.brc.specify.datamodel;
 import static edu.ku.brc.helpers.XMLHelper.addAttr;
 import static edu.ku.brc.helpers.XMLHelper.getAttr;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,11 +32,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -156,6 +162,10 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     protected Byte         sortType;
     
     protected String       tableList;
+    
+    protected Set<SpExportSchemaItemMapping> mappings; //This a set to provide support the theoretical capability to
+    													//map a single field to more than one concept, which, I think,
+                                                        //is supported by TAPIR.
     
     /**
      * The tableId of the table that contains the database field represented by this object.
@@ -465,7 +475,17 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     {
         return query;
     }
-    
+
+    /**
+     * @return the fields
+     */
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "queryField")
+    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    public Set<SpExportSchemaItemMapping> getMappings()
+    {
+        return mappings;
+    }
+
     /**
      * @return the tableList
      */
@@ -475,6 +495,40 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         return tableList;
     }
     
+    /**
+     * @param mapping the mapping to set
+     * 
+     * Sets mapping to be the single mapping for this SpQueryField.
+     */
+    public void setMapping(SpExportSchemaItemMapping mapping)
+    {
+//    	for (SpExportSchemaItemMapping currentMapping : mappings)
+//    	{
+//    		currentMapping.setExportSchemaMapping(null);
+//    	}
+    	mappings.clear();
+    	if (mapping != null)
+    	{
+    		mappings.add(mapping);
+    	}
+    }
+    
+    /**
+     * @return the first mapping. 
+     */
+    @Transient
+    public SpExportSchemaItemMapping getMapping()
+    {
+    	if (mappings.size() > 0)
+    	{
+    		if (mappings.size() > 1)
+    		{
+    			log.warn("getMappig() was called for object with more than one mapping.");
+    		}
+    		return mappings.iterator().next();
+    	}
+    	return null;
+    }
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#initialize()
      */
@@ -502,6 +556,7 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         formatName     = null;
         columnAlias    = null;
         contextTableIdent = null;
+        mappings = new HashSet<SpExportSchemaItemMapping>();
     }
 
     @Transient
@@ -537,6 +592,11 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         this.sortType = sortType.getOrdinal();
     }
             
+    public void setMappings(Set<SpExportSchemaItemMapping> mappings)
+    {
+    	this.mappings = mappings;
+    }
+    
     //-------------------------------------------------------------------------
     //-- DataModelObjBase
     //-------------------------------------------------------------------------
@@ -571,6 +631,16 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         return getClassTableId();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#isChangeNotifier()
+     */
+    @Transient
+    @Override
+    public boolean isChangeNotifier()
+    {
+        return false;
+    }
+
     /**
      * @return the Table ID for the class.
      */
@@ -682,7 +752,7 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         return field;
     }
     
-    /**
+	/**
      * @param sb
      */
     public void toXML(final StringBuilder sb)

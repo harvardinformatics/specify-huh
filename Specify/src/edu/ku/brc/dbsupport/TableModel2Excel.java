@@ -20,6 +20,7 @@
 package edu.ku.brc.dbsupport;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -34,6 +35,8 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
+
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * Helper that converts a Swing TableModel to an MS-Excel Spreadsheet, HTML Table.
@@ -120,14 +123,37 @@ public class TableModel2Excel
      * @param tableModel the table model
      * @return a file to a spreadsheet
      */
-    public static File convertToExcel(final File toFile, final String title, final TableModel tableModel)
+    public static File convertToExcel(final File toFile, 
+                                      final String title, 
+                                      final TableModel tableModel)
     {
+        if (toFile == null)
+        {
+            UIRegistry.showLocalizedMsg("FILE_NO_EXISTS", toFile != null ? toFile.getAbsolutePath() : "");
+            return null;
+        }
+        
+        if (!toFile.canWrite())
+        {
+            UIRegistry.showLocalizedMsg("FILE_NO_WRITE", toFile != null ? toFile.getAbsolutePath() : "");
+            return null;
+        }
+        
         if (tableModel != null && tableModel.getRowCount() > 0)
         {
             try
             {
                 // create a new file
-                FileOutputStream out = new FileOutputStream(toFile);
+                FileOutputStream out;
+                try
+                {
+                    out = new FileOutputStream(toFile);
+                    
+                } catch (FileNotFoundException ex)
+                {
+                    UIRegistry.showLocalizedMsg("FILE_NO_WRITE", toFile != null ? toFile.getAbsolutePath() : "");
+                    return null;
+                }
                 
                 // create a new workbook
                 HSSFWorkbook wb = new HSSFWorkbook();

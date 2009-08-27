@@ -27,6 +27,7 @@ import java.awt.event.ItemListener;
 
 import javax.swing.JCheckBox;
 
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
@@ -73,6 +74,14 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
                 return false;
             }
         };
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#getNodeClass()
+     */
+    protected Class<?> getNodeClass()
+    {
+    	return Taxon.class;
     }
     
     /* (non-Javadoc)
@@ -164,6 +173,17 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
         
         return true;
     }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        setLSID((FormDataObjIFace)dataObj);
+
+        return super.afterSaveCommit(dataObj, session);
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules#getRelatedTableAndColumnNames()
@@ -214,7 +234,7 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
      * 
      * @param taxon the {@link Taxon} being saved
      */
-    protected void beforeSaveTaxon(Taxon taxon, @SuppressWarnings("unused") DataProviderSessionIFace session)
+    protected void beforeSaveTaxon(Taxon taxon, DataProviderSessionIFace session)
     {
         // if this node is "accepted" then make sure it doesn't point to an accepted parent
         if (taxon.getIsAccepted() == null || taxon.getIsAccepted().booleanValue() == true)
@@ -312,6 +332,7 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
                     hybrid2Widget.registerQueryBuilder(new TreeableSearchQueryBuilder(nodeInForm, null, TreeableSearchQueryBuilder.HYBRID_PARENT));
                 }
             }
+            //formViewObj.getValidator().setUIValidatorsToNotChanged();
         }
     }
 

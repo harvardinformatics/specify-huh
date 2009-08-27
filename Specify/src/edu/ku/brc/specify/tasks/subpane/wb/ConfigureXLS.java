@@ -53,6 +53,7 @@ import org.apache.poi.poifs.filesystem.DocumentInputStream;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import edu.ku.brc.specify.rstools.ExportFileConfigurationFactory;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -100,7 +101,7 @@ public class ConfigureXLS extends ConfigureExternalDataBase
         {
             HSSFRow row = (HSSFRow) rows.next();
             int maxSize = Math.max(row.getPhysicalNumberOfCells(), row.getLastCellNum());
-            for (short col = 0; col < maxSize; col++)
+            for (int col = 0; col < maxSize; col++)
             {
                 if (firstRow)
                 {
@@ -159,17 +160,23 @@ public class ConfigureXLS extends ConfigureExternalDataBase
     protected void interactiveConfig()
     {
         //firstRowHasHeaders = determineFirstRowHasHeaders();
-        DataImportDialog dlg = new DataImportDialog(this,  firstRowHasHeaders);
-        
-        if (!dlg.isCancelled())
-        {
-            firstRowHasHeaders = dlg.getDoesFirstRowHaveHeaders();
-            nonInteractiveConfig();
-        }
-        else
-        {
-            status = Status.Cancel;
-        }
+		DataImportDialog dlg = new DataImportDialog(this, firstRowHasHeaders);
+		if (dlg.hasTooManyRows)
+		{
+			status = Status.Cancel;
+			return;
+		}
+		
+		UIHelper.centerAndShow(dlg);
+
+		if (!dlg.isCancelled())
+		{
+			firstRowHasHeaders = dlg.getDoesFirstRowHaveHeaders();
+			nonInteractiveConfig();
+		} else
+		{
+			status = Status.Cancel;
+		}
         //nonInteractiveConfig();
     }
 
@@ -236,29 +243,29 @@ public class ConfigureXLS extends ConfigureExternalDataBase
         }
         catch (NoPropertySetStreamException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
             log.debug(ex);
             result = null;
         }
         catch (MarkUnsupportedException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
             log.debug(ex);
             result = null;
         }
         catch (UnexpectedPropertySetTypeException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
             log.debug(ex);
             result = null;
         }
         catch (IllegalPropertySetDataException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
+            //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ConfigureXLS.class, ex);
             log.debug(ex);
             result = null;
         }
@@ -307,10 +314,10 @@ public class ConfigureXLS extends ConfigureExternalDataBase
             // Calculate the number of rows and columns
             colInfo = new Vector<ImportColumnInfo>(16);
 
-            Hashtable<Short, Boolean> colTracker = new Hashtable<Short, Boolean>();
+            Hashtable<Integer, Boolean> colTracker = new Hashtable<Integer, Boolean>();
 
             boolean firstRow = true;
-            short   col      = 0;
+            int   col      = 0;
             colTracker.clear();
 
             Vector<Integer> badHeads = new Vector<Integer>();
@@ -332,7 +339,7 @@ public class ConfigureXLS extends ConfigureExternalDataBase
                 if (firstRow || numRows == 1)
                 {
                     // Iterate over each cell in the row and print out the cell's content
-                    short colNum = 0;
+                    int colNum = 0;
                     int maxSize = Math.max(row.getPhysicalNumberOfCells(), row.getLastCellNum());
                     while (colNum < maxSize)
                     {

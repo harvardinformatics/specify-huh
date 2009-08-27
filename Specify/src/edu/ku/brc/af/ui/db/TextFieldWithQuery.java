@@ -440,6 +440,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
     /* (non-Javadoc)
      * @see javax.swing.JComponent#setEnabled(boolean)
      */
+    @Override
     public void setEnabled(final boolean enabled)
     {
         super.setEnabled(enabled);
@@ -1233,14 +1234,15 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
     /**
      * Fill the the drop down with the list from the query
      */
-    protected void doQuery(final String newEntryStr)
+    protected void doQuery(final String newEntryStrArg)
     {
         UIRegistry.getStatusBar().setText("");
        
         ESTermParser parser = ESTermParser.getInstance();
         
-        if (parser.parse(newEntryStr, true))
+        if (parser.parse(newEntryStrArg, true))
         {
+            String newEntryStr = parser.getFields().get(0).getTerm();
             prevEnteredText = newEntryStr;
     
             if (!isDoingQuery.get())
@@ -1322,6 +1324,10 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         this.wasCleared = true;
     }
 
+    /* (non-Javadoc)
+     * @see javax.swing.JComponent#requestFocus()
+     */
+    @Override
     public void requestFocus()
     {
         textField.requestFocus();
@@ -1421,6 +1427,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         /* (non-Javadoc)
          * @see javax.swing.JComponent#paint(java.awt.Graphics)
          */
+        @Override
         public void paint(Graphics g)
         {
             super.paint(g);

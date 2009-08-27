@@ -111,6 +111,7 @@ public class CustomDialog extends JDialog
     protected boolean           closeOnApplyClk  = false;
     protected boolean           closeOnHelpClk   = false;
     protected int               btnPressed       = NONE_BTN;
+    protected boolean           isCreated        = false;
     
     protected JPanel            mainPanel;
 
@@ -264,32 +265,10 @@ public class CustomDialog extends JDialog
     }
 
     /**
-     * Create the UI for the dialog.
+     * create buttons
      */
-    public void createUI()
+    protected void createButtons()
     {
-        /*if (helpContext == null)
-        {
-            whichBtns &= ~HELP_BTN; // Clear Bit for Help button if there is no HelpContext
-        }*/
-
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
-        mainPanel = createMainPanel();
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 5, 2));
-        
-        if (titleBarLabel != null)
-        {
-            mainPanel.add(titleBarLabel, BorderLayout.NORTH);
-            mainPanel.setBorder(BorderFactory.createLineBorder(borderColor));
-        }
-
-        if (contentPanel != null)
-        {
-            mainPanel.add(contentPanel, BorderLayout.CENTER);
-        }
-
-        // Bottom Button UI
         if ((whichBtns & OK_BTN) == OK_BTN)
         {
             okBtn = createButton(StringUtils.isNotEmpty(okLabel) ? okLabel : getResourceString("OK"));
@@ -343,11 +322,15 @@ public class CustomDialog extends JDialog
                 }
             });
         }
-        
-        getRootPane().setDefaultButton(findDefaultBtn());
-        
+    }
+    
+    /**
+     * @return button bar panel
+     */
+    protected JPanel buildButtonBar()
+    {
         JPanel bb = null;
-        if (whichBtns == OK_BTN)
+    	if (whichBtns == OK_BTN)
         {
             bb = ButtonBarFactory.buildOKBar(okBtn);
             
@@ -379,10 +362,41 @@ public class CustomDialog extends JDialog
         {
             bb = ButtonBarFactory.buildOKHelpBar(cancelBtn, helpBtn);
             
-        } else  if (whichBtns == OK_BTN)
-        {
-            bb = ButtonBarFactory.buildOKBar(okBtn);
         }
+    	return bb;
+    }
+    /**
+     * Create the UI for the dialog.
+     */
+    public void createUI()
+    {
+        isCreated = true;
+        
+        /*if (helpContext == null)
+        {
+            whichBtns &= ~HELP_BTN; // Clear Bit for Help button if there is no HelpContext
+        }*/
+
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+        mainPanel = createMainPanel();
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 5, 2));
+        
+        if (titleBarLabel != null)
+        {
+            mainPanel.add(titleBarLabel, BorderLayout.NORTH);
+            mainPanel.setBorder(BorderFactory.createLineBorder(borderColor));
+        }
+
+        if (contentPanel != null)
+        {
+            mainPanel.add(contentPanel, BorderLayout.CENTER);
+        }
+
+        // Bottom Button UI
+        createButtons();
+        getRootPane().setDefaultButton(findDefaultBtn());
+        JPanel bb = buildButtonBar();
         
         if (bb != null)
         {
@@ -621,7 +635,7 @@ public class CustomDialog extends JDialog
         {
             UIRegistry.pushWindow(this);
             
-            if (okBtn == null && visible)
+            if (!isCreated && visible)
             {
                 createUI();
             }

@@ -57,6 +57,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     
     public static int[]            daysInMon = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
     protected static final String  deftitle = UIRegistry.getResourceString("FFE_DEFAULT");     
+    protected static final String  systitle = UIRegistry.getResourceString("FFE_SYSTEM");     
 
     protected String               fieldName;
     protected String               name;
@@ -647,8 +648,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         }
         str.append("]");
 
-        str.append(isDefault ? (' ' + deftitle) : "");
+        if (isSystem || isDefault)
+        {
+            str.append(" (");
         
+            str.append(isDefault ? deftitle : "");
+            str.append(isSystem ? ((isDefault ? ", " : "") + systitle) : "");
+        
+            str.append(")");
+        }
+
     	return str.toString();
     }
 
@@ -724,7 +733,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public boolean isValid(final String text)
     {
-        return isValid(this, text);
+        return isValid(this, text, false);
     }
     
     /**
@@ -825,7 +834,9 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
      * @param text the text to be validated.
      * @return true if it is valid
      */
-    public static boolean isValid(final UIFieldFormatterIFace formatter, final String text)
+    public static boolean isValid(final UIFieldFormatterIFace formatter, 
+                                  final String  text,
+                                  final boolean doValidateAll)
     {
         if (isNotEmpty(text))
         {
@@ -843,7 +854,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                 {
                     if (pos < txtLen)
                     {
-                        if (!field.isIncrementer())
+                        if (!field.isIncrementer() || doValidateAll)
                         {
                             //numeric, alphanumeric, alpha, separator, year
                             String val = text.substring(pos, Math.min(pos+field.getSize(), txtLen));
