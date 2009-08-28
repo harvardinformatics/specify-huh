@@ -1218,11 +1218,11 @@
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
                 <row>
-                    <cell type="label" labelfor="containedRFParent"/>
+                    <cell type="label" label="        Publication:"/>
                     <cell type="field" id="containedRFParent" uitype="querycbx" initialize="name=ReferenceWork" name="containedRFParent" colspan="5"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1"/>
+                    <cell type="label" label="Title/Protologue:"/>
                     <cell type="field" id="1" name="title" uitype="text" cols="50" colspan="9" isrequired="true"/>
                 </row>
                 <row>
@@ -1365,7 +1365,7 @@
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
             	<row>
-            		<cell type="label" labelfor="parent"/>
+            		<cell type="label" label="        Publication:"/>
             		<cell type="field" id="parent" name="referenceWork.containedRFParent.title" uitype="dsptextfield"/>
             	</row>
                 <row>
