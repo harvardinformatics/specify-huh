@@ -64,7 +64,7 @@ public class PreparationBusRules extends AttachmentOwnerBaseBusRules
             } else
             {
                 DBTableInfo tableInfo      = DBTableIdMgr.getInstance().getInfoById(Preparation.getClassTableId());
-                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preapration"}, tableInfo);
+                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation"}, tableInfo);
                 isOK = okToDelete(tableFieldList, dbObj.getId());
             }
             deletable.doDeleteDataObj(dataObj, session, isOK);
@@ -73,5 +73,19 @@ public class PreparationBusRules extends AttachmentOwnerBaseBusRules
         {
             super.okToDelete(dataObj, session, deletable);
         }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#shouldCloneField(java.lang.String)
+     */
+    @Override
+    public boolean shouldCloneField(String fieldName)
+    {
+        if (fieldName.equals("preparationAttribute"))
+        {
+            return true;
+        }
+        
+        return false;
     }
 }

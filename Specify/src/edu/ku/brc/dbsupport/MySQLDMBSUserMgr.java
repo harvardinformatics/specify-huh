@@ -56,8 +56,18 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
 		super();
 		
 		driverInfo = DatabaseDriverInfo.getDriver("MySQL");
-		
-		
+		if (driverInfo == null)
+		{
+		    driverInfo = DatabaseDriverInfo.getDriver("MySQLEmbedded");
+		}
+	}
+	
+	/**
+	 * @return
+	 */
+	public Connection getConnection()
+	{
+	    return connection;
 	}
 	
 	/**
@@ -121,8 +131,9 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
                                           itPasswordArg, 
                                           connStr, 
                                           driverInfo.getDriverClassName(), 
-                                          driverInfo.getDialectClassName(), dbName);
-        if (connection != null)
+                                          driverInfo.getDialectClassName(), 
+                                          dbName);
+        if (connection == null)
         {
             connection = dbConnection.createConnection();
         }
@@ -141,7 +152,7 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
             if (connection != null)
             {
                 int rv = BasicSQLUtils.update(connection, "CREATE DATABASE "+dbName);
-                if (false) // mmk: going to just have to use an it_user/pass that already has these privileges (root)
+                if (rv == 1)
                 {
                     String sql = String.format("GRANT ALL ON %s.* TO '%s'@'%s' IDENTIFIED BY '%s'", dbName, itUsername, hostName, itPassword);
                     log.debug(sql);
@@ -169,6 +180,29 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
             if (connection != null)
             {
                 int rv = BasicSQLUtils.update(connection, "DROP DATABASE "+dbName);
+                
+                return rv == 0;
+            }
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }   
+        
+        return false;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#dropUser(java.lang.String)
+     */
+    @Override
+    public boolean dropUser(String username)
+    {
+        try
+        {
+            if (connection != null)
+            {
+                int rv = BasicSQLUtils.update(connection, "DROP USER "+username);
                 
                 return rv == 0;
             }
@@ -209,7 +243,8 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     @Override
     public boolean doesUserExists(String userName)
     {
-        return BasicSQLUtils.getCount(connection, String.format("SELECT count(*) FROM mysql.user WHERE User = '%s' AND Host = '%s'", userName, hostName)) == 1;
+        Integer count = BasicSQLUtils.getCount(connection, String.format("SELECT count(*) FROM mysql.user WHERE User = '%s' AND Host = '%s'", userName, hostName));
+        return count == null ? false : count == 1;
     }
 
     
@@ -277,12 +312,19 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
                                 if (tokens[inx].equals("SELECT"))
                                 {
                                     perms |= PERM_SELECT;
+                                    
                                 } else if (tokens[inx].equals("UPDATE"))
                                 {
                                     perms |= PERM_UPDATE;
+                                    
                                 } else if (tokens[inx].equals("DELETE"))
                                 {
                                     perms |= PERM_DELETE;
+                                    
+                                } else if (tokens[inx].equals("LOCK_TABLES"))
+                                {
+                                    perms |= PERM_LOCK_TABLES;
+                                    
                                 } else if (tokens[inx].equals("INSERT"))
                                 {
                                     perms |= PERM_INSERT;
@@ -307,8 +349,6 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
         return PERM_NONE;
     }
 
-    
-
 	/* (non-Javadoc)
      * @see edu.ku.brc.dbsupport.DBMSUserMgr#doesDBHaveTables(java.lang.String)
      */
@@ -317,8 +357,7 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     {
         try
         {
-            for (@SuppressWarnings("unused")
-            Object[] row : BasicSQLUtils.query(connection, "show tables"))
+            for (@SuppressWarnings("unused")Object[] row : BasicSQLUtils.query(connection, "show tables"))
             {
                 return true;
             }
@@ -331,10 +370,32 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#doesDBHaveTable(java.lang.String)
+     */
+    @Override
+    public boolean doesDBHaveTable(String tableName)
+    {
+        try
+        {
+            for (Object[] row : BasicSQLUtils.query(connection, "show tables"))
+            {
+                if (row[0].toString().equalsIgnoreCase(tableName))
+                {
+                    return true;
+                }
+            }
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.dbsupport.DBMSUserMgr#setPermissions(java.lang.String, java.lang.String, int)
      */
     @Override
-    public boolean setPermissions(String username, String dbName, int permissions)
+    public boolean setPermissions(final String username, final String dbName, final int permissions)
     {
         Statement stmt = null;
         try
@@ -342,30 +403,7 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
             if (connection != null)
             {
                 StringBuilder sb = new StringBuilder("GRANT ");
-                if ((permissions & PERM_ALL) == PERM_ALL)
-                {
-                    sb.append("ALL ");
-                    
-                } else
-                {
-                    if ((permissions & PERM_SELECT) == PERM_SELECT)
-                    {
-                        sb.append("SELECT,");
-                    }
-                    if ((permissions & PERM_UPDATE) == PERM_UPDATE)
-                    {
-                        sb.append("UPDATE,");
-                    }
-                    if ((permissions & PERM_DELETE) == PERM_DELETE)
-                    {
-                        sb.append("DELETE,");
-                    }
-                    if ((permissions & PERM_INSERT) == PERM_INSERT)
-                    {
-                        sb.append("INSERT,");
-                    }
-                    sb.setLength(sb.length()-1); // chomp comma
-                }
+                appendPerms(sb, permissions);
                 sb.append(String.format(" ON %s.* TO '%s'@'%s'",dbName, username, hostName));
                 
                 stmt = connection.createStatement();
@@ -396,7 +434,8 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
 		try
 		{
 			dbConnection.close();
-			dbConnection = null;
+            dbConnection = null;
+            connection   = null;
 			return true;
 			
 		} catch (Exception ex)
@@ -419,6 +458,43 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
             } catch (Exception ex) {}
         }
 	}
+	
+	/**
+	 * Appends the MySQL permissions to the StringBuilder
+	 * @param sb the StringBuilder
+	 * @param permissions the permissions mask
+	 */
+	protected void appendPerms(final StringBuilder sb, final int permissions)
+	{
+	    if ((permissions & PERM_ALL) == PERM_ALL)
+        {
+            sb.append("ALL ");
+            
+        } else
+        {
+            if ((permissions & PERM_SELECT) == PERM_SELECT)
+            {
+                sb.append("SELECT,");
+            }
+            if ((permissions & PERM_UPDATE) == PERM_UPDATE)
+            {
+                sb.append("UPDATE,");
+            }
+            if ((permissions & PERM_DELETE) == PERM_DELETE)
+            {
+                sb.append("DELETE,");
+            }
+            if ((permissions & PERM_INSERT) == PERM_INSERT)
+            {
+                sb.append("INSERT,");
+            }
+            if ((permissions & PERM_LOCK_TABLES) == PERM_LOCK_TABLES)
+            {
+                sb.append("LOCK TABLES,");
+            }
+            sb.setLength(sb.length()-1); // chomp comma
+        }
+	}
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.dbsupport.DBMSUserMgrIFace#createUser(java.lang.String, java.lang.String, java.lang.String, int)
@@ -432,30 +508,7 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
 			if (connection != null)
 			{
 				StringBuilder sb = new StringBuilder("GRANT ");
-                if ((permissions & PERM_ALL) == PERM_ALL)
-                {
-                    sb.append("ALL ");
-                    
-                } else
-                {
-                    if ((permissions & PERM_SELECT) == PERM_SELECT)
-                    {
-                        sb.append("SELECT,");
-                    }
-                    if ((permissions & PERM_UPDATE) == PERM_UPDATE)
-                    {
-                        sb.append("UPDATE,");
-                    }
-                    if ((permissions & PERM_DELETE) == PERM_DELETE)
-                    {
-                        sb.append("DELETE,");
-                    }
-                    if ((permissions & PERM_INSERT) == PERM_INSERT)
-                    {
-                        sb.append("INSERT,");
-                    }
-                    sb.setLength(sb.length()-1); // chomp comma
-                }
+				appendPerms(sb, permissions);
                 sb.append(String.format(" ON %s.* TO '%s'@'%s' IDENTIFIED BY '%s'",dbName, username, hostName, password));
 				
                 stmt = connection.createStatement();
@@ -502,4 +555,31 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
         }
 		return false;
 	}
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.dbsupport.DBMSUserMgr#verifyEngineAndCharSet()
+     */
+    @Override
+    public boolean verifyEngineAndCharSet(final String dbName)
+    {
+        errMsg = null;
+        Vector<Object[]> rows = BasicSQLUtils.query(connection, "select ENGINE,TABLE_COLLATION FROM information_schema.tables WHERE table_schema = '"+dbName+"'");
+        if (rows != null && rows.size() > 0)
+        {
+            Object[] row = rows.get(0);
+            if (row[0] != null && !row[0].toString().equalsIgnoreCase("InnoDB"))
+            {
+                errMsg = "The engine is not InnoDB.";
+            }
+            if (row[1] != null && !StringUtils.contains(row[1].toString(), "utf8"))
+            {
+                errMsg = (errMsg == null ? "" : errMsg + "\n") + "The character set is not UTF-8."; 
+            }
+        } else
+        {
+            errMsg = "Error checking the database engine and character set.";
+        }
+        return errMsg == null;
+    }
+    
 }

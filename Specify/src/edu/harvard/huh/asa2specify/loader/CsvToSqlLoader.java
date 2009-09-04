@@ -164,6 +164,9 @@ public abstract class CsvToSqlLoader
 
     protected Integer getCollectionId(String code) throws LocalException
     {
+        // TODO: decide on multiple/single collection loading
+        code = "HUH";
+
         Integer collectionId = collectionIdsByCode.get(code);
         if (collectionId == null)
         {

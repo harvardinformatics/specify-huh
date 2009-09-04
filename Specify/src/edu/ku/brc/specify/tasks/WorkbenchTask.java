@@ -36,6 +36,7 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -131,6 +132,7 @@ import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.dnd.Trash;
+import edu.ku.brc.util.Pair;
 
 /**
  * Placeholder for additional work.
@@ -167,7 +169,17 @@ public class WorkbenchTask extends BaseTask
     public static final String     IMAGES_FILE_PATH      = "wb.imagepath";
     public static final String     IMPORT_FILE_PATH      = "wb.importfilepath";
     public static final String     EXPORT_FILE_PATH      = "wb.exportfilepath";
-       
+
+    /**
+     * internationalized boolean string representations for validation.
+     */
+    public static String[]                           boolStrings                  = {
+            getResourceString("WB_TRUE"), getResourceString("WB_FALSE"),
+            getResourceString("WB_TRUE_ABBR"), getResourceString("WB_FALSE_ABBR"),
+            getResourceString("WB_YES"), getResourceString("WB_NO"),
+            getResourceString("WB_YES_ABBR"), getResourceString("WB_NO_ABBR"), "1", "0" };
+
+    
     protected static SoftReference<DBTableIdMgr> databasechema = null;
 
     // Data Members
@@ -177,9 +189,7 @@ public class WorkbenchTask extends BaseTask
     
     protected Vector<NavBoxItemIFace>     reportsList      = new Vector<NavBoxItemIFace>();
     protected Vector<NavBoxItemIFace>     enableNavBoxList = new Vector<NavBoxItemIFace>();
-    
-    protected WorkbenchTemplate           selectedTemplate = null; // Transient set by selectExistingTemplate
-    
+        
     // Temporary until we get a Workbench Icon
     protected boolean                     doingStarterPane = false;
 
@@ -197,11 +207,6 @@ public class WorkbenchTask extends BaseTask
         {
         	log.debug("add? " + getPermissions().canAdd() + " modify? " + getPermissions().canModify()
         			+ " delete? " + getPermissions().canDelete() + " view? " + getPermissions().canView());
-//        	System.out.println("add? " + getPermissions().canAdd() + " modify? " + getPermissions().canModify()
-//        			+ " delete? " + getPermissions().canDelete() + " view? " + getPermissions().canView());
-//        	DBTableInfo wbtbl = DBTableIdMgr.getInstance().getByClassName("edu.ku.brc.specify.datamodel.Workbench");
-//        	System.out.println("tbl add? " + wbtbl.getPermissions().canAdd() + " tbl modify? " + wbtbl.getPermissions().canModify()
-//        			+ " tbl delete? " + wbtbl.getPermissions().canDelete() + " tbl view? " + wbtbl.getPermissions().canView());
         }
         else
         {
@@ -852,11 +857,13 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
      * show a Dialog and returns null if there are not templates or none match.
      * @param colInfo the column info
      * @param helpContext the help context
-     * @return the existing WorkbenchTemplate to use or null
+     * 
+     * @return a Pair. The first element in the pair is false then the selection was cancelled. 
+     * Otherwise, the second element will be the selected WorkbenchTemplate or null if a new template should be created.
      */
-    protected int selectExistingTemplate(final Vector<ImportColumnInfo> colInfo, final String helpContext)
+    public Pair<Boolean, WorkbenchTemplate> selectExistingTemplate(final Vector<ImportColumnInfo> colInfo, final String helpContext)
     {
-        this.selectedTemplate = null;
+        WorkbenchTemplate selection = null;
         
         if (colInfo != null)
         {
@@ -864,6 +871,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
         }
         
         Vector<WorkbenchTemplate> matchingTemplates = new Vector<WorkbenchTemplate>();
+        HashMap<WorkbenchTemplate, Vector<ImportColumnInfo>> unMappedCols = new HashMap<WorkbenchTemplate, Vector<ImportColumnInfo>>();
         
         // Check for any matches with existing templates
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
@@ -877,43 +885,21 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 {
                     matchingTemplates.add(template);
                     
-                } else if (template.getWorkbenchTemplateMappingItems().size() == colInfo.size())
+                } else if (template.getWorkbenchTemplateMappingItems().size() <= colInfo.size())
                 {
                     boolean match = true;
                     Vector<WorkbenchTemplateMappingItem> items = new Vector<WorkbenchTemplateMappingItem>(template.getWorkbenchTemplateMappingItems());
-                    Collections.sort(items);
+                    Vector<ImportColumnInfo> mapped = new Vector<ImportColumnInfo>();
                     for (int i=0;i<items.size();i++)
                     {
                         WorkbenchTemplateMappingItem wbItem = items.get(i);
-                        ImportColumnInfo fileItem = colInfo.get(i);
+                        int origIdx = wbItem.getOrigImportColumnIndex().intValue();
+                        ImportColumnInfo fileItem = origIdx > -1 && origIdx < colInfo.size() ? colInfo.get(origIdx) : null;
                         // Check to see if there is an exact match by name
                         if (colsMatchByName(wbItem, fileItem))
                         {
-                            // commenting out type-checking code
-                            // type checking doesn't really work right now.
-                            // for csv imports getColType() is always "String". for xls, all numeric
-                            // types are represented by HSSFCell.CELL_TYPE_NUMERIC,
-                            // for which "Double" is arbitrarily assigned by ImportColumnInfo.
-
-                            // ImportColumnInfo.ColumnType type =
-                            // ImportColumnInfo.getType(getDataType(wbItem));
-                            // if (type == ImportColumnInfo.ColumnType.Date)
-                            // {
-                            // ImportColumnInfo.ColumnType disciplinee = fileItem.getColType();
-                            // if (disciplinee != ImportColumnInfo.ColumnType.String && disciplinee !=
-                            // ImportColumnInfo.ColumnType.Double)
-                            // {
-                            // //log.error("["+wbItem.getImportedColName()+"]["+fileItem.getColName()+"]["+disciplinee+"]");
-                            // match = false;
-                            // break;
-                            // }
-                            // } else if (type != fileItem.getColType())
-                            // {
-                            //                                //log.error("["+wbItem.getImportedColName()+"]["+fileItem.getColName()+"]["+type+"]["+fileItem.getColType()+"]");
-                            //                                match = false;
-                            //                                break;
-                            //                            }
-                            //    
+                        	//might do additional type checking
+                        	mapped.add(fileItem);
                         }
                         else
                         {
@@ -926,6 +912,15 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     if (match)
                     {
                         matchingTemplates.add(template);
+                        Vector<ImportColumnInfo> unmapped = new Vector<ImportColumnInfo>();
+                        for (ImportColumnInfo fileItem : colInfo)
+                        {
+                        	if (mapped.indexOf(fileItem) == -1)
+                        	{
+                        		unmapped.add(fileItem);
+                        	}
+                        }
+                        unMappedCols.put(template, unmapped);
                     }
                 }
             }
@@ -943,7 +938,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
             session.close();
         }
         
-        this.selectedTemplate = null;
+        selection = null;
         
         // Ask the user to choose an existing template.
         if (matchingTemplates.size() > 0)
@@ -961,19 +956,40 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
             {
                 if (!dlg.isCreateNew())
                 {
-                    selectedTemplate = dlg.getSelectedObject();
-                    loadTemplateFromData(selectedTemplate);
+                	selection = dlg.getSelectedObject();
+                	Vector<ImportColumnInfo> unmapped = unMappedCols.get(selection);
+                	if (unmapped != null && unmapped.size() > 0)
+                	{
+                		StringBuilder flds = new StringBuilder();
+                		for (ImportColumnInfo info : unmapped) //if there are a lot of these the message will be ugly
+                		{
+                			if (flds.length() != 0)
+                			{
+                				flds.append(", ");
+                			}
+                			flds.append(info.getColTitle());
+                		}
+                		if (!UIRegistry.displayConfirm(UIRegistry.getResourceString("WB_INCOMPLETE_MAP_TITLE"), 
+                				String.format(UIRegistry.getResourceString("WB_UNMAPPED_NOT_IMPORTED"), flds.toString()), 
+                				UIRegistry.getResourceString("YES"), UIRegistry.getResourceString("NO"), 
+                				JOptionPane.WARNING_MESSAGE))
+                		{
+                			return new Pair<Boolean, WorkbenchTemplate>(true, null); // means create a new one
+                		}
+                	}
+                	
+                    loadTemplateFromData(selection);
                     
-                    return CustomDialog.OK_BTN; // means reuse an existing one
+                    return new Pair<Boolean, WorkbenchTemplate>(true, selection); // means reuse an existing one
                 }
 
-                return CustomDialog.APPLY_BTN; // means create a new one
+                return new Pair<Boolean, WorkbenchTemplate>(true, null); // means create a new one
             }
             
-            return CustomDialog.CANCEL_BTN;
+            return new Pair<Boolean, WorkbenchTemplate>(false, null); //cancelled
         }
 
-        return ChooseFromListDlg.APPLY_BTN; // means create a new one
+        return new Pair<Boolean, WorkbenchTemplate>(true, null); // means create a new one
     }
     
     /**
@@ -1015,7 +1031,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
      * @param props the properties object to be filled in.
      * @return true if everything was asked for and received.
      */
-    public boolean getExportInfo(final Properties props)
+    public boolean getExportInfo(final Properties props, final String defaultFileName)
     {
         String extension = "";
         //String fileTypeCaption = "";
@@ -1066,6 +1082,10 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setMultiSelectionEnabled(false);
         chooser.setFileFilter(new UIFileFilter("xls", getResourceString("WB_EXCELFILES")));
+        if (defaultFileName != null)
+        {
+        	chooser.setSelectedFile(new File(chooser.getCurrentDirectory().getPath() + File.separator + defaultFileName + ".xls"));
+        }
         
         if (chooser.showSaveDialog(UIRegistry.get(UIRegistry.FRAME)) != JFileChooser.APPROVE_OPTION)
         {
@@ -1080,8 +1100,8 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
             return false;
         }
         
-        //String path = fileDialog.getDirectory();
-        String path = FilenameUtils.getPath(file.getPath());
+        String path = chooser.getCurrentDirectory().getPath();
+        //String path = FilenameUtils.getPath(file.getPath());
         if (StringUtils.isNotEmpty(path))
         {
             AppPreferences localPrefs = AppPreferences.getLocalPrefs();
@@ -1128,8 +1148,8 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 return false;
             }
         }
-        //props.setProperty("fileName", path + File.separator + fileName);
-        props.setProperty("fileName", File.separator + path + fileName);
+        props.setProperty("fileName", path + File.separator + fileName);
+        //props.setProperty("fileName", File.separator + path + fileName);
         return true;
     }
     
@@ -1177,7 +1197,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
 
                Properties props = new Properties();
 
-               if (!getExportInfo(props))
+               if (!getExportInfo(props, workbench.getName()))
                {
                    return;
                }
@@ -1243,7 +1263,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
             try
             {
                 session.attach(workbenchTemplate);
-                workbenchTemplate.forceLoad();
+                workbenchTemplate.checkMappings(getDatabaseSchema());
                 Vector<WorkbenchTemplate> newDataRow = new Vector<WorkbenchTemplate>(1);
                 newDataRow.add(workbenchTemplate);
                 command.setData(newDataRow);
@@ -1253,7 +1273,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
 
                 Properties props = new Properties();
 
-                if (!getExportInfo(props))
+                if (!getExportInfo(props, null))
                 {
                     return;
                 }
@@ -1562,11 +1582,17 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                                            final File   inputFile)
     {
         String wbName  = inputFile != null ? FilenameUtils.getBaseName(inputFile.getName()) : null;
-        int btnPressed = selectExistingTemplate(inputFile != null ? dataFileInfo.getColInfo() : null, 
+        Pair<Boolean, WorkbenchTemplate> selection = selectExistingTemplate(inputFile != null ? dataFileInfo.getColInfo() : null, 
                 inputFile != null ? "WorkbenchImportData" : "WorkbenchNewDataSet");
-        WorkbenchTemplate workbenchTemplate = selectedTemplate;
         
-        if (btnPressed == ChooseFromListDlg.APPLY_BTN)
+        if (!selection.getFirst())
+        {
+        	return null;  //cancelled
+        }
+        
+        WorkbenchTemplate workbenchTemplate = selection.getSecond();        
+        
+        if (workbenchTemplate == null)
         {
             TemplateEditor dlg = showColumnMapperDlg(dataFileInfo, null, "WB_MAPPING_EDITOR");
             if (!dlg.isCancelled())
@@ -1575,7 +1601,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
              }
             dlg.dispose();
             
-        } else if (btnPressed == ChooseFromListDlg.OK_BTN && workbenchTemplate != null)
+        } else 
         {
             workbenchTemplate = cloneWorkbenchTemplate(workbenchTemplate);
         }
@@ -1854,7 +1880,8 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                          
                          //force load the workbench here instead of calling workbench.forceLoad() because
                          //is so time-consuming and needs progress bar.
-                         workbench.getWorkbenchTemplate().forceLoad();
+                         //workbench.getWorkbenchTemplate().forceLoad();
+                         workbench.getWorkbenchTemplate().checkMappings(getDatabaseSchema());
                          UIRegistry.getStatusBar().incrementValue(workbench.getName());
                          for (WorkbenchRow row : workbench.getWorkbenchRows())
                          {
@@ -2071,7 +2098,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 UIRegistry.getStatusBar().setIndeterminate(workbench.getName(), false);
                 //force load the workbench here instead of calling workbench.forceLoad() because
                 //is so time-consuming and needs progress bar.
-                workbench.getWorkbenchTemplate().forceLoad();
+                workbench.getWorkbenchTemplate().checkMappings(getDatabaseSchema());
                 UIRegistry.getStatusBar().incrementValue(workbench.getName());
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run()
@@ -2340,7 +2367,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     
                 } else if (list.size() == 1)
                 {
-                    list.get(0).getWorkbenchTemplate().forceLoad();
+                    list.get(0).getWorkbenchTemplate().checkMappings(getDatabaseSchema());
                     return list.get(0);
                 }
                 
@@ -2652,7 +2679,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
     protected void editTemplate(final WorkbenchTemplate wbTemplate)
     {
         loadTemplateFromData(wbTemplate);
-        
+        wbTemplate.checkMappings(getDatabaseSchema());
         TemplateEditor dlg = showColumnMapperDlg(null, wbTemplate, "WB_MAPPING_EDITOR");
         if (!dlg.isCancelled())
         {
@@ -2678,17 +2705,22 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 {
                     for (WorkbenchTemplateMappingItem wbtmi : items)
                     {
-                        if (delItem.getWorkbenchTemplateMappingItemId().longValue() == wbtmi.getWorkbenchTemplateMappingItemId().longValue())
+                    	if (delItem.getWorkbenchTemplateMappingItemId().longValue() == wbtmi.getWorkbenchTemplateMappingItemId().longValue())
                         {
                             //log.debug("del ["+wbtmi.getCaption()+"]["+wbtmi.getWorkbenchTemplateMappingItemId().longValue()+"]");
                             //wbtmi.setWorkbenchTemplate(null);
-                            items.remove(wbtmi);
+                    		
+                    		items.remove(wbtmi);
+                    		wbtmi.setWorkbenchTemplate(null);
                             if (wbtmi.getWorkbenchDataItems() != null)
                             {
-                                for (WorkbenchDataItem wbdi : wbtmi.getWorkbenchDataItems())
+                              
+                            	for (WorkbenchDataItem wbdi : wbtmi.getWorkbenchDataItems())
                                 {
                                     session.delete(wbdi);
+                            		//wbdi.setWorkbenchTemplateMappingItem(null);
                                 }
+                            	wbtmi.getWorkbenchDataItems().clear();
                             }
                             session.delete(wbtmi);
                             break;
@@ -2702,6 +2734,35 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     items.add(wbtmi);
                     //log.debug("new ["+wbtmi.getCaption()+"]["+wbtmi.getViewOrder().shortValue()+"]");
                     session.saveOrUpdate(wbtmi) ;
+                }
+                
+                
+                //Check to see if geo/ref data needs to be updated
+                WorkbenchTemplateMappingItem aGeoRefMapping = null;
+                for (WorkbenchTemplateMappingItem wbtmi : items)
+                {
+                    if (aGeoRefMapping == null && wbtmi.getTableName().equals("locality"))
+                    {
+                        if (wbtmi.getFieldName().equalsIgnoreCase("latitude1") || wbtmi.getFieldName().equalsIgnoreCase("latitude2")
+                                || wbtmi.getFieldName().equalsIgnoreCase("longitude1") || wbtmi.getFieldName().equalsIgnoreCase("longitude2"))
+                        {
+                        	aGeoRefMapping = wbtmi;
+                        	break;
+                        }
+                    }
+                }
+                if (aGeoRefMapping != null)
+                {
+                	for (Workbench wb : workbenchTemplate.getWorkbenches())
+                	{
+                		Workbench mwb = session.merge(wb);
+                		mwb.forceLoad();
+                		for (WorkbenchRow wbRow : mwb.getWorkbenchRows())
+                		{
+                			wbRow.updateGeoRefTextFldsIfNecessary(aGeoRefMapping);
+                		}
+                		session.saveOrUpdate(mwb);
+                	}
                 }
                 
                 session.saveOrUpdate(workbenchTemplate);
@@ -2790,18 +2851,20 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     //pane.addRowAfter();
                     pane.addRowToSpreadSheet();
                 }
-                row.addImage(file);
-                                
-                if (i % 5 == 0)
+                int inx = row.addImage(file);
+                if (inx > -1)
                 {
-                    final String msg = workbench.getName() + " (" + i + " / " + fileList.size() + ")";
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run()
-                        {
-                            
-                            UIRegistry.writeGlassPaneMsg(String.format(getResourceString("WB_LOADING_IMGS_DATASET"), new Object[] {msg}), GLASSPANE_FONT_SIZE);
-                        }
-                    });
+                    if (i % 5 == 0)
+                    {
+                        final String msg = workbench.getName() + " (" + i + " / " + fileList.size() + ")";
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run()
+                            {
+                                
+                                UIRegistry.writeGlassPaneMsg(String.format(getResourceString("WB_LOADING_IMGS_DATASET"), new Object[] {msg}), GLASSPANE_FONT_SIZE);
+                            }
+                        });
+                    }
                 }
             }
             
@@ -2960,10 +3023,16 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
         
         if (workbenchArg == null) // create a new Workbench
         {
-            int               btnPressed        = selectExistingTemplate(null, "WorkbenchImportImages");
-            WorkbenchTemplate workbenchTemplate = selectedTemplate;
+            Pair<Boolean, WorkbenchTemplate> selection = selectExistingTemplate(null, "WorkbenchImportImages");
             
-            if (btnPressed == ChooseFromListDlg.APPLY_BTN)
+            if (!selection.getFirst())
+            {
+            	return; //cancelled
+            }
+            
+            WorkbenchTemplate workbenchTemplate = selection.getSecond();
+            
+            if (workbenchTemplate == null)
             {
                 // create a new WorkbenchTemplate
                 TemplateEditor dlg = showColumnMapperDlg(null, null, "WB_MAPPING_EDITOR");
@@ -2974,15 +3043,13 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 dlg.dispose();
 
             }
-            else if (btnPressed == ChooseFromListDlg.CANCEL_BTN)
+            else
             {
-                // just quit this process
-                return;
+            	workbenchTemplate = cloneWorkbenchTemplate(workbenchTemplate);
             }
-            
             if (workbenchTemplate != null)
             {
-                workbench = createNewWorkbenchDataObj("", selectedTemplate != null ? cloneWorkbenchTemplate(workbenchTemplate) : workbenchTemplate);
+                workbench = createNewWorkbenchDataObj("", workbenchTemplate);
             }
 
         }
@@ -3147,7 +3214,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 WorkbenchTemplate workbenchTemplate = session.get(WorkbenchTemplate.class, recordSet.getOnlyItem().getRecordId());
                 if (workbenchTemplate != null)
                 {
-                    workbenchTemplate.forceLoad();
+                    workbenchTemplate.checkMappings(getDatabaseSchema());
                 }
                 return workbenchTemplate;
                 
@@ -3316,7 +3383,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
      */
     protected void processWorkbenchCommands(final CommandAction cmdAction)
     {
-        boolean isClickedOn = cmdAction.getData() instanceof CommandAction && cmdAction.getData() == cmdAction;
+        boolean isClickedOn = true;//cmdAction.getData() instanceof CommandAction && cmdAction.getData() == cmdAction;
         
         UsageTracker.incrUsageCount("WB."+cmdAction.getAction());
 

@@ -59,6 +59,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -84,12 +85,12 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.SpQueryField;
 import edu.ku.brc.specify.datamodel.SpQueryField.OperatorType;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
-import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.DateConverter;
 import edu.ku.brc.specify.ui.db.PickListDBAdapterFactory;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.MultiStateIconButon;
 import edu.ku.brc.ui.RolloverCommand;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.DateConverter;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -212,14 +213,21 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                 //Also assuming (more or less) valid entry. 
                 setShowingPair(true);
                 String[] entries = entry.split(",");
-                text1.setText(entries[0]);
-                if (entries.length > 1)
+                if (entries.length > 0)
                 {
-                    text2.setText(entries[1]);
+                	text1.setText(entries[0]);
+                	if (entries.length > 1)
+                	{
+                		text2.setText(entries[1]);
+                	}
+                	else
+                	{
+                		text2.setText(null);
+                	}
                 }
                 else
                 {
-                    text2.setText(null);
+                	text1.setText(null);
                 }
             }
             else
@@ -497,6 +505,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                 operatorCBX.setSelectedIndex(queryField.getOperStart());
                 setCriteriaText(queryField.getStartValue(), (OperatorType )operatorCBX.getSelectedItem());
                 sortCheckbox.setState(queryField.getSortType());
+                sortCheckbox.setEnabled(queryField.getIsDisplay());
                 if (!ownerQuery.isPromptMode())
                 {
                     isDisplayedCkbx.setSelected(queryField.getIsDisplay());
@@ -624,6 +633,10 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         if (fieldQRI.getDataClass().equals(Boolean.class))
         {
             return !operatorCBX.getSelectedItem().equals(SpQueryField.OperatorType.DONTCARE);
+        }
+        if (operatorCBX.getSelectedItem().equals(SpQueryField.OperatorType.EMPTY))
+        {
+        	return true;
         }
         return StringUtils.isNotEmpty(getCriteriaText(true).trim());
     }
@@ -1223,6 +1236,27 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             isDisplayedCkbx = createCheckBox("isDisplayedCkbx");
             isDisplayedCkbx.addFocusListener(focusListener);
             isDisplayedCkbx.addKeyListener(enterListener);
+            isDisplayedCkbx.addActionListener(new ActionListener() {
+
+				/* (non-Javadoc)
+				 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+				 */
+				@Override
+				public void actionPerformed(ActionEvent arg0)
+				{
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/* (non-Javadoc)
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							sortCheckbox.setEnabled(isDisplayedCkbx.isSelected());
+						}
+					});
+				}
+            });
             isPromptCkbx = createCheckBox("isPromptCkbx");
             isPromptCkbx.addFocusListener(focusListener);
             isPromptCkbx.addKeyListener(enterListener);

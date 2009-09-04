@@ -170,6 +170,8 @@ public class PublicationLoader extends AuditedObjectLoader
 		String abbrev = publication.getAbbreviation();
 		if (journal == null) referenceWork.setText1(abbrev);
 
+		// Text2 (collation)
+		
 		// TimestampCreated
         Date dateCreated = publication.getDateCreated();
         referenceWork.setTimestampCreated(DateUtils.toTimestamp(dateCreated));

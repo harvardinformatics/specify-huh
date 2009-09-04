@@ -387,10 +387,11 @@ class SetUpBuildDlg extends CustomDialog
             {
                 if (disp != DisciplineType.STD_DISCIPLINES.botany &&
                     disp != DisciplineType.STD_DISCIPLINES.invertpaleo &&
+                    disp != DisciplineType.STD_DISCIPLINES.paleobotany &&
                     disp != DisciplineType.STD_DISCIPLINES.fish)
                 {
                     DisciplineType dType = DisciplineType.getDiscipline(disp);
-                    File file = XMLHelper.getConfigDir(dType.getName()+ File.separator + "taxon_init.xml");
+                    File file = XMLHelper.getConfigDir(dType.getFolder()+ File.separator + "taxon_init.xml");
                     if (file != null && file.exists())
                     {
                         CollectionChoice collChoice = new CollectionChoice(disp, false, true);

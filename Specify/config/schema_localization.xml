@@ -30,7 +30,7 @@
         </names>
         <descs/>
       </item>
-      <item name="type" type="java.lang.String" isUIFormatter="false" pickListName="AccessionType" isRequired="false">
+      <item name="type" type="java.lang.String" isUIFormatter="false" pickListName="HUH Accession Type" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -18194,7 +18194,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="definition" type="ManyToOne">
+      <item name="definition" type="ManyToOne" pickListName="HUH Reference Work Type">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
@@ -27264,11 +27264,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text1" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text1</text>
+            <text>Description</text>
           </str>
         </names>
         <descs>
@@ -27411,7 +27411,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text2" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>Local Unit/\nFor Use By</isHidden>
         <names>
           <str language="en">
             <version>0</version>

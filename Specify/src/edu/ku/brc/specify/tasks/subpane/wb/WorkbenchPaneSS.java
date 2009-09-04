@@ -233,7 +233,7 @@ public class WorkbenchPaneSS extends BaseSubPane
     protected JButton               exportExcelCsvBtn      = null;
     protected JButton               uploadDatasetBtn       = null;
     protected DropDownButtonStateful ssFormSwitcher        = null;  
-    protected List<JButton>         selectionSensativeButtons  = new Vector<JButton>();
+    protected List<JButton>         selectionSensitiveButtons  = new Vector<JButton>();
     
     protected int                   currentRow                 = 0;
     protected FormPane              formPane;
@@ -317,9 +317,63 @@ public class WorkbenchPaneSS extends BaseSubPane
         } 
         
         model       = new GridTableModel(workbench);
-        spreadSheet = new SpreadSheet(model);
+        spreadSheet = new WorkbenchSpreadSheet(model);
         spreadSheet.setReadOnly(isReadOnly);
         model.setSpreadSheet(spreadSheet);
+        
+        //add key mappings for cut, copy, paste
+        //XXX Note: these are shortcuts directly to the SpreadSheet cut,copy,paste methods, NOT to the Specify edit menu.
+        addRecordKeyMappings(spreadSheet, KeyEvent.VK_C, "Copy", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                SwingUtilities.invokeLater(new Runnable() {
+
+					/* (non-Javadoc)
+					 * @see java.lang.Runnable#run()
+					 */
+					@Override
+					public void run()
+					{
+		            	spreadSheet.cutOrCopy(false);
+					}
+                });
+            }
+        });
+        addRecordKeyMappings(spreadSheet, KeyEvent.VK_X, "Cut", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                SwingUtilities.invokeLater(new Runnable() {
+
+					/* (non-Javadoc)
+					 * @see java.lang.Runnable#run()
+					 */
+					@Override
+					public void run()
+					{
+		            	spreadSheet.cutOrCopy(true);
+					}
+                });
+            }
+        });
+        addRecordKeyMappings(spreadSheet, KeyEvent.VK_V, "Paste", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                SwingUtilities.invokeLater(new Runnable() {
+
+					/* (non-Javadoc)
+					 * @see java.lang.Runnable#run()
+					 */
+					@Override
+					public void run()
+					{
+		            	spreadSheet.paste();
+					}
+                });
+            }
+        });
         
         findPanel = spreadSheet.getFindReplacePanel();
         UIRegistry.getLaunchFindReplaceAction().setSearchReplacePanel(findPanel);
@@ -439,7 +493,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         else
         {
             deleteRowsBtn = createIconBtn("DelRec", "WB_DELETE_ROW", delAction);
-            selectionSensativeButtons.add(deleteRowsBtn);
+            selectionSensitiveButtons.add(deleteRowsBtn);
             spreadSheet.setDeleteAction(delAction);
         }
         
@@ -464,7 +518,7 @@ public class WorkbenchPaneSS extends BaseSubPane
                     model.clearCells(rows, cols);
                 }
             });
-            selectionSensativeButtons.add(clearCellsBtn);
+            selectionSensitiveButtons.add(clearCellsBtn);
         }
         
         Action addAction = addRecordKeyMappings(spreadSheet, KeyEvent.VK_N, "AddRow", new AbstractAction()
@@ -955,7 +1009,7 @@ public class WorkbenchPaneSS extends BaseSubPane
     protected void updateBtnUI()
     {
         boolean enable = spreadSheet.getSelectedRow() > -1;
-        for (JButton btn: selectionSensativeButtons)
+        for (JButton btn: selectionSensitiveButtons)
         {
            if (btn != null)
            {
@@ -1905,9 +1959,9 @@ public class WorkbenchPaneSS extends BaseSubPane
             try
             {
                 GeoRefConverter converter = new GeoRefConverter();
-                lat1 = converter.convert(lat1, GeoRefFormat.D_PLUS_MINUS.name());
+                lat1 = converter.convert(StringUtils.stripToNull(lat1), GeoRefFormat.D_PLUS_MINUS.name());
                 latitude = new Double(lat1);
-                lon1 = converter.convert(lon1, GeoRefFormat.D_PLUS_MINUS.name());
+                lon1 = converter.convert(StringUtils.stripToNull(lon1), GeoRefFormat.D_PLUS_MINUS.name());
                 longitude = new Double(lon1);
             }
             catch (Exception e)
@@ -2096,7 +2150,7 @@ public class WorkbenchPaneSS extends BaseSubPane
             String convertedValue;
             try
             {
-                convertedValue = converter.convert(currentValue, outputFormat, latOrLon, degFmt);
+                convertedValue = converter.convert(StringUtils.stripToNull(currentValue), outputFormat, latOrLon, degFmt);
                 
             }
             catch (Exception e)
@@ -2170,7 +2224,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         
         Properties props = new Properties();
 
-        if (!((WorkbenchTask) task).getExportInfo(props))
+        if (!((WorkbenchTask) task).getExportInfo(props, workbench.getName()))
         {
             return;
         }
@@ -2783,6 +2837,11 @@ public class WorkbenchPaneSS extends BaseSubPane
      */
     public void saveObject()
     {
+        if (workbench == null)
+        {
+            UIRegistry.showError("The workbench is 'null' before save.\nPlease contact Specify support.");
+            return;
+        }
         //backup current database contents for workbench
         logDebug("backupObject(): " + System.nanoTime());
         backupObject();

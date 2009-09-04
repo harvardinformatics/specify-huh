@@ -21,6 +21,7 @@ package edu.ku.brc.specify.treeutils;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -84,7 +85,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
 	 * @see edu.ku.brc.specify.treeutils.TreeDataService#findByName(edu.ku.brc.specify.datamodel.TreeDefIface, java.lang.String)
 	 */
 	@SuppressWarnings("unchecked")
-    public synchronized List<T> findByName(final D treeDef, final String name)
+    public synchronized List<T> findByName(final D treeDef, final String name, final boolean isExact)
     {
         Vector<T> results = new Vector<T>();
         Class<T> nodeClass = treeDef.getNodeClass();
@@ -96,7 +97,19 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             String      columns   = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, true);
             String      sql       = "FROM "+nodeClass.getSimpleName()+" as node WHERE "+columns+" AND node.name LIKE :name";
             Query q = session.createQuery(sql);
-            q.setParameter("name", name + "%");
+        	String newName = name;
+            if (!isExact)
+            {
+            	if (newName.contains("*"));
+            	{
+            		newName = newName.replace("*", "%");
+            	}
+            	if (!newName.endsWith("%"))
+            	{
+            		newName += "%";
+            	}
+            }
+        	q.setParameter("name", newName);
             for (Object o: q.list())
             {
                 T t = (T)o;
@@ -217,7 +230,6 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
      * @param parent the parent record
      * @return a {@link TreeNode} object
      */
-    @SuppressWarnings("unchecked")
     private TreeNode createNode(final Object[] nodeInfo, final T parent)
     {
         Integer id                     = (Integer) nodeInfo[0];
@@ -275,7 +287,6 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.treeutils.TreeDataService#getRootNode(edu.ku.brc.specify.datamodel.TreeDefIface)
 	 */
-	@SuppressWarnings("unchecked")
 	public synchronized T getRootNode(final D treeDef)
 	{
 		T root = null;
@@ -285,9 +296,14 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         {
             for( I defItem: treeDef.getTreeDefItems() )
             {
-                if (defItem.getRankId()==0)
+                if (defItem.getParent() == null)
                 {
-                    root = defItem.getTreeEntries().iterator().next();
+                    Iterator<T> entries = defItem.getTreeEntries().iterator();
+                    if (entries.hasNext())
+                    {
+                    	root = defItem.getTreeEntries().iterator().next();
+                    	break;
+                    }
                 }
             }
             
@@ -452,7 +468,6 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.treeutils.TreeDataService#deleteTreeNode(edu.ku.brc.specify.datamodel.Treeable)
      */
-    @SuppressWarnings("null")
     public synchronized boolean deleteTreeNode(final T node)
     {
         Session session = getNewSession(node);
@@ -622,7 +637,34 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         return 0;
     }
     
-    @SuppressWarnings({ "unchecked", "null" })
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.treeutils.TreeDataService#updateNodeNumbersAfterNodeEdit(edu.ku.brc.specify.datamodel.Treeable, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    public synchronized boolean updateNodeNumbersAfterNodeEdit(final T node, final DataProviderSessionIFace session) throws Exception
+    {
+    	if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+    	{
+    		/*XXX.
+    		 * (this seems to work, but node has actually already been saved...apparently the commit or
+    		 * a merge saves these changes...
+    		 * 
+    		 * Should be moved to a point before the save occurs.
+        	 */
+
+    		//basically just makes sure NodeNumbers are refreshed from the db
+    		QueryIFace q = session.createQuery("select nodeNumber, highestChildNodeNumber from " + node.getClass().getSimpleName().toLowerCase() + 
+    			" where " + node.getClass().getSimpleName() + "ID = " + node.getTreeId(), true);
+    		Object resObj = q.uniqueResult();
+    		Object[] result = (Object[] )resObj;
+    		node.setNodeNumber((Integer )result[0]);
+    		node.setHighestChildNodeNumber((Integer )result[1]);
+    	}
+    	return true;		
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.treeutils.TreeDataService#updateNodeNumbersAfterNodeAddition(edu.ku.brc.specify.datamodel.Treeable, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
     public synchronized boolean updateNodeNumbersAfterNodeAddition(final T newNode, final DataProviderSessionIFace session) throws Exception
     {
         // update the nodeNumber and highestChildNodeNumber fields for all effected nodes
@@ -654,47 +696,72 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
         parentNN = mergedParent.getNodeNumber();
         
         String className = mergedParent.getClass().getName();
-        TreeDefIface<T,D,I> def = mergedParent.getDefinition();
+        TreeDefIface<T, D, I> def = mergedParent.getDefinition();
 
-        try
-        {
-            String updateNodeNumbersQueryStr = "UPDATE " + className + " SET nodeNumber=nodeNumber+1 WHERE nodeNumber>:parentNN AND definition=:def";
-            QueryIFace fixNodeNumQuery = session.createQuery(updateNodeNumbersQueryStr, false);
-            fixNodeNumQuery.setParameter("parentNN", parentNN);
-            fixNodeNumQuery.setParameter("def", def);
-            fixNodeNumQuery.executeUpdate();
-    
-            String updateHighChildQueryStr = "UPDATE " + className + " SET highestChildNodeNumber=highestChildNodeNumber+1 WHERE highestChildNodeNumber>=:parentNN AND definition=:def";
-            QueryIFace fixHighChildQuery = session.createQuery(updateHighChildQueryStr, false);
-            fixHighChildQuery.setParameter("parentNN", parentNN);
-            fixHighChildQuery.setParameter("def", def);
-            fixHighChildQuery.executeUpdate();
-    
-            // now set the initial values of the nodeNumber and highestChildNodeNumber fields for the new node
-            int newChildNN = parentNN+1;
-            String setChildNNQueryStr = "UPDATE " + className + " SET nodeNumber=:newChildNN WHERE nodeNumber IS NULL AND parentID=:parentID";
-            QueryIFace setChildNNQuery = session.createQuery(setChildNNQueryStr, false);
-            setChildNNQuery.setParameter("newChildNN", newChildNN);
-            setChildNNQuery.setParameter("parentID", parent.getTreeId());
-            setChildNNQuery.executeUpdate();
-    
-            String setChildHCQueryStr = "UPDATE " + className + " SET highestChildNodeNumber=:newChildNN WHERE highestChildNodeNumber IS NULL AND parentID=:parentID";
-            QueryIFace setChildHCQuery = session.createQuery(setChildHCQueryStr, false);
-            setChildHCQuery.setParameter("newChildNN", newChildNN);
-            setChildHCQuery.setParameter("parentID", parent.getTreeId());
-            setChildHCQuery.executeUpdate();
-            
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HibernateTreeDataServiceImpl.class, ex);
-            ex.printStackTrace();
-        }
+		//Now update the node numbers.
+        //This assumes that the if BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS is true, 
+        //then caller has locked the "TreeFormSave" semaphore for the tree.
+        String updateNodeNumbersQueryStr = "UPDATE "
+				+ className
+				+ " SET nodeNumber=nodeNumber+1 WHERE nodeNumber>:parentNN AND definition=:def";
+		QueryIFace fixNodeNumQuery = session.createQuery(
+				updateNodeNumbersQueryStr, false);
+		fixNodeNumQuery.setParameter("parentNN", parentNN);
+		fixNodeNumQuery.setParameter("def", def);
+		fixNodeNumQuery.executeUpdate();
+		// session.clear();
 
-        return true;
+		String updateHighChildQueryStr = "UPDATE "
+				+ className
+				+ " SET highestChildNodeNumber=highestChildNodeNumber+1 WHERE highestChildNodeNumber>=:parentNN AND definition=:def";
+		QueryIFace fixHighChildQuery = session.createQuery(
+				updateHighChildQueryStr, false);
+		fixHighChildQuery.setParameter("parentNN", parentNN);
+		fixHighChildQuery.setParameter("def", def);
+		fixHighChildQuery.executeUpdate();
+		// session.clear();
+
+		// now set the initial values of the nodeNumber and
+		// highestChildNodeNumber fields for the new node
+		
+		 int newChildNN = parentNN + 1;
+		
+		/*Begin flakey code block...
+		 * (this seems to work, but newNode has actually already been saved...apparently the commit or
+		 * a merge saves these changes...
+    	 *newNode.setNodeNumber(newChildNN);
+    	 *newNode.setHighestChildNodeNumber(newChildNN);
+    	 *...end flakey code block
+    	 */
+		
+    	//use queries instead of flakey code
+    	
+		String setChildNNQueryStr = "UPDATE "
+				+ className
+				+ " SET nodeNumber=:newChildNN WHERE nodeNumber IS NULL AND parentID=:parentID";
+		QueryIFace setChildNNQuery = session.createQuery(setChildNNQueryStr,
+				false);
+		setChildNNQuery.setParameter("newChildNN", newChildNN);
+		setChildNNQuery.setParameter("parentID", parent.getTreeId());
+		setChildNNQuery.executeUpdate();
+		// session.clear();
+
+		String setChildHCQueryStr = "UPDATE "
+				+ className
+				+ " SET highestChildNodeNumber=:newChildNN WHERE highestChildNodeNumber IS NULL AND parentID=:parentID";
+		QueryIFace setChildHCQuery = session.createQuery(setChildHCQueryStr,
+				false);
+		setChildHCQuery.setParameter("newChildNN", newChildNN);
+		setChildHCQuery.setParameter("parentID", parent.getTreeId());
+		setChildHCQuery.executeUpdate();
+		// session.clear();
+
+		return true;
     }
     
-    @SuppressWarnings("null")
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.treeutils.TreeDataService#updateNodeNumbersAfterNodeDeletion(edu.ku.brc.specify.datamodel.Treeable, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
     public boolean updateNodeNumbersAfterNodeDeletion(final T deletedNode, final DataProviderSessionIFace session) throws Exception
     {
         boolean success = true;
@@ -729,6 +796,7 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             fixNodeNumQuery.setParameter("delNodeNN", delNodeNN);
             fixNodeNumQuery.setParameter("def", def);
             fixNodeNumQuery.executeUpdate();
+            //session.clear();
 
             String updateHighChildQueryStr = "UPDATE " + className + " SET highestChildNodeNumber=highestChildNodeNumber-:nodesDeleted WHERE highestChildNodeNumber>=:delNodeHC AND definition=:def";
             QueryIFace fixHighChildQuery = session.createQuery(updateHighChildQueryStr, false);
@@ -736,13 +804,17 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
             fixHighChildQuery.setParameter("delNodeHC", delNodeHC);
             fixHighChildQuery.setParameter("def", def);
             fixHighChildQuery.executeUpdate();
-            
+            //session.clear();
+           
             session.commit();
         }
 
         return success;
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.treeutils.TreeDataService#moveTreeNode(edu.ku.brc.specify.datamodel.Treeable, edu.ku.brc.specify.datamodel.Treeable)
+     */
     @SuppressWarnings("unchecked")
     public synchronized int moveTreeNode(final T node, final T newParent)
     {
@@ -995,21 +1067,24 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.treeutils.TreeDataService#synonymize(edu.ku.brc.specify.datamodel.Treeable, edu.ku.brc.specify.datamodel.Treeable)
      */
+    /*
+     * null return value indicates success.
+     */
     @Override
     @SuppressWarnings("unchecked")
     public String synonymize(final T source, final T destination)
     {
         String statusMsg = null;
         Session session = getNewSession(source);
+        Transaction tx = null;
         try
         {
             T mergedDest = (T)mergeIntoSession(session, destination);
             T mergedSrc  = (T)mergeIntoSession(session, source);
-            Transaction tx = session.beginTransaction();
-            
+            tx = session.beginTransaction();
             if (fixAdditionalRelationsips(session, mergedSrc, mergedDest))
             {
-                statusMsg = TreeHelper.createNodeRelationship(mergedSrc,mergedDest);
+                TreeHelper.createNodeRelationship(mergedSrc,mergedDest);
                 
                 if (!commitTransaction(session, tx)) // NOTE: this call will close an open session.
                 {
@@ -1017,7 +1092,10 @@ public class HibernateTreeDataServiceImpl <T extends Treeable<T,D,I>,
                 }
             } else
             {
-                // Error Dialog
+                if (tx != null)
+                {
+                	tx.rollback();
+                }
             }
 
         } catch (Exception ex)

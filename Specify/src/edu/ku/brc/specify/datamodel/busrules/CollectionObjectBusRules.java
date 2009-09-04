@@ -53,7 +53,7 @@ import edu.ku.brc.specify.datamodel.Project;
 /**
  * @author rods
  *
- * @code_status Alpha
+ * @code_status Beta
  *
  * Created Date: Jan 24, 2007
  *
@@ -230,22 +230,30 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         if (AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent())
         {
             CollectingEvent ce = colObj.getCollectingEvent();
+            System.err.println(ce.getCollectors().size());
             if (ce != null)
             {
                 try
                 {
-                    session.saveOrUpdate(ce);
+                    if (ce != null && ce.getId() != null)
+                    {
+                        CollectingEvent mergedCE = session.merge(colObj.getCollectingEvent());
+                        colObj.setCollectingEvent(mergedCE);
+                    } else
+                    {
+                        session.save(colObj.getCollectingEvent());
+                    }
                     
                 } catch (Exception ex)
                 {
+                    ex.printStackTrace();
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
-                    ex.printStackTrace();
                 }
             }
         }
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
@@ -380,7 +388,14 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         {
             // So we need to clone it make a full copy when it is embedded.
             return AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent();
+            
         }
+        
+        if (fieldName.equals("collectionObjectAttribute"))
+        {
+            return true;
+        }
+        
         return false;
     }
 

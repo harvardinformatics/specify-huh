@@ -81,11 +81,13 @@ import edu.ku.brc.specify.datamodel.PreparationAttribute;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
+import edu.ku.brc.specify.tasks.WorkbenchTask;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Field;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Relationship;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Table;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader.ParentTableEntry;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.DateConverter;
 import edu.ku.brc.util.GeoRefConverter;
 import edu.ku.brc.util.LatLonConverter;
 import edu.ku.brc.util.Pair;
@@ -206,14 +208,6 @@ public class UploadTable implements Comparable<UploadTable>
      */
     protected Vector<MatchRestriction>              restrictedValsForAddNewMatch = null;
 
-    /**
-     * internationalized boolean string representations for validation.
-     */
-    protected static String[]                           boolStrings                  = {
-            getResourceString("WB_TRUE"), getResourceString("WB_FALSE"),
-            getResourceString("WB_TRUE_ABBR"), getResourceString("WB_FALSE_ABBR"),
-            getResourceString("WB_YES"), getResourceString("WB_NO"),
-            getResourceString("WB_YES_ABBR"), getResourceString("WB_NO_ABBR"), "1", "0" };
 
     protected boolean                                   validatingValues             = false;
     protected Object                                    autoAssignedVal              = null; //Assuming only one per table.
@@ -327,7 +321,10 @@ public class UploadTable implements Comparable<UploadTable>
      */
     protected boolean shouldSkipMatching()
     {
-        return isOneToOneChild();
+        return isOneToOneChild() || 
+    	(tblClass.equals(CollectingEvent.class) && 
+    		AppContextMgr.getInstance().getClassObject(
+            Collection.class).getIsEmbeddedCollectingEvent());
     }
     
     /**
@@ -1007,7 +1004,20 @@ public class UploadTable implements Comparable<UploadTable>
         name = name.substring(0, name.length()-1);
         return name.equalsIgnoreCase("latitude") || name.equalsIgnoreCase("longitude");
     }
-    
+ 
+    /**
+     * @param ufld
+     * @return true if ufld represents a latitude field.
+     * 
+     * Assumes the field's type has already been determined BigDecimal.
+     */
+    protected boolean isLatFld(final UploadField ufld)
+    {
+        String name = ufld.getField().getName();
+        name = name.substring(0, name.length()-1);
+        return name.equalsIgnoreCase("latitude");
+    }
+
     /**
      * @param fld
      * @return true if 
@@ -1128,7 +1138,7 @@ public class UploadTable implements Comparable<UploadTable>
                     	{
                     		try
                     		{
-                    			fldStr = new GeoRefConverter().convert(fldStr, GeoRefFormat.D_PLUS_MINUS.name());
+                    			fldStr = new GeoRefConverter().convert(StringUtils.stripToNull(fldStr), GeoRefFormat.D_PLUS_MINUS.name());
                     		}
                     		catch (Exception ex)
                     		{
@@ -1136,7 +1146,13 @@ public class UploadTable implements Comparable<UploadTable>
                     		}
                     	}
                     }
-                    arg[0] = new BigDecimal(fldStr);
+                    BigDecimal val = new BigDecimal(fldStr);
+                    Double maxVal =  isLatFld(ufld) ? new Double("90") : new Double("180");
+                    if (Math.abs(val.doubleValue()) > maxVal)
+                    {
+            			throw new UploaderException(getResourceString("WB_UPLOAD_INVALID_GEOREF_VALUE"), UploaderException.INVALID_DATA);
+                    }
+                    arg[0] = val;
                 }
             }
             else if (fldClass == Boolean.class)
@@ -1148,12 +1164,12 @@ public class UploadTable implements Comparable<UploadTable>
                 else
                 {
                     int i;
-                    for (i = 0; i < boolStrings.length; i++)
+                    for (i = 0; i < WorkbenchTask.boolStrings.length; i++)
                     {
-                        if (fldStr.equalsIgnoreCase(boolStrings[i]))
+                        if (fldStr.equalsIgnoreCase(WorkbenchTask.boolStrings[i]))
                             break;
                     }
-                    if (i == boolStrings.length) { throw new UploaderException(
+                    if (i == WorkbenchTask.boolStrings.length) { throw new UploaderException(
                             getResourceString("WB_INVALID_BOOL_CELL_VALUE"),
                             UploaderException.INVALID_DATA); }
                     arg[0] = i % 2 == 0 ? true : false;
@@ -1197,7 +1213,7 @@ public class UploadTable implements Comparable<UploadTable>
             else
             {
                 UIFieldFormatterIFace formatter = ufld.getField().getFieldInfo().getFormatter();
-                if (StringUtils.isBlank(fldStr) && (formatter == null || !formatter.isIncrementer()))
+                if (StringUtils.isBlank(fldStr) && (formatter == null || !formatter.isIncrementer() || !formatter.isNumeric()))
                 {
                     arg[0] = null;
                 }
@@ -1935,7 +1951,7 @@ public class UploadTable implements Comparable<UploadTable>
     {
         boolean blankButRequired = fld.isRequired() && (fld.getValue() == null || fld.getValue().trim().equals(""));
         boolean isAutoAssignable = fld.getField().getFieldInfo() != null && fld.getField().getFieldInfo().getFormatter() != null
-            && fld.getField().getFieldInfo().getFormatter().isIncrementer();
+            && fld.getField().getFieldInfo().getFormatter().isIncrementer() && fld.getField().getFieldInfo().getFormatter().isNumeric();
         return blankButRequired && !isAutoAssignable;
     }
 
@@ -2064,6 +2080,27 @@ public class UploadTable implements Comparable<UploadTable>
     /**
      * @param row
      * @param uploadData
+     * @return true if a non-null constraint needs to be enforced.
+     */
+    protected boolean shouldEnforceNonNullConstraint(final int row, final UploadData uploadData)
+    {
+    	//This is a rather lame implementation.
+    	//Generally, if all fields in a table are blank, and related tables don't require a record,
+    	//then there is no need to enforce not-null constraints.
+    	if (tblClass.equals(PrepType.class)) 
+    	{
+    		return !Uploader.currentUpload.getUploadTableByName("Preparation").isBlankRow(row, uploadData);
+    	}
+    	if (tblClass.equals(Accession.class)) 
+    	{
+    		return !Uploader.currentUpload.getUploadTableByName("Accession").isBlankRow(row, uploadData);
+    	}
+    	return true;
+    }
+    
+    /**
+     * @param row
+     * @param uploadData
      * @param invalidValues
      * 
      * Validates user-entered fields for the row.
@@ -2105,7 +2142,7 @@ public class UploadTable implements Comparable<UploadTable>
                     {
                         if (invalidNull(fld, uploadData, row, seq)) 
                         { 
-                        	if (!tblClass.equals(PrepType.class) || !Uploader.currentUpload.getUploadTableByName("Preparation").isBlankRow(row, uploadData))
+                        	if (shouldEnforceNonNullConstraint(row, uploadData))
                         	{
                         		throw new Exception(
                         				getResourceString("WB_UPLOAD_FIELD_MUST_CONTAIN_DATA")); 
@@ -2135,7 +2172,7 @@ public class UploadTable implements Comparable<UploadTable>
                     if (fld.getField().getName().equalsIgnoreCase("latitude1") || fld.getField().getName().equalsIgnoreCase("latitude1")
                             || fld.getField().getName().equalsIgnoreCase("longitude1") || fld.getField().getName().equalsIgnoreCase("longitude2"))
                     {
-                        LatLonConverter.FORMAT fmt = gc.getLatLonFormat(uploadData.get(row, fld.getIndex()));
+                        LatLonConverter.FORMAT fmt = gc.getLatLonFormat(StringUtils.stripToNull(uploadData.get(row, fld.getIndex())));
                         if (llFmt == null)
                         {
                             llFmt = fmt;

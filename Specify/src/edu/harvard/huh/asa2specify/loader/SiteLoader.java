@@ -188,8 +188,11 @@ public class SiteLoader extends CsvToSqlLoader
 		if (method != null) method = truncate(method, 50, "lat/long method");
 		locality.setLatLongMethod(method);
 
-		// LocalityName is a required field, but we don't use it
-		locality.setLocalityName(UNNAMED);
+		// LocalityName is a required field
+		String localityName = site.getLocality();
+		if (localityName == null) localityName = UNNAMED;
+		localityName = truncate(localityName, 255, "locality name");
+		locality.setLocalityName(localityName);
 
 		// Long1Text, Longitude1
 		BigDecimal longitudeA = site.getLongitudeA();
@@ -222,10 +225,6 @@ public class SiteLoader extends CsvToSqlLoader
 		{
 			locality.setMinElevation(elevFrom.doubleValue());
 		} 
-
-		// Remarks seems to be the equivalent of the asa site.locality
-		String remarks = site.getLocality();
-		locality.setRemarks(remarks);
 
 		// SrcLatLongUnit
 		locality.setSrcLatLongUnit(srcLatLongUnit);

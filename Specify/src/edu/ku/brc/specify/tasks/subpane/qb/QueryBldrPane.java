@@ -72,6 +72,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -93,6 +94,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.ContextMgr;
 import edu.ku.brc.af.core.NavBoxLayoutManager;
+import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.Taskable;
 import edu.ku.brc.af.core.UsageTracker;
@@ -166,9 +168,9 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 
     protected JPanel                                         listBoxPanel;
     protected Vector<JList>                                  listBoxList      = new Vector<JList>();
-    protected Vector<TableTree>                              nodeList         = new Vector<TableTree>();
     protected JScrollPane                                    scrollPane;
     protected Vector<JScrollPane>                            spList           = new Vector<JScrollPane>();
+    protected Vector<TableTree>                              tableTreeList    = new Vector<TableTree>();
     protected JPanel                                         contextPanel;
     protected DropDownButton                                 saveBtn;
     protected JButton                                        searchBtn;
@@ -200,6 +202,8 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     
     protected ExpressSearchResultsPaneIFace                  esrp        = null;
     protected boolean                                        isHeadless  = false; 
+    
+    protected boolean                                        mapMode     = false;
     
     /**
      * True if warning to reload after schema/treeDef changes has been shown.
@@ -235,11 +239,26 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                          final SpQuery query,
                          final boolean isHeadless)
     {
+    	this(name, task, query, isHeadless, false);
+    }
+    /**
+     * Constructor.
+     * 
+     * @param name name of subpanel
+     * @param task the owning task
+     */
+    public QueryBldrPane(final String name, 
+                         final Taskable task, 
+                         final SpQuery query,
+                         final boolean isHeadless,
+                         final boolean mapMode)
+    {
         super(name, task);
 
         this.query      = query;
         this.isHeadless = isHeadless;
-
+        this.mapMode    = mapMode;
+        
         String[] skipItems = { "TimestampCreated", "LastEditedBy", "TimestampModified" };
         for (String nameStr : skipItems)
         {
@@ -349,8 +368,6 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             {
                 if (!e.getValueIsAdjusting())
                 {
-                    nodeList.clear();
-
                     int inx = tableList.getSelectedIndex();
                     if (inx > -1)
                     {
@@ -399,10 +416,16 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         queryFieldsScroll.setBorder(null);
-        add(queryFieldsScroll);
-
+        if (!mapMode)
+        {
+        	add(queryFieldsScroll);
+        }
+        
         final JPanel mover = buildMoverPanel(false);
-        add(mover, BorderLayout.EAST);
+        if (!mapMode)
+        {
+        	add(mover, BorderLayout.EAST);
+        }
         
         searchBtn   = createButton(UIRegistry.getResourceString("QB_SEARCH"));
         searchBtn.addActionListener(new ActionListener()
@@ -524,18 +547,43 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         });
 
         PanelBuilder outer = new PanelBuilder(new FormLayout("p, 2dlu, p, 2dlu, p, 2dlu, p, 6dlu, p", "p"));
+        //PanelBuilder outer = new PanelBuilder(new FormLayout("p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 6dlu, p", "p"));
         CellConstraints cc = new CellConstraints();
         outer.add(searchSynonymyChk, cc.xy(1, 1));
         outer.add(distinctChk, cc.xy(3, 1));
         outer.add(countOnlyChk, cc.xy(5, 1));
         outer.add(searchBtn, cc.xy(7, 1));
-        outer.add(saveBtn, cc.xy(9, 1));
+//        JButton junkBtn = new JButton("ExportMapper!");
+//        junkBtn.addActionListener(new ActionListener(){
+//
+//			/* (non-Javadoc)
+//			 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+//			 */
+//			@Override
+//			public void actionPerformed(ActionEvent arg0)
+//			{
+//				ExportSchemaMapEditor esme = new ExportSchemaMapEditor((Frame )UIRegistry.getTopWindow(), 
+//						QueryBldrPane.this.task, null);
+//				esme.setModal(true);
+//				UIHelper.centerAndShow(esme);
+//				
+//			}
+//        	
+//        });
+//        outer.add(junkBtn, cc.xy(9, 1));
+//        outer.add(saveBtn, cc.xy(11, 1));
+        
+        outer.add(saveBtn, cc.xy(9, 1));   
+        
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.add(outer.getPanel(), BorderLayout.EAST);
         
         JButton helpBtn = UIHelper.createHelpIconButton("QB");
         bottom.add(helpBtn, BorderLayout.WEST);
-        add(bottom, BorderLayout.SOUTH);
+        if (!mapMode)
+        {
+        	add(bottom, BorderLayout.SOUTH);
+        }
 
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
@@ -1695,9 +1743,9 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 }
                 catch (Exception ex)
                 {
-                    UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryBldrPane.class, ex);
-                    UIRegistry.getStatusBar().setErrorMessage(ex.getLocalizedMessage(), ex);
+                    String msg = StringUtils.isBlank(ex.getLocalizedMessage()) ? getResourceString("QB_RUN_ERROR") : ex.getLocalizedMessage();
+                	UIRegistry.getStatusBar().setErrorMessage(msg, ex);
+                    UIRegistry.writeTimedSimpleGlassPaneMsg(msg, Color.RED);
                     return;
                 }
                 QBJRDataSource src = new QBJRDataSource(sql.getHql(), sql.getArgs(), sql
@@ -2391,15 +2439,22 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         final int curInx = listBoxList.indexOf(parentList);
         if (curInx > -1)
         {
-            for (int i = curInx + 1; i < listBoxList.size(); i++)
+            int startSize = listBoxPanel.getComponentCount();
+        	for (int i = curInx + 1; i < listBoxList.size(); i++)
             {
                 listBoxPanel.remove(spList.get(i));
             }
+        	int removed = startSize - listBoxPanel.getComponentCount();
+        	for (int i = 0; i < removed; i++)
+        	{
+        		tableTreeList.remove(tableTreeList.size() - 1);
+        	}
 
         }
         else
         {
             listBoxPanel.removeAll();
+            tableTreeList.clear();
         }
 
         QryListRendererIFace item = (QryListRendererIFace) parentList.getSelectedValue();
@@ -2470,7 +2525,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 sp.setColumnHeaderView(colHeader);
                 
                 spList.add(sp);
-
+                
                 newList.getSelectionModel().addListSelectionListener(new ListSelectionListener()
                 {
                     public void valueChanged(ListSelectionEvent e)
@@ -2495,17 +2550,15 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 }
                 else
                 {
-                    colHeaderLbl.setText("Query Fields"); // I18N
+                    colHeaderLbl.setText(getResourceString("QueryBldrPane.QueryFields")); 
                 }
             }
 
-            if (item instanceof ExpandableQRI)
-            {
-                createNewList((TableQRI)item, model);
+            createNewList((TableQRI)item, model);
 
-            }
             listBoxPanel.remove(addBtn);
             listBoxPanel.add(sp);
+            tableTreeList.add(((ExpandableQRI )item).getTableTree());
             listBoxPanel.add(addBtn);
             currentInx = -1;
 
@@ -2538,6 +2591,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 
         processingLists = false;
         currentInx = curInx;
+        
     }
 
     
@@ -2668,6 +2722,108 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     }
 
     /**
+     * @return path from root treeTable to treeTable for rightmost displayed list.
+     */
+    protected List<TableTreePathPoint> getCurrentDisplayPath()
+    {
+    	if (tableTreeList.size() > 0)
+    	{
+    		return tableTreeList.get(tableTreeList.size() - 1).getPathFromRoot();
+    	}
+    	return new Vector<TableTreePathPoint>();
+    }
+    
+    /**
+     * Updates lists in list panel to display field as the current selection.
+     * 
+     * @param field
+     */
+    protected void displayField(final FieldQRI field)
+    {
+    	List<TableTreePathPoint> displayedPath = getCurrentDisplayPath();
+    	List<TableTreePathPoint> fieldPath = field.getTableTree().getPathFromRoot();
+
+    	if (tableTreeList.size() != listBoxPanel.getComponentCount()-1)
+        {
+    		log.error("tableTreeList and listBoxPanel are out of sync");
+        }
+    	
+    	int p = 0;
+    	while (p < displayedPath.size() && p < fieldPath.size())
+    	{
+    		if (!displayedPath.get(p).equals(fieldPath.get(p)))
+    		{
+    			break;
+    		}
+    		p++;
+    	}
+    	if (!(p == fieldPath.size() && fieldPath.size() == displayedPath.size()))
+		{
+			if (p == fieldPath.size())
+			{
+				if (p == 1)
+				{
+					fillNextList(tableList);
+				} else
+				{
+					fillNextList(listBoxList.get(p - 2));
+				}
+			} else
+			{
+				p--;
+				while (p < fieldPath.size() - 1)
+				{
+					JList currList = p < 0 ? tableList : listBoxList.get(p);
+					ListModel model = currList.getModel();
+					// find and select item in path
+					int i = 0;
+					boolean foundPathItem = false;
+					while (i < model.getSize() && !foundPathItem)
+					{
+						QryListRendererIFace item = (BaseQRI) model
+								.getElementAt(i);
+						if (item.hasChildren())
+						{
+							TableTree tt = ((BaseQRI) item).getTableTree();
+							if (fieldPath.get(p + 1).equals(
+									new TableTreePathPoint(tt)))
+							{
+								currList.setSelectedIndex(i);
+								foundPathItem = true;
+							}
+						}
+						i++;
+					}
+					if (foundPathItem)
+					{
+						// fillNextList(currList);
+						p++;
+					} else
+					{
+						log.error("unable to locate field: "
+								+ field.getFieldName());
+						return;
+					}
+				}
+			}
+		}
+    	ListModel model = listBoxList.get(fieldPath.size()-1).getModel();
+    	for (int f = 0; f < model.getSize(); f++)
+    	{
+    		BaseQRI item = (BaseQRI )model.getElementAt(f);
+    		if (item.getTitle().equals(field.getTitle()))
+    		{
+    			processingLists = true;
+    			listBoxList.get(fieldPath.size()-1).setSelectedIndex(f);
+    			listBoxList.get(fieldPath.size()-1).ensureIndexIsVisible(f);
+    			processingLists = false;
+    			break;
+    		}
+    	}
+
+    }
+    
+    /**
      * @param kids
      * @param field
      * @param tableIds
@@ -2684,14 +2840,9 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         for (int k=0; k<tbl.getKids(); k++)
         {
             TableTree kid = tbl.getKid(k);
-            boolean checkKid = true;
-            if (kid.isAlias()) 
-            {
-                checkKid = fixAliases(kid, ttHash);
-            }
+            boolean checkKid = kid.isAlias() ? fixAliases(kid, ttHash) : true;
             if (checkKid)
             {
-//                if (kid.getTableInfo().getTableId() == id)
             	if (id.equals(new TableTreePathPoint(kid)))
                 {
                     if (level == (tableIds.size() - 1))
@@ -2714,7 +2865,10 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                     else
                     {
                         FieldQRI fi = getFieldQRI(kid, field, tableIds, level + 1, ttHash);
-                        if (fi != null) { return fi; }
+                        if (fi != null) 
+                        { 
+                        	return fi; 
+                        }
                     }
                 }
             }
@@ -2912,6 +3066,10 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 scrollQueryFieldsToRect(selectedQFP.getBounds());
             }
             updateMoverBtns();
+            if (selectedQFP != null)
+            {
+            	displayField(qfp.getFieldQRI());
+            }
         }
     }
     
@@ -3057,6 +3215,35 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         {
             saveBtn.setEnabled(false);
         }
+        
+        if (runningResults.get() != null)
+        {
+            runningResults.get().cancel();
+        }
+        
+        if (completedResults.get() != null)
+        {
+        	completedResults.get().cancel();
+        }
+        
+        //This is safe as long as we continue to allow only 1 qb result.
+        //and the qbresult pane gets the same name.
+        //and the qbresult pane always returns true for aboutToShutdown()
+        SubPaneIFace qbResultPane = SubPaneMgr.getInstance().getSubPaneByName(getResourceString("ES_QUERY_RESULTS"));
+        if (qbResultPane != null)
+        {
+        	QBResultsTablePanel tblPane = ((QBResultsSubPane )qbResultPane).getResultsTable();
+        	if (tblPane != null)
+        	{
+        		QBResultSetTableModel tblModel = tblPane.getTableModel();
+        		if (tblModel != null)
+        		{
+        			tblModel.cancelBackgroundLoads();
+        		}
+        	}
+        	SubPaneMgr.getInstance().removePane(qbResultPane);
+        }
+
         query = null;
         if (queryNavBtn != null)
         {
@@ -3277,7 +3464,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         if (show && ((QueryTask )task).needToRebuildTableTree() && !reloadMsgShown)
         {
             //It seems that no serious problems will occur so for now just show a message:
-            UIRegistry.showLocalizedMsg("QB_TREEDEF_LOCALIZ_CHANGES_TITLE", "QB_TREEDEF_LOCALIZ_CHANGES_WARN", (Object[] )null);
+            UIRegistry.showLocalizedMsg("QB_TREEDEF_LOCALIZ_CHANGES_TITLE", "QB_TREEDEF_LOCALIZ_CHANGES_WARN");
             reloadMsgShown = true;
         }
     }
@@ -3313,6 +3500,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     	}
     	return false;
     }
+    
 }
 
 

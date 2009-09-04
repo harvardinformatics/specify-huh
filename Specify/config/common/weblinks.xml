@@ -37,6 +37,18 @@
     <usedByList/>
   </weblinkdef>
   <weblinkdef>
+  	<name>AsaBotanist</name>
+  	<desc>Displays a list of Asa web search results for an author name</desc>
+  	<baseURLStr><![CDATA[asaweb.huh.harvard.edu:8080/databases/botanists?name=<name>]]></baseURLStr>
+  	<args>
+  		<weblinkdefarg>
+  			<name>name</name>
+  			<title>Name</title>
+  			<prompt>true</prompt>
+  		</weblinkdefarg>
+  	</args>
+  </weblinkdef>
+  <weblinkdef>
     <name>WEBLINK</name>
     <tableName></tableName>
     <desc></desc>

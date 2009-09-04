@@ -65,6 +65,7 @@ import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.tasks.subpane.DroppableFormObject;
 import edu.ku.brc.af.tasks.subpane.DroppableTaskPane;
 import edu.ku.brc.af.tasks.subpane.FormPane;
@@ -93,6 +94,7 @@ import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.busrules.PickListBusRules;
 import edu.ku.brc.specify.tools.schemalocale.PickListEditorDlg;
 import edu.ku.brc.specify.tools.schemalocale.SchemaToolsDlg;
+import edu.ku.brc.specify.ui.NumberingSchemeDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
@@ -206,6 +208,20 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             })); 
             navBoxes.add(collNavBox);
             
+            if (AppPreferences.getLocalPrefs().getBoolean("debug.menu", false))
+            {
+                collNavBox.add(NavBox.createBtnWithTT(getResourceString("ANS_EDITOR"), "AutoNumberingScheme", "", IconManager.STD_ICON_SIZE, new ActionListener() {
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        NumberingSchemeDlg dlg = new NumberingSchemeDlg(null);
+                        dlg.createUI();
+                        dlg.pack();
+                        dlg.setVisible(true);
+                    }
+                })); 
+                navBoxes.add(collNavBox);
+            }
+            
             
         }
         isShowDefault = true;
@@ -286,7 +302,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     startEditor(edu.ku.brc.specify.datamodel.PickList.class, "name", nameStr, name, "PickList");
                 }
             });
-        } else
+        } /*else
         {
             roc = (RolloverCommand)makeDnDNavBtn(navBox, nameStr, "PickList", null, 
                 new CommandAction(SYSTEMSETUPTASK, DELETE_CMD_ACT, pickList.getPickListId()), 
@@ -302,13 +318,16 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
         }
         roc.setData(pickList.getPickListId());
         addPopMenu(roc, pickList);
-        if (isNew)
+        if (navBox != null)
         {
-            navBox.insertSorted((NavBoxItemIFace)roc);
-        } else
-        {
-            navBox.add((NavBoxItemIFace)roc);
-        }
+            if (isNew)
+            {
+                navBox.insertSorted((NavBoxItemIFace)roc);
+            } else
+            {
+                navBox.add((NavBoxItemIFace)roc);
+            }
+        }*/
     }
     
     /**
@@ -1051,7 +1070,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     {
                         public void actionPerformed(ActionEvent ae)
                         {
-                            doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
+                        	doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
                         }
                     });
             mid = new MenuItemDesc(mi, SYSTEM_MENU);
@@ -1069,7 +1088,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             {
                 public void actionPerformed(ActionEvent ae)
                 {
-                    SystemSetupTask.this.requestContext();
+                	SystemSetupTask.this.requestContext();
                 }
             }); 
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
@@ -1122,18 +1141,21 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     {
         boolean fnd = false;
         boolean resort = false;
-        for (NavBoxItemIFace nbi : navBox.getItems())
+        if (navBox != null)
         {
-            if (nbi.getData() != null && ((Integer)nbi.getData()).intValue() == pickList.getPickListId().intValue())
+            for (NavBoxItemIFace nbi : navBox.getItems())
             {
-                fnd = true;
-                String oldName = ((RolloverCommand)nbi).getLabelText();
-                if (!oldName.equals(pickList.getName()))
+                if (nbi.getData() != null && ((Integer)nbi.getData()).intValue() == pickList.getPickListId().intValue())
                 {
-                    ((RolloverCommand)nbi).setLabelText(pickList.getName());
-                    resort = true;
+                    fnd = true;
+                    String oldName = ((RolloverCommand)nbi).getLabelText();
+                    if (!oldName.equals(pickList.getName()))
+                    {
+                        ((RolloverCommand)nbi).setLabelText(pickList.getName());
+                        resort = true;
+                    }
+                    break;
                 }
-                break;
             }
         }
         

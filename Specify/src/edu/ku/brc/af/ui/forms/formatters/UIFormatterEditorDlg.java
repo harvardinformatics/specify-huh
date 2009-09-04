@@ -436,7 +436,7 @@ public class UIFormatterEditorDlg extends CustomDialog
     }
     
     /**
-     * @param panel
+     * @param type
      * @return
      */
     private JButton createClose(final int type)
@@ -934,6 +934,7 @@ public class UIFormatterEditorDlg extends CustomDialog
                 {
                     updateUIEnabled();
                     updateSample();
+                    sampleLabel.setText("");
                 }
                 hasChanged = true;
             }

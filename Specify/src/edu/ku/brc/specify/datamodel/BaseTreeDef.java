@@ -502,14 +502,14 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
         final JStatusBar nStatusBar = useProgDlg ? null : UIRegistry.getStatusBar();        
         final ProgressDialog progDlg = nStatusBar != null ? null :
             new ProgressDialog(UIRegistry.getResourceString("BaseTreeDef.UPDATING_TREE_DLG"), false, false);
-        progDlg.setResizable(false);
-        progDlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         if (nStatusBar != null)
         {
             nStatusBar.setProgressRange(nodeNumberer.getProgressName(), 0, 100);
         }
         else
         {
+        	progDlg.setResizable(false);
+        	progDlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
             progDlg.setModal(true);
             progDlg.setProcess(0,100);
             progDlg.setProcessPercent(true);
@@ -540,6 +540,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             return false;
         }
 
+        boolean wasUpToDate = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);
         setRenumberingNodes(true);
         setNodeNumbersAreUpToDate(false);
         
@@ -548,6 +549,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             //locking issues will hopefully have been made apparent to user during the preceding setXXX calls. 
             UIRegistry.showLocalizedError("BaseTreeDef.UnableToUpdate");
             setRenumberingNodes(false);
+            setNodeNumbersAreUpToDate(wasUpToDate);
             return false;
         }
             
@@ -576,6 +578,8 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
     	}))
     	{
     		//hopefully lock problems will already have been reported 
+            setRenumberingNodes(false);
+            setNodeNumbersAreUpToDate(wasUpToDate);
     		return false; 
     	}
         try

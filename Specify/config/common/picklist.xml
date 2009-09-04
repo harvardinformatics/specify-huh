@@ -25,34 +25,31 @@
   </picklist>
   <picklist name="LoanAgentRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Borrower" value="Borrower"/>
-      <picklistitem title="Benefactor" value="Benefactor"/>
-      <picklistitem title="Contributor" value="Contact"/>
-      <picklistitem title="Contributor" value="Contributor"/>
-      <picklistitem title="Donor" value="Donor"/>
-      <picklistitem title="Guest" value="Guest"/>
-      <picklistitem title="Lender" value="Lender"/>
-      <picklistitem title="Other" value="Other"/>
-      <picklistitem title="Preparer" value="Preparer"/>
-      <picklistitem title="Receiver" value="Receiver"/>
-      <picklistitem title="Sponsor" value="Sponsor"/>
-      <picklistitem title="Staff" value="Staff"/>
-      <picklistitem title="Student" value="Student"/>
+      <picklistitem title="Borrower" value="borrower"/>
+      <picklistitem title="Benefactor" value="benefactor"/>
+      <picklistitem title="Contributor" value="contributor"/>
+      <picklistitem title="Donor" value="donor"/>
+      <picklistitem title="Guest" value="guest"/>
+      <picklistitem title="Other" value="other"/>
+      <picklistitem title="Preparer" value="preparer"/>
+      <picklistitem title="Receiver" value="receiver"/>
+      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Staff" value="staff"/>
+      <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
   <picklist name="BorrowRole" issystem="true" type="0" readonly="true" sizelimit="12">
     <items>
-      <picklistitem title="Borrower" value="Borrower"/>
-      <picklistitem title="Benefactor" value="Benefactor"/>
-      <picklistitem title="Contributor" value="Contributor"/>
-      <picklistitem title="Donor" value="Donor"/>
-      <picklistitem title="Guest" value="Guest"/>
-      <picklistitem title="Lender" value="Lender"/>
-      <picklistitem title="Other" value="Other"/>
-      <picklistitem title="Preparer" value="Preparer"/>
-      <picklistitem title="Receiver" value="Receiver"/>
-      <picklistitem title="Sponsor" value="Sponsor"/>
-      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Borrower" value="borrower"/>
+      <picklistitem title="Benefactor" value="benefactor"/>
+      <picklistitem title="Contributor" value="contributor"/>
+      <picklistitem title="Donor" value="donor"/>
+      <picklistitem title="Guest" value="guest"/>
+      <picklistitem title="Other" value="other"/>
+      <picklistitem title="Preparer" value="preparer"/>
+      <picklistitem title="Receiver" value="receiver"/>
+      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Staff" value="staff"/>
       <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
@@ -63,16 +60,13 @@
       <picklistitem title="Complete" value="complete"/>
     </items>
   </picklist>
-  <picklist name="ShipmentMethod" issystem="true" type="0" readonly="true" sizelimit="8">
+  <picklist name="ShipmentMethod" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
-      <picklistitem title="Air" value="Air"/>
-      <picklistitem title="Express" value="Express"/>
-      <picklistitem title="Library rate" value="Library rate"/>
-      <picklistitem title="Sea mail" value="Sea mail"/>
-      <picklistitem title="First class" value="First class"/>
-      <picklistitem title="Ground" value="Ground"/>
-      <picklistitem title="Priority" value="Priority"/>
-      <picklistitem title="NA/Unknown" value="NA/Unknown"/>
+      <picklistitem title="DHL" value="dhl"/>
+      <picklistitem title="Fed Ex" value="fedex"/>
+      <picklistitem title="By Hand" value="hand"/>
+      <picklistitem title="UPS" value="ups"/>
+      <picklistitem title="USPS" value="usps"/>
     </items>
   </picklist>
   <picklist name="AccessionType" issystem="true" type="0" readonly="true" sizelimit="2">
@@ -80,7 +74,6 @@
       <picklistitem title="Gift" value="gift"/>
       <picklistitem title="Collection" value="cln"/>
       <picklistitem title="Field Work" value="field_work"/>
-      <picklistitem title="Purchase" value="purchase"/>
     </items>
   </picklist>
   <picklist name="AgentVariant" issystem="true" type="0" readonly="true" sizelimit="-1">
@@ -92,36 +85,22 @@
       <picklistitem title="Label Name" value="4"/>
     </items>
   </picklist>
-  <picklist name="AccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
+  <picklist name="AccessionRole" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
-      <picklistitem title="Borrower" value="borrower"/>
-      <picklistitem title="Benefactor" value="benefactor"/>
-      <picklistitem title="Contributor" value="contributor"/>
-      <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Guest" value="guest"/>
-      <picklistitem title="Lender" value="lender"/>
-      <picklistitem title="Other" value="other"/>
-      <picklistitem title="Preparer" value="preparer"/>
-      <picklistitem title="Receiver" value="receiver"/>
-      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Collector" value="collector"/>
       <picklistitem title="Staff" value="staff"/>
-      <picklistitem title="Student" value="student"/>
+      <picklistitem title="Donor" value="donor"/>
+      <picklistitem title="Reviewer" value="reviewer"/>
+      <picklistitem title="Receiver" value="receiver"/>
     </items>
   </picklist>
-  <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="12">
+ <!-- <picklist name="DeaccessionRole" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
-      <picklistitem title="Borrower" value="borrower"/>
-      <picklistitem title="Benefactor" value="benefactor"/>
-      <picklistitem title="Contributor" value="contributor"/>
-      <picklistitem title="Donor" value="donor"/>
-      <picklistitem title="Guest" value="guest"/>
-      <picklistitem title="Lender" value="lender"/>
-      <picklistitem title="Other" value="other"/>
-      <picklistitem title="Preparer" value="preparer"/>
-      <picklistitem title="Receiver" value="receiver"/>
-      <picklistitem title="Sponsor" value="sponsor"/>
+      <picklistitem title="Collector" value="collector"/>
       <picklistitem title="Staff" value="staff"/>
-      <picklistitem title="Student" value="student"/>
+      <picklistitem title="Donor" value="donor"/>
+      <picklistitem title="Reviewer" value="reviewer"/>
+      <picklistitem title="Receiver" value="receiver"/>
     </items>
   </picklist>
     <picklist name="DeaccessionType" issystem="true" type="0" readonly="true" sizelimit="5">
@@ -131,8 +110,8 @@
             <picklistitem title="Lost" value="lost"/>
             <picklistitem title="Other" value="other"/>
         </items>
-    </picklist>
-  <picklist name="ReferenceWorkType" issystem="true" type="0" readonly="true" sizelimit="6">
+    </picklist> -->
+  <picklist name="ReferenceWorkType" issystem="true" type="0" readonly="true" sizelimit="6" tablename="referencework" fieldname="referenceWorkType">
     <items>
       <picklistitem title="Book" value="0"/>
       <picklistitem title="Electronic Media" value="1"/>
@@ -221,13 +200,39 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
-  <picklist name="HUH Accession Type" issystem="false" type="0" readonly="true" sizelimit="2">
+  <picklist name="HUH Accession Type" issystem="false" type="0" readonly="true" sizelimit="5">
     <items>
       <picklistitem title="Gift" value="Gift"/>
       <picklistitem title="Collection" value="Collection"/>
       <picklistitem title="Field Work" value="FieldWork"/>
       <picklistitem title="Other" value="Other"/>
       <picklistitem title="Purchase" value="Purchase"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Agent Variant" issystem="true" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="Variant" value="0"/>
+      <picklistitem title="Vernacular" value="1"/>
+      <picklistitem title="HUH Name" value="2"/>
+      <picklistitem title="B &amp; P Abbrev." value="3"/>
+      <picklistitem title="Label Name" value="4"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Borrow Role" issystem="true" type="0" readonly="true" sizelimit="13">
+    <items>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Contributor" value="Contact"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Student" value="Student"/>
     </items>
   </picklist>
   <picklist name="HUH CITES Status" type="0" issystem="false" readonly="true" sizelimit="4">
@@ -238,7 +243,7 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
-  <picklist name="HUH Det Qualifier" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Determination Qualifier" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="aff." value="Affine"/>
       <picklistitem title="cf." value="Compare"/>
@@ -246,7 +251,7 @@
       <picklistitem title="not" value="Not"/>
     </items>
   </picklist>
-  <picklist name="HUH Elev Method" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Elevation Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
       <picklistitem title="altimeter" value="Altimeter"/>
@@ -262,9 +267,18 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Locality Name" type="0" issystem="false" readonly="true" sizelimit="1">
+  <picklist name="HUH Reference Work Type" issystem="false" type="0" readonly="true" sizelimit="10">
     <items>
-      <picklistitem title="Unnamed locality" value="Unnamed locality"/>
+      <picklistitem title="Book" value="0"/>
+      <picklistitem title="Electronic Media" value="1"/>
+      <picklistitem title="Paper" value="2"/>
+      <picklistitem title="Technical Report" value="3"/>
+      <picklistitem title="Thesis" value="4"/>
+      <picklistitem title="Section in Book" value="5"/>
+      <picklistitem title="Exsiccata" value="6"/>
+      <picklistitem title="Protologue" value="7"/>
+      <picklistitem title="Figure" value="8"/>
+      <picklistitem title="Plate" value="9"/>
     </items>
   </picklist>
   <picklist name="HUH Shipment Method" issystem="false" type="0" readonly="true" sizelimit="8">
@@ -317,45 +331,6 @@
     <items>
       <picklistitem title="possible" value="Possible"/>
       <picklistitem title="probable" value="Probable"/>
-    </items>
-  </picklist>
-  <picklist name="HUH Reference Work Type" issystem="false" type="0" readonly="true" sizelimit="10">
-    <items>
-      <picklistitem title="Book" value="0"/>
-      <picklistitem title="Electronic Media" value="1"/>
-      <picklistitem title="Paper" value="2"/>
-      <picklistitem title="Technical Report" value="3"/>
-      <picklistitem title="Thesis" value="4"/>
-      <picklistitem title="Section in Book" value="5"/>
-      <picklistitem title="Exsiccata" value="6"/>
-      <picklistitem title="Protologue" value="7"/>
-      <picklistitem title="Figure" value="8"/>
-      <picklistitem title="Plate" value="9"/>
-    </items>
-  </picklist>
-  <picklist name="HUH Agent Variant" issystem="true" type="0" readonly="true" sizelimit="-1">
-    <items>
-      <picklistitem title="Variant" value="0"/>
-      <picklistitem title="Vernacular" value="1"/>
-      <picklistitem title="HUH Name" value="2"/>
-      <picklistitem title="B &amp; P Abbrev." value="3"/>
-      <picklistitem title="Label Name" value="4"/>
-    </items>
-  </picklist>
-  <picklist name="HUH Borrow Role" issystem="true" type="0" readonly="true" sizelimit="12">
-    <items>
-      <picklistitem title="Borrower" value="Borrower"/>
-      <picklistitem title="Benefactor" value="Benefactor"/>
-      <picklistitem title="Contributor" value="Contributor"/>
-      <picklistitem title="Donor" value="Donor"/>
-      <picklistitem title="Guest" value="Guest"/>
-      <picklistitem title="Lender" value="Lender"/>
-      <picklistitem title="Other" value="Other"/>
-      <picklistitem title="Preparer" value="Preparer"/>
-      <picklistitem title="Receiver" value="Receiver"/>
-      <picklistitem title="Sponsor" value="Sponsor"/>
-      <picklistitem title="Staff" value="Staff"/>
-      <picklistitem title="Student" value="student"/>
     </items>
   </picklist>
 </list>

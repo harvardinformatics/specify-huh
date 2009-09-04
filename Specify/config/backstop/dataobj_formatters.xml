@@ -81,6 +81,18 @@
     </format>
 
 	<format
+		name="AgentVariant"
+		title="AgentVariant"
+		class="edu.ku.brc.specify.datamodel.AgentVariant"
+		>
+		<switch single="true">
+			<fields>
+				<field>name</field>
+			</fields>
+		</switch>
+	</format>
+	
+	<format
 		name="AttributeDef"
 		title="AttributeDef"
 		class="edu.ku.brc.specify.datamodel.AttributeDef"
@@ -911,6 +923,17 @@
                 orderfieldname=""
                />
 
+     <aggregator name="PreparationAttr"
+                title="Preparation Attributes"
+                class="edu.ku.brc.specify.datamodel.PreparationAttr"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="PreparationAttr"
+                orderfieldname=""
+               />
+               
     <aggregator name="PreparationAttachment"
                 title="PreparationAttachment"
                 class="edu.ku.brc.specify.datamodel.PreparationAttachment"

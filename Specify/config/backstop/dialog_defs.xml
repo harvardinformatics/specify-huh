@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dialog resourcelabels="">
     <dialog type="search" viewset="Search" view="AccessionSearch"          name="AccessionSearch"          class="edu.ku.brc.specify.datamodel.Accession"      idfield="accessionId" helpcontext="CBXQSearch"/>
-	<dialog type="search" viewset="Search" view="AgentSearch"              name="AgentSearch"              class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="AgentSearch"              name="AgentSearch"              class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AppraisalSearch"          name="AppraisalSearch"          class="edu.ku.brc.specify.datamodel.Appraisal"      idfield="appraisalId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AttachmentSearch"         name="AttachmentSearch"         class="edu.ku.brc.specify.datamodel.Attachment"     idfield="attachmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AutoNumberingSchemeSearch" name="AutoNumberingSchemeSearch" class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" idfield="autoNumberingSchemeId" helpcontext="CBXQSearch"/>
@@ -39,6 +39,7 @@
     <dialog type="display" view="AutoNumberingScheme" name="AutoNumberingScheme"     class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Author"             name="AuthorDisplay"            class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BioStrat"           name="BioStratDisplay"          class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="BorrowAgent"        name="BorrowAgentDisplay"       class="edu.ku.brc.specify.datamodel.BorrowAgent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Collection"         name="Collection"               class="edu.ku.brc.specify.datamodel.Collection" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Collector"          name="CollectorDisplay"         class="edu.ku.brc.specify.datamodel.Collector" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="CollectionObject"   name="CollectionObject"         class="edu.ku.brc.specify.datamodel.CollectionObject" helpcontext="CBXQViewEdit"/>

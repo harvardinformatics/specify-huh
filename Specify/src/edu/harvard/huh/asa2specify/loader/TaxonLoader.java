@@ -426,6 +426,9 @@ public class TaxonLoader extends TreeLoader
         // ReferenceWorkType
         referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
 
+        // Text2 (collation)
+        referenceWork.setText2(collation);
+
         // Title
         String fullName = asaTaxon.getFullName();
         fullName = truncate(fullName, 255, "title");
@@ -548,19 +551,20 @@ public class TaxonLoader extends TreeLoader
     
     private String getInsertSql(ReferenceWork referenceWork)
     {
-        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, " +
+        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, Text2, " +
         		            "TimestampCreated, Title, Version, Volume, WorkDate";
         
-        String[] values = new String[8];
+        String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
         values[1] = SqlUtils.sqlString( referenceWork.getPages());
         values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.sqlString( referenceWork.getTitle());
-        values[5] = SqlUtils.zero();
-        values[6] = SqlUtils.sqlString( referenceWork.getVolume());
-        values[7] = SqlUtils.sqlString( referenceWork.getWorkDate());
+        values[3] = SqlUtils.sqlString( referenceWork.getText2());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.sqlString( referenceWork.getTitle());
+        values[6] = SqlUtils.zero();
+        values[7] = SqlUtils.sqlString( referenceWork.getVolume());
+        values[8] = SqlUtils.sqlString( referenceWork.getWorkDate());
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);
     }

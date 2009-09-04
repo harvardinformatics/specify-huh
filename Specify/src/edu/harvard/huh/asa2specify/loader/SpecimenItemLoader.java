@@ -51,8 +51,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private static final Logger log  = Logger.getLogger(SpecimenItemLoader.class);
     
     private static final String ProvenanceFieldName = "Provenance";
+    private static final String VoucherFieldName = "Voucher";
+    private static final String ReferenceFieldName = "Reference";
     
     private AttributeDef provenanceAttrDef;
+    private AttributeDef voucherAttrDef;
+    private AttributeDef referenceAttrDef;
     
 	private Hashtable<String, PrepType> prepTypesByNameAndColl;
 	
@@ -412,8 +416,20 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         provenanceAttrDef = getAttributeDef(stringDataType, prepTableType, ProvenanceFieldName);
         
         String sql = getInsertSql(provenanceAttrDef);
-        Integer attributeDefId = insert(sql);
-        provenanceAttrDef.setAttributeDefId(attributeDefId);
+        Integer provAttrDefId = insert(sql);
+        provenanceAttrDef.setAttributeDefId(provAttrDefId);
+        
+        voucherAttrDef = getAttributeDef(stringDataType, prepTableType, VoucherFieldName);
+     
+        sql = getInsertSql(voucherAttrDef);
+        Integer vouchAttrDefId = insert(sql);
+        voucherAttrDef.setAttributeDefId(vouchAttrDefId);
+        
+        referenceAttrDef = getAttributeDef(stringDataType, prepTableType, ReferenceFieldName);
+        
+        sql = getInsertSql(referenceAttrDef);
+        Integer refAttrDefId = insert(sql);
+        referenceAttrDef.setAttributeDefId(refAttrDefId);
     }
 
     @Override
@@ -890,15 +906,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    if (location != null) location = truncate(location, 50, "location");
 	    preparation.setStorageLocation(location);
 
-	    // Text1 (voucher)
-        String voucher = specimenItem.getVoucher(); // TODO: investigate specimen.voucher
-        preparation.setText1(voucher);
+	    // Text1 (herbariumCode)
+	    String herbarium = specimenItem.getHerbariumCode();
+	    preparation.setText1(herbarium);
 
-        // Text2 (reference)
-        String reference = specimenItem.getReference(); // TODO: investigate specimen.reference
-        preparation.setText2(reference);
-
-        // YesNo1 (isOversize)
+	    // YesNo1 (isOversize)
         Boolean isOversize = specimenItem.isOversize();
         preparation.setYesNo1(isOversize);
         
@@ -924,17 +936,28 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
             for (String provenance : provenances)
             {
-                PreparationAttr prepAttr = new PreparationAttr();
-
-                prepAttr.setDefinition(getProvenanceAttrDef());
-                prepAttr.setCollectionMemberId(collectionMemberId);
-                prepAttr.setPreparation(preparation);
-                prepAttr.setStrValue(provenance.trim());
+                PreparationAttr provAttr = getPreparationAttr(getProvenanceAttrDef(), collectionMemberId, preparation, provenance.trim());
                 
-                preparation.getPreparationAttrs().add(prepAttr);
+                preparation.getPreparationAttrs().add(provAttr);
             }
         }
         
+        // add PreparationAttr for voucher
+        String voucher = specimenItem.getVoucher(); // TODO: investigate specimen.voucher
+        if (voucher != null)
+        {
+            PreparationAttr vouchAttr = getPreparationAttr(getVoucherAttrDef(), collectionMemberId, preparation, voucher.trim());
+            preparation.getPreparationAttrs().add(vouchAttr);
+        }
+        
+        // add PreparationAttr for reference
+        String reference = specimenItem.getReference(); // TODO: investigate specimen.reference
+        if (reference != null)
+        {
+            PreparationAttr refAttr = getPreparationAttr(getReferenceAttrDef(), collectionMemberId, preparation, reference.trim());
+            preparation.getPreparationAttrs().add(refAttr);
+        }
+
         return preparation;
 	}
 
@@ -943,6 +966,16 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return provenanceAttrDef;
 	}
 
+	private AttributeDef getVoucherAttrDef()
+    {
+        return voucherAttrDef;
+    }
+	
+	private AttributeDef getReferenceAttrDef()
+    {
+        return referenceAttrDef;
+    }
+	
 	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
 	{
         String herbariumCode = specimenItem.getHerbariumCode();
@@ -1100,7 +1133,19 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         return attributeDef;
     }
+    
+    private PreparationAttr getPreparationAttr(AttributeDef attrdef, Integer collectionMemberId, Preparation preparation, String strValue)
+    {
+        PreparationAttr prepAttr = new PreparationAttr();
+
+        prepAttr.setDefinition(attrdef);
+        prepAttr.setCollectionMemberId(collectionMemberId);
+        prepAttr.setPreparation(preparation);
+        prepAttr.setStrValue(strValue);
         
+        return prepAttr;
+    }
+
     private CollectingTrip getCollectingTrip(SpecimenItem specimenItem) throws LocalException
     {
         return getCollectingTrip(specimenItem, getBotanyDiscipline());
@@ -1388,10 +1433,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmt, Number1, Number2, " +
-				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, Text2, " +
+				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, " +
 				            "TimestampCreated, Version, YesNo1, YesNo2";
 
-		String[] values = new String[15];
+		String[] values = new String[14];
 		
 		values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( preparation.getCollectionObject().getId());
@@ -1403,11 +1448,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[7]  = SqlUtils.sqlString( preparation.getSampleNumber());
 		values[8]  = SqlUtils.sqlString( preparation.getStorageLocation());
 		values[9]  = SqlUtils.sqlString( preparation.getText1());
-		values[10] = SqlUtils.sqlString( preparation.getText2());
-        values[11] = SqlUtils.now();
-        values[12] = SqlUtils.zero();
-		values[13] = SqlUtils.sqlString( preparation.getYesNo1());
-		values[14] = SqlUtils.sqlString( preparation.getYesNo2());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.zero();
+		values[12] = SqlUtils.sqlString( preparation.getYesNo1());
+		values[13] = SqlUtils.sqlString( preparation.getYesNo2());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}

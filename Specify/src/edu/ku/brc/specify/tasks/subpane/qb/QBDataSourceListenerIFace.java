@@ -17,28 +17,48 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-package edu.ku.brc.specify.datamodel.busrules;
-
-import edu.ku.brc.af.ui.forms.BaseBusRules;
-import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
+package edu.ku.brc.specify.tasks.subpane.qb;
 
 /**
- * @author rod
- *
- * @code_status Beta
- *
- * Jan 11, 2008
+ * @author Administrator
  *
  */
-public class CollectionObjectAttributeBusRules extends BaseBusRules
+public interface QBDataSourceListenerIFace
 {
-
-    /**
-     * Constructor.
-     */
-    public CollectionObjectAttributeBusRules()
-    {
-        super(CollectionObjectAttribute.class);
-    }
-    
+	/**
+	 * @param progressPerCent
+	 * 
+	 * Sent when the current row changes.
+	 */
+	public void currentRow(final long currentRow);	
+	
+	/**
+	 * @param rowCount
+	 * 
+	 * Sent when/if the total row count is determined. 
+	 */
+	public void rowCount(final long rowCount);
+	
+	/**
+	 * @param rows the number of rows processed.
+	 * 
+	 * Sent when processing stops.
+	 */
+	public void done(final long rows);
+	
+	/**
+	 * Sent when/if data needs to be pre-processed before JR report can be filled.
+	 */
+	public void loading();
+	
+	/**
+	 * Sent when data is loaded.
+	 */
+	public void loaded();
+	
+	/**
+	 * Sent when fill begins.
+	 */
+	public void filling();
+	
 }

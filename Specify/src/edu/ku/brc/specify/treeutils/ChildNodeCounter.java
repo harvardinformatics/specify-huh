@@ -28,6 +28,8 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
 import edu.ku.brc.dbsupport.CustomQueryIFace;
 import edu.ku.brc.dbsupport.CustomQueryListener;
 import edu.ku.brc.dbsupport.JPAQuery;
@@ -48,15 +50,17 @@ import edu.ku.brc.specify.ui.treetables.TreeTableViewer;
  */
 public class ChildNodeCounter implements SQLExecutionListener, CustomQueryListener
 {
-    protected TreeNode node;
-    protected int      step    = 0;
-    protected int      valStep = 2;
-    protected boolean  isHQL   = false;
-    
-    protected String nodeNumQuery;
-    protected String countQuery;
-    protected int    slotIndex;
-    protected TreeTableViewer<?, ?, ?> viewer;
+    protected static final Logger log = Logger.getLogger(ChildNodeCounter.class);
+
+	protected TreeNode node;
+	protected int step = 0;
+	protected int valStep = 2;
+	protected boolean isHQL = false;
+
+	protected String nodeNumQuery;
+	protected String countQuery;
+	protected int slotIndex;
+	protected TreeTableViewer<?, ?, ?> viewer;
     
     /**
      * Constructor.
@@ -124,17 +128,33 @@ public class ChildNodeCounter implements SQLExecutionListener, CustomQueryListen
                 
             case 1:
             {
-                List<Object> row = ((List<List<Object>>)data).get(0);
-                if (row != null && row.size() > 2)
+                if (((List<List<Object>>)data).size() > 0)
                 {
-                    //int treeDefId  = (Integer)row.get(0);
-                    int topNodeNum = (Integer)row.get(1);
-                    int botNodenum = (Integer)row.get(2);
+                	List<Object> row = ((List<List<Object>>)data).get(0);
+                	if (row != null && row.size() > 2)
+                	{
+                		if (row.get(1) == null || row.get(2) == null)
+                		{
+                			//This should never happen if trees have been built correctly
+                			//... unless we are forced to allow incremental node updates to be turned off
+                			//for performance reasons.
+                			log.warn("null node number: skipping count");
+                			return null;
+                		}
                     
-                    if (topNodeNum < botNodenum)
-                    {
-                        return String.format(countQuery, topNodeNum, botNodenum);
-                    }
+                		//int treeDefId  = (Integer)row.get(0);
+                		int topNodeNum = (Integer)row.get(1);
+                		int botNodenum = (Integer)row.get(2);
+                    
+                		if (topNodeNum < botNodenum)
+                		{
+                			return String.format(countQuery, topNodeNum, botNodenum);
+                		}
+                	}
+                }
+                else
+                {
+                	log.warn("object list is empty: skipping count");
                 }
             }
         }

@@ -141,7 +141,7 @@ public class SpecifyHUHdbLoadWizard extends JPanel
         // Specify master username/password == the mysql username/password
         // The DatabasePanel grabs fields named IT_USERNAME and IT_PASSWORD,
         // but for our purposes we use them as SA_USERNAME and SA_PASSWORD
-        dbPanel = new DatabasePanel(nextBtn, "wizard_mysql_username", true);
+        dbPanel = new DatabasePanel(nextBtn, backBtn, "wizard_mysql_username", true);
         panels.add(dbPanel);
         HelpMgr.registerComponent(helpBtn, dbPanel.getHelpContext());
 
@@ -151,7 +151,7 @@ public class SpecifyHUHdbLoadWizard extends JPanel
                                         "wizard_enter_division",
                                         new String[] { "NAME",    "ABBREV"}, 
                                         new String[] { "divName", "divAbbrev"}, 
-                                        nextBtn, true));
+                                        nextBtn, backBtn, true));
          
         lastStep = panels.size();
         

@@ -289,12 +289,6 @@ public class SpecifyHUHdbLoadWizardFrame extends JFrame implements FrameworkAppI
             UIRegistry.setBaseAppDataDir(appdatadir);
         }
         
-        String javadbdir = System.getProperty("javadbdir");
-        if (StringUtils.isNotEmpty(javadbdir))
-        {
-            UIRegistry.setJavaDBDir(javadbdir);
-        }
-        
         SwingUtilities.invokeLater(new Runnable()
         {
             public void run()

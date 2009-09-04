@@ -560,6 +560,8 @@ public class GhostGlassPane extends JPanel
         {
 
             long elapsed = System.currentTimeMillis() - start;
+            System.err.println(elapsed);
+
             if (stopNow || elapsed > ANIMATION_DELAY)
             {
                 ((Timer) e.getSource()).stop();

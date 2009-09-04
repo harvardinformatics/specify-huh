@@ -3,7 +3,7 @@
   PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN"
          "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 <toc version="1.0">
-    <tocitem text="Specify" target="specify">
+    <tocitem text="Specify" target="About">
 <!--
       <tocitem text="Configuring a Database" target="ConfiguringDatabase"/>
       <tocitem text="Logging In" target="login"/>
@@ -18,27 +18,25 @@
 -->
 		  <tocitem text="About Specify" target="About">
 		    <tocitem text="Overview" target="About"/>
-		    <tocitem text="User Forums" target="Forum"/>
-			<tocitem text="Sample Resources" target="Sample_Resources">
-			    <tocitem text="Queries" target="Sample_Queries"/>
-				<tocitem text="Reports" target="Sample_Reports"/>
-				<tocitem text="Labels" target="Sample_Labels"/>
-			</tocitem>
 			<tocitem text="Using Help" target="Using_Help"/>
 		  </tocitem>
 		  
 		  <tocitem text="Welcome to Specify" target="Welcome">
 		  	<tocitem text="Registration" target="Registration"/>
 			<tocitem text="Services and Support" target="Services"/>
-            <tocitem text="PHUI Information" target="PHUI"/>
+            <tocitem text="Usage and Usability Statistics" target="PHUI"/>
 			<tocitem text="Updating" target="Updating"/>
 			<tocitem text="Contact Information" target="Contact_Information"/>
 		  </tocitem>
-
+		  
+		  <tocitem text="Specify Setup Wizard" target="Welcome">
+            <tocitem text="Field Format Editor" target="field_format"/>
+          </tocitem>
 
 		  
 		  
 		  <tocitem text="Starting Specify" target="starting"/>
+		  
 <!--
 		  	 <tocitem text="Login to Specify" target="Login"/>
 		  	 <tocitem text="Update Specify" target="Update"/>
@@ -51,6 +49,7 @@
 			 	   <tocitem text="Add Divisions" target="Add_Division"/>
 				   <tocitem text="Add Disciplines" target="Add_Discipline"/>
 				   <tocitem text="Add Collections" target="Add_Collection"/>
+                   <tocitem text="Field Format Editor" target="field_format"/>
 			     </tocitem>
 			     <tocitem text="Editing System Pick Lists" target="System_Picklist" />
 			     <tocitem text="Editing Preparation Type" target="Prep_Type" />
@@ -67,11 +66,12 @@
             <tocitem text="EMail" target="PrefsEMail"/>
             <tocitem text="Formatting" target="PrefsFormatting"/>
             <tocitem text="GoogleEarth" target="PrefsGoogleEarth"/>
-            <tocitem text="Task Bar" target="PrefsMisc"/>
-            <tocitem text="System" target="PrefsSystem"/>
-            <tocitem text="Tree" target="PrefsTree"/>
+            <tocitem text="Loan" target="PrefsLoan"/>
             <tocitem text="Login" target="PrefsLogin"/>
             <tocitem text="MySQL" target="PrefsMySQL"/>
+            <tocitem text="Task Bar" target="PrefsMisc"/>
+            <tocitem text="Tree" target="PrefsTree"/>
+            <tocitem text="System" target="PrefsSystem"/>
           </tocitem>
 	
 		  
@@ -241,6 +241,7 @@
           		<tocitem text="Lat Long Converter" target="WorkbenchLatLongConverter"/>
           </tocitem>
           <tocitem text="WorkBench Uploader" target="uploading"/>
+          <tocitem text="Specify File Slicer" target="slicer"/>
       </tocitem>
         
     </tocitem>

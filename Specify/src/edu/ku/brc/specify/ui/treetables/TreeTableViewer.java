@@ -67,6 +67,7 @@ import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -79,6 +80,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.auth.PermissionSettings;
+import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.Taskable;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
@@ -134,7 +136,7 @@ import edu.ku.brc.util.Pair;
  * @param <D>
  * @param <I>
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "hiding"})
 public class TreeTableViewer <T extends Treeable<T,D,I>,
 								D extends TreeDefIface<T,D,I>,
 								I extends TreeDefItemIface<T,D,I>>
@@ -425,15 +427,24 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     protected void initTreeLists()
     {
         T rootRecord = dataService.getRootNode(treeDef);
-        TreeNode rootNode = createNode(rootRecord);
+        TreeNode rootNode = rootRecord == null ? null : createNode(rootRecord);
         listModel = new TreeViewerListModel(rootNode);
-        idsToReexpand.add(rootNode.getId());
+        if (rootNode != null)
+        {
+        	idsToReexpand.add(rootNode.getId());
 
-        List<TreeNode> childNodes = showChildren(rootRecord);
+        	List<TreeNode> childNodes = showChildren(rootRecord);
 
-        showTree();
+        	showTree();
         
-        showCounts(rootRecord, childNodes);
+        	showCounts(rootRecord, childNodes);
+        }
+        else
+        {
+        	//No root for the tree. This should never happen for properly initialized trees - i.e. trees created
+        	//by Specify code.
+        	UIRegistry.displayErrorDlg(UIRegistry.getResourceString("TreeTableViewer.NoRootNodeForTree"));
+        }
     }
     
 	/**
@@ -490,6 +501,8 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         int rowHeight = 20;
         
 		lists[0] = new TreeDataGhostDropJList(listModel, this, isEditMode);
+		
+		listModel.addListDataListener(listCellRenderer);
         
         // we need our MouseListener to be the first one called, so we detach the other MouseListeners, attach ours, then reattach the others.
         MouseListener[] mouseListeners = lists[0].getMouseListeners();
@@ -996,14 +1009,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                     return;
                 }
                 
-                if (p.x >= textBounds.first && p.x <= textBounds.second)
-                {
-                    listCellRenderer.setRenderTooltip(true);
-                }
-                else
-                {
-                    listCellRenderer.setRenderTooltip(false);
-                }
+                listCellRenderer.setRenderTooltip(p.x >= textBounds.first && p.x <= textBounds.second);
             }
         };
         
@@ -1233,6 +1239,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         {
             UIRegistry.writeGlassPaneMsg(getResourceString("TTV_Deleting"), 24);
             
+            
             TreeNode parent = listModel.getNodeById(node.getParentId());
             
             // hide the children of the parent node (which will hide the node we're going to delete)
@@ -1248,6 +1255,9 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                 statusBar.setErrorMessage(getResourceString("TTV_PROBLEM_DELETING"));
             }
 
+            this.listCellRenderer.reset();
+            this.listHeaders[0].repaint();
+            this.listHeaders[1].repaint();
             // re-show the children of the parent node
             showChildren(parent);
             
@@ -1310,6 +1320,10 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     {
         TreeNode selectedNode = (TreeNode)list.getSelectedValue();
         
+        listCellRenderer.reset();
+        this.listHeaders[0].repaint();
+        this.listHeaders[1].repaint();
+
         TreeNode visibleRoot = listModel.getVisibleRoot();
     	
         if (visibleRoot.hasChildren && 
@@ -1369,6 +1383,10 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
     {
         TreeNode selectedNode = (TreeNode)list.getSelectedValue();
         
+        listCellRenderer.reset();
+        this.listHeaders[0].repaint();
+        this.listHeaders[1].repaint();
+
         TreeNode visibleRoot = listModel.getVisibleRoot();
         
         TreeNode parentNode = listModel.getNodeById(visibleRoot.getParentId());
@@ -1439,11 +1457,11 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.DualViewSearchable#find(java.lang.String, int, boolean)
 	 */
-	public void find(final String nodeName, final int where, final boolean wrap)
+	public void find(final String nodeName, final int where, final boolean wrap, final boolean isExact)
 	{
         setStatusBarText(null);
 		findName    = nodeName;
-		findResults = dataService.findByName(treeDef, nodeName);
+		findResults = dataService.findByName(treeDef, nodeName, isExact);
 		if (findResults.isEmpty())
 		{
 			//TODO: notify the user that no results were found
@@ -1511,13 +1529,13 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.DualViewSearchable#findNext(java.lang.String, int, boolean)
 	 */
-	public void findNext(final String key, final int where, final boolean wrap)
+	public void findNext(final String key, final int where, final boolean wrap, final boolean isExact)
 	{
         setStatusBarText(null);
 
 		if (key != null && !key.equals(findName))
 		{
-			find(key, where, wrap);
+			find(key, where, wrap, isExact);
 			return;
 		}
 		
@@ -1564,11 +1582,11 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 	 * @param wrap
 	 * @param current
 	 */
-	public void findNext(final int where, final boolean wrap, final T current)
+	public void findNext(final int where, final boolean wrap, final T current, final boolean isExact)
 	{
         setStatusBarText(null);
 
-		List<T> matches = dataService.findByName(treeDef, current.getName());
+		List<T> matches = dataService.findByName(treeDef, current.getName(), isExact);
 		if (matches.size()==1)
 		{
 			setStatusBarText("TTV_FIND_NO_MORE_MATCHES");
@@ -1641,11 +1659,11 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         
 		if (where == lists[0])
 		{
-			findNext(DualViewSearchable.TOPVIEW,wrap,currentRecord);
+			findNext(DualViewSearchable.TOPVIEW,wrap,currentRecord, AppPreferences.getLocalPrefs().getBoolean("FindPanel.Exact", true));
 		}
 		else if (where == lists[1])
 		{
-			findNext(DualViewSearchable.BOTTOMVIEW,wrap,currentRecord);
+			findNext(DualViewSearchable.BOTTOMVIEW,wrap,currentRecord, AppPreferences.getLocalPrefs().getBoolean("FindPanel.Exact", true));
 		}
 		else
 		{
@@ -2087,7 +2105,23 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                         
                         if (isNewObject)
                         {
-                            // show the children of the 
+                            //this ensures column for rank is added to tree view
+                        	for (Integer rank : listModel.getVisibleRanks())
+                            {
+                            	if (mergedNode.getRankId().equals(rank))
+                            	{
+                            		break;
+                            	}
+                            	if (mergedNode.getRankId().compareTo(rank) < 0)
+                            	{
+                            		TreeTableViewer.this.listCellRenderer.reset();
+                            		TreeTableViewer.this.listHeaders[0].repaint();
+                            		TreeTableViewer.this.listHeaders[1].repaint();
+                            		break;
+                            	}
+                            }
+                            
+                        	// show the children of the 
                             T parent = mergedNode.getParent();
                             if (parent != null)
                             {
@@ -2514,12 +2548,12 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 			return false;
 		}
 		
-        TreeNode draggedNode   = (TreeNode)dragged;
-        TreeNode droppedOnNode = (TreeNode)droppedOn;
-        T        draggedRecord = getRecordForNode(draggedNode);
-        T        droppedRecord = getRecordForNode(droppedOnNode);
+        final TreeNode draggedNode   = (TreeNode)dragged;
+        final TreeNode droppedOnNode = (TreeNode)droppedOn;
+        final T        draggedRecord = getRecordForNode(draggedNode);
+        final T        droppedRecord = getRecordForNode(droppedOnNode);
 
-        NODE_DROPTYPE nodeDropAction = askForDropAction(draggedRecord, droppedRecord, droppedOnNode, draggedNode);
+        final NODE_DROPTYPE nodeDropAction = askForDropAction(draggedRecord, droppedRecord, droppedOnNode, draggedNode);
 
 		if (nodeDropAction == NODE_DROPTYPE.SYNONIMIZE_NODE)
 		{
@@ -2531,78 +2565,260 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                 return false;
             }
             
-            TreeNode draggedNodeParent = listModel.getNodeById(draggedNode.getParentId());
-            TreeNode droppedNodeParent = listModel.getNodeById(droppedOnNode.getParentId());
-            hideChildren(draggedNodeParent);
-            if (droppedNodeParent != draggedNodeParent)
-            {
-            	hideChildren(droppedNodeParent);
-            }
-            
-			String statusMsg = dataService.synonymize(draggedRecord, droppedRecord);
-            draggedNode.setAcceptedParentId(droppedOnNode.getId());
-            
-            // fix all synonyms of the new synonym to point at the "final" accepted name in the chain
-            for (Pair<Integer, String> idAndName: draggedNode.getSynonymIdsAndNames())
-            {
-                if (idAndName.first != null)
-                {
-                    int synNodeID = idAndName.first;
-                    TreeNode synNode = listModel.getNodeById(synNodeID);
-                    if (synNode != null)
-                    {
-                        synNode.setAcceptedParentId(droppedOnNode.getId());
-                        synNode.setAcceptedParentFullName(droppedOnNode.getFullName());
-                        droppedOnNode.getSynonymIdsAndNames().add(new Pair<Integer,String>(synNode.getId(),synNode.getFullName()));
-                        
-                    } else
-                    {
-                        // I don't think this is actually an error - rods 05/21/08
-                        //String msg = "** - JDS - ** synNode was null and shouldn't have been for ID["+synNodeID+"]";
-                        //log.error(msg);
-                        //UIRegistry.displayErrorDlg(msg);
-                    }
-                } else
-                {
-                    String msg = "** - JDS - ** idAndName.first was null and shouldn't have been.";
-                    log.error(msg);
-                    UIRegistry.displayErrorDlg(msg);
-                }
-            }
-            
-            draggedNode.getSynonymIdsAndNames().clear();
-            
-            draggedNode.setAcceptedParentFullName(droppedOnNode.getFullName());
-            droppedOnNode.getSynonymIdsAndNames().add(new Pair<Integer,String>(draggedNode.getId(),draggedNode.getFullName()));
-            
-            Vector<TreeNode> bogusity = new Vector<TreeNode>(1);
-            bogusity.add(draggedNodeParent);
-            draggedNodeParent.setHasCalcCount(false);
-            draggedNodeParent.setHasCalcCount2(false);
-            showCounts(getRecordForNode(draggedNodeParent), bogusity);
-            showChildren(draggedNodeParent);
-            if (droppedNodeParent != draggedNodeParent)
-            {
-            	droppedNodeParent.setHasCalcCount(false);
-            	droppedNodeParent.setHasCalcCount2(false);
-            	bogusity.clear();
-            	bogusity.add(droppedNodeParent);
-            	showCounts(getRecordForNode(droppedNodeParent), bogusity);
-            	showChildren(droppedNodeParent);
-            }
-            updateAllUI();
-			if (statusMsg != null)
-			{
-			    statusBar.setText(statusMsg);
-			}
+            new javax.swing.SwingWorker<Boolean, Object>() {
+
+            	boolean result = false;
+            	
+				/* (non-Javadoc)
+				 * @see java.lang.Object#finalize()
+				 */
+				@Override
+				protected void finalize() throws Throwable
+				{
+					super.finalize();
+					if (!isDone())
+					{
+						log.error("A background thread for a tree synonymize action did not terminate correctly.");
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								//un-lock specify
+								UIRegistry.clearGlassPaneMsg();
+								//probably should display message to user and close treeviewer as in done()
+								//but no idea when or if this will happen so ... later if necessary.
+							}
+
+						});
+					}
+				}
+            	
+            	
+				/* (non-Javadoc)
+				 * @see javax.swing.SwingWorker#doInBackground()
+				 */
+				@Override
+				public Boolean doInBackground()
+				{
+		            try
+					{
+						SwingUtilities.invokeLater(new Runnable(){
+
+							/* (non-Javadoc)
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+				            	UIRegistry
+								.writeGlassPaneMsg(
+										String
+												.format(
+														UIRegistry
+																.getResourceString("TreeTableViewer.Synonymizing"),
+														draggedRecord.getName()),
+										24);
+							}
+							
+						});
+						final TreeNode draggedNodeParent = listModel
+								.getNodeById(draggedNode.getParentId());
+						final TreeNode droppedNodeParent = listModel
+								.getNodeById(droppedOnNode.getParentId());
+						
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/* (non-Javadoc)
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								hideChildren(draggedNodeParent);
+								if (droppedNodeParent != draggedNodeParent)
+								{
+									hideChildren(droppedNodeParent);
+								}
+							}
+							
+						});
+
+						String statusMsg = dataService.synonymize(
+								draggedRecord, droppedRecord);
+						if (statusMsg == null)
+						{
+							draggedNode.setAcceptedParentId(droppedOnNode
+									.getId());
+
+							// fix all synonyms of the new synonym to point at
+							// the
+							// "final" accepted name in the chain
+							for (Pair<Integer, String> idAndName : draggedNode
+									.getSynonymIdsAndNames())
+							{
+								if (idAndName.first != null)
+								{
+									int synNodeID = idAndName.first;
+									TreeNode synNode = listModel
+											.getNodeById(synNodeID);
+									if (synNode != null)
+									{
+										synNode
+												.setAcceptedParentId(droppedOnNode
+														.getId());
+										synNode
+												.setAcceptedParentFullName(droppedOnNode
+														.getFullName());
+										droppedOnNode
+												.getSynonymIdsAndNames()
+												.add(
+														new Pair<Integer, String>(
+																synNode.getId(),
+																synNode
+																		.getFullName()));
+
+									} else
+									{
+										// I don't think this is actually an
+										// error -
+										// rods 05/21/08
+										// String msg =
+										// "** - JDS - ** synNode was null and shouldn't have been for ID["+synNodeID+"]";
+										// log.error(msg);
+										// UIRegistry.displayErrorDlg(msg);
+									}
+								} else
+								{
+									String msg = "** - JDS - ** idAndName.first was null and shouldn't have been.";
+									log.error(msg);
+									UIRegistry.displayErrorDlg(msg);
+								}
+							}
+
+							SwingUtilities.invokeLater(new Runnable(){
+
+								/* (non-Javadoc)
+								 * @see java.lang.Runnable#run()
+								 */
+								@Override
+								public void run()
+								{
+									draggedNode.getSynonymIdsAndNames().clear();
+
+									draggedNode.setAcceptedParentFullName(droppedOnNode
+											.getFullName());
+									droppedOnNode.getSynonymIdsAndNames()
+											.add(
+													new Pair<Integer, String>(
+															draggedNode.getId(),
+															draggedNode.getFullName()));
+
+									Vector<TreeNode> bogusity = new Vector<TreeNode>(1);
+									bogusity.add(draggedNodeParent);
+									draggedNodeParent.setHasCalcCount(false);
+									draggedNodeParent.setHasCalcCount2(false);
+									showCounts(getRecordForNode(draggedNodeParent),
+											bogusity);
+									showChildren(draggedNodeParent);
+									if (droppedNodeParent != draggedNodeParent)
+									{
+										droppedNodeParent.setHasCalcCount(false);
+										droppedNodeParent.setHasCalcCount2(false);
+										bogusity.clear();
+										bogusity.add(droppedNodeParent);
+										showCounts(getRecordForNode(droppedNodeParent),
+												bogusity);
+										showChildren(droppedNodeParent);
+									}
+								}
+							});
+						}
+						SwingUtilities.invokeLater(new Runnable(){
+
+							/* (non-Javadoc)
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								updateAllUI();
+							}
+							
+						});
+						if (statusMsg != null)
+						{
+							statusBar.setText(statusMsg);
+						}
+						result = statusMsg == null;
+						return result;
+					} catch (Exception ex)
+					{
+						log.error(ex);
+						return false;
+					}
+					// If result is false the tree will be closed in
+					// done(), but that might be overkill
+					// for synonymy since the tree structure (parent/child
+					// relationships) is
+					// not actually changed.
+				}
+
+				/* (non-Javadoc)
+				 * @see javax.swing.SwingWorker#done()
+				 */
+				@Override
+				protected void done()
+				{
+					super.done();
+					log.info("Synonymization finished. Clearing glasspane.");
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/* (non-Javadoc)
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							UIRegistry.clearGlassPaneMsg();
+						}
+						
+					});
+					if (!result)
+					{
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/* (non-Javadoc)
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								UIRegistry.displayErrorDlgLocalized("TreeTableViewer.TreeOperationFailed", 
+										UIRegistry.getResourceString("TreeTableViewer.SynOp"));
+								SubPaneMgr.getInstance().removePane(TreeTableViewer.this, false);
+							}
+							
+						});
+					}
+				}
+				
+				
+            	
+            }.execute();
 			return true;
 		}
 		else if (nodeDropAction == NODE_DROPTYPE.MOVE_NODE)
 		{
-			T child = draggedRecord;
-			T newParent = droppedRecord;
-            TreeNode oldParentNode = listModel.getNodeById(draggedNode.getParentId());
-            TreeNode newParentNode = droppedOnNode;
+			final T child = draggedRecord;
+			final T newParent = droppedRecord;
+            final TreeNode oldParentNode = listModel.getNodeById(draggedNode.getParentId());
+            final TreeNode newParentNode = droppedOnNode;
             
 			if ( !TreeHelper.canChildBeReparentedToNode(child,newParent) )
 			{
@@ -2610,37 +2826,171 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 				return false;
 			}
 			
+			new javax.swing.SwingWorker<Boolean, Object>() {
+
+				Boolean result = false;
+				
+				/* (non-Javadoc)
+				 * @see java.lang.Object#finalize()
+				 */
+				@Override
+				protected void finalize() throws Throwable
+				{
+					super.finalize();
+					if (!isDone())
+					{
+						log.error("A background thread for a tree move action did not terminate correctly.");
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								//un-lock specify
+								UIRegistry.clearGlassPaneMsg();
+								//probably should display message to user and close treeviewer as in done()
+								//but no idea when or if this will happen so ... later if necessary.
+							}
+
+						});
+					}
+				}
+				/* (non-Javadoc)
+				 * @see javax.swing.SwingWorker#doInBackground()
+				 */
+				@Override
+				public Boolean doInBackground()
+				{
+		            try
+					{
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								UIRegistry
+										.writeGlassPaneMsg(
+												String
+														.format(
+																UIRegistry
+																		.getResourceString("TreeTableViewer.Moving"),
+																child.getName()),
+												24);
+								hideChildren(oldParentNode);
+								hideChildren(droppedOnNode);
+							}
+
+						});
+
+						// Removing the children of these nodes may have
+						// resulted in a node being removed from the model.
+						// This happens when one of these nodes is a descendant
+						// of the other. The lower ranked node will
+						// no longer be in the model at all.
+
+						// do the DB work to reparent the nodes
+						int moveResult = dataService.moveTreeNode(child,
+								newParent);
+						if (moveResult == ERROR)
+						{
+							String msg = getResourceString("TTV_UNKOWN_MOVE_ERROR");
+							statusBar.setErrorMessage(msg);
+							UIRegistry.displayErrorDlg(msg);
+						}
+
+						// reshow the nodes' children, if the nodes are still in
+						// the tree (see comment above in this method)
+						final TreeNode oldParentNodeReshow = listModel
+								.getNodeById(oldParentNode.getId());
+						final TreeNode newParentNodeReshow = listModel
+								.getNodeById(newParentNode.getId());
+
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								if (oldParentNodeReshow != null)
+								{
+									showChildren(oldParentNodeReshow);
+								}
+								if (newParentNodeReshow != null)
+								{
+									newParentNodeReshow.setHasChildren(true);
+									showChildren(newParentNodeReshow);
+								}
+							}
+						});
+						result = moveResult != ERROR;
+						return result;
+					} catch (Exception ex)
+					{
+						log.error(ex);
+						return false;
+					}
+				}
+				/* (non-Javadoc)
+				 * @see javax.swing.SwingWorker#done()
+				 */
+				@Override
+				protected void done()
+				{
+					super.done();
+					log.info("Moved Node. Clearing glasspane.");
+					SwingUtilities.invokeLater(new Runnable() {
+
+						/* (non-Javadoc)
+						 * @see java.lang.Runnable#run()
+						 */
+						@Override
+						public void run()
+						{
+							UIRegistry.clearGlassPaneMsg();
+						}
+						
+					});
+					if (!result)
+					{
+						SwingUtilities.invokeLater(new Runnable() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see java.lang.Runnable#run()
+							 */
+							@Override
+							public void run()
+							{
+								UIRegistry
+										.displayErrorDlgLocalized(
+												"TreeTableViewer.TreeOperationFailed",
+												UIRegistry
+														.getResourceString("TreeTableViewer.MoveOp"));
+								SubPaneMgr.getInstance().removePane(
+										TreeTableViewer.this, false);
+							}
+
+						});
+					}
+				}
+				
+			}.execute();
+			return true;
 			
-            hideChildren(oldParentNode);
-            hideChildren(droppedOnNode);
-            // Removing the children of these nodes may have resulted in a node being removed from the model.
-            // This happens when one of these nodes is a descendant of the other.  The lower ranked node will
-            // no longer be in the model at all.
-			
-            // do the DB work to reparent the nodes
-            int moveResult = dataService.moveTreeNode(child, newParent);
-            if (moveResult == ERROR)
-            {
-                String msg = getResourceString("TTV_UNKOWN_MOVE_ERROR");
-                statusBar.setErrorMessage(msg);
-                UIRegistry.displayErrorDlg(msg);
-            }
-            
-            // reshow the nodes' children, if the nodes are still in the tree (see comment above in this method)
-            oldParentNode = listModel.getNodeById(oldParentNode.getId());
-            newParentNode = listModel.getNodeById(newParentNode.getId());
-            
-            if (oldParentNode != null)
-            {
-                showChildren(oldParentNode);
-            }
-            if (newParentNode != null)
-            {
-                newParentNode.setHasChildren(true);
-                showChildren(newParentNode);
-            }
-            
-			return moveResult != ERROR;
 		}
 		return false;
 	}
@@ -2820,19 +3170,16 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 		final TreeDataGhostDropJList list = (TreeDataGhostDropJList)e.getSource();
 		Point p = e.getPoint();
 		int index = list.locationToIndex(p);
-		if (index==-1)
+		if (index == -1)
 		{
 			return false;
 		}
-		TreeNode t = listModel.getElementAt(index);
-		Integer rank = t.getRank();
+		
+		TreeNode t    = listModel.getElementAt(index);
+		Integer  rank = t.getRank();
 		Pair<Integer,Integer> textBounds = listCellRenderer.getTextBoundsForRank(rank);
 		
-		if ( textBounds.first < p.x && p.x < textBounds.second )
-		{
-			return true;
-		}
-		return false;
+		return textBounds.first < p.x && p.x < textBounds.second;
 	}
 	
 	/**
@@ -2844,20 +3191,17 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 		TreeDataGhostDropJList list = (TreeDataGhostDropJList)e.getSource();
 		Point p = e.getPoint();
 		int index = list.locationToIndex(p);
-		if (index==-1)
+		if (index == -1)
 		{
 			return false;
 		}
+		
         ListModel model = list.getModel();
-        TreeNode t = (TreeNode)model.getElementAt(index);
-		Integer rank = t.getRank();
+        TreeNode  t     = (TreeNode)model.getElementAt(index);
+		Integer   rank  = t.getRank();
 		Pair<Integer,Integer> anchorBounds = listCellRenderer.getAnchorBoundsForRank(rank);
 		
-		if ( anchorBounds.first < p.x && p.x < anchorBounds.second )
-		{
-			return true;
-		}
-		return false;
+		return anchorBounds.first < p.x && p.x < anchorBounds.second;
 	}
 	
 	/**
@@ -2917,6 +3261,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
         // if the user clicked an expansion handle, expand the child nodes
 		if ( clickIsOnExpansionIcon(e) || (e.getClickCount() == 2 && clickIsOnText(e)) )
 		{
+            treeNode.setHasVisualChildren(null);
             if (listModel.showingChildrenOf(treeNode))
             {
                 hideChildren(treeNode);
@@ -2927,12 +3272,15 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
                 List<TreeNode> childrenShown = showChildren(treeNode);
                 if (childrenShown.size() > 0)
                 {
-                    TreeNode firstChild = childrenShown.get(0);
+                	TreeNode firstChild = childrenShown.get(0);
                     int listIndex = (list == lists[0]) ? 0 : 1;
                     scrollToShowNode(firstChild, listIndex);
                     enableSubTreeButtons();
                 }
             }
+            this.listCellRenderer.reset();
+            this.listHeaders[0].repaint();
+            this.listHeaders[1].repaint();
 		}
         // otherwise, ignore the click
 		else
@@ -3008,29 +3356,34 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
 	@Override
 	public boolean aboutToShutdown()
 	{
-        try
-        {
-            T selectedNode = getSelectedNode(lists[0]);
-            AppPreferences appPrefs = AppPreferences.getRemote();
-            if (appPrefs != null)
-            {
-                if (selectedNode != null)
-                {
-                    appPrefs.put(selNodePrefName, selectedNode.getTreeId().toString());
-                }
-                else
-                {
-                    appPrefs.remove(selNodePrefName);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(TreeTableViewer.class, e);
-            log.error("Unknown error when trying to store the selected node id during tree viewer shutdown.", e);
-        }
-		
+        if (lists != null)
+		{
+			try
+			{
+				T selectedNode = getSelectedNode(lists[0]);
+				AppPreferences appPrefs = AppPreferences.getRemote();
+				if (appPrefs != null)
+				{
+					if (selectedNode != null)
+					{
+						appPrefs.put(selNodePrefName, selectedNode.getTreeId()
+								.toString());
+					} else
+					{
+						appPrefs.remove(selNodePrefName);
+					}
+				}
+			} catch (Exception e)
+			{
+				edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+				edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(
+						TreeTableViewer.class, e);
+				log
+						.error(
+								"Unknown error when trying to store the selected node id during tree viewer shutdown.",
+								e);
+			}
+		}
 		return true;
 	}
 
@@ -3261,15 +3614,18 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
          }*/
         
         // get the node representing the parent DB record
-        TreeNode parentNode = listModel.getNodeById(dbRecord.getTreeId());
+        TreeNode parentNode = listModel.getNodeById(dbRecord.getTreeId());                    
+        
 
         // add the nodes to the model
         if (childNodes.size() == 0)
         {
             parentNode.setHasChildren(false);
+            parentNode.setHasVisualChildren(false);
             listModel.nodeValuesChanged(parentNode);
             return childNodes;
         }
+        parentNode.setHasVisualChildren(true);
         listModel.showChildNodes(childNodes, parentNode);
 
         if (parentNode != null)
@@ -3335,6 +3691,7 @@ public class TreeTableViewer <T extends Treeable<T,D,I>,
      */
     protected synchronized void hideChildren(final TreeNode parent)
     {
+        parent.setHasVisualChildren(null);
         idsToReexpand.remove(parent.getId());
         listModel.removeChildNodes(parent);
     }

@@ -18,7 +18,7 @@
     </typesearch>
     <typesearch tableid="67"  name="Appraisal"              searchfield="appraisalNumber" displaycols="appraisalNumber"    format="%s"     dataobjformatter=""/>
     <typesearch tableid="16"  name="AttributeDef"           searchfield="fieldName"       displaycols="fieldName"          format="%s"     dataobjformatter="">
-		SELECT %s1 FROM AttributeDef atd LEFT JOIN atd.preparationAttrs ppa WHERE  ppa.collectionMemberId = COLLID ORDER BY atd.fieldName
+		SELECT %s1 FROM AttributeDef atd WHERE %s2 ORDER BY atd.fieldName
     </typesearch>
     <typesearch tableid="97"  name="CatAutoNumberingScheme" searchfield="schemeName"      displaycols="schemeName"         format="%s"     dataobjformatter=""/>
     <typesearch tableid="46"  name="BioStrat"               searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter="">
@@ -49,5 +49,8 @@
     <typesearch tableid="6"   name="Permit"                 searchfield="permitNumber"    displaycols="permitNumber"       format="%s"     dataobjformatter=""/>
     <typesearch tableid="65"  name="PrepType"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="4"   name="Taxon"                  searchfield="fullName"        displaycols="fullName"           format="%s"     dataobjformatter="Taxon"/>
+    <typesearch tableid="107" name="TaxonAuthor"            searchfield="name"            displaycols="name"               format="%s"     dataobjformatter="AgentVariant">
+	    SELECT %s1 FROM AgentVariant av WHERE av.varType = 3 AND %s2 ORDER BY name
+    </typesearch>
     <typesearch tableid="77"  name="TaxonTreeDefItem"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
 </typesearches>

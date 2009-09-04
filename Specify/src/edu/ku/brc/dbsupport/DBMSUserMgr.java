@@ -34,12 +34,15 @@ public abstract class DBMSUserMgr
 {
     public static String factoryName = "edu.ku.brc.dbsupport.DBMSUserMgr"; //$NON-NLS-1$
     
-    public static final int PERM_NONE   = 0;
-    public static final int PERM_SELECT = 1;
-    public static final int PERM_UPDATE = 2;
-    public static final int PERM_DELETE = 4;
-    public static final int PERM_INSERT = 8;
-    public static final int PERM_ALL    = 15;
+    public static final int PERM_NONE        = 0;
+    public static final int PERM_SELECT      = 1;
+    public static final int PERM_UPDATE      = 2;
+    public static final int PERM_DELETE      = 4;
+    public static final int PERM_INSERT      = 8;
+    public static final int PERM_LOCK_TABLES = 16;
+    public static final int PERM_BASIC       = 31;
+    
+    public static final int PERM_ALL         = 32; // Literally 'all' the permissions
     
     private static DBMSUserMgr instance = null;
    
@@ -59,6 +62,13 @@ public abstract class DBMSUserMgr
      * @return true on success
      */
     public abstract boolean dropDatabase(String dbName);
+    
+    /**
+     * Drops a user with a given name.
+     * @param username the name of the user's login
+     * @return true on success
+     */
+    public abstract boolean dropUser(String username);
     
     /**
      * Checks to see if the DB exists
@@ -118,12 +128,26 @@ public abstract class DBMSUserMgr
 	 */
 	public abstract boolean createUser(String username, String password, String dbName, int permissions);
 	
-	/**
-	 * The database exists, but does it have any tables?
-	 * @param dbName the database name
-	 * @return true if is at least one table, false if not.
-	 */
-	public abstract boolean doesDBHaveTables();
+    /**
+     * The database exists, but does it have any tables?
+     * @param dbName the database name
+     * @return true if is at least one table, false if not.
+     */
+    public abstract boolean doesDBHaveTables();
+    
+    /**
+     * Check to see if the table is in the schema
+     * @param dbName the database name
+     * @return true if the table exists, false if not.
+     */
+    public abstract boolean doesDBHaveTable(final String tableName);
+    
+    /**
+     * Some databases require a specific engine and also the charset needs to be checked (UTF-8).
+     * @param dbName the database to check.
+     * @return true if ok
+     */
+    public abstract boolean verifyEngineAndCharSet(final String dbName);
 
 	/**
 	 * @return a localized test message describing the error when a method fails

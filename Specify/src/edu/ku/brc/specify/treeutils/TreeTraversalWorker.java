@@ -44,13 +44,19 @@ import edu.ku.brc.specify.datamodel.Treeable;
 public abstract class TreeTraversalWorker<T extends Treeable<T, D, I>, D extends TreeDefIface<T, D, I>, I extends TreeDefItemIface<T, D, I>>
         extends SwingWorker<Boolean, Object>
 {
-    
+	
+	/**
+	 * The number of db operations that can occur before the session should be flushed.
+	 */
+	protected static int               writesPerFlush = 2000;
+	
     protected QueryIFace               childrenQuery     = null;
     protected QueryIFace               ancestorQuery     = null;
 
     long                               progressChunk;
     int                                progressIncr;
     int                                progressPerCent;
+    int								   writeCount;
     protected final D                  treeDef;
 
     protected DataProviderSessionIFace traversalSession = null;
@@ -83,6 +89,15 @@ public abstract class TreeTraversalWorker<T extends Treeable<T, D, I>, D extends
     }
 
     /**
+     * Initializes members required for session flushing within transactions.
+     * Workers that use transactions should call this method.
+     */
+    protected void initCacheInfo()
+    {
+    	writeCount = 0;
+    }
+    
+    /**
      *  increments  progress.
      */
     protected void incrementProgress()
@@ -94,6 +109,44 @@ public abstract class TreeTraversalWorker<T extends Treeable<T, D, I>, D extends
         }
     }
 
+    /**
+     * Updates members required for session flushing within transactions.
+     * Workers that use transactions should call this method after each write - or periodically.
+     */
+    protected void checkCache() throws Exception
+    {
+        if (++writeCount == writesPerFlush)
+        {
+            clearCache();
+            writeCount = 0;
+        }
+    }
+    
+    /**
+      * clear the session cache.
+      * 
+      * flush too, just in case.
+     */
+    protected void clearCache() throws Exception
+    {
+        traversalSession.flush();
+    	traversalSession.clear();
+		/* Every time updateNodeQuery.executeUpdate() is executed, an entry
+		 * is added to the hibernate session.actionQueue.executions data structure.
+		 * For large trees, out of memory errors occur.
+		 * 
+		 * Attempts to combine multiple node updates into one updateNodeQuery.executeUpdate() failed.
+		 *
+		 * Even when a transaction was not opened, the executions structure was filled (besides, with hibernate,
+		 * session updates MUST be in a transaction or they do not actually get written to the db).
+		 * 
+		 * So, periodic commits are required. This means that an entire tree update cannot be rolled back, but
+		 * in theory, the tree was not in correct shape before the rebuild began, so this is not so serious an issue.
+		 */
+		traversalSession.commit();
+		traversalSession.beginTransaction();
+    }
+    
     /**
      * updates progress and notifies progress listeners.  
      */

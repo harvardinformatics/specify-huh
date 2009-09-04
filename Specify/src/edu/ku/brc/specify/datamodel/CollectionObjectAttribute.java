@@ -50,7 +50,7 @@ import org.hibernate.annotations.Index;
     {   
         @Index (name="COLOBJATTRSColMemIDX", columnNames={"CollectionMemberID"})
     })
-public class CollectionObjectAttribute extends CollectionMember
+public class CollectionObjectAttribute extends CollectionMember implements Cloneable
 {
     protected Integer collectionObjectAttributeId;
     protected String text10;
@@ -945,6 +945,19 @@ public class CollectionObjectAttribute extends CollectionMember
     public void setYesNo7(Boolean yesNo7)
     {
         this.yesNo7 = yesNo7;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        CollectionObjectAttribute obj    = (CollectionObjectAttribute)super.clone();
+        obj.collectionObjectAttributeId  = null;
+        obj.collectionObjects            = new HashSet<CollectionObject>();
+        
+        return obj;
     }
 
     /* (non-Javadoc)

@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.datamodel;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -30,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -43,7 +41,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Cascade;
@@ -52,6 +49,7 @@ import org.hibernate.annotations.Index;
 
 import edu.ku.brc.services.biogeomancer.GeoCoordDataIFace;
 import edu.ku.brc.ui.GraphicsUtils;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.GeoRefConverter;
 import edu.ku.brc.util.LatLonConverter;
 import edu.ku.brc.util.GeoRefConverter.GeoRefFormat;
@@ -212,12 +210,20 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         return cardImageData;
     }
 
+    /**
+     * @param cardImageData
+     */
     public void setCardImageData(byte[] cardImageData)
     {
         imgIcon = null;
         this.cardImageData = cardImageData;
     }
         
+    /**
+     * @param index
+     * @param imgOrig
+     * @throws IOException
+     */
     public synchronized void setImage(int index, File imgOrig) throws IOException
     {
         if (workbenchRowImages == null)
@@ -236,9 +242,12 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             if (img.getImageOrder().intValue() == index)
             {
                 byte[] newImageData = readAndScaleCardImage(imgOrig);
-                img.setCardImageData(newImageData);
-                img.setCardImageFullPath(imgOrig.getAbsolutePath());
-                return;
+                if (newImageData != null)
+                {
+                    img.setCardImageData(newImageData);
+                    img.setCardImageFullPath(imgOrig.getAbsolutePath());
+                    return;
+                }
             }
         }
     }
@@ -250,7 +259,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
      * @return the index of the new image
      * @throws IOException if an error occurs while loading or scaling the image file
      */
-    public synchronized int addImage(File orig) throws IOException
+    public synchronized int addImage(final File orig) throws IOException
     {
         if (workbenchRowImages == null)
         {
@@ -258,18 +267,24 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         }
         
         byte[] imgData = readAndScaleCardImage(orig);
-        
-        int order = workbenchRowImages.size();
-        WorkbenchRowImage newRowImage = new WorkbenchRowImage();
-        newRowImage.initialize();
-        newRowImage.setImageOrder(order);
-        newRowImage.setCardImageFullPath(orig.getAbsolutePath());
-        newRowImage.setCardImageData(imgData);
-        newRowImage.setWorkbenchRow(this);
-        workbenchRowImages.add(newRowImage);
-        return order;
+        if (imgData != null)
+        {
+            int order = workbenchRowImages.size();
+            WorkbenchRowImage newRowImage = new WorkbenchRowImage();
+            newRowImage.initialize();
+            newRowImage.setImageOrder(order);
+            newRowImage.setCardImageFullPath(orig.getAbsolutePath());
+            newRowImage.setCardImageData(imgData);
+            newRowImage.setWorkbenchRow(this);
+            workbenchRowImages.add(newRowImage);
+            return order;
+        }
+        return -1;
     }
     
+    /**
+     * @param index
+     */
     public synchronized void deleteImage(int index)
     {
         if (workbenchRowImages == null)
@@ -303,6 +318,10 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         }
     }
     
+    /**
+     * @param index
+     * @return
+     */
     @Transient
     public synchronized WorkbenchRowImage getRowImage(int index)
     {
@@ -322,6 +341,9 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         return null;
     }
     
+    /**
+     * @return
+     */
     @Transient
     public synchronized ImageIcon getCardImage()
     {
@@ -366,35 +388,50 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
 
         if (imageFile.length() < this.maxImageSize)
         {
-            // read the original
-            BufferedImage img = ImageIO.read(imageFile);
-
-            // determine if we need to scale
-            int origWidth = img.getWidth();
-            int origHeight = img.getHeight();
-            boolean scale = false;
-
-            if (origWidth > this.maxWidth || origHeight > maxHeight)
-            {
-                scale = true;
-            }
-
             byte[] imgBytes = null;
+            try
+            {
+                // read the original
+                byte[] bytes = GraphicsUtils.readImage(imageFile);
+                
+                ImageIcon img = new ImageIcon(bytes);
+    
+                // determine if we need to scale
+                int     origWidth  = img.getIconWidth();
+                int     origHeight = img.getIconHeight();
+                boolean scale      = false;
+    
+                if (origWidth > this.maxWidth || origHeight > maxHeight)
+                {
+                    scale = true;
+                }
+    
+                if (scale)
+                {
+                    imgBytes = GraphicsUtils.scaleImage(bytes, this.maxHeight, this.maxWidth, true, false);
+                }
+                else
+                {
+                    // since we don't need to scale the image, just grab its bytes
+                    imgBytes = bytes;
+                }
+                
+            } catch (javax.imageio.IIOException ex)
+            {
+                UIRegistry.showLocalizedError("WB_IMG_BAD_FMT");
+                loadStatus = LoadStatus.Error;
+                loadException = ex;
 
-            if (scale)
-            {
-                imgBytes = GraphicsUtils.scaleImage(img, this.maxHeight, this.maxWidth, true, false);
-            }
-            else
-            {
-                // since we don't need to scale the image, just grab its bytes
-                imgBytes = FileUtils.readFileToByteArray(imageFile);
+                return null;
             }
             
             return imgBytes;
         }
         // else, image is too large
-        throw new IOException("Provided image is too large.  Maximum image size is " + this.maxImageSize + " bytes.");
+        String msg = String.format(UIRegistry.getResourceString("WB_IMG_TOO_BIG"), this.maxImageSize);
+        UIRegistry.showError(msg);
+        loadStatus = LoadStatus.Error;
+        return null;
     }
     
     /**
@@ -422,7 +459,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             return;
         }
         
-        byte[] imgData;
+        byte[] imgData = null;
         try
         {
             imgData = readAndScaleCardImage(imageFile);
@@ -433,7 +470,6 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(WorkbenchRow.class, e);
             loadStatus = LoadStatus.Error;
             loadException = e;
-            return;
         }
         
         if (imgData != null)
@@ -621,7 +657,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         {
             if (updateGeoRefInfo)
             {
-                updateGeoRefTextFldsIfNecessary(wbdi);
+                updateGeoRefTextFldsIfNecessary(wbdi.getWorkbenchTemplateMappingItem());
             }
             if (wbdi.getValidationStatus() == WorkbenchDataItem.VAL_ERROR)
             {
@@ -638,9 +674,8 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     /**
      * @param wbdi
      */
-    protected void updateGeoRefTextFldsIfNecessary(final WorkbenchDataItem wbdi)
+    public void updateGeoRefTextFldsIfNecessary(final WorkbenchTemplateMappingItem map)
     {
-        WorkbenchTemplateMappingItem map = wbdi.getWorkbenchTemplateMappingItem();
         if (map.getTableName().equals("locality"))
         {
             
@@ -705,14 +740,15 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         try
         {
             GeoRefConverter geoConverter = new GeoRefConverter();
-            LatLonConverter.FORMAT fmt = geoConverter.getLatLonFormat(latEntry);
+            LatLonConverter.FORMAT fmt = geoConverter.getLatLonFormat(StringUtils.stripToNull(latEntry));
+            int decimalSize = geoConverter.getDecimalSize(StringUtils.stripToNull(latEntry));
             if (fmt.equals(LatLonConverter.FORMAT.None))
             {
                 return null;
             }
-            ddString = geoConverter.convert(latEntry, GeoRefFormat.D_PLUS_MINUS.name());
+            ddString = geoConverter.convert(StringUtils.stripToNull(latEntry), GeoRefFormat.D_PLUS_MINUS.name());
             BigDecimal bigD = new BigDecimal(ddString);
-            return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Latitude);
+            return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Latitude, decimalSize);
         }
         catch (NumberFormatException ex)
         {
@@ -736,14 +772,15 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         try
         {
             GeoRefConverter geoConverter = new GeoRefConverter();
-            LatLonConverter.FORMAT fmt = geoConverter.getLatLonFormat(longEntry);
+            LatLonConverter.FORMAT fmt = geoConverter.getLatLonFormat(StringUtils.stripToNull(longEntry));
+            int decimalSize = geoConverter.getDecimalSize(StringUtils.stripToNull(longEntry));
             if (fmt.equals(LatLonConverter.FORMAT.None))
             {
                 return null;
             }
-            ddString = geoConverter.convert(longEntry, GeoRefFormat.D_PLUS_MINUS.name());
+            ddString = geoConverter.convert(StringUtils.stripToNull(longEntry), GeoRefFormat.D_PLUS_MINUS.name());
             BigDecimal bigD = new BigDecimal(ddString);
-            return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Longitude);
+            return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Longitude, decimalSize);
         }
         catch (NumberFormatException ex)
         {

@@ -194,6 +194,10 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         checkNull(transactionId, "transaction id");
         gift.setNumber1((float) transactionId);
         
+        // PurposeOfGift
+        String purpose = Transaction.toString(outGift.getPurpose());
+        gift.setPurposeOfGift(purpose);
+        
         // Remarks
         String remarks = outGift.getRemarks();
         gift.setRemarks(remarks);
@@ -272,7 +276,7 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
     private String getInsertSql(Gift gift)
     {
         String fieldNames = "CreatedByAgentID, DisciplineID, GiftDate, GiftNumber, Number1, " +
-                            "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1";
+                            "PurposeOfGiftRemarks, Text1, Text2, TimestampCreated, Version, YesNo1";
 
         String[] values = new String[11];
 

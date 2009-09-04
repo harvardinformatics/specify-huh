@@ -267,7 +267,7 @@ public class ViewFactory
                                       isRequired,
                                       parseValidationType(cellField.getValidationType()),
                                       cellField.getValidationRule(),
-                                      cellField.isChangeListenerOnly());
+                                      cellField.isChangeListenerOnly() && !isRequired);
 
             txtField = textField;
             textField.setEditable(!cellField.isReadOnly());
@@ -406,8 +406,7 @@ public class ViewFactory
                 return textField;
             }
             
-            ValFormattedTextField textField = new ValFormattedTextField(formatter, isViewOnly, allEditOK);
-            textField.setPartialOK(isPartialOK);
+            ValFormattedTextField textField = new ValFormattedTextField(formatter, isViewOnly, allEditOK, isPartialOK);
             textField.setRequired(isRequired);
             textField.setFromUIFmtOverride(isFromUIFmtOverride);
 
@@ -444,9 +443,8 @@ public class ViewFactory
             return vtfs;
         }
         // else
-        ValFormattedTextField vtf = new ValFormattedTextField(uiFormatterName, isViewOnly, allEditOK);
+        ValFormattedTextField vtf = new ValFormattedTextField(uiFormatterName, isViewOnly, allEditOK, isPartialOK);
         vtf.setEnabled(!cellField.isReadOnly());
-        vtf.setPartialOK(isPartialOK);
         vtf.setRequired(isRequired);
         vtf.setFromUIFmtOverride(isFromUIFmtOverride);
         return vtf;
@@ -599,22 +597,28 @@ public class ViewFactory
             String helpContext = cellField.getProperty("hc");
             
             ValComboBoxFromQuery cbx = TypeSearchForQueryFactory.createValComboBoxFromQuery(cbxName, btnOpts, cellField.getFormatName(), helpContext);
-            cbx.setRequired(isRequired);
-            cbx.setSearchDlgName(cellField.getProperty("searchdlg"));
-            cbx.setDisplayDlgName(cellField.getProperty("displaydlg"));
-            
-            if (validator != null)// && (cellField.isRequired() || isNotEmpty(cellField.getValidationRule())))
+            if (cbx != null)
             {
-                DataChangeNotifier dcn = validator.hookupComponent(cbx, cellField.getIdent(), parseValidationType(cellField.getValidationType()), cellField.getValidationRule(), false);
-                cbx.addListSelectionListener(dcn);
-
-                //if (dcn.getValidationType() == UIValidator.Type.Focus) // returns None when no Validator
-                //{
-                    cbx.addFocusListener(dcn);
-                //}
+                cbx.setRequired(isRequired);
+                cbx.setSearchDlgName(cellField.getProperty("searchdlg"));
+                cbx.setDisplayDlgName(cellField.getProperty("displaydlg"));
+                
+                if (validator != null)// && (cellField.isRequired() || isNotEmpty(cellField.getValidationRule())))
+                {
+                    DataChangeNotifier dcn = validator.hookupComponent(cbx, cellField.getIdent(), parseValidationType(cellField.getValidationType()), cellField.getValidationRule(), false);
+                    cbx.addListSelectionListener(dcn);
+    
+                    //if (dcn.getValidationType() == UIValidator.Type.Focus) // returns None when no Validator
+                    //{
+                        cbx.addFocusListener(dcn);
+                    //}
+                }
+                cbx.setCellName(cellField.getName());
+                cbx.setDoAdjustQuery(doAdjustQuery);
+            } else
+            {
+                UIRegistry.showLocalizedError("ERR_NEED_SHUTDOWN");
             }
-            cbx.setCellName(cellField.getName());
-            cbx.setDoAdjustQuery(doAdjustQuery);
             
             return cbx;
 
@@ -1173,6 +1177,12 @@ public class ViewFactory
         } else if (cell.getType() == FormCellIFace.CellType.field)
         {
             FormCellField cellField = (FormCellField)cell;
+            
+            /*if (StringUtils.isEmpty(cellField.getIdent()))
+            {
+                UIRegistry.showLocalizedError("ViewFactory.NO_ID", cellField.getName(), formViewDef.getName());
+                
+            }*
             
             /* DEBUG
             String fieldName = cellField.getName();
@@ -1787,7 +1797,8 @@ public class ViewFactory
                                                                 parent.getCreateWithMode(), 
                                                                 cellSubView.getDefaultAltViewType(),
                                                                 options, 
-                                                                bgColor);
+                                                                bgColor,
+                                                                cellSubView);
                             multiView.setClassToCreate(getClassToCreate(parent, cell));
                             setBorder(multiView, cellSubView.getProperties());
                             
@@ -1798,13 +1809,16 @@ public class ViewFactory
                             viewBldObj.closeSubView(cellSubView);
                             
                             Viewable viewable = multiView.getCurrentView();
-                            if (viewable instanceof TableViewObj)
+                            if (viewable != null)
                             {
-                                ((TableViewObj)viewable).setVisibleRowCount(cellSubView.getTableRows());
-                            }
-                            if (viewable.getValidator() != null)
-                            {
-                                viewable.getValidator().setRequired(childInfo.isRequired());
+                                if (viewable instanceof TableViewObj)
+                                {
+                                    ((TableViewObj)viewable).setVisibleRowCount(cellSubView.getTableRows());
+                                }
+                                if (viewable.getValidator() != null)
+                                {
+                                    viewable.getValidator().setRequired(childInfo.isRequired());
+                                }
                             }
                             bi.colInx += cell.getColspan() + 1;
                         }
@@ -1849,6 +1863,9 @@ public class ViewFactory
             
         } else if (cell.getType() == FormCellIFace.CellType.panel)
         {
+            bi.doRegControl     = false;
+            bi.doAddToValidator = false;
+ 
             FormCellPanel           cellPanel = (FormCellPanel)cell;
             PanelViewable.PanelType panelType = PanelViewable.getType(cellPanel.getPanelType());
             
@@ -1858,7 +1875,11 @@ public class ViewFactory
 
                 processRows(null, parent, formViewDef, validator, panelViewable, mode, labelsForHash, currDataObj, cellPanel.getRows());
 
-                bi.compToAdd = panelViewable;
+                panelViewable.setVisible(cellPanel.getPropertyAsBoolean("visible", true));
+                
+                bi.compToAdd        = panelViewable;
+                bi.doRegControl     = true;
+                bi.compToReg        = panelViewable;
 
             } else if (panelType == PanelViewable.PanelType.ButtonBar)
             {
@@ -1869,9 +1890,7 @@ public class ViewFactory
                 throw new RuntimeException("Panel Type is not implemented.");
             }
 
-            bi.doRegControl     = false;
-            bi.doAddToValidator = false;
-        }
+       }
         
         String visProp = cell.getProperty("vis");
         if (StringUtils.isNotEmpty(visProp) && visProp.equalsIgnoreCase("false") && bi.compToAdd != null)
