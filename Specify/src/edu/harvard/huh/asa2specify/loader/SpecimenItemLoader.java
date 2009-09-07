@@ -50,13 +50,17 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 {
     private static final Logger log  = Logger.getLogger(SpecimenItemLoader.class);
     
-    private static final String ProvenanceFieldName = "Provenance";
-    private static final String VoucherFieldName = "Voucher";
-    private static final String ReferenceFieldName = "Reference";
+    private static final String ProvenanceFieldName   = "Provenance";
+    private static final String VoucherFieldName      = "Voucher";
+    private static final String ReferenceFieldName    = "Reference";
+    private static final String ReproStatusFieldName  = "Repro. Status";
+    private static final String CryptoStatusFieldName = "Crypto. Status";
     
     private AttributeDef provenanceAttrDef;
     private AttributeDef voucherAttrDef;
     private AttributeDef referenceAttrDef;
+    private AttributeDef reproStatusAttrDef;
+    private AttributeDef cryptoStatusAttrDef;
     
 	private Hashtable<String, PrepType> prepTypesByNameAndColl;
 	
@@ -87,7 +91,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	// These items need to be remembered for comparison with
 	// other specimen items' values
 	private Integer      specimenId       = null;
-	private REPRO_STATUS reproStatus      = null;
 	private Integer      subcollectionId  = null;
 	private Integer      replicates       = null;
 	private String       vernacularName   = null;
@@ -151,9 +154,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
             // merge replicates; warn if changed
             updateReplicates(specimenItem);
-            
-            // merge repro status; warn if changed
-            updateReproStatus(specimenItem);
 
             // merge subcollection; warn if changed
             updateSubcollection(specimenItem, collectionId);
@@ -172,7 +172,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // If we made it here, the asa.specimen.ids are different, so we have a different
         // collection object entirely.  First, save the objects associated with the old asa.specimen.id
         specimenId      = newSpecimenId;
-        reproStatus     = null;
         subcollectionId = null;
         replicates      = null;
         vernacularName  = null;
@@ -430,6 +429,18 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         sql = getInsertSql(referenceAttrDef);
         Integer refAttrDefId = insert(sql);
         referenceAttrDef.setAttributeDefId(refAttrDefId);
+        
+        reproStatusAttrDef = getAttributeDef(stringDataType, prepTableType, ReproStatusFieldName);
+        
+        sql = getInsertSql(reproStatusAttrDef);
+        Integer reproStatusAttrDefId = insert(sql);
+        reproStatusAttrDef.setAttributeDefId(reproStatusAttrDefId);
+        
+        cryptoStatusAttrDef = getAttributeDef(stringDataType, prepTableType, CryptoStatusFieldName);
+        
+        sql = getInsertSql(cryptoStatusAttrDef);
+        Integer cryptoStatusAttrDefId = insert(sql);
+        cryptoStatusAttrDef.setAttributeDefId(cryptoStatusAttrDefId);
     }
 
     @Override
@@ -578,38 +589,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	        replicates = newReplicates;
 	        collectionObject.setNumber1((float) replicates);
 	    }
-	}
-
-	private void updateReproStatus(SpecimenItem specimenItem) throws LocalException
-	{
-		REPRO_STATUS newReproStatus = specimenItem.getReproStatus();
-        checkNull(newReproStatus, "repro status");
-        
-        if (!newReproStatus.equals(reproStatus))
-        {
-        	REPRO_STATUS status;
-            if (reproStatus.equals(REPRO_STATUS.NotDetermined) ||
-                    (newReproStatus.equals(REPRO_STATUS.FlowerAndFruit) && 
-                        (reproStatus.equals(REPRO_STATUS.Flower) || reproStatus.equals(REPRO_STATUS.Fruit))))
-            {
-                status = newReproStatus;
-            }
-            else if (reproStatus.equals(REPRO_STATUS.Flower) && newReproStatus.equals(REPRO_STATUS.Fruit) ||
-                        reproStatus.equals(REPRO_STATUS.Fruit) && newReproStatus.equals(REPRO_STATUS.Flower))
-            {
-                status = REPRO_STATUS.FlowerAndFruit;
-            }
-            else
-            {
-                status = reproStatus;
-            }
-            
-            if (!reproStatus.equals(status))
-            {
-                getLogger().warn(rec() + "Changing repro status from " + reproStatus + " to " + status);
-                collectionObject.setText1(SpecimenItem.toString(status));
-            }
-        }
 	}
 
 	private Agent lookupBotanist(Integer botanistId) throws LocalException
@@ -910,24 +889,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    String herbarium = specimenItem.getHerbariumCode();
 	    preparation.setText1(herbarium);
 
+	    // Text2 (sex)
+	    String sex = specimenItem.getSex();
+	    preparation.setText2(sex);
+
 	    // YesNo1 (isOversize)
         Boolean isOversize = specimenItem.isOversize();
         preparation.setYesNo1(isOversize);
         
-        // YesNo2 (sex, isMale), YesNo3 (sex, is Female)
-        String sex = specimenItem.getSex();
-        if (sex != null)
-        {
-            if (sex.equals("male"))
-            {
-                preparation.setYesNo2(true);
-            }
-            else if (sex.equals("female"))
-            {
-                preparation.setYesNo3(true);
-            }
-        }
-
         // add PreparationAttr for provenances
         String provenanceStr = specimenItem.getProvenance();
         if (provenanceStr != null)
@@ -958,6 +927,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             preparation.getPreparationAttrs().add(refAttr);
         }
 
+        // add PreparationAttr for repro Status
+        REPRO_STATUS reproStatus = specimenItem.getReproStatus();
+        if (reproStatus != null)
+        {
+            PreparationAttr reproStatusAttr = getPreparationAttr(getReproStatusAttrDef(), collectionMemberId, preparation, SpecimenItem.toString(reproStatus));
+            preparation.getPreparationAttrs().add(reproStatusAttr);
+        }
+        
         return preparation;
 	}
 
@@ -975,6 +952,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     {
         return referenceAttrDef;
     }
+	
+	private AttributeDef getReproStatusAttrDef()
+	{
+	    return reproStatusAttrDef;
+	}
+	
 	
 	private Collection getCollection(SpecimenItem specimenItem) throws LocalException
 	{
@@ -1082,9 +1065,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         String remarks = specimenItem.getRemarks();
         collectionObject.setRemarks(remarks);
         
-        // Text1 (reproStatus/phenology)
-        reproStatus = specimenItem.getReproStatus();
-        if (reproStatus != null) collectionObject.setText1(SpecimenItem.toString(reproStatus));
+        // Text1 (host)
           
         // Text2 (substrate)
         String substrate = specimenItem.getSubstrate();
@@ -1433,8 +1414,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmt, Number1, Number2, " +
-				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, " +
-				            "TimestampCreated, Version, YesNo1, YesNo2";
+				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, Text2, " +
+				            "TimestampCreated, Version, YesNo1";
 
 		String[] values = new String[14];
 		
@@ -1448,10 +1429,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[7]  = SqlUtils.sqlString( preparation.getSampleNumber());
 		values[8]  = SqlUtils.sqlString( preparation.getStorageLocation());
 		values[9]  = SqlUtils.sqlString( preparation.getText1());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.zero();
-		values[12] = SqlUtils.sqlString( preparation.getYesNo1());
-		values[13] = SqlUtils.sqlString( preparation.getYesNo2());
+		values[10] = SqlUtils.sqlString( preparation.getText2());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.zero();
+		values[13] = SqlUtils.sqlString( preparation.getYesNo1());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
