@@ -23,4 +23,4 @@ select ts.id,
 
 from type_specimen ts, specimen s
 
-where ts.specimen_id=s.id and (select name from st_lookup where id=ts.type_status_id) != 'Not a type'
+where ts.specimen_id=s.id
