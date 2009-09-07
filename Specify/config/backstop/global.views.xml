@@ -1547,9 +1547,9 @@
                 <rule id="definitionItem"><![CDATA[parent.getValue() != null]]></rule>
             </enableRules>
 
-            <columnDef os="exp">p,2px,323px,5px:g,p,2px,150px,25px,p,0px,p,p:g</columnDef>
-            <columnDef>100px,2px,323px,5px,135px,2px,150px,25px,85px,0px,15px,p,p:g</columnDef>
-            <columnDef os="mac">130px,2px,488px,5px,140px,2px,150px,10px,105px,0px,15px,p:g</columnDef>
+            <columnDef os="exp">   p,  2px, 301px, 5px:g,    p,  2px, 150px, 25px,    p,  0px,   p,  p:g</columnDef>
+            <columnDef>         112px, 2px, 301px, 5px,   135px, 2px, 150px, 25px,  85px, 0px, 15px, p, p:g</columnDef>
+            <columnDef os="mac">142px, 2px, 476px, 5px,   140px, 2px, 150px, 10px, 105px, 0px, 15px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -1575,6 +1575,20 @@
                 <row>
                 	<cell type="label" labelfor="geographyCode" cols="2"/>
                 	<cell type="field" id="geographyCode" uitype="text" cols="2" name="geographyCode" colspan="4"/>
+                </row>
+                <row>
+                <cell type="label" labelfor="source" cols="2"/>
+                	<cell type="field" id="source" uitype="text" cols="2" name="text1" colspan="4"/>
+                </row>
+                <row>
+                <cell type="label" labelfor="description" cols="2"/>
+                	<cell type="field" id="description" uitype="textareabrief" rows="2" name="text2" colspan="8"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="centroidLat"/>
+                	<cell type="field" id="centroidLat" uitype="text" name="centroidLat" uifieldformatter="NumericFloat"/>
+                    <cell type="label" labelfor="centroidLon"/>
+                	<cell type="field" id="centroidLon" uitype="text" name="centroidLon" uifieldformatter="NumericFloat" colspan="3"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="GeographySubform" id="children" name="children" colspan="11"/>
