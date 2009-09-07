@@ -259,6 +259,16 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
+  <picklist name="HUH Collection Code" type="0" issystem="false" readonly="true" sizelimit="6">
+  	<items>
+  		<picklistitem title="Arnold Arboretum" value="A"/>
+  		<picklistitem title="Oakes Ames Orchid" value="AMES"/>
+  		<picklistitem title="Economic Botany" value="ECON"/>
+  		<picklistitem title="Farlow Herbarium" value="FH"/>
+  		<picklistitem title="Gray Herbarium" value="GH"/>
+  		<picklistitem title="New England Botanical Club" value="NEBC"/>
+  	</items>
+  </picklist>
   <picklist name="HUH Lat-Long Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
