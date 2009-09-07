@@ -267,6 +267,12 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
+  <picklist name="HUH Range Direction" type="0" issytem="false" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="E" value="E"/>
+  		<picklistitem title="W" value="W"/>
+  	</items>
+  </picklist>
   <picklist name="HUH Reference Work Type" issystem="false" type="0" readonly="true" sizelimit="10">
     <items>
       <picklistitem title="Book" value="0"/>
@@ -317,6 +323,12 @@
       <picklistitem title="nom. invalid." value="NomInvalid"/>
       <picklistitem title="unknown" value="Unknown"/>
     </items>
+  </picklist>
+  <picklist name="HUH Township Direction" type="0" issytem="false" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="N" value="N"/>
+  		<picklistitem title="S" value="S"/>
+  	</items>
   </picklist>
   <picklist name="HUH Transaction Purposes" issystem="false" type="0" readonly="true" sizelimit="5">
     <items>
