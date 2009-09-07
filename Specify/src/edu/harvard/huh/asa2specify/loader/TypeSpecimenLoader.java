@@ -255,7 +255,6 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         
         // IsCurrent
-        determination.setIsCurrent(true);
         
         // Number1 (ordinal)
         Integer ordinal = typeSpecimen.getOrdinal();
@@ -294,7 +293,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         // YesNo1 (isLabel)
         
         // YesNo2 (isFragment)
-        determination.setYesNo1( typeSpecimen.isFragment() );
+        determination.setYesNo2( typeSpecimen.isFragment() );
 
         return determination;
     }
@@ -418,10 +417,10 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     private String getInsertSql(Determination determination)
     {
         String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
-        		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, " +
+        		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, Text2, " +
         		            "TimestampCreated, TypeStatusName, Version, YesNo2";
 
-        String[] values = new String[13];
+        String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
@@ -432,10 +431,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[6]  = SqlUtils.sqlString( determination.getRemarks());
         values[7]  = SqlUtils.sqlString( determination.getTaxon().getId());
         values[8]  = SqlUtils.sqlString( determination.getText1());
-        values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[11] = SqlUtils.zero();
-        values[12] = SqlUtils.sqlString( determination.getYesNo2());
+        values[9]  = SqlUtils.sqlString( determination.getText2());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.sqlString( determination.getTypeStatusName());
+        values[12] = SqlUtils.zero();
+        values[13] = SqlUtils.sqlString( determination.getYesNo2());
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
