@@ -267,6 +267,12 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
+  <picklist name="HUH Plant Sexuality" type="0" issystem="false" readonly="false" sizelimit="-1">
+	<items>
+		<picklistitem title="Female" value="Female"/>
+		<picklistitem title="Male" value="Male"/>
+	</items>
+  </picklist>
   <picklist name="HUH Range Direction" type="0" issytem="false" readonly="true" sizelimit="2">
   	<items>
   		<picklistitem title="E" value="E"/>
