@@ -81,6 +81,7 @@
 		<picklistitem title="Type material" value="TypeMaterial"/>
 		<picklistitem title="Drawing of type" value="DrawingOfType"/>
 		<picklistitem title="Photograph of type" value="PhotoOfType"/>
+		<picklistitem title="Not a type" value="NotType"/> 
     </items>
   </picklist>
 </list>
