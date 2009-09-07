@@ -17,8 +17,8 @@ package edu.harvard.huh.asa;
 public class TypeSpecimen
 {
     // from st_lookup category 111
-    public static enum STATUS             {  Epitype,   Isoepitype,   Holotype,   Isotype,   Lectotype,   Isolectotype,   Neotype,   Isoneotype,   Syntype,   Isosyntype,    Neosyntype,    Type,   TypeMaterial,    DrawingOfType,     PhotoOfType         };
-    private static String[] StatusNames = { "Epitype", "Isoepitype", "Holotype", "Isotype", "Lectotype", "Isolectotype", "Neotype", "Isoneotype", "Syntype", "Isosyntype", "[Neosyntype]", "Type", "Type material", "Drawing of type", "Photograph of type" };
+    public static enum STATUS             {  Epitype,   Isoepitype,   Holotype,   Isotype,   Lectotype,   Isolectotype,   Neotype,   Isoneotype,   Syntype,   Isosyntype,    Neosyntype,    Type,   TypeMaterial,    DrawingOfType,     PhotoOfType,         NotType         };
+    private static String[] StatusNames = { "Epitype", "Isoepitype", "Holotype", "Isotype", "Lectotype", "Isolectotype", "Neotype", "Isoneotype", "Syntype", "Isosyntype", "[Neosyntype]", "Type", "Type material", "Drawing of type", "Photograph of type", "Not a type" };
     
     // from st_lookup category 112
     public static enum CONDITIONALITY              { Possible,   Probable };
