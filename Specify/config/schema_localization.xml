@@ -5993,7 +5993,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Host</text>
           </str>
         </names>
         <descs>
@@ -15122,7 +15122,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Elevation Accuracy</text>
+            <text>Elev. Accuracy (m)</text>
           </str>
         </names>
         <descs>
@@ -15137,7 +15137,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Latitude/Longitude Accuracy</text>
+            <text>Lat/Long Accuracy</text>
           </str>
         </names>
         <descs>
@@ -15174,7 +15174,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Min Elevation</text>
+            <text>Min Elev (m)</text>
           </str>
         </names>
         <descs>
@@ -15282,7 +15282,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Max Elevation</text>
+            <text>Max Elev (m)</text>
           </str>
         </names>
         <descs>
@@ -17641,13 +17641,13 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="text2" type="java.lang.String">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Reference</text>
+            <text>Sex</text>
           </str>
         </names>
         <descs>
@@ -17717,7 +17717,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Voucher</text>
+            <text>Herbarium</text>
           </str>
         </names>
         <descs>
@@ -25299,7 +25299,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="townshipDirection">
+      <item name="townshipDirection" isUIFormatter="false" pickListName="HUH Township Direction">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -25310,7 +25310,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="rangeDirection">
+      <item name="rangeDirection" isUIFormatter="false" pickListName="HUH Range Direction">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
