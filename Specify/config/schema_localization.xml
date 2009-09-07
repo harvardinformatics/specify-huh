@@ -9268,7 +9268,7 @@
         </descs>
         <spExportSchemaItems/>
       </item>
-      <item name="qualifier" isUIFormatter="false" isRequired="false" pickListName="HUH Det Qualifier">
+      <item name="qualifier" isUIFormatter="false" isRequired="false" pickListName="HUH Determination Qualifier">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -9522,7 +9522,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs>
