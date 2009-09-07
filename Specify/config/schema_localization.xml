@@ -17711,7 +17711,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
