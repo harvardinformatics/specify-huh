@@ -251,7 +251,7 @@ public class SqlUtils
         
         Float f = null;
         try {
-            Float.parseFloat(s);
+            f = Float.parseFloat(s);
         }
         catch (NumberFormatException e)
         {
