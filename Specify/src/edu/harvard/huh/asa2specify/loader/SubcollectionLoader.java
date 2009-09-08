@@ -295,7 +295,7 @@ public class SubcollectionLoader extends AuditedObjectLoader
         referenceWork.setGuid(guid);
         
         // ReferenceWorkType
-        referenceWork.setReferenceWorkType(ReferenceWork.BOOK);
+        referenceWork.setReferenceWorkType(ReferenceWork.EXSICCATA);
      
         // Remarks
         String remarks = getDescription(subcollection);
