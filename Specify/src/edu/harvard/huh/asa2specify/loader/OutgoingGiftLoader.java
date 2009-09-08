@@ -276,21 +276,22 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
     private String getInsertSql(Gift gift)
     {
         String fieldNames = "CreatedByAgentID, DisciplineID, GiftDate, GiftNumber, Number1, " +
-                            "PurposeOfGiftRemarks, Text1, Text2, TimestampCreated, Version, YesNo1";
+                            "PurposeOfGift, Remarks, Text1, Text2, TimestampCreated, Version, YesNo1";
 
-        String[] values = new String[11];
+        String[] values = new String[12];
 
         values[0]  = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( gift.getDiscipline().getId());
         values[2]  = SqlUtils.sqlString( gift.getGiftDate());
         values[3]  = SqlUtils.sqlString( gift.getGiftNumber());
         values[4]  = SqlUtils.sqlString( gift.getNumber1());
-        values[5]  = SqlUtils.sqlString( gift.getRemarks());
-        values[6]  = SqlUtils.sqlString( gift.getText1());
-        values[7]  = SqlUtils.sqlString( gift.getText2());
-        values[8]  = SqlUtils.sqlString( gift.getTimestampCreated());
-        values[9]  = SqlUtils.zero();
-        values[10] = SqlUtils.sqlString( gift.getYesNo1());
+        values[5]  = SqlUtils.sqlString( gift.getPurposeOfGift());
+        values[6]  = SqlUtils.sqlString( gift.getRemarks());
+        values[7]  = SqlUtils.sqlString( gift.getText1());
+        values[8]  = SqlUtils.sqlString( gift.getText2());
+        values[9]  = SqlUtils.sqlString( gift.getTimestampCreated());
+        values[10] = SqlUtils.zero();
+        values[11] = SqlUtils.sqlString( gift.getYesNo1());
         
         return SqlUtils.getInsertSql("gift", fieldNames, values);
     }
