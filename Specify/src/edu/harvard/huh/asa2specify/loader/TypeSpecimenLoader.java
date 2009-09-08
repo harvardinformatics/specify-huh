@@ -255,7 +255,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         }
         
         // IsCurrent
-        
+        determination.setIsCurrent(false);
+
         // Number1 (ordinal)
         Integer ordinal = typeSpecimen.getOrdinal();
         if (ordinal != null) determination.setNumber1((float) ordinal);
