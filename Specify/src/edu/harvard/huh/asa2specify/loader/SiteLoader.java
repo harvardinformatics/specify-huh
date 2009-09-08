@@ -228,7 +228,13 @@ public class SiteLoader extends CsvToSqlLoader
 
 		// SrcLatLongUnit
 		locality.setSrcLatLongUnit(srcLatLongUnit);
-		
+
+		// Remarks
+		if (localityName.length() > 255)
+		{
+		    locality.setRemarks(localityName);
+		}
+
 		return locality;
 	}
     
