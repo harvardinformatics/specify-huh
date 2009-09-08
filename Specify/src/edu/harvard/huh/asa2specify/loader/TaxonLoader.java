@@ -424,7 +424,7 @@ public class TaxonLoader extends TreeLoader
         }
 
         // ReferenceWorkType
-        referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
+        referenceWork.setReferenceWorkType(ReferenceWork.PROTOLOGUE);
 
         // Text2 (collation)
         referenceWork.setText2(collation);
