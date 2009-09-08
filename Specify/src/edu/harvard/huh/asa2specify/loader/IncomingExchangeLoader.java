@@ -179,8 +179,8 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         values[4]  = SqlUtils.sqlString( exchangeIn.getExchangeDate());
         values[5]  = SqlUtils.sqlString( exchangeIn.getNumber1());
         values[6]  = SqlUtils.sqlString( exchangeIn.getNumber2());
-        values[7]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());
-        values[8]  = SqlUtils.sqlString( exchangeIn.getQuantityExchanged());
+        values[7]  = SqlUtils.sqlString( exchangeIn.getQuantityExchanged());
+        values[8]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());        
         values[9]  = SqlUtils.sqlString( exchangeIn.getRemarks());
         values[10] = SqlUtils.sqlString( exchangeIn.getSrcGeography());
         values[11] = SqlUtils.sqlString( exchangeIn.getText1());
