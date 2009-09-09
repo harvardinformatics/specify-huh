@@ -32,7 +32,7 @@
       <picklistitem title="senescent" value="senescent"/>
     </items>
   </picklist>
-  <picklist name="HUH Agent Role" issytem="false" type="0" readonly="true" sizelimit="2">
+  <picklist name="HUH Botanist Role" issytem="false" type="0" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="Author" value="Author"/>
       <picklistitem title="Collector" value="Collector"/>
