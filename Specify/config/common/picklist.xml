@@ -218,23 +218,6 @@
       <picklistitem title="Label Name" value="4"/>
     </items>
   </picklist>
-  <picklist name="HUH Borrow Role" issystem="true" type="0" readonly="true" sizelimit="13">
-    <items>
-      <picklistitem title="Borrower" value="Borrower"/>
-      <picklistitem title="Benefactor" value="Benefactor"/>
-      <picklistitem title="Contributor" value="Contact"/>
-      <picklistitem title="Contributor" value="Contributor"/>
-      <picklistitem title="Donor" value="Donor"/>
-      <picklistitem title="Guest" value="Guest"/>
-      <picklistitem title="Lender" value="Lender"/>
-      <picklistitem title="Other" value="Other"/>
-      <picklistitem title="Preparer" value="Preparer"/>
-      <picklistitem title="Receiver" value="Receiver"/>
-      <picklistitem title="Sponsor" value="Sponsor"/>
-      <picklistitem title="Staff" value="Staff"/>
-      <picklistitem title="Student" value="Student"/>
-    </items>
-  </picklist>
   <picklist name="HUH CITES Status" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="[none]" value="None"/>
@@ -268,6 +251,27 @@
   		<picklistitem title="Gray Herbarium" value="GH"/>
   		<picklistitem title="New England Botanical Club" value="NEBC"/>
   	</items>
+  </picklist>
+  <picklist name="HUH Geographic Regions" type="0" issystem="false" readonly="true" sizelimit="18">
+	<items>
+		<picklistitem title="Africa" value="Africa"/>
+		<picklistitem title="Antarctica" value="Antarctica"/>
+		<picklistitem title="Australia" value="Australia"/>
+		<picklistitem title="East Asia" value="East Asia"/>
+		<picklistitem title="Europe" value="Europe"/>
+		<picklistitem title="India" value="India"/>
+		<picklistitem title="Mexico and Central America" value="Mexico and Central America"/>
+		<picklistitem title="New Caledonia" value="New Caledonia"/>
+		<picklistitem title="Papuasia" value="Papuasia"/>
+		<picklistitem title="Philippines" value="Philippines"/>
+		<picklistitem title="Polynesia" value="Polynesia"/>
+		<picklistitem title="South America" value="South America"/>
+		<picklistitem title="US and Canada" value="US and Canada"/>
+		<picklistitem title="West Indies" value="West Indies"/>
+		<picklistitem title="Western Malaysia" value="Western Malaysia"/>
+		<picklistitem title="Cultivated" value="Cultivated"/>
+		<picklistitem title="Miscellaneous" value="Miscellaneous"/>
+	</items>
   </picklist>
   <picklist name="HUH Lat-Long Method" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
@@ -353,6 +357,23 @@
       <picklistitem title="unrestricted" value="Unrestricted"/>
       <picklistitem title="for dna Sampling" value="ForDnaSampling"/>
       <picklistitem title="for exhibition" value="ForExhibition"/>
+    </items>
+  </picklist>
+    <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="13">
+    <items>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Contact" value="Contact"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Student" value="Student"/>
     </items>
   </picklist>
   <picklist name="HUH Type Confidence" type="0" issystem="false" readonly="false" sizelimit="2">
