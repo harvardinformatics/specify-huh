@@ -28,6 +28,7 @@ import edu.harvard.huh.asa2specify.loader.LoanItemLoader;
 import edu.harvard.huh.asa2specify.loader.LoanLoader;
 import edu.harvard.huh.asa2specify.loader.OptrLoader;
 import edu.harvard.huh.asa2specify.loader.OrganizationLoader;
+import edu.harvard.huh.asa2specify.loader.OutGeoBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutReturnBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingExchangeLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingGiftLoader;
@@ -120,7 +121,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         
         File dir = new File("/home/maureen/load");
         
-        boolean doOptr        = false; // 1
+        boolean doOptr        = false; // 1 DID YOU REMEMBER TO GRANT PRIVILEGES TO THE SPECIFY ADM USER?
         boolean doGeo         = false; // 2
         boolean doSite        = false; // 3
         boolean doBot         = false; // 4
@@ -145,18 +146,19 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         
         boolean doType        = false; // 19
         
-        boolean doBorrow      = true; // 20
-        boolean doInEx        = true; // 21
-        boolean doInGift      = true; // 22
-        boolean doLoan        = true; // 23
-        boolean doOutEx       = true; // 24
-        boolean doOutGift     = true; // 25
-        boolean doPurch       = true; // 26
-        boolean doStaffColl   = true; // 27
-        boolean doShip        = true; // 28
-        boolean doInRetBatch  = true; // 29
-        boolean doLoanIt      = true; // 30
-        boolean doOutRetBatch = true; // 31
+        boolean doBorrow      = false; // 20
+        boolean doInEx        = false; // 21
+        boolean doInGift      = false; // 22
+        boolean doLoan        = false; // 23
+        boolean doOutEx       = false; // 24
+        boolean doOutGift     = false; // 25
+        boolean doOutGeoBatch = false; // 26
+        boolean doPurch       = false; // 27
+        boolean doStaffColl   = false; // 28
+        boolean doShip        = false; // 29
+        boolean doInRetBatch  = false; // 30
+        boolean doLoanIt      = false; // 31
+        boolean doOutRetBatch = false; // 32
         
         try
         {
@@ -386,7 +388,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             BorrowMaterialLookup borrowMaterialLookup = borrowLoader.getBorrowMaterialLookup();
 
             IncomingExchangeLoader inExchangeLoader =
-                new IncomingExchangeLoader(new File(dir, "incoming_exchange.csv"), statement);
+                new IncomingExchangeLoader(new File(dir, "incoming_exchange_test.csv"), statement);
 
             if (doInEx)
             {
@@ -443,6 +445,17 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             }
             
             OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
+            
+            OutGeoBatchLoader outGeoBatchLoader =
+                new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
+                                      statement,
+                                      outGiftLookup);
+            
+            if (doOutGeoBatch)
+            {
+                int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
+                log.info("Processed " + outGeoBatchRecords + " out geo batch records");
+            }
             
             PurchaseLoader purchaseLoader =
                 new PurchaseLoader(new File(dir, "purchase.csv"), statement);
@@ -505,6 +518,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
                 log.info("Processed " + outReturnBatchRecords + " out return batch records");
             }
+
         }
         catch (LocalException e)
         {

@@ -22,7 +22,6 @@ import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
-import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -34,11 +33,12 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftAgent;
 
-public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
+public class OutgoingGiftLoader extends TransactionLoader
 {
     private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
     
     private static final String DEFAULT_GIFT_NUMBER = "none";
+    private static String DEFAULT_HERBARIUM = "A";
     
     private AsaStringMapper nameToBotanistMapper;
     
@@ -65,25 +65,26 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         setCurrentRecordId(transactionId);
         
         Gift gift = getGift(outgoingGift);
-
+        //Gift gift = getOutGoingGiftLookup().getById(outgoingGift.getId());
+        
         String forUseBy = outgoingGift.getForUseBy();
         Agent contactAgent = null;
         Agent receiverAgent = null;
         
+        contactAgent = lookupAgent(outgoingGift);
+
         if (forUseBy != null)
         {
-            contactAgent = lookupAgent(outgoingGift);
-
             Integer botanistId = getBotanistId(forUseBy);
             
             if (botanistId != null)
             { 
                 receiverAgent = lookup(botanistId);
-                gift.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), null));
+                gift.setText2(getText2(outgoingGift.getLocalUnit(), null));
             }
             else
             {                
-                gift.setText2(getText2(outgoingGift.getLocalUnit(), outgoingGift.getPurpose(), forUseBy));
+                gift.setText2(getText2(outgoingGift.getLocalUnit(), forUseBy));
             }
         }
         
@@ -91,26 +92,28 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         Integer giftId = insert(sql);
         gift.setGiftId(giftId);
 
+        String herbariumCode = outgoingGift.getLocalUnit();
+        if (herbariumCode == null)
+        {
+            getLogger().warn(rec() + " no herbarium code, using " + DEFAULT_HERBARIUM);
+            herbariumCode = DEFAULT_HERBARIUM;
+        }
+        Integer collectionMemberId = getCollectionId(herbariumCode);
+
         if (contactAgent != null)
         {
-            GiftAgent contact = getGiftAgent(outgoingGift, gift, ROLE.Contact);
-            
-            if (contact != null)
-            {
-                sql = getInsertSql(contact);
-                insert(sql);
-            }
+            GiftAgent contact = getGiftAgent(contactAgent, collectionMemberId, gift, ROLE.Contact);
+
+            sql = getInsertSql(contact);
+            insert(sql);
         }
         
         if (receiverAgent != null)
         {
-            GiftAgent receiver = getGiftAgent(outgoingGift, gift, ROLE.Receiver);
-            
-            if (receiver != null)
-            {
-                sql = getInsertSql(receiver);
-                insert(sql);
-            }
+            GiftAgent receiver = getGiftAgent(receiverAgent, collectionMemberId, gift, ROLE.Receiver);
+
+            sql = getInsertSql(receiver);
+            insert(sql);
         }
     }
     
@@ -217,7 +220,7 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
         gift.setText1(text1);
         
         // Text2 (localUnit, purpose, forUseBy)
-        String text2 = getText2(outGift.getLocalUnit(), outGift.getPurpose(), outGift.getForUseBy());
+        String text2 = getText2(outGift.getLocalUnit(), outGift.getForUseBy());
         gift.setText2(text2);
         
         // TimestampCreated
@@ -236,36 +239,24 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
     /**
      * "[localUnit], [purpose].  For use by [forUseBy]."
      */
-    private String getText2(String localUnit, PURPOSE purpose, String forUseBy)
+    private String getText2(String localUnit, String forUseBy)
     {
-        return localUnit + ", " + Transaction.toString(purpose) + "." + (forUseBy == null ? "" : "  For use by " + forUseBy + ".");
+        return localUnit + ", " + (forUseBy == null ? "" : "  For use by " + forUseBy + ".");
     }
     
-    private GiftAgent getGiftAgent(Transaction transaction, Gift gift, ROLE role)
+    private GiftAgent getGiftAgent(Agent agent, Integer collectionMemberId, Gift gift, ROLE role)
         throws LocalException
     {
         GiftAgent giftAgent = new GiftAgent();
 
         // Agent
-        Agent agent = null;
-
-        if (role.equals(ROLE.Donor))
-        {
-            agent = lookupAffiliate(transaction);
-        }
-        else if (role.equals(ROLE.Receiver))
-        {
-            agent = lookupAgent(transaction);
-        }
-
-        if (agent == null || agent.getId() == null) return null;
-
         giftAgent.setAgent(agent);
 
-        // Deaccession
-        giftAgent.setGift(gift);
+        // CollectionMemberId
+        giftAgent.setCollectionMemberId(collectionMemberId);
 
-        // Remarks
+        // Gift
+        giftAgent.setGift(gift);
 
         // Role
         giftAgent.setRole(Transaction.toString(role));
@@ -298,15 +289,16 @@ public class OutgoingGiftLoader extends OutGeoBatchTransactionLoader
     
     private String getInsertSql(GiftAgent giftAgent)
     {
-        String fieldNames = "AgentID, DeaccessionID, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, CollectionMemberID, GiftID, Role, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( giftAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( giftAgent.getGift().getId());
-        values[2] = SqlUtils.sqlString( giftAgent.getRole());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( giftAgent.getCollectionMemberId());
+        values[2] = SqlUtils.sqlString( giftAgent.getGift().getId());
+        values[3] = SqlUtils.sqlString( giftAgent.getRole());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     } 

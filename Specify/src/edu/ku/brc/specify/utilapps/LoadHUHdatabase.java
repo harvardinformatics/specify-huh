@@ -468,6 +468,17 @@ public class LoadHUHdatabase
             
             OutgoingGiftLookup outGiftLookup = outGiftLoader.getOutGoingGiftLookup();
             
+            frame.setDesc("Loading out geo batches...");
+            OutGeoBatchLoader outGeoBatchLoader =
+                new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
+                                      statement,
+                                      outGiftLookup);
+            
+            outGeoBatchLoader.setFrame(frame);
+            int outGeoBatchRecords = outGeoBatchLoader.loadRecords();
+            log.info("Loaded " + outGeoBatchRecords + " out geo batch records");
+            frame.setOverall(steps++);
+            
             frame.setDesc("Loading purchases...");
             PurchaseLoader purchaseLoader =
                 new PurchaseLoader(new File(dir, "purchase.csv"), statement);

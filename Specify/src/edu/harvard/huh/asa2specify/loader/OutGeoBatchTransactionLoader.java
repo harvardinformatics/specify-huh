@@ -12,10 +12,10 @@ import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 public abstract class OutGeoBatchTransactionLoader extends CountableTransactionLoader
 {
     public OutGeoBatchTransactionLoader(File csvFile,
-                                        Statement sqlStatement,
-                                        BotanistLookup botanistLookup,
-                                        AffiliateLookup affiliateLookup,
-                                        AgentLookup agentLookup) throws LocalException
+                             Statement sqlStatement,
+                             BotanistLookup botanistLookup,
+                             AffiliateLookup affiliateLookup,
+                             AgentLookup agentLookup) throws LocalException
     {
         super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup);
     }
