@@ -773,7 +773,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="accessionNumber" uitype="formattedtext"/>
+                    <cell type="field" id="1" name="accessionNumber" uitype="formattedtext"/> <!-- uitype="formattedtext" -->
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="type" uitype="combobox" />
                     <cell type="label" labelfor="2"/>
@@ -787,46 +787,25 @@
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="dateReceived" uitype="formattedtext" uifieldformatter="Date" default="today" />
                 </row>
-                <!--  <row>
-                    <cell type="label" labelfor="99"/>
-                    <cell type="field" id="99" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=AccessionNumber"/>
-                    <cell type="label" labelfor="199"/>
-                    <cell type="field" id="199" name="text2" uitype="plugin" initialize="name=WebLinkButton;weblink=Tester"/>
-                </row>-->                
-                <!-- Atypical form fields<row>
-                    <cell type="label" labelfor="26"/>
-                    <cell type="field" id="26" name="dateAcknowledged" uitype="formattedtext" isrequired="false" uifieldformatter="Date" default="today"/>
-                    
-                    <cell type="label" labelfor="27"/>
-                    <cell type="field" id="27" name="verbatimDate" uitype="text" isrequired="false" />
-                </row> -->
-                <!--<row>
-                	<cell type="label" labelfor="29"/>
-                	<cell type="field" id="29" name="number1" uitype="text"/>
-                	<cell type="label" labelfor="30"/>
-                	<cell type="field" id="30" name="number2" uitype="text"/>
-                </row> -->
-             <!--   <row>
-                	<cell type="field" id="34" uitype="checkbox" name="yesNo1" label="yesNo1"/>                	
-                	<cell type="field" id="35" uitype="checkbox" name="yesNo2" label="yesNo2"/>
-                </row>
                 <row>
-                	<cell type="label" labelfor="31"/>
-                	<cell type="field" id="31" name="text1" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="32"/>
-                	<cell type="field" id="32" name="text2" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="33"/>
-                	<cell type="field" id="33" name="text3" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
+                	<cell type="label" labelfor="purpose"/>
+                	<cell type="field" id="purpose" name="text2" uitype="combobox" picklist="HUH Transaction Purposes"/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
+                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox"/>
                 </row>
     			<row>
     				<cell type="label" labelfor="28"/>
     				<cell type="field" id="28" name="accessionCondition" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
-    			</row> -->
-    			            
+    			</row>
+                <row>
+                	<cell type="label" labelfor="details"/>
+                	<cell type="field" id="details" name="text1" uitype="textareabrief" rows="2" colspan="10"/>
+                </row>
+    			<row>
+    				<cell type="label" labelfor="srcGeography"/>
+    				<cell type="field" id="srcGeography" name="text3" uitype="combobox" picklist="HUH Geographic Areas" colspan="10"/>
+    			</row>    
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="remarks" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
@@ -2165,14 +2144,32 @@
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=Agent" />
                 </row>
-                <!--<row>
+                <row>
+                    <cell type="label" labelfor="asaID"/>
+                    <cell type="field" id="asaID" name="number1" uitype="dsptextfield" uifieldformatter="NumericInteger"/>
+                    <cell type="label" labelfor="srcGeography"/>
+                    <cell type="field" id="srcGeography" name="srcGeography" uitype="text"/>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="quantityExchanged" uitype="text"/>
-                </row>-->
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                	<cell type="field" uitype="checkbox" id="yesNo1" name="yesNo1"/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" uitype="checkbox" id="yesNo2" name="yesNo2"/>
+                </row>
                 <row>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="descriptionOfMaterial" uitype="text" colspan="10"/>
-                </row>                
+                </row>
+                <row>
+                    <cell type="label" labelfor="text1"/>
+                    <cell type="field" id="text1" name="text1" uitype="text" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="text2"/>
+                    <cell type="field" id="text2" name="text2" uitype="text" colspan="10"/>
+                </row>  
                 <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
@@ -2357,12 +2354,12 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="giftNumber" uitype="formattedtext"/>
+                    <cell type="field" id="1" name="giftNumber" uitype="text"/> <!--  uitype="formattedtext" -->
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="giftDate" uitype="formattedtext" uifieldformatter="Date"  default="today"/>
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="purposeOfGift" uitype="text"/>
-                    <cell type="field" id="2" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true"/>
+                    <cell type="field" id="4" name="purposeOfGift" uitype="combobox" picklist="HUH Transaction Purposes"/>
+                    <cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox" initialize="editable=true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="description"/>
@@ -2420,7 +2417,11 @@
                     <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Agent"/>
 
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="role" uitype="combobox" />
+                    <cell type="field" id="2" name="role" uitype="combobox" picklist="HUH Transaction Role"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="remarks"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="6"/>
                 </row>
             </rows>
         </viewdef>
@@ -2464,6 +2465,10 @@
                 <row>
                     <cell type="label" labelfor="3" />
                     <cell type="field" id="3" name="descriptionOfMaterial" uitype="text" colspan="14"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="outComments"/>
+                	<cell type="field" id="outComments" name="outComments" uitype="text" colspan="14"/>
                 </row>
             </rows>
         </viewdef>
