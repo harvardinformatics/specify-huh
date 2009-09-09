@@ -5,11 +5,11 @@
     <items>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Is Their Request</text>
           </str>
         </names>
         <descs>
@@ -48,11 +48,11 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Details</text>
           </str>
         </names>
         <descs>
@@ -122,11 +122,11 @@
       </item>
       <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs>
@@ -176,11 +176,11 @@
       </item>
       <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text3</text>
+            <text>Src Geography</text>
           </str>
         </names>
         <descs>
@@ -216,13 +216,13 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purposes">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>Purpose</text>
           </str>
         </names>
         <descs>
@@ -3838,7 +3838,7 @@
           </str>
         </descs>
       </item>
-      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="HUH Borrow Role" isRequired="true">
+      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Role" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -10433,11 +10433,11 @@
     <items>
       <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs>
@@ -10559,11 +10559,11 @@
       </item>
       <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>Local Unit</text>
           </str>
         </names>
         <descs>
@@ -10623,11 +10623,11 @@
       </item>
       <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Is Their Request</text>
           </str>
         </names>
         <descs>
@@ -10693,17 +10693,17 @@
       </item>
       <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Counts</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>User definable.</text>
+            <text>Box count, type count, non-specimen count.</text>
           </str>
         </descs>
       </item>
@@ -27163,7 +27163,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="purposeOfGift">
+      <item name="purposeOfGift" isUIFormatter="false"  pickListName="HUH TransactionPurposes">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -27362,11 +27362,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="yesNo1">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Yes No1</text>
+            <text>Is Acknowledged</text>
           </str>
         </names>
         <descs/>
@@ -27411,11 +27411,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text2" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>Local Unit/\nFor Use By</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text2</text>
+            <text>Local Unit/\nFor Use By</text>
           </str>
         </names>
         <descs>
@@ -27487,7 +27487,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="role" isUIFormatter="false" pickListName="LoanAgentRole" isRequired="true">
+      <item name="role" isUIFormatter="false" pickListName="HUH Transaction Role" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -30830,7 +30830,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="role" isUIFormatter="false" isRequired="false" pickListName="HUH Agent Role">
+      <item name="role" isUIFormatter="false" isRequired="false" pickListName="HUH Botanist Role">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
