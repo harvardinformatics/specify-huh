@@ -69,6 +69,9 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     public static final byte                THESIS            = 4;
     public static final byte                SECTION_IN_BOOK   = 5;
 
+    public static final byte                EXSICCATA         = 6;
+    public static final byte                PROTOLOGUE        = 7;
+    
     // Fields    
 
     protected Integer                       referenceWorkId;
