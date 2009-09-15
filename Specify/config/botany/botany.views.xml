@@ -78,8 +78,8 @@
             <enableRules/>
             
             <columnDef os="exp">p,2px,220px,5px:g,p,2px,255px,5px:g,p,2px,200px,p,p:g</columnDef>
-            <columnDef>         100px,2px,200px,5px,   100px,2px,210px,5px,   100px,2px,101px,15px,p:g</columnDef>
-            <columnDef os="mac">150px,2px,215px,5px,   138px,2px,255px,5px,   138px,2px,155px,15px,p:g</columnDef>
+            <columnDef>100px,2px,200px,5px,100px,2px,210px,5px,100px,2px,101px,15px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,215px,5px,138px,2px,255px,5px,138px,2px,155px,15px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
