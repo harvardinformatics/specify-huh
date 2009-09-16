@@ -468,7 +468,7 @@
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
-      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="AccessionRole" isRequired="true">
+      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Role" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -3544,7 +3544,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs>
@@ -14028,7 +14028,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs>
@@ -17711,7 +17711,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code" isrequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -19829,7 +19829,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Shipment Number</text>
+            <text>Tracking Number</text>
           </str>
         </names>
         <descs>
