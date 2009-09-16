@@ -93,17 +93,6 @@
             </altviews>
         </view>
         
-        <view name="AttributeDef"
-            class="edu.ku.brc.specify.datamodel.AttributeDef"
-            isinternal="false"
-            resourcelabels="false">
-            <desc><![CDATA[The appraisal subform.]]></desc>
-            <altviews>
-                <altview name="AttributeDef View" viewdef="AttributeDef" mode="view" default="true"/>
-                <altview name="AttributeDef Edit" viewdef="AttributeDef" mode="edit"/>
-            </altviews>
-        </view>
-        
         <view name="Borrow"
             class="edu.ku.brc.specify.datamodel.Borrow"
             busrules="edu.ku.brc.specify.datamodel.busrules.BorrowBusRules"
@@ -601,18 +590,6 @@
             </altviews>
         </view>
         
-        <view name="PreparationAttr"
-              class="edu.ku.brc.specify.datamodel.PreparationAttr"
-              resourcelabels="false">
-            <desc><![CDATA[Subform within the Preparation form.]]></desc>
-            <altviews>
-                <altview name="PreparationAttr Table View" viewdef="PreparationAttr Table" mode="view"/>
-                <altview name="PreparationAttr Table Edit" viewdef="PreparationAttr Table" mode="edit"/>
-                <altview name="PreparationAttr View" viewdef="PreparationAttr" mode="view"/>
-                <altview name="PreparationAttr Edit" viewdef="PreparationAttr" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
         <view name="Project"
             class="edu.ku.brc.specify.datamodel.Project"
             isinternal="false"
@@ -773,7 +750,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="accessionNumber" uitype="formattedtext"/> <!-- uitype="formattedtext" -->
+                    <cell type="field" id="1" name="accessionNumber" uitype="formattedtext"/>
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="type" uitype="combobox" />
                     <cell type="label" labelfor="2"/>
@@ -787,25 +764,46 @@
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="dateReceived" uitype="formattedtext" uifieldformatter="Date" default="today" />
                 </row>
+                <!--  <row>
+                    <cell type="label" labelfor="99"/>
+                    <cell type="field" id="99" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=AccessionNumber"/>
+                    <cell type="label" labelfor="199"/>
+                    <cell type="field" id="199" name="text2" uitype="plugin" initialize="name=WebLinkButton;weblink=Tester"/>
+                </row>-->                
+                <!-- Atypical form fields<row>
+                    <cell type="label" labelfor="26"/>
+                    <cell type="field" id="26" name="dateAcknowledged" uitype="formattedtext" isrequired="false" uifieldformatter="Date" default="today"/>
+                    
+                    <cell type="label" labelfor="27"/>
+                    <cell type="field" id="27" name="verbatimDate" uitype="text" isrequired="false" />
+                </row> -->
+                <!--<row>
+                	<cell type="label" labelfor="29"/>
+                	<cell type="field" id="29" name="number1" uitype="text"/>
+                	<cell type="label" labelfor="30"/>
+                	<cell type="field" id="30" name="number2" uitype="text"/>
+                </row> -->
+             <!--   <row>
+                	<cell type="field" id="34" uitype="checkbox" name="yesNo1" label="yesNo1"/>                	
+                	<cell type="field" id="35" uitype="checkbox" name="yesNo2" label="yesNo2"/>
+                </row>
                 <row>
-                	<cell type="label" labelfor="purpose"/>
-                	<cell type="field" id="purpose" name="text2" uitype="combobox" picklist="HUH Transaction Purposes"/>
-                	<cell type="label" label=" "/>
-                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
-                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox"/>
+                	<cell type="label" labelfor="31"/>
+                	<cell type="field" id="31" name="text1" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="32"/>
+                	<cell type="field" id="32" name="text2" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="33"/>
+                	<cell type="field" id="33" name="text3" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
                 </row>
     			<row>
     				<cell type="label" labelfor="28"/>
     				<cell type="field" id="28" name="accessionCondition" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
-    			</row>
-                <row>
-                	<cell type="label" labelfor="details"/>
-                	<cell type="field" id="details" name="text1" uitype="textareabrief" rows="2" colspan="10"/>
-                </row>
-    			<row>
-    				<cell type="label" labelfor="srcGeography"/>
-    				<cell type="field" id="srcGeography" name="text3" uitype="combobox" picklist="HUH Geographic Areas" colspan="10"/>
-    			</row>    
+    			</row> -->
+    			            
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="remarks" uitype="textareabrief" rows="2" cols="30" colspan="10"/>
@@ -1109,26 +1107,6 @@
             </rows>
         </viewdef>
         
-        <viewdef 
-            name="AttributeDef"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.AttributeDef"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            <desc><![CDATA[Form For AttributeDef]]></desc>
-            
-            <columnDef os="exp">p,2px,110px,5px:g,,p:g</columnDef>
-            <columnDef>100px,2px,110px,5px,161px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,145px,5px,p:g</columnDef>
-            <rowDef auto="true" sep="2px" cell="p"/>
-            <rows>
-                <row>
-                    <cell type="label" labelfor="fieldName"/>
-                    <cell type="field" id="fieldName" name="fieldName" uitype="text"/>
-                </row>
-            </rows>
-        </viewdef>
-        
         <viewdef
             type="form"
             name="Borrow"
@@ -1150,8 +1128,7 @@
                     <cell type="label" labelfor="21"/>
                     <cell type="field" id="21" name="originalDueDate" uitype="formattedtext" uifieldformatter="Date"/>
                     <cell type="field" id="20" name="yesNo1" uitype="checkbox" initialize="editable=true"/>
-                    <!-- <cell type="field" id="7" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true" colspan="3"/> -->
-                    <cell type="field" id="isTheirs" name="yesNo2" uitype="checkbox" colspan="3"/>
+                    <cell type="field" id="7" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1162,14 +1139,6 @@
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="dateClosed" uitype="formattedtext" uifieldformatter="Date"/>
                 </row>
-                <row>
-                	<cell type="label" labelfor="purpose"/>
-                	<cell type="field" id="purpose" name="text1" uitype="combobox" picklist="HUH Transaction Purposes" colspan="12"/>
-                </row>
-                <!-- <row>
-                	<cell type="label" labelfor="forUseBy"/>
-                	<cell type="field" id="forUseBy" name="text2" uitype="text" colspan="12"/>
-                </row> -->
                 <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
@@ -1251,14 +1220,6 @@
                     <cell type="label" labelfor="3" />
                     <cell type="field" id="3" name="description" uitype="text" colspan="14"/>
                 </row>
-                <row>
-                    <cell type="label" labelfor="inComments" />
-                    <cell type="field" id="inComments" name="inComments" uitype="textareabrief" rows="2" colspan="14"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="outComments" />
-                    <cell type="field" id="outComments" name="outComments" uitype="textareabrief" rows="2" colspan="14"/>
-                </row>
             </rows>
         </viewdef>
         
@@ -1294,10 +1255,6 @@
                 <row>
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="collectingTrip"/>
-                	<cell type="field" id="collectingTrip" name="collectingTrip" uitype="querycbx" initialize="name=CollectingTrip" colspan="10"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="12" rows="3"/>
@@ -1787,7 +1744,7 @@
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="5"/>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="qualifier" uitype="combobox" picklist="HUH Det Qualifier"/>
+                    <cell type="field" id="8" name="qualifier" uitype="text"/>
                     <cell type="label" labelfor="9"/>
                     <cell type="field" id="9" name="addendum" uitype="text"/>            
                     
@@ -1801,7 +1758,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
+                    <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="TypeStatus"/>
                     
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent"  />
@@ -2089,25 +2046,6 @@
                     <cell type="field" id="7" name="quantityExchanged" uitype="text"/>
                 </row>-->
                 <row>
-                	<cell type="label" label=" "/>
-                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox" colspan="2"/>
-                	<cell type="field" id="isTheirRequest" name="yesNo2" uitype="checkbox" colspan="2"/>
-                	<cell type="label" labelfor="cost"/>
-                	<cell type="field" id="cost" name="number2" uitype="text"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="srcGeography"/>
-                	<cell type="field" id="srcGeography" name="srcGeography" uitype="text" colspan="10"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="forUseBy"/>
-                	<cell type="field" id="forUseBy" name="text2" uitype="text" colspan="10"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="details"/>
-                    <cell type="field" id="details" name="text1" uitype="textareabrief" rows="2" colspan="10"/>
-                </row>
-                <row>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="descriptionOfMaterial" uitype="text" colspan="10"/>
                 </row>
@@ -2144,32 +2082,14 @@
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=Agent" />
                 </row>
-                <row>
-                    <cell type="label" labelfor="asaID"/>
-                    <cell type="field" id="asaID" name="number1" uitype="dsptextfield" uifieldformatter="NumericInteger"/>
-                    <cell type="label" labelfor="srcGeography"/>
-                    <cell type="field" id="srcGeography" name="srcGeography" uitype="text"/>
+                <!--<row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="quantityExchanged" uitype="text"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                	<cell type="field" uitype="checkbox" id="yesNo1" name="yesNo1"/>
-                	<cell type="label" label=" "/>
-                	<cell type="field" uitype="checkbox" id="yesNo2" name="yesNo2"/>
-                </row>
+                </row>-->
                 <row>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="descriptionOfMaterial" uitype="text" colspan="10"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="text1"/>
-                    <cell type="field" id="text1" name="text1" uitype="text" colspan="10"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="text2"/>
-                    <cell type="field" id="text2" name="text2" uitype="text" colspan="10"/>
-                </row>  
+                </row>                
                 <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
@@ -2354,20 +2274,12 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="giftNumber" uitype="text"/> <!--  uitype="formattedtext" -->
+                    <cell type="field" id="1" name="giftNumber" uitype="formattedtext"/>
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="giftDate" uitype="formattedtext" uifieldformatter="Date"  default="today"/>
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="purposeOfGift" uitype="combobox" picklist="HUH Transaction Purposes"/>
-                    <cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox" initialize="editable=true"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="description"/>
-                    <cell type="field" id="description" name="text1" uitype="textareabrief" rows="2" colspan="12"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="localUnit"/>
-                    <cell type="field" id="localUnit" name="text2" uitype="textareabrief" rows="2" colspan="12"/>
+                    <cell type="field" id="4" name="purposeOfGift" uitype="text"/>
+                    <cell type="field" id="2" name="isFinancialResponsibility" uitype="checkbox" initialize="editable=true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="5"/>
@@ -2417,11 +2329,7 @@
                     <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Agent"/>
 
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="role" uitype="combobox" picklist="HUH Transaction Role"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="6"/>
+                    <cell type="field" id="2" name="role" uitype="combobox" />
                 </row>
             </rows>
         </viewdef>
@@ -2465,10 +2373,6 @@
                 <row>
                     <cell type="label" labelfor="3" />
                     <cell type="field" id="3" name="descriptionOfMaterial" uitype="text" colspan="14"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="outComments"/>
-                	<cell type="field" id="outComments" name="outComments" uitype="text" colspan="14"/>
                 </row>
             </rows>
         </viewdef>
@@ -2539,11 +2443,6 @@
                     <cell type="field" id="20" name="yesNo1" uitype="checkbox" initialize="editable=true"/>
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="overdueNotiSentDate" uitype="formattedtext" uifieldformatter="Date"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="forUseBy"/>
-                	<cell type="field" id="forUseBy" name="text1" uitype="text" colspan="5"/>
-                	<cell type="field" id="isTheirs" uitype="checkbox" name="yesNo2"/>
                 </row>
                 <row>
                      <cell type="label" labelfor="5"/>
@@ -2745,15 +2644,13 @@
                     <cell type="field" id="2" name="datum" uitype="text"/>
                     <cell type="label" label="" colspan="3"/>
                     <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="latLongMethod" uitype="combobox" picklist="HUH Lat-Long Method"/>
-                    <cell type="label" labelfor="latLongAccuracy"/>
-                    <cell type="field" id="latLongAccuracy" name="latLongAccuracy" uitype="text" uifieldformatter="NumericFloat"/>
+                    <cell type="field" id="6" name="latLongMethod" uitype="text"/>
                 </row>
                 <row>  
                     <cell type="subview" id="7" name="geoCoordDetails" viewname="GeoCoordDetail" colspan="17"/> 
                 </row>
                 <row>
-                    <cell type="subview" id="8" name="localityDetails" viewname="LocalityDetail" colspan="17" rows="5"/> 
+                    <cell type="subview" id="8" name="localityDetails" viewname="LocalityDetail" colspan="17"/> 
                 </row>
                 <row>
                     <cell type="separator" label="Elevation" colspan="17"/>
@@ -2767,10 +2664,6 @@
                     <cell type="field" id="11" name="elevationMethod" uitype="text" cols="20"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="elevationAccuracy" uitype="text" cols="20"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="verbatimElevation"/>
-                	<cell type="field" id="verbatimElevation" name="verbatimElevation" uitype="text" colspan="16"/>
                 </row>
                 <row>
                     <cell type="separator" label="Plugins" colspan="17"/>
@@ -2843,10 +2736,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[LocalityDetail subform for Locality]]></desc>
             
-            <columnDef>          80px, 2px,  85px, 5px,   80px, 2px,  85px, 2px,   30px, 2px, 115px, 2px, 106px, 2px,   30px, 2px, 115px, 2px,  88px,  p:g</columnDef>
-            <columnDef os="lnx"> 93px, 2px, 115px, 5px,   80px, 2px, 115px, 2px,   30px, 2px,  99px, 2px, 105px, 2px,   30px, 2px, 120px, 2px, 115px, 0px,p:g</columnDef>
-            <columnDef os="mac">110px, 2px, 120px, 5px,   96px, 2px, 120px, 2px,   30px, 2px, 137px, 2px, 110px, 2px,   30px, 2px, 146px, 2px, 120px,  p:g</columnDef>
-            <columnDef os="exp">   p,  2px, 92px,  5px:g,    p,  2px,  92px, 2px:g, 30px, 2px,   p,  2px,  83px,  2px:g, 30px, 2px,   p,   2px,  92px,  p:g</columnDef>
+            <columnDef>100px,2px,85px,5px,100px,2px,85px,5px,115px,2px,116px,5px,115px,2px,88px,p:g</columnDef>
+            <columnDef os="lnx">113px,2px,115px,5px,100px,2px,115px,5px,99px,2px,115px,5px,120px,2px,115px,0px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,120px,5px,116px,2px,120px,5px,137px,2px,120px,5px,146px,2px,120px,p:g</columnDef>
+            <columnDef os="exp">p,2px,92px,5px:g,p,2px,92px,5px:g,p,2px,93px,5px:g,p,2px,92px,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -2855,25 +2748,10 @@
                     <cell type="field" id="1" name="section" uitype="text"/>
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="township" uitype="text"/>
-                    <cell type="field" id="townshipDirection" name="townshipDirection" uitype="combobox" picklist="HUH Township Direction"/>
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="rangeDesc" uitype="text"/>
-                    <cell type="field" id="rangeDirection" name="rangeDirection" uitype="combobox" picklist="HUH Range Direction"/>
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="baseMeridian" uitype="text"/>
-                </row>
-                <row>
-                	<cell type="separator" label="UTM" colspan="19"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="utmZone"/>
-                	<cell type="field" id="utmZone" name="utmZone" uitype="text" uifieldformatter="NumericInteger"/>
-                	<cell type="label" labelfor="utmScale"/>
-                	<cell type="field" id="utmScale" name="utmScale" uitype="text" cols="10" colspan="3"/>
-                	<cell type="label" labelfor="utmNorthing"/>
-                	<cell type="field" id="utmNorthing" name="utmNorthing" uitype="text" uifieldformatter="NumericInteger" colspan="3"/>
-                	<cell type="label" labelfor="utmEasting"/>
-                	<cell type="field" id="utmEasting" name="utmEasting" uitype="text" uifieldformatter="NumericInteger"/>
                 </row>
             </rows>
         </viewdef>
@@ -3254,10 +3132,10 @@
             <desc><![CDATA[Preparation for Collection Object form.]]></desc>
             <enableRules/>
 
-            <columnDef>         100px, 2px, 120px,        5px,    85px, 2px, 200px, 5px,    65px, 2px, 126px,  2px, 70px, p:g</columnDef>
-            <columnDef os="lnx">100px, 2px, 130px,        5px,    95px, 2px, 200px, 5px,    65px, 2px, 126px,  2px, 70px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 180px,        5px,   130px, 2px, 255px, 5px,   100px, 2px, 174px,  2px, 70px, p:g</columnDef>
-            <columnDef os="exp">   p,  2px, max(p;150px), 5px:g,    p,  2px,    p,  5px:g,    p,  2px, 151px, 10px,   p,  p:g</columnDef>
+            <columnDef>100px,2px,120px,5px,95px,2px,223px,5px,65px,2px,126px,2px,70px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,150px,5px,120px,2px,223px,5px,90px,2px,126px,2px,75px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,180px,5px,130px,2px,255px,5px,100px,2px,174px,2px,70px,p:g</columnDef>
+            <columnDef os="exp">p,2px,max(p;150px),5px:g,p,2px,p,5px:g,p,2px,151px,10px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -3275,68 +3153,10 @@
                     <cell type="field" id="3" name="countAmt" uitype="text" />
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="preparedByAgent" uitype="querycbx" initialize="name=Agent"/>
-                    <!-- <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="storage" uitype="querycbx" initialize="name=Storage" cols="20" colspan="3"/> -->
-                </row>
-                <row>
-                	<cell type="label" labelfor="sampleNumber"/>
-                    <cell type="field" id="sampleNumber" name="sampleNumber" uitype="text" />
-                    <cell type="label" labelfor="sex"/>
-                	<cell type="field" id="sex" name="text2" uitype="combobox" picklist="HUH Plant Sexuality"/>
-                    <cell type="label" labelfor="herbarium"/>
-                    <cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" colspan="3"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="12"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
-                </row>
-                <row>
-	                <cell type="subview" id="prepAttr" viewname="PreparationAttr" name="preparationAttrs" colspan="12"/>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="storage" uitype="querycbx" initialize="name=Storage" cols="20" colspan="3"/>
                 </row>
             </rows>
-        </viewdef>
-        
-        <viewdef
-            name="PreparationAttr"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.PreparationAttr"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
-            useresourcelabels="false">
-            <desc><![CDATA[PreparationAttr for Preparation form.]]></desc>
-            <enableRules/>
-
-            <columnDef os="exp">p,2px,140px,5px:g,350px,p:g</columnDef>
-            <columnDef>100px,2px,140px,5px,350px,p:g</columnDef>
-            <columnDef os="mac">140px,2px,255px,5px,400px,p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2dlu"/>
-            
-            <rows>
-            	<row>
-            		<cell type="label" labelfor="attrDef"/>
-            		<cell type="field" id="attrDef" name="definition" uitype="querycbx" initialize="name=AttributeDef;title=Type" default="Provenance"/>
-            		<cell type="field" id="strValue" name="strValue" uitype="text"/>
-            	</row>
-            </rows>
-        </viewdef>
-            
-        <viewdef
-            name="PreparationAttr Table"
-            type="formtable"
-            class="edu.ku.brc.specify.datamodel.PreparationAttr"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[PreparationAttr subform table for Collection Object form.]]></desc>
-            <definition>PreparationAttr</definition>
         </viewdef>
         
         <viewdef
@@ -3488,27 +3308,9 @@
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="numberOfPackages" uitype="text"   default="1"/>
                     <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="shipmentMethod"  uitype="combobox" picklist="HUH Shipment Method" />
+                    <cell type="field" id="3" name="shipmentMethod"  uitype="combobox" picklist="ShipmentMethod" />
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="shippedBy" uitype="querycbx" initialize="name=Agent" />
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                	<cell type="field" id="isCostEstimated" name="yesNo2" uitype="checkbox"/>
-                    <cell type="label" labelfor="insuredForAmount"/>
-                    <cell type="field" id="insuredForAmount" name="insuredForAmount" uitype="text"/>
-                    <cell type="label" labelfor="shipper"/>
-                    <cell type="field" id="shipper" name="shipper" uitype="querycbx" initialize="name=Agent" />
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="cost"/>
-                	<cell type="field" id="cost" name="number1" uitype="text" uifieldformatter="NumericInteger"/>
-                	<cell type="label" labelfor="customsNo"/>
-                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="5"/>
                 </row>
                 <!--<row>
                     <cell type="label" labelfor="5"/>
