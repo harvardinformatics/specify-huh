@@ -359,8 +359,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // Quantity (itemCount + typeCount + nonSpecimenCount)
         loanPreparation.setQuantity(quantity);
         
-        // QuantityResolved/Returned
-        loanPreparation.setQuantityResolved(quantityReturned);
+        // QuantityReturned
         loanPreparation.setQuantityReturned(quantityReturned);
 
         return loanPreparation;
@@ -438,9 +437,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(LoanPreparation loanPreparation)
     {
         String fieldNames = "CollectionMemberID, DescriptionOfMaterial, IsResolved, LoanID, OutComments, " +
-                            "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, Version";
+                            "Quantity, QuantityReturned, TimestampCreated, Version";
         
-        String[] values = new String[10];
+        String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
@@ -448,10 +447,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[3] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
         values[4] = SqlUtils.sqlString( loanPreparation.getOutComments());
         values[5] = SqlUtils.sqlString( loanPreparation.getQuantity());
-        values[6] = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-        values[7] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-        values[8] = SqlUtils.now();
-        values[9] = SqlUtils.zero();
+        values[6] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+        values[7] = SqlUtils.now();
+        values[8] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }
