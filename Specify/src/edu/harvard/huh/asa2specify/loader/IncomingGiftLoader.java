@@ -53,15 +53,18 @@ public class IncomingGiftLoader extends InGeoBatchTransactionLoader
         Integer accessionId = insert(sql);
         accession.setAccessionId(accessionId);
         
-        AccessionAgent receiver = getAccessionAgent(incomingGift, accession, ROLE.Receiver);
-        if (receiver != null)
+        Agent receiverAgent = lookupAffiliate(incomingGift);
+        if (receiverAgent != null)
         {
+            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.Receiver);
             sql = getInsertSql(receiver);
             insert(sql);
         }
-        AccessionAgent donor = getAccessionAgent(incomingGift, accession, ROLE.Donor);
-        if (donor != null)
+        
+        Agent donorAgent = lookupAgent(incomingGift);
+        if (donorAgent != null)
         {
+            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Donor);
             sql = getInsertSql(donor);
             insert(sql);
         }
@@ -152,29 +155,16 @@ public class IncomingGiftLoader extends InGeoBatchTransactionLoader
         return accession;
     }
     
-    private AccessionAgent getAccessionAgent(Transaction transaction, Accession accession, ROLE role)
+    private AccessionAgent getAccessionAgent(Accession accession, Agent agent, ROLE role)
         throws LocalException
     {
         AccessionAgent accessionAgent = new AccessionAgent();
 
-        // Agent
-        Agent agent = null;
-
-        if (role.equals(ROLE.Donor))
-        {
-            agent = lookupAffiliate(transaction);
-        }
-        else if (role.equals(ROLE.Receiver))
-        {
-            agent = lookupAgent(transaction);
-        }
-
-        if (agent == null || agent.getId() == null) return null;
-
-        accessionAgent.setAgent(agent);
-
-        // Deaccession
+        // Accession
         accessionAgent.setAccession(accession);
+        
+        // Agent
+        accessionAgent.setAgent(agent);
 
         // Remarks
 
