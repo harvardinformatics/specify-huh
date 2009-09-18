@@ -48,26 +48,41 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
         setCurrentRecordId(transactionId);
         
         Accession accession = getAccession(purchase);
+        //Accession accession = getById(purchase.getId());
         
         String sql = getInsertSql(accession);
         Integer accessionId = insert(sql);
         accession.setAccessionId(accessionId);
         
-        AccessionAgent preparer = getAccessionAgent(purchase, accession, ROLE.Receiver);
-        if (preparer != null)
+        Agent receiverAgent = lookupAffiliate(purchase);
+        
+        if (receiverAgent != null)
         {
+            AccessionAgent preparer = getAccessionAgent(receiverAgent, accession, ROLE.Receiver);
             sql = getInsertSql(preparer);
             insert(sql);
         }
         
-        AccessionAgent contributor = getAccessionAgent(purchase, accession, ROLE.Benefactor);
-        if (contributor != null)
+        Agent contributorAgent = lookupAgent(purchase);
+        if (contributorAgent != null)
         {
+            AccessionAgent contributor = getAccessionAgent(contributorAgent, accession, ROLE.Contributor);
             sql = getInsertSql(contributor);
             insert(sql);
         }
     }
 
+    private Accession getById(Integer transactionId) throws LocalException
+    {
+        Accession accession = new Accession();
+        
+        Integer accessionId = getInt("accession", "AccessionID", "Number1", transactionId);
+        
+        accession.setAccessionId(accessionId);
+        
+        return accession;
+    } 
+    
     public Logger getLogger()
     {
         return log;
@@ -153,29 +168,16 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
         return purchase;
     }
     
-    private AccessionAgent getAccessionAgent(Transaction transaction, Accession accession, ROLE role)
+    private AccessionAgent getAccessionAgent(Agent agent, Accession accession, ROLE role)
         throws LocalException
     {
            AccessionAgent accessionAgent = new AccessionAgent();
 
-            // Agent
-            Agent agent = null;
-
-            if (role.equals(ROLE.Preparer) || role.equals(ROLE.Collector))
-            {
-                agent = lookupAffiliate(transaction);
-            }
-            else if (role.equals(ROLE.Contributor))
-            {
-                agent = lookupAgent(transaction);
-            }
-
-            if (agent == null || agent.getId() == null) return null;
-
-            accessionAgent.setAgent(agent);
-
-            // Deaccession
-            accessionAgent.setAccession(accession);
+           // Accession
+           accessionAgent.setAccession(accession);
+           
+           // Agent
+           accessionAgent.setAgent(agent);
 
             // Remarks
 
