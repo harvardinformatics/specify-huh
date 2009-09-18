@@ -21,11 +21,15 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.IncomingExchange;
+import edu.harvard.huh.asa.Transaction;
+import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
+import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.ExchangeIn;
+import edu.ku.brc.specify.datamodel.Accession;
+import edu.ku.brc.specify.datamodel.AccessionAgent;
 
 public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
 {
@@ -43,11 +47,47 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         Integer transactionId = incomingExchange.getId();
         setCurrentRecordId(transactionId);
         
-        ExchangeIn exchangeIn = getExchangeIn(incomingExchange);
+        Accession accession = getAccession(incomingExchange);
         
-        String sql = getInsertSql(exchangeIn);
-        insert(sql);
+        String sql = getInsertSql(accession);
+        Integer accessionId = insert(sql);
+        accession.setAccessionId(accessionId);
         
+        Agent receiverAgent = lookupAffiliate(incomingExchange);
+        if (receiverAgent != null)
+        {
+            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.Receiver);
+            sql = getInsertSql(receiver);
+            insert(sql);
+        }
+        
+        Agent donorAgent = lookupAgent(incomingExchange);
+        if (donorAgent != null)
+        {
+            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Donor);
+            sql = getInsertSql(donor);
+            insert(sql);
+        }
+        
+    }
+    
+    private AccessionAgent getAccessionAgent(Accession accession, Agent agent, ROLE role)
+    throws LocalException
+    {
+        AccessionAgent accessionAgent = new AccessionAgent();
+
+        // Accession
+        accessionAgent.setAccession(accession);
+
+        // Agent
+        accessionAgent.setAgent(agent);
+        
+        // Remarks
+
+        // Role
+        accessionAgent.setRole(Transaction.toString(role));
+
+        return accessionAgent;
     }
     
     public Logger getLogger()
@@ -71,125 +111,116 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         return inExchange;
     }
     
-    private ExchangeIn getExchangeIn(IncomingExchange inExchange) throws LocalException
+    private Accession getAccession(IncomingExchange inExchange) throws LocalException
     {
-        ExchangeIn exchangeIn = new ExchangeIn();
+        Accession accession = new Accession();
 
         // TODO: AddressOfRecord
         
-        // CatalogedByID
+        // CreatedByAgentID
         Integer creatorOptrId = inExchange.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-
-        exchangeIn.setAgentCatalogedBy(createdByAgent);
+        accession.setCreatedByAgent(createdByAgent);
         
-        // CreatedByAgentID
-        exchangeIn.setCreatedByAgent(createdByAgent);
+        // AccessionCondition
+        String description = inExchange.getDescription();
+        if (description != null) description = truncate(description, 255, "accession condition");
+        accession.setAccessionCondition(description);
         
-        // DescriptionOfMaterial
-        String descriptionOfMaterial = inExchange.getDescription();
-        if (descriptionOfMaterial != null)
+        // AccessionNumber
+        String transactionNo = inExchange.getTransactionNo();
+        if (transactionNo == null)
         {
-            descriptionOfMaterial = truncate(descriptionOfMaterial, 120, "description");
-            exchangeIn.setDescriptionOfMaterial(descriptionOfMaterial);
+            transactionNo = DEFAULT_ACCESSION_NUMBER;
         }
+        transactionNo = truncate(transactionNo, 50, "accession number");
+        accession.setAccessionNumber(transactionNo);
         
-        // DivisionID
-        exchangeIn.setDivision(getBotanyDivision());
-        
-        // ExchangeDate
+        // DateAccessioned
         Date openDate = inExchange.getOpenDate();
         if (openDate != null)
         {
-            exchangeIn.setExchangeDate(DateUtils.toCalendar(openDate));
+            accession.setDateAccessioned(DateUtils.toCalendar(openDate));
         }
+        
+        // DivisionID
+        accession.setDivision(getBotanyDivision());
         
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = inExchange.getId();
-        if (transactionId == null)
-        {
-            throw new LocalException("No transaction id");
-        }
-        exchangeIn.setNumber1((float) transactionId);
+        checkNull(transactionId, "transaction id");
         
-        // Number2 (cost)
-        Float cost = inExchange.getCost();
-        exchangeIn.setNumber2(cost);
-        
-        // QuantityExchanged
-        short quantity = inExchange.getBatchQuantity();
-        exchangeIn.setQuantityExchanged(quantity);
-        
-        // ReceivedFromOrganization ("contact")
-        Agent agentReceivedFrom = lookupAgent(inExchange);
-        checkNull(agentReceivedFrom, "recipient");
-        exchangeIn.setAgentReceivedFrom(agentReceivedFrom);
+        accession.setNumber1((float) transactionId);
         
         // Remarks
         String remarks = inExchange.getRemarks();
-        exchangeIn.setRemarks(remarks);
+        accession.setRemarks(remarks);
         
-        // SrcGeography
+        // Text1 (boxCount, itemCount, typeCount, nonSpecimenCount, distributeCount, discardCount, returnCount)
+        String itemCountNote = inExchange.getItemCountNote();
+        accession.setText1(itemCountNote);
+        
+        // Text2 (purpose)
+        String purpose = Transaction.toString(inExchange.getPurpose());
+        accession.setText2(purpose);
+        
+        // Text3 (geoUnit)
         String geoUnit = inExchange.getGeoUnit();
-        checkNull(geoUnit, "geo unit");
-        geoUnit = truncate(geoUnit, 32, "geo unit");
-        exchangeIn.setSrcGeography(geoUnit);
+        accession.setText3(geoUnit);
         
-        // SrcTaxonomy
-        
-        // Text1 (boxCount, typeCount, nonSpecimenCount, discardCount, distributeCount, returnCount)
-        String description = inExchange.getItemCountNote();
-        exchangeIn.setText1(description);
-        
-        // Text2 (localUnit, transactionNo, affiliate)
-        String transactionNo = inExchange.getTransactionNo();
-        String affiliateName = inExchange.getAffiliateName();
-        
-        String text2 = transactionNo + (affiliateName == null ? "" : ".  For use by " + affiliateName);
- 
-        exchangeIn.setText2(text2);
-        
-        // TimestampCreated
-        Date dateCreated = inExchange.getDateCreated();
-        exchangeIn.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        // Type
+        accession.setType(Transaction.toString(ACCESSION_TYPE.Gift));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = inExchange.isAcknowledged();
-        exchangeIn.setYesNo1(isAcknowledged);
+        accession.setYesNo1(isAcknowledged);
         
         // YesNo2 (requestType = "theirs")
         Boolean isTheirs = isTheirs(inExchange.getRequestType());
-        exchangeIn.setYesNo2(isTheirs);
+        accession.setYesNo2(isTheirs);
         
-        return exchangeIn;
+        return accession;
     }
     
-    private String getInsertSql(ExchangeIn exchangeIn)
+    private String getInsertSql(Accession accession)
     {
-        String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, ExchangeDate, " +
-                            "Number1, Number2, QuantityExchanged, ReceivedFromOrganizationID, Remarks, SrcGeography, " +
-                            "Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
+                            "DivisionID, Number1, Remarks, Text1, Text2, Text3, Type, TimestampCreated, " +
+                            "Version, YesNo1, YesNo2";
+
+        String[] values = new String[15];
+
+        values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
+        values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
+        values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
+        values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
+        values[4]  = SqlUtils.sqlString( accession.getDivision().getId());
+        values[5]  = SqlUtils.sqlString( accession.getNumber1());
+        values[6]  = SqlUtils.sqlString( accession.getRemarks());
+        values[7]  = SqlUtils.sqlString( accession.getText1());
+        values[8]  = SqlUtils.sqlString( accession.getText2());
+        values[9]  = SqlUtils.sqlString( accession.getText3());
+        values[10] = SqlUtils.sqlString( accession.getType());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.zero();
+        values[13] = SqlUtils.sqlString( accession.getYesNo1());
+        values[14] = SqlUtils.sqlString( accession.getYesNo1());
         
-        String[] values = new String[17];
+        return SqlUtils.getInsertSql("accession", fieldNames, values);
+    }
+
+    private String getInsertSql(AccessionAgent accessionAgent)
+    {
+        String fieldNames = "AccessionID, AgentID, Role, TimestampCreated, Version";
+
+        String[] values = new String[5];
+
+        values[0] = SqlUtils.sqlString( accessionAgent.getAccession().getId());
+        values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
+        values[2] = SqlUtils.sqlString( accessionAgent.getRole());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
         
-        values[0]  = SqlUtils.sqlString( exchangeIn.getAgentCatalogedBy().getId());
-        values[1]  = SqlUtils.sqlString( exchangeIn.getCreatedByAgent().getId());
-        values[2]  = SqlUtils.sqlString( exchangeIn.getDescriptionOfMaterial());
-        values[3]  = SqlUtils.sqlString( exchangeIn.getDivision().getId());
-        values[4]  = SqlUtils.sqlString( exchangeIn.getExchangeDate());
-        values[5]  = SqlUtils.sqlString( exchangeIn.getNumber1());
-        values[6]  = SqlUtils.sqlString( exchangeIn.getNumber2());
-        values[7]  = SqlUtils.sqlString( exchangeIn.getQuantityExchanged());
-        values[8]  = SqlUtils.sqlString( exchangeIn.getAgentReceivedFrom().getId());        
-        values[9]  = SqlUtils.sqlString( exchangeIn.getRemarks());
-        values[10] = SqlUtils.sqlString( exchangeIn.getSrcGeography());
-        values[11] = SqlUtils.sqlString( exchangeIn.getText1());
-        values[12] = SqlUtils.sqlString( exchangeIn.getText2());
-        values[13] = SqlUtils.sqlString( exchangeIn.getTimestampCreated());
-        values[14] = SqlUtils.zero();
-        values[15] = SqlUtils.sqlString( exchangeIn.getYesNo1());
-        values[16] = SqlUtils.sqlString( exchangeIn.getYesNo2());
-        
-        return SqlUtils.getInsertSql("exchangein", fieldNames, values);
+        return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }
 }
