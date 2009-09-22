@@ -27,6 +27,8 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
@@ -34,6 +36,7 @@ import java.util.Properties;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
@@ -46,6 +49,7 @@ import org.apache.log4j.Logger;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.lowagie.text.Font;
 
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -104,6 +108,7 @@ public class PartialDateUI extends JPanel implements GetSetValueIFace,
     
     protected UIValidatable[]         uivs        = new UIValidatable[3];
     protected JTextField[]            textFields  = new JTextField[3];
+
     protected JPanel[]                panels      = new JPanel[3];
     protected CardLayout              cardLayout  = new CardLayout();
     protected JPanel                  cardPanel;
@@ -449,7 +454,7 @@ public class PartialDateUI extends JPanel implements GetSetValueIFace,
         
         dateFieldName = properties.getProperty("df");
         dateTypeName  = properties.getProperty("tp");
-        
+
         createUI();
     }
 
@@ -484,12 +489,43 @@ public class PartialDateUI extends JPanel implements GetSetValueIFace,
             DBTableInfo tblInfo = DBTableIdMgr.getInstance().getByClassName(parent.getView().getClassName());
             if (tblInfo != null)
             {
-                DBFieldInfo fi = tblInfo.getFieldByName(dateFieldName);
+                final DBFieldInfo fi = tblInfo.getFieldByName(dateFieldName);
                 if (fi != null)
                 {
+                    isRequired = fi.isRequired();
+                    if (uivs[0] instanceof ValFormattedTextFieldSingle)
+                    {
+                        ((ValFormattedTextFieldSingle)uivs[0]).setRequired(isRequired);
+                    } else
+                    {
+                        for (UIValidatable uiv : uivs)
+                        {
+                            ((ValFormattedTextField)uiv).setRequired(isRequired);
+                        }
+                    }
+                    
                     if (StringUtils.isNotEmpty(fi.getTitle()))
                     {
                         lbl.setText(fi.getTitle()+":");
+                        lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+                    }
+                    
+                    if (lbl != null)
+                    {
+                        lbl.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseClicked(MouseEvent e)
+                            {
+                                super.mouseClicked(e);
+                                if (e.getClickCount() == 2)
+                                {
+                                    JOptionPane.showMessageDialog(UIRegistry.getMostRecentWindow(),
+                                            "<html>"+fi.getDescription(), 
+                                            UIRegistry.getResourceString("FormViewObj.UNOTES"), 
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                }
+                            }
+                        });
                     }
                 } else
                 {

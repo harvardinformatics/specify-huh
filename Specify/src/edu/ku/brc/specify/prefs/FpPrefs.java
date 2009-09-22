@@ -29,11 +29,11 @@ import edu.ku.brc.af.prefs.GenericPrefsPanel;
 import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 
 /**
- * @author rods
+ * @author mkelly
  *
  * @code_status Alpha
  *
- * Created Date: Sep 24, 2008
+ * Created Date: June 11, 2009
  *
  */
 public class FpPrefs extends GenericPrefsPanel

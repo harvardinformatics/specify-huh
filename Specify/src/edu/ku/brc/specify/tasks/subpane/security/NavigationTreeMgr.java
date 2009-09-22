@@ -26,6 +26,7 @@ import java.awt.Frame;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -47,11 +48,13 @@ import edu.ku.brc.af.ui.SearchTermField;
 import edu.ku.brc.af.ui.db.QueryForIdResultsIFace;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.db.ViewBasedSearchQueryBuilderIFace;
+import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.specify.config.init.DataBuilder;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
@@ -119,7 +122,15 @@ public class NavigationTreeMgr
             Object                  object  = wrapper.getDataObj();
             SpecifyUser             user    = (SpecifyUser) object;
             
-            result = user.getUserGroupCount() > 1; 
+            int cnt = user.getUserGroupCount();
+            if (cnt > 1)
+            {
+                result = cnt > 2 || !user.isInAdminGroup();
+                
+            } else
+            {
+                result = true;
+            }
             
         } catch (final Exception e1)
         {
@@ -169,13 +180,21 @@ public class NavigationTreeMgr
             session = DataProviderFactory.getInstance().createSession();
             session.beginTransaction();
             
-            session.update(user);
-            user.getSpPrincipals().remove(group);
+            for (SpPrincipal p : new Vector<SpPrincipal>(user.getSpPrincipals()))
+            {
+                if (p.getId().equals(group.getId()))
+                {
+                    user.getSpPrincipals().remove(p);        
+                }
+            }
+            
+            session.saveOrUpdate(user);
             session.commit();
             
             // remove child from tree
             DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
             model.removeNodeFromParent(userNode);
+            tree.clearSelection();
             
         } catch (final Exception e1)
         {
@@ -200,13 +219,21 @@ public class NavigationTreeMgr
      */
     public boolean canDeleteUser(final DefaultMutableTreeNode userNode)
     {
+        if (userNode == null) return false;
+        
         // get the user who's logged in
         final SpecifyUser currentUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
 
         // get the user from the selected tree node
         DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper) userNode.getUserObject();
         Object                  object  = wrapper.getDataObj();
-        SpecifyUser             user    = (SpecifyUser)object;
+        
+        if (!(object instanceof SpecifyUser))
+        {
+            return false;
+        }
+        
+        SpecifyUser user = (SpecifyUser)object;
 
         if (currentUser.getSpecifyUserId().equals(user.getSpecifyUserId()))
         {
@@ -221,14 +248,28 @@ public class NavigationTreeMgr
             session = DataProviderFactory.getInstance().createSession();
             
             user = (SpecifyUser)session.getData("FROM SpecifyUser WHERE id = "+user.getId());
-            wrapper.setDataObj(user);
-            
-            // XXX do we need a session here? 
-            // We need it in the next call to get SpPrincipals, but they have probably been 
-            // loaded by then. Notice we don't attach the user to the session anywhere in this code... 
-
-            // We can delete a user if that's the only group it belongs to
-            result = user.getUserGroupCount() == 1; 
+            if (user != null)
+            {
+                wrapper.setDataObj(user);
+                
+                // XXX do we need a session here? 
+                // We need it in the next call to get SpPrincipals, but they have probably been 
+                // loaded by then. Notice we don't attach the user to the session anywhere in this code... 
+    
+                // We can delete a user if that's the only group it belongs to
+                int cnt = user.getUserGroupCount();
+                if (cnt > 1)
+                {
+                    result = cnt > 2 || !user.isInAdminGroup();
+                    
+                } else
+                {
+                    result = true;
+                }
+            } else
+            {
+                result = true;
+            }
         } 
         catch (final Exception e1)
         {
@@ -254,6 +295,8 @@ public class NavigationTreeMgr
      */
     public void deleteUser(final DefaultMutableTreeNode userNode)
     {
+        // Ask here to delete user
+        
         DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper) userNode.getUserObject();
         Object                  object  = wrapper.getDataObj();
         if (!(object instanceof SpecifyUser) || !canDeleteUser(userNode))
@@ -277,6 +320,8 @@ public class NavigationTreeMgr
                 agent.setSpecifyUser(null);
             }
             user.getAgents().clear();
+            
+            BaseBusRules.removeById(spUsers, user);
             
             // delete related user principal (but leave other principals (admin & regular groups) intact
             for (SpPrincipal principal : user.getSpPrincipals())
@@ -303,8 +348,10 @@ public class NavigationTreeMgr
             session.commit();
             
             // remove user from the group in the tree
-            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
             model.removeNodeFromParent(userNode);
+            
+            tree.clearSelection();
             
         } catch (final Exception e1)
         {
@@ -328,15 +375,17 @@ public class NavigationTreeMgr
      */
     public boolean canAddNewUser(final DefaultMutableTreeNode node)
     {
-        DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper)node.getUserObject();
-        Object                  object  = wrapper.getDataObj();
-
-        if (object instanceof SpPrincipal)
+        if (node != null)
         {
-            SpPrincipal principal = (SpPrincipal) object;
-            return !AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass());
+            DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper)node.getUserObject();
+            Object                  object  = wrapper.getDataObj();
+    
+            if (object instanceof SpPrincipal)
+            {
+                SpPrincipal principal = (SpPrincipal) object;
+                return !AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass());
+            }
         }
-        
         return false;
     }
     
@@ -348,19 +397,23 @@ public class NavigationTreeMgr
      */
     public boolean canDeleteItem(final DefaultMutableTreeNode node)
     {
-        DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper) node.getUserObject();
-        Object                  object  = wrapper.getDataObj();
-
-        if (!(object instanceof SpPrincipal) && 
-            !(object instanceof Collection) &&
-            !(object instanceof Discipline))
+        if (node != null)
         {
-            // cannot delete object that is not an instance of one the above types
-            return false;
+            DataModelObjBaseWrapper wrapper = (DataModelObjBaseWrapper) node.getUserObject();
+            Object                  object  = wrapper.getDataObj();
+    
+            if (!(object instanceof SpPrincipal) && 
+                !(object instanceof Collection) &&
+                !(object instanceof Discipline))
+            {
+                // cannot delete object that is not an instance of one the above types
+                return false;
+            }
+    
+            // only childless nodes can be deleted
+            return node.getChildCount() == 0;
         }
-
-        // only childless nodes can be deleted
-        return node.getChildCount() == 0;
+        return false;
     }
 
     /**
@@ -443,11 +496,11 @@ public class NavigationTreeMgr
     /**
      * @param grpNode
      */
-    public void addNewUser(final DefaultMutableTreeNode grpNode) 
+    public DefaultMutableTreeNode addNewUser(final DefaultMutableTreeNode grpNode) 
     {
         if (grpNode == null || !(grpNode.getUserObject() instanceof DataModelObjBaseWrapper))
         {
-            return; // Nothing is selected or object type isn't relevant 
+            return null; // Nothing is selected or object type isn't relevant 
         }
         
         // discipline to which the user's being added
@@ -459,7 +512,7 @@ public class NavigationTreeMgr
         DataModelObjBaseWrapper parentWrp = (DataModelObjBaseWrapper)grpNode.getUserObject();
         if (!parentWrp.isGroup())
         {
-            return; // selection isn't a suitable parent for a group
+            return null; // selection isn't a suitable parent for a group
         }
         
         SpPrincipal grpPrin = (SpPrincipal)parentWrp.getDataObj();
@@ -530,6 +583,7 @@ public class NavigationTreeMgr
         // This is just an extra safety measure to make sure the current Discipline gets set back
         try
         {
+            // Has no password here
             dlg.setData(spUser);
             dlg.setVisible(true);
             
@@ -546,6 +600,9 @@ public class NavigationTreeMgr
         
         if (!dlg.isCancelled())
         {
+            String textPwd    = spUser.getPassword();
+            spUser.setPassword(Encryption.encrypt(textPwd, textPwd));
+            
             Agent userAgent = (Agent)cbx.getValue();
             
             DataProviderSessionIFace session = null;
@@ -607,13 +664,20 @@ public class NavigationTreeMgr
             }
             
             DataModelObjBaseWrapper userWrp  = new DataModelObjBaseWrapper(spUser);
-            DefaultMutableTreeNode  userNode = new DefaultMutableTreeNode(userWrp);
-            
-            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-            model.insertNodeInto(userNode, grpNode, grpNode.getChildCount());
-            
-            tree.setSelectionPath(new TreePath(userNode.getPath()));
+            if (userWrp != null)
+            {
+                DefaultMutableTreeNode  userNode = new DefaultMutableTreeNode(userWrp);
+                if (userNode != null)
+                {
+                    DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+                    model.insertNodeInto(userNode, grpNode, grpNode.getChildCount());
+                    
+                    tree.setSelectionPath(new TreePath(model.getPathToRoot(userNode)));
+                }
+                return userNode;
+            }
         }
+        return null;
     }
     
     /**

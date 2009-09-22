@@ -88,6 +88,7 @@ public class NodeNumberer<T extends Treeable<T, D, I>, D extends TreeDefIface<T,
             buildReNumberingQueries();
             T root = getTreeRoot();
             initProgress();
+            initCacheInfo();
             reNumberNodesFaster(root.getTreeId(), 1);
             traversalSession.commit();
             return true;
@@ -116,12 +117,17 @@ public class NodeNumberer<T extends Treeable<T, D, I>, D extends TreeDefIface<T,
     {
         List<?> children = getChildIds(nodeId);
         int nn = nodeNumber;
-        for (Object child : children)
+        while (children.size() > 0)
         {
-            nn = reNumberNodesFaster((Integer) child, nn + 1);
+            Object child = children.get(0);
+        	nn = reNumberNodesFaster((Integer) child, nn + 1);
+        	children.remove(0);
+        	child = null;
         }
+        children = null;
         writeNode(nodeId, nodeNumber, nn);
         incrementProgress();
+        checkCache();
         return nn;
     }
 
@@ -136,18 +142,11 @@ public class NodeNumberer<T extends Treeable<T, D, I>, D extends TreeDefIface<T,
     protected void writeNode(int nodeId, int nodeNumber, int highestChildNodeNumber)
             throws Exception
     {
-        updateNodeQuery.setParameter("keyArg", nodeId);
+    	updateNodeQuery.setParameter("keyArg", nodeId);
         updateNodeQuery.setParameter("nnArg", nodeNumber);
         updateNodeQuery.setParameter("hcnArg", highestChildNodeNumber);
-        // nodeNumberSession.beginTransaction();
-        try
-        {
-            updateNodeQuery.executeUpdate();
-        }
-        finally
-        {
-            // nodeNumberSession.commit();
-        }
+    	
+        updateNodeQuery.executeUpdate();
     }
 
     /**
@@ -164,10 +163,12 @@ public class NodeNumberer<T extends Treeable<T, D, I>, D extends TreeDefIface<T,
      * creates query to update node number field.
      */
     protected void buildUpdateNodeQuery()
-    {
-        String updateSQL = "update " + getNodeTblName()
-                + " set NodeNumber=:nnArg, HighestChildNodeNumber=:hcnArg where "
-                + getNodeKeyFldName() + "=:keyArg";
-        updateNodeQuery = traversalSession.createQuery(updateSQL, true);
-    }
+	{
+		String updateSQL = "update "
+				+ getNodeTblName()
+				+ " set NodeNumber=:nnArg, HighestChildNodeNumber=:hcnArg where "
+				+ getNodeKeyFldName() + "=:keyArg";
+		updateNodeQuery = traversalSession.createQuery(updateSQL, true);
+	}
+    
 }

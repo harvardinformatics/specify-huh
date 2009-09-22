@@ -29,6 +29,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.specify.datamodel.FilteredPushMessage;
@@ -51,11 +52,13 @@ import edu.ku.brc.ui.tmanfe.SpreadSheetModel;
  * Mar 8, 2007
  *
  */
+@SuppressWarnings("serial")
 public class GridTableModel extends SpreadSheetModel
 {
     private static final Logger log = Logger.getLogger(GridTableModel.class);
             
     protected Workbench          workbench;
+    protected boolean            batchMode        = false;
     protected boolean            isInImageMode        = false;
     protected boolean            isInFilteredPushMode = false;
     protected boolean            isUserEdit           = true;
@@ -70,6 +73,9 @@ public class GridTableModel extends SpreadSheetModel
     private String queryProgCaption = UIRegistry.getResourceString("WB_FP_QUERYPROGRESS");
     private int hiddenColumnCount = 0;
     
+    /**
+     * @param workbench
+     */
     public GridTableModel(final Workbench    workbench)
     {
         super();
@@ -329,6 +335,13 @@ public class GridTableModel extends SpreadSheetModel
         }
     }
 
+    
+	/**
+     * @param value
+     * @param row
+     * @param column
+     * @param isUserEdit
+     */
     public void setValueAt(Object value, int row, int column, boolean isUserEdit)
     {
         //Right now, isUserEdit is only false if a GeoRefConversion is responsible for the setValueAt() call.
@@ -379,7 +392,6 @@ public class GridTableModel extends SpreadSheetModel
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#deleteRows(int[])
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void deleteRows(int[] rows)
     {
@@ -553,4 +565,35 @@ public class GridTableModel extends SpreadSheetModel
     {
         return headers.indexOf(queryProgressItem);
     }
+     /**
+     * @param column
+     * @return mapping for column
+     */
+    public WorkbenchTemplateMappingItem getColMapping(int column)
+    {
+    	return headers.get(column);
+    }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#isBatchMode()
+	 */
+	@Override
+	public boolean isBatchMode()
+	{
+		return batchMode;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#setBatchMode(boolean)
+	 */
+    /**
+     * Caller must take responsibility clearing this flag and
+     * calling fireTableChanged or other necessary methods
+     * when batch operation is completed.
+     */
+	@Override
+	public void setBatchMode(boolean value)
+	{
+		batchMode = value;
+	}
 }

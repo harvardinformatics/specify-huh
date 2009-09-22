@@ -39,6 +39,7 @@ import javax.swing.WindowConstants;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.install4j.api.launcher.ApplicationLauncher;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertBlue;
@@ -255,8 +256,6 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             
         } catch (MissingResourceException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
             Locale.setDefault(Locale.ENGLISH);
             UIRegistry.setResourceLocale(Locale.ENGLISH);
         }
@@ -276,6 +275,24 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             e.printStackTrace();
         }
         
+        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        
+        for (String s : args)
+        {
+            String[] pairs = s.split("="); //$NON-NLS-1$
+            if (pairs.length == 2)
+            {
+                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
+                {
+                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
+                } 
+            } else
+            {
+                String symbol = pairs[0].substring(2, pairs[0].length());
+                System.setProperty(symbol, symbol);
+            }
+        }
+        
         // Now check the System Properties
         String appDir = System.getProperty("appdir");
         if (StringUtils.isNotEmpty(appDir))
@@ -289,10 +306,16 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             UIRegistry.setBaseAppDataDir(appdatadir);
         }
         
-        String javadbdir = System.getProperty("javadbdir");
-        if (StringUtils.isNotEmpty(javadbdir))
+        String embeddeddbdir = System.getProperty("embeddeddbdir");
+        if (StringUtils.isNotEmpty(embeddeddbdir))
         {
-            UIRegistry.setJavaDBDir(javadbdir);
+            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
+        }
+        
+        String mobile = System.getProperty("mobile");
+        if (StringUtils.isNotEmpty(mobile))
+        {
+            UIRegistry.setEmbeddedDBDir(UIRegistry.getMobileEmbeddedDBPath());
         }
         
         SwingUtilities.invokeLater(new Runnable()
@@ -308,9 +331,52 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
                 IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
                 IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
                 
+                // Load Local Prefs
+                AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+                localPrefs.setDirPath(UIRegistry.getAppDataDir());
+                
+                // Check to see if we should check for a new version
+                String VERSION_CHECK = "version_check.auto";
+                if (localPrefs.getBoolean(VERSION_CHECK, null) == null)
+                {
+                    localPrefs.putBoolean(VERSION_CHECK, true);
+                }
+
+                String EXTRA_CHECK = "extra.check";
+                if (localPrefs.getBoolean(EXTRA_CHECK, null) == null)
+                {
+                    localPrefs.putBoolean(EXTRA_CHECK, true);
+                }
+                
                 setUpSystemProperties();
-                SpecifyDBSetupWizardFrame setup = new SpecifyDBSetupWizardFrame();
-                UIHelper.centerAndShow(setup);
+                final SpecifyDBSetupWizardFrame wizardFrame = new SpecifyDBSetupWizardFrame();
+
+                if (localPrefs.getBoolean(VERSION_CHECK, true) && localPrefs.getBoolean(EXTRA_CHECK, true))
+                {
+                    try
+                    {
+                       com.install4j.api.launcher.SplashScreen.hide();
+                       ApplicationLauncher.Callback callback = new ApplicationLauncher.Callback()
+                       {
+                           public void exited(int exitValue)
+                           {
+                               UIHelper.centerAndShow(wizardFrame);
+                           }
+                           public void prepareShutdown()
+                           {
+                               
+                           }
+                        };
+                        ApplicationLauncher.launchApplication("100", null, true, callback);
+                        
+                    } catch (Exception ex)
+                    {
+                        UIHelper.centerAndShow(wizardFrame);
+                    }
+                } else
+                {
+                    UIHelper.centerAndShow(wizardFrame);
+                }
             }
         });
     }

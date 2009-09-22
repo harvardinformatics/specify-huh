@@ -57,6 +57,7 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.validation.ValPasswordField;
+import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.tasks.subpane.security.SecurityAdminPane;
@@ -208,7 +209,24 @@ public class SecurityAdminTask extends BaseTask
                     SpecifyUser spUser    = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
                     String      username  = spUser.getName();
                     String      spuOldPwd = spUser.getPassword();
-                    if (oldPwd.equals(spuOldPwd))
+                    
+                    String newEncryptedPwd = null;
+                    String oldDecryptedPwd = Encryption.decrypt(spuOldPwd, oldPwd);
+                    if (oldDecryptedPwd != null && oldDecryptedPwd.equals(oldPwd))
+                    {
+                        newEncryptedPwd = Encryption.encrypt(newPwd2, newPwd2);
+                        spUser.setPassword(newEncryptedPwd);
+                        if (!DataModelObjBase.save(spUser))
+                        {
+                            UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_SAVE")), Color.RED);
+                        }
+                        
+                    } else
+                    {
+                        UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_BAD")), Color.RED);
+                    }
+                    
+                    if (newEncryptedPwd != null)
                     {
                         Pair<String, String> masterPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
                         
@@ -216,11 +234,6 @@ public class SecurityAdminTask extends BaseTask
                         if (StringUtils.isNotEmpty(encryptedMasterUP))
                         {
                             AppPreferences.getLocalPrefs().put(username+"_"+UserAndMasterPasswordMgr.MASTER_PATH, encryptedMasterUP);
-                            spUser.setPassword(newPwd1);
-                            if (!DataModelObjBase.save(spUser))
-                            {
-                                UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_SAVE")), Color.RED);
-                            }
                         } else
                         {
                             UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_RTRV")), Color.RED);
@@ -378,7 +391,6 @@ public class SecurityAdminTask extends BaseTask
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#doCommand(edu.ku.brc.ui.CommandAction)
      */
-    @SuppressWarnings("unchecked")  //$NON-NLS-1$
     public void doCommand(CommandAction cmdAction)
     {
         if (cmdAction.isType(SECURITY_ADMIN))

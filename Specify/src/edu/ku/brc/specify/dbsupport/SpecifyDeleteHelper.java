@@ -46,9 +46,7 @@ import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Accession;
-import edu.ku.brc.specify.datamodel.AddressOfRecord;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
@@ -70,8 +68,9 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class SpecifyDeleteHelper
 {
-    protected boolean    debug             = false;
-    protected boolean    debugUpdate       = false;
+    protected static boolean    debug       = false;
+    protected static boolean    debugUpdate = false;
+    
     protected boolean    doTrees           = false;
 
     protected Integer    totalCount        = null;
@@ -189,6 +188,7 @@ public class SpecifyDeleteHelper
         
         getSubTables(root, cls, id, sqlStr, delStr, 0, null);
         
+        debug = false;
         if (debug)
         {
             System.out.println("\n------------------------------------------\n");
@@ -273,12 +273,6 @@ public class SpecifyDeleteHelper
         
         Hashtable<String, Boolean> inUseHash = inUseHashArg == null && level == 1 ? new Hashtable<String, Boolean>() : inUseHashArg;
         
-        if (tblInfo.getTableId() == 4)
-        {
-            int x = 0;
-            x++;
-        }
-        
         for (Method method : cls.getMethods())
         {
             String methodName = method.getName();
@@ -296,18 +290,6 @@ public class SpecifyDeleteHelper
                 continue;
             }
 
-            if (methodName.equals("getPickListItems"))
-            {
-                int x = 0;
-                x++;
-            }
-
-            if (StringUtils.contains(methodName, "TaxonCitation"))
-            {
-                int x = 0;
-                x++;
-            }
-            
             if (methodName.endsWith("TreeDef"))
             {
                 if (doTrees)
@@ -335,9 +317,9 @@ public class SpecifyDeleteHelper
                                 treeClass = Class.forName("edu.ku.brc.specify.datamodel."+className);
                             } catch (Exception ex)
                             {
+                                ex.printStackTrace();
                                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDeleteHelper.class, ex);
-                                ex.printStackTrace();
                             }
                             if (treeClass == cls)
                             {
@@ -430,7 +412,7 @@ public class SpecifyDeleteHelper
                             break;
                         }
                     }
-                    //System.out.println(joinColName);
+                    System.out.println(joinColName);
                     
                     
                     if (cls != Agent.class)
@@ -532,21 +514,11 @@ public class SpecifyDeleteHelper
         
         for (DBTableInfo ti : DBTableIdMgr.getInstance().getTables())
         {
-            if (ti.getTableId() == 75 && tblInfo.getTableId() == 4)
-            {
-                int x = 0;
-                x++;
-            }
             if (ti != tblInfo)
             {
                 for (DBRelationshipInfo ri : ti.getRelationships())
                 {
-                    /*System.out.println(ri.getName());
-                    if (ri.getDataClass() == Taxon.class)
-                    {
-                        int x = 0;
-                        x++;
-                    }*/
+                    /*System.out.println(ri.getName());*/
 
                     if (ri.getDataClass() != Agent.class)
                     {
@@ -565,20 +537,12 @@ public class SpecifyDeleteHelper
                                 System.out.println(sql);
                             }
                             
-                            if (ti.getTableId() == Borrow.getClassTableId() ||
-                                ti.getTableId() == AddressOfRecord.getClassTableId())
-                            {
-                                int x= 0;
-                                x++;
-                            }
                             if (inUseHash != null) inUseHash.put(ti.getClassName(), true);
                             getSubTables(child, ti.getClassObj(), id, sql, delSql, level+1, inUseHash);
                             
                         } else if (ri.getDataClass() == tblInfo.getClassObj() && !hashOK && StringUtils.isEmpty(ri.getOtherSide()))
                         {
-                            System.out.println("Skipping "+ti.getClassObj().getSimpleName()+" for "+tblInfo.getClassObj().getSimpleName());
-                            int x = 0;
-                            x++;
+                            if (debug) System.out.println("Skipping "+ti.getClassObj().getSimpleName()+" for "+tblInfo.getClassObj().getSimpleName());
                         }
                     } else
                     {
@@ -775,14 +739,6 @@ public class SpecifyDeleteHelper
                             {
                                 String delSql = si.getDelSql() + itemId;
 
-                                //System.err.println(delSql);
-                                /*if (delSql.indexOf("FROM discipline") > -1)
-                                {
-                                    System.err.println(delSql);
-                                    int x= 0;
-                                    x++;
-                                }*/
-                                
                                 if (StringUtils.contains(si.getDelSql(), "XXX"))
                                 {
                                     delSql = StringUtils.replace(si.getDelSql(), "XXX", Integer.toString(itemId));
@@ -896,7 +852,7 @@ public class SpecifyDeleteHelper
             int count = BasicSQLUtils.getNumRecords("select count(*) FROM "+tablename, connection);
             if (count > 0)
             {
-                System.out.println(tablename+" "+count);
+                if (debug) System.out.println(tablename+" "+count);
             }
         }
         rs.close();
@@ -1352,16 +1308,16 @@ public class SpecifyDeleteHelper
                 if (count != null && ( !filterEmpty || count > 0))
                 {
                     int cnt = count == 0 ? 0 : count;
-                    System.out.println(String.format("%5d - %s", cnt, name));
+                    if (debug) System.out.println(String.format("%5d - %s", cnt, name));
                     pw.println(String.format("%5d - %s", cnt, name));
                     total += cnt;
                     tblCount++;
                 }
             }
-            System.out.println(String.format("%5d - %s", total, "Total"));
+            if (debug) System.out.println(String.format("%5d - %s", total, "Total"));
             pw.println(String.format("%5d - %s", total, "Total"));
             
-            System.out.println(String.format("%5d - %s", tblCount, "Total Tables"));
+            if (debug) System.out.println(String.format("%5d - %s", tblCount, "Total Tables"));
             pw.println(String.format("%5d - %s", tblCount, "Total Tables"));
             pw.close();
             

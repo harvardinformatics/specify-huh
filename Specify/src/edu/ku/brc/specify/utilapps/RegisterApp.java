@@ -89,7 +89,6 @@ import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.CustomFrame;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -1459,24 +1458,6 @@ public class RegisterApp extends JPanel
                             System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
                         } 
                     }
-                }
-                
-                String appDir = System.getProperty("appdir"); //$NON-NLS-1$
-                if (StringUtils.isNotEmpty(appDir))
-                {
-                    UIRegistry.setDefaultWorkingPath(appDir);
-                }
-                
-                String appdatadir = System.getProperty("appdatadir"); //$NON-NLS-1$
-                if (StringUtils.isNotEmpty(appdatadir))
-                {
-                    UIRegistry.setBaseAppDataDir(appdatadir);
-                }
-                
-                String javadbdir = System.getProperty("javadbdir"); //$NON-NLS-1$
-                if (StringUtils.isNotEmpty(javadbdir))
-                {
-                    UIRegistry.setJavaDBDir(javadbdir);
                 }
 
                 // Then set this

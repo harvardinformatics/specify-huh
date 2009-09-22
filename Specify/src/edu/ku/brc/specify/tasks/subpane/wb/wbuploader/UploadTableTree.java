@@ -286,7 +286,7 @@ public class UploadTableTree extends UploadTable
         
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
         QueryIFace q = session.createQuery("from " + tblClass.getName() + " where rankId=" + parentDefItem.getRankId().toString()
-                + " and name='" + getDefaultParentName() + "'", false);
+                + " and name='" + getDefaultParentName().replace("'", "''") + "'", false);
         try
         {
             Treeable result = (Treeable)q.uniqueResult();
@@ -905,6 +905,9 @@ public class UploadTableTree extends UploadTable
             InvocationTargetException
     {
         boolean result =  super.getMatchCriteria(critter, recNum, restrictedVals);
+        //XXX It is possible for taxa (or other tree tables) to have null (interpreted as true) isAccepted
+        //if they were entered outside of Specify or the Specify wizard. In that case this restriction
+        //will fail and new tree nodes may be created unnecessarily.
         restrictedVals.add(new UploadTable.MatchRestriction("isAccepted", addRestriction(
                 critter, "isAccepted", new Boolean(true), false), -1));
         return result;

@@ -88,6 +88,9 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
 {
     protected static final Logger log = Logger.getLogger(PreferencesDlg.class);
     
+    protected int MILLI_SEC_DELAY = 10; // for Fade In/Out
+    protected int MAX_DELAY       = (int)(MILLI_SEC_DELAY * 1.5);
+    
     public static final String PREFERENCES = "Preferences"; //$NON-NLS-1$
     
     protected SimpleGlassPane       glassPane;
@@ -207,19 +210,9 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
     protected void okButtonPressed()
     {
         final Properties changesHash = new Properties();
-        saveChangedPrefs(changesHash);
         
-        try
-        {
-            AppPreferences.getRemote().flush();
-            
-        } catch (BackingStoreException ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            // XXX Should notify the user nicely
-            //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PreferencesDlg.class, ex);
-            log.error(ex);
-        }
+        saveChangedPrefs(changesHash); // This flushes
+        
         super.okButtonPressed();
         
         SwingUtilities.invokeLater(new Runnable() {
@@ -249,7 +242,7 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
     /**
      * Save any Preferences that have changed.
      */
-    protected void saveChangedPrefs(final Properties changesHash)
+    protected synchronized void saveChangedPrefs(final Properties changesHash)
     {
         for (PrefsPanelIFace pp : prefPanelsHash.values())
         {
@@ -373,7 +366,7 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
                         winDim.height = Math.max(winDim.height, 250);
                         setSize(winDim);
                         
-                        new Timer(10, new FadeInAnimation(comp, 7)).start();
+                        new Timer(MILLI_SEC_DELAY, new FadeInAnimation(comp, 7)).start();
                     }
                 }
             } else
@@ -412,7 +405,7 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
                     {
                         ((PrefsPanelIFace)currentComp).setShadeColor(new Color(255, 255, 255, 0));
                          
-                        new Timer(10, new FadeOutAnimation(comp, oldSize, 12)).start();
+                        new Timer(MILLI_SEC_DELAY, new FadeOutAnimation(comp, oldSize, 12)).start();
                     }
                 }
 
@@ -612,13 +605,18 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         currentComp.setVisible(false);
         mainPanel.add(comp, BorderLayout.CENTER);
         comp.invalidate();
+        comp.validate();
+        comp.invalidate();
+        comp.doLayout();
+        comp.repaint();
         doLayout();
         repaint();
         currentComp = comp;
         currentComp.setVisible(true);
         
         
-        Dimension winDim = getSize();
+        Dimension oldWinDim = getSize();
+        Dimension winDim    = getSize();
         winDim.width += currentComp.getPreferredSize().width - oldSize.width;
         winDim.width  = Math.max(winDim.width, 400);
         winDim.height = Math.max(winDim.height, 250);
@@ -626,11 +624,12 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         Dimension pSize = prefsToolbar.getPreferredSize();
         winDim.width  = Math.max(winDim.width, pSize.width+30);
         
+        if (winDim.equals(oldWinDim)) // needed because JGoodies doesn't want to relayout when it is the same size.
+        {
+            winDim.height +=2;
+        }
         setSize(winDim);
         currentComp.setSize(new Dimension(currentComp.getPreferredSize().width, oldSize.height));
-        
-        // With Animation
-        //startAnimation(this, comp, currentComp.getPreferredSize().height - oldSize.height, false);
         
         ((PrefsPanelIFace)comp).setShadeColor(null);
         
@@ -663,6 +662,8 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         private int        delta;
         private Component  comp;
         private int        alpha = 255;
+        private Long       startTime = null;
+        
 
         FadeInAnimation(final Component comp, final int delta)
         {
@@ -674,6 +675,16 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         {
             
             alpha -= delta;
+            
+            if (startTime != null)
+            {
+                int elapsedTime = (int)(System.currentTimeMillis() - startTime);
+                if (elapsedTime > MAX_DELAY)
+                {
+                    alpha = 0;
+                }
+            }
+            startTime = System.currentTimeMillis();
             
             ((PrefsPanelIFace)comp).setShadeColor(new Color(255, 255, 255, Math.max(alpha, 0)));
             
@@ -692,7 +703,8 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         private int        alpha = 0;
         
         private Component  comp;
-        private Dimension oldSize;
+        private Dimension  oldSize;
+        private Long       startTime = null;
 
         /**
          * @param currComp
@@ -714,6 +726,16 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
         {
             alpha += delta;
             
+            if (startTime != null)
+            {
+                int elapsedTime = (int)(System.currentTimeMillis() - startTime);
+                if (elapsedTime > MAX_DELAY)
+                {
+                    alpha = 255;
+                }
+            }
+            startTime = System.currentTimeMillis();
+            
             Color bc = currentComp.getBackground();
             ((PrefsPanelIFace)currentComp).setShadeColor(new Color(bc.getRed(), bc.getGreen(), bc.getBlue(), Math.min(alpha, 255)));
             
@@ -724,7 +746,9 @@ public class PreferencesDlg extends CustomDialog implements DataChangeListener, 
                 
                 showAndResizePane(comp, oldSize);
             }
+            currentComp.validate();
             currentComp.repaint();
+            comp.repaint();
          }
     }
 

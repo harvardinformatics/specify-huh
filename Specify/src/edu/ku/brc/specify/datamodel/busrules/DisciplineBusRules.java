@@ -44,6 +44,7 @@ import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.tasks.BaseTask;
 import edu.ku.brc.af.ui.db.TextFieldFromPickListTable;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
@@ -177,6 +178,11 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
      */
     private void addNewDiscipline()
     {
+        if (!DivisionBusRules.askForExitonChange("ASK_TO_ADD_DISP"))
+        {
+            return;
+        }
+        
         UIRegistry.writeSimpleGlassPaneMsg("Building Discipline...", 20); // I18N
         isOKToCont = true;
         final AppContextMgr acm = AppContextMgr.getInstance();
@@ -210,6 +216,8 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
         });
         UIHelper.centerAndShow(dlg);
         
+        UIRegistry.popResourceBundle();
+        
         if (!isOKToCont)
         {
             UIRegistry.clearSimpleGlassPaneMsg();
@@ -223,9 +231,11 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
         progressFrame.turnOffOverAll();
         
         progressFrame.setProcess(0, 17);
+        progressFrame.setProcessPercent(true);
         progressFrame.getCloseBtn().setVisible(false);
         progressFrame.setAlwaysOnTop(true);
-        bldSampleDB.adjustProgressFrame();
+        progressFrame.adjustProgressFrame();
+        
         UIHelper.centerAndShow(progressFrame);
         
         SwingWorker<Integer, Integer> bldWorker = new SwingWorker<Integer, Integer>()
@@ -236,12 +246,20 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
             /* (non-Javadoc)
              * @see javax.swing.SwingWorker#doInBackground()
              */
+            @SuppressWarnings("cast")
             @Override
             protected Integer doInBackground() throws Exception
             {
                 firePropertyChange(PROGRESS, 0, ++steps);
                 
-                bldSampleDB.setDataType((DataType)acm.getClassObject(DataType.class));
+                bldSampleDB.setDataType(acm.getClassObject(DataType.class));
+                Division   curDivCached  = acm.getClassObject(Division.class);
+                Discipline curDispCached = acm.getClassObject(Discipline.class);
+                Collection curCollCached = acm.getClassObject(Collection.class);
+                
+                acm.setClassObject(Division.class, null);
+                acm.setClassObject(Discipline.class, null);
+                acm.setClassObject(Collection.class, null);
                 
                 Session session = null;
                 try
@@ -249,7 +267,8 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                     session = HibernateUtil.getNewSession();
                     DataProviderSessionIFace hSession = new HibernateDataProviderSession(session);
                     
-                    Division       division         = (Division)formViewObj.getMVParent().getMultiViewParent().getData();
+                    Division       curDiv           = (Division)formViewObj.getMVParent().getMultiViewParent().getData(); 
+                    Division       division         = hSession.get(Division.class, curDiv.getId());
                     SpecifyUser    specifyAdminUser = (SpecifyUser)acm.getClassObject(SpecifyUser.class);
                     Agent          userAgent        = (Agent)hSession.getData("FROM Agent WHERE id = "+Agent.getUserAgent().getId());
                     Properties     props            = wizardPanel.getProps();
@@ -260,7 +279,22 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                     
                     bldSampleDB.setSession(session);
                     
-                    pair = bldSampleDB.createEmptyDisciplineAndCollection(division, props, dispType, userAgent, 
+                    
+                    Agent newUserAgent = null;
+                    try
+                    {
+                        newUserAgent = (Agent)userAgent.clone();
+                        specifyAdminUser.getAgents().add(newUserAgent);
+                        newUserAgent.setSpecifyUser(specifyAdminUser);
+                        session.saveOrUpdate(newUserAgent);
+                        session.saveOrUpdate(specifyAdminUser);
+                        
+                    } catch (CloneNotSupportedException ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                    
+                    pair = bldSampleDB.createEmptyDisciplineAndCollection(division, props, dispType, newUserAgent, 
                                                                           specifyAdminUser, true, true);
                     
                     if (pair != null && pair.first != null && pair.second != null)
@@ -268,6 +302,10 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                         acm.setClassObject(SpecifyUser.class, specifyAdminUser);
                         Agent.setUserAgent(userAgent);
                     }
+                    
+                    acm.setClassObject(Division.class, curDivCached);
+                    acm.setClassObject(Discipline.class, curDispCached);
+                    acm.setClassObject(Collection.class, curCollCached);
                     
                 } catch (Exception ex)
                 {
@@ -294,10 +332,6 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                 progressFrame.setVisible(false);
                 progressFrame.dispose();
                 
-                System.out.println(pair);
-                System.out.println(pair.first);
-                System.out.println(pair.second);
-                
                if (pair != null && pair.first != null && pair.second != null)
                {
                    List<?> dataItems = null;
@@ -310,6 +344,8 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                        pSession = DataProviderFactory.getInstance().createSession();
                        
                        division = (Division)pSession.getData("FROM Division WHERE id = "+division.getId());
+                       division.forceLoad();
+                       
                        //formViewObj.getMVParent().getMultiViewParent().setData(division);
                        acm.setClassObject(Division.class, division);
                        
@@ -320,7 +356,9 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                            for (Object row : dataItems)
                            {
                                Object[] cols = (Object[])row;
-                               dataList.add(cols[0]);
+                               Division div = (Division)cols[0];
+                               div.forceLoad();
+                               dataList.add(div);
                            }
                            dataItems = dataList;
                        }
@@ -338,15 +376,19 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                        }
                    }
                    
-                   int curInx = divFVO.getRsController().getCurrentIndex();
-                   divFVO.setDataObj(dataItems);
-                   divFVO.getRsController().setIndex(curInx);
+                   //int curInx = divFVO.getRsController().getCurrentIndex();
+                   //divFVO.setDataObj(dataItems);
+                   //divFVO.getRsController().setIndex(curInx);
          
                } else
                {
                    // error creating
                }
                UIRegistry.clearSimpleGlassPaneMsg();
+               
+               UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+               CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, BaseTask.APP_REQ_EXIT));
+
             }
         };
         
@@ -446,6 +488,12 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
                 {
                     try
                     {
+                        /*CollectionBusRules collBR = new CollectionBusRules();
+                        for (Collection coll : new Vector<Collection>(discipline.getCollections()))
+                        {
+                            collBR.okToDelete(coll, null, null);
+                        }*/
+                        
                         SpecifyDeleteHelper delHelper = new SpecifyDeleteHelper(true);
                         delHelper.delRecordFromTable(Discipline.class, discipline.getId(), true);
                         delHelper.done();
@@ -538,6 +586,8 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
     public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
     {
         Discipline discipline = (Discipline)dataObj;
+        AppContextMgr.getInstance().setClassObject(Discipline.class, discipline);
+        
         for (Collection collection : discipline.getCollections())
         {
             int count = BasicSQLUtils.getCount("SELECT count(*) FROM picklist WHERE CollectionID = " + collection.getId());
@@ -615,7 +665,7 @@ public class DisciplineBusRules extends BaseBusRules implements CommandListener
         });
         UIHelper.centerAndShow(dlg);
         
-        //Properties prop = wizardPanel.getProps();
+        UIRegistry.popResourceBundle();
         
         DisciplineType            disciplineType = wizardPanel.getDisciplineType();
         

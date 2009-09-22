@@ -231,6 +231,10 @@
     <icon name="SecurityOff"           file="security_off.png" sizes="all"/>
     <icon name="Login"                 file="login.png" sizes="all"/>
     <icon name="MySQL"                 file="mysql_logo.png" sizes="all"/>
+    
+    <!-- ImportFileSlicer -->
+    <icon name="Splicer"              file="data_split.png" sizes="all"/>
+    
 
     <!-- FP MMK -->
     <icon name="FpOn"                  file="fp_on_mk.gif" sizes="all"/>

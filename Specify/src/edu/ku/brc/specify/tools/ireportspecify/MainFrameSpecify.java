@@ -50,6 +50,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -88,11 +89,13 @@ import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.tasks.ReportsBaseTask;
 import edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceConnection;
+import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.IconManager.IconSize;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -344,6 +347,13 @@ public class MainFrameSpecify extends MainFrame
     {
         AppResourceIFace appRes = apr.getAppRes();
         boolean newRep = ((SpAppResource)appRes).getId() == null;
+        if (!newRep)
+        {
+        	//Need to get the latest copy from context mgr.
+        	//If other new reports were created, context mgr may have updated this report's
+        	//appResource when new reports' appResources are created and added to a directory - I think.
+        	appRes = AppContextMgr.getInstance().getResource(appRes.getName());
+        }
         boolean result = false;
         boolean savedAppRes = false;
         String xmlString = xml.toString();
@@ -1322,7 +1332,52 @@ public class MainFrameSpecify extends MainFrame
         return result;
     }
     
-    /**
+    
+    
+    /* (non-Javadoc)
+	 * @see it.businesslogic.ireport.gui.MainFrame#getFirstNameFree()
+	 */
+	@Override
+	public String getFirstNameFree()
+	{
+        String base = UIRegistry.getResourceString("REP_NewReportName");
+        int count = 0;
+        javax.swing.JInternalFrame[] frames = getJMDIDesktopPane().getAllFrames();
+		for (int f = 0; f < frames.length; f++)
+        {
+            if (frames[f]  instanceof JReportFrame) 
+            {
+                JReportFrame jrf = (JReportFrame )frames[f];
+                String repName = jrf.getReport().getName();
+                if (repName.equals(base))
+                {
+                	if (count == 0)
+                	{
+                		count++;
+                	}
+                }
+                else if (repName.startsWith(base))
+                {
+                    String end = repName.substring(base.length());
+                    try
+                    {
+                    	int endInt = Integer.valueOf(StringUtils.strip(end));
+                    	if (endInt > count)
+                    	{
+                    		count = endInt;
+                    	}
+                    }
+                    catch (NumberFormatException ex)
+                    {
+                    	//skip it
+                    }
+                }
+            }
+        }
+		return base + (count > 0 ? " " + ++count : "");
+	}
+
+	/**
      * @param report
      * @return true if properties were gotten and set.
      */
@@ -1417,36 +1472,48 @@ public class MainFrameSpecify extends MainFrame
     {
         log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // This is for Windows and Exe4J, turn the args into System Properties
+        
+        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        
         for (String s : args)
         {
             String[] pairs = s.split("="); //$NON-NLS-1$
             if (pairs.length == 2)
             {
-                log.debug("["+pairs[0]+"]["+pairs[1]+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                 if (pairs[0].startsWith("-D")) //$NON-NLS-1$
                 {
                     System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
                 } 
+            } else
+            {
+                String symbol = pairs[0].substring(2, pairs[0].length());
+                System.setProperty(symbol, symbol);
             }
         }
         
         // Now check the System Properties
-        String appDir = System.getProperty("appdir"); //$NON-NLS-1$
+        String appDir = System.getProperty("appdir");
         if (StringUtils.isNotEmpty(appDir))
         {
             UIRegistry.setDefaultWorkingPath(appDir);
         }
         
-        String appdatadir = System.getProperty("appdatadir"); //$NON-NLS-1$
+        String appdatadir = System.getProperty("appdatadir");
         if (StringUtils.isNotEmpty(appdatadir))
         {
             UIRegistry.setBaseAppDataDir(appdatadir);
         }
         
-        String javadbdir = System.getProperty("javadbdir"); //$NON-NLS-1$
-        if (StringUtils.isNotEmpty(javadbdir))
+        String embeddeddbdir = System.getProperty("embeddeddbdir");
+        if (StringUtils.isNotEmpty(embeddeddbdir))
         {
-            UIRegistry.setJavaDBDir(javadbdir);
+            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
+        }
+        
+        String mobile = System.getProperty("mobile");
+        if (StringUtils.isNotEmpty(mobile))
+        {
+            UIRegistry.setEmbeddedDBDir(UIRegistry.getMobileEmbeddedDBPath());
         }
 
         // Set App Name, MUST be done very first thing!
@@ -1475,14 +1542,6 @@ public class MainFrameSpecify extends MainFrame
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         
-        
-        if (StringUtils.isEmpty(UIRegistry.getJavaDBPath()))
-        {
-            File userDataDir = new File(UIRegistry.getAppDataDir() + File.separator + "DerbyDatabases"); //$NON-NLS-1$
-            UIRegistry.setJavaDBDir(userDataDir.getAbsolutePath());
-        }
-        log.debug(UIRegistry.getJavaDBPath());
-
         final AppPreferences localPrefs = AppPreferences.getLocalPrefs();
         localPrefs.setDirPath(UIRegistry.getAppDataDir());
         adjustLocaleFromPrefs();
@@ -1492,7 +1551,10 @@ public class MainFrameSpecify extends MainFrame
         HibernateUtil.setListener("post-commit-update", new edu.ku.brc.specify.dbsupport.PostUpdateEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-insert", new edu.ku.brc.specify.dbsupport.PostInsertEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-delete", new edu.ku.brc.specify.dbsupport.PostDeleteEventListener()); //$NON-NLS-1$
-        
+
+        ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
+        HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
+
         SwingUtilities.invokeLater(new Runnable() {
             @SuppressWarnings("synthetic-access") //$NON-NLS-1$
           public void run()
@@ -1618,22 +1680,11 @@ public class MainFrameSpecify extends MainFrame
                    }
                 };
                 String nameAndTitle = "Specify iReport"; // I18N
-                UIHelper.doLogin(usrPwdProvider, false, false, new IReportLauncher(), "SPIReports", nameAndTitle, nameAndTitle, "SpecifyWhite32"); // true
-																																	// means
-																																	// do
-																																	// auto
-																																	// login
-																																	// if
-																																	// it
-																																	// can,
-																																	// second
-																																	// bool
-																																	// means
-																																	// use
-																																	// dialog
-																																	// instead
-																																	// of
-																																	// frame
+                UIRegistry.setRelease(true);
+                UIHelper.doLogin(usrPwdProvider, false, false, new IReportLauncher(), 
+                                 "SPIReports", nameAndTitle, nameAndTitle, 
+                                 "SpecifyWhite32", "iReport"); // true means do auto login if it can, 
+                                                               // second bool means use dialog instead of frame
                 
                 localPrefs.load();
                 

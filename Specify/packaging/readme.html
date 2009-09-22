@@ -1,43 +1,46 @@
 <html>
 <head>
-<title>Changelog</title>
-
-<style>
-body {
-    font-size: 10px;
-    }
-
-ul {
-    list-style-type: circle;
-    }
-
-</style>
-
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Release Notes</title>
 </head>
 <body>
-<h2>Specify 6.0 Release Notes (readme.html):</h2>
-
-<p>&nbsp;</p>
-
-
-
-<ul>
-    <li>Specify 6.0 is a wholly new implementation of Specify written in Java as a cross-platform application for managing biological collections data.</li>
-    <li>Released 10 April 2009</li>
-    <li>Licensed under GNU GPL2.</li>
-	<li>Installation packages are available for Windows, MacOS X 10.5+ and Linux. To run Specify 6, JRE 6.0+ and the MySQL 5.1 data manager are required, see the documentation files on the Specify web site for instructions on how to install Java and MySQL prior to installing Specify.</li>
-	<li>The Specify wizard (SpWizard.exe) installed in the Specify  /bin directory is used for creating an initial biological collection in a Specify installation. See the embedded help file in the Wizard for assistance in configuring the first Specify collection.</li>
-	<li>Additional installation documentation will be available soon on the Specify Software web site (specifysoftware.org).</li>
-</ul>
-
-<hr />
-<h2>Description of Changes:</h2>
-<blockquote>
-  <p>The Specify Web site will have complete documentation of the changes to Specify and a description of its many features soon.</p>
-  <p>See the embedded Specify help file, which will be available online on the Specify web site.</p>
-  <p>For additional information, please visit the project website at <a href="http://www.specifysoftware.org">www.specifysoftware.org</a></p>
-  <p>Post Mortem, We sort 'em.</p>
-  <p>(C) 2009, University of Kansas Center for Research</p>
-</blockquote>
+<h3>Release Notes<br />
+  Specify 6.0.10<br />
+  03 August 2009<br />
+  Specify Software Project</h3>
+<ol>
+<li>Turning off autonumbering and saving a Collection Object resulted in an invalid Catalog Number.&nbsp;&nbsp;2009-07-15 11:17:29&nbsp;&nbsp;(7463).</li>
+<li>Saving changes to a security profile caused an exception.&nbsp;&nbsp;2009-07-15 11:18:00&nbsp;&nbsp;(7462).</li>
+<li>Adding a new Report in report designer could fail when a report was already displayed.&nbsp;&nbsp;2009-07-15 11:18:09&nbsp;&nbsp;(7461).</li>
+<li>Manually checking for updates from within Specify caused an error.&nbsp;&nbsp;2009-07-15 15:38:33&nbsp;&nbsp;(7471).</li>
+<li>The "About" button under help is now fixed.&nbsp;&nbsp;2009-07-16 11:33:49&nbsp;&nbsp;(7433).</li>
+<li>Adding a new Repository Agreement and saving it caused an error.&nbsp;&nbsp;2009-07-16 11:37:16&nbsp;&nbsp;(7438).</li>
+<li>Deleting Manager in Security no longer prevents users from re-entering their database.&nbsp;&nbsp;2009-07-16 11:47:25&nbsp;&nbsp;(7447).</li>
+<li>Errors upon exporting a Workbench dataset have been resolved.&nbsp;&nbsp;2009-07-16 11:49:15&nbsp;&nbsp;(7440).</li>
+<li>An error was generated when users changed their password in Security.&nbsp;&nbsp;2009-07-17 13:16:27&nbsp;&nbsp;(6984).</li>
+<li>For some datasets, the data set mapping for longitude and latitude was flipped. &nbsp;&nbsp;2009-07-21 09:52:28&nbsp;&nbsp;(7445).</li>
+<li>All nonfish collections' Collection Objects can now point to only one Collecting Information data object in both Data Entry and the Workbench Uploader.&nbsp;&nbsp;2009-07-21 10:01:14&nbsp;&nbsp;(7451).</li>
+<li>The window titles for the Mac versions of Specify were outdated and have been changed.&nbsp;&nbsp;2009-07-21 15:30:29&nbsp;&nbsp;(7486).</li>
+<li>Unmapping a field for datasets including georeference mappings sometimes caused an error.&nbsp;&nbsp;2009-07-27 11:43:32&nbsp;&nbsp;(7509).</li>
+<li>Icons for the ImportFileSplitter app were added for the Mac.&nbsp;&nbsp;2009-07-27 11:56:24&nbsp;&nbsp;(7503).</li>
+<li>Changing collections caused the report service buttons to disappear from the search results' taskbar.&nbsp;&nbsp;2009-07-27 12:04:14&nbsp;&nbsp;(7124).</li>
+<li>Adding a taxon mapping to an imported dataset generated a false alarm, which told users the mapping's taxonomic level had to be higher than the dataset's already-mapped determinations even when it actually was.&nbsp;&nbsp;2009-07-27 12:59:07&nbsp;&nbsp;(7481).</li>
+<li>Loaned items without certain data--for example, Determinations or Localities--were left out of the generated Loan Invoices:  now, "null" is used for missing data.&nbsp;&nbsp;2009-07-27 13:02:38&nbsp;&nbsp;(7476).</li>
+<li>The Preferred node query combobox search in a new tree node form now also finds those Preferred nodes which are children of the new node's parent.&nbsp;&nbsp;2009-07-27 13:05:47&nbsp;&nbsp;(7475).</li>
+<li>Users could create non-preferred tree nodes without defining the preferred node.&nbsp;&nbsp;2009-07-27 13:07:04&nbsp;&nbsp;(7474).</li>
+<li>A single quote in a query combobox caused an error.&nbsp;&nbsp;2009-07-27 13:15:30&nbsp;&nbsp;(7417).</li>
+<li>The icon has been updated for adding a new user in Security.&nbsp;&nbsp;2009-07-27 15:36:37&nbsp;&nbsp;(7411).</li>
+<li>Specify now retroactively fixes databases that erroneously had multiple Collection Objects pointing at a single Collection Object Attribute by giving each Collection Object a unique instance of the Collection Object Attribute.&nbsp;&nbsp;2009-07-28 16:06:07&nbsp;&nbsp;(7514).</li>
+<li>The Parent field in the Storage form is now blue due to being a required field.&nbsp;&nbsp;2009-07-28 16:09:53&nbsp;&nbsp;(7512).</li>
+<li>The BackUpAndRestore and iReports help buttons now point to their own help documentation.&nbsp;&nbsp;2009-07-29 11:15:05&nbsp;&nbsp;(7507).</li>
+<li>Opening a saved query that had blank criteria fields for the "Between" operator caused an error.&nbsp;&nbsp;2009-08-03 12:17:55&nbsp;&nbsp;(7522).</li>
+<li>Double-clicking several times on a field in the QueryBuilder sometimes added duplicates of that field to the query.&nbsp;&nbsp;2009-08-03 12:19:20&nbsp;&nbsp;(7521).</li>
+<li>Opening and saving multiple instances of a report generated from a Workbench dataset caused an error.&nbsp;&nbsp;2009-08-03 12:21:37&nbsp;&nbsp;(7530).</li>
+<li>Deleted users in Security no longer show up in the list of existing users to add.&nbsp;&nbsp;2009-08-03 12:22:21&nbsp;&nbsp;(7520).</li>
+</ol>
+<BR>
+<BR>
+<BR>
+<BR>
 </body>
 </html>

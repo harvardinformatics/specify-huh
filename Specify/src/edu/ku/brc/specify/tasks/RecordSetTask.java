@@ -1162,7 +1162,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
      * @param cmdAction the command to be processed
      */
     protected void processRecordSetCommands(final CommandAction cmdAction)
-    {        
+    {
         if (cmdAction.isAction(SAVE_RECORDSET))
         {
             Object data = cmdAction.getData();
@@ -1260,6 +1260,8 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                 fpPublishRecordSet(recordSet);
             }
         }
+        
+
     }
 
     /* (non-Javadoc)

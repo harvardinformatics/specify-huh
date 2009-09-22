@@ -105,6 +105,7 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
@@ -206,6 +207,8 @@ public final class UIHelper
     private static final Color clrGlowOuterHi = new Color(253, 239, 175, 124);
     private static final Color clrGlowOuterLo = new Color(255, 179, 0);
     
+    private static final Color altLineColor;
+    
 
     static {
 
@@ -255,6 +258,7 @@ public final class UIHelper
             buildKeyStrokeForCommandTypes();
         }
 
+        altLineColor = UIHelper.isMacOS() ? new Color(236, 243, 254) : UIHelper.makeDarker(Color.WHITE, 0.1f);
     }
     
     /**
@@ -296,6 +300,14 @@ public final class UIHelper
     {
         return controlSize;
     }
+    
+    /**
+     * @return the alternate color for list and tables.
+     */
+    public static Color getAltLineColor()
+    {
+        return altLineColor;
+    }
 
     /**
      * @param controlSize the controlSize to set
@@ -327,14 +339,14 @@ public final class UIHelper
         {
             if (comp instanceof JDialog)
             {
-                JDialog dlg = (JDialog)comp;
+                //JDialog dlg = (JDialog)comp;
                 //if (isMacOS_10_5_X)
                 //{
                 //    only works on JFrame
                 //    dlg.getRootPane().putClientProperty("JComponent.windowModified", isModified ? Boolean.TRUE : Boolean.FALSE);
                 //} else
                 //{
-                    dlg.setTitle(dlg.getTitle() + "*");
+                   // dlg.setTitle(dlg.getTitle() + "*");
                 //}
                 
             } else if (comp instanceof JFrame)
@@ -573,7 +585,7 @@ public final class UIHelper
             int month = tmp / 100;
             int day   = (tmp - (month * 100));
 
-            calendar.set(year, month-1, day);
+            calendar.set(year, month == 0 ? 0 : month-1, day == 0 ? 1 : day);
         } else
         {
             calendar.setTimeInMillis(0);
@@ -1541,16 +1553,19 @@ public final class UIHelper
      * @param useDialog use a Dialog or a Frame
      * @param listener a listener for when it is logged in or fails
      * @param iconName name of icon to use
+     * @param appIconName application icon name
+     * @param helpContext help context for Help button on dialog
      */
-    public static DatabaseLoginPanel doLogin(final String userName,
-                                             final String password,
+    public static DatabaseLoginPanel doLogin(final String  userName,
+                                             final String  password,
                                              final boolean doAutoClose,
                                              final boolean useDialog,
                                              final DatabaseLoginListener listener,
                                              final String  iconName,
-                                             final String  appIconName)
+                                             final String  appIconName,
+                                             final String  helpContext)
     {     
-        return doLogin(userName, password, doAutoClose, useDialog, listener, iconName, null, null, appIconName);
+        return doLogin(userName, password, doAutoClose, useDialog, listener, iconName, null, null, appIconName, helpContext);
     }
     
     /**
@@ -1564,6 +1579,8 @@ public final class UIHelper
      * @param iconName name of icon to use
      * @param title name
      * @param appName name
+     * @param appIconName application icon name
+     * @param helpContext help context for Help button on dialog
      */
     public static DatabaseLoginPanel doLogin(final MasterPasswordProviderIFace usrPwdProvider,
                                              final boolean doAutoClose,
@@ -1572,9 +1589,10 @@ public final class UIHelper
                                              final String  iconName,
                                              final String  title,
                                              final String  appName,
-                                             final String  appIconName)
+                                             final String  appIconName,
+                                             final String  helpContext)
     {     
-        return doLogin(null, null, usrPwdProvider, doAutoClose, useDialog, listener, iconName, title, appName, appIconName); 
+        return doLogin(null, null, usrPwdProvider, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext); 
     }
     
     /**
@@ -1589,6 +1607,8 @@ public final class UIHelper
      * @param iconName name of icon to use
      * @param title name
      * @param appName name
+     * @param appIconName application icon name
+     * @param helpContext help context for Help button on dialog
      */
     public static DatabaseLoginPanel doLogin(final String  userName,
                                              final String  password,
@@ -1598,10 +1618,12 @@ public final class UIHelper
                                              final String  iconName,
                                              final String  title,
                                              final String  appName,
-                                             final String  appIconName)
+                                             final String  appIconName,
+                                             final String  helpContext)
     {     
-        return doLogin(userName, password, null, doAutoClose, useDialog, listener, iconName, title, appName, appIconName);
+        return doLogin(userName, password, null, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext);
     }
+    
     /**
      * Tries to do the login, if doAutoLogin is set to true it will try without displaying a dialog
      * and if the login fails then it will display the dialog
@@ -1614,6 +1636,8 @@ public final class UIHelper
      * @param iconName name of icon to use
      * @param title name
      * @param appName name
+     * @param appIconName application icon name
+     * @param helpContext help context for Help button on dialog
      */
     public static DatabaseLoginPanel doLogin(final String  userName,
                                              final String  password,
@@ -1624,7 +1648,8 @@ public final class UIHelper
                                              final String  iconName,
                                              final String  title,
                                              final String  appName,
-                                             final String  appIconName) //frame's icon name
+                                             final String  appIconName,
+                                             final String  helpContext) //frame's icon name
     {  
     	
         ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std16);
@@ -1640,7 +1665,7 @@ public final class UIHelper
         if (useDialog)
         {
             JDialog.setDefaultLookAndFeelDecorated(false); 
-            DatabaseLoginDlg dlg = new DatabaseLoginDlg((Frame)UIRegistry.getTopWindow(), userName, password, listener, iconName);
+            DatabaseLoginDlg dlg = new DatabaseLoginDlg((Frame)UIRegistry.getTopWindow(), userName, password, listener, iconName, helpContext);
             JDialog.setDefaultLookAndFeelDecorated(true); 
             dlg.setDoAutoClose(doAutoClose);
             dlg.setModal(true);
@@ -1689,11 +1714,13 @@ public final class UIHelper
         DatabaseLoginPanel panel;
         if (StringUtils.isNotEmpty(title))
         {
-            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), false, title, appName, iconName);
+            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
+                                           false, title, appName, iconName, helpContext);
         }
         else
         {
-            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), false, null, null, iconName);
+            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
+                                          false, null, null, iconName, helpContext);
         }
         
         panel.setAutoClose(doAutoClose);
@@ -2209,7 +2236,19 @@ public final class UIHelper
      * 
      * @param table the table to fix up
      */
-    public static void calcColumnWidths(JTable table)
+    public static void calcColumnWidths(final JTable table)
+    {
+        calcColumnWidths(table, 10);
+    }
+    
+    /**
+     * Calculates and sets the each column to it preferred size.  NOTE: This
+     * method also sets the table height to 10 rows.
+     * 
+     * @param table the table to fix up
+     * @param numRowsHeight the number of rows to make the table height (or null not to set it)
+     */
+    public static void calcColumnWidths(final JTable table, final Integer numRowsHeight)
     {
         JTableHeader header = table.getTableHeader();
 
@@ -2279,7 +2318,10 @@ public final class UIHelper
         Dimension size = table.getPreferredScrollableViewportSize();
         //if (totalWidth > size.width)
         {
-            size.height = Math.min(size.height, table.getRowHeight()*10);
+            if (numRowsHeight != null)
+            {
+                size.height = Math.min(size.height, table.getRowHeight() * numRowsHeight);
+            }
             size.width  = totalWidth;
             table.setPreferredScrollableViewportSize(size);
         }
@@ -2773,6 +2815,10 @@ public final class UIHelper
         return btn;
     }
 
+    /**
+     * @param text
+     * @return
+     */
     public static JButton createButton(final String text)
     {
         JButton btn = new JButton(text);
@@ -2780,6 +2826,11 @@ public final class UIHelper
         return btn;
     }
 
+    /**
+     * @param text
+     * @param icon
+     * @return
+     */
     public static JButton createButton(final String text, final ImageIcon icon)
     {
         JButton btn = new JButton(text, icon);
@@ -2787,6 +2838,10 @@ public final class UIHelper
         return btn;
     }
 
+    /**
+     * @param action
+     * @return
+     */
     public static JButton createButton(final Action action)
     {
         JButton btn = new JButton(action);
@@ -2794,6 +2849,10 @@ public final class UIHelper
         return btn;
     }
     
+    /**
+     * @param buttonArray
+     * @return
+     */
     public static JButton[] adjustButtonArray(JButton[] buttonArray)
     {
     	for (JButton btn : buttonArray)
@@ -2803,6 +2862,9 @@ public final class UIHelper
     	return buttonArray;
     }
     
+    /**
+     * @return
+     */
     public static JTextField createTextField()
     {
         JTextField tf = new JTextField();
@@ -2810,6 +2872,10 @@ public final class UIHelper
         return tf;
     }
     
+    /**
+     * @param text
+     * @return
+     */
     public static JTextField createTextField(final String text)
     {
         JTextField tf = new JTextField(text);
@@ -3410,7 +3476,32 @@ public final class UIHelper
         actionMap.put(actionName, action);
     }
 
+    
+    /**
+     * A Two button prompt to ask the user for a decision.
+     * @param yesLabelKey the I18N label for the Yes button
+     * @param noLabelKey the I18N label for the No button
+     * @param titleKey I18N key for title
+     * @param msg (not localized)
+     * @return
+     */
+    public static boolean promptForAction(final String yesLabelKey, 
+                                          final String noLabelKey,
+                                          final String titleKey,
+                                          final String msg)
+    {
+        Object[] options = { 
+                getResourceString(yesLabelKey), 
+                getResourceString(noLabelKey)
+              };
         
+        int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+                                                     msg, 
+                                                     getResourceString(titleKey), 
+                                                     JOptionPane.YES_NO_OPTION,
+                                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        return userChoice == JOptionPane.YES_OPTION;
+    }  
                                 
     
 }

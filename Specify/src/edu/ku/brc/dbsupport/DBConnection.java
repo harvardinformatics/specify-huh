@@ -21,18 +21,27 @@ package edu.ku.brc.dbsupport;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Stack;
+import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
+
+import edu.ku.brc.ui.UIRegistry;
+
 /**
  * A singleton that remembers all the information needed for creating a JDBC Database connection. 
  * It uses the DBConnection
- * After setting the necessary parameters you can ask it for a connection at anytime.<br><br>
- * Also, has a factory method for creating instances so users can connect to more than one database ata time.
+ * After setting the necessary parameters you can ask it for a connection at any time.<br><br>
+ * Also, has a factory method for creating instances so users can connect to more than one database at a time.
  *
  * @code_status Complete
  * 
@@ -50,6 +59,8 @@ public class DBConnection
     protected String dbDriver;
     protected String dbDialect;                   // needed for Hibernate
     protected String dbName;
+    protected String serverName;                  // Hostname
+    protected String dbDriverName;                // Hostname
     
     protected boolean argHaveBeenChecked = false;
     protected boolean skipDBNameCheck    = false;
@@ -59,7 +70,38 @@ public class DBConnection
     protected String     errMsg = ""; //$NON-NLS-1$
     
     // Static Data Members
-    protected static final DBConnection instance = new DBConnection();
+    protected static final DBConnection  instance;
+    protected static Boolean             isEmbeddedDB;
+    protected static File                embeddedDataDir;
+    protected static Stack<DBConnection> connections;
+    protected static boolean             isShuttingDown;
+    
+    static
+    {
+        isShuttingDown  = false;
+        isEmbeddedDB    = null;
+        embeddedDataDir = null;
+        connections     = new Stack<DBConnection>();
+        instance        = new DBConnection();
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() 
+            {
+                Runtime.getRuntime().addShutdownHook(new Thread() 
+                {
+                    @Override
+                    public void run() 
+                    {
+                        if (isEmbeddedDB != null && isEmbeddedDB)
+                        {
+                            ServerLauncherSocketFactory.shutdown(embeddedDataDir, null);
+                        }
+                    }
+                });
+                return null;
+            }
+        });
+    }
     
     /**
      * Protected Default constructor
@@ -67,7 +109,47 @@ public class DBConnection
      */
     protected DBConnection()
     {
-        
+        connections.push(this);
+    }
+    
+    /**
+     * @param connectionStr
+     * @return
+     */
+    public static boolean isEmbedded(final String connectionStr)
+    {
+        return StringUtils.isNotEmpty(connectionStr) && StringUtils.contains(connectionStr, "mxj");
+    }
+    
+    /**
+     * For Embedded MySQL.
+     * @param connectionStr JDBC connection string
+     */
+    public static void checkForEmbeddedDir(final String connectionStr)
+    {
+        isEmbeddedDB = isEmbedded(connectionStr);
+        if (isEmbeddedDB)
+        {
+            String attr = "server.basedir=";
+            int inx = connectionStr.indexOf(attr);
+            if (inx > -1)
+            {
+                inx += attr.length();
+                int eInx = connectionStr.indexOf("&", inx);
+                if (eInx > -1)
+                {
+                    embeddedDataDir = new File(connectionStr.substring(inx, eInx));
+                }
+            }
+        }
+    }
+    
+    /**
+     * @return whether the database is being run in "embedded" mode
+     */
+    public boolean isEmbedded()
+    {
+        return isEmbeddedDB;
     }
     
     /**
@@ -93,6 +175,10 @@ public class DBConnection
         this.dbDialect       = dbDialect;
         this.dbName          = dbName;
         this.skipDBNameCheck = dbName == null;
+        
+        connections.push(this);
+        
+        checkForEmbeddedDir(dbConnectionStr);
     }
 
     /**
@@ -158,6 +244,8 @@ public class DBConnection
             
         } catch (SQLException sqlEX)
         {
+            sqlEX.printStackTrace();
+            
             log.error("Error in getConnection", sqlEX);
             if (sqlEX.getNextException() != null)
             {
@@ -184,6 +272,31 @@ public class DBConnection
     {
         try
         {
+            if (connections.size() == 1 && this == getInstance())
+            {
+                connections.remove(this);
+                
+            } else if (connections.indexOf(this) > -1)
+            {
+                connections.remove(this);
+                
+            } else
+            {
+                String msg = "The DBConnection ["+this+"] has already been removed!";
+                log.error(msg);
+                UIRegistry.showError(msg);
+            }
+            
+            if (!isShuttingDown)
+            {
+                if (this == instance)
+                {
+                    String msg = "The DBConnection.getInstance().close() should not be called. (Call DBConnection.shutdown()).";
+                    log.error(msg);
+                    UIRegistry.showError(msg);
+                }
+            }
+            
             // This is primarily for Derby non-networked database. 
             if (dbCloseConnectionStr != null)
             {
@@ -201,15 +314,6 @@ public class DBConnection
         {
             log.error(ex);
         }
-    }
-    
-    /**
-     * Returns the instance to the singleton.
-     * @return the instance to the singleton
-     */
-    public static DBConnection getInstance()
-    {
-        return instance;
     }
     
     /**
@@ -255,6 +359,38 @@ public class DBConnection
     }
     
     /**
+     * @return the serverName
+     */
+    public String getServerName()
+    {
+        return serverName;
+    }
+
+    /**
+     * @param server the server to set
+     */
+    public void setServerName(String serverName)
+    {
+        this.serverName = serverName;
+    }
+
+    /**
+     * @return the dbDriverName
+     */
+    public String getDriverName()
+    {
+        return dbDriverName;
+    }
+
+    /**
+     * @param dbDriverName the dbDriverName to set
+     */
+    public void setDriverName(String dbDriverName)
+    {
+        this.dbDriverName = dbDriverName;
+    }
+
+    /**
      * Sets the fully specified path to connect to the database.
      * i.e. jdbc:mysql://localhost/fish<br>Some databases may need to construct their fully specified path.
      * @param dbConnectionStr the full connection string
@@ -263,6 +399,8 @@ public class DBConnection
     {
         this.dbConnectionStr = dbConnectionStr;
         argHaveBeenChecked = false;
+        
+        checkForEmbeddedDir(dbConnectionStr);
     }
     
     /**
@@ -352,15 +490,6 @@ public class DBConnection
         return connection;
     }
     
-    /* (non-Javadoc)
-     * @see java.lang.Object#finalize()
-     */
-    public void finalize()
-    {
-        //DataProviderFactory.getInstance().shutdown();
-        close();
-    }
-    
     /**
      * Create a new instance.
      * @param dbDriver the driver name
@@ -386,7 +515,32 @@ public class DBConnection
         dbConnection.setConnectionStr(dbConnectionStr);
         dbConnection.setUsernamePassword(dbUsername, dbPassword);
         
+        checkForEmbeddedDir(dbConnectionStr);
+        
         return dbConnection;
+    }
+    
+    /**
+     * Returns the instance to the singleton.
+     * @return the instance to the singleton
+     */
+    public static DBConnection getInstance()
+    {
+        return instance;
+    }
+    
+    /**
+     * Shuts down all the connections (including the main getInstance()).
+     */
+    public static void shutdown()
+    {
+        isShuttingDown = true;
+        for (DBConnection dbc : new Vector<DBConnection>(connections))
+        {
+            dbc.close();
+        }
+        connections.clear();
+        isShuttingDown = false;
     }
 
 }

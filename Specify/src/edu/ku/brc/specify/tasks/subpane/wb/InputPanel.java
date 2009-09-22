@@ -120,7 +120,7 @@ public class InputPanel extends JPanel implements GhostActionable
         {
             this.label = createI18NFormLabel(label);
         }
-        
+
         this.label.setCursor(handCursor);
         add(this.label);
         add(this.comp);
@@ -142,7 +142,6 @@ public class InputPanel extends JPanel implements GhostActionable
         {
             this.label.addMouseListener(clickable);
         }
-
     }
     
     /**

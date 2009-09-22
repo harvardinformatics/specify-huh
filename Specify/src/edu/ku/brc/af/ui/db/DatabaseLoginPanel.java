@@ -186,14 +186,16 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param dbListener listener to the panel (usually the frame or dialog)
      * @param isDlg whether the parent is a dialog (false mean JFrame)
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String                userName,
                               final String                password,
                               final DatabaseLoginListener dbListener,  
                               final boolean               isDlg,
-                              final String                iconName)
+                              final String                iconName,
+                              final String                helpContext)
     {
-        this(userName, password, dbListener, isDlg, null, null, iconName);
+        this(userName, password, dbListener, isDlg, null, null, iconName, helpContext);
     }
     
     /**
@@ -205,6 +207,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String userName,
                               final String password,
@@ -212,9 +215,10 @@ public class DatabaseLoginPanel extends JTiledPanel
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
-        this(userName, password, null, dbListener, isDlg, title, appName, iconName);
+        this(userName, password, null, dbListener, isDlg, title, appName, iconName, helpContext);
     }
 
     /**
@@ -227,15 +231,17 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final MasterPasswordProviderIFace usrPwdProvider,
                               final DatabaseLoginListener dbListener,  
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
-        this(null, null, usrPwdProvider, dbListener, isDlg, title, appName, iconName);
+        this(null, null, usrPwdProvider, dbListener, isDlg, title, appName, iconName, helpContext);
     }
 
     /**
@@ -248,6 +254,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
+     * @param helpContext context for help btn on dialog
      */
     public DatabaseLoginPanel(final String userName,
                               final String password,
@@ -256,7 +263,8 @@ public class DatabaseLoginPanel extends JTiledPanel
                               final boolean isDlg, 
                               final String title,
                               final String appName,
-                              final String iconName)
+                              final String iconName,
+                              final String helpContext)
     {
         this.ssUserName  = userName;
         this.ssPassword  = password;
@@ -266,7 +274,7 @@ public class DatabaseLoginPanel extends JTiledPanel
         this.title       = title;
         this.appName     = appName;
         
-        createUI(isDlg, iconName);
+        createUI(isDlg, iconName, helpContext);
         
         SkinItem skinItem = SkinsMgr.getSkinItem("LoginPanel");
         if (skinItem != null)
@@ -339,7 +347,8 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param isDlg  whether the parent is a dialog (false mean JFrame)
      */
     protected void createUI(final boolean isDlg,
-                            final String iconName)
+                            final String iconName,
+                            final String helpContext)
     {
         //Font cachedFont = UIManager.getFont("JLabel.font");
         SkinItem skinItem = SkinsMgr.getSkinItem("LoginPanel");
@@ -425,9 +434,17 @@ public class DatabaseLoginPanel extends JTiledPanel
         dbDriverCBX = createComboBox(dbDrivers);
         if (dbDrivers.size() > 0)
         {
-            String selectedStr = AppPreferences.getLocalPrefs().get("login.dbdriver_selected", "MySQL"); //$NON-NLS-1$ //$NON-NLS-2$
-            int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null));
-            dbDriverCBX.setSelectedIndex(inx > -1 ? inx : -1);
+            if (dbDrivers.size() == 1)
+            {
+                dbDriverCBX.setSelectedIndex(0);
+                dbDriverCBX.setEnabled(false);
+                
+            } else
+            {
+                String selectedStr = AppPreferences.getLocalPrefs().get("login.dbdriver_selected", "MySQL"); //$NON-NLS-1$ //$NON-NLS-2$
+                int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null));
+                dbDriverCBX.setSelectedIndex(inx > -1 ? inx : -1);
+            }
 
         } else
         {
@@ -497,8 +514,7 @@ public class DatabaseLoginPanel extends JTiledPanel
             }
         });
 
-        //HelpManager.registerComponent(helpBtn, "login");
-        HelpMgr.registerComponent(helpBtn, "login"); //$NON-NLS-1$
+        HelpMgr.registerComponent(helpBtn, helpContext); //$NON-NLS-1$
 
         moreBtn.addActionListener(new ActionListener()
         {
@@ -908,7 +924,7 @@ public class DatabaseLoginPanel extends JTiledPanel
                                                    getConnectionStr(), 
                                                    usrPwd.first, 
                                                    usrPwd.second);
-                    if (masterUsrPwdProvider != null)
+                    if (isLoggedIn && masterUsrPwdProvider != null)
                     {
                         isLoggedIn &= jaasLogin();
                     }
@@ -936,37 +952,18 @@ public class DatabaseLoginPanel extends JTiledPanel
                     if (drvInfo != null)
                     {
                         DBConnection.getInstance().setDbCloseConnectionStr(drvInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Close, getServerName(), getDatabaseName()));
+                        DBConnection.getInstance().setServerName(getServerName());
+                        DBConnection.getInstance().setDriverName(((DatabaseDriverInfo)dbDriverCBX.getSelectedItem()).getName());
+                        
+                        // Extremely Temporary Code.
+                        // This needs to be done before Hibernate starts up
+                        //String version = UIHelper.getInstall4JInstallString();
+                        //if (version == null || version.equals("Unknown"))
+                        //{
+                        //    SchemaUpdateService.getInstance().updateSchema(version);
+                        //}
                     }
-                    
-                    // Note: this doesn't happen on the GUI thread
-                    /*DataProviderFactory.getInstance().shutdown();
-
-                    // This restarts the System
-                    try
-                    {
-                        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-                        session.close();
-
-                    } catch (Exception ex)
-                    {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DatabaseLoginPanel.class, ex);
-                        log.warn(ex);
-                        finished();
-                    }*/
-                    return null;
                 }
-                
-                /*SwingUtilities.invokeLater(new Runnable(){
-                    @Override
-                    public void run()
-                    {
-                        //Not exactly true yet, but make sure users know that this is NOT Specify starting up. 
-                        setMessage(getResourceString("INVALID_LOGIN"), true); //$NON-NLS-1$
-                    }
-                });*/
-
-                
                 return null;
             }
 
@@ -1009,10 +1006,9 @@ public class DatabaseLoginPanel extends JTiledPanel
                         if (loginCount < 1000)
                         {
                             String basePrefNameStr = getDatabaseName() + "." + getUserName() + "."; //$NON-NLS-1$ //$NON-NLS-2$
-                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "logincount", //$NON-NLS-1$
-                                    ++loginCount);
-                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "loginaccumtime", //$NON-NLS-1$
-                                    loginAccumTime);
+                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "logincount", ++loginCount);//$NON-NLS-1$
+                            AppPreferences.getLocalPrefs().putLong(basePrefNameStr + "loginaccumtime", loginAccumTime);//$NON-NLS-1$
+                                    
                         }
                     }
                     

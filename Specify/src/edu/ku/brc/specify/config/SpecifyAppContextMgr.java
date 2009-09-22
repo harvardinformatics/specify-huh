@@ -84,6 +84,7 @@ import edu.ku.brc.specify.config.init.RegisterSpecify;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AutoNumberingScheme;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
@@ -187,7 +188,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     protected int                      openSessionCount = 0;
     
     protected Boolean         isSecurityOn         = null;
-
+    
     /**
      * Singleton Constructor.
      */
@@ -511,7 +512,6 @@ public class SpecifyAppContextMgr extends AppContextMgr
             
             if (collection != null && collectionHash.get(collection.getCollectionName()) == null)
             {
-
                 collection = null;
             }
             
@@ -582,6 +582,10 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 {
                     // Accession / Registrar / Director may not be assigned to any Collection
                     // Or for a stand alone Accessions Database there may not be any 
+                    
+                    UIRegistry.showLocalizedError("SpecifyAppContextMgr.ERR_NO_COLL");
+                    //CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit"));
+                    return null;
                 }
     
                 if (collection != null)
@@ -1471,6 +1475,27 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 field.setFormatter(catNumFmtr);
             }
             
+            Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+            if (!institution.getIsAccessionsGlobal())
+            {
+                for (AutoNumberingScheme ans : collection.getNumberingSchemes())
+                {
+                    if (ans.getTableNumber() != null && ans.getTableNumber().equals(Accession.getClassTableId()))
+                    {
+                        DBFieldInfo field = DBTableIdMgr.getInstance().getInfoById(Accession.getClassTableId()).getFieldByName("accessionNumber");
+                        if (field != null)
+                        {
+                            UIFieldFormatterIFace accNumFmtr = UIFieldFormatterMgr.getInstance().getFormatter(ans.getFormatName());
+                            if (accNumFmtr != null)
+                            {
+                                field.setFormatter(accNumFmtr);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            
             // We close the session here so all SpAppResourceDir get unattached to hibernate
             // because UIFieldFormatterMgr and loading views all need a session
             // and we don't want to reuse it and get a double session
@@ -1489,8 +1514,6 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 ViewLoader.setDoFieldVerification(false);
                 
                 UIFieldFormatterMgr.getInstance();
-                
-                //backStopViewSetMgr.getView("Global", "Accession"); // force the loading of all the views
                 
                 ViewLoader.setDoFieldVerification(cacheDoVerify);
             }
@@ -1524,9 +1547,15 @@ public class SpecifyAppContextMgr extends AppContextMgr
      * @param fmtFileName the name of the file.
      * @return true if the formatter was added
      */
-    protected boolean addFormatFromFile(final String fmtFileName)
+    protected boolean addFormatFromFile(final String fmtFileName, final boolean isCatNum)
     {
-        String  path     = UIRegistry.getAppDataDir() + File.separator + fmtFileName;
+        Collection  coll        = AppContextMgr.getInstance().getClassObject(Collection.class);
+        Institution inst        = AppContextMgr.getInstance().getClassObject(Institution.class);
+        boolean     isAccGlobal = inst != null && inst.getIsAccessionsGlobal();
+        
+        String prefix  = isCatNum || !isAccGlobal ? coll.getCollectionName() : null;
+        
+        String  path     = UIRegistry.getAppDataDir() + File.separator + (prefix != null ? (prefix + "_") : "") + fmtFileName;
         File    uifFile  = new File(path);
         boolean loadedOK = false;
         if (uifFile.exists())
@@ -1555,7 +1584,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
      */
     public void checkForInitialFormats()
     {
-        if (addFormatFromFile("catnumfmt.xml") || addFormatFromFile("accsnumfmt.xml"))
+        if (addFormatFromFile("catnumfmt.xml", true) || addFormatFromFile("accnumfmt.xml", false))
         {
             UIFieldFormatterMgr.getInstance().save();
         }
@@ -1900,13 +1929,24 @@ public class SpecifyAppContextMgr extends AppContextMgr
         try
         {
             session = openSession();
-            for (SpAppResourceDir appResDir : spAppResourceList)
+            for (SpAppResourceDir appResDir : new ArrayList<SpAppResourceDir>(spAppResourceList))
             {
                 //log.debug(appResDir.getIdentityTitle());
                 
                 if (appResDir.getSpAppResourceDirId() != null)
                 {
-                    session.attach(appResDir);
+                    try
+                    {
+                        session.attach(appResDir);
+                        
+                    } catch (org.hibernate.HibernateException ex)
+                    {
+                        // if attach fails then go get the entire obj.
+                        SpAppResourceDir oldObj = appResDir;
+                        appResDir = session.get(SpAppResourceDir.class, appResDir.getId());
+                        spAppResourceList.remove(oldObj);
+                        spAppResourceList.add(appResDir);
+                    }
                 }
                 
                 for (AppResourceIFace appRes : appResDir.getSpAppResources())
@@ -2008,7 +2048,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         try
         {
             String xmlStr = getResourceAsXML(appRes);
-            log.debug(xmlStr);
+            //log.debug(xmlStr);
             if (StringUtils.isNotEmpty(xmlStr))
             {
                 return XMLHelper.readStrToDOM4J(xmlStr);
@@ -2994,6 +3034,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
     /**
      * @return true if security is on
      */
+    @Override
     public boolean isSecurity()
     {
         if (isSecurityOn == null)
@@ -3013,8 +3054,11 @@ public class SpecifyAppContextMgr extends AppContextMgr
     /**
      * @param secVal
      */
+    @Override
     public boolean setSecurity(final boolean secVal)
     {
+        isSecurityOn = secVal;
+        
         boolean status = true;
         DataProviderSessionIFace session = null;
         try
@@ -3041,7 +3085,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
         }
         return status;
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.core.AppContextMgr#clear()
      */

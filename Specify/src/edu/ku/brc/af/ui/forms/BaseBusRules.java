@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -283,7 +284,7 @@ public class BaseBusRules implements BusinessRulesIFace
                 queryString += " AND " + extraColumns; 
             }
             
-            log.debug(queryString);
+            //log.debug(queryString);
             ResultSet rs = stmt.executeQuery(queryString);
             if (rs.next())
             {
@@ -613,7 +614,18 @@ public class BaseBusRules implements BusinessRulesIFace
         return true;
     }
 
+    
     /* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#afterSaveFailure(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+	 */
+	@Override
+	public void afterSaveFailure(Object dataObj,
+			DataProviderSessionIFace session)
+	{
+		// do nothing
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#beforeMerge(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
@@ -745,12 +757,15 @@ public class BaseBusRules implements BusinessRulesIFace
             
             fi = ti.getFieldByName(fieldName);
             
-            String quote  = fi.getDataClass() == String.class || fi.getDataClass() == Date.class ? "'" : "";
+            String special = QueryAdjusterForDomain.getInstance().getSpecialColumns(ti, false);
+            String quote   = fi.getDataClass() == String.class || fi.getDataClass() == Date.class ? "'" : "";
             String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s%s%s", colName, ti.getName(), fi.getColumn(), quote, fieldValue, quote);
             if (id != null)
             {
                 sql += " AND " + colName + " <> " + id;
             }
+            sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
+            
             log.debug(sql);
             
             Integer cnt = BasicSQLUtils.getCount(sql);
@@ -922,5 +937,26 @@ public class BaseBusRules implements BusinessRulesIFace
     {
         // no op
     }
-
+    
+    
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    collection.remove(obj);
+                    break;
+                }
+            }
+        }
+    }
 }

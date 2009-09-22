@@ -23,9 +23,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.specify.conversion.ConversionLogger.TableWriter;
 import edu.ku.brc.ui.ProgressFrame;
 
 
@@ -41,8 +44,11 @@ import edu.ku.brc.ui.ProgressFrame;
 public class IdHashMapper implements IdMapperIFace
 {
     protected static final Logger log = Logger.getLogger(IdHashMapper.class);
+    
+    protected static TableWriter tblWriter = null;
 
     protected String          sql           = null;
+    protected boolean         isUsingSQL    = false;
     protected String          tableName;
     protected Connection      newConn;
     protected Connection      oldConn;
@@ -52,6 +58,8 @@ public class IdHashMapper implements IdMapperIFace
     
     protected ProgressFrame   frame         = null;
     protected int             initialIndex  = 1;
+    protected Vector<Integer> oldIdNullList = new Vector<Integer>();
+
     
     /**
      * Default Constructor for those creating derived classes.
@@ -83,7 +91,8 @@ public class IdHashMapper implements IdMapperIFace
     {
         this(tableName);
         
-        this.sql = sql;
+        this.sql   = sql;
+        isUsingSQL = StringUtils.isNotEmpty(sql);
     }
 
     /**
@@ -93,11 +102,11 @@ public class IdHashMapper implements IdMapperIFace
     {
         oldConn = IdMapperMgr.getInstance().getOldConnection();
         newConn = IdMapperMgr.getInstance().getNewConnection();
-
+        
         int numRecs = checkOldDB ? BasicSQLUtils.getNumRecords(oldConn, tableName) : 0;
         
         log.info(numRecs+" Records in "+tableName);
-
+        
         try
         {
 
@@ -161,7 +170,10 @@ public class IdHashMapper implements IdMapperIFace
             
         }
 
-        BasicSQLUtils.deleteAllRecordsFromTable(mapTableName, BasicSQLUtils.myDestinationServerType);
+        if (!isUsingSQL)
+        {
+            BasicSQLUtils.deleteAllRecordsFromTable(mapTableName, BasicSQLUtils.myDestinationServerType);
+        }
         
         
         if (frame != null)
@@ -227,11 +239,11 @@ public class IdHashMapper implements IdMapperIFace
 
         } catch (SQLException ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(IdHashMapper.class, ex);
             log.error("trying to execute:" + sql);
             log.error(ex);
-            ex.printStackTrace();
             
             throw new RuntimeException(ex);
         }
@@ -266,26 +278,26 @@ public class IdHashMapper implements IdMapperIFace
      */
     public void cleanup()
     {
-    	if (mapTableName != null)
-    	{
-	        try
-	        {
-	            Statement stmtNew = newConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-	            stmtNew.executeUpdate("DROP TABLE `"+mapTableName+"`");
-	            stmtNew.close();
-	            
-	        } catch (com.mysql.jdbc.exceptions.MySQLSyntaxErrorException ex)
-	        {
-	            log.error(ex);
-	            
-	        } catch (Exception ex)
-	        {
-	            //ex.printStackTrace();
-	            log.error(ex);
-	        }
-	
-	        mapTableName = null;
-    	}
+        if (mapTableName != null)
+        {
+            try
+            {
+                Statement stmtNew = newConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+                stmtNew.executeUpdate("DROP TABLE `"+mapTableName+"`");
+                stmtNew.close();
+                
+            } catch (com.mysql.jdbc.exceptions.MySQLSyntaxErrorException ex)
+            {
+                log.error(ex);
+                
+            } catch (Exception ex)
+            {
+                //ex.printStackTrace();
+                log.error(ex);
+            }
+    
+            mapTableName = null;
+        }
 
     }
     
@@ -317,9 +329,10 @@ public class IdHashMapper implements IdMapperIFace
             
         } catch (SQLException ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(IdHashMapper.class, ex);
-            ex.printStackTrace();
+
             log.error(ex);
         }
     }
@@ -345,10 +358,14 @@ public class IdHashMapper implements IdMapperIFace
 
             } else
             {
+                oldIdNullList.add(oldId);
+                
                 if (showLogErrors) 
-                    {
-                    log.error("********** Couldn't find old index ["+oldId+"] for "+mapTableName);
-                    }
+                {
+                	String msg = "********** Couldn't find old index ["+oldId+"] for "+mapTableName;
+                    log.error(msg);
+                    if (tblWriter != null) tblWriter.logError(msg);
+                }
                 rs.close();
                 return null;
             }
@@ -359,15 +376,25 @@ public class IdHashMapper implements IdMapperIFace
 
         } catch (SQLException ex)
         {
+            String msg = "Couldn't find old index ["+oldId+"] for "+mapTableName;
+            if (tblWriter != null) tblWriter.logError(msg);
+            
             edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(IdHashMapper.class, ex);
             ex.printStackTrace();
             log.error(ex);
-            throw new RuntimeException("Couldn't find old index ["+oldId+"] for "+mapTableName);
+            throw new RuntimeException(msg);
         }
-
     }
     
+    /**
+     * @return the oldIdNullList
+     */
+    public Vector<Integer> getOldIdNullList()
+    {
+        return oldIdNullList;
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.conversion.IdMapperIFace#size()
      */
@@ -395,6 +422,20 @@ public class IdHashMapper implements IdMapperIFace
     public void setInitialIndex(int initialIndex)
     {
         this.initialIndex = initialIndex;
+    }
+
+    /**
+     * @return the tblWriter
+     */
+    public static TableWriter getTblWriter() {
+        return tblWriter;
+    }
+
+    /**
+     * @param tblWriter the tblWriter to set
+     */
+    public static void setTblWriter(TableWriter tblWriter) {
+        IdHashMapper.tblWriter = tblWriter;
     }
     
 }

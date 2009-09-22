@@ -21,6 +21,7 @@ package edu.ku.brc.af.core.db;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -98,12 +99,17 @@ public abstract class BackupServiceFactory
     public abstract int getNumberofTables();
    
     /**
-     * @return
+     * 
      */
     public abstract void doBackUp();
 
     /**
-     * @return
+     * 
+     */
+    public abstract void doBackUp(PropertyChangeListener pcl);
+
+    /**
+     * 
      */
     public abstract void doRestore();
     
@@ -162,8 +168,8 @@ public abstract class BackupServiceFactory
         Properties stats = new Properties();
         for (String tableName : tableNames)
         {
-            int count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM "+tableName);
-            stats.put(tableName, Integer.toString(count));
+            Integer count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM "+tableName);
+            stats.put(tableName, count != null ? Integer.toString(count) : 0);
         }
         return stats;
     }

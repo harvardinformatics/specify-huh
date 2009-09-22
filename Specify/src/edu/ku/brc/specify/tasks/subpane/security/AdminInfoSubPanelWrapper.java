@@ -22,6 +22,8 @@ package edu.ku.brc.specify.tasks.subpane.security;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JPanel;
 
@@ -30,9 +32,11 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayPanel;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.SpPermission;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.busrules.SpecifyUserBusRules;
 
 /**
  * Wraps a JPanel with a permission editor (if panel for group or user) 
@@ -207,8 +211,41 @@ public class AdminInfoSubPanelWrapper
         
         Object obj = mv.getData();
         
-        obj = session.merge(obj);
-        session.saveOrUpdate(obj);
+        SpecifyUserBusRules busRules = new SpecifyUserBusRules();
+        busRules.initialize(mv.getCurrentView());
+        
+        // Couldn't call BuinessRules because of a double session
+        // need to look into it later
+        //BusinessRulesIFace br = mv.getCurrentViewAsFormViewObj().getBusinessRules();
+        
+        // We need to do this because we can't call the BusniessRules
+        if (obj instanceof SpecifyUser)
+        {
+            SpecifyUser spUser = (SpecifyUser)obj;
+            
+            busRules.beforeMerge(spUser, session);
+            busRules.beforeSave(spUser, session);
+            
+            // Hibernate doesn't seem to be cascading the Merge
+            // when Agent has been edited outside the session.
+            // So this seems to be the only way I can cal merge and save.
+            // it is totally bizarre
+            Set<Agent> set = spUser.getAgents();
+            for (Agent agent : new Vector<Agent>(set))
+            {
+                set.remove(agent);
+                set.add(session.get(Agent.class, agent.getId()));
+            }
+            
+            spUser = session.merge(spUser);
+            
+        } else
+        {
+            obj = session.merge(obj);
+            session.saveOrUpdate(obj);
+        }
+        
+        
         principal = session.merge(principal);
         session.saveOrUpdate(principal);
         

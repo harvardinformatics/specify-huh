@@ -143,11 +143,10 @@ public class QueryTask extends BaseTask
     
     public static final DataFlavor QUERY_FLAVOR = new DataFlavor(QueryTask.class, QUERY);
     
-    
     protected QueryBldrPane                               queryBldrPane             = null;
     protected SoftReference<TableTree>                    tableTree                 = null;
     protected SoftReference<Hashtable<String, TableTree>> tableTreeHash             = null;
-    protected final AtomicBoolean                         localizationOrTreeDefEdit = new AtomicBoolean(false);
+    protected final AtomicBoolean                         configurationHasChanged = new AtomicBoolean(false);
     
     protected Vector<ToolBarDropDownBtn> tbList           = new Vector<ToolBarDropDownBtn>();
     protected Vector<JComponent>         menus            = new Vector<JComponent>();
@@ -1312,73 +1311,79 @@ public class QueryTask extends BaseTask
 		{
 			SearchResultReportServiceInfo selectedRep = null;
 			JTable dataTbl = (JTable) cmdAction.getProperties().get("jtable");
-			ResultSetTableModel rsm = (ResultSetTableModel) dataTbl.getModel();
-			QueryForIdResultsIFace results = rsm.getResults();
-			QueryBldrPane qb = results instanceof QBQueryForIdResultsHQL ? ((QBQueryForIdResultsHQL) results)
-					.getQueryBuilder()
-					: null;
-			int tableId = ((RecordSet) cmdAction.getData()).getDbTableId();
-			List<SearchResultReportServiceInfo> reps = new Vector<SearchResultReportServiceInfo>(
-					((ReportsBaseTask) ContextMgr
-							.getTaskByClass(ReportsTask.class)).getReports(
-							tableId, qb));
-			if (reps.size() == 0)
+			if (dataTbl != null)
 			{
-				log.error("no reports for query. Should't have gotten here.");
-			} else if (rsm.isLoadingCells())
-			{
-				UIRegistry
-						.writeTimedSimpleGlassPaneMsg(
-								UIRegistry
-										.getResourceString("QB_NO_REPORTS_WHILE_LOADING_RESULTS"),
-								5000, null, null, true);
-			} else
-			{
-				ChooseFromListDlg<SearchResultReportServiceInfo> dlg = new ChooseFromListDlg<SearchResultReportServiceInfo>(
-						(Frame) UIRegistry.getTopWindow(), UIRegistry
-								.getResourceString("REP_CHOOSE_SP_REPORT"),
-						reps);
-				dlg.setVisible(true);
-				if (dlg.isCancelled())
-				{
-					return;
-				}
-				selectedRep = dlg.getSelectedObject();
-				dlg.dispose();
+    			ResultSetTableModel rsm = (ResultSetTableModel) dataTbl.getModel();
+    			if (rsm != null)
+    			{
+        			QueryForIdResultsIFace results = rsm.getResults();
+        			QueryBldrPane qb = results instanceof QBQueryForIdResultsHQL ? ((QBQueryForIdResultsHQL) results)
+        					.getQueryBuilder()
+        					: null;
+        			int tableId = ((RecordSet) cmdAction.getData()).getDbTableId();
+        			List<SearchResultReportServiceInfo> reps = new Vector<SearchResultReportServiceInfo>(
+        					((ReportsBaseTask) ContextMgr
+        							.getTaskByClass(ReportsTask.class)).getReports(
+        							tableId, qb));
+        			if (reps.size() == 0)
+        			{
+        				log.error("no reports for query. Should't have gotten here.");
+        			} else if (rsm.isLoadingCells())
+        			{
+        				UIRegistry
+        						.writeTimedSimpleGlassPaneMsg(
+        								UIRegistry
+        										.getResourceString("QB_NO_REPORTS_WHILE_LOADING_RESULTS"),
+        								5000, null, null, true);
+        			} else
+        			{
+        				ChooseFromListDlg<SearchResultReportServiceInfo> dlg = new ChooseFromListDlg<SearchResultReportServiceInfo>(
+        						(Frame) UIRegistry.getTopWindow(), UIRegistry
+        								.getResourceString("REP_CHOOSE_SP_REPORT"),
+        						reps);
+        				dlg.setVisible(true);
+        				if (dlg.isCancelled())
+        				{
+        					return;
+        				}
+        				selectedRep = dlg.getSelectedObject();
+        				dlg.dispose();
+        			}
+        			if (selectedRep == null || selectedRep.getFileName() == null)
+        			{
+        				return;
+        			}
+        
+        			Object src;
+        			if (selectedRep.isLiveData())
+        			{
+        				// XXX - probably a smoother way to handle these generic issues.
+        				// (type safety warning)
+        				List<? extends ERTICaptionInfo> captions = rsm.getResults()
+        						.getVisibleCaptionInfo();
+        				src = new QBLiveJRDataSource(rsm,
+        						(List<ERTICaptionInfoQB>) captions, selectedRep
+        								.getRepeats());
+        			} else
+        			{
+        				src = rsm.getRecordSet(null, true);
+        			}
+        			final CommandAction cmd = new CommandAction(
+        					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
+        			cmd.setProperty("title", rsm.getResults().getTitle());
+        			cmd.setProperty("file", selectedRep.getFileName());
+        			if (selectedRep.isRequiresNewConnection())
+        			{
+        				RecordSet repRS = new RecordSet();
+        				repRS.initialize();
+        				repRS.set(selectedRep.getReportName(), SpReport
+        						.getClassTableId(), RecordSet.GLOBAL);
+        				repRS.addItem(selectedRep.getSpReportId());
+        				cmd.setProperty("spreport", repRS);
+        			}
+        			CommandDispatcher.dispatch(cmd);
+    			}
 			}
-			if (selectedRep == null || selectedRep.getFileName() == null)
-			{
-				return;
-			}
-
-			Object src;
-			if (selectedRep.isLiveData())
-			{
-				// XXX - probably a smoother way to handle these generic issues.
-				// (type safety warning)
-				List<? extends ERTICaptionInfo> captions = rsm.getResults()
-						.getVisibleCaptionInfo();
-				src = new QBLiveJRDataSource(rsm,
-						(List<ERTICaptionInfoQB>) captions, selectedRep
-								.getRepeats());
-			} else
-			{
-				src = rsm.getRecordSet(null, true);
-			}
-			final CommandAction cmd = new CommandAction(
-					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
-			cmd.setProperty("title", rsm.getResults().getTitle());
-			cmd.setProperty("file", selectedRep.getFileName());
-			if (selectedRep.isRequiresNewConnection())
-			{
-				RecordSet repRS = new RecordSet();
-				repRS.initialize();
-				repRS.set(selectedRep.getReportName(), SpReport
-						.getClassTableId(), RecordSet.GLOBAL);
-				repRS.addItem(selectedRep.getSpReportId());
-				cmd.setProperty("spreport", repRS);
-			}
-			CommandDispatcher.dispatch(cmd);
 		}
         
         else if (cmdAction.isAction(FP_PUB_RECORDSET)) // TODO: FP MMK: should this be an if or else if?  Should I put a return in the previous block?
@@ -1414,8 +1419,9 @@ public class QueryTask extends BaseTask
         
         if (cmdAction.isAction(APP_RESTART_ACT))
         {
-            isInitialized = false;
-            this.initialize();
+            configurationHasChanged.set(true);
+        	isInitialized = false;
+            initialize();
         }
     }
 
@@ -1436,13 +1442,13 @@ public class QueryTask extends BaseTask
         else if (cmdAction.isType(TreeDefinitionEditor.TREE_DEF_EDITOR))
         {
             //all we care to know is that a treeDefintion got changed somehow 
-            this.localizationOrTreeDefEdit.set(true);
+            this.configurationHasChanged.set(true);
         }
         else if (cmdAction.isType(SchemaLocalizerDlg.SCHEMA_LOCALIZER))
         {
             //XXX should check whether changed schema actually is the schema in use? 
             // e.g. If German schema was saved when English is in use then ignore??
-            this.localizationOrTreeDefEdit.set(true);
+            this.configurationHasChanged.set(true);
             SwingUtilities.invokeLater(new Runnable(){
                 public void run()
                 {
@@ -1458,6 +1464,7 @@ public class QueryTask extends BaseTask
         }
     }
 
+    
 
     //--------------------------------------------------------------
     // Inner Classes
@@ -1515,7 +1522,7 @@ public class QueryTask extends BaseTask
         {
             tableTreeHash = new SoftReference<Hashtable<String, TableTree>>(buildTableTreeHash(tableTree.get()));
         }
-        localizationOrTreeDefEdit.set(false);
+        configurationHasChanged.set(false);
     }
     
     
@@ -1564,7 +1571,7 @@ public class QueryTask extends BaseTask
     public synchronized boolean needToRebuildTableTree()
     {
         return tableTree == null || tableTree.get() == null || tableTreeHash == null || tableTreeHash.get() == null
-            || localizationOrTreeDefEdit.get();
+            || configurationHasChanged.get();
     }
     
     /**

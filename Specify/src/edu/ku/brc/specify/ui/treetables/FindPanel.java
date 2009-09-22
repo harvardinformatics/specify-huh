@@ -37,6 +37,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -44,6 +45,7 @@ import javax.swing.JTextField;
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.TimingTarget;
 
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.specify.tasks.DualViewSearchable;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.MultiStateToggleButton;
@@ -51,6 +53,7 @@ import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.IconManager.IconSize;
 
+@SuppressWarnings("serial")
 public class FindPanel extends JPanel implements TimingTarget
 {
     protected DualViewSearchable views;
@@ -61,8 +64,9 @@ public class FindPanel extends JPanel implements TimingTarget
     protected JButton    findButton;
     protected JButton    nextButton;
     protected MultiStateToggleButton whereToggleButton;
+    protected JCheckBox  exactChk;
     
-    protected int        mode;
+    protected int        mode;  
     protected boolean	 hasBeenContracted   = false;
     
     protected Dimension  prefSize;
@@ -132,6 +136,47 @@ public class FindPanel extends JPanel implements TimingTarget
 
         whereToggleButton = new MultiStateToggleButton(up,down,both);
         whereToggleButton.setStateIndex(0);
+        whereToggleButton.setToolTipText(UIRegistry.getResourceString("FindPanel.WhereBtnTTUp"));
+        whereToggleButton.addActionListener(new ActionListener(){
+
+			/* (non-Javadoc)
+			 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+			 */
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				switch (whereToggleButton.getStateIndex()) {
+				case 0:
+					whereToggleButton.setToolTipText(UIRegistry.getResourceString("FindPanel.WhereBtnTTLow"));
+					break;
+				case 1:
+					whereToggleButton.setToolTipText(UIRegistry.getResourceString("FindPanel.WhereBtnTTBoth"));
+					break;
+				case 2:
+					whereToggleButton.setToolTipText(UIRegistry.getResourceString("FindPanel.WhereBtnTTUp"));
+					break;
+				default:
+					whereToggleButton.setToolTipText(null);
+				}
+			}
+        	
+        });
+        
+        exactChk = UIHelper.createCheckBox(getResourceString("FindPanel.Exact"));
+        exactChk.setSelected(AppPreferences.getLocalPrefs().getBoolean("FindPanel.Exact", true));
+        exactChk.addActionListener(new ActionListener() {
+
+			/* (non-Javadoc)
+			 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+			 */
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				AppPreferences.getLocalPrefs().putBoolean("FindPanel.Exact", exactChk.isSelected());				
+			}
+        	
+        });
+        exactChk.setToolTipText(UIRegistry.getResourceString("FindPanel.ExactChkTT"));
         
         add(closeButton);
         add(Box.createRigidArea(closeButton.getPreferredSize()));
@@ -140,6 +185,7 @@ public class FindPanel extends JPanel implements TimingTarget
         add(findButton);
         add(nextButton);
         add(whereToggleButton);
+        add(exactChk);
         add(Box.createHorizontalGlue());
         
         ActionListener buttonListener = new ActionListener()
@@ -221,7 +267,7 @@ public class FindPanel extends JPanel implements TimingTarget
      */
     protected void findClicked()
     {
-        views.find(entryField.getText(), getWhere(), true);
+        views.find(entryField.getText(), getWhere(), true, exactChk.isSelected());
     }
     
     /**
@@ -229,7 +275,7 @@ public class FindPanel extends JPanel implements TimingTarget
      */
     protected void nextClicked()
     {
-        views.findNext(entryField.getText(), getWhere(), true);
+        views.findNext(entryField.getText(), getWhere(), true, exactChk.isSelected());
     }
     
     /**
@@ -258,7 +304,8 @@ public class FindPanel extends JPanel implements TimingTarget
         }
     }
     
-    /* (non-Javadoc)
+    
+	/* (non-Javadoc)
      * @see javax.swing.JComponent#getPreferredSize()
      */
     @Override

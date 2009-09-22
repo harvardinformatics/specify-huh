@@ -230,7 +230,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
         for (WorkbenchTemplateMappingItem wbtmi : headers)
         {
             // TODO: FP MMK need to make this configurable
-            if (wbtmi.getCaption().equals("Collectors") || wbtmi.getCaption().equals("CollectorNumber"))
+            if (wbtmi.getCaption().equals("Collectors") || wbtmi.getCaption().equals("Collector") || wbtmi.getCaption().equals("CollectorNumber"))
             {
                 wbtmi.setIsFpMagic(true);
             }
@@ -635,6 +635,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             txt.getDocument().addDocumentListener(docListener);
             comp      = txt;
             focusComp = comp;
+            
         }
         else if (dbFieldType.equals(Boolean.class)) // strings
         {
@@ -660,7 +661,7 @@ public class FormPane extends JPanel implements ResultSetControllerListener,
             comp = taScrollPane;
             focusComp = taScrollPane.getViewport().getView();
         }
-
+        
         focusComp.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e)
             {

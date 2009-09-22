@@ -42,7 +42,7 @@ public class LatLonConverter
     public final  static char UNICODE_DEGREE = 0x00b0;
     
 	public final static String DEGREES_SYMBOL = "\u00b0";
-    public final static String SEPS           = DEGREES_SYMBOL + "'\" ";
+    public final static String SEPS           = DEGREES_SYMBOL + ":'\" ";
     
     protected final static int DDDDDD_LEN = 7;
     protected final static int DDMMMM_LEN = 5;
@@ -120,6 +120,22 @@ public class LatLonConverter
                                                final FORMAT     type,
                                                final LATLON     latOrLon)
     {
+        return ensureFormattedString(bd, latLonStr, type, latOrLon, DECIMAL_SIZES[type.ordinal()]);
+    }
+ 
+    
+    /**
+     * @param bd
+     * @param latLonStr
+     * @param type
+     * @return
+     */
+    public static String ensureFormattedString(final BigDecimal bd, 
+                                               final String     latLonStr, 
+                                               final FORMAT     type,
+                                               final LATLON     latOrLon,
+                                               final int        decimalSize)
+    {
         if (StringUtils.isEmpty(latLonStr))
         {
             if (bd == null)
@@ -127,7 +143,7 @@ public class LatLonConverter
                 return null;
             }
             
-            String outStr = format(bd, latOrLon, type, DEGREES_FORMAT.Symbol, DECIMAL_SIZES[type.ordinal()]);
+            String outStr = format(bd, latOrLon, type, DEGREES_FORMAT.Symbol, decimalSize);
             if (latOrLon == LATLON.Latitude)
             {
                 outStr += " " + northSouth[bd.doubleValue() < 0.0 ? 1 : 0];
@@ -139,7 +155,7 @@ public class LatLonConverter
         }
         return latLonStr;
     }
-    
+
     /**
      * @param str
      * @param actualFmt
@@ -618,7 +634,7 @@ public class LatLonConverter
         // round to four decimal places of precision
         //minutes = Math.round(minutes*10000) / 10000;
         
-        sb.append(String.format("%"+decimalLen+"."+decimalLen+"f", minutes));
+        sb.append(String.format("%"+2+"."+decimalLen+"f", minutes));
         if (addMinSecsSyms) sb.append("'");
         
         if (degreesFMT == DEGREES_FORMAT.String || alwaysIncludeDir)
@@ -710,34 +726,8 @@ public class LatLonConverter
         }
         
         StringBuilder sb = new StringBuilder();
-        String format;
         
-        if (decimalLen == 0)
-        {
-        	double d = bd.abs().doubleValue();
-
-        	if (d < 1 && d > 0)
-        	{
-        		int n = 0;
-        		
-        		while (d < 1)
-        		{
-        			d = 10*d;
-        			n++;
-        		}
-        		format = "%"+n+"."+n+"f";
-        	}
-        	else
-        	{
-        		format = "%1.0f";
-        	}
-        }
-        else
-        {
-        	format = "%"+decimalLen+"."+decimalLen+"f";
-        }
-        
-        sb.append(String.format(format, bd.abs()));
+        sb.append(String.format("%"+decimalLen+"."+decimalLen+"f", bd.abs()));
         
         if (degreesFMT == DEGREES_FORMAT.Symbol)
         {
