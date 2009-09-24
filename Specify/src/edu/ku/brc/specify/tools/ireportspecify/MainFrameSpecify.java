@@ -118,7 +118,7 @@ public class MainFrameSpecify extends MainFrame
     protected boolean             refreshingConnections       = false;
 
     protected static Integer      overwrittenReportId         = null;
-    
+
     /**
      * @param args -
      *            parameters to configure iReport mainframe
@@ -509,28 +509,37 @@ public class MainFrameSpecify extends MainFrame
         
         if (apr != null)
         {
-            ReportSpecify rep = (ReportSpecify)jrf.getReport();
-            ByteArrayOutputStream xmlOut = new ByteArrayOutputStream();
-            try
-            {
-            	modifyFieldsForSaving(rep);
-            	ReportWriter rw = new ReportWriter(rep);
-            	rw.writeToOutputStream(xmlOut);
+            Report report = jrf.getReport();
+
+            if (report instanceof ReportSpecify)
+            {    
+                ReportSpecify reportSpecify = (ReportSpecify) jrf.getReport();
+                ByteArrayOutputStream xmlOut = new ByteArrayOutputStream();
+                try
+                {
+                    modifyFieldsForSaving(reportSpecify);
+                    ReportWriter rw = new ReportWriter(reportSpecify);
+                    rw.writeToOutputStream(xmlOut);
+                }
+                finally
+                {
+                    modifyFieldsForEditing(reportSpecify);
+                }
+                boolean success = saveXML(xmlOut, apr, reportSpecify, saveAs);
+                if (success)
+                {
+                    jrf.setIsDocDirty(false);
+                    jrf.getReport().setReportChanges(0);                
+                }
+                else
+                {
+                    JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("REP_UNABLE_TO_SAVE_IREPORT"), UIRegistry.getResourceString("Error"), JOptionPane.ERROR_MESSAGE);                        
+                }
             }
-            finally
-            {
-            	modifyFieldsForEditing(rep);
-            }
-            boolean success = saveXML(xmlOut, apr, rep, saveAs);
-            if (success)
-            {
-                jrf.setIsDocDirty(false);
-                jrf.getReport().setReportChanges(0);                
-            }
-            else
-            {
-                JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("REP_UNABLE_TO_SAVE_IREPORT"), UIRegistry.getResourceString("Error"), JOptionPane.ERROR_MESSAGE);                        
-            }
+        }
+        else
+        {
+            jrf.getReport().saveXMLFile("iReport.jrxml");
         }
     }
 
@@ -546,40 +555,51 @@ public class MainFrameSpecify extends MainFrame
     private AppResAndProps getAppResAndPropsForFrame(final JReportFrame jrf, boolean saveAs)
     {
         /* RULE: SpReport.name == SpAppResource.name (== jrf.getReport().name)*/
-        SpReport spRep = ((ReportSpecify) jrf.getReport()).getSpReport();
-        AppResourceIFace appRes = null;
-        
-        if (!saveAs)
-    	{
-            appRes = spRep == null ? getRepResource(jrf.getReport().getName()) :
-    	            spRep.getAppResource();
-    	}
-        if (appRes != null)
+        Report report = jrf.getReport();
+
+        SpReport spRep = null;
+        if (report instanceof ReportSpecify)
         {
-            if (spRep != null) 
-            { 
-                appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
-                return getProps(jrf.getReport().getName(), -1, (ReportSpecify )jrf.getReport(), appRes);
-            }
-        }
-        // else
-        if (AppContextMgr.isSecurityOn())
-        {
-            PermissionIFace permissions = SecurityMgr.getInstance().getPermission("Task.Reports");
-            if (!permissions.canAdd())
+            ReportSpecify reportSpecify = (ReportSpecify) report;
+            spRep = reportSpecify.getSpReport();
+
+            AppResourceIFace appRes = null;
+
+            if (!saveAs)
             {
-                JOptionPane.showMessageDialog(null, getResourceString("IReportLauncher.PERMISSION_TO_ADD_DENIED"),
-                        getResourceString("IReportLauncher.PERMISSION_DENIED_TITLE"),
-                        JOptionPane.ERROR_MESSAGE);
-                return null;
+                appRes = spRep == null ? getRepResource(report.getName()) :
+                    spRep.getAppResource();
             }
+            if (appRes != null)
+            {
+                if (spRep != null) 
+                { 
+                    appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
+                    return getProps(report.getName(), -1, reportSpecify, appRes);
+                }
+            }
+            // else
+            if (AppContextMgr.isSecurityOn())
+            {
+                PermissionIFace permissions = SecurityMgr.getInstance().getPermission("Task.Reports");
+                if (!permissions.canAdd())
+                {
+                    JOptionPane.showMessageDialog(null, getResourceString("IReportLauncher.PERMISSION_TO_ADD_DENIED"),
+                            getResourceString("IReportLauncher.PERMISSION_DENIED_TITLE"),
+                            JOptionPane.ERROR_MESSAGE);
+                    return null;
+                }
+            }
+
+            AppResAndProps result = createAppResAndProps(report.getName(), -1, reportSpecify);
+            if (result != null)
+            {
+                report.setName(result.getAppRes().getName());
+            }
+            return result;
         }
-        AppResAndProps result = createAppResAndProps(jrf.getReport().getName(), -1, (ReportSpecify )jrf.getReport());
-        if (result != null)
-        {
-            jrf.getReport().setName(result.getAppRes().getName());
-        }
-        return result;
+        
+        return null;
     }
 
     /**
@@ -1062,18 +1082,18 @@ public class MainFrameSpecify extends MainFrame
     }
 
     /**
-     * @param rep -
+     * @param appResource -
      *            a specify report resource
      * @return - a iReport designer frame for rep
      */
-    public JReportFrame openReportFromResource(final AppResourceIFace rep)
+    public JReportFrame openReportFromResource(final AppResourceIFace appResource)
     {
-        JReportFrame reportFrame = findReportFrameByResource(rep);
+        JReportFrame reportFrame = findReportFrameByResource(appResource);
         if (reportFrame == null)
         {
             try
             {
-                ReportSpecify report = makeReport(rep);
+                ReportSpecify report = makeReport(appResource);
                 report.setConnection(getConnectionByQuery(report.getSpReport().getQuery()));
                 modifyFieldsForEditing(report);
                 updateReportFields(report);
@@ -1134,11 +1154,11 @@ public class MainFrameSpecify extends MainFrame
                   rep, DataProviderSessionIFace.CompareType.Equals);
             if (spRep != null)
             {
-                report = new ReportSpecify(spRep);
+                report = new ReportSpecify(spRep); // TODO
             }
             else
             {
-                report = new ReportSpecify(rep);
+                report = new ReportSpecify(rep);  // TODO
             }
         }
         finally
@@ -1181,11 +1201,11 @@ public class MainFrameSpecify extends MainFrame
                   rep, DataProviderSessionIFace.CompareType.Equals);
             if (spRep != null)
             {
-                report = new ReportSpecify(spRep);
+                report = new ReportSpecify(spRep); // TODO
             }
             else
             {
-                report = new ReportSpecify(rep);
+                report = new ReportSpecify(rep); // TODO
             }
         }
         finally
@@ -1215,7 +1235,7 @@ public class MainFrameSpecify extends MainFrame
 
     private ReportSpecify makeNewReport(final QBJRDataSourceConnection connection)
     {
-        ReportSpecify report = new ReportSpecify();
+        ReportSpecify report = new ReportSpecify(); // TODO 
         report.setConnection(connection);
         for (int f=0; f < connection.getFields(); f++)
         {
