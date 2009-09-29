@@ -8,7 +8,7 @@
 	<property name="compile.src.root" value="compile-src" />
 	<property name="compile.dst.root" value="compile-dst" />
 	
-	<property name="class.root" value="bin" />
+	<property name="class.root" value="compile-dst" />
 	
 	<property name="installer.dir" value="InstallerFiles" />
 	<property name="lib.dir" value="libs" />
@@ -24,8 +24,11 @@
 	<property name="data.dir" value="data" />
 
 	<!-- Needed for building help search index -->
-	<property name ="javahelp-home" value="/home/specify/jh2.0" />
+	<property name ="javahelp-home" value="/home/maureen/lib/jhindexer/jh2.0" />
 	<property name ="javahelp-home-mac" value="/Applications/jh2.0" />
+	
+	<!-- MMK: this was missing.  So was appdir.  -->
+	<property name="alt.help.img.dir" value="help/images"/>
 	
 	<!-- Needed for Packing on the Mac -->
 	<property name="packaging" value="packaging" />
@@ -55,10 +58,34 @@
 		<!-- Include our own classes, of course -->
 		<pathelement location="specify.jar"/>
 		
+		<!-- Include non-mac-application-adapter.jar -->
+		<fileset dir="${system.dep.libs.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+		
+		<!-- Include iReport.jar -->
+		<fileset dir="${ireport.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+		
 	</path>
 
+	<target name="maureen" description="I think this works for a windows build">
+		<antcall target="dist-win-clean"/>
+		<antcall target="dist-linux-clean"/>
+		<antcall target="dist-mac-clean"/>
+		<antcall target="dist-prepare"/>
+		<antcall target="dist-compile"/>
+		<antcall target="dist-jar"/>
+		<antcall target="installer-linux"/>
+		<antcall target="build-help-index"/>
+		<antcall target="build-help-fulltext-win"/>
+		<antcall target="basic-non-mac-dist"/>
+		<antcall target="copy-alt-help-images"/>
+	</target>
+	
 	<!-- Prepare for Windows and Linux Compile -->
-	<target name="dist-prepare" description="Sets up build structures for Non Mac Platforms">
+	<target name="dist-prepare" description="Creates compile directories and copies properties and java source to them">
 		
 		<mkdir dir="${compile.dst.root}" />
 		<mkdir dir="${compile.src.root}" />
@@ -73,7 +100,7 @@
 	</target>
 
 	<!-- Prepare for Mac Compile -->
-	<target name="dist-prepare-mac" description="Sets up build structures for Mac-Dist">
+	<target name="dist-prepare-mac" description="Creates compile directories and copies properties and java source to them, with special handling for Mac">
 		
 		<mkdir dir="${compile.dst.root}" />
 		<mkdir dir="${compile.src.root}" />
@@ -89,7 +116,7 @@
 	</target>
 
 	<!-- Compile the java source of the project Windows and Linux -->
-	<target name="dist-compile" depends="dist-prepare" description="Compiles all Java classes for Mac-Dist">
+	<target name="dist-compile" depends="dist-prepare" description="Compiles all java classes in compile directories">
 		
 		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on">
 			<classpath refid="project.class.path" />
@@ -98,15 +125,15 @@
 	</target>
 	
 	<!-- Compile the java source of the project Mac-->
-	<target name="dist-compile-mac" depends="dist-prepare-mac" description="Compiles all Java classes for Mac-Dist">
+	<target name="dist-compile-mac" depends="dist-prepare-mac" description="Compiles all java classes in compile directories">
 		
 		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on">
 			<classpath refid="project.class.path" />
 		</javac>
 	</target>
 	
-	<!-- Jar up compiled classes -->
-	<target name="dist-jar" depends="">
+	<!-- Jar up compiled classes for Windows and Linux-->
+	<target name="dist-jar" depends="" description="Creates specify.jar; copies it to webapp and upwebapp">
 		
 		<jar destfile="${jar.name}.jar">
 			<fileset dir="${class.root}">
@@ -120,8 +147,8 @@
         <copy file="${jar.name}.jar" todir="upwebapp/WEB-INF/lib" />
 	</target>
 
-	<!-- Jar up compiled classes -->
-	<target name="dist-jar-mac" depends="">
+	<!-- Jar up compiled classes for Mac-->
+	<target name="dist-jar-mac" depends="" description="Creates specify.jar">
 		
 		<jar destfile="${jar.name}.jar">
 			<fileset dir="${class.root}">
@@ -133,7 +160,7 @@
 	    </jar>
 	</target>
 
-	<target name="dist-jar-mac-ls" depends="">
+	<target name="dist-jar-mac-ls" depends="" description="Creates specify.jar">
 		
 		<jar destfile="${jar.name}.jar">
 			<fileset dir="${class.root}">
@@ -146,7 +173,7 @@
 	</target>
 	
 	<!-- Jar Clean Up -->
-	<target name="clean-jar">
+	<target name="clean-jar" description="Deletes specify.jar">
 		<delete file="${jar.name}.jar" />
 	</target>
 	
@@ -154,7 +181,7 @@
 	     Mac Common Components Build
 	     ************************************************************* -->
 	
-	<target name="installer-linux" depends="">
+	<target name="installer-linux" depends="" description="Calls installer-base and copies non-mac-appliation-adapter.jar to installer dir">
 	    <antcall target="installer-base"/>
 		<copy file="./system_dep_libs/non-mac-application-adapter.jar" todir="${installer.dir}" />
 		<!--
@@ -163,7 +190,7 @@
 	    -->
     </target>
 	
-	<target name="installer-mac" depends="">
+	<target name="installer-mac" depends="" description="Calls installer-base">
 	    <antcall target="installer-base"/>
 		<!--
 	    <antcall target="build-help-index"/>
@@ -171,7 +198,7 @@
 	    -->
     </target>
 	
-	<target name="installer-base" depends="">
+	<target name="installer-base" depends="" description="Deletes installer dir, recreates it, creates demo dir, calls clean-jar, calls dist-jar-mac, copies files to installer dir">
 		
 		<delete dir="${installer.dir}"/>
 		<mkdir dir="${installer.dir}" />
@@ -273,7 +300,7 @@
 		
 	</target>
 	
-	<target name="installer-updater" depends="">
+	<target name="installer-updater" depends="" description="deletes UpdaterInstall dir, calls dist-jar, copies files to UpdaterInstall dir">
 		
 		<delete dir="UpdaterInstall"/>
 		<mkdir dir="UpdaterInstall" />
@@ -293,7 +320,7 @@
 	<!-- *************************************************************
 	     Mac Common Components Build
 	     ************************************************************* -->
-	<target name="dist-mac-common" depends="">
+	<target name="dist-mac-common" depends="" description="makes mac dirs, calls build-help-index and build-help-fulltext-mac">
 		
 		<mkdir dir="${dist-mac}" />
 		<mkdir dir="${appdir}" />
@@ -358,7 +385,7 @@
 	<!-- *************************************************************
 	     Mac Distribution for the iReports4Specify
 	     ************************************************************* -->
-	<target name="dist-mac-irep" depends="">
+	<target name="dist-mac-irep" depends="" description="deletes iReports4Specify.app, calls clean-jar, dist-jar-mac, dist-mac-common, copies iReport files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/iReports4Specify.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
@@ -394,7 +421,7 @@
 	<!-- *************************************************************
 	     Mac Distribution for the Builder
 	     ************************************************************* -->
-	<target name="dist-mac-bld" depends="">
+	<target name="dist-mac-bld" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifyBuilder.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
@@ -422,7 +449,7 @@
 	<!-- *************************************************************
 	    Mac Distribution (Main Specify Application)
 	    ************************************************************* -->
-	<target name="dist-mac" depends="">
+	<target name="dist-mac" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir, copies demo files to dist dir">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
@@ -465,7 +492,7 @@
 	<!-- *************************************************************
 	     Mac Schema Localizer Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-sl" depends="">
+	<target name="dist-mac-sl" depends="" description="calls clean-jar, dist-jar-mac-ls, dist-mac-common, coppies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifySchema.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
@@ -485,7 +512,7 @@
 	<!-- *************************************************************
 	     Mac SpecifyDBInit Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-db-init" depends="">
+	<target name="dist-mac-db-init" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifyDBInit.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
@@ -506,7 +533,7 @@
 	<!-- *************************************************************
 	     Mac Builds All the Mac Applications
 	     ************************************************************* -->
-	<target name="dist-mac-all" depends="">
+	<target name="dist-mac-all" depends="" description="calls dist-mac, dist-mac-sl, dist-mac-bld, dist-mac-db-init, dist-mac-irep">
 		<antcall target="dist-mac"/>
 		<antcall target="dist-mac-sl"/>
 		<antcall target="dist-mac-bld"/>
@@ -517,7 +544,7 @@
 	<!-- *************************************************************
 	    Mac Distribution OLD (Main Specify Application)
 	    ************************************************************* -->
-	<target name="dist-mac-old" depends="">
+	<target name="dist-mac-old" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-clean, build-empty-derby-db, makes appdir/dist dir, copies files, executes mac developer command, calls build-help-index, build-help-fulltext-mac">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
@@ -611,7 +638,7 @@
 	<!-- *************************************************************
 	     Mac WorkBench Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-wb" depends="">
+	<target name="dist-mac-wb" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-clean, makes dirs, copies files, executes mac developer command">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
@@ -688,7 +715,7 @@
 	<!-- *************************************************************
 	     Mac Schema Localizer Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-sl-old" depends="">
+	<target name="dist-mac-sl-old" depends="" description="calls clean-jar, dist-jar-mac-ls, dist-mac-clean, makes dirs, copies files, executes mac developer command">
 		
 		<property name="appdir" value="${dist-mac}/SpecifySchema.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
@@ -778,7 +805,7 @@
 	<!-- *************************************************************
 	     Build Empty Derby DB
 	     ************************************************************* -->
-	<target name="build-empty-derby-db">
+	<target name="build-empty-derby-db" description="calls BuildSampleDatabase (derby)">
 		<!--
 		<property name="current.classpath" refid="project.class.path"/>
 		<echo level="info">
@@ -797,7 +824,7 @@
 	<!-- *************************************************************
 	     Build Help Index
 	     ************************************************************* -->
-	<target name="build-help-index">		
+	<target name="build-help-index" description="calls edu.ku.brc.util.HelpIndexer">		
 		<java classname="edu.ku.brc.util.HelpIndexer" fork="true">
 		    <classpath refid="project.class.path" />
 			<arg value="${appdir}/help/SpecifyHelp.jhm"/>
@@ -806,18 +833,17 @@
 		</java>
 	</target>
 	
-
 	<!-- *************************************************************
 	     Build Help FullText Index
 	     ************************************************************* -->
 	
-	<target name="delete-config-files">
+	<target name="delete-config-files" description="deletes SearchConfig.txt from appdir/help/distdir">
 		  <delete file="${appdir}/help/${dist-linux}SearchConfig.txt"/>		
 		  <delete file="${appdir}/help/${dist-mac}SearchConfig.txt"/>		
 		  <delete file="${appdir}/help/${dist-win}SearchConfig.txt"/>		
 	</target>
 
-	<target name="build-help-fulltext-linux">
+	<target name="build-help-fulltext-linux" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for linux dist">
 	  <java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${appdir}/help/">
 	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
 	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
@@ -830,7 +856,7 @@
 		<antcall target="delete-config-files"/>
 	</target>
 	
-	<target name="build-help-fulltext-mac">
+	<target name="build-help-fulltext-mac" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for mac dist">
 	  <java jar="${javahelp-home-mac}/javahelp/bin/jhindexer.jar" fork="true">
 	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
 	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
@@ -843,7 +869,7 @@
 		<antcall target="delete-config-files"/>
 	</target>
 	
-	<target name="build-help-fulltext-win">
+	<target name="build-help-fulltext-win" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for win dist">
 	  <java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${appdir}/help/">
 	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
 	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
@@ -859,7 +885,7 @@
 	<!-- *************************************************************
 	     Common files between Windows and Linux
 	     ************************************************************* -->
-	<target name="basic-non-mac-dist">
+	<target name="basic-non-mac-dist" description="copies files to appdir/classes,demo_files,libs,help">
 
 		<mkdir dir="${appdir}/classes" />
 		<copy file="${source.root}/log4j.properties" todir="${appdir}/classes/." />
@@ -916,7 +942,7 @@
 	     Windows Distribution
 	     ************************************************************* -->
 	
-	<target name="dist-win-update" description="Updates the Specify.jat, images, help etc.">
+	<target name="dist-win-update" description="calls clean-jar, dist-jar, basic-non-mac-dist, copy-alt-help-images">
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
 		<antcall target="clean-jar"/>
@@ -927,7 +953,7 @@
         <antcall target="copy-alt-help-images"/>
     </target>
 	
-	<target name="dist-win" description="Builds for Windows">
+	<target name="dist-win" description="calls clean-jar, dist-win-clean, dist-jar, basic-non-mac-dist, build-help-index, build-help-fulltext-win, copy-alt-help-images">
 		
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
@@ -969,7 +995,7 @@
 
 	</target>
 
-	<target name="dist-win-jar">
+	<target name="dist-win-jar" description="calls clean-jar, dist-jar">
 		
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
@@ -984,7 +1010,7 @@
 	<!-- *************************************************************
 	     Linux Distribution
 	     ************************************************************* -->
-	<target name="dist-linux">
+	<target name="dist-linux" description="clean-jar, dist-linux-clean, dist-jar, build-empty-derby-db, basic-non-mac-dist, build-help-index, build-help-fulltext-linux, copy-alt-help-images">
 		
 		<property name="appdir" value="${dist-linux}/Specify" />
 		<property name="derby.data.path" value="${dist-linux}/DerbyDatabases" />
@@ -1039,7 +1065,7 @@
 	<!--*************************************************************
 	     Copy Alternate Help Images
 	    ************************************************************* -->
-	<target name="copy-alt-help-images">
+	<target name="copy-alt-help-images" description="copies files to appdir/help/SpecifyHelp/images">
 		
 		<!-- <property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="alt.help.img.dir" value="AltHelpImages/Windows"/>
@@ -1058,15 +1084,17 @@
 	<!--*************************************************************
 	     Clean Distributions
 	    ************************************************************* -->
-	<target name="dist-mac-clean">
+	<target name="dist-mac-clean" description="deletes dist-mac dir">
 		<delete dir="${dist-mac}"/>
     </target>
 	
-	<target name="dist-win-clean">
+	<target name="dist-win-clean" description="deletes dist-win dir">
+		<delete dir="${compile.src.root}"/>
+		<delete dir="${compile.dist.root}"/>
 		<delete dir="${dist-win}"/>
     </target>
 	
-	<target name="dist-linux-clean">
+	<target name="dist-linux-clean" description="deletes dist-linux dir">
 		<delete dir="${dist-linux}"/>
     </target>
 	

@@ -65,7 +65,7 @@ public class TreeFactory
 	 * @return the new Treeable node instance
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends Treeable<T,?,?>> T createNewTreeable( Class<? extends T> implementingClass, String name )
+	public static <T extends Treeable> T createNewTreeable( Class<? extends T> implementingClass, String name )
 	{
 		T t = null;
 		// big switch statement on implementingClass
@@ -113,7 +113,7 @@ public class TreeFactory
      * @return the new node
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Treeable<T,?,?>> T createNewTreeable( T nodeOfSameClass, String name )
+    public static <T extends Treeable> T createNewTreeable( T nodeOfSameClass, String name )
     {
         if (nodeOfSameClass instanceof Taxon)
         {
@@ -148,7 +148,7 @@ public class TreeFactory
 	 * @return the new def item
 	 */
 	@SuppressWarnings("unchecked")
-	public static <I extends TreeDefItemIface<?, ?, I>> I createNewTreeDefItem( Class<? extends I> implementingClass, I parent, String name )
+	public static <I extends TreeDefItemIface> I createNewTreeDefItem( Class<? extends I> implementingClass, I parent, String name )
 	{
 		I t = null;
 		
@@ -195,7 +195,8 @@ public class TreeFactory
      * @param parent
      * @return
      */
-    public static <T extends Treeable<T,?,?>> String getChildQueryString(final T parent)
+    @SuppressWarnings("unchecked")
+    public static <T extends Treeable> String getChildQueryString(final Treeable parent)
     {
         if (parent instanceof Taxon)
         {

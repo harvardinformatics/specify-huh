@@ -3321,7 +3321,7 @@ public class SpecifyExplorer extends HttpServlet
     }
     
     @SuppressWarnings("unchecked")
-    protected JSONObject createNode(final Treeable<?, ?, ?> treeable)
+    protected JSONObject createNode(final Treeable treeable)
     {
         JSONObject json = new JSONObject();
         json.accumulate("name", treeable.getName());
@@ -3329,12 +3329,12 @@ public class SpecifyExplorer extends HttpServlet
         json.accumulate("uiProvider", "col");
                
         JSONArray childrenArray = new JSONArray();
-        Set<Treeable<?,?,?>> children = (Set<Treeable<?,?,?>>)treeable.getChildren();
+        Set<Treeable> children = (Set<Treeable>)treeable.getChildren();
         json.accumulate("leaf", children.size() == 0);
         
         //json.accumulate("count", children.size());
         
-        for (Treeable<?,?,?> kid : children)
+        for (Treeable kid : children)
         {
             childrenArray.add(createNode(kid));
         }

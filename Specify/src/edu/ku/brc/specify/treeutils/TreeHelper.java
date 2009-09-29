@@ -166,9 +166,8 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode a tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
+    @SuppressWarnings("unchecked")
+    public static <T extends Treeable>
                          void fixFullnameForNodeAndDescendants(T treeNode)
     {
         // generics made it difficult to make this generic (that sounds weird)
@@ -294,9 +293,8 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode any tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
+    @SuppressWarnings("unchecked")
+    public static <T extends Treeable>
                         void initializeRelatedObjects(T treeNode)
     {
         if (treeNode instanceof Geography)
