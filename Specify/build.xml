@@ -3,32 +3,36 @@
 
 	<!-- Set up properties containing important project directories -->
 	
-	<property name="source.root" value="src" />
+	<property name="source.root" value="src"/>
 	
-	<property name="compile.src.root" value="compile-src" />
-	<property name="compile.dst.root" value="compile-dst" />
+	<property name="compile.src.root" value="compile-src"/>
+	<property name="compile.dst.root" value="compile-dst"/>
 	
 	<property name="class.root" value="compile-dst" />
 	
-	<property name="installer.dir" value="InstallerFiles" />
-	<property name="lib.dir" value="libs" />
-	<property name="hibernatelib.dir" value="hibernate_libs" />
-	<property name="externallib.dir" value="external_libs" />
-	<property name="ireport.dir" value="iReportLibs" />
-	<property name="system.dep.libs.dir" value="system_dep_libs" />
-	<property name="hibernate.properties" value="hibernate.properties" />
-	<property name="hibernate.cfg" value="hibernate.cfg.xml" />
-	<property name="dir.dest" value="dest" />
-	<property name="hibernate.generated.code.destdir" value="generated-src" />
+	<property name="installer.dir" value="InstallerFiles"/>
+	<property name="extmedia.dir" value="ExtMedia"/>
+	<property name="media.dir" value="Media"/>
+	<property name="rel.images.path" value="edu/ku/brc/specify/images"/>
+	<property name="alt.help.img.dir" value="help/images"/>
+		
+	<property name="config.dir" value="config"/>
+	<property name="help.dir" value="help"/>
+	<property name="lib.dir" value="libs"/>
+	<property name="hibernatelib.dir" value="hibernate_libs"/>
+	<property name="externallib.dir" value="external_libs"/>
+	<property name="ireport.dir" value="iReportLibs"/>
+	<property name="system.dep.libs.dir" value="system_dep_libs"/>
+	<property name="hibernate.properties" value="hibernate.properties"/>
+	<property name="hibernate.cfg" value="hibernate.cfg.xml"/>
+	<property name="dir.dest" value="dest"/>
+	<property name="hibernate.generated.code.destdir" value="generated-src"/>
 
 	<property name="data.dir" value="data" />
 
 	<!-- Needed for building help search index -->
 	<property name ="javahelp-home" value="/home/maureen/lib/jhindexer/jh2.0" />
 	<property name ="javahelp-home-mac" value="/Applications/jh2.0" />
-	
-	<!-- MMK: this was missing.  So was appdir.  -->
-	<property name="alt.help.img.dir" value="help/images"/>
 	
 	<!-- Needed for Packing on the Mac -->
 	<property name="packaging" value="packaging" />
@@ -70,22 +74,18 @@
 		
 	</path>
 
-	<target name="maureen" description="I think this works for a windows build">
-		<antcall target="dist-win-clean"/>
+	<target name="maureen-linux-installer" description="Build the Specify project for Linux and set up directories to run Install4J with packaging/huh-linux.install4j">
 		<antcall target="dist-linux-clean"/>
-		<antcall target="dist-mac-clean"/>
-		<antcall target="dist-prepare"/>
-		<antcall target="dist-compile"/>
-		<antcall target="dist-jar"/>
-		<antcall target="installer-linux"/>
-		<antcall target="build-help-index"/>
-		<antcall target="build-help-fulltext-win"/>
-		<antcall target="basic-non-mac-dist"/>
-		<antcall target="copy-alt-help-images"/>
+		<antcall target="installer-linux"/>   <!-- depends on installer-base which depends on dist-jar, which depends on dist-compile, which depends on dist-prepare; calls build-help-fulltext-linux, which depends on build-help-index -->
 	</target>
 	
+	<target name="maureen-win-installer" description="Build the Specify project for Windows and set up directories to run Install4J with packaging/huh-windows.install4j">
+		<antcall target="dist-win-clean"/>
+		<antcall target="installer-win"/>   <!-- depends on installer-base which depends on dist-jar, which depends on dist-compile, which depends on dist-prepare; calls build-help-fulltext-linux, which depends on build-help-index -->
+	</target>
+			
 	<!-- Prepare for Windows and Linux Compile -->
-	<target name="dist-prepare" description="Creates compile directories and copies properties and java source to them">
+	<target name="dist-prepare" description="Creates compile directories and copies properties files and java source to them from source tree">
 		
 		<mkdir dir="${compile.dst.root}" />
 		<mkdir dir="${compile.src.root}" />
@@ -94,6 +94,7 @@
 			<fileset dir="${source.root}">
 				<include name="**/*.properties" />
 				<include name="**/*.java" />
+				<include name="**/*.xml"/>
 			</fileset>
 		</copy>
 		
@@ -132,9 +133,20 @@
 		</javac>
 	</target>
 	
-	<!-- Jar up compiled classes for Windows and Linux-->
-	<target name="dist-jar" depends="" description="Creates specify.jar; copies it to webapp and upwebapp">
+	<!-- Jar up compiled classes-->
+	<target name="dist-jar" depends="dist-compile" description="Creates specify.jar; copies it to webapp and upwebapp">
 		
+		<copy todir="${compile.dst.root}">
+			<fileset dir="${source.root}">
+				<include name="**/*.properties"/>
+				<include name="**/*.xml"/>
+			</fileset>
+		</copy>
+
+		<copy todir="${compile.dst.root}/${rel.images.path}">
+			<fileset dir="${source.root}/${rel.images.path}"/>
+		</copy>
+			
 		<jar destfile="${jar.name}.jar">
 			<fileset dir="${class.root}">
 				<include name="**/*.class" />
@@ -146,50 +158,19 @@
         <copy file="${jar.name}.jar" todir="webapp/WEB-INF/lib" />
         <copy file="${jar.name}.jar" todir="upwebapp/WEB-INF/lib" />
 	</target>
-
-	<!-- Jar up compiled classes for Mac-->
-	<target name="dist-jar-mac" depends="" description="Creates specify.jar">
-		
-		<jar destfile="${jar.name}.jar">
-			<fileset dir="${class.root}">
-				<include name="**/*.class" />
-				<include name="**/*.properties" />
-				<include name="**/*.xml" />
-				<include name="**/images/**/*.*" />
-			</fileset>
-	    </jar>
-	</target>
-
-	<target name="dist-jar-mac-ls" depends="" description="Creates specify.jar">
-		
-		<jar destfile="${jar.name}.jar">
-			<fileset dir="${class.root}">
-				<include name="**/*.class" />
-				<include name="**/*.properties" />
-				<include name="**/*.xml" />
-				<exclude name="**/images/**/*.*" />
-			</fileset>
-	    </jar>
-	</target>
-	
-	<!-- Jar Clean Up -->
-	<target name="clean-jar" description="Deletes specify.jar">
-		<delete file="${jar.name}.jar" />
-	</target>
 	
 	<!-- *************************************************************
 	     Mac Common Components Build
 	     ************************************************************* -->
 	
-	<target name="installer-linux" depends="" description="Calls installer-base and copies non-mac-appliation-adapter.jar to installer dir">
-	    <antcall target="installer-base"/>
-		<copy file="./system_dep_libs/non-mac-application-adapter.jar" todir="${installer.dir}" />
-		<!--
-	    <antcall target="build-help-index"/>
+	<target name="installer-linux" depends="installer-base" description="calls build-help-fulltext-linux">
 	    <antcall target="build-help-fulltext-linux"/>
-	    -->
     </target>
 	
+	<target name="installer-win" depends="installer-base" description="calls build-help-fulltext-win">
+	    <antcall target="build-help-fulltext-win"/>
+    </target>
+		
 	<target name="installer-mac" depends="" description="Calls installer-base">
 	    <antcall target="installer-base"/>
 		<!--
@@ -198,41 +179,40 @@
 	    -->
     </target>
 	
-	<target name="installer-base" depends="" description="Deletes installer dir, recreates it, creates demo dir, calls clean-jar, calls dist-jar-mac, copies files to installer dir">
+	<target name="installer-base" depends="dist-jar" description="Creates installer dir, copies files to installer dir">
 		
-		<delete dir="${installer.dir}"/>
 		<mkdir dir="${installer.dir}" />
-		<mkdir dir="${installer.dir}/demo_files" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac"/>
-		
-		<!-- Copy config dir -->
-		<copy todir="${installer.dir}/config">
-			<fileset dir="config">
+		<copy todir="${installer.dir}/${config.dir}">
+			<fileset dir="${config.dir}">
 				<exclude name="**/*.svn" />
 			</fileset>
 		</copy>
-        <copy todir="${installer.dir}/hibernate_libs">
-			<fileset dir="hibernate_libs">
+        <copy todir="${installer.dir}/${hibernatelib.dir}">
+			<fileset dir="${hibernatelib.dir}">
 				<exclude name="**/*.svn" />
 			</fileset>
 		</copy>
-        <copy todir="${installer.dir}/iReportLibs">
-			<fileset dir="iReportLibs">
+        <copy todir="${installer.dir}/${ireport.dir}">
+			<fileset dir="${ireport.dir}">
 				<exclude name="**/*.svn" />
 			</fileset>
 		</copy>
-        <copy todir="${installer.dir}/libs">
-			<fileset dir="libs">
+        <copy todir="${installer.dir}/${lib.dir}">
+			<fileset dir="${lib.dir}">
                 <exclude name="**/*.svn" />
                 <exclude name="**/derby.jar" />
 			</fileset>
 		</copy>
+		<copy todir="${installer.dir}/${system.dep.libs.dir}">
+			<fileset dir="${system.dep.libs.dir}">
+				<exclude name="**/*.svn"/>
+			</fileset>
+		</copy>
 		
 		<!-- Copy Help -->
-		<copy todir="${installer.dir}/help">
-			<fileset dir="help">
+		<copy todir="${installer.dir}/${help.dir}">
+			<fileset dir="${help.dir}">
 				<include name="**/*" />
 				<exclude name="**/.svn" />
 				<exclude name="**/*.psd" />
@@ -242,62 +222,47 @@
 		<copy file="${jar.name}.jar" todir="${installer.dir}" />
 		
 		<!-- LINUX icons -->
-		<copy file="${source.root}/edu/ku/brc/specify/images/specify16.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/specify32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/specify16.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/specify32.png" todir="${installer.dir}/images" />
 		
-		<copy file="${source.root}/edu/ku/brc/specify/images/spireport32.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spireport16.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spireport32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spireport16.png" todir="${installer.dir}/images" />
 
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbackup32.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbackup16.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbackup32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbackup16.png" todir="${installer.dir}/images" />
 
-		<copy file="${source.root}/edu/ku/brc/specify/images/spwizard32.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spwizard16.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spwizard32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spwizard16.png" todir="${installer.dir}/images" />
 
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbuilder32.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbuilder16.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbuilder32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbuilder16.png" todir="${installer.dir}/images" />
 
-		<copy file="${source.root}/edu/ku/brc/specify/images/spstatistics32x32.png" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spstatistics16x16.png" todir="${installer.dir}/images" />	
+		<copy file="${source.root}/${rel.images.path}/spstatistics32x32.png" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spstatistics16x16.png" todir="${installer.dir}/images" />	
 		
 		<!-- WINDOWS icons -->
-		<copy file="${source.root}/edu/ku/brc/specify/images/specify128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbackup128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbuilder128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spireport128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spstatistics128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spwizard128.ico" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/data_split.ico" todir="${installer.dir}/images" />				
+		<copy file="${source.root}/${rel.images.path}/specify128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbackup128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbuilder128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spireport128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spstatistics128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spwizard128.ico" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/data_split.ico" todir="${installer.dir}/images" />				
 		
 		<!-- MAC OS X icons -->
-		<copy file="${source.root}/edu/ku/brc/specify/images/specify.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spwizard.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/backuprestore.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spireports.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/spbuilder.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/statistics.icns" todir="${installer.dir}/images" />
-		<copy file="${source.root}/edu/ku/brc/specify/images/data_split.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/specify.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spwizard.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/backuprestore.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spireports.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/spbuilder.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/statistics.icns" todir="${installer.dir}/images" />
+		<copy file="${source.root}/${rel.images.path}/data_split.icns" todir="${installer.dir}/images" />
 		
 		<copy file="packaging/readme.html" todir="${installer.dir}" />
 		<copy file="packaging/license_agreement.html" todir="${installer.dir}" />
 		<copy file="./packaging/SpecifyBigSplashBordered.png" todir="${installer.dir}" />
-		<rename src="${installer.dir}/SpecifyBigSplashBordered.png" dest="${installer.dir}/SpecifyBigSplash.png"/>
-     <!--  
-     	<copy file="./demo_files/Stratigraphy.csv" todir="${installer.dir}/config" />
-        <copy file="./demo_files/Stratigraphy.csv" todir="${installer.dir}/config" /> -->
-		<copy file="./demo_files/topbrc4.jpg" todir="${installer.dir}/demo_files" />
-        <copy file="./demo_files/topbrc195x68.png" todir="${installer.dir}/demo_files" />
-        <copy file="./demo_files/Geography.xls" todir="${installer.dir}/demo_files" />
-        <copy file="./demo_files/chronostrat_tree.xls" todir="${installer.dir}/demo_files" />
-		
-		<!-- Copy of Wizard Taxon Information -->
-		<copy todir="${installer.dir}/demo_files/taxonomy">
-			<fileset dir="demo_files/taxonomy">
-				<include name="**/*" />
-			</fileset>
-		</copy>
-		
-		
+		<move file="${installer.dir}/SpecifyBigSplashBordered.png" tofile="${installer.dir}/SpecifyBigSplash.png"/>
+
 	</target>
 	
 	<target name="installer-updater" depends="" description="deletes UpdaterInstall dir, calls dist-jar, copies files to UpdaterInstall dir">
@@ -385,16 +350,14 @@
 	<!-- *************************************************************
 	     Mac Distribution for the iReports4Specify
 	     ************************************************************* -->
-	<target name="dist-mac-irep" depends="" description="deletes iReports4Specify.app, calls clean-jar, dist-jar-mac, dist-mac-common, copies iReport files to appdir">
+	<target name="dist-mac-irep" depends="" description="deletes iReports4Specify.app, calls clean-jar, dist-jar, dist-mac-common, copies iReport files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/iReports4Specify.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
 	
 		<delete dir="${dist-mac}/iReports4Specify.app"/>
 		
-		<antcall target="clean-jar"/>
-		
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 		
 		<!-- Copy and Rename Info List -->
@@ -421,14 +384,12 @@
 	<!-- *************************************************************
 	     Mac Distribution for the Builder
 	     ************************************************************* -->
-	<target name="dist-mac-bld" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir">
+	<target name="dist-mac-bld" depends="" description="calls clean-jar, dist-jar, dist-mac-common, copies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifyBuilder.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
-
-		<antcall target="clean-jar"/>
 		
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 		
 		<!-- Copy and Rename Info List -->
@@ -449,15 +410,14 @@
 	<!-- *************************************************************
 	    Mac Distribution (Main Specify Application)
 	    ************************************************************* -->
-	<target name="dist-mac" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir, copies demo files to dist dir">
+	<target name="dist-mac" depends="" description="calls clean-jar, dist-jar, dist-mac-common, copies files to appdir, copies demo files to dist dir">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
 
-		<antcall target="clean-jar"/>
 		<delete dir="${dist-mac}"/>
 		
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 
 		<!-- Copy info list -->
@@ -492,13 +452,12 @@
 	<!-- *************************************************************
 	     Mac Schema Localizer Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-sl" depends="" description="calls clean-jar, dist-jar-mac-ls, dist-mac-common, coppies files to appdir">
+	<target name="dist-mac-sl" depends="" description="calls clean-jar, dist-jar, dist-mac-common, coppies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifySchema.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac-ls"/> <!-- No IMages -->
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 		
 		<!-- Copy and Rename Info List -->
@@ -512,13 +471,12 @@
 	<!-- *************************************************************
 	     Mac SpecifyDBInit Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-db-init" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-common, copies files to appdir">
+	<target name="dist-mac-db-init" depends="" description="calls clean-jar, dist-jar, dist-mac-common, copies files to appdir">
 		
 		<property name="appdir" value="${dist-mac}/SpecifyDBInit.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 		
 		<!-- Copy and Rename Info List -->
@@ -544,13 +502,12 @@
 	<!-- *************************************************************
 	    Mac Distribution OLD (Main Specify Application)
 	    ************************************************************* -->
-	<target name="dist-mac-old" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-clean, build-empty-derby-db, makes appdir/dist dir, copies files, executes mac developer command, calls build-help-index, build-help-fulltext-mac">
+	<target name="dist-mac-old" depends="" description="calls clean-jar, dist-jar, dist-mac-clean, build-empty-derby-db, makes appdir/dist dir, copies files, executes mac developer command, calls build-help-index, build-help-fulltext-mac">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-clean"/>
 		
 		<antcall target="build-empty-derby-db"/>
@@ -638,13 +595,12 @@
 	<!-- *************************************************************
 	     Mac WorkBench Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-wb" depends="" description="calls clean-jar, dist-jar-mac, dist-mac-clean, makes dirs, copies files, executes mac developer command">
+	<target name="dist-mac-wb" depends="" description="calls clean-jar, dist-jar, dist-mac-clean, makes dirs, copies files, executes mac developer command">
 		
 		<property name="appdir" value="${dist-mac}/${app.name}.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-clean"/>
 		
 		<!--
@@ -715,13 +671,12 @@
 	<!-- *************************************************************
 	     Mac Schema Localizer Application Build
 	     ************************************************************* -->
-	<target name="dist-mac-sl-old" depends="" description="calls clean-jar, dist-jar-mac-ls, dist-mac-clean, makes dirs, copies files, executes mac developer command">
+	<target name="dist-mac-sl-old" depends="" description="calls clean-jar, dist-jar, dist-mac-clean, makes dirs, copies files, executes mac developer command">
 		
 		<property name="appdir" value="${dist-mac}/SpecifySchema.app" />
 		<property name="derby.data.path" value="${dist-mac}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
-		<antcall target="dist-jar-mac-ls"/>
+		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-clean"/>
 		
 		<!--
@@ -824,62 +779,58 @@
 	<!-- *************************************************************
 	     Build Help Index
 	     ************************************************************* -->
-	<target name="build-help-index" description="calls edu.ku.brc.util.HelpIndexer">		
+	<target name="build-help-index" depends="" description="calls edu.ku.brc.util.HelpIndexer">		
 		<java classname="edu.ku.brc.util.HelpIndexer" fork="true">
-		    <classpath refid="project.class.path" />
-			<arg value="${appdir}/help/SpecifyHelp.jhm"/>
-			<arg value="${appdir}/help/SpecifyHelp"/>
-			<arg value="${appdir}/help/SpecifyHelpIndex.xml"/>
+		    <classpath refid="project.class.path"/>
+			<arg value="${installer.dir}/help/SpecifyHelp.jhm"/>      <!-- map file    -->
+			<arg value="${installer.dir}/help/SpecifyHelp"/>          <!-- help dir    -->
+			<arg value="${installer.dir}/help/SpecifyHelpIndex.xml"/> <!-- output file -->
 		</java>
 	</target>
 	
 	<!-- *************************************************************
 	     Build Help FullText Index
 	     ************************************************************* -->
-	
-	<target name="delete-config-files" description="deletes SearchConfig.txt from appdir/help/distdir">
-		  <delete file="${appdir}/help/${dist-linux}SearchConfig.txt"/>		
-		  <delete file="${appdir}/help/${dist-mac}SearchConfig.txt"/>		
-		  <delete file="${appdir}/help/${dist-win}SearchConfig.txt"/>		
-	</target>
 
-	<target name="build-help-fulltext-linux" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for linux dist">
-	  <java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${appdir}/help/">
-	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
-	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
-	  	<arg value="-c" />
-	  	<arg value="${dist-linux}SearchConfig.txt"/>
-	  	<arg value="-db" />
-	  	<arg value="SpecifyHelpSearchIndex"/>
-	    <arg value="SpecifyHelp"/>
-	  </java>
-		<antcall target="delete-config-files"/>
+	<target name="build-help-fulltext-linux" depends="build-help-index" description="runs javahelp/bin/jhindexer.jar on linux-distSearchConfig.txt, deletes same file after">
+	  	<java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${installer.dir}/${help.dir}">
+	  		<!-- if definitions for dist-linux,dist-mac, or dist-win change then
+	  			 contents of xxxSearchConfig.txt files will need to be changed accordingly -->
+	  		<arg value="-c" />
+	  		<arg value="${dist-linux}SearchConfig.txt"/>
+	  		<arg value="-db" />
+	  		<arg value="SpecifyHelpSearchIndex"/>
+	    	<arg value="SpecifyHelp"/>
+	 	</java>
+		
+		<delete file="${installer.dir}/${help.dir}/${dist-linux}SearchConfig.txt"/>	
 	</target>
 	
-	<target name="build-help-fulltext-mac" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for mac dist">
+	<target name="build-help-fulltext-mac" depends="build-help-index" description="runs javahelp/bin/jhindexer.jar on mac-distSearchConfig.txt, deletes same file after">
 	  <java jar="${javahelp-home-mac}/javahelp/bin/jhindexer.jar" fork="true">
-	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
-	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
-	  	<arg value="-c" />
-	  	<arg value="${installer.dir}/help/${dist-mac}SearchConfig.txt"/>
-	  	<arg value="-db" />
-	  	<arg value="${installer.dir}/help/SpecifyHelpSearchIndex"/>
-	    <arg value="${installer.dir}/help/SpecifyHelp"/>
-	  </java>
-		<antcall target="delete-config-files"/>
+	  		<!-- if definitions for dist-linux,dist-mac, or dist-win change then
+	  			 contents of xxxSearchConfig.txt files will need to be changed accordingly -->
+	 	 	<arg value="-c" />
+	 	 	<arg value="${installer.dir}/help/${dist-mac}SearchConfig.txt"/>
+	 	 	<arg value="-db" />
+	 	 	<arg value="${installer.dir}/help/SpecifyHelpSearchIndex"/>
+		    <arg value="${installer.dir}/help/SpecifyHelp"/>
+	  	</java>
+		
+		<delete file="${appdir}/help/${dist-mac}SearchConfig.txt"/>	
 	</target>
 	
-	<target name="build-help-fulltext-win" description="runs javahelp/bin/jhindexer.jar on dist/SearchConfig.txt for win dist">
-	  <java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${appdir}/help/">
-	  	<!-- if definitions for dist-linux,dist-mac, or dist-win change then
-	  		contents of xxxSearchConfig.txt files will need to be changed accordingly -->
-	  	<arg value="-c" />
-	  	<arg value="${installer.dir}SearchConfig.txt"/>
-	  	<arg value="-db" />
-	  	<arg value="SpecifyHelpSearchIndex"/>
-	    <arg value="SpecifyHelp"/>
-	  </java>
-		<antcall target="delete-config-files"/>
+	<target name="build-help-fulltext-win" depends="build-help-index" description="runs javahelp/bin/jhindexer.jar on win-distSearchConfig.txt, deletes same file after">
+	  	<java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${installer.dir}/${help.dir}">
+	  		<!-- if definitions for dist-linux,dist-mac, or dist-win change then
+	  			contents of xxxSearchConfig.txt files will need to be changed accordingly -->
+	  			<arg value="-c" />
+	  			<arg value="${dist-win}SearchConfig.txt"/>
+	  			<arg value="-db" />
+	  			<arg value="SpecifyHelpSearchIndex"/>
+	  		  <arg value="SpecifyHelp"/>
+	 	 </java>
+		<delete file="${installer.dir}/${help.dir}/${dist-win}SearchConfig.txt"/>
 	</target>
 	
 	<!-- *************************************************************
@@ -945,7 +896,7 @@
 	<target name="dist-win-update" description="calls clean-jar, dist-jar, basic-non-mac-dist, copy-alt-help-images">
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
-		<antcall target="clean-jar"/>
+
 		<antcall target="dist-jar"/>
 		<antcall target="basic-non-mac-dist"/>
 		<!-- Copy Alt Help Image Files -->
@@ -958,7 +909,6 @@
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
 		<antcall target="dist-win-clean"/>
 		<antcall target="dist-jar"/>
 		
@@ -1000,7 +950,6 @@
 		<property name="appdir" value="${dist-win}/Specify" />
 		<property name="derby.data.path" value="${dist-win}/DerbyDatabases" />
 		
-		<antcall target="clean-jar"/>
 		<antcall target="dist-jar"/>
 		
 		<copy file="${jar.name}.jar" todir="${appdir}/libs" />
@@ -1010,12 +959,10 @@
 	<!-- *************************************************************
 	     Linux Distribution
 	     ************************************************************* -->
-	<target name="dist-linux" description="clean-jar, dist-linux-clean, dist-jar, build-empty-derby-db, basic-non-mac-dist, build-help-index, build-help-fulltext-linux, copy-alt-help-images">
+	<target name="dist-linux" description="dist-linux-clean, dist-jar, build-empty-derby-db, basic-non-mac-dist, build-help-index, build-help-fulltext-linux, copy-alt-help-images">
 		
 		<property name="appdir" value="${dist-linux}/Specify" />
 		<property name="derby.data.path" value="${dist-linux}/DerbyDatabases" />
-		
-		<antcall target="clean-jar"/>
 		
 		<antcall target="dist-linux-clean"/>
 		
@@ -1084,18 +1031,26 @@
 	<!--*************************************************************
 	     Clean Distributions
 	    ************************************************************* -->
-	<target name="dist-mac-clean" description="deletes dist-mac dir">
+	<target name="dist-base-clean" description="deletes compile src, compile dist, installer, extmedia dirs, specify.jar">
+		<delete dir="${compile.src.root}"/>
+		<delete dir="${compile.dst.root}"/>
+		<delete dir="${installer.dir}"/>
+		<delete dir="${extmedia.dir}"/>
+		<delete file="${jar.name}.jar"/>
+	</target>
+	
+	<target name="dist-mac-clean" description="deletes dist-mac dir" depends="dist-base-clean">
 		<delete dir="${dist-mac}"/>
     </target>
 	
-	<target name="dist-win-clean" description="deletes dist-win dir">
-		<delete dir="${compile.src.root}"/>
-		<delete dir="${compile.dist.root}"/>
+	<target name="dist-win-clean" description="deletes dist-win dir" depends="dist-base-clean">
 		<delete dir="${dist-win}"/>
+		<delete dir="${media.dir}"/>
     </target>
 	
-	<target name="dist-linux-clean" description="deletes dist-linux dir">
+	<target name="dist-linux-clean" description="deletes dist-linux dir" depends="dist-base-clean">
 		<delete dir="${dist-linux}"/>
+		<delete dir="${media.dir}"/>
     </target>
 	
 </project>
