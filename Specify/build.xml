@@ -11,7 +11,6 @@
 	<property name="class.root" value="compile-dst" />
 	
 	<property name="installer.dir" value="InstallerFiles"/>
-	<property name="extmedia.dir" value="ExtMedia"/>
 	<property name="media.dir" value="Media"/>
 	<property name="rel.images.path" value="edu/ku/brc/specify/images"/>
 	<property name="alt.help.img.dir" value="help/images"/>
@@ -84,6 +83,11 @@
 		<antcall target="installer-win"/>   <!-- depends on installer-base which depends on dist-jar, which depends on dist-compile, which depends on dist-prepare; calls build-help-fulltext-linux, which depends on build-help-index -->
 	</target>
 			
+	<target name="maureen-mac-installer" description="Build the Specify project for Mac and set up directories to run Install4J with packaging/huh-mac.install4j">
+		<antcall target="dist-mac-clean"/>
+		<antcall target="installer-mac"/>
+	</target>
+		
 	<!-- Prepare for Windows and Linux Compile -->
 	<target name="dist-prepare" description="Creates compile directories and copies properties files and java source to them from source tree">
 		
@@ -116,21 +120,13 @@
 		
 	</target>
 
-	<!-- Compile the java source of the project Windows and Linux -->
+	<!-- Compile the java source of the project Windows, Mac and Linux -->
 	<target name="dist-compile" depends="dist-prepare" description="Compiles all java classes in compile directories">
 		
 		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on">
 			<classpath refid="project.class.path" />
 		</javac>
 		
-	</target>
-	
-	<!-- Compile the java source of the project Mac-->
-	<target name="dist-compile-mac" depends="dist-prepare-mac" description="Compiles all java classes in compile directories">
-		
-		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on">
-			<classpath refid="project.class.path" />
-		</javac>
 	</target>
 	
 	<!-- Jar up compiled classes-->
@@ -159,10 +155,6 @@
         <copy file="${jar.name}.jar" todir="upwebapp/WEB-INF/lib" />
 	</target>
 	
-	<!-- *************************************************************
-	     Mac Common Components Build
-	     ************************************************************* -->
-	
 	<target name="installer-linux" depends="installer-base" description="calls build-help-fulltext-linux">
 	    <antcall target="build-help-fulltext-linux"/>
     </target>
@@ -171,12 +163,8 @@
 	    <antcall target="build-help-fulltext-win"/>
     </target>
 		
-	<target name="installer-mac" depends="" description="Calls installer-base">
-	    <antcall target="installer-base"/>
-		<!--
-	    <antcall target="build-help-index"/>
+	<target name="installer-mac" depends="installer-base" description="Calls installer-base">
 	    <antcall target="build-help-fulltext-mac"/>
-	    -->
     </target>
 	
 	<target name="installer-base" depends="dist-jar" description="Creates installer dir, copies files to installer dir">
@@ -287,37 +275,36 @@
 	     ************************************************************* -->
 	<target name="dist-mac-common" depends="" description="makes mac dirs, calls build-help-index and build-help-fulltext-mac">
 		
-		<mkdir dir="${dist-mac}" />
-		<mkdir dir="${appdir}" />
-		<mkdir dir="${appdir}/Contents" />
-		<mkdir dir="${appdir}/Contents/MacOS" />
-		<mkdir dir="${appdir}/Contents/Resources" />
-		<mkdir dir="${appdir}/Contents/Resources/Java" />
-		<mkdir dir="${appdir}/Contents/Resources/Java/src" />
-		<mkdir dir="${appdir}/Contents/Resources/Java/config" />
-		<mkdir dir="${appdir}/Contents/Resources/Java/demo_files" />
-		<mkdir dir="${appdir}/Contents/Resources/Java/system_dep_libs" />
-		<mkdir dir="${appdir}/Contents/Resources/Java/system_dep_libs/mac" />
+		<mkdir dir="${dist-mac}"/>
+		<mkdir dir="${installer.dir}/Contents/MacOS"/>
+		<mkdir dir="${installer.dir}/Contents/Resources/Java/src"/>
+		<mkdir dir="${installer.dir}/Contents/Resources/Java/config"/>
+		<mkdir dir="${installer.dir}/Contents/Resources/Java/demo_files"/>
+		<mkdir dir="${installer.dir}/Contents/Resources/Java/system_dep_libs"/>
+		<mkdir dir="${installer.dir}/Contents/Resources/Java/system_dep_libs/mac"/>
 		
 		<!-- Copy Application Stub Compile the java source of the project -->
-		<copy file="${packaging}/JavaApplicationStub" todir="${appdir}/Contents/MacOS" />
-		<exec command="chmod 755 ${appdir}/Contents/MacOS/JavaApplicationStub" />
+		<copy file="${packaging}/JavaApplicationStub" todir="${installer.dir}/Contents/MacOS" />
+		<exec executable="chmod">
+			<arg value="755"/>
+			<arg value="${installer.dir}/Contents/MacOS/JavaApplicationStub"/>
+		</exec>
 
 		<!-- Copy config dir -->
-		<copy todir="${appdir}/Contents/Resources/Java/config">
+		<copy todir="${installer.dir}/Contents/Resources/Java/config">
 			<fileset dir="config">
 				<exclude name="**/*.svn" />
 			</fileset>
 		</copy>
 		
 		<!-- Copy the main app jar -->
-		<copy file="${jar.name}.jar" todir="${appdir}/Contents/Resources/Java" />
+		<copy file="${jar.name}.jar" todir="${installer.dir}/Contents/Resources/Java" />
 
 		<!-- Copy Icons -->
-		<copy file="${packaging}/specify.icns" todir="${appdir}/Contents/Resources" />
+		<copy file="${packaging}/specify.icns" todir="${installer.dir}/Contents/Resources" />
 
 		<!-- Libraries / Jars -->
-		<copy todir="${appdir}/Contents/Resources/Java">
+		<copy todir="${installer.dir}/Contents/Resources/Java">
 			<fileset dir="libs">
 				<include name="*.jar" />
 				<exclude name="**/json-lib.jar" />
@@ -332,18 +319,15 @@
 		</copy>
 
 		<!-- Tell OS the dir is an App -->
-		<exec command="/Developer/Tools/SetFile -a B ${appdir}" />
+		<!-- <exec command="/Developer/Tools/SetFile -a B ${installer.dir}" /> -->
 
 		<!-- Copy Help -->
-		<copy todir="${appdir}/Contents/Resources/Java/help">
+		<copy todir="${installer.dir}/Contents/Resources/Java/help">
 			<fileset dir="help">
 				<exclude name="**/.svn" />
 				<exclude name="**/*.psd" />
 			</fileset>
 		</copy>
-		
-	    <antcall target="build-help-index"/>
-	    <antcall target="build-help-fulltext-mac"/>
 
     </target>
 	
@@ -412,29 +396,26 @@
 	    ************************************************************* -->
 	<target name="dist-mac" depends="" description="calls clean-jar, dist-jar, dist-mac-common, copies files to appdir, copies demo files to dist dir">
 		
-		<property name="appdir" value="${dist-mac}/${app.name}.app" />
+		<!--<property name="appdir" value="${dist-mac}/${app.name}.app" /> -->
 		<property name="derby.data.path" value="${dist-mac}" />
 
-		<delete dir="${dist-mac}"/>
-		
-		<antcall target="dist-jar"/>
 		<antcall target="dist-mac-common"/>
 
 		<!-- Copy info list -->
-		<copy file="${packaging}/Info.plist" todir="${appdir}/Contents" />
+		<copy file="${packaging}/Info.plist" todir="${install.dir}/Contents" />
 
 		<!-- Copy PkgInfo -->
-		<copy file="${packaging}/PkgInfo" todir="${appdir}/Contents" />
+		<copy file="${packaging}/PkgInfo" todir="${install.dir}/Contents" />
 
 		<!-- Copy demo_files dir -->
-		<copy todir="${appdir}/Contents/Resources/Java/demo_files">
+		<!--<copy todir="${appdir}/Contents/Resources/Java/demo_files">
 			<fileset dir="demo_files">
 				<exclude name="**/.svn" />
 				<exclude name="**/.csv" />
 				<exclude name="**/.jrxml" />
 				<include name="**/topbrc195x68.png" />
 			</fileset>
-		</copy>
+		</copy> -->
 		
 		<!-- Testing Alt Help 
 		<property name="alt.help.img.dir" value="AltHelpImages/Windows"/>
@@ -807,14 +788,14 @@
 	</target>
 	
 	<target name="build-help-fulltext-mac" depends="build-help-index" description="runs javahelp/bin/jhindexer.jar on mac-distSearchConfig.txt, deletes same file after">
-	  <java jar="${javahelp-home-mac}/javahelp/bin/jhindexer.jar" fork="true">
+	  <java jar="${javahelp-home}/javahelp/bin/jhindexer.jar" fork="true" dir="${installer.dir}/${help.dir}">
 	  		<!-- if definitions for dist-linux,dist-mac, or dist-win change then
 	  			 contents of xxxSearchConfig.txt files will need to be changed accordingly -->
 	 	 	<arg value="-c" />
-	 	 	<arg value="${installer.dir}/help/${dist-mac}SearchConfig.txt"/>
+	 	 	<arg value="${dist-mac}SearchConfig.txt"/>
 	 	 	<arg value="-db" />
-	 	 	<arg value="${installer.dir}/help/SpecifyHelpSearchIndex"/>
-		    <arg value="${installer.dir}/help/SpecifyHelp"/>
+	 	 	<arg value="SpecifyHelpSearchIndex"/>
+		    <arg value="SpecifyHelp"/>
 	  	</java>
 		
 		<delete file="${appdir}/help/${dist-mac}SearchConfig.txt"/>	
@@ -1035,7 +1016,7 @@
 		<delete dir="${compile.src.root}"/>
 		<delete dir="${compile.dst.root}"/>
 		<delete dir="${installer.dir}"/>
-		<delete dir="${extmedia.dir}"/>
+		<delete dir="${media.dir}"/>
 		<delete file="${jar.name}.jar"/>
 	</target>
 	
@@ -1045,12 +1026,10 @@
 	
 	<target name="dist-win-clean" description="deletes dist-win dir" depends="dist-base-clean">
 		<delete dir="${dist-win}"/>
-		<delete dir="${media.dir}"/>
     </target>
 	
 	<target name="dist-linux-clean" description="deletes dist-linux dir" depends="dist-base-clean">
 		<delete dir="${dist-linux}"/>
-		<delete dir="${media.dir}"/>
     </target>
 	
 </project>
