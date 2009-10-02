@@ -85,7 +85,7 @@
 			
 	<target name="maureen-mac-installer" description="Build the Specify project for Mac and set up directories to run Install4J with packaging/huh-mac.install4j">
 		<antcall target="dist-mac-clean"/>
-		<antcall target="installer-mac"/>
+		<antcall target="installer-mac"/>   <!-- depends on installer-base which depends on dist-jar, which depends on dist-compile, which depends on dist-prepare; calls build-help-fulltext-linux, which depends on build-help-index -->
 	</target>
 		
 	<!-- Prepare for Windows and Linux Compile -->
@@ -163,7 +163,7 @@
 	    <antcall target="build-help-fulltext-win"/>
     </target>
 		
-	<target name="installer-mac" depends="installer-base" description="Calls installer-base">
+	<target name="installer-mac" depends="installer-base" description="Calls installer-base; you must build on Mac">
 	    <antcall target="build-help-fulltext-mac"/>
     </target>
 	
