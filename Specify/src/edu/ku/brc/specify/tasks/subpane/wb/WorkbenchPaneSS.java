@@ -1996,6 +1996,7 @@ public class WorkbenchPaneSS extends BaseSubPane
                     // this could be a number format exception
                     // or a null pointer exception if the field was empty
                     // either way, we'll just treat this record as though it only has lat1 and lon1
+                    newLoc = new SimpleMapLocation(latitude,longitude,null,null);
                 }
             }
             else // use just the point
