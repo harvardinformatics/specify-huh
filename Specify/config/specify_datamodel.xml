@@ -147,7 +147,7 @@
       <field column="Initials" name="initials" type="java.lang.String" length="8" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="Interests" name="interests" type="java.lang.String" length="255" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="JobTitle" name="jobTitle" type="java.lang.String" length="50" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
-      <field column="LastName" name="lastName" type="java.lang.String" length="50" indexName="AgentLastNameIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
+      <field column="LastName" name="lastName" type="java.lang.String" length="200" indexName="AgentLastNameIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="MiddleInitial" name="middleInitial" type="java.lang.String" length="50" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="Remarks" name="remarks" type="text" length="4096" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="TimestampCreated" name="timestampCreated" type="java.sql.Timestamp" updatable="false" required="true" unique="false" indexed="false" partialDate="false"/>
