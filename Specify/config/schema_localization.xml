@@ -15401,7 +15401,7 @@
         </names>
         <descs/>
       </item>
-      <item name="localityName" type="java.lang.String" isUIFormatter="false" pickListName="HUH Locality Name" isRequired="true">
+      <item name="localityName" type="java.lang.String" isUIFormatter="false" isRequired="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
