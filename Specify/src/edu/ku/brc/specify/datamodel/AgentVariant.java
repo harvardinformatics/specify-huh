@@ -50,6 +50,7 @@ public class AgentVariant extends DataModelObjBase implements Serializable
     public static final Byte AUTHOR        = 2;
     public static final Byte AUTHOR_ABBREV = 3;
     public static final Byte LABLELNAME    = 4;
+    public static final Byte FULLNAME      = 5;
     
     protected Integer            agentVariantId;
     protected String             country;    // Java Two Character Code
