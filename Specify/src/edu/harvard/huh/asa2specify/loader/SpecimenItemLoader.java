@@ -99,7 +99,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	
 	// This is the next available barcode for items without them.
 	// Check with specimen_item_id_barcode.csv
-	private int nextBarcode = 900000012;
+	private int nextBarcode = 900000013;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
