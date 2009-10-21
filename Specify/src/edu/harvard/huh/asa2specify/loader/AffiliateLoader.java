@@ -201,7 +201,7 @@ public class AffiliateLoader extends AuditedObjectLoader
 		// LastName
 		String lastName = affiliate.getSurname();
 		checkNull(lastName, "lastName");
-		lastName = truncate(lastName, 50, "last name");
+		lastName = truncate(lastName, 200, "last name");
 		agent.setLastName(lastName);
 		
         // Remarks

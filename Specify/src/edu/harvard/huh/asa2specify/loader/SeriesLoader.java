@@ -159,7 +159,7 @@ public class SeriesLoader extends CsvToSqlLoader
 		String name = series.getName();
 		checkNull(name, "name");
 		
-		name = truncate(name, 50, "name");
+		name = truncate(name, 200, "name");
 		agent.setLastName(name);
 
 		// Remarks

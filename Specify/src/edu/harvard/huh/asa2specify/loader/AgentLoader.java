@@ -240,7 +240,7 @@ public class AgentLoader extends CsvToSqlLoader
 		// LastName
 		String lastName = asaAgent.getLastName();
 		checkNull(lastName, "last name");
-		lastName = truncate(lastName, 50, "last name");
+		lastName = truncate(lastName, 200, "last name");
 		agent.setLastName(lastName);
   
 		// ParentOrganziation

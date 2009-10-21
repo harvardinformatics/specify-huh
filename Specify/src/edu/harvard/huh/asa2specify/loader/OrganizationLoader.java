@@ -187,7 +187,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 		// LastName
 		String lastName = organization.getName();
 		checkNull(lastName, "name");
-		lastName = truncate(lastName, 50, "name");
+		lastName = truncate(lastName, 200, "name");
 		agent.setLastName(lastName);
 
 		// Remarks

@@ -202,7 +202,7 @@ public class BotanistLoader extends AuditedObjectLoader
         
         // LastName
 		String lastName = botanist.getLastName();
-		lastName = truncate(lastName, 50, "last name");
+		lastName = truncate(lastName, 200, "last name");
         agent.setLastName(lastName);
 
 		// Remarks

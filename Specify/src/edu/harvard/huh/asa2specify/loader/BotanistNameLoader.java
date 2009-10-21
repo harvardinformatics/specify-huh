@@ -107,6 +107,7 @@ public class BotanistNameLoader extends CsvToSqlLoader
         else if (nameType == TYPE.AuthorAbbrev) varType = AgentVariant.AUTHOR_ABBREV;
         else if (nameType == TYPE.Collector   ) varType = AgentVariant.LABLELNAME;
         else if (nameType == TYPE.Variant     ) varType = AgentVariant.VARIANT;
+        else if (nameType == TYPE.FullName    ) varType = AgentVariant.FULLNAME;
         
         else throw new IllegalArgumentException("Invalid BotanistName type");
 
