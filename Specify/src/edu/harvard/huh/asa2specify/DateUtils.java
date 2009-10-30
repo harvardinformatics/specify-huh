@@ -42,6 +42,22 @@ public class DateUtils {
 	    return c;
 	}
 	
+	public static Calendar toCalendar(Integer year, Integer month)
+	{
+		Calendar c = toCalendar(year);
+		c.set(Calendar.MONTH, month);
+		
+		return c;
+	}
+	
+	public static Calendar toCalendar(Integer year, Integer month, Integer day)
+	{
+		Calendar c = toCalendar(year, month);
+		c.set(Calendar.DAY_OF_MONTH, day);
+		
+		return c;
+	}
+	
     public static String toString(Date d)
     {
         if (d == null) return "null";
