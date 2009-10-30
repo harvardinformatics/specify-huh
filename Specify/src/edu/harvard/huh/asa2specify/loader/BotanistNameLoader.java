@@ -95,7 +95,7 @@ public class BotanistNameLoader extends CsvToSqlLoader
         checkNull(name, "name");
 
         name = truncate(name, 255, "name");
-        agentVariant.setName(botanistName.getName());
+        agentVariant.setName(name);
         
         // Type
         Byte varType;
