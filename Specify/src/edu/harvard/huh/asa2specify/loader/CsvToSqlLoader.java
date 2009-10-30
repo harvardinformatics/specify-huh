@@ -154,6 +154,8 @@ public abstract class CsvToSqlLoader
     
     protected String truncate(String s, int len, String fieldName)
     {
+        if (s == null) return s;
+        
         if (s.length() > len)
         {
             getLogger().warn(rec() + "Truncating " + fieldName + ": " + s);
