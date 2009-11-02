@@ -446,7 +446,7 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
             if (!contains(agent, discipline))
             {
                 agent.getDisciplines().add(discipline);
-                discipline.getAgents().add(agent);
+                //discipline.getAgents().add(agent);
             }
         }
     }
