@@ -758,7 +758,7 @@ public class BuildSampleDatabase
                                                  lithoStratTreeDef);
         
         userAgent.getDisciplines().add(discipline);
-        discipline.getAgents().add(userAgent);
+        //discipline.getAgents().add(userAgent);
 
         persist(division);
         persist(discipline);
