@@ -38,6 +38,19 @@
             </altviews>
         </view>
         
+        <view name="CollectionObjectBrief"
+            class="edu.ku.brc.specify.datamodel.CollectionObject"
+            busrules="edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules"
+            isinternal="false"
+            resourcelabels="false"
+            >
+            <desc><![CDATA[The Collection Object form.]]></desc>
+            <altviews>
+                <altview name="Collection Object Brief View" viewdef="Collection Object Brief" mode="view"/>
+                <altview name="Collection Object Brief Edit" viewdef="Collection Object Brief" mode="edit" default="true"/>
+            </altviews>
+        </view>
+        
         <view name="Determination"
             class="edu.ku.brc.specify.datamodel.Determination"
             busrules="edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules" 
@@ -140,6 +153,55 @@
             </rows>
         </viewdef>
         
+        <viewdef
+            name="Collection Object Brief"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.CollectionObject"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[The Collection Object Short form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,2px,220px,5px:g,p,2px,255px,5px:g,p,2px,200px,p,p:g</columnDef>
+            <columnDef>100px,2px,200px,5px,100px,2px,210px,5px,100px,2px,101px,15px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,215px,5px,138px,2px,255px,5px,138px,2px,155px,15px,p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="catalogNumber" uitype="formattedtext"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="cataloger" uitype="querycbx" initialize="name=Agent;title=Catalog Agent" isrequired="true"/>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" uitype="plugin" name="this" initialize="name=PartialDateUI;df=catalogedDate;tp=catalogedDatePrecision" uifieldformatter="Date"/>
+                    <!-- <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="projectNumber" uitype="text"/> -->
+                </row>
+                <row>
+                	<cell type="label" labelfor="fieldNumber"/>
+                	<cell type="field" id="fieldNumber" name="fieldNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="collEventLocality"/>
+                    <cell type="field" id="collEventLocality" name="collectingEvent.locality" uitype="querycbx" initialize="name=Locality;title=Locality" colspan="8"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="collEventStartDate"/>
+                    <cell type="field" id="collEventStartDate" uitype="plugin" name="collectingEvent.startDate" initialize="name=PartialDateUI;df=startDate;tp=startDatePrecision" uifieldformatter="Date"/>
+                    <cell type="label" labelfor="collEventEndDate"/>
+                    <cell type="field" id="collEventEndDate" uitype="plugin" name="collectingEvent.endDate" initialize="name=PartialDateUI;df=endDate;tp=endDatePrecision" uifieldformatter="Date"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="Determination" id="6" name="determinations" colspan="13" rows="6"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="Collector" id="collEventCollectors" name="collectingEvent.collectors" colspan="9" rows="3"/>
+                </row>
+            </rows>
+        </viewdef>
         
         <viewdef
             type="formtable"
