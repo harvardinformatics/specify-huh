@@ -659,9 +659,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Agent subform for Acessions.]]></desc>
 
-            <columnDef os="exp">p,     2px, 190px, 5px:g, p,     2px, 190px, 5px:g, p,     2px,  89px, 2px, p,    p,    p:g</columnDef>
-            <columnDef>         100px, 2px, 190px, 5px,   100px, 2px, 190px, 5px,   105px, 2px,  89px, 2px, 35px, 15px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 230px, 5px,   120px, 2px, 230px, 5px,   139px, 2px, 125px, 2px, 38px, 15px, p:g</columnDef>
+            <columnDef>         100px, 2px, 190px,        5px,   100px, 2px, 190px,        5px,   105px, 2px,  89px, 2px, 35px, 15px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 200px,        5px,   115px, 2px, 200px,        5px,   119px, 2px, 115px, 2px, 35px, 15px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 230px,        5px,   120px, 2px, 230px,        5px,   139px, 2px, 125px, 2px, 38px, 15px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;190px), 5px:g, p,     2px, max(p;190px), 5px:g, p,     2px,  89px, 2px, p,    p,    p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
             <rows>
@@ -687,6 +688,8 @@
                 	<cell type="field" id="19" name="dateOfBirth" uitype="formattedtext" uifieldformatter="Date"/>
                 	<cell type="label" labelfor="20" />
                 	<cell type="field" id="20" name="dateOfDeath" uitype="formattedtext" uifieldformatter="Date"/>
+                	<cell type="label" labelfor="datesType"/>
+                	<cell type="field" id="datesType" name="initials" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
                 </row>
                 <!-- "GUID:" <row>
                 	<cell type="label" labelfor="11" />

@@ -200,6 +200,13 @@ public class BotanistLoader extends AuditedObjectLoader
         String guid = getGuid(botanistId);
         agent.setGuid(guid);
         
+        // Initials (note: we are using this for the dates type) TODO: enumeration
+        String datesType = botanist.getDatesType();
+        if (datesType.equals("birth/death"))             agent.setInitials("birth");
+        else if (datesType.equals("flourished"))         agent.setInitials("fl");
+        else if (datesType.equals("collected"))          agent.setInitials("coll");
+        else if (datesType.equals("received specimens")) agent.setInitials("rec");
+        
         // LastName
 		String lastName = botanist.getLastName();
 		lastName = truncate(lastName, 200, "last name");
@@ -209,10 +216,9 @@ public class BotanistLoader extends AuditedObjectLoader
         String remarks = botanist.getRemarks();
         String authorNote = botanist.getAuthorNote();
         String collectorNote = botanist.getCollectorNote();
-        String datesType = "[dates type: " + botanist.getDatesType() + "]";
+        //String datesType = "[dates type: " + botanist.getDatesType() + "]";
         
-        if (remarks != null) remarks = remarks + " " + datesType;
-        else remarks = datesType;
+        if (remarks == null) remarks = "";
         
         if (authorNote != null) remarks = remarks + " [author note: " + authorNote + "]";
         

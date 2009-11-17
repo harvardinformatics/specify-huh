@@ -218,6 +218,14 @@
       <picklistitem title="Label Name" value="4"/>
     </items>
   </picklist>
+  <picklist name="HUH Agent Dates Type" issystem="true" type="0" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="Birth/Death" value="birth"/>
+      <picklistitem title="Flourished" value="fl"/>
+      <picklistitem title="Collected" value="coll"/>
+      <picklistitem title="Received Specimens" value="rec"/>
+    </items>
+  </picklist>
   <picklist name="HUH CITES Status" type="0" issystem="false" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="[none]" value="None"/>
