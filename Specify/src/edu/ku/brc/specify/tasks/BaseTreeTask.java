@@ -331,7 +331,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     	            {
     	                super.finished();
     	                ContextMgr.requestContext(BaseTreeTask.this);
-    	                currentDefInUse = true;
+    	                currentDefInUse = isEditable;
     	                visibleSubPane = treeViewer;
     	                addSubPaneToMgr(treeViewer);
     	                isOpeningTree = false;
