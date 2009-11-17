@@ -765,8 +765,22 @@ public class ReportsBaseTask extends BaseTask
                 cmdAction.setProperty("file",  "LoanInvoice.jrxml");
                 cmdAction.setProperty("title", "Loan Invoice");
             }
-
-
+/*            else if (recordSet != null && recordSet.getDbTableId() != null && recordSet.getDbTableId() == 18 && cmdAction.getPropertyAsString("title") == null)
+            {
+                cmdAction.setProperty("file", "BorrowShippingNotice.jrxml");
+                cmdAction.setProperty("title", "Borrow Form");
+            }
+            else if (recordSet != null && recordSet.getDbTableId() != null && recordSet.getDbTableId() == 40 && cmdAction.getPropertyAsString("title") == null)
+            {
+                cmdAction.setProperty("file", "BorrowShippingNotice.jrxml");
+                cmdAction.setProperty("title", "Ougoing Exchange Form");
+            }
+            else if (recordSet != null && recordSet.getDbTableId() != null && recordSet.getDbTableId() == 131 && cmdAction.getPropertyAsString("title") == null)
+            {
+                cmdAction.setProperty("file", "BorrowShippingNotice.jrxml");
+                cmdAction.setProperty("title", "Outgoing Gift Form");
+            }*/
+            
             if (recordSet == null || checkForALotOfLabels(recordSet))
             {
                 String labelFileName = cmdAction.getPropertyAsString("file");
