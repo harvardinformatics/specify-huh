@@ -1081,13 +1081,13 @@ public class ResourceImportExportDlg extends CustomDialog
 		{
 			String data = null;
 			File importFile = new File(dirStr + File.separator + fileName);
-			String repResourceName = getSpReportResourceName(importFile); 
+			String repResourceName = getSpReportResourceName(importFile); // MMK: this requires the file to be a zipped xml file with <reportresource name="foo" at the very beginning
 			boolean isSpRepRes = repResourceName != null;
 			boolean isJRRepRes = false;
 			try
 			{
 				data = FileUtils.readFileToString(importFile);
-				isJRRepRes = isJasperReport(data);
+				isJRRepRes = isJasperReport(data);  // this requires the file be an unzipped jrxml file, with a doctype declaration.  ha!
 
 			} catch (Exception ex)
 			{
