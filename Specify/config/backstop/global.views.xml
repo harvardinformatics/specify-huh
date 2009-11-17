@@ -1471,7 +1471,7 @@
                 </row>
                 <row>
                 	<cell type="label" label="                    ("/>
-                	<cell type="field" id="parAuthor" uitype="querycbx" initialize="name=TaxonAuthor;title=TaxonAuthor;editbtn=false;newbtn=false" name="unitName1"/>
+                	<cell type="field" id="parAuthor" uitype="text" name="unitName1"/>
                 	<cell type="label" label="ex"/>
                 	<cell type="field" id="parExAuthor" uitype="text" name="unitName2" colspan="8"/>
                 	<cell type="label" label=")"/>
