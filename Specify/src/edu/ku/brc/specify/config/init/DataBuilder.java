@@ -314,12 +314,12 @@ public class DataBuilder
             if (disp != null)
             {   
                 agent.getDisciplines().add(disp);
-                disp.getAgents().add(agent);
+                //disp.getAgents().add(agent);
             }
         } else
         {
             agent.getDisciplines().add(discipline);
-            discipline.getAgents().add(agent);
+            //discipline.getAgents().add(agent);
         }
         
         if (division == null)
