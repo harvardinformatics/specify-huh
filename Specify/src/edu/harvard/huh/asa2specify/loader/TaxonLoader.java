@@ -276,9 +276,10 @@ public class TaxonLoader extends TreeLoader
 		fullName = truncate(fullName, 255, "full name");
 		specifyTaxon.setFullName(fullName);
 
-	    // isAccepted TODO: map taxon status to isAccepted
-        STATUS status = asaTaxon.getStatus();
-        specifyTaxon.setIsAccepted( status != STATUS.NomRej && status != STATUS.NomInvalid && status != STATUS.NomSuperfl);
+	    // isAccepted (this is an internal field for distinguishing an accepted taxon among a set of synonyms)
+        //STATUS status = asaTaxon.getStatus();
+        //specifyTaxon.setIsAccepted( status != STATUS.NomRej && status != STATUS.NomInvalid && status != STATUS.NomSuperfl);
+        specifyTaxon.setIsAccepted(true);
         
         // isHybrid
         Boolean isHybrid = asaTaxon.isHybrid();
@@ -342,6 +343,7 @@ public class TaxonLoader extends TreeLoader
 		specifyTaxon.setText1(AsaTaxon.toString(group));
 	        
 		// Text2 (status)
+		STATUS status = asaTaxon.getStatus();
 		specifyTaxon.setText2(AsaTaxon.toString(status));
 
 		// TimestampCreated
