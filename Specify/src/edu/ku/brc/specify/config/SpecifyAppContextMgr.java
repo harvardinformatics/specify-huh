@@ -487,7 +487,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
                 collection.forceLoad();
                 
                 collection.getDiscipline();// force load of Discipline
-                collection.getDiscipline().getAgents(); // force load of agents
+                //collection.getDiscipline().getAgents(); // force load of agents
                 collectionHash.put(collection.getCollectionName(), collection);
             }
     
