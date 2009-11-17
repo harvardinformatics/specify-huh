@@ -1250,7 +1250,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     {
         for (QueryFieldPanel fldPanel : fieldPanels)
         {
-            if (fldPanel.getFieldQRI() == fld)
+            if (fldPanel.getFieldQRI().equals(fld))
             {
                 return fldPanel.hasCriteria();
             }
@@ -1581,7 +1581,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     
     /**
      * @param queryFields
-     * @param fixLabels
+     * @param fixLabels if true, replace all " " and "/" with "_"
      * @return ERTICaptionInfo for the visible columns represented in an SpQuery's queryFields.
      * 
      * This method is used by QBJRDataSourceConnection object which current do not actually need to
