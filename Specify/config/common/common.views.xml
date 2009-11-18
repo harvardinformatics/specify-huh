@@ -2731,7 +2731,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="verbatimElevation"/>
-                	<cell type="field" id="verbatimElevation" name="verbatimElevation" uitype="text" colspan="16"/>
+                	<cell type="field" id="verbatimElevation" name="verbatimElevation" uitype="text" colspan="14"/>
                 </row>
                 <row>
                     <cell type="separator" label="Plugins" colspan="17"/>
@@ -2804,10 +2804,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[LocalityDetail subform for Locality]]></desc>
             
-            <columnDef>          80px, 2px,  85px, 5px,   80px, 2px,  85px, 2px,   30px, 2px, 115px, 2px, 106px, 2px,   30px, 2px, 115px, 2px,  88px,  p:g</columnDef>
-            <columnDef os="lnx"> 93px, 2px, 115px, 5px,   80px, 2px, 115px, 2px,   30px, 2px,  99px, 2px, 105px, 2px,   30px, 2px, 120px, 2px, 115px, 0px,p:g</columnDef>
-            <columnDef os="mac">110px, 2px, 120px, 5px,   96px, 2px, 120px, 2px,   30px, 2px, 137px, 2px, 110px, 2px,   30px, 2px, 146px, 2px, 120px,  p:g</columnDef>
-            <columnDef os="exp">   p,  2px, 92px,  5px:g,    p,  2px,  92px, 2px:g, 30px, 2px,   p,  2px,  83px,  2px:g, 30px, 2px,   p,   2px,  92px,  p:g</columnDef>
+            <columnDef>          80px, 2px,  85px, 5px,   80px, 2px,  85px, 2px,   32px, 2px, 115px, 2px, 106px, 2px,   34px, 2px, 115px, 2px,  88px, p:g</columnDef>
+            <columnDef os="lnx"> 93px, 2px, 115px, 5px,   80px, 2px, 115px, 2px,   32px, 2px,  99px, 2px, 105px, 2px,   34px, 2px, 120px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="mac">110px, 2px, 120px, 5px,   96px, 2px, 120px, 2px,   32px, 2px, 137px, 2px, 110px, 2px,   34px, 2px, 146px, 2px, 120px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,  92px, 5px:g,    p, 2px,  92px, 2px:g, 32px, 2px,     p, 2px,  83px, 2px:g, 34px, 2px,     p, 2px,  92px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
