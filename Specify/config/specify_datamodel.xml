@@ -1723,7 +1723,7 @@
       <display view="JournalForm" searchdlg="JournalSearch" newobjdlg="JournalDisplay"/>
       <field column="GUID" name="guid" type="java.lang.String" length="128" indexName="JournalGUIDIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="ISSN" name="issn" type="java.lang.String" length="16" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
-      <field column="JournalAbbreviation" name="journalAbbreviation" type="java.lang.String" length="50" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
+      <field column="JournalAbbreviation" name="journalAbbreviation" type="java.lang.String" length="128" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="JournalName" name="journalName" type="java.lang.String" length="255" indexName="JournalNameIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="Remarks" name="remarks" type="text" length="4096" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="Text1" name="text1" type="java.lang.String" length="32" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>

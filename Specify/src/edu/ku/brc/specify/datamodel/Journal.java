@@ -146,7 +146,7 @@ public class Journal extends DataModelObjBase implements java.io.Serializable
     /**
      * 
      */
-    @Column(name = "JournalAbbreviation", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "JournalAbbreviation", unique = false, nullable = true, insertable = true, updatable = true, length = 128)
     public String getJournalAbbreviation() {
         return this.journalAbbreviation;
     }
