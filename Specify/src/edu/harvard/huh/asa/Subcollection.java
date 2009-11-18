@@ -16,6 +16,8 @@ public class Subcollection
 	private Integer createdById;
 	private    Date dateCreated;
 	
+	private int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539 };
+	
 	public Integer getId() { return id; }
 	
 	public String getGuid() { return id + " subcollection"; }
@@ -38,7 +40,11 @@ public class Subcollection
 	
 	public boolean isExsiccata()
 	{
-	    return (getAuthor() != null) || (getName() != null && getName().toLowerCase().contains("exsiccat"));
+	    for (int i = 0; i < exsiccataeIds.length; i++)
+	    {
+	        if (id == exsiccataeIds[i]) return true;
+	    }
+	    return false;
 	}
 
 	public Integer getCreatedById() { return createdById; }
