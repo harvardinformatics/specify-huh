@@ -163,7 +163,11 @@ public class PublicationLoader extends AuditedObjectLoader
 		referenceWork.setReferenceWorkType(ReferenceWork.BOOK);
 		
 		// Remarks
+		String pubDate = publication.getPubDate();
 		String remarks = publication.getRemarks();
+		if (remarks == null) remarks = pubDate;
+		else if (pubDate != null) remarks = remarks + "[publication date: " + pubDate + "]";
+		
 		referenceWork.setRemarks(remarks);
 		
 		// Text1 (abbreviation)
@@ -192,10 +196,9 @@ public class PublicationLoader extends AuditedObjectLoader
 		referenceWork.setUrl(url);
 
 		// WorkDate
-		String pubDate = publication.getPubDate();
 		if (pubDate != null)
 		{
-			pubDate = truncate(pubDate, 25, "date of publication");
+			if (pubDate.length() > 25) pubDate = pubDate.substring(0, 25);  // too many are much longer than this to call truncate
 			referenceWork.setWorkDate(pubDate);
 		}
 		
