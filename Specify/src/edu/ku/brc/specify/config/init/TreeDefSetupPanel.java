@@ -276,6 +276,7 @@ public class TreeDefSetupPanel extends BaseSetupPanel implements SetupPanelIFace
                         } else
                         {
                             required = rank == 0;
+                            include = true;
                         }
                         String sep = classType == TaxonTreeDef.class ? " " : ", ";
                         treeDefList.add(new TreeDefRow(name, rank, include, enforced, required && isInFullName, required || rank == 0, sep));
