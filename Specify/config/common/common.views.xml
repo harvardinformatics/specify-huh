@@ -1302,7 +1302,7 @@
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="12" rows="3"/>
                 </row>
                 <row>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectingEventAttachments" colspan="11" initialize="btn=true;icon=CollectingEventAttachment"/>
+                    <cell type="subview" id="ce_attachments" viewname="ObjectAttachment" name="collectingEventAttachments" colspan="11" initialize="btn=true;icon=CollectingEventAttachment"/>
                 </row>
             </rows>
         </viewdef>
@@ -3250,6 +3250,8 @@
                 <row>
                 	<cell type="label" label=" "/>
                 	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
+                	<cell type="label" labelfor="storage"/>
+                	<cell type="field" id="storage" uitype="querycbx" initialize="name=Storage" colspan="8"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="storageLocation"/>
