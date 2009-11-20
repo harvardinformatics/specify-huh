@@ -15870,11 +15870,11 @@
     <items>
       <item name="text1" type="java.lang.String">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Author</text>
           </str>
         </names>
         <descs>
@@ -16028,13 +16028,13 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" pickListName="HUH Taxon Group">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>group</text>
           </str>
         </names>
         <descs>
@@ -17684,7 +17684,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Storage</text>
+            <text>Subcollection</text>
           </str>
         </names>
         <descs/>
