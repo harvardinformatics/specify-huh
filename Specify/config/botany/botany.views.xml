@@ -233,7 +233,7 @@
                     <cell type="separator" label="Attachments" colspan="12"/>
                 </row>
                 <row>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectionObjectAttachments" colspan="12" initialize="btn=true;icon=CollectionObjectAttachment"/>
+                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" colspan="12" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
                     <cell type="separator" label="" colspan="12"/>
@@ -427,9 +427,6 @@
                 <row>
                 	<cell type="label" labelfor="collectingTrip"/>
                 	<cell type="field" id="collectingTrip" name="collectingTrip" uitype="querycbx" initialize="name=CollectingTrip" colspan="8"/>
-                </row>
-                <row>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectingEventAttachments" colspan="11" initialize="btn=true;icon=CollectingEventAttachment"/>
                 </row>
             </rows>
         </viewdef>
