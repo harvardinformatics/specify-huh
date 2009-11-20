@@ -252,7 +252,7 @@ public class Storage extends DataModelObjBase implements Serializable, Treeable<
         this.abbrev = abbrev;
     }
 
-    @Column(name = "Text1", length = 32)
+    @Column(name = "Text1", length = 50)
     public String getText1()
     {
         return this.text1;
