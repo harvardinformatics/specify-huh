@@ -20,9 +20,9 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.CollectingTripLookup;
+import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.SeriesLookup;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
-import edu.harvard.huh.asa2specify.lookup.ContainerLookup;
 import edu.harvard.huh.asa2specify.lookup.SiteLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.harvard.huh.asa2specify.lookup.PreparationLookup;
@@ -45,6 +45,7 @@ import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.PreparationAttr;
+import edu.ku.brc.specify.datamodel.Storage;
 
 public class SpecimenItemLoader extends AuditedObjectLoader
 {
@@ -66,10 +67,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	
 	private SpecimenLookup collObjLookup;
 	private PreparationLookup prepLookup;
-	private ContainerLookup containerLookup;
 	private CollectingTripLookup collTripLookup;
 	
 	private BotanistLookup botanistLookup;
+	private ContainerLookup containerLookup;
 	private SubcollectionLookup subcollLookup;
 	private SiteLookup siteLookup;
 	private SeriesLookup seriesLookup;
@@ -87,7 +88,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Set<Preparation>     preparations     = new HashSet<Preparation>();
 	private Set<OtherIdentifier> otherIdentifiers = new HashSet<OtherIdentifier>();
 	private Set<ExsiccataItem>   exsiccataItems   = new HashSet<ExsiccataItem>();
-
+	
+	private final Storage nullStorage = new Storage();
+	
 	// These items need to be remembered for comparison with
 	// other specimen items' values
 	private Integer      specimenId       = null;
@@ -120,8 +123,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		this.subcollLookup   = subcollLookup;
 		this.siteLookup      = siteLookup;
         this.seriesLookup    = seriesLookup;
+        this.containerLookup = getContainerLookup();
 		this.prepLookup      = getPreparationLookup();
-		this.containerLookup = getContainerLookup();
 		this.collTripLookup  = getCollectingTripLookup();
 		
 		init();
@@ -611,9 +614,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return containerLookup.queryByName(name);
 	}
 
-	private Container lookupContainer(Integer subcollectionId) throws LocalException
+	private Storage lookupStorage(Integer subcollectionId) throws LocalException
 	{
-	    return subcollLookup.getContainerById(subcollectionId);
+	    return subcollLookup.getStorageById(subcollectionId);
 	}
 
 	private Locality lookupSite(Integer siteId) throws LocalException
@@ -643,11 +646,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                     ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
                     exsiccataItems.add(exsiccataItem);
                 }
-                else
-                {
-                    container = getContainer(specimenItem, collectionMemberId);
-                    collectionObject.setContainer(container);
-                }
+
             }
             else if (!subcollectionId.equals(newSubcollectionId))
             {
@@ -879,6 +878,16 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    {
 	        preparation.setSampleNumber(getPreparationLookup().formatPrepBarcode(barcode));
 	    }
+
+	    // Storage
+	    Integer subcollectionId = specimenItem.getSubcollectionId();
+	    Storage storage = nullStorage;
+	    if (subcollectionId != null)
+	    {
+	        storage = lookupStorage(subcollectionId);
+	    }
+
+        preparation.setStorage(storage);
         
 	    // StorageLocation (location/temp location)
 	    String location = specimenItem.getLocation();
@@ -1185,25 +1194,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    subcollectionId = specimenItem.getSubcollectionId();
         String containerStr = specimenItem.getContainer();
 
-        // SubcollectionLoader created Container objects for subcollections without authors and
-        // Exsiccata objects for subcollections with authors (exsiccatae are handled by getExsiccataItem)
-        if (subcollectionId != null)
-        {            
-            if (!specimenItem.hasExsiccata())
-            {
-                container = lookupContainer(subcollectionId);
-
-                Integer containerId = container.getId();
-                container.setContainerId(containerId);    
-
-                if (containerStr != null)
-                {
-                    getLogger().warn("Subcollection and container present, dropping container: " + containerStr);
-                }
-            }
-        }
-
-        else if (containerStr != null)
+        if (containerStr != null)
         {
             // TODO: normalizing of container and subcollection name strings.
             // Note that if the container string = subcollection.name for some subcollection (it does happen),
@@ -1414,10 +1405,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CollectionObjectID, CountAmt, Number1, Number2, " +
-				            "PrepTypeID, Remarks, SampleNumber, StorageLocation, Text1, Text2, " +
-				            "TimestampCreated, Version, YesNo1";
+				            "PrepTypeID, Remarks, SampleNumber, StorageID, StorageLocation, Text1, " +
+				            "Text2, TimestampCreated, Version, YesNo1";
 
-		String[] values = new String[14];
+		String[] values = new String[15];
 		
 		values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( preparation.getCollectionObject().getId());
@@ -1427,12 +1418,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[5]  = SqlUtils.sqlString( preparation.getPrepType().getId());
 		values[6]  = SqlUtils.sqlString( preparation.getRemarks());
 		values[7]  = SqlUtils.sqlString( preparation.getSampleNumber());
-		values[8]  = SqlUtils.sqlString( preparation.getStorageLocation());
-		values[9]  = SqlUtils.sqlString( preparation.getText1());
-		values[10] = SqlUtils.sqlString( preparation.getText2());
-        values[11] = SqlUtils.now();
-        values[12] = SqlUtils.zero();
-		values[13] = SqlUtils.sqlString( preparation.getYesNo1());
+		values[8]  = SqlUtils.sqlString( preparation.getStorage().getId());
+		values[9]  = SqlUtils.sqlString( preparation.getStorageLocation());
+		values[10] = SqlUtils.sqlString( preparation.getText1());
+		values[11] = SqlUtils.sqlString( preparation.getText2());
+        values[12] = SqlUtils.now();
+        values[13] = SqlUtils.zero();
+		values[14] = SqlUtils.sqlString( preparation.getYesNo1());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}

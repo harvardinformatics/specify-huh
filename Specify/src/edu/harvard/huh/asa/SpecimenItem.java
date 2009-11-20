@@ -129,7 +129,14 @@ public class SpecimenItem
 	
 	public Integer getCatalogedById() { return this.catalogedById; }
 	
-	public Boolean hasExsiccata() { return this.hasExsiccata; }
+	public Boolean hasExsiccata()
+	{
+	    if (subcollectionId != null)
+	    {
+	        return Subcollection.IsExsiccata(subcollectionId);
+	    }
+	    return false;
+	}
 	
 	public Integer getReplicates() { return this.replicates; }
 	

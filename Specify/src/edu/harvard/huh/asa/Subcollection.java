@@ -16,7 +16,7 @@ public class Subcollection
 	private Integer createdById;
 	private    Date dateCreated;
 	
-	private int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539 };
+	private static final int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539 };
 	
 	public Integer getId() { return id; }
 	
@@ -45,6 +45,15 @@ public class Subcollection
 	        if (id == exsiccataeIds[i]) return true;
 	    }
 	    return false;
+	}
+
+	public static boolean IsExsiccata(int subcollectionId)
+	{
+	       for (int i = 0; i < exsiccataeIds.length; i++)
+	        {
+	            if (subcollectionId == exsiccataeIds[i]) return true;
+	        }
+	        return false;
 	}
 
 	public Integer getCreatedById() { return createdById; }

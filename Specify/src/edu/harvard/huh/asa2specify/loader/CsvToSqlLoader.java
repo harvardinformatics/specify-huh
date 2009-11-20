@@ -234,6 +234,20 @@ public abstract class CsvToSqlLoader
     }
 
     /**
+     * Compose and execute a query to return an Integer.  Returns null if not found.
+     * @throws LocalException
+     */
+    protected Integer queryForInt(String table, String intField, String field, Integer value)
+    throws LocalException
+    {
+        String sql = SqlUtils.getQueryIdByFieldSql(table, intField, field, String.valueOf(value));
+
+        Integer id = queryForInt(sql);
+
+        return id;
+    }
+    
+    /**
      * Compose and execute a query to return an Integer.  Throws exception if not found.
      * @throws LocalException
      */

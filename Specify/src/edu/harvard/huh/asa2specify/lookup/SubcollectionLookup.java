@@ -15,12 +15,12 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Exsiccata;
+import edu.ku.brc.specify.datamodel.Storage;
 
 public interface SubcollectionLookup
 {
     public Exsiccata getExsiccataById(Integer subcollectionId) throws LocalException;
     
-    public Container getContainerById(Integer subcollectionId) throws LocalException;
+    public Storage getStorageById(Integer subcollectionId) throws LocalException;
 }
