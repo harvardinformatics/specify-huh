@@ -330,6 +330,9 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int subcollectionRecords = subcollectionLoader.loadRecords();
                 log.info("Processed " + subcollectionRecords + " subcollection records");
+                log.info("Numbering storage tree...");
+                subcollectionLoader.numberNodes();
+                log.info("Numbered storage tree");
             }
 
             SubcollectionLookup subcollLookup = subcollectionLoader.getSubcollectionLookup();
