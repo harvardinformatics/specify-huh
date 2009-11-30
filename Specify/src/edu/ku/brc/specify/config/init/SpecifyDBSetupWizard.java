@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -57,12 +58,13 @@ import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
-import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.SpecifyUserTypes;
 import edu.ku.brc.specify.config.DisciplineType;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataType;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
@@ -222,6 +224,8 @@ public class SpecifyDBSetupWizard extends JPanel
         
         UIFieldFormatterMgr.setDoingLocal(true);
         
+       String accessionFmt = null;
+       
         if (wizardType == WizardType.Institution)
         {
             dbPanel = new DatabasePanel(nextBtn, backBtn, "wizard_mysql_username", true);
@@ -233,6 +237,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     "wizard_master_username",
                     new String[] { "SA_USERNAME", "SA_PASSWORD"}, 
                     new String[] { "saUserName", "saPassword"}, 
+                    new Integer[] { 32, 32}, 
                     nextBtn, backBtn, true));
             
             panels.add(new GenericFormPanel("SECURITY", 
@@ -250,6 +255,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[] { "FIRSTNAME", "LASTNAME", "MIDNAME",       "EMAIL",  null,  "USERLOGININFO", "USERNAME",    "PASSWORD"}, 
                     new String[] { "firstName", "lastName", "middleInitial", "email",  " ",   "-",             "usrUsername",  "usrPassword"}, 
                     new boolean[] { true,       true,       false,            true,    true,  false,           true,           true},
+                    new Integer[] { 50,         120,        50,               50,      null,  null,            64,             32},
                     nextBtn, backBtn);
             panels.add(userInfoPanel);
             
@@ -259,6 +265,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[]  { "NAME",     "ABBREV",     null,  "INST_ADDR", "ADDR1", "ADDR2", "CITY",  "STATE", "COUNTRY", "ZIP", "PHONE"}, 
                     new String[]  { "instName", "instAbbrev", " ",   "-",         "addr1", "addr2", "city",  "state", "country", "zip", "phone"}, 
                     new boolean[] { true,       true,         false,  false,      true,    false,   true,    true,    true,      true,  true},
+                    new Integer[] { 255,        32,           50,     null,       255,      255,    64,      64,      64,        32,    50},
                     nextBtn, backBtn, true));
 
             accessionPanel = new GenericFormPanel("ACCESSIONGLOBALLY", 
@@ -269,11 +276,13 @@ public class SpecifyDBSetupWizard extends JPanel
                     new String[] { "checkbox"},
                     nextBtn, backBtn, true);
             panels.add(accessionPanel);
+
             
             if (wizardType == WizardType.Institution)
             {
-                accessionPickerGbl = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false);
+                accessionPickerGbl = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, null);
                 panels.add(accessionPickerGbl);
+                
             }
 
             storageTDPanel = new TreeDefSetupPanel(StorageTreeDef.class, 
@@ -289,8 +298,9 @@ public class SpecifyDBSetupWizard extends JPanel
             panels.add(new InstSetupPanel("CREATEINST", 
                     "CREATEINST",
                     "wizard_configure_storage_tree",
-                    new String[] { }, 
-                    new String[] { },
+                    new String[] { "NAME",    "PREFIX"}, 
+                    new String[] { "instName", "instAbbrev"}, 
+                    new Integer[] { 255,       64}, 
                     nextBtn, backBtn, true));
         }
         
@@ -302,8 +312,30 @@ public class SpecifyDBSetupWizard extends JPanel
                 "wizard_enter_division",
                 new String[] { "NAME",    "ABBREV"}, 
                 new String[] { "divName", "divAbbrev"}, 
+                new Integer[] { 255,       64}, 
                 nextBtn, backBtn, true));
         }
+        
+        if (wizardType != WizardType.Institution)
+        {
+            Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+            Division    division    = AppContextMgr.getInstance().getClassObject(Division.class);
+            if (!institution.getIsAccessionsGlobal())
+            {
+                String sql = "SELECT ans.FormatName FROM autonumberingscheme ans  Inner Join autonumsch_div ad ON ans.AutoNumberingSchemeID = ad.AutoNumberingSchemeID " +
+                             "INNER JOIN division d ON ad.DivisionID = d.UserGroupScopeId WHERE d.DivisionID = " + division.getId();
+                log.debug(sql);
+                Vector<Object> rows = BasicSQLUtils.querySingleCol(sql);
+                if (rows.size() == 1)
+                {
+                    accessionFmt = rows.get(0).toString();
+                } else
+                {
+                    log.error("The return "+rows.size());
+                }
+            }
+        }
+
 
         if (wizardType == WizardType.Institution || 
             wizardType == WizardType.Division || 
@@ -341,22 +373,33 @@ public class SpecifyDBSetupWizard extends JPanel
                     "wizard_create_collection",
                     new String[] { "NAME",     "PREFIX", }, 
                     new String[] { "collName", "collPrefix", }, 
+                    new Integer[] { 50,        50}, 
                     nextBtn, backBtn, true));
         
-        catNumPicker = new FormatterPickerPanel("CATNOFMT", "wizard_create_catalog_number", nextBtn, backBtn, true);
+        catNumPicker = new FormatterPickerPanel("CATNOFMT", "wizard_create_catalog_number", nextBtn, backBtn, true, null);
         panels.add(catNumPicker);
         
         if (wizardType != WizardType.Institution)
         {
-            Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
-            if (inst != null && !inst.getIsAccessionsGlobal())
+            Division division = AppContextMgr.getInstance().getClassObject(Division.class);
+            String sql = "SELECT COUNT(*) FROM division d INNER JOIN collection c ON d.UserGroupScopeId = c.DisciplineID WHERE d.UserGroupScopeId = " + division.getId();
+            log.debug(sql);
+            int numCollectionsByDiv = BasicSQLUtils.getCountAsInt(sql);
+
+            if (numCollectionsByDiv == 0)
             {
-                accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false); 
-                panels.add(accessionPickerCol);
+                Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
+                if (inst != null && !inst.getIsAccessionsGlobal())
+                {
+                    if (wizardType != WizardType.Institution)
+                    accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, accessionFmt);
+                    accessionPickerCol.setDoingDisciplineCollection(wizardType != WizardType.Division);
+                    panels.add(accessionPickerCol);
+                }
             }
         } else
         {
-            accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false); 
+            accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, null); 
             panels.add(accessionPickerCol);
         }
         
@@ -521,7 +564,10 @@ public class SpecifyDBSetupWizard extends JPanel
                         SpecifyDBSetupWizard.this.listener.finished();
                     } else
                     {
-                        SpecifyDBSetupWizard.this.listener.cancelled();
+                        if (UIHelper.promptForAction("QUIT", "NO", "CANCEL", getResourceString("SURE_QUIT")))
+                        {
+                            SpecifyDBSetupWizard.this.listener.cancelled();
+                        }
                     }
                 }
             }
@@ -547,7 +593,7 @@ public class SpecifyDBSetupWizard extends JPanel
         
         setLayout(new BorderLayout());
         PanelBuilder  iconBldr  = new PanelBuilder(new FormLayout("20px, f:p:g,p,f:p:g,8px", "20px,t:p,f:p:g, 8px"));
-        JLabel        iconLbl   = new JLabel(IconManager.getIcon("WizardIcon"));
+        JLabel        iconLbl   = new JLabel(IconManager.getIcon(getIconName()));
         iconLbl.setVerticalAlignment(SwingConstants.TOP);
         iconBldr.add(iconLbl, cc.xy(2, 3));
         add(iconBldr.getPanel(), BorderLayout.WEST);
@@ -559,6 +605,14 @@ public class SpecifyDBSetupWizard extends JPanel
         
         panels.get(0).updateBtnUI();
         
+    }
+    
+    /**
+     * @return
+     */
+    public static String getIconName()
+    {
+        return IconManager.makeIconName("WizardIcon");
     }
     
     /**
@@ -793,12 +847,15 @@ public class SpecifyDBSetupWizard extends JPanel
             SpecifyDBSetupWizard.this.listener.hide();
         }
 
-        final SwingWorker worker = new SwingWorker()
+        SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>()
         {
             protected boolean isOK = false;
             
+            /* (non-Javadoc)
+             * @see javax.swing.SwingWorker#doInBackground()
+             */
             @Override
-            public Object construct()
+            protected Integer doInBackground() throws Exception
             {
                 try
                 {
@@ -832,7 +889,8 @@ public class SpecifyDBSetupWizard extends JPanel
                                            saUserName, 
                                            saPassword))
                     {
-                        return isOK = false;
+                        isOK = false;
+                        return null;
                     }   
                      
                     Session session = HibernateUtil.getCurrentSession();
@@ -880,14 +938,21 @@ public class SpecifyDBSetupWizard extends JPanel
                 }
                 return null;
             }
-    
-            //Runs on the event-dispatching thread.
+
+            /* (non-Javadoc)
+             * @see javax.swing.SwingWorker#done()
+             */
             @Override
-            public void finished()
+            protected void done()
             {
                 if (isOK)
                 {
+                    if (UIRegistry.isMobile())
+                    {
+                        DBConnection.setCopiedToMachineDisk(true);
+                    }
                     HibernateUtil.shutdown();
+                    DBConnection.shutdown();
                 }
                 if (listener != null)
                 {
@@ -896,7 +961,7 @@ public class SpecifyDBSetupWizard extends JPanel
                 }
             }
         };
-        worker.start();
+        worker.execute();
     }
     
     //-------------------------------------------------

@@ -45,9 +45,9 @@ import org.hibernate.annotations.Index;
 @Table(name = "loanreturnpreparation")
 @org.hibernate.annotations.Table(appliesTo="loanreturnpreparation", indexes =
     {   @Index (name="LoanReturnedDateIDX", columnNames={"ReturnedDate"}),
-        @Index (name="LoanRetPrepColMemIDX", columnNames={"CollectionMemberID"})
+        @Index (name="LoanRetPrepDspMemIDX", columnNames={"DisciplineID"})
     })
-public class LoanReturnPreparation extends CollectionMember implements java.io.Serializable {
+public class LoanReturnPreparation extends DisciplineMember implements java.io.Serializable {
 
     // Fields    
 
@@ -225,9 +225,9 @@ public class LoanReturnPreparation extends CollectionMember implements java.io.S
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)LoanPreparation.getClassTableId();
+        return LoanPreparation.getClassTableId();
     }
 
     /* (non-Javadoc)

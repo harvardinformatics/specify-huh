@@ -701,7 +701,7 @@ public class BuildSampleDatabase
             }
             
             // The two AutoNumberingSchemes have been committed
-            Pair<AutoNumberingScheme, AutoNumberingScheme> ansPair = localizeDisciplineSchema(discipline, props, isAccGlobal);
+            Pair<AutoNumberingScheme, AutoNumberingScheme> ansPair = localizeDisciplineSchema(division, discipline, props, isAccGlobal);
             
             // These create a new session and persist records in the Schema tables (SpLocaleContainerItem)
             makeFieldVisible(null, discipline);
@@ -750,8 +750,8 @@ public class BuildSampleDatabase
      * @param disciplineType
      * @param userAgent
      * @param preLoadTaxon
-     * @param taxonXML
-     * @param geoXML
+     * @param taxonDefXML
+     * @param geoDefXML
      * @return
      */
     public Discipline createEmptyDiscipline(final Division       division,
@@ -761,8 +761,8 @@ public class BuildSampleDatabase
                                             final boolean        preLoadTaxon, 
                                             final String         taxonFileName,
                                             final boolean        usingOtherTxnFile, 
-                                            final String         taxonXML, 
-                                            final String         geoXML, 
+                                            final String         taxonDefXML, 
+                                            final String         geoDefXML, 
                                             final Properties     props)
     {
         log.debug("In createEmptyDiscipline - createStep: "+createStep);
@@ -858,17 +858,13 @@ public class BuildSampleDatabase
         
         startTx();
         
-        boolean                    taxonWasBuilt = false;
         Hashtable<String, Boolean> colNameHash   = null;
         if (StringUtils.isNotEmpty(taxonFileName))
         {
             colNameHash = getColumnNamesFromXLS(taxonFileName, usingOtherTxnFile);
         }
         
-        if (colNameHash != null)
-        {
-            taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonXML);
-        }
+        boolean taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonDefXML);
         
         frame.incOverall();
         
@@ -903,7 +899,7 @@ public class BuildSampleDatabase
         frame.setProcess(++createStep);
         frame.incOverall();
         
-        createGeographyDefFromXML(geos, geoTreeDef, geoXML);
+        createGeographyDefFromXML(geos, geoTreeDef, geoDefXML);
         
         frame.setProcess(++createStep);
         
@@ -1017,9 +1013,7 @@ public class BuildSampleDatabase
      * @param collName
      * @param userAgent
      * @param specifyAdminUser
-     * @param catFormatName
      * @param catNumScheme
-     * @param accANS
      * @param isEmbeddedCE
      * @return
      */
@@ -1136,7 +1130,6 @@ public class BuildSampleDatabase
         if (numFormat != null)
         {
             autoNumScheme = createAutoNumberingScheme(schemeName, "", numFmtName, isNumFmtNumeric, tableId);
-            //persist(autoNumScheme);
         }
 
         return autoNumScheme;
@@ -1148,7 +1141,8 @@ public class BuildSampleDatabase
      * @param isAccGlobal
      * @return
      */
-    public Pair<AutoNumberingScheme, AutoNumberingScheme> localizeDisciplineSchema(final Discipline discipline, 
+    public Pair<AutoNumberingScheme, AutoNumberingScheme> localizeDisciplineSchema(final Division division, 
+                                                                                   final Discipline discipline, 
                                                                                    final Properties props,
                                                                                    final boolean    isAccGlobal)
     {
@@ -1157,15 +1151,39 @@ public class BuildSampleDatabase
         
         // Check to see if we are creating from scratch
         boolean isFromScratch = props.getProperty("instName") != null;
-        /*for (Object key : props.keySet())
+        
+        
+        String postFix = "FROM autonumberingscheme ans INNER JOIN autonumsch_div ad ON ans.AutoNumberingSchemeID = ad.AutoNumberingSchemeID INNER JOIN division d ON ad.DivisionID = d.UserGroupScopeId WHERE d.UserGroupScopeId = " + division.getId();
+        String sql = "SELECT COUNT(*) " + postFix;
+        log.debug(sql);
+        int numOfDivAns = BasicSQLUtils.getCountAsInt(sql);
+        if (numOfDivAns > 1)
         {
-            System.out.println(key+" -> "+props.get(key));
-        }*/
+            // error
+        }
         
         // NOTE: createAutoNumScheme persists the AutoNumberingScheme
         if (!isAccGlobal || isFromScratch)
         {
-            accNumScheme = createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId()); // I18N
+            if (numOfDivAns == 0)
+            {
+                accNumScheme = createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId()); // I18N
+                
+            } else
+            {
+                sql = "SELECT ans.AutoNumberingSchemeID " + postFix;
+                log.debug(sql);
+                int ansId = BasicSQLUtils.getCountAsInt(sql);
+                
+                DataProviderSessionIFace hSession = new HibernateDataProviderSession(session);
+                List<?> list = hSession.getDataList("FROM AutoNumberingScheme WHERE id = "+ansId);
+                if (list != null && list.size() == 1)
+                {
+                    accNumScheme = (AutoNumberingScheme)list.get(0);
+                }
+                // Do not close the session it is owned by someone else
+                //hSession.close();
+            }
             
         } else
         {
@@ -1175,6 +1193,8 @@ public class BuildSampleDatabase
             {
                 accNumScheme = (AutoNumberingScheme)list.get(0);
             }
+            // Do not close the session it is owned by someone else
+            //hSession.close();
         }
         
         startTx();
@@ -1248,27 +1268,27 @@ public class BuildSampleDatabase
      * @param taxonList
      * @param colNameHash
      * @param taxonTreeDef
-     * @param taxonXML
+     * @param taxonDefXML
      * @return
      */
     @SuppressWarnings("unchecked")
     public static boolean createTaxonDefFromXML(final List<Object>               taxonList, 
                                                 final Hashtable<String, Boolean> colNameHash,
                                                 final TaxonTreeDef               taxonTreeDef, 
-                                                final String                     taxonXML)
+                                                final String                     taxonDefXML)
     {
-        if (StringUtils.isNotEmpty(taxonXML))
+        if (StringUtils.isNotEmpty(taxonDefXML))
         {
             XStream xstream = new XStream();
             TreeDefRow.configXStream(xstream);
             
-            Vector<TreeDefRow> treeDefList = (Vector<TreeDefRow>)xstream.fromXML(taxonXML);
+            Vector<TreeDefRow> treeDefList = (Vector<TreeDefRow>)xstream.fromXML(taxonDefXML);
             TaxonTreeDefItem   parent      = null;
             int                cnt         = 0;
             for (TreeDefRow row : treeDefList)
             {
                 if (row.isIncluded() || 
-                    (row.getDefName() != null && colNameHash == null || colNameHash.get(row.getDefName().toLowerCase()) != null))
+                    (row.getDefName() != null && (colNameHash == null || colNameHash.get(row.getDefName().toLowerCase()) != null)))
                 {
                     TaxonTreeDefItem ttdi = new TaxonTreeDefItem();
                     ttdi.initialize();
@@ -2099,8 +2119,8 @@ public class BuildSampleDatabase
 
             agents.add(groupAgent);
             
-            gpList.add(createGroupPerson(groupAgent, gm1, 0));
-            gpList.add(createGroupPerson(groupAgent, gm2, 1));
+            gpList.add(createGroupPerson(groupAgent, gm1, 0, division));
+            gpList.add(createGroupPerson(groupAgent, gm2, 1, division));
         }
 
         startTx();
@@ -2713,8 +2733,8 @@ public class BuildSampleDatabase
 
             agents.add(groupAgent);
             
-            gpList.add(createGroupPerson(groupAgent, gm1, 0));
-            gpList.add(createGroupPerson(groupAgent, gm2, 1));
+            gpList.add(createGroupPerson(groupAgent, gm1, 0, division));
+            gpList.add(createGroupPerson(groupAgent, gm2, 1, division));
         }
 
         startTx();
@@ -3209,8 +3229,8 @@ public class BuildSampleDatabase
             
             agents.add(groupAgent);
             
-            gpList.add(createGroupPerson(groupAgent, gm1, 0));
-            gpList.add(createGroupPerson(groupAgent, gm2, 1));
+            gpList.add(createGroupPerson(groupAgent, gm1, 0, division));
+            gpList.add(createGroupPerson(groupAgent, gm2, 1, division));
         }
 
         startTx();
@@ -3668,7 +3688,7 @@ public class BuildSampleDatabase
 
                 return null;
             }
-            
+             
             if (bldGeoNames.loadGeoNamesDB())
             {
                 bldGeoNames.build(earth.getId());
@@ -3680,22 +3700,13 @@ public class BuildSampleDatabase
             session.refresh(earth);
             
             frame.setDesc("Configuring Geography Tree...");
-            if (true)
+            
+            Discipline disp = AppContextMgr.getInstance().getClassObject(Discipline.class);
+            if (disp == null)
             {
-                NodeNumberer<Geography,GeographyTreeDef,GeographyTreeDefItem> nodeNumberer = new NodeNumberer<Geography,GeographyTreeDef,GeographyTreeDefItem>(geoTreeDef);
-                nodeNumberer.doInBackground();
-                
-            } else
-            {
-                startTx();
-                
-                TreeHelper.fixFullnameForNodeAndDescendants(earth);
-                earth.setNodeNumber(1);
-                fixNodeNumbersFromRoot(earth);
-                commitTx();
+                AppContextMgr.getInstance().setClassObject(Discipline.class, discipline);
             }
-            
-            
+            geoTreeDef.updateAllNodes(earth, true, true);
             
         } catch (Exception ex)
         {
@@ -4427,8 +4438,8 @@ public class BuildSampleDatabase
 
             agents.add(groupAgent);
             
-            gpList.add(createGroupPerson(groupAgent, gm1, 0));
-            gpList.add(createGroupPerson(groupAgent, gm2, 1));
+            gpList.add(createGroupPerson(groupAgent, gm1, 0, division));
+            gpList.add(createGroupPerson(groupAgent, gm2, 1, division));
         }
 
         startTx();
@@ -5624,8 +5635,8 @@ public class BuildSampleDatabase
                 
                 agents.add(groupAgent);
                 
-                gpList.add(createGroupPerson(groupAgent, gm1, 0));
-                gpList.add(createGroupPerson(groupAgent, gm2, 1));
+                gpList.add(createGroupPerson(groupAgent, gm1, 0, division));
+                gpList.add(createGroupPerson(groupAgent, gm2, 1, division));
             }
             
             globalAgents.addAll(agents);
@@ -8034,60 +8045,76 @@ public class BuildSampleDatabase
      * @param memoryContainer
      * @param newContainer
      */
-    public static void loadLocalization(final String            disciplineName,
+    public static void loadLocalization(final Integer           disciplineId,
+                                        final String            disciplineName,
                                         final SpLocaleContainer memoryContainer, 
                                         final SpLocaleContainer newContainer,
                                         final boolean           hideGenericFields,
                                         final String            catFmtName,
-                                        final String            accFmtName)
+                                        final String            accFmtName,
+                                        final boolean           isDoingUpdate,
+                                        final DataProviderSessionIFace session)
     {
-        newContainer.setName(memoryContainer.getName());
-        newContainer.setType(memoryContainer.getType());
-        newContainer.setFormat(newContainer.getFormat());
-        newContainer.setIsUIFormatter(newContainer.getIsUIFormatter());
-        newContainer.setPickListName(newContainer.getPickListName());
-        newContainer.setWebLinkName(newContainer.getWebLinkName());
-        newContainer.setIsHidden(newContainer.getIsHidden());
-
         
         boolean isColObj          = memoryContainer.getName().equals("collectionobject");
         boolean isAccession       = memoryContainer.getName().equals("accession");
         boolean isCollectingEvent = memoryContainer.getName().equals("collectingevent");
         boolean isFish            = disciplineName.equals("fish");
-        
-        //debugOn = false;
-       
-        for (SpLocaleItemStr nm : memoryContainer.getNames())
+
+        if (newContainer.getId() == null)
         {
-            SpLocaleItemStr str = new SpLocaleItemStr();
-            str.initialize();
+            newContainer.setName(memoryContainer.getName());
+            newContainer.setType(memoryContainer.getType());
+            newContainer.setFormat(newContainer.getFormat());
+            newContainer.setIsUIFormatter(newContainer.getIsUIFormatter());
+            newContainer.setPickListName(newContainer.getPickListName());
+            newContainer.setWebLinkName(newContainer.getWebLinkName());
+            newContainer.setIsHidden(newContainer.getIsHidden());
+            //debugOn = false;
             
-            String title = nm.getText();
-            if (isCollectingEvent && !isFish)
+            if (session != null)
             {
-                title = "Collecting Information"; // I18N
+                try
+                {
+                    session.saveOrUpdate(newContainer);
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
             }
-            str.setText(title);
-            str.setLanguage(nm.getLanguage());
-            str.setCountry(nm.getCountry());
-            str.setVariant(nm.getVariant());
+           
+            for (SpLocaleItemStr nm : memoryContainer.getNames())
+            {
+                SpLocaleItemStr str = new SpLocaleItemStr();
+                str.initialize();
+                
+                String title = nm.getText();
+                if (isCollectingEvent && !isFish)
+                {
+                    title = "Collecting Information"; // I18N
+                }
+                str.setText(title);
+                str.setLanguage(nm.getLanguage());
+                str.setCountry(nm.getCountry());
+                str.setVariant(nm.getVariant());
+                
+                newContainer.getNames().add(str);
+                str.setContainerName(newContainer);
+            }
             
-            newContainer.getNames().add(str);
-            str.setContainerName(newContainer);
-        }
-        
-        for (SpLocaleItemStr desc : memoryContainer.getDescs())
-        {
-            SpLocaleItemStr str = new SpLocaleItemStr();
-            str.initialize();
-            
-            str.setText(desc.getText());
-            str.setLanguage(desc.getLanguage());
-            str.setCountry(desc.getCountry());
-            str.setVariant(desc.getVariant());
-            
-            newContainer.getDescs().add(str);
-            str.setContainerDesc(newContainer);
+            for (SpLocaleItemStr desc : memoryContainer.getDescs())
+            {
+                SpLocaleItemStr str = new SpLocaleItemStr();
+                str.initialize();
+                
+                str.setText(desc.getText());
+                str.setLanguage(desc.getLanguage());
+                str.setCountry(desc.getCountry());
+                str.setVariant(desc.getVariant());
+                
+                newContainer.getDescs().add(str);
+                str.setContainerDesc(newContainer);
+            }
         }
         
         Hashtable<String, SpLocaleContainerItem> dispItemHash = new Hashtable<String, SpLocaleContainerItem>();
@@ -8104,28 +8131,56 @@ public class BuildSampleDatabase
         
         for (SpLocaleContainerItem item : memoryContainer.getItems())
         {
-            SpLocaleContainerItem newItem = new SpLocaleContainerItem();
-            newItem.initialize();
-            
-            newContainer.getItems().add(newItem);
-            newItem.setContainer(newContainer);
-            
-            SpLocaleContainerItem dispItem = dispItemHash.get(item.getName());
-            
-            loadLocalization(memoryContainer.getName(), item, newItem, dispItem, hideGenericFields, isFish);
-            
-            if (isColObj && catFmtName != null && item.getName().equals("catalogNumber"))
+            boolean okToCreate = true;
+            if (isDoingUpdate)
             {
-                newItem.setFormat(catFmtName);
-                newItem.setIsUIFormatter(true);
+                String sql = String.format(" FROM splocalecontainer c INNER JOIN splocalecontaineritem ci ON c.SpLocaleContainerID = ci.SpLocaleContainerID WHERE ci.Name = '%s' AND c.DisciplineID = %d", item.getName(), disciplineId);
+                String fullSQL = "SELECT COUNT(*)" + sql;
+                //log.debug(fullSQL);
+                int cnt = BasicSQLUtils.getCountAsInt(fullSQL);
+                if (cnt > 0)
+                {
+                    okToCreate = false;
+                    fullSQL = "SELECT ci.SpLocaleContainerItemID" + sql;
+                    //log.debug(fullSQL);
+                }
             }
             
-            if (isAccession && accFmtName != null && item.getName().equals("accessionNumber"))
+            if (okToCreate)
             {
-                newItem.setFormat(accFmtName);
-                newItem.setIsUIFormatter(true);
-            }
+                //log.debug("Adding Item: "+item.getName());
+                SpLocaleContainerItem newItem = new SpLocaleContainerItem();
+                newItem.initialize();
+                
+                newContainer.getItems().add(newItem);
+                newItem.setContainer(newContainer);
+                
+                SpLocaleContainerItem dispItem = dispItemHash.get(item.getName());
             
+                loadLocalization(memoryContainer.getName(), item, newItem, dispItem, hideGenericFields, isFish);
+            
+                if (isColObj && catFmtName != null && item.getName().equals("catalogNumber"))
+                {
+                    newItem.setFormat(catFmtName);
+                    newItem.setIsUIFormatter(true);
+                }
+                
+                if (isAccession && accFmtName != null && item.getName().equals("accessionNumber"))
+                {
+                    newItem.setFormat(accFmtName);
+                    newItem.setIsUIFormatter(true);
+                }
+                if (session != null)
+                {
+                    try
+                    {
+                        session.saveOrUpdate(newItem);
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                }
+            }
         }
     }
     
@@ -8142,6 +8197,24 @@ public class BuildSampleDatabase
                                        final String       catFmtName,
                                        final String       accFmtName)
     {
+        loadSchemaLocalization(discipline, schemaType, tableMgr, catFmtName, accFmtName, false, null);
+    }
+    
+    /**
+     * @param discipline
+     * @param schemaType
+     * @param tableMgr
+     * @param catFmtName
+     * @param accFmtName
+     */
+    public void loadSchemaLocalization(final Discipline   discipline, 
+                                       final Byte         schemaType, 
+                                       final DBTableIdMgr tableMgr,
+                                       final String       catFmtName,
+                                       final String       accFmtName,
+                                       final boolean      isDoingUpdate,
+                                       final DataProviderSessionIFace sessionArg)
+    {
         HiddenTableMgr hiddenTableMgr = new HiddenTableMgr();
 
         SchemaLocalizerXMLHelper schemaLocalizer = new SchemaLocalizerXMLHelper(schemaType, tableMgr);
@@ -8155,19 +8228,58 @@ public class BuildSampleDatabase
         
         for (SpLocaleContainer table : schemaLocalizer.getSpLocaleContainers())
         {
-            SpLocaleContainer container = new SpLocaleContainer();
-            container.initialize();
-            container.setName(table.getName());
-            container.setType(table.getType());
-            container.setSchemaType(schemaType);
-            container.setDiscipline(discipline);
+            Integer spcId      = null;
+            boolean okToCreate = true;
+            if (isDoingUpdate)
+            {
+                String sql     = String.format(" FROM splocalecontainer WHERE Name = '%s' AND DisciplineID = %d", table.getName(), discipline.getId());
+                String fullSQL = "SELECT COUNT(*)"+sql;
+                //log.debug(fullSQL);
+                int cnt = BasicSQLUtils.getCountAsInt(fullSQL);
+                if (cnt > 0)
+                {
+                    okToCreate = false;
+                    fullSQL = "SELECT SpLocaleContainerID"+sql;
+                    //log.debug(fullSQL);
+                    spcId = BasicSQLUtils.getCount(fullSQL);
+                }
+            }
             
-            container.setIsHidden(hiddenTableMgr.isHidden(discipline.getType(), table.getName()));
+            SpLocaleContainer container = null;
+            if (okToCreate)
+            {
+                container = new SpLocaleContainer();
+                container.initialize();
+                container.setName(table.getName());
+                container.setType(table.getType());
+                container.setSchemaType(schemaType);
+                container.setDiscipline(discipline);
+                
+                container.setIsHidden(hiddenTableMgr.isHidden(discipline.getType(), table.getName()));
+                
+                if (sessionArg != null)
+                {
+                    try
+                    {
+                        sessionArg.saveOrUpdate(container);
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                }
+                
+            } else
+            {
+                container = (SpLocaleContainer)sessionArg.getData("FROM SpLocaleContainer WHERE id = "+spcId);
+            }
             
-            loadLocalization(dispName, table, container, hideGenericFields, catFmtName, accFmtName);
+            loadLocalization(discipline.getId(), dispName, table, container, hideGenericFields, catFmtName, accFmtName, isDoingUpdate, sessionArg);
             
-            discipline.getSpLocaleContainers().add(container);
-            container.setDiscipline(discipline);
+            if (okToCreate)
+            {
+                discipline.getSpLocaleContainers().add(container);
+                container.setDiscipline(discipline);
+            }
         }
     }
     

@@ -54,6 +54,9 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -66,6 +69,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -187,7 +192,7 @@ public final class UIHelper
     
     // Static Data Members
     protected static final Logger   log      = Logger.getLogger(UIHelper.class);
-    protected static Calendar       calendar = new GregorianCalendar();
+    protected static Calendar       calendar;
     protected static OSTYPE         oSType;
     protected static boolean        isMacOS_10_5_X   = false;
     protected static BasicStroke    stdLineStroke    = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -214,7 +219,8 @@ public final class UIHelper
     
 
     static {
-
+        calendar = GregorianCalendar.getInstance();
+        
         String osStr = System.getProperty("os.name");
         if (osStr.startsWith("Mac OS X"))
         {
@@ -582,7 +588,7 @@ public final class UIHelper
         calendar.clear();
 
         int year  = iDate / 10000;
-        if (year > 1800)
+        if (year > 1700)
         {
             int tmp   = (iDate - (year * 10000));
             int month = tmp / 100;
@@ -1727,12 +1733,12 @@ public final class UIHelper
         if (StringUtils.isNotEmpty(title))
         {
             panel = new DatabaseLoginPanel(userName, password, engageUPPrefs, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
-                                           false, title, appName, iconName, helpContext);
+                                           false, true, title, appName, iconName, helpContext);
         }
         else
         {
             panel = new DatabaseLoginPanel(userName, password, engageUPPrefs, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
-                                          false, null, null, iconName, helpContext);
+                                          false, true, null, null, iconName, helpContext);
         }
         
         panel.setAutoClose(doAutoClose);
@@ -3568,7 +3574,7 @@ public final class UIHelper
                             
 			            } finally
 			            {
-			                localPrefs.putBoolean(HAS_OPENGL_PREF, hasOpenGL);
+			                localPrefs.putBoolean(HAS_OPENGL_PREF, hasOpenGL != null ? hasOpenGL : UIHelper.isMacOS());
 			                if (initialUseWordWind == null || (initialHasOpenGL != null && hasOpenGL != initialHasOpenGL))
                             {
 			                    localPrefs.putBoolean(USE_WORLDWIND, hasOpenGL);    
@@ -3630,4 +3636,63 @@ public final class UIHelper
         return userChoice == JOptionPane.YES_OPTION;
     }
     
+    /**
+     * Sets the text into the System Clipboard.
+     * @param text the text to be placed in the clipboard
+     */
+    public static void setTextToClipboard(final String text)
+    {
+        StringSelection stsel  = new StringSelection(text);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stsel, stsel);
+    }
+    
+    /**
+     * @return the plain text flavor from the clipboard
+     */
+    public static String getTextFromClipboard()
+    {
+        Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        for (DataFlavor flavor : sysClipboard.getAvailableDataFlavors())
+        {
+            if (flavor.isMimeTypeEqual(DataFlavor.getTextPlainUnicodeFlavor()))
+            {
+                try
+                {
+                    StringBuilder sb      = new StringBuilder();
+                    Object        dataObj = sysClipboard.getData(flavor);
+                    if (dataObj instanceof String)
+                    {
+                        sb.append((String)dataObj);
+                        
+                    } else if (dataObj instanceof InputStreamReader)
+                    {
+                        Reader        reader = (InputStreamReader)sysClipboard.getData(flavor);
+                        char[]        buffer = new char[1024];
+                        int           len    = reader.read(buffer);
+                        sb.append(new String(buffer, 0, len));
+                        
+                        while (len > -1)
+                        {
+                            len = reader.read(buffer);
+                            if (len > 0)
+                            {
+                                sb.append(buffer);
+                            }
+                        }
+                    }
+                    
+                    if (sb.length() > 0)
+                    {
+                        return sb.toString();
+                    }
+                    
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                break;
+            }
+        }
+        return null;
+    }
 }

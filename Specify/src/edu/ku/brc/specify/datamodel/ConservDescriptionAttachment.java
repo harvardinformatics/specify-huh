@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -93,7 +94,7 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
         this.conservDescriptionAttachmentId = conservDescriptionAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ConservDescriptionID", nullable = false)
     public ConservDescription getConservDescription()
     {
@@ -105,7 +106,7 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
         this.conservDescription = conservDescription;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -184,9 +185,9 @@ public class ConservDescriptionAttachment extends DataModelObjBase implements Ob
      */
     @Override
     @Transient
-   public Short getParentTableId()
+   public Integer getParentTableId()
     {
-        return (short)ConservDescription.getClassTableId();
+        return ConservDescription.getClassTableId();
     }
 
     /* (non-Javadoc)

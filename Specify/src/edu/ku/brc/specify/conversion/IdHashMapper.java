@@ -20,6 +20,7 @@
 package edu.ku.brc.specify.conversion;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,18 +48,19 @@ public class IdHashMapper implements IdMapperIFace
     
     protected static TableWriter tblWriter = null;
 
-    protected String          sql           = null;
-    protected boolean         isUsingSQL    = false;
-    protected String          tableName;
-    protected Connection      newConn;
-    protected Connection      oldConn;
+    protected String            sql           = null;
+    protected boolean           isUsingSQL    = false;
+    protected String            tableName;
+    protected Connection        newConn;
+    protected Connection        oldConn;
+    protected PreparedStatement prepStmt      = null;
 
-    protected String          mapTableName  = null;
-    protected boolean         showLogErrors = true;
+    protected String            mapTableName  = null;
+    protected boolean           showLogErrors = true;
     
-    protected ProgressFrame   frame         = null;
-    protected int             initialIndex  = 1;
-    protected Vector<Integer> oldIdNullList = new Vector<Integer>();
+    protected ProgressFrame     frame         = null;
+    protected int               initialIndex  = 1;
+    protected Vector<Integer>   oldIdNullList = new Vector<Integer>();
 
     
     /**
@@ -136,7 +138,7 @@ public class IdHashMapper implements IdMapperIFace
                 stmtNew.executeUpdate(str);
                 
                 
-                String str2 = "alter table "+mapTableName+" add index INX_"+mapTableName+" (NewID)";
+                String str2 = "ALTER TABLE "+mapTableName+" ADD INDEX INX_"+mapTableName+" (NewID)";
                 log.info("orig sql: " + str2);
                 str2 =  BasicSQLUtils.createIndexFieldStatment(mapTableName, BasicSQLUtils.myDestinationServerType) ;
                 log.info("sql standard query: " + str2);
@@ -187,8 +189,10 @@ public class IdHashMapper implements IdMapperIFace
             {
                frame.setProcess(0, 0); 
             }
-            Statement stmtOld = oldConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs      = stmtOld.executeQuery(sql);
+            
+            PreparedStatement pStmt   = newConn.prepareStatement("INSERT INTO "+mapTableName+" VALUES (?,?)");
+            Statement         stmtOld = oldConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet         rs      = stmtOld.executeQuery(sql);
             if (rs.last())
             {
                 if (frame != null)
@@ -202,14 +206,18 @@ public class IdHashMapper implements IdMapperIFace
                 int count = 0;
                 do
                 {
-                    int oldIndex = rs.getInt(1);
-                    int newIndex = rs.getInt(2);
-                    
-                    put(oldIndex, newIndex);
+                    pStmt.setInt(1, rs.getInt(1)); // Old Index
+                    pStmt.setInt(2, rs.getInt(2)); // New Index
+                    if (pStmt.executeUpdate() != 1)
+                    {
+                        String msg = String.format("Error writing to Map table[%s] old: %d  new: %d", mapTableName, rs.getInt(1), rs.getInt(2));
+                        log.error(msg);
+                        throw new RuntimeException(msg);
+                    }
                     
                     if (frame != null)
                     {
-                        if (count % 500 == 0)
+                        if (count % 1000 == 0)
                         {
                             frame.setProcess(count);
                         }
@@ -236,6 +244,9 @@ public class IdHashMapper implements IdMapperIFace
                 log.info("No records to map in "+tableName);
             }
             rs.close();
+            
+            stmtOld.close();
+            pStmt.close();
 
         } catch (SQLException ex)
         {
@@ -278,6 +289,8 @@ public class IdHashMapper implements IdMapperIFace
      */
     public void cleanup()
     {
+        closePrepareStmt();
+        
         if (mapTableName != null)
         {
             try
@@ -295,10 +308,26 @@ public class IdHashMapper implements IdMapperIFace
                 //ex.printStackTrace();
                 log.error(ex);
             }
-    
             mapTableName = null;
         }
-
+    }
+    
+    /**
+     * Closes internal Prepare Statement.
+     */
+    public void closePrepareStmt()
+    {
+        if (prepStmt != null)
+        {
+            try
+            {
+                prepStmt.close();
+            } catch (Exception ex)
+            {
+                log.error(ex);
+            }
+        }
+        prepStmt = null;
     }
     
     //--------------------------------------------------
@@ -321,11 +350,20 @@ public class IdHashMapper implements IdMapperIFace
     {
         try
         {
-            String str = "INSERT INTO "+mapTableName+" VALUES (" + oldIndex + "," + newIndex + ")";
-            Statement stmtNew = newConn.createStatement();
-            stmtNew.executeUpdate(str);
-            stmtNew.clearBatch();
-            stmtNew.close();
+            if (prepStmt == null)
+            {
+                prepStmt = newConn.prepareStatement("INSERT INTO "+mapTableName+" VALUES (?,?)");
+
+            }
+            prepStmt.setInt(1, oldIndex); // Old Index
+            prepStmt.setInt(2, newIndex); // New Index
+
+            if (prepStmt.executeUpdate() != 1)
+            {
+                String msg = String.format("Error writing to Map table[%s] old: %d  new: %d", mapTableName, oldIndex, newIndex);
+                log.error(msg);
+                throw new RuntimeException(msg);
+            }
             
         } catch (SQLException ex)
         {

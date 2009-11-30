@@ -1096,7 +1096,7 @@ public class QueryTask extends BaseTask
     /**
      * @param queryId
      */
-    protected void editQuery(Integer queryId)
+    protected boolean editQuery(Integer queryId)
     {
         UsageTracker.incrUsageCount("QB.EDT");
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
@@ -1105,15 +1105,16 @@ public class QueryTask extends BaseTask
             Object dataObj = session.getData(SpQuery.class, "spQueryId", queryId, DataProviderSessionIFace.CompareType.Equals);
             if (dataObj != null)
             {
-                editQuery((SpQuery)dataObj);
+                ((SpQuery )dataObj).forceLoad(true);
+            	return editQuery((SpQuery)dataObj);
             }
+            return false;
         } catch (Exception ex)
         {
-            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
             ex.printStackTrace();
-            
+            return false;
         }
         finally
         {
@@ -1172,21 +1173,37 @@ public class QueryTask extends BaseTask
     
     /**
      * @param query
+     * @return true if query is not locked.
+     * 
+     * Locks query if necessary. 
+     * 
      */
-    protected void editQuery(final SpQuery query)
+    protected boolean checkLock(final SpQuery query)
     {
-        QueryBldrPane newPane = getNewQbPane(query);
-        
-        if (starterPane != null)
-        {
-            SubPaneMgr.getInstance().replacePane(starterPane, newPane);
-            starterPane = null;
-        }
-        else if (queryBldrPane != null)
-        {
-            SubPaneMgr.getInstance().replacePane(queryBldrPane, newPane);
-        }
-        queryBldrPane = newPane;
+    	return true;
+    }
+    
+    /**
+     * @param query
+     */
+    protected boolean editQuery(final SpQuery query)
+    {
+    	if (checkLock(query)) 
+    	{
+			QueryBldrPane newPane = getNewQbPane(query);
+
+			if (starterPane != null) 
+			{
+				SubPaneMgr.getInstance().replacePane(starterPane, newPane);
+				starterPane = null;
+			} else if (queryBldrPane != null) 
+			{
+				SubPaneMgr.getInstance().replacePane(queryBldrPane, newPane);
+			}
+			queryBldrPane = newPane;
+			return true;
+		}
+    	return false;
     }
 
     /*
@@ -1693,14 +1710,16 @@ public class QueryTask extends BaseTask
                 try
                 {
                    SpecifyAppContextMgr mgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+                   //XXX It is no longer to reload the the TreeDefs from the AppContextMgr, Right??
                    TreeDefIface<?, ?, ?> deadTreeDef = mgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>>) tableInfo.getClassObj());
                    TreeDefIface<?,?,?> treeDef = null;
                    DataProviderSessionIFace session = null;
                    try
                    {
                        session = DataProviderFactory.getInstance().createSession();
-                       Object tdObj = session.get(deadTreeDef.getClass(), deadTreeDef.getTreeDefId());
+                       DataModelObjBase tdObj = (DataModelObjBase )session.get(deadTreeDef.getClass(), deadTreeDef.getTreeDefId());
                        treeDef = (TreeDefIface )tdObj;
+                       tdObj.forceLoad();
                    }
                    finally
                    {
@@ -1785,7 +1804,13 @@ public class QueryTask extends BaseTask
         }
     }
     
-    
+    /**
+     * @return string to select objects for import from xml.
+     */
+    protected String getTopLevelNodeSelector()
+    {
+    	return "/queries/query"; 
+    }
     /**
      * 
      */
@@ -1815,7 +1840,7 @@ public class QueryTask extends BaseTask
         {
         
             Element root = XMLHelper.readFileToDOM4J(new File(path));
-            for (Object obj : root.selectNodes("/queries/query"))
+            for (Object obj : root.selectNodes(getTopLevelNodeSelector()))
             {
                 Element el = (Element)obj;
                 SpQuery query = new SpQuery();
@@ -1868,7 +1893,7 @@ public class QueryTask extends BaseTask
             query.setName(qName);
         }
         
-        if (DataModelObjBase.save(true, queriesList))
+        if (saveImportedQueries(queriesList))
         {
             for (SpQuery query : queriesList)
             {
@@ -1885,11 +1910,87 @@ public class QueryTask extends BaseTask
     }
     
     /**
+     * @param queriesList a list of imported queries.
+     * 
+     * @return true if the queries are successfully saved to the db.
+     */
+    protected boolean saveImportedQueries(List<SpQuery> queriesList)
+    {
+    	return DataModelObjBase.save(true, queriesList);
+    }
+    /**
+     * @return id for usage tracker
+     */
+    protected String getExportUsageKey()
+    {
+    	return "QB.EXPORT";
+    }
+    
+    /**
+     * @return i18n resource id
+     */
+    protected String getNothingToExporti18nKey()
+    {
+    	return "QY_NO_QUERIES_TO_EXPORT";
+    }
+    
+    /**
+     * @return resource id for export dialog title
+     */
+    protected String getExportDlgTitlei18nKey()
+    {
+    	return "QY_EXPORT_QUERIES";
+    }
+    
+    /**
+     * @return resource id for export dialog message
+     */
+    protected String getExportDlgMsgi18nKey()
+    {
+    	return "QY_SEL_QUERIES_EXP";
+    }
+    
+    /**
+     * @return export help context id
+     */
+    protected String getExportHelpContext()
+    {
+    	return "QBExport";
+    }
+    
+    /**
+     * @return first line for export section
+     */
+    protected String getXMLExportFirstLine()
+    {
+    	return "<queries>\n";
+    }
+
+    /**
+     * @return last line for export section
+     */
+    protected String getXMLExportLastLine()
+    {
+    	return "</queries>";
+    }
+
+    /**
+     * @param query 
+     * @param sb
+     * 
+     * writes xml for query to sb.
+     */
+    protected void toXML(final SpQuery query, final StringBuilder sb)
+    {
+    	query.toXML(sb);
+    }
+    
+    /**
      * 
      */
     protected void exportQueries()
     {
-        UsageTracker.incrUsageCount("QB.EXPORT");
+        UsageTracker.incrUsageCount(getExportUsageKey());
         Vector<String> list = new Vector<String>();
         for (NavBoxItemIFace nbi : navBox.getItems())
         {
@@ -1899,7 +2000,7 @@ public class QueryTask extends BaseTask
         List<String> selectedList = null;
         if (list.size() == 0)
         {
-        	UIRegistry.showLocalizedMsg("QY_NO_QUERIES_TO_EXPORT");
+        	UIRegistry.showLocalizedMsg(getNothingToExporti18nKey());
         	return;
         }
         if (list.size() == 1)
@@ -1908,21 +2009,21 @@ public class QueryTask extends BaseTask
         } else
         {
             ToggleButtonChooserDlg<String> dlg = new ToggleButtonChooserDlg<String>((Frame)UIRegistry.getMostRecentWindow(),
-                    "QY_EXPORT_QUERIES",
-                    "QY_SEL_QUERIES_EXP",
+            		getExportDlgTitlei18nKey(),
+            		getExportDlgMsgi18nKey(),
                     list,
                     CustomDialog.OKCANCELHELP,
                     ToggleButtonChooserPanel.Type.Checkbox);
             dlg.setAddSelectAll(true);
             dlg.setUseScrollPane(true);
-            dlg.setHelpContext("QBExport");
+            dlg.setHelpContext(getExportHelpContext());
             UIHelper.centerAndShow(dlg);
             selectedList = dlg.getSelectedObjects();
         }
         
         String path = AppPreferences.getLocalPrefs().get(XML_PATH_PREF, null);
         
-        FileDialog fDlg = new FileDialog(((Frame)UIRegistry.getTopWindow()), "Save", FileDialog.SAVE);
+        FileDialog fDlg = new FileDialog(((Frame)UIRegistry.getTopWindow()), UIRegistry.getResourceString("SAVE"), FileDialog.SAVE);
         if (path != null)
         {
             fDlg.setDirectory(path);
@@ -1970,12 +2071,12 @@ public class QueryTask extends BaseTask
             }
             
             StringBuilder sb = new StringBuilder();
-            sb.append("<queries>\n");
+            sb.append(getXMLExportFirstLine());
             for (SpQuery q : queries)
             {
                 q.toXML(sb);
             }
-            sb.append("</queries>");
+            sb.append(getXMLExportLastLine());
             FileUtils.writeStringToFile(new File(path), sb.toString());
             
         } catch (Exception ex)
@@ -2135,9 +2236,11 @@ public class QueryTask extends BaseTask
             super.finished();
             if (queryBldrPane == null || queryBldrPane.aboutToShutdown())
             {
-                editQuery(queryId);
-                queryNavBtn.setEnabled(false);
-                queryBldrPane.setQueryNavBtn(queryNavBtn);
+                if (editQuery(queryId))
+                {
+                	queryNavBtn.setEnabled(false);
+                	queryBldrPane.setQueryNavBtn(queryNavBtn);
+                }
             }
         }
         

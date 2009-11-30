@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -101,7 +102,7 @@ public class CollectionObjectAttachment extends CollectionMember implements Obje
         this.collectionObjectAttachmentId = collectionObjectAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CollectionObjectID", nullable = false)
     public CollectionObject getCollectionObject()
     {
@@ -113,7 +114,7 @@ public class CollectionObjectAttachment extends CollectionMember implements Obje
         this.collectionObject = collectionObject;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -213,9 +214,9 @@ public class CollectionObjectAttachment extends CollectionMember implements Obje
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)CollectionObject.getClassTableId();
+        return CollectionObject.getClassTableId();
     }
 
     /* (non-Javadoc)

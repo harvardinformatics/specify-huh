@@ -885,9 +885,12 @@ public class BaseBusRules implements BusinessRulesIFace
         boolean doLSID = ((SpecifyLSIDGeneratorFactory)SpecifyLSIDGeneratorFactory.getInstance()).isPrefOn(data.getTableId());
         if (doLSID)
         {
+            //----------------------------------------------------------------
+            // We want Version to always be on
             //AppPreferences remote = AppPreferences.getRemote();
             //String                prefix       = "Prefs.LSID.";
             boolean               doVersioning = true;//remote.getBoolean(prefix + "UseVersioning", false);
+            //----------------------------------------------------------------
             UIFieldFormatterIFace formatter    = null;
             
             if (data.getTableId() == 1)
@@ -899,7 +902,7 @@ public class BaseBusRules implements BusinessRulesIFace
             String lsid = GenericLSIDGeneratorFactory.getInstance().setLSIDOnId(data, doVersioning, formatter);
             if (lsid != null)
             {
-                FormHelper.setValue(data, "GUID", lsid);
+                FormHelper.setValue(data, "guid", lsid);
             }
         }
     }
@@ -938,7 +941,7 @@ public class BaseBusRules implements BusinessRulesIFace
             if (obj instanceof FormDataObjIFace)
             {
                 FormDataObjIFace colObj = (FormDataObjIFace)obj;
-                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                if (dataObj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
                 {
                     cnt++;
                 }

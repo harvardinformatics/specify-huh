@@ -43,10 +43,10 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="shipment", indexes =
     {   @Index (name="ShipmentNumberIDX", columnNames={"ShipmentNumber"}),
         @Index (name="ShipmentDateIDX", columnNames={"ShipmentDate"}),
-        @Index (name="ShipmentColMemIDX", columnNames={"CollectionMemberID"}),
+        @Index (name="ShipmentDspMemIDX", columnNames={"DisciplineID"}),
         @Index (name="ShipmentMethodIDX", columnNames={"ShipmentMethod"})
    })
-public class Shipment extends CollectionMember implements java.io.Serializable 
+public class Shipment extends DisciplineMember implements java.io.Serializable 
 {
 
     // Fields    
@@ -413,23 +413,23 @@ public class Shipment extends CollectionMember implements java.io.Serializable
      */
     @Override
     @Transient
-   public Short getParentTableId()
+   public Integer getParentTableId()
     {
         if (borrow != null)
         {
-            return (short)Borrow.getClassTableId();
+            return Borrow.getClassTableId();
         }
         if (loan != null)
         {
-            return (short)Loan.getClassTableId();
+            return Loan.getClassTableId();
         }
         if (exchangeOut != null)
         {
-            return (short)ExchangeOut.getClassTableId();
+            return ExchangeOut.getClassTableId();
         }
         if (gift != null)
         {
-            return (short)Gift.getClassTableId();
+            return Gift.getClassTableId();
         }
         return null;
     }

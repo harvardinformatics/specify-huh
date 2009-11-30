@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -104,7 +105,7 @@ public class ConservEventAttachment extends DataModelObjBase implements ObjectAt
         this.conservEvent = conservEvent;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -204,9 +205,9 @@ public class ConservEventAttachment extends DataModelObjBase implements ObjectAt
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)ConservEvent.getClassTableId();
+        return ConservEvent.getClassTableId();
     }
 
     /* (non-Javadoc)

@@ -33,6 +33,7 @@ import javax.persistence.Transient;
 /**
 
  */
+@SuppressWarnings("serial")
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
@@ -239,9 +240,9 @@ public class TaxonCitation extends DataModelObjBase implements java.io.Serializa
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Taxon.getClassTableId();
+        return Taxon.getClassTableId();
     }
 
     /* (non-Javadoc)

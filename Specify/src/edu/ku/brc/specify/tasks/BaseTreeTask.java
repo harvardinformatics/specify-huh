@@ -243,6 +243,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
         treeNavBox.setVisible(treeNavBox.getComponentCount() > 0);
         treeDefNavBox.setVisible(treeDefNavBox.getComponentCount() > 0);
         unlockNavBox.setVisible(unlockNavBox.getComponentCount() > 0);
+        TreeTaskMgr.checkLocks();
     }
     
     /**
@@ -372,7 +373,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                         log.warn(titleArg + " form was not locked.");
                     }
                     
-                    if (TaskSemaphoreMgr.isLocked(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline))
+                    if (TaskSemaphoreMgr.isLockedOrInUse(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline))
                     {
                         TaskSemaphoreMgr.unlock(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline);
                     } else
@@ -380,6 +381,8 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                         // Show Dialog ?? or Taskbar message ??
                         log.warn(titleArg + " was not locked.");
                     }
+                    
+                    TreeTaskMgr.checkLocks();
                 }
             }
         };
@@ -571,7 +574,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             session = DataProviderFactory.getInstance().createSession();
             
             D treeDef = (D)session.load(currentDef.getClass(), currentDef.getTreeDefId());
-    	    TreeDefinitionEditor<T,D,I> defEditor = new TreeDefinitionEditor<T,D,I>(treeDef, title, this, canEditTreeDef);
+    	    TreeDefinitionEditor<T,D,I> defEditor = new TreeDefinitionEditor<T,D,I>(treeDef, titleArg, this, canEditTreeDef);
     	    
             return defEditor;
             

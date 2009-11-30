@@ -74,6 +74,7 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.SchemaUpdateService;
+import edu.ku.brc.dbsupport.SchemaUpdateService.SchemaUpdateTpe;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
@@ -139,6 +140,7 @@ public class DatabaseLoginPanel extends JTiledPanel
     protected boolean                    isCancelled    = true;
     protected boolean                    isLoggingIn    = false;
     protected boolean                    isAutoClose    = false;
+    protected boolean                    doLoginWithDB  = true;
 
     protected DatabaseLoginListener      dbListener;
     protected JaasContext                jaasContext;
@@ -227,7 +229,7 @@ public class DatabaseLoginPanel extends JTiledPanel
                               final String iconName,
                               final String helpContext)
     {
-        this(userName, password, engageUPPrefs, null, dbListener, isDlg, title, appName, iconName, helpContext);
+        this(userName, password, engageUPPrefs, null, dbListener, isDlg, true, title, appName, iconName, helpContext);
     }
 
     /**
@@ -251,7 +253,7 @@ public class DatabaseLoginPanel extends JTiledPanel
                               final String iconName,
                               final String helpContext)
     {
-        this(null, null, engageUPPrefs, usrPwdProvider, dbListener, isDlg, title, appName, iconName, helpContext);
+        this(null, null, engageUPPrefs, usrPwdProvider, dbListener, isDlg, true, title, appName, iconName, helpContext);
     }
 
     /**
@@ -261,6 +263,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      * @param masterUsrPwdProvider provides a hook to get the Master UserName and Password
      * @param dbListener listener to the panel (usually the frame or dialog)
      * @param isDlg whether the parent is a dialog (false mean JFrame)
+     * @param doLoginWithDB whether it should login using the database name
      * @param title the title for the title bar
      * @param appName the name of the app
      * @param iconName name of icon to use
@@ -271,7 +274,8 @@ public class DatabaseLoginPanel extends JTiledPanel
                               final boolean               engageUPPrefs,
                               final MasterPasswordProviderIFace masterUsrPwdProvider,
                               final DatabaseLoginListener dbListener,  
-                              final boolean isDlg, 
+                              final boolean isDlg,
+                              final boolean doLoginWithDB,
                               final String title,
                               final String appName,
                               final String iconName,
@@ -285,6 +289,7 @@ public class DatabaseLoginPanel extends JTiledPanel
         this.title       = title;
         this.appName     = appName;
         this.doSaveUPPrefs = engageUPPrefs;
+        this.doLoginWithDB = doLoginWithDB;
         
         createUI(isDlg, iconName, engageUPPrefs, helpContext);
         
@@ -389,7 +394,9 @@ public class DatabaseLoginPanel extends JTiledPanel
             public void focusGained(FocusEvent e)
             {
                 super.focusGained(e);
-                ((JTextField)e.getSource()).selectAll();
+                
+                JTextField tf = (JTextField)e.getSource();
+                tf.selectAll();
             }
         };
         username.addFocusListener(focusAdp);
@@ -461,7 +468,7 @@ public class DatabaseLoginPanel extends JTiledPanel
             } else
             {
                 String selectedStr = localPrefs.get("login.dbdriver_selected", "MySQL"); //$NON-NLS-1$ //$NON-NLS-2$
-                int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null, false));
+                int inx = Collections.binarySearch(dbDrivers, new DatabaseDriverInfo(selectedStr, null, null, false, null));
                 dbDriverCBX.setSelectedIndex(inx > -1 ? inx : -1);
             }
 
@@ -723,14 +730,31 @@ public class DatabaseLoginPanel extends JTiledPanel
             return;
         }
 
-        boolean shouldEnable = StringUtils.isNotEmpty(username.getText())
-                && StringUtils.isNotEmpty(new String(password.getPassword()))
-                && (servers.getSelectedIndex() != -1 || StringUtils.isNotEmpty(servers
-                        .getTextField().getText())
-                        && (databases.getSelectedIndex() != -1 || StringUtils.isNotEmpty(databases
-                                .getTextField().getText())));
-
-        if (dbDriverCBX.getSelectedIndex() == -1)
+        String dbName = databases.getTextField().getText();
+        String uName  = username.getText();
+        String pwd    = new String(password.getPassword());
+        
+        boolean shouldEnable = StringUtils.isNotEmpty(uName) &&
+                StringUtils.isNotEmpty(pwd) &&
+                (servers.getSelectedIndex() != -1 || StringUtils.isNotEmpty(servers.getTextField().getText())
+                        && (databases.getSelectedIndex() != -1 || StringUtils.isNotEmpty(dbName)));
+        
+        if (shouldEnable && (StringUtils.contains(uName, ' ') || StringUtils.contains(uName, ',')))
+        {
+            shouldEnable = false;
+            setMessage(getResourceString("NO_SPC_USRNAME"), true); //$NON-NLS-1$
+            
+        } else if (shouldEnable && (StringUtils.contains(pwd, ' ') || StringUtils.contains(pwd, ',')))
+        {
+            shouldEnable = false;
+            setMessage(getResourceString("NO_SPC_PWDNAME"), true); //$NON-NLS-1$
+            
+        } else if (shouldEnable && (StringUtils.contains(dbName, ' ') || StringUtils.contains(dbName, ',')))
+        {
+            shouldEnable = false;
+            setMessage(getResourceString("NO_SPC_DBNAME"), true); //$NON-NLS-1$
+            
+        } else if (dbDriverCBX.getSelectedIndex() == -1)
         {
             shouldEnable = false;
             setMessage(getResourceString("MISSING_DRIVER"), true); //$NON-NLS-1$
@@ -738,7 +762,6 @@ public class DatabaseLoginPanel extends JTiledPanel
             {
                 moreBtn.doClick();
             }
-
         }
 
         loginBtn.setEnabled(shouldEnable);
@@ -1013,7 +1036,22 @@ public class DatabaseLoginPanel extends JTiledPanel
                         DBConnection.getInstance().setConnectionStr(drvInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, getServerName(), getDatabaseName()));
                         
                         // This needs to be done before Hibernate starts up
-                        SchemaUpdateService.getInstance().updateSchema(UIHelper.getInstall4JInstallString());
+                        SchemaUpdateTpe status = SchemaUpdateService.getInstance().updateSchema(UIHelper.getInstall4JInstallString());
+                        if (status == SchemaUpdateTpe.Error)
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            for (String s : SchemaUpdateService.getInstance().getErrMsgList())
+                            {
+                                sb.append(s);
+                                sb.append("\n");
+                            }
+                            sb.append(getResourceString("APP_EXIT")); // 18N
+                            UIRegistry.showError(sb.toString());
+                            
+                        } else if (status == SchemaUpdateTpe.Success)
+                        {
+                            UIRegistry.showLocalizedMsg(JOptionPane.QUESTION_MESSAGE, "", "SCHEMA_UP_OK");
+                        }
                     }
                 }
                 return null;
@@ -1115,7 +1153,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      */
     public String getServerName()
     {
-        return servers.getTextField().getText();
+        return servers.getTextField().getText().trim();
     }
 
     /**
@@ -1123,7 +1161,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      */
     public String getDatabaseName()
     {
-        return databases.getTextField().getText();
+        return doLoginWithDB ? databases.getTextField().getText().trim() : null;
     }
 
     /**
@@ -1132,7 +1170,7 @@ public class DatabaseLoginPanel extends JTiledPanel
      */
     public String getUserName()
     {
-        return username.getText();
+        return username.getText().trim();
     }
 
     /**

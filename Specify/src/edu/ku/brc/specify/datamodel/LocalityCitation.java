@@ -43,9 +43,9 @@ import org.hibernate.annotations.Index;
         @UniqueConstraint(columnNames = { "ReferenceWorkID", "LocalityID" }) 
         })
 @org.hibernate.annotations.Table(appliesTo="localitycitation", indexes =
-    {   @Index (name="LocCitColMemIDX", columnNames={"CollectionMemberID"})
+    {   @Index (name="LocCitColMemIDX", columnNames={"DisciplineID"})
     })
-public class LocalityCitation extends CollectionMember implements java.io.Serializable 
+public class LocalityCitation extends DisciplineMember implements java.io.Serializable 
 {
 
     // Fields    
@@ -164,9 +164,9 @@ public class LocalityCitation extends CollectionMember implements java.io.Serial
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Locality.getClassTableId();
+        return Locality.getClassTableId();
     }
 
     /* (non-Javadoc)

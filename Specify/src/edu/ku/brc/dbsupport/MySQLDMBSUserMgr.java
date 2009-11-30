@@ -179,9 +179,9 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
         {
             if (connection != null)
             {
-                int rv = BasicSQLUtils.update(connection, "DROP DATABASE "+dbName);
+                int rv = BasicSQLUtils.update(connection, "DROP DATABASE "+dbName); // Returns number of tables
                 
-                return rv == 0;
+                return rv > -1;
             }
             
         } catch (Exception ex)
@@ -221,18 +221,21 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     @Override
     public boolean doesDBExists(final String dbName)
     {
-        try
+        if (dbName != null)
         {
-            for (Object[] row : BasicSQLUtils.query(connection, "show databases"))
+            try
             {
-                if (dbName.equals(row[0].toString()))
+                for (Object[] row : BasicSQLUtils.query(connection, "show databases"))
                 {
-                    return true;
+                    if (row[0] != null && dbName.equalsIgnoreCase(row[0].toString()))
+                    {
+                        return true;
+                    }
                 }
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
             }
-        } catch (Exception ex)
-        {
-            ex.printStackTrace();
         }
         return false;
     }
@@ -377,9 +380,10 @@ public class MySQLDMBSUserMgr extends DBMSUserMgr
     {
         try
         {
-            for (Object[] row : BasicSQLUtils.query(connection, "show tables"))
+            for (Object row : BasicSQLUtils.querySingleCol(connection, "show tables"))
             {
-                if (row[0].toString().equalsIgnoreCase(tableName))
+                //System.out.println("["+row.toString()+"]["+tableName+"]");
+                if (row.toString().equalsIgnoreCase(tableName))
                 {
                     return true;
                 }

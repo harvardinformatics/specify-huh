@@ -117,6 +117,7 @@ public class Project extends CollectionMember implements java.io.Serializable {
     }
     // End Initializer
 
+    
     // Property accessors
 
     /**
@@ -127,6 +128,15 @@ public class Project extends CollectionMember implements java.io.Serializable {
     @Column(name = "ProjectID", unique = false, nullable = false, insertable = true, updatable = true)
     public Integer getProjectId() {
         return this.projectId;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        collectionObjects.size();
     }
 
     /**
@@ -387,9 +397,9 @@ public class Project extends CollectionMember implements java.io.Serializable {
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Collection.getClassTableId();
+        return Collection.getClassTableId();
     }
 
     /* (non-Javadoc)

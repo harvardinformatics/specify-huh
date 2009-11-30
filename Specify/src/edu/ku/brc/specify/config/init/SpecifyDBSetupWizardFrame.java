@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.config.init;
 
+import static edu.ku.brc.af.ui.ProcessListUtil.getProcessIdWithText;
+import static edu.ku.brc.af.ui.ProcessListUtil.killProcess;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.HeadlessException;
@@ -56,7 +58,6 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
-import edu.ku.brc.af.ui.ProcessListUtil;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
@@ -67,6 +68,7 @@ import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
@@ -84,7 +86,11 @@ import edu.ku.brc.ui.IconManager.IconSize;
 public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFace
 {
     //private static final Logger  log = Logger.getLogger(SpecifyDBSetupWizardFrame.class);
+    public enum PROC_STATUS {None, FoundAndKilled, FoundNotKilled}
     
+    private String               appVersion          = "6.0"; //$NON-NLS-1$
+    private String               appBuildVersion     = "(Unknown)"; //$NON-NLS-1$
+ 
     /**
      * @throws HeadlessException
      */
@@ -106,7 +112,7 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         SpecifyAppPrefs.setSkipRemotePrefs(true);
         SpecifyAppPrefs.initialPrefs();
         
-        ImageIcon helpIcon = IconManager.getIcon("WizardIcon", IconSize.Std16); //$NON-NLS-1$
+        ImageIcon helpIcon = IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconSize.Std16); //$NON-NLS-1$
         HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
         
         JMenuBar menuBar = createMenus();
@@ -116,7 +122,7 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         }
         UIRegistry.register(UIRegistry.MENUBAR, menuBar);
         
-        setIconImage(IconManager.getIcon("WizardIcon", IconManager.IconSize.Std16).getImage());
+        setIconImage(IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconManager.IconSize.Std16).getImage());
         
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -149,11 +155,11 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
                     @Override
                     public void panelChanged(String title)
                     {
-                       setTitle(title);
+                       setTitle(getAppTitle(title));
                     }
         });
         
-        setTitle(getResourceString("MAIN_TITLE"));
+        setTitle(getAppTitle(getResourceString("MAIN_TITLE")));
         
         setContentPane(wizPanel);
         
@@ -161,38 +167,66 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
     }
     
     /**
-     * Check for and kills and existing embedded MySQl processes.
+     * (To be replaced by method in AppBase)
      */
-    public static void checkForMySQLProcesses()
+    protected String getAppTitle(final String titleStr)
     {
-        List<Integer> ids = ProcessListUtil.getProcessIdWithText("3337");
+        String install4JStr = UIHelper.getInstall4JInstallString();
+        if (StringUtils.isNotEmpty(install4JStr))
+        {
+            appVersion = install4JStr;
+        }
+        
+        return AppBase.getTitle(appVersion, appBuildVersion, titleStr);
+    }
+    
+    /**
+     * @return a list of process IDs for user spawned MySQL processes.
+     */
+    private static List<Integer> checkForMySQLPrc()
+    {
+    	return UIHelper.isWindows() ? getProcessIdWithText("_data/bin/mysqld") : getProcessIdWithText("3337");
+    }
+    
+    /**
+     * Check for and kills and existing embedded MySQl processes.
+     * @return a status as to whether any were found and whether they were killed.
+     */
+    public static PROC_STATUS checkForMySQLProcesses()
+    {
+    	PROC_STATUS status = PROC_STATUS.None;
+        List<Integer> ids = checkForMySQLPrc();
         if (ids.size() > 0)
         {
+        	status = PROC_STATUS.FoundNotKilled;
             if (UIHelper.promptForAction("CONTINUE", "CANCEL", "WARNING", getResourceString("Specify.EMBD_KILL_PROCS")))
             {
                 for (Integer id : ids)
                 {
-                    ProcessListUtil.killProcess(id);
+                    killProcess(id);
                 }
+                status = PROC_STATUS.FoundAndKilled;
             }
             
-            
-            try
+            /*try
             {
                 boolean cont = true;
+                int cnt = 0;
                 while (cont)
                 {
                     Thread.sleep(2000);
                     
-                    ids = ProcessListUtil.getProcessIdWithText("3337");
-                    cont = ids.size()> 0;
+                    ids = checkForMySQLPrc();
+                    cont = ids.size() > 0 && cnt < 5;
+                    cnt++;
                 }
                 
             } catch (Exception ex)
             {
                 ex.printStackTrace();
-            }
+            }*/
         }
+    	return status;
     }
 
     /* (non-Javadoc)
@@ -200,11 +234,24 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
      */
     public boolean doExit(boolean doAppExit)
     {
-        DBConnection.setCopiedToMachineDisk(true);
+        if (UIRegistry.isMobile())
+        {
+            DBConnection.setCopiedToMachineDisk(true);
+        }
         DBConnection.shutdown();
         HibernateUtil.shutdown();
         
-        System.exit(0);
+        SwingUtilities.invokeLater(new Runnable() {
+
+            /* (non-Javadoc)
+             * @see java.lang.Runnable#run()
+             */
+            @Override
+            public void run()
+            {
+                System.exit(0);
+            }
+        });
         
         return true;
     }
@@ -294,7 +341,7 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         System.setProperty(QueryAdjusterForDomain.factoryName,          "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain"); // Needed for ExpressSearch //$NON-NLS-1$
         System.setProperty(SchemaI18NService.factoryName,               "edu.ku.brc.specify.config.SpecifySchemaI18NService");         // Needed for Localization and Schema //$NON-NLS-1$
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
-        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");         // Needed for WebLnkButton //$NON-NLS-1$
+        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");     // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(RecordSetFactory.factoryName,                "edu.ku.brc.specify.config.SpecifyRecordSetFactory");          // Needed for Searching //$NON-NLS-1$
         System.setProperty(DBTableIdMgr.factoryName,                    "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
@@ -334,52 +381,8 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
             e.printStackTrace();
         }
         
-        for (String s : args)
-        {
-            String[] pairs = s.split("="); //$NON-NLS-1$
-            if (pairs.length == 2)
-            {
-                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-                {
-                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-                } 
-            } else
-            {
-                String symbol = pairs[0].substring(2, pairs[0].length());
-                System.setProperty(symbol, symbol);
-            }
-        }
-        
-        // Now check the System Properties
-        String appDir = System.getProperty("appdir");
-        if (StringUtils.isNotEmpty(appDir))
-        {
-            UIRegistry.setDefaultWorkingPath(appDir);
-        }
-        
-        String appdatadir = System.getProperty("appdatadir");
-        if (StringUtils.isNotEmpty(appdatadir))
-        {
-            UIRegistry.setBaseAppDataDir(appdatadir);
-        }
-        
-        // For Debugging Only 
-        //System.setProperty("mobile", "true");
-        
-        String mobile = System.getProperty("mobile");
-        if (StringUtils.isNotEmpty(mobile))
-        {
-            UIRegistry.setMobile(true);
-        }
-        
-        String embeddeddbdir = System.getProperty("embeddeddbdir");
-        if (StringUtils.isNotEmpty(embeddeddbdir))
-        {
-            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
-        } else
-        {
-            UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
-        }
+        AppBase.processArgs(args);
+        System.setProperty("appdatadir", "..");
         
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -410,6 +413,16 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
                 if (localPrefs.getBoolean(EXTRA_CHECK, null) == null)
                 {
                     localPrefs.putBoolean(EXTRA_CHECK, true);
+                }
+                
+                if (UIHelper.isLinux())
+                {
+                    Specify.checkForSpecifyAppsRunning();
+                }
+                
+                if (UIRegistry.isEmbedded())
+                {
+                    checkForMySQLProcesses();
                 }
                 
                 setUpSystemProperties();

@@ -23,9 +23,11 @@ import static edu.ku.brc.helpers.XMLHelper.getAttr;
 
 import java.io.File;
 import java.security.AccessController;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.Hashtable;
@@ -42,6 +44,7 @@ import org.dom4j.Element;
 import edu.ku.brc.af.auth.PermissionSettings;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.forms.DataObjectGettable;
@@ -107,7 +110,7 @@ public class DataObjFieldFormatMgr
     /**
      * Resets the Mgr so it gets reloaded.
      */
-    public static void reset()
+    public void reset()
     {
         if (instance != null)
         {
@@ -330,6 +333,8 @@ public class DataObjFieldFormatMgr
                             }
                         } else
                         {
+                            DBTableInfo tableInfo = switchFormatter.getTableInfo();
+                            
                             List<?> fieldsElements = switchElement.selectNodes("fields");
                             for (Object fieldsObj : fieldsElements)
                             {
@@ -343,18 +348,37 @@ public class DataObjFieldFormatMgr
                                 {
                                     Element  fieldElement  = (Element)fldObj;
                                     String   fieldName     = fieldElement.getTextTrim();
-                                    String   dataTypeStr   = getAttr(fieldElement, "type",      "string");
+                                    String   dataTypeStr   = getAttr(fieldElement, "type",      null);
                                     String   formatStr     = getAttr(fieldElement, "format",    null);
                                     String   sepStr        = getAttr(fieldElement, "sep",       null);
                                     String   formatterName = getAttr(fieldElement, "formatter", null);
                                     String   uifieldformatter = getAttr(fieldElement, "uifieldformatter", null);
                                     
-                                    Class<?> classObj      = typeHash.get(dataTypeStr);
+                                    DBFieldInfo        fieldInfo = tableInfo.getFieldByName(fieldName);
+                                    DBRelationshipInfo relInfo   = fieldInfo == null ? tableInfo.getRelationshipByName(fieldName) : null;
+                                    
+                                    Class<?> classObj;
+                                    if (dataTypeStr == null)
+                                    {
+                                        if (fieldInfo != null)
+                                        {
+                                            classObj = fieldInfo.getDataClass();
+                                        } else
+                                        {
+                                            classObj = String.class;
+                                        }
+                                    } else
+                                    {
+                                        classObj = typeHash.get(dataTypeStr);
+                                    }
+                                    
                                     if (classObj == null)
                                     {
                                         log.error("Couldn't map standard type["+dataTypeStr+"]");
                                     }
                                     fields[inx] = new DataObjDataField(fieldName, classObj, formatStr, sepStr, formatterName, uifieldformatter);
+                                    fields[inx].setDbInfo(tableInfo, fieldInfo, relInfo);
+                                    
                                     inx++;
                                 }
                                 switchFormatter.add(new DataObjDataFieldFormat(name, dataClass, isDefault, format, valueStr, fields));
@@ -679,8 +703,18 @@ public class DataObjFieldFormatMgr
                 StringBuilder strBuf = new StringBuilder(128);
                 for (DataObjDataField field : format.getFields())
                 {
+                    Class<?> fieldClass = field.getType();
+                    
                     Object[] values = getFieldValues(new String[]{field.getName()}, dataObj, getter);
                     Object   value  = values != null ? values[0] : null;
+                    
+                    // NOTE: if the field was a Date or Calendar object it has already been reformatted to a String
+                    // so we change the fieldClass to string so everything works out.
+                    if (fieldClass == Date.class || fieldClass == Calendar.class)
+                    {
+                        fieldClass = String.class;
+                    }
+                    
                     if (value != null)
                     {
                         if (AppContextMgr.isSecurityOn() && value instanceof FormDataObjIFace)
@@ -728,11 +762,10 @@ public class DataObjFieldFormatMgr
                                 strBuf.append(value);
                             }
                             
-                        } else if (value.getClass() == field.getType())
+                        } else if (value.getClass() == fieldClass)
                         {
                             // When format is null then it is a string
-                            if (field.getType() == String.class &&
-                                (field.getFormat() == null || format.equals("%s")))
+                            if (fieldClass == String.class && (field.getFormat() == null || format.equals("%s")))
                             {
                                 if (field.getSep() != null)
                                 {
@@ -746,17 +779,24 @@ public class DataObjFieldFormatMgr
                                 {
                                     strBuf.append(sep);
                                 }
-                                //log.debug("["+value+"]["+format.getFormat()+"]");
-                                args[0] = value;
-                                Formatter formatter = new Formatter();
-                                formatter.format(field.getFormat(), args);
-                                strBuf.append(formatter.toString());
-                                args[0] = null;
+                                //log.debug("["+value+"]["+format+"]");
+                                if (field.getFormat() != null)
+                                {
+                                    args[0] = value;
+                                    Formatter formatter = new Formatter();
+                                    formatter.format(field.getFormat(), args);
+                                    strBuf.append(formatter.toString());
+                                    args[0] = null;
+                                    
+                                } else
+                                {
+                                    strBuf.append(value.toString());
+                                }
                             }
                         } else
                         {
                             log.error("Mismatch of types data retrieved as class["+(value != null ? value.getClass().getSimpleName() : "N/A")+
-                                    "] and the format requires ["+(field != null ? (field.getType() != null ? field.getType().getSimpleName() : "N/A 2") : "N/A")+"]");
+                                    "] and the format requires ["+(field != null ? (fieldClass != null ? fieldClass.getSimpleName() : "N/A 2") : "N/A")+"]");
                         }
                     }
                 }

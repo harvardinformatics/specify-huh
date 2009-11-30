@@ -185,7 +185,12 @@ public class TaxonLoadSetupPanel extends BaseSetupPanel
                 boolean checked = preloadChk.isSelected();
                 if (checked)
                 {
+                    if (fileCBX.getModel().getSize() > 0 && fileCBX.getSelectedIndex() == -1)
+                    {
+                        fileCBX.setSelectedIndex(0);
+                    }
                     enableUI(otherTF.getText().isEmpty(), true, true); 
+                    
                 } else
                 {
                     enableUI(false, true, false);
@@ -298,6 +303,31 @@ public class TaxonLoadSetupPanel extends BaseSetupPanel
         fileSelected();
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.config.init.BaseSetupPanel#doingPrev()
+     */
+    @Override
+    public void doingPrev()
+    {
+        super.doingPrev();
+        
+        otherBrw.setValue(null, null);
+        fileCBX.setSelectedIndex(-1);
+        coverageTF.setText("");
+        srcTF.setText("");
+        descTA.setText("");
+        
+        properties.remove("othertaxonfile");
+        properties.remove("taxonfilename");
+        properties.remove("preloadtaxon");
+        
+        if (preloadChk.isSelected())
+        {
+            preloadChk.doClick();
+        }
+        
+    }
+
     /**
      * 
      */
@@ -362,7 +392,7 @@ public class TaxonLoadSetupPanel extends BaseSetupPanel
      */
     public boolean isUIValid()
     {
-        if (!otherTF.isFocusOwner())
+        if (preloadChk.isSelected() && otherBrw.isEnabled() && !otherTF.isFocusOwner())
         {
             String filePath = otherTF.getText();
             if (!filePath.isEmpty() && FilenameUtils.isExtension(filePath.toLowerCase(), "xls"))
@@ -370,6 +400,7 @@ public class TaxonLoadSetupPanel extends BaseSetupPanel
                 File f = new File(filePath);
                 return f.exists();
             }
+            return StringUtils.isEmpty(otherTF.getText());
         }
         return true;
     }

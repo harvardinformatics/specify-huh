@@ -21,6 +21,7 @@ package edu.ku.brc.specify.config.init;
 
 import static edu.ku.brc.ui.UIHelper.createDuplicateJGoodiesDef;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -83,20 +84,25 @@ public class MasterUserPanel extends GenericFormPanel
                            String helpContext, 
                            String[] labels,
                            String[] fields, 
+                           Integer[] numColumns, 
                            JButton nextBtn, 
                            JButton prevBtn, 
                            boolean makeStretchy)
     {
-        super(name, title, helpContext, labels, fields, nextBtn, prevBtn, makeStretchy);
+        super(name, title, helpContext, labels, fields, numColumns, nextBtn, prevBtn, makeStretchy);
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[])
+     * @see edu.ku.brc.specify.config.init.GenericFormPanel#init(java.lang.String, java.lang.String[], boolean[], java.lang.String[], java.lang.Integer[])
      */
     @Override
-    protected void init(String title, String[] fields, boolean[] required, String[] types)
+    protected void init(final String    title, 
+                        final String[]  fields,
+                        final boolean[] required, 
+                        final String[]  types, 
+                        final Integer[] numColumns)
     {
-        super.init(title, fields, required, types);
+        super.init(title, fields, required, types, numColumns);
         
         label   = UIHelper.createLabel(" ", SwingConstants.CENTER);
         createMUBtn = UIHelper.createI18NButton("CREATE_MASTER_BTN");
@@ -238,9 +244,19 @@ public class MasterUserPanel extends GenericFormPanel
         {
             String dbUsername = properties.getProperty("dbUserName");
             String saUserName = ((JTextField)comps.get("saUserName")).getText();
+            String saPassword = ((JTextField)comps.get("saPassword")).getText();
+            
+            if (!DatabasePanel.checkForValidText(label, saUserName, "ERR_BAD_USRNAME", "NO_SPC_USRNAME", false) ||
+                !DatabasePanel.checkForValidText(label, saPassword,  null,             "NO_SPC_PWDNAME", false))
+            {
+                isOK = false;
+                createMUBtn.setEnabled(false);
+                return false;
+            }
             
             if (dbUsername.equals(saUserName) && !isEmbedded)
             {
+                label.setForeground(Color.RED);
                 label.setText(UIRegistry.getResourceString("DB_SA_USRNAME_MATCH"));
                 createMUBtn.setEnabled(false);
                 return false;
@@ -311,6 +327,8 @@ public class MasterUserPanel extends GenericFormPanel
                 @Override
                 protected Object doInBackground() throws Exception
                 {
+                    MasterUserPanel.this.label.setForeground(Color.BLACK);
+                    
                     isOK = false;
                     if (!isEmbedded)
                     {

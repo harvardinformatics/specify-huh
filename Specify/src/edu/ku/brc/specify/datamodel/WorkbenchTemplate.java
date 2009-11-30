@@ -19,6 +19,9 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import static edu.ku.brc.helpers.XMLHelper.addAttr;
+import static edu.ku.brc.helpers.XMLHelper.getAttr;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +31,7 @@ import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -258,7 +262,7 @@ public class WorkbenchTemplate extends DataModelObjBase implements java.io.Seria
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "SpecifyUserID", nullable = false)
     public SpecifyUser getSpecifyUser() {
         return this.specifyUser;
@@ -411,4 +415,44 @@ public class WorkbenchTemplate extends DataModelObjBase implements java.io.Seria
 
     }
 
+    /**
+     * @param sb
+     * 
+     * constructs an XML description of the object.
+     */
+    public void toXML(final StringBuilder sb)
+    {
+        sb.append("<workbenchtemplate ");
+        addAttr(sb, "name", name);
+        addAttr(sb, "remarks", remarks);
+        sb.append(">\r\n");
+        sb.append("<items>");
+        for (WorkbenchTemplateMappingItem item : workbenchTemplateMappingItems)
+        {
+        	item.toXML(sb);
+        	sb.append("\r\n");
+        }
+        sb.append("</items>\r\n");
+        sb.append("</workbenchtemplate>\r\n");
+    }
+    
+    /**
+     * @param element
+     * 
+     * reads attributes and mapping items from element.
+     */
+    public void fromXML(final Element element)
+    {
+    	name = getAttr(element, "name", null);
+    	remarks = getAttr(element, "remarks", null);
+        for (Object obj : element.selectNodes("items/workbenchtemplatemappingitem"))
+        {
+            Element itemEl = (Element)obj;
+            WorkbenchTemplateMappingItem item = new WorkbenchTemplateMappingItem();
+            item.initialize();
+            item.fromXML(itemEl);
+            item.setWorkbenchTemplate(this);
+            workbenchTemplateMappingItems.add(item);
+        }
+    }
 }

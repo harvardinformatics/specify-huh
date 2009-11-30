@@ -23,6 +23,7 @@ import java.awt.Frame;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.SQLException;
+import java.util.Vector;
 
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
@@ -58,9 +59,29 @@ public abstract class SchemaUpdateService
 {
     public static final String factoryName = "edu.ku.brc.af.core.db.SchmeaUpdateService"; //$NON-NLS-1$
     
+    public enum SchemaUpdateTpe {Success, Error, NotNeeded}
+    
     public enum CONTEXT_STATUS {OK, Error, Ignore, Initial}
     
+    protected Vector<String> errMsgList = new Vector<String>();
+
     protected static SchemaUpdateService instance = null;
+    
+    /**
+     * 
+     */
+    public SchemaUpdateService()
+    {
+        super();
+    }
+
+    /**
+     * @return the errMsgList
+     */
+    public Vector<String> getErrMsgList()
+    {
+        return errMsgList;
+    }
     
     /**
      * @return a username/password pair if valid or null if canceled
@@ -127,7 +148,7 @@ public abstract class SchemaUpdateService
      * @param versionNumber the current version number of the application
      * @return the view
      */
-    public abstract boolean updateSchema(String versionNumber);
+    public abstract SchemaUpdateTpe updateSchema(String versionNumber);
     
     /**
      * Returns the instance of the AppContextMgr.

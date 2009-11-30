@@ -197,7 +197,7 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
     /**
      *
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="DataTypeID", nullable=false)
     public DataType getDataType() {
         return this.dataType;
@@ -491,9 +491,9 @@ public class Discipline extends UserGroupScope implements java.io.Serializable, 
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Division.getClassTableId();
+        return Division.getClassTableId();
     }
 
     /* (non-Javadoc)

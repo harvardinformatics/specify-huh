@@ -84,8 +84,8 @@ public class OldDBStatsDlg extends CustomDialog
                             "SELECT COUNT(*) FROM taxonname",
                             "SELECT COUNT(*) FROM determination",
                             "SELECT COUNT(*) FROM agent",
-                            "SELECT COUNT(*) FROM agent WHERE LENGTH(Name) > 50",
-                            "SELECT COUNT(*) FROM agent WHERE LENGTH(LastName) > 50",
+                            "SELECT COUNT(*) FROM agent WHERE LENGTH(Name) > 128",
+                            "SELECT COUNT(*) FROM agent WHERE LENGTH(LastName) > 128",
                             "SELECT COUNT(*) FROM agent WHERE LastName LIKE '%;%'",
                              "SELECT COUNT(c.AgentID) FROM collectingevent ce INNER JOIN collectors c ON ce.CollectingEventID = c.CollectingEventID " + 
                                 "INNER JOIN agent a ON c.AgentID = a.AgentID WHERE a.LastName LIKE '%;%'",

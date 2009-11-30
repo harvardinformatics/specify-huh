@@ -693,10 +693,10 @@
                 <sql>
                     <![CDATA[SELECT 
  collectingevent.CollectingEventID, 
- collectingevent.StartDate,
- collectingevent.StartDatePrecision,
  collectingevent.StationFieldNumber,
  collectingtrip.CollectingTripName,
+ collectingevent.StartDate,
+ collectingevent.StartDatePrecision,
    %s 
  FROM 
  collectingevent
@@ -705,12 +705,12 @@
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
+                    <caption tableid="10" col="StationFieldNumber"/>
+                    <caption tableid="87" col="CollectingTripName" />
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
                     </caption>
-                    <caption tableid="10" col="StationFieldNumber"/>
-                    <caption tableid="87" col="CollectingTripName" />
                  </captions>
             </detailView>
         </table>
@@ -1153,7 +1153,7 @@ repositoryagreement.RepositoryAgreementNumber,
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT Distinct
+                    <![CDATA[SELECT DISTINCT
  collectionobject.CollectionObjectID, 
   collectionobject.CatalogNumber,
  storage.FullName,
@@ -1616,7 +1616,7 @@ repositoryagreement.RepositoryAgreementNumber,
  address.Country
  FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
  LEFT JOIN address ON agent.AgentID = address.AgentID
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s)]]>
+ WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY agent.AgentID]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1757,7 +1757,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="109" tableid="58" name="StorageSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT StorageID, FullName FROM location WHERE StorageTreeDefID = STORTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT StorageID, FullName FROM storage WHERE StorageTreeDefID = STORTREEDEFID AND (%s)]]>
                 </sql>
                 <captions>
                     <caption tableid="58" col="StorageID" visible="false"/>

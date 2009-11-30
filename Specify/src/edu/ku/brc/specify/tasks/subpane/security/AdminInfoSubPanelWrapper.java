@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.tasks.subpane.security;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -29,10 +30,14 @@ import javax.swing.JPanel;
 
 import edu.ku.brc.af.auth.specify.permission.PermissionService;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayPanel;
+import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpPermission;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
@@ -67,6 +72,24 @@ public class AdminInfoSubPanelWrapper
     {
         this.displayPanel = displayPanel;
         permissionEditors = new ArrayList<PermissionPanelEditor>();
+        
+        MultiView mv = getMultiView();
+        if (mv != null)
+        {
+            ValComboBoxFromQuery agentCBX = null;
+            FormViewObj          fvo      = mv.getCurrentViewAsFormViewObj();
+            Component            cbx      = fvo.getControlByName("agent");
+            if (cbx != null && cbx instanceof ValComboBoxFromQuery)
+            {
+                agentCBX = (ValComboBoxFromQuery)cbx;
+                int divCnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(*) FROM division");
+                if (divCnt > 1)
+                {
+                    agentCBX.setReadOnlyMode();
+                    agentCBX.registerQueryBuilder(new UserAgentVSQBldr(agentCBX));
+                }
+            }
+        }
     }
 
     /**
@@ -204,9 +227,10 @@ public class AdminInfoSubPanelWrapper
     /**
      * @param session the current session
      */
-    public void savePermissionData(final DataProviderSessionIFace session) throws Exception
+    public void savePermissionData(final DataProviderSessionIFace session, 
+                                   final Discipline nodesDiscipline) throws Exception
     {
-        MultiView   mv  = getMultiView();
+        MultiView mv = getMultiView();
         mv.getDataFromUI();
         
         Object obj = mv.getData();
@@ -214,9 +238,21 @@ public class AdminInfoSubPanelWrapper
         SpecifyUserBusRules busRules = new SpecifyUserBusRules();
         busRules.initialize(mv.getCurrentView());
         
+        ValComboBoxFromQuery agentCBX = null;
+        FormViewObj          fvo      = mv.getCurrentViewAsFormViewObj();
+        Component            cbx      = fvo.getControlByName("agent");
+        if (cbx != null && cbx instanceof ValComboBoxFromQuery)
+        {
+            agentCBX = (ValComboBoxFromQuery)cbx;
+        }
+        
+        Agent uiAgent = (Agent)(agentCBX != null ? agentCBX.getValue() : null);
+        
         // Couldn't call BuinessRules because of a double session
         // need to look into it later
         //BusinessRulesIFace br = mv.getCurrentViewAsFormViewObj().getBusinessRules();
+        
+        Agent toBeReleased = null;
         
         // We need to do this because we can't call the BusniessRules
         if (obj instanceof SpecifyUser)
@@ -225,15 +261,35 @@ public class AdminInfoSubPanelWrapper
             
             busRules.beforeMerge(user, session);
             
-            // Hibernate doesn't seem to be cascading the Merge
-            // when Agent has been edited outside the session.
-            // So this seems to be the only way I can cal merge and save.
-            // it is totally bizarre
+            
+            // Get All the Agent Ids for this discipline.
+            String sql = "SELECT a.AgentID FROM discipline d INNER JOIN agent_discipline ad ON d.UserGroupScopeId = ad.DisciplineID " +
+                         "INNER JOIN agent a ON ad.AgentID = a.AgentID " +
+                         "INNER JOIN specifyuser sp ON a.SpecifyUserID = sp.SpecifyUserID " +
+                         "WHERE d.UserGroupScopeId = " + nodesDiscipline.getId() + " AND a.SpecifyUserID = " + user.getId();
+            
+            int     prevAgentID   = BasicSQLUtils.getCountAsInt(sql);
+            Integer idToBeRemoved = null;
+            if (prevAgentID != uiAgent.getId())
+            {
+                idToBeRemoved = prevAgentID;
+            }
+            
             Set<Agent> set = user.getAgents();
             for (Agent agent : new Vector<Agent>(set))
             {
-                set.remove(agent);
-                set.add(session.get(Agent.class, agent.getId()));
+                if (uiAgent.getId().equals(agent.getId()))
+                {
+                    if (!agent.getVersion().equals(uiAgent.getVersion()))
+                    {
+                        session.refresh(agent);
+                    }
+                } else if (agent.getId().equals(idToBeRemoved))
+                {
+                    toBeReleased = agent;
+                    set.add(uiAgent);
+                    uiAgent.setSpecifyUser(user);
+                }
             }
             
             user = session.merge(user);
@@ -247,6 +303,13 @@ public class AdminInfoSubPanelWrapper
         
         principal = session.merge(principal);
         session.saveOrUpdate(principal);
+        
+        if (toBeReleased != null)
+        {
+            toBeReleased = session.merge(toBeReleased);
+            toBeReleased.setSpecifyUser(null);
+            session.saveOrUpdate(toBeReleased);
+        }
         
         for (PermissionPanelEditor editor : permissionEditors)
         {

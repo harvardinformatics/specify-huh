@@ -19,8 +19,6 @@
 */
 package edu.ku.brc.ui.dnd;
 
-import static edu.ku.brc.ui.UIHelper.isMacOS;
-
 import java.awt.AWTEvent;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -34,6 +32,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.Transparency;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
@@ -49,6 +48,7 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.ui.ProgressGlassPane;
+import edu.ku.brc.ui.UIHelper;
 
 /**
  * Simple glass pane that writes and centers text while fading the background.
@@ -166,6 +166,9 @@ public class SimpleGlassPane extends ProgressGlassPane implements AWTEventListen
         }
     }
 
+    /* (non-Javadoc)
+     * @see javax.swing.JComponent#setVisible(boolean)
+     */
     public void setVisible(boolean value)
     {
         super.setVisible(value);
@@ -215,8 +218,24 @@ public class SimpleGlassPane extends ProgressGlassPane implements AWTEventListen
             }
         }*/
     }
-
     
+    /**
+     * @param text the text to set
+     */
+    public void setText(String text)
+    {
+        this.text = text;
+        repaint(); // not efficient
+    }
+
+    /**
+     * @return the text
+     */
+    public String getText()
+    {
+        return text;
+    }
+
     /**
      * @return
      */
@@ -372,17 +391,56 @@ public class SimpleGlassPane extends ProgressGlassPane implements AWTEventListen
             int x = margin.left + tx - (expand / 2);
             int y = margin.top  + ty-fm.getAscent()-(expand / 2);
             
-            g2.fillRoundRect(x+4, y+6, tw+expand, th+expand, arc, arc);
+            drawBGContainer(g2, true, x+4, y+6, tw+expand, th+expand, arc, arc);
             
-            g2.setColor(isMacOS() ? Color.WHITE : new Color(200, 220, 255));
-            g2.fillRoundRect(x, y, tw+expand, th+expand, arc, arc);
+            g2.setColor(Color.WHITE);
+            drawBGContainer(g2, true, x, y, tw+expand, th+expand, arc, arc);
             
-            g2.setColor(Color.BLACK);
-            g2.drawRoundRect(x, y, tw+expand, th+expand, arc, arc);
+            g2.setColor(Color.DARK_GRAY);
+            drawBGContainer(g2, false, x, y, tw+expand, th+expand, arc, arc);
             
             g2.setColor(textColor == null ? Color.BLACK : textColor);
             g2.drawString(text, tx, ty);
         }
+    }
+    
+    /**
+     * @param g2
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param arcW
+     * @param arcH
+     */
+    private void drawBGContainer(final Graphics2D g2, final boolean doFill, final int x, final int y, final int w, final int h, final int arcW, final int arcH)
+    {
+        Stroke cacheStroke = g2.getStroke();
+        
+        g2.setStroke(UIHelper.getStdLineStroke());
+        
+        if (UIHelper.isWindows())
+        {
+            if (doFill)
+            {
+                //g2.fillRect(x, y, w, h); // Make ugly for Windows
+                g2.fillRoundRect(x, y, w, h, 4, 4);
+            } else
+            {
+                //g2.drawRect(x, y, w, h); // Make ugly for Windows
+                g2.drawRoundRect(x, y, w, h, 4, 4);
+            }
+        } else
+        {
+            if (doFill)
+            {
+                g2.fillRoundRect(x, y, w, h, arcW, arcH);
+            } else
+            {
+                g2.drawRoundRect(x, y, w, h, arcW, arcH);
+            }
+        }
+        g2.setStroke(cacheStroke);
     }
     
     /* (non-Javadoc)

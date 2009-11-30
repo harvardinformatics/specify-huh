@@ -48,8 +48,8 @@ public class ProgressGlassPane extends JComponent
     private static final int     DEF_BAR_WIDTH      = 400;
     private static final int     DEF_BAR_HEIGHT     = 20;
 
+    private static final Color   GRADIENT_COLOR1    = Color.DARK_GRAY;
     private static final Color   GRADIENT_COLOR2    = Color.WHITE;
-    private static final Color   GRADIENT_COLOR1    = Color.GRAY;
 
     private int                  progress           = -1;
     private int                  textOffset         = 50;
@@ -133,9 +133,9 @@ public class ProgressGlassPane extends JComponent
         if (progress > -1)
         {
             Dimension size = getSize();
-            if (size.width < barWidth)
+            if (size.width < barWidth || barWidth < 10)
             {
-                barWidth = size.width - 20;
+                barWidth = size.width - (size.width / 2);
             }
             
             // enables anti-aliasing

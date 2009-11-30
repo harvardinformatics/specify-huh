@@ -33,15 +33,11 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -507,38 +503,10 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
     {
         if (e.getKeyCode() == pasteKeyStroke.getKeyCode())
         {
-            Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            for (DataFlavor flavor : sysClipboard.getAvailableDataFlavors())
+            String text = UIHelper.getTextFromClipboard();
+            if (text != null && text.length() <= formatter.getLength())
             {
-                if (flavor.isMimeTypeEqual(DataFlavor.getTextPlainUnicodeFlavor()))
-                {
-                    try
-                    {
-                        StringBuilder sb     = new StringBuilder();
-                        Reader        reader = (InputStreamReader)sysClipboard.getData(flavor);
-                        char[]        buffer = new char[1024];
-                        int           len    = reader.read(buffer);
-                        sb.append(new String(buffer, 0, len));
-                        
-                        while (len > -1)
-                        {
-                            len = reader.read(buffer);
-                            if (len > 0)
-                            {
-                                sb.append(buffer);
-                            }
-                        }
-                        if (sb.length() <= formatter.getLength())
-                        {
-                            setValue(sb.toString(), null);
-                        }
-                        
-                    } catch (Exception ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                    break;
-                }
+                setValue(text, null);
             }
         }
     }
@@ -1044,6 +1012,26 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
     {
         UIValidatable.ErrorType oldState = valState;
         
+        if (isPartialOK)
+        {
+            boolean hasText = false;
+            for (int i=0;i<documents.size();i++)
+            {
+                JFormattedDoc doc = documents.get(i);
+                
+                if (!hasText && doc.getLength() > 0 && i > 0)
+                {
+                    return valState = UIValidatable.ErrorType.Error;
+                }
+                
+                if (doc.getLength() > 0)
+                {
+                    hasText = true;
+                }
+            }
+            return valState = UIValidatable.ErrorType.Valid;
+        }
+        
         if (isViewOnly)
         {
             valState = UIValidatable.ErrorType.Valid;
@@ -1063,6 +1051,9 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                 {
                     valState = UIFieldFormatter.isValid(formatter, data, !isAutoFmtOn) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
                 }
+            } else if (isPartialOK)
+            {
+                valState = StringUtils.isNotEmpty(data) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
             } else
             {
                 valState = UIFieldFormatter.isValid(formatter, data, !isAutoFmtOn) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
@@ -1284,14 +1275,25 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
             String text = getText();
             int bgStrLen = bgStr == null ? 0 : bgStr.length();
             int txtLen   = text  == null ? 0 : text.length();
-            if (isEnabled() && txtLen < bgStrLen)
+            if (isEnabled())
             {
-                FontMetrics fm   = g.getFontMetrics();
-                int          w   = fm.stringWidth(text);
-                pnt = new Point(inner.left+w, inner.top + fm.getAscent());
-
-                g.setColor(textColor);
-                g.drawString(bgStr.substring(text.length(), bgStr.length()), pnt.x, pnt.y);
+                if (txtLen < bgStrLen)
+                {
+                    FontMetrics fm   = g.getFontMetrics();
+                    int          w   = fm.stringWidth(text);
+                    pnt = new Point(inner.left+w, inner.top + fm.getAscent());
+    
+                    g.setColor(textColor);
+                    g.drawString(bgStr.substring(text.length(), bgStr.length()), pnt.x, pnt.y);
+                }
+                
+                if (valState == UIValidatable.ErrorType.Error && isEnabled())
+                {
+                    UIHelper.drawRoundedRect((Graphics2D)g, isNew ? new Color(249,249,0) : valTextColor.getColor(), getSize(), 1);
+                } else if (valState == UIValidatable.ErrorType.Incomplete && isEnabled())
+                {
+                    UIHelper.drawRoundedRect((Graphics2D)g, new Color(249,249,0), getSize(), 1);
+                }
             }
         }
     }

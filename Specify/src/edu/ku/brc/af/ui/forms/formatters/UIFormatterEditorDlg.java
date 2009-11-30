@@ -808,7 +808,7 @@ public class UIFormatterEditorDlg extends CustomDialog
         {
             if (selectedFormat.getAutoNumber() == null)
             {
-                AutoNumberIFace autoNum = UIFieldFormatterMgr.createAutoNumber(AutoNumberGeneric.class.getName(), fieldInfo.getTableInfo().getClassName(), fieldInfo.getName());
+                AutoNumberIFace autoNum = UIFieldFormatterMgr.getInstance().createAutoNumber(AutoNumberGeneric.class.getName(), fieldInfo.getTableInfo().getClassName(), fieldInfo.getName(), fields.size() == 1);
                 selectedFormat.setAutoNumber(autoNum);
             }
         } else
@@ -838,8 +838,8 @@ public class UIFormatterEditorDlg extends CustomDialog
                                  getResourceString("CANCEL")  //$NON-NLS-1$
                   };
             loadAndPushResourceBundle("masterusrpwd");
-
-            userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+            
+            userChoice = JOptionPane.showOptionDialog(this, 
                                                          getResourceString("UIFEDlg.ITEM_CHG"),  //$NON-NLS-1$
                                                          getResourceString("UIFEDlg.CHG_TITLE"),  //$NON-NLS-1$
                                                          JOptionPane.YES_NO_OPTION,

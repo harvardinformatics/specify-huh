@@ -140,6 +140,7 @@ import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem;
 import edu.ku.brc.specify.tasks.BaseTask;
+import edu.ku.brc.specify.tasks.ExportMappingTask;
 import edu.ku.brc.specify.tasks.PermissionOptionPersist;
 import edu.ku.brc.util.Pair;
 
@@ -225,12 +226,14 @@ public class DataBuilder
     
     public static GroupPerson createGroupPerson(final Agent group, 
                                                 final Agent agent, 
-                                                final int order)
+                                                final int order,
+                                                final Division division)
     {
         GroupPerson groupPerson = new GroupPerson();
         groupPerson.initialize();
         groupPerson.setOrderIndex(order);
         
+        groupPerson.setDivision(division);
         if (true)
         {
             groupPerson.setMember(agent);
@@ -2466,15 +2469,15 @@ public class DataBuilder
                                                                 final boolean isNumericOnly,
                                                                 final int   tableNumber)
     {
-        AutoNumberingScheme cns = new AutoNumberingScheme();
-        cns.initialize();
-        cns.setFormatName(formatName);
-        cns.setTableNumber(tableNumber);
-        cns.setSchemeName(schemeName);
-        cns.setSchemeClassName(schemeClassName);
-        cns.setIsNumericOnly(isNumericOnly);
-        persist(cns);
-        return cns;
+        AutoNumberingScheme ans = new AutoNumberingScheme();
+        ans.initialize();
+        ans.setFormatName(formatName);
+        ans.setTableNumber(tableNumber);
+        ans.setSchemeName(schemeName);
+        ans.setSchemeClassName(schemeClassName);
+        ans.setIsNumericOnly(isNumericOnly);
+        persist(ans);
+        return ans;
     }
 
     public static SpPermission createPermission(final String name, 
@@ -2961,6 +2964,10 @@ public class DataBuilder
             SpExportSchema schema = new SpExportSchema();
             schema.initialize();
             schema.setSchemaName("Darwin Core");
+            //Maybe the version for this should be 1.21 to be consistent with the
+            //VertNet darwin schema? Which Laura says is 1.21. 
+            //The darwin2_core.xsd and darwinCoreVertNet.xsd
+            //files seem to point to the same source.            
             schema.setSchemaVersion("2.0");
             
             discipline.addReference(schema, "spExportSchemas");
@@ -3040,6 +3047,10 @@ public class DataBuilder
             }
             localSession.commit();
             localSession.flush();
+            
+            //ExportMappingTask imports don't update the schemaLocale tables
+            ExportMappingTask.importSchemaDefinition(new File(XMLHelper.getConfigDirPath("darwinCoreVertNet.xsd")), "VertNetDarwinCore", "1.21");
+            ExportMappingTask.importSchemaDefinition(new File(XMLHelper.getConfigDirPath("tdwg_dw_core.xsd")), "DarwinCoreTDWG", "1.4");
             
         } catch (Exception ex)
         {

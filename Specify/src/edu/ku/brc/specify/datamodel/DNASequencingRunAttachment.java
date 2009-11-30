@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -104,7 +105,7 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
         this.remarks = remarks;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "DnaSequencingRunID", nullable = false)
     public DNASequencingRun getDnaSequencingRun()
     {
@@ -116,7 +117,7 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
         this.dnaSequencingRun = dnaSequencingRun;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AttachmentID", nullable = false)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     public Attachment getAttachment()
@@ -166,9 +167,9 @@ public class DNASequencingRunAttachment extends DataModelObjBase implements Obje
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)DNASequencingRun.getClassTableId();
+        return DNASequencingRun.getClassTableId();
     }
 
     /* (non-Javadoc)

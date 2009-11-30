@@ -90,6 +90,8 @@ import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpAppResource;
 import edu.ku.brc.specify.datamodel.SpAppResourceData;
@@ -103,6 +105,7 @@ import edu.ku.brc.specify.tasks.subpane.JRConnectionFieldDef;
 import edu.ku.brc.specify.tasks.subpane.SpJRIReportConnection;
 import edu.ku.brc.specify.tasks.subpane.qb.QBJRIReportConnection;
 import edu.ku.brc.specify.tasks.subpane.wb.WBJRIReportConnection;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CustomDialog;
@@ -799,6 +802,22 @@ public class MainFrameSpecify extends MainFrame
     	return null;
     }
     
+    protected static SpAppResourceDir getDirForResource(final String dirName)
+    {
+    	SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+        if (dirName.equals("Personal"))
+        {        	
+        	for (SpAppResourceDir dir : spMgr.getSpAppResourceList())
+        	{
+        		if (dir.getIsPersonal())
+        		{
+        			return dir;
+        		}
+        	}
+    	}			
+    	return spMgr.getSpAppResourceDirByName(dirName);
+    }
+    
     /**
      * @param repResName
      * @param tableId
@@ -934,14 +953,15 @@ public class MainFrameSpecify extends MainFrame
             AppResourceIFace modifiedRes = null;
             if (appRes == null)
             {
-                //XXX - what level???
-                modifiedRes = AppContextMgr.getInstance().createAppResourceForDir(propPanel.getResDirCombo().getSelectedItem().toString());
+            	String dirName = ((RepResourcePropsPanel.ResDirItem )propPanel.getResDirCombo().getSelectedItem()).getName();                
+            	SpAppResourceDir dir = getDirForResource(dirName);
+            	modifiedRes = ((SpecifyAppContextMgr )AppContextMgr.getInstance()).createAppResourceForDir(dir);
             }
             else
             {
                 modifiedRes = appRes;
-                String dirName = propPanel.getResDirCombo().getSelectedItem().toString();
-                SpAppResourceDir dir = ((SpecifyAppContextMgr) AppContextMgr.getInstance()).getSpAppResourceDirByName(dirName);
+                String dirName = ((RepResourcePropsPanel.ResDirItem )propPanel.getResDirCombo().getSelectedItem()).getName();
+                SpAppResourceDir dir = getDirForResource(dirName);
                 ((SpAppResource )modifiedRes).setSpAppResourceDir(dir);
             }
             modifiedRes.setName(propPanel.getNameTxt().getText().trim());
@@ -1036,6 +1056,22 @@ public class MainFrameSpecify extends MainFrame
         setActiveReportForm(jrf);    
     }
 
+    protected boolean repResIsEditableByUser(AppResourceIFace repRes)
+    {
+    	//??? SpReport has a SpecifyUserID field too
+    	String sql = "select count(spq.SpQueryID) from spquery spq inner join spreport spr "
+    		+ " on spr.SpQueryID = spq.SpQueryID inner join spappresource spa "
+    		+ "on spa.SpAppResourceID = spr.AppResourceID where spq.SpecifyUserID = "
+    		+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId();
+    	try 
+    	{
+    		return BasicSQLUtils.getCount(sql) != 0; 
+    	} catch (Exception ex)
+    	{
+    		return false;
+    	}
+    }
+    
     /*
      * (non-Javadoc) Presents user with list of available report resources iReport report designer
      * frame for the selected report resource.
@@ -1076,7 +1112,10 @@ public class MainFrameSpecify extends MainFrame
                                         && (StringUtils.isNotEmpty(rptType) 
                                         && (rptType.equals("Report") || rptType.equals("Invoice"))))
                                 {
-                                    list.add(ap);
+                                    if (repResIsEditableByUser(ap))
+                                    {
+                                    	list.add(ap);
+                                    }
                                 }
                             }
                             session.evict(ap);
@@ -1655,66 +1694,19 @@ public class MainFrameSpecify extends MainFrame
         log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // This is for Windows and Exe4J, turn the args into System Properties
         
+        // Set App Name, MUST be done very first thing!
+        //UIRegistry.setAppName("iReports4Specify");  //$NON-NLS-1$
+        UIRegistry.setAppName("Specify");  //$NON-NLS-1$
         UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         
-        for (String s : args)
-        {
-            String[] pairs = s.split("="); //$NON-NLS-1$
-            if (pairs.length == 2)
-            {
-                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-                {
-                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-                } 
-            } else
-            {
-                String symbol = pairs[0].substring(2, pairs[0].length());
-                System.setProperty(symbol, symbol);
-            }
-        }
-        
-        // Now check the System Properties
-        String appDir = System.getProperty("appdir");
-        if (StringUtils.isNotEmpty(appDir))
-        {
-            UIRegistry.setDefaultWorkingPath(appDir);
-        }
-        
-        String appdatadir = System.getProperty("appdatadir");
-        if (StringUtils.isNotEmpty(appdatadir))
-        {
-            UIRegistry.setBaseAppDataDir(appdatadir);
-        }
-        
-        // For Debugging Only 
-        //System.setProperty("mobile", "true");
-        
-        String mobile = System.getProperty("mobile");
-        if (StringUtils.isNotEmpty(mobile))
-        {
-            UIRegistry.setMobile(true);
-        }
-        
-        String embeddeddbdir = System.getProperty("embeddeddbdir");
-        if (StringUtils.isNotEmpty(embeddeddbdir))
-        {
-            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
-        } else
-        {
-            UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
-        }
+        AppBase.processArgs(args);
 
-        // Set App Name, MUST be done very first thing!
-        UIRegistry.setAppName("iReports4Specify");  //$NON-NLS-1$
-        //UIRegistry.setAppName("Specify");  //$NON-NLS-1$
         
         // Then set this
         IconManager.setApplicationClass(Specify.class);
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_datamodel.xml")); //$NON-NLS-1$
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
-
-        
         
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr //$NON-NLS-1$
         System.setProperty(AppPreferences.factoryName,                  "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
@@ -1742,7 +1734,7 @@ public class MainFrameSpecify extends MainFrame
         HibernateUtil.setListener("post-commit-insert", new edu.ku.brc.specify.dbsupport.PostInsertEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-delete", new edu.ku.brc.specify.dbsupport.PostDeleteEventListener()); //$NON-NLS-1$
 
-        ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
+        ImageIcon helpIcon = IconManager.getIcon(IconManager.makeIconName("AppIcon"), IconSize.Std16); //$NON-NLS-1$
         HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -1768,6 +1760,16 @@ public class MainFrameSpecify extends MainFrame
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, e);
                     log.error("Can't change L&F: ", e); //$NON-NLS-1$
+                }
+                
+                if (UIHelper.isLinux())
+                {
+                    Specify.checkForSpecifyAppsRunning();
+                }
+                
+                if (UIRegistry.isEmbedded())
+                {
+                    SpecifyDBSetupWizardFrame.checkForMySQLProcesses();
                 }
                 
                 DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
@@ -1872,8 +1874,8 @@ public class MainFrameSpecify extends MainFrame
                 String nameAndTitle = "Specify iReport"; // I18N
                 UIRegistry.setRelease(true);
                 UIHelper.doLogin(usrPwdProvider, true, false, false, new IReportLauncher(), 
-                                 "SPIReports", nameAndTitle, nameAndTitle, 
-                                 "SpecifyWhite32", "iReport"); // true means do auto login if it can, 
+                                 IconManager.makeIconName("SPIReports"), nameAndTitle, nameAndTitle, 
+                                 IconManager.makeIconName("SpecifyWhite32"), "iReport"); // true means do auto login if it can, 
                                                                // second bool means use dialog instead of frame
                 
                 localPrefs.load();

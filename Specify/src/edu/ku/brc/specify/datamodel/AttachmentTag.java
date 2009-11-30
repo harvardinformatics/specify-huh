@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -79,7 +80,7 @@ public class AttachmentTag extends DataModelObjBase implements Serializable
         this.tag = tag;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AttachmentID", nullable = false)
     public Attachment getAttachment()
     {
@@ -96,9 +97,9 @@ public class AttachmentTag extends DataModelObjBase implements Serializable
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Attachment.getClassTableId();
+        return Attachment.getClassTableId();
     }
 
     /* (non-Javadoc)

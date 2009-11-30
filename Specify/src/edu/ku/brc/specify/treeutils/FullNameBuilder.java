@@ -32,7 +32,9 @@ import edu.ku.brc.specify.datamodel.Treeable;
 /**
  * @author tnoble
  *
- *Called by FullNameRebuilder to build FullNames during TreeTraversal
+ *Called by FullNameRebuilder to build FullNames during TreeTraversal.
+ *
+ *FullNameRebuilder takes responsibility for constructing parents argument to the buildFullName method.
  */
 public class FullNameBuilder<T extends Treeable<T, D, I>, D extends TreeDefIface<T, D, I>, I extends TreeDefItemIface<T, D, I>> 
 	
@@ -81,7 +83,7 @@ public class FullNameBuilder<T extends Treeable<T, D, I>, D extends TreeDefIface
 	
 	/**
 	 * @param node
-	 * @param parents
+	 * @param parents a list of the parents for node (only parents that are IN the full name should be contained in this list) 
 	 * @return the FullName for node.
 	 */
 	public String buildFullName(TreeNodeInfo node, LinkedList<TreeNodeInfo> parents) throws Exception

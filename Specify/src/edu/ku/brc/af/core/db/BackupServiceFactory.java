@@ -34,6 +34,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.ui.dnd.SimpleGlassPane;
 
 /**
  * @author rods
@@ -117,6 +118,29 @@ public abstract class BackupServiceFactory
      */
     public abstract void doRestore();
     
+    
+    /**
+     * Uses the connection first if not null, or otherwise it will create one. Optionally drops and creates a new database.
+     * @param connection the current connection (can be null)
+     * @param databaseName
+     * @param options
+     * @param restoreZipFilePath
+     * @param glassPane
+     * @param completionMsgKey
+     * @param pcl
+     * @param doSynchronously
+     * @param doDropDatabase whether it should drop the database and create a new empty one.
+     * @return
+     */
+    public abstract boolean doRestoreBulkDataInBackground(String                 databaseName,
+                                                          String                 options,
+                                                          String                 restoreZipFilePath, 
+                                                          SimpleGlassPane        glassPane,
+                                                          String                 completionMsgKey,
+                                                          PropertyChangeListener pcl,
+                                                          boolean                doSynchronously,
+                                                          boolean                doDropDatabase);
+    
     /**
      * Sets the IT Username and Password that should be used instead of the one username and password in the current connection.
      * @param itUsr the username 
@@ -135,13 +159,16 @@ public abstract class BackupServiceFactory
      * @param completionMsgKey
      * @param pcl
      * @param doSynchronously
+     * @param useGlassPane
+     * @return
      */
     public abstract boolean doRestoreInBackground(String                 databaseName,
                                                   String                 restoreFilePath,
                                                   String                 restoreMsgKey,
                                                   String                 completionMsgKey,
                                                   PropertyChangeListener pcl,
-                                                  boolean                doSynchronously);
+                                                  boolean                doSynchronously,
+                                                  boolean                useGlassPane);
     
     /**
      * @param doSendAppExit whether it should send an applications exit command

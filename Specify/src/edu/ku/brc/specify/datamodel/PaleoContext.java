@@ -294,7 +294,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the bioStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="BioStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getBioStrat()
     {
@@ -315,7 +315,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
     *
     */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="ChronosStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getChronosStrat()
     {
@@ -333,7 +333,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the lithoStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="LithoStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public LithoStrat getLithoStrat()
     {
@@ -372,9 +372,9 @@ public class PaleoContext extends CollectionMember implements Cloneable
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)CollectionObject.getClassTableId();
+        return CollectionObject.getClassTableId();
     }
 
     /* (non-Javadoc)

@@ -132,10 +132,15 @@ public class AutoNumberGeneric implements AutoNumberIFace
             return null;
         }
         
+        int yearLen = 0;
+        int posLen  = 0;
+        
         Integer yearVal = null;
         if (yearPos != null && StringUtils.isNotEmpty(value) && value.length() >= yearPos.second)
         {
             yearVal = extractIntegerValue(yearPos, value);
+            
+            yearLen = yearPos.second - yearPos.first;
         }
 
         //List list = session.createCriteria(classObj).addOrder( Order.desc(fieldName) ).setMaxResults(1).list();
@@ -144,7 +149,7 @@ public class AutoNumberGeneric implements AutoNumberIFace
         {
             sb.append(" WHERE '"); //$NON-NLS-1$
             sb.append(yearVal);
-            sb.append("' = substring("+fieldName+","+(yearPos.first+1)+","+yearPos.second+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+            sb.append("' = substring("+fieldName+","+(yearPos.first+1)+","+yearLen+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         }
         sb.append(" ORDER BY"); //$NON-NLS-1$
         
@@ -152,17 +157,19 @@ public class AutoNumberGeneric implements AutoNumberIFace
         {
             if (yearPos != null)
             {
-                sb.append(" substring("+fieldName+","+(yearPos.first+1)+","+yearPos.second+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                sb.append(" substring("+fieldName+","+(yearPos.first+1)+","+yearLen+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
                 
             }
             
             if (pos != null)
             {
+                posLen = pos.second - pos.first;
+                
                 if (yearPos != null)
                 {
                     sb.append(", "); //$NON-NLS-1$
                 }
-                sb.append(" substring("+fieldName+","+(pos.first+1)+","+pos.second+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                sb.append(" substring("+fieldName+","+(pos.first+1)+","+posLen+") desc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
             }
             
             //System.err.println(sb.toString());

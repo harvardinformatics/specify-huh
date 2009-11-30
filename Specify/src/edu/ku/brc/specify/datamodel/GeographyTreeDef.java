@@ -182,7 +182,7 @@ public class GeographyTreeDef extends BaseTreeDef<Geography, GeographyTreeDef, G
 		this.treeEntries = treeEntries;
 	}
 
-    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "treeDef") //$NON-NLS-1$
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "treeDef") //$NON-NLS-1$
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
 	public Set<GeographyTreeDefItem> getTreeDefItems()
 	{
@@ -199,9 +199,9 @@ public class GeographyTreeDef extends BaseTreeDef<Geography, GeographyTreeDef, G
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)Discipline.getClassTableId();
+        return Discipline.getClassTableId();
     }
 
     /* (non-Javadoc)

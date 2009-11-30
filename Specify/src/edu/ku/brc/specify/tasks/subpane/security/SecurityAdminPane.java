@@ -54,6 +54,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -74,6 +75,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.auth.SecurityMgr;
+import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.Taskable;
 import edu.ku.brc.af.tasks.subpane.BaseSubPane;
@@ -120,9 +122,11 @@ public class SecurityAdminPane extends BaseSubPane
     private String                                      currentTitle        = null;
     private JAutoCompTextField                          searchText;
     
+    private Discipline                                  nodesDiscipline = null;
+    
     // manages creation and deletion of items on the navigation tree
-     NavigationTreeMgr navTreeMgr;
-     private NavigationTreeContextMenuMgr navTreeContextMgr;
+    private NavigationTreeMgr            navTreeMgr;
+    private NavigationTreeContextMenuMgr navTreeContextMgr;
     
     @SuppressWarnings("unused")
     private boolean hasPermissionToModify = false;
@@ -314,6 +318,7 @@ public class SecurityAdminPane extends BaseSubPane
                     }
                 }
 
+                nodesDiscipline = navTreeMgr.getParentOfClass(node, Discipline.class);
                 showInfoPanel(dataWrp, secondObjWrp, node.toString());
                 updateUIEnabled(dataWrp);
             }
@@ -779,7 +784,20 @@ public class SecurityAdminPane extends BaseSubPane
                                final DataModelObjBaseWrapper secondObjWrapperArg,
                                final String selectedObjTitle)
     {
-        String className = objWrapperArg.getType();
+        String     className  = objWrapperArg.getType();
+        CardLayout cardLayout = (CardLayout)(infoCards.getLayout());
+        
+        // This displays the panel that says they have all permissions
+        DataModelObjBaseWrapper wrpr = secondObjWrapperArg != null ? secondObjWrapperArg : objWrapperArg;
+        if (wrpr != null)
+        {
+            Object dataObj = wrpr.getDataObj();
+            if (dataObj instanceof SpPrincipal && ((SpPrincipal)dataObj).getGroupSubClass().equals(AdminPrincipal.class.getName()))
+            {
+                cardLayout.show(infoCards, AdminPrincipal.class.getCanonicalName());
+                return;
+            }
+        }
         
         if (currentEditorPanel != null && currentEditorPanel.hasChanged())
         {
@@ -805,7 +823,6 @@ public class SecurityAdminPane extends BaseSubPane
         currentTitle = selectedObjTitle;
         
         // show info panel that corresponds to the type of object selected
-        CardLayout               cardLayout   = (CardLayout)(infoCards.getLayout());
         AdminInfoSubPanelWrapper panelWrapper = infoSubPanels.get(className);
         
         currentEditorPanel  = editorPanels.get(className);
@@ -842,6 +859,13 @@ public class SecurityAdminPane extends BaseSubPane
         createBlankInfoSubPanel(Institution.class, blankPanel);
         createBlankInfoSubPanel(Discipline.class, blankPanel);
         createBlankInfoSubPanel(Collection.class, blankPanel);
+        
+        JPanel allPermissions = new JPanel(new BorderLayout());
+        JLabel lbl = UIHelper.createI18NLabel("SEC_ALL_PERMISSIONS", SwingConstants.CENTER);
+        lbl.setFont(lbl.getFont().deriveFont(18.0f));
+        allPermissions.add(lbl, BorderLayout.CENTER);
+        
+        createBlankInfoSubPanel(AdminPrincipal.class, allPermissions);
         
         createUserPanel();
         createGroupPanel();
@@ -1015,7 +1039,7 @@ public class SecurityAdminPane extends BaseSubPane
             session.beginTransaction();
             
             // then save permissions
-            currentDisplayPanel.savePermissionData(session);
+            currentDisplayPanel.savePermissionData(session, nodesDiscipline);
             currentEditorPanel.setHasChanged(false);
             
             session.commit();

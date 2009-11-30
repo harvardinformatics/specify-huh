@@ -352,9 +352,10 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         
         collection.addReference(pickList, "pickLists");
         
-        if (editPL(pickList))
+        PickList savedPickList = editPL(pickList);
+        if (savedPickList != null)
         {
-            ((DefaultListModel)list.getModel()).addElement(pickList);
+            ((DefaultListModel)list.getModel()).addElement(savedPickList);
             newPickLists.add(pickList);
         }
     }
@@ -383,12 +384,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
                 edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PickListEditorDlg.class, ex);
                 //log.error(ex);
                 pickListCache = null;
-            } finally
-            {
-                if (session != null)
-                {
-                    session.close();
-                }
+                
             }
         }
     }
@@ -416,7 +412,7 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
      * @param pickList the PickList to be edited
      * @return true if it was saved ok
      */
-    protected boolean editPL(final PickList pickList)
+    protected PickList editPL(final PickList pickList)
     {
         String tableName = pickList.getTableName();
         String fieldName = pickList.getFieldName();
@@ -475,15 +471,18 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         {
             dlg.getMultiView().getCurrentViewAsFormViewObj().traverseToGetDataFromForms();
             //boolean isOK = PickList.save(true, pickList);
-            boolean isOK = multiView.getCurrentViewAsFormViewObj().saveObject();
+            
+            
+            boolean  isOK    = multiView.getCurrentViewAsFormViewObj().saveObject();
+            PickList savedPL = (PickList)multiView.getCurrentViewAsFormViewObj().getDataObj(); // get the newly saved PickList
             if (isOK)
             {
                 isChanged = true;
                 dispatchChangeNotification(pickList);
             }
-            return isOK;
+            return !isOK ? null : savedPL;
         }
-        return false;
+        return null;
     }
     
     /**
@@ -504,15 +503,24 @@ public class PickListEditorDlg extends CustomDialog implements BusinessRulesOkDe
         
         if (selectedPL != null)
         {
-            PickList pickList = PickList.getDataObj(PickList.class, selectedPL.getId());
+            PickList pickList;
+            if (selectedPL.getId() != null)
+            {
+                pickList = PickList.getDataObj(PickList.class, selectedPL.getId());
+            } else
+            {
+                pickList = selectedPL;
+            }
+            
             if (pickList != null)
             {
-                if (editPL(pickList))
+                PickList savedPickList = editPL(pickList);
+                if (savedPickList != null)
                 {
                     DefaultListModel model = ((DefaultListModel)list.getModel());
                     int inx = model.indexOf(selectedPL);
                     ((DefaultListModel)list.getModel()).removeElement(selectedPL);
-                    model.insertElementAt(pickList, inx);
+                    model.insertElementAt(savedPickList, inx);
                 }
             }
         }

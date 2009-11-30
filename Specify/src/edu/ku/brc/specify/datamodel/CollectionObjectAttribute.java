@@ -117,6 +117,7 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     protected Boolean yesNo5;
     protected Boolean yesNo6;
     protected Boolean yesNo7;
+    
     protected Set<CollectionObject> collectionObjects;
     
     // Constructors
@@ -230,7 +231,6 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     {
         return collectionObjects;
     }
-
 
     @Column(name = "Text11", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
     public String getText11()
@@ -965,9 +965,9 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)CollectionObject.getClassTableId();
+        return CollectionObject.getClassTableId();
     }
 
     /* (non-Javadoc)

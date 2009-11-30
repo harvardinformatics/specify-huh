@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -98,7 +99,7 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
         this.collectingEventAttachmentId = collectingEventAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CollectingEventID", nullable = false)
     public CollectingEvent getCollectingEvent()
     {
@@ -110,7 +111,7 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
         this.collectingEvent = collectingEvent;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -210,9 +211,9 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
      */
     @Override
     @Transient
-    public Short getParentTableId()
+    public Integer getParentTableId()
     {
-        return (short)CollectingEvent.getClassTableId();
+        return CollectingEvent.getClassTableId();
     }
 
     /* (non-Javadoc)

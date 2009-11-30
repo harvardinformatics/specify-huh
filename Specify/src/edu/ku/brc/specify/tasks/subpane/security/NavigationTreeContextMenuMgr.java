@@ -19,6 +19,8 @@
 */
 package edu.ku.brc.specify.tasks.subpane.security;
 
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -32,6 +34,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.apache.commons.lang.StringUtils;
+
 import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
@@ -39,6 +43,7 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.ui.UIHelper;
 
 /**
  * An instance of this class manages the creation of the context (pop-up or right-click) menu that
@@ -112,11 +117,17 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
             {
                 if (getTreeMgr().canDeleteUser(lastClickComp))
                 {
-                    getTreeMgr().deleteUser(lastClickComp);
+                    if (UIHelper.promptForAction("DELETE", "CANCEL", "SEC_ASKDELUSR_TITLE", getResourceString("SEC_ASKDELUSR")))
+                    {
+                        getTreeMgr().deleteUser(lastClickComp);
+                    }
                     
                 } else if (getTreeMgr().canRemoveUserFromGroup(lastClickComp))
                 {
-                    getTreeMgr().removeUserFromGroup(lastClickComp);
+                    if (UIHelper.promptForAction("REMOVE", "CANCEL", "SEC_ASKRMUSRGRP_TITLE", getResourceString("SEC_ASKRMUSRGRP")))
+                    {
+                        getTreeMgr().removeUserFromGroup(lastClickComp);
+                    }
                 }
                 lastClickComp = null;
                 updateBtnUI();
@@ -178,14 +189,14 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
                     boolean canRemUser = getTreeMgr().canRemoveUserFromGroup(lastClickComp);
                     if (canDelUser)
                     {
-                        toolTip = "Delete User from Group"; // I18N
+                        toolTip = "SEC_DEL_USR_GRP";
                         
                     } else if (canRemUser)
                     {
-                        toolTip = "Remove User from Group (does not delete the user)";
+                        toolTip = "SEC_RM_USR_GRP";
                     }
                     delUserBtn.setEnabled(canDelUser || canRemUser);
-                    delUserBtn.setToolTipText(toolTip);
+                    delUserBtn.setToolTipText(StringUtils.isNotEmpty(toolTip) ? getResourceString(toolTip) : null);
                 } else
                 {
                     delUserBtn.setEnabled(false);

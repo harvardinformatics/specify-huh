@@ -20,7 +20,10 @@
 package edu.ku.brc.services.gpx;
 
 import java.awt.Component;
+import java.awt.FileDialog;
 import java.awt.Frame;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -82,6 +85,22 @@ public class GPXPanel extends JPanel
         createUI();
     }
     
+    /**
+     * 
+     */
+    public GPXPanel(final File file)
+    {
+        super();
+        
+        gpxDS   = new GPXDataSet();
+        gpxType = gpxDS.load(file);
+        
+        createUI();
+    }
+    
+    /**
+     * 
+     */
     protected void createUI()
     {
         wpList = new JList(new Vector<WptType>(gpxType.getWpt()));
@@ -97,7 +116,7 @@ public class GPXPanel extends JPanel
         PanelBuilder    pb = new PanelBuilder(new FormLayout("p,10px,f:p:g", "p,2px,f:p:g,10px,p,2px,f:p:g,10px,p,2px,f:p:g"), this);
         
         int y = 1;
-        pb.add(UIHelper.createLabel("Way Points"), cc.xy(1,y)); y += 2;
+        pb.add(UIHelper.createLabel("Way Points"), cc.xy(1,y)); y += 2; // I18N
         pb.add(UIHelper.createScrollPane(wpList),  cc.xy(1, y)); y += 2;
         
         pb.add(UIHelper.createLabel("Tracks"),     cc.xy(1,y)); y += 2;
@@ -279,14 +298,33 @@ public class GPXPanel extends JPanel
         
     }
     
+    /**
+     * @return the dialog or null if no file was selected
+     */
     public static CustomDialog getDlgInstance()
     {
-        GPXPanel panel = new GPXPanel();
-        CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(), "", true, panel);
-        dlg.createUI();
-        dlg.pack();
-        dlg.setSize(950, 700);
+        FileDialog fileDlg = new FileDialog((Frame)UIRegistry.getTopWindow(), "", FileDialog.LOAD);
         
-        return dlg;
+        fileDlg.setFilenameFilter(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name)
+            {
+                return name.toLowerCase().endsWith(".gpx");
+            }
+        });
+        fileDlg.setVisible(true);
+        
+        String fileName = fileDlg.getFile();
+        if (fileName != null)
+        {
+            GPXPanel panel = new GPXPanel(new File(fileDlg.getDirectory() + File.separator + fileName));
+            CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(), "GPX Points", true, panel);
+            dlg.createUI();
+            dlg.pack();
+            dlg.setSize(950, 700);
+            
+            return dlg;
+        }
+        return null;
     }
 }
