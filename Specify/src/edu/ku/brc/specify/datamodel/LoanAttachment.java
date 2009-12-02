@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -103,7 +104,7 @@ public class LoanAttachment extends DataModelObjBase implements ObjectAttachment
         this.loanAttachmentId = loanAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "LoanID", nullable = false)
     public Loan getLoan()
     {
@@ -115,7 +116,7 @@ public class LoanAttachment extends DataModelObjBase implements ObjectAttachment
         this.loan = loan;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -188,7 +189,27 @@ public class LoanAttachment extends DataModelObjBase implements ObjectAttachment
     {
         return loanAttachmentId;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Loan.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return loan != null ? loan.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getTableId()
      */

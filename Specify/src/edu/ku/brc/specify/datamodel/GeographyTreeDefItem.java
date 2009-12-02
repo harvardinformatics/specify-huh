@@ -221,7 +221,7 @@ public class GeographyTreeDefItem extends DataModelObjBase implements Serializab
         this.fullNameSeparator = fullNameSeparator;
     }
 
-    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "GeographyTreeDefID", unique = false, nullable = false, insertable = true, updatable = true)
 	public GeographyTreeDef getTreeDef()
 	{
@@ -233,7 +233,7 @@ public class GeographyTreeDefItem extends DataModelObjBase implements Serializab
 		this.treeDef = treeDef;
 	}
 
-    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentItemID", unique = false, nullable = true, insertable = true, updatable = true)
 	public GeographyTreeDefItem getParent()
 	{
@@ -331,6 +331,26 @@ public class GeographyTreeDefItem extends DataModelObjBase implements Serializab
 		}
 		return false;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return GeographyTreeDef.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()

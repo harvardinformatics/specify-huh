@@ -57,10 +57,12 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     
     public static int[]            daysInMon = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
     protected static final String  deftitle = UIRegistry.getResourceString("FFE_DEFAULT");     
+    protected static final String  systitle = UIRegistry.getResourceString("FFE_SYSTEM");     
 
     protected String               fieldName;
     protected String               name;
     protected boolean              isSystem;
+    protected boolean              isExternal;
     protected String               title;
     protected Class<?>             dataClass;
     protected FormatterType        type;
@@ -85,6 +87,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     public UIFieldFormatter() 
     {
         fields = new Vector<UIFieldFormatterField>();
+        this.isExternal = false;
     }
     
     /**
@@ -109,6 +112,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     {
         this.name            = name;
         this.isSystem        = isSystem;
+        this.isExternal      = false;
         this.fieldName       = fieldName;
         this.dataClass       = dataClass;
         this.partialDateType = partialDateType;
@@ -133,6 +137,22 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     public boolean isSystem()
     {
         return isSystem;
+    }
+
+    /**
+     * @return the isExternal
+     */
+    public boolean isExternal()
+    {
+        return isExternal;
+    }
+
+    /**
+     * @param isExternal the isExternal to set
+     */
+    public void setExternal(boolean isExternal)
+    {
+        this.isExternal = isExternal;
     }
 
     /* (non-Javadoc)
@@ -310,7 +330,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public boolean isDate()
     {
-        return type == FormatterType.date;
+        return type == FormatterType.date && (partialDateType == null || partialDateType != PartialDateEnum.Search);
     }
 
     /* (non-Javadoc)
@@ -647,8 +667,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         }
         str.append("]");
 
-        str.append(isDefault ? (' ' + deftitle) : "");
+        if (isSystem || isDefault)
+        {
+            str.append(" (");
         
+            str.append(isDefault ? deftitle : "");
+            str.append(isSystem ? ((isDefault ? ", " : "") + systitle) : "");
+        
+            str.append(")");
+        }
+
     	return str.toString();
     }
 
@@ -952,6 +980,12 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
             {
                 field.toXML(sb);
             }
+        }
+        if (isExternal)
+        {
+            sb.append("    <external>");
+            sb.append("    <external>");
+            sb.append("    </extneral>\n");
         }
         sb.append("  </format>\n\n");
     }

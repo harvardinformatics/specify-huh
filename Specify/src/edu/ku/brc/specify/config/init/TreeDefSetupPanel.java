@@ -260,6 +260,7 @@ public class TreeDefSetupPanel extends BaseSetupPanel implements SetupPanelIFace
                     boolean enforced     = getAttr(level, "enforced", false);
                     boolean isInFullName = getAttr(level, "infullname", false);
 
+					// mmk: updated this block
                     if (rank > -1)
                     {
                         boolean required = false;

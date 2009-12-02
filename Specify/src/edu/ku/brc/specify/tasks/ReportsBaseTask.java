@@ -89,7 +89,11 @@ import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.SpAppResource;
+import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpReport;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.Workbench;
+import edu.ku.brc.specify.datamodel.WorkbenchTemplate;
 import edu.ku.brc.specify.tasks.subpane.LabelsPane;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
 import edu.ku.brc.specify.tasks.subpane.qb.SearchResultReportServiceInfo;
@@ -367,14 +371,23 @@ public class ReportsBaseTask extends BaseTask
                 if (rep != null)
                 {
                     rep.forceLoad();
-                    if (rep.getQuery().getContextTableId() != -1)
+                    if (rep.getReportObject() instanceof SpQuery)
                     {
-                        tblContext = new Integer(rep.getQuery().getContextTableId());
-                        //XXX tableid property needs to be -1 (I think) for report running routines
-                        //to distinguish SpReports from other reports. So need a duplicate way to know tableid
-                        //This is dumb. Report running code needs to be re-thunk.
-                        cmdAction.getProperties().put("tblcontext", tblContext); 
-                        cmdAction.getProperties().put("queryid", rep.getQuery().getId());
+                    	SpQuery q = (SpQuery )rep.getReportObject();
+                    	if (q.getContextTableId() != -1)
+                    	{
+                    		tblContext = new Integer(q.getContextTableId());
+                    		//XXX tableid property needs to be -1 (I think) for report running routines
+                    		//to distinguish SpReports from other reports. So need a duplicate way to know tableid
+                    		//This is dumb. Report running code needs to be re-thunk.
+                    		cmdAction.getProperties().put("tblcontext", tblContext); 
+                    		cmdAction.getProperties().put("queryid", q.getId());
+                    	}
+                    }
+                    else if (rep.getReportObject() instanceof Workbench)
+                    {
+                    	cmdAction.getProperties().put("tblcontext", Workbench.getClassTableId());
+                    	cmdAction.getProperties().put("workbenchid", rep.getReportObject().getId());
                     }
                     repRS  = new RecordSet();
                     repRS.initialize();
@@ -1206,31 +1219,28 @@ public class ReportsBaseTask extends BaseTask
     }
     
     /**
-     * @param recordSet
+     * @param reportId
+     * @param appRes
      */
     public static void deleteReportAndResource(final Integer reportId, final AppResourceIFace appRes)
     {
-        SpAppResource resource = null;
+        Integer resourceId = null;
 
         if (reportId == null)
         {
-            resource = (SpAppResource) appRes;
+            resourceId = ((SpAppResource) appRes).getId();
         }
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
 		boolean transOpen = false;
 		try 
 		{
 			String hql = reportId != null ? "from SpReport where id = "  + reportId : 
-				"from SpReport where appResourceId = " + resource.getId();
+				"from SpReport where appResourceId = " + resourceId;
 			SpReport rep = (SpReport) session.getData(hql);
 			if (rep != null) 
 			{
-				resource = rep.getAppResource();
-				session.beginTransaction();
-				transOpen = true;
-				session.delete(rep);
-				session.commit();
-				transOpen = false;
+	        	((SpecifyAppContextMgr) AppContextMgr.getInstance()).removeAppResourceSp(rep.getAppResource()
+	                    .getSpAppResourceDir(), rep.getAppResource());
 			}
 		} catch (Exception e) 
 		{
@@ -1245,11 +1255,6 @@ public class ReportsBaseTask extends BaseTask
 		{
 			session.close();
 		}
-        if (resource != null)
-        {
-            ((SpecifyAppContextMgr) AppContextMgr.getInstance()).removeAppResourceSp(resource
-                    .getSpAppResourceDir(), resource);
-        }
     }
     
     /**
@@ -1441,7 +1446,59 @@ public class ReportsBaseTask extends BaseTask
         
         if (spRepToRun != null)
         {
-            QueryBldrPane.runReport(spRepToRun, spRepToRun.getName(), rs);
+        	if (spRepToRun.getReportObject() instanceof WorkbenchTemplate)
+        	{
+        		//get workbench
+        		WorkbenchTemplate repTemplate = (WorkbenchTemplate )spRepToRun.getReportObject();
+                DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+                try
+                {
+                	List<Workbench> wbs = session.getDataList(Workbench.class, "specifyUser", 
+                			AppContextMgr.getInstance().getClassObject(SpecifyUser.class), 
+                			DataProviderSessionIFace.CompareType.Equals); 
+                	Vector<Workbench> choices = new Vector<Workbench>();
+                	for (Workbench wb : wbs)
+                	{
+                		if (repTemplate.containsAllMappings(wb.getWorkbenchTemplate()))
+                		{
+                			choices.add(wb);
+                		}
+                	}
+                	if (choices.size() == 0)
+                	{
+                		UIRegistry.displayInfoMsgDlgLocalized("ReportsBaseTask.NO_WBS_FOR_REPORT", spRepToRun.getName());
+                		return;
+                	}
+                	Workbench repWB = null;
+                	if (choices.size() == 1)
+                	{
+                		repWB = choices.get(0);
+                	}
+                	else
+                	{
+                		ChooseFromListDlg<Workbench> wbDlg = new ChooseFromListDlg<Workbench>((Frame )UIRegistry.getTopWindow(),
+                        	getResourceString("ReportsBaseTesk.SELECT_WB"),
+                        	choices, 
+                        	IconManager.getIcon(name, IconManager.IconSize.Std24));
+                		UIHelper.centerAndShow(wbDlg);
+                		repWB = wbDlg.getSelectedObject();
+                		if (wbDlg.isCancelled() || repWB == null)
+                		{
+                			return;
+                		}
+                	}
+                    RecordSet wbRS  = new RecordSet();
+                    wbRS.initialize();
+                    wbRS.set(repWB.getName(), Workbench.getClassTableId(), RecordSet.GLOBAL);
+                    wbRS.addItem(repWB.getId());
+                    rs = wbRS;
+                }
+                finally
+                {
+                	session.close();
+                }
+        	}
+        	QueryBldrPane.runReport(spRepToRun, spRepToRun.getName(), rs);
         }
         else if (toRun != null)
         {

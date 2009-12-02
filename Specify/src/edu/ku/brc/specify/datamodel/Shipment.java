@@ -43,10 +43,10 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="shipment", indexes =
     {   @Index (name="ShipmentNumberIDX", columnNames={"ShipmentNumber"}),
         @Index (name="ShipmentDateIDX", columnNames={"ShipmentDate"}),
-        @Index (name="ShipmentColMemIDX", columnNames={"CollectionMemberID"}),
+        @Index (name="ShipmentDspMemIDX", columnNames={"DisciplineID"}),
         @Index (name="ShipmentMethodIDX", columnNames={"ShipmentMethod"})
    })
-public class Shipment extends CollectionMember implements java.io.Serializable 
+public class Shipment extends DisciplineMember implements java.io.Serializable 
 {
 
     // Fields    
@@ -408,7 +408,58 @@ public class Shipment extends CollectionMember implements java.io.Serializable
     public void setExchangeOut(ExchangeOut exchangeOut) {
         this.exchangeOut = exchangeOut;
     }
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+   public Integer getParentTableId()
+    {
+        if (borrow != null)
+        {
+            return Borrow.getClassTableId();
+        }
+        if (loan != null)
+        {
+            return Loan.getClassTableId();
+        }
+        if (exchangeOut != null)
+        {
+            return ExchangeOut.getClassTableId();
+        }
+        if (gift != null)
+        {
+            return Gift.getClassTableId();
+        }
+        return null;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (borrow != null)
+        {
+            return borrow.getId();
+        }
+        if (loan != null)
+        {
+            return loan.getId();
+        }
+        if (exchangeOut != null)
+        {
+            return exchangeOut.getId();
+        }
+        if (gift != null)
+        {
+            return gift.getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

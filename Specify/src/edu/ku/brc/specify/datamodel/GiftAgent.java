@@ -43,9 +43,9 @@ import org.hibernate.annotations.Index;
         @UniqueConstraint(columnNames = { "Role", "GiftID", "AgentID" }) 
         })
 @org.hibernate.annotations.Table(appliesTo="giftagent", indexes =
-    {   @Index (name="GiftAgColMemIDX", columnNames={"CollectionMemberID"})
+    {   @Index (name="GiftAgDspMemIDX", columnNames={"DisciplineID"})
     })
-public class GiftAgent extends CollectionMember implements java.io.Serializable {
+public class GiftAgent extends DisciplineMember implements java.io.Serializable {
 
     // Fields    
 
@@ -171,7 +171,27 @@ public class GiftAgent extends CollectionMember implements java.io.Serializable 
     public void setAgent(Agent agent) {
         this.agent = agent;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Gift.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return gift != null ? gift.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

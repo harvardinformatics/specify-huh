@@ -204,13 +204,6 @@ public class ShipmentLoader extends CsvToSqlLoader
     		throw new LocalException("Invalid transaction type " + Transaction.toString(type));
     	}
     	
-    	// CollectionMemberId (transaction localUnit)
-    	String collectionCode = asaShipment.getCollectionCode();
-    	checkNull(collectionCode, "collection code");
-    	
-    	Integer collectionMemberId = getCollectionId(collectionCode);
-    	shipment.setCollectionMemberId(collectionMemberId);
-    	
     	// InsuredForAmount (isInsured)
     	Boolean isInsured = asaShipment.isInsured();
     	shipment.setInsuredForAmount(isInsured ? "insured" : "not insured");
@@ -351,29 +344,28 @@ public class ShipmentLoader extends CsvToSqlLoader
 
 	private String getInsertSql(Shipment shipment)
     {
-		String fields = "CollectionMemberID, ExchangeOutID, GiftID, InsuredForAmount, LoanID, " +
+		String fields = "ExchangeOutID, GiftID, InsuredForAmount, LoanID, " +
                         "NumberOfPackages, Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
                         "ShipmentNumber, Text1, Text2, TimestampCreated, Version, YesNo2";
 
-		String[] values = new String[17];
+		String[] values = new String[16];
 
-		values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
-		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
-		values[2]  = SqlUtils.sqlString( shipment.getGift().getId());
-		values[3]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
-		values[4]  = SqlUtils.sqlString( shipment.getLoan().getId());
-		values[5]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-		values[6]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[7]  = SqlUtils.sqlString( shipment.getNumber2());
-		values[8]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[9]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[10] = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[11] = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[12] = SqlUtils.sqlString( shipment.getText1());
-		values[13] = SqlUtils.sqlString( shipment.getText2());
-		values[14] = SqlUtils.now();
-		values[15] = SqlUtils.zero();
-		values[16] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[0]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
+		values[1]  = SqlUtils.sqlString( shipment.getGift().getId());
+		values[2]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
+		values[3]  = SqlUtils.sqlString( shipment.getLoan().getId());
+		values[4]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+		values[5]  = SqlUtils.sqlString( shipment.getNumber1());
+		values[6]  = SqlUtils.sqlString( shipment.getNumber2());
+		values[7]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[8]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[9]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[10] = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[11] = SqlUtils.sqlString( shipment.getText1());
+		values[12] = SqlUtils.sqlString( shipment.getText2());
+		values[13] = SqlUtils.now();
+		values[14] = SqlUtils.zero();
+		values[15] = SqlUtils.sqlString( shipment.getYesNo2());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }

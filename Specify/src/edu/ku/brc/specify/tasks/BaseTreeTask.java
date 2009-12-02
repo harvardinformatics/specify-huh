@@ -243,6 +243,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
         treeNavBox.setVisible(treeNavBox.getComponentCount() > 0);
         treeDefNavBox.setVisible(treeDefNavBox.getComponentCount() > 0);
         unlockNavBox.setVisible(unlockNavBox.getComponentCount() > 0);
+        TreeTaskMgr.checkLocks();
     }
     
     /**
@@ -302,7 +303,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             final boolean isEditable = perms == null || perms.canModify();
             
             final TaskSemaphoreMgr.USER_ACTION action = isViewOnly ? TaskSemaphoreMgr.USER_ACTION.ViewMode 
-            		: TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, true);
+            		: TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, true, null, true);
             final boolean isViewMode = action == TaskSemaphoreMgr.USER_ACTION.ViewMode;
             
             if ((isViewable && (action == TaskSemaphoreMgr.USER_ACTION.ViewMode || action == TaskSemaphoreMgr.USER_ACTION.OK)) || 
@@ -331,7 +332,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     	            {
     	                super.finished();
     	                ContextMgr.requestContext(BaseTreeTask.this);
-    	                currentDefInUse = isEditable;
+    	                currentDefInUse = true;
     	                visibleSubPane = treeViewer;
     	                addSubPaneToMgr(treeViewer);
     	                isOpeningTree = false;
@@ -372,7 +373,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                         log.warn(titleArg + " form was not locked.");
                     }
                     
-                    if (TaskSemaphoreMgr.isLocked(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline))
+                    if (TaskSemaphoreMgr.isLockedOrInUse(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline))
                     {
                         TaskSemaphoreMgr.unlock(titleArg, lockName, TaskSemaphoreMgr.SCOPE.Discipline);
                     } else
@@ -380,6 +381,8 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                         // Show Dialog ?? or Taskbar message ??
                         log.warn(titleArg + " was not locked.");
                     }
+                    
+                    TreeTaskMgr.checkLocks();
                 }
             }
         };
@@ -443,7 +446,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             {
                 if (!currentDefInUse)
                 {
-                    TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false);
+                    TaskSemaphoreMgr.USER_ACTION action = TaskSemaphoreMgr.lock(titleArg, treeDefClass.getSimpleName(), "def", TaskSemaphoreMgr.SCOPE.Discipline, false, null, true);
                     if (action == TaskSemaphoreMgr.USER_ACTION.OK)
                     {
                         SwingWorker bgWorker = new SwingWorker()
@@ -571,7 +574,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
             session = DataProviderFactory.getInstance().createSession();
             
             D treeDef = (D)session.load(currentDef.getClass(), currentDef.getTreeDefId());
-    	    TreeDefinitionEditor<T,D,I> defEditor = new TreeDefinitionEditor<T,D,I>(treeDef, title, this, canEditTreeDef);
+    	    TreeDefinitionEditor<T,D,I> defEditor = new TreeDefinitionEditor<T,D,I>(treeDef, titleArg, this, canEditTreeDef);
     	    
             return defEditor;
             
@@ -616,7 +619,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
 	                    String lockName     = treeDefClass.getSimpleName();
 	                    String formLockName = lockName + "Form";
 	                    
-	                    if (!TaskSemaphoreMgr.isLocked(trTitle, formLockName, TaskSemaphoreMgr.SCOPE.Discipline))
+	                    if (!TaskSemaphoreMgr.isLockedOrInUse(trTitle, formLockName, TaskSemaphoreMgr.SCOPE.Discipline))
 	                    {
     	                    ((TreeTableViewer<?,?,?>)visibleSubPane).setDoUnlock(false);
     	                    TreeDefinitionEditor<T,D,I> defEditor = createDefEditor(tabTitle);

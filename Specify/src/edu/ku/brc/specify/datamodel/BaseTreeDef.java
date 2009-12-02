@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Transient;
 import javax.swing.JDialog;
@@ -50,8 +51,7 @@ import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace;
 import edu.ku.brc.specify.dbsupport.TreeDefStatusMgr;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.USER_ACTION;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable;
-import edu.ku.brc.specify.treeutils.FullNameRebuilder;
-import edu.ku.brc.specify.treeutils.NodeNumberer;
+import edu.ku.brc.specify.treeutils.TreeRebuilder;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.ProgressDialog;
@@ -363,76 +363,11 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#updateAllFullNames(edu.ku.brc.specify.datamodel.DataModelObjBase)
      */
     @Override
-    @SuppressWarnings("unchecked")
-	public boolean updateAllFullNames(DataModelObjBase rootObj, DataProviderSessionIFace session,
-			int minRank) throws Exception 
+	public boolean updateAllFullNames(DataModelObjBase rootObj, final boolean useProgDlg,
+			final boolean lockedByCaller, int minRank) throws Exception 
 	{
-        final FullNameRebuilder<N,D,I> renamer = new FullNameRebuilder<N,D,I>((D )this, session, minRank);
-        final JStatusBar nStatusBar = UIRegistry.getStatusBar();
-        if (nStatusBar != null)
-        {
-            nStatusBar.setProgressRange(renamer.getProgressName(), 0, 100);
-        }
-        
-        renamer.addPropertyChangeListener(
-                new PropertyChangeListener() {
-                    public  void propertyChange(final PropertyChangeEvent evt) {
-                        if ("progress".equals(evt.getPropertyName())) 
-                        {
-                            if (nStatusBar != null)
-                            {
-                                nStatusBar.setValue(renamer.getProgressName(), (Integer )evt.getNewValue());
-                            }
-                        }
-                    }
-                });
-
-        boolean ok = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).displayAgentsLoggedInDlg("BaseTreeDef.TREE_UPDATE_DENIED_TITLE", "BaseTreeDef.OTHER_USERS");
-        if (!ok)
-        {
-            return false;
-        }
-            
-        //useGlassPane avoids issues when simpleglasspane is already displayed. no help for normal glass pane yet.
-        boolean useGlassPane = !UIRegistry.isShowingGlassPane() && nStatusBar != null;
-        try
-        {
-            if (useGlassPane)
-            {
-                UIRegistry.writeSimpleGlassPaneMsg(getLocalizedMessage("BaseTreeDef.UPDATING_FULLNAMES", getName()), 24);
-            }
-            else if (nStatusBar != null)
-            {
-                UIRegistry.displayLocalizedStatusBarText("BaseTreeDef.UPDATING_FULLNAMES", getName());
-            }
-            renamer.execute();
-            renamer.get();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BaseTreeDef.class, ex);
-            log.error(ex);
-            UIRegistry.showLocalizedError("BaseTreeDef.UnableToRename");
-            return false;
-        }
-        finally
-        {
-            if (useGlassPane)
-            {
-                UIRegistry.clearSimpleGlassPaneMsg();
-            }
-            else if (nStatusBar != null)
-            {
-                UIRegistry.displayStatusBarText("");
-            }
-            if (nStatusBar != null)
-            {
-                nStatusBar.setProgressDone(renamer.getProgressName());
-            }
-        }
-	}
+    	return treeTraversal(rootObj, useProgDlg, lockedByCaller, minRank, TreeRebuilder.RebuildMode.FullNames);
+ 	}
 
     protected boolean checkForOtherLoginsBeforeNodeNumberUpdate()
     {
@@ -490,21 +425,35 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
         }
         return true;
     }
-    
+
 	/* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.TreeDefIface#updateAllNodes(edu.ku.brc.specify.datamodel.DataModelObjBase)
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public boolean updateAllNodeNumbers(final DataModelObjBase rootObj, final boolean useProgDlg) throws Exception
+    public boolean updateAllNodes(final DataModelObjBase rootObj, final boolean useProgDlg, 
+    		final boolean lockedByCaller) throws Exception
+    {
+    	return treeTraversal(rootObj, useProgDlg, lockedByCaller, 0, TreeRebuilder.RebuildMode.Full);
+    }
+    
+    @Override
+	public boolean updateAllNodeNumbers(DataModelObjBase rootObj,
+			boolean useProgDlg, boolean lockedByCaller) throws Exception {
+		return treeTraversal(rootObj, useProgDlg, lockedByCaller, 0, TreeRebuilder.RebuildMode.NodeNumbers);
+	}
+
+	@SuppressWarnings("unchecked")
+    public boolean treeTraversal(final DataModelObjBase rootObj, final boolean useProgDlg, 
+    		final boolean lockedByCaller, final int minRank, final TreeRebuilder.RebuildMode rebuildMode) throws Exception
     {    	
-    	final NodeNumberer<N,D,I> nodeNumberer = new NodeNumberer<N,D,I>((D )this);
+    	//final NodeNumberer<N,D,I> nodeNumberer = new NodeNumberer<N,D,I>((D )this);
+    	final TreeRebuilder<N,D,I> treeRebuilder = new TreeRebuilder<N,D,I>((D )this, minRank, rebuildMode);
         final JStatusBar nStatusBar = useProgDlg ? null : UIRegistry.getStatusBar();        
         final ProgressDialog progDlg = nStatusBar != null ? null :
             new ProgressDialog(UIRegistry.getResourceString("BaseTreeDef.UPDATING_TREE_DLG"), false, false);
         if (nStatusBar != null)
         {
-            nStatusBar.setProgressRange(nodeNumberer.getProgressName(), 0, 100);
+            nStatusBar.setProgressRange(treeRebuilder.getProgressName(), 0, 100);
         }
         else
         {
@@ -514,17 +463,18 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             progDlg.setProcess(0,100);
             progDlg.setProcessPercent(true);
             progDlg.setDesc(String.format(UIRegistry.getResourceString("BaseTreeDef.UPDATING_TREE"), getName()));
-            nodeNumberer.setProgDlg(progDlg);
+            progDlg.setAlwaysOnTop(true);
+            treeRebuilder.setProgDlg(progDlg);
         }
         
-        nodeNumberer.addPropertyChangeListener(
+        treeRebuilder.addPropertyChangeListener(
                 new PropertyChangeListener() {
                     public  void propertyChange(final PropertyChangeEvent evt) {
                         if ("progress".equals(evt.getPropertyName())) 
                         {
                             if (nStatusBar != null)
                             {
-                                nStatusBar.setValue(nodeNumberer.getProgressName(), (Integer )evt.getNewValue());
+                                nStatusBar.setValue(treeRebuilder.getProgressName(), (Integer )evt.getNewValue());
                             }
                             else
                             {
@@ -556,32 +506,44 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
         //useGlassPane avoids issues when simpleglasspane is already displayed. no help for normal glass pane yet.
         boolean useGlassPane = !UIRegistry.isShowingGlassPane() && nStatusBar != null;
     	
-        if (!TreeDefStatusMgr.lockTree(this, new TaskSemaphoreMgrCallerIFace(){
-    	    @Override
-    		public TaskSemaphoreMgr.USER_ACTION resolveConflict(SpTaskSemaphore semaphore, 
-                    boolean previouslyLocked,
-                    String prevLockBy)
-    	    {
-    	    	boolean okay = UIRegistry.displayConfirm(UIRegistry.getResourceString("BaseTreeDef.TreeLockMsgTitle"), 
-    	    				String.format(UIRegistry.getResourceString("BaseTreeDef.TreeLockMsg"), 
-    	    						getName(),
-    	    						prevLockBy), 
-    	    				UIRegistry.getResourceString("BaseTreeDef.RemoveLock"), 
-    	    				UIRegistry.getResourceString("CANCEL"), JOptionPane.WARNING_MESSAGE);
-    	    	if (okay)
-    	    	{
-    	    		return USER_ACTION.Override;
-    	    	}
-    	    	return USER_ACTION.Error;
-    	    }
-    		
-    	}))
-    	{
-    		//hopefully lock problems will already have been reported 
-            setRenumberingNodes(false);
-            setNodeNumbersAreUpToDate(wasUpToDate);
-    		return false; 
-    	}
+        if (!lockedByCaller) 
+        {
+			if (!TreeDefStatusMgr.lockTree(this, new TaskSemaphoreMgrCallerIFace() {
+						@Override
+						public TaskSemaphoreMgr.USER_ACTION resolveConflict(
+								SpTaskSemaphore semaphore,
+								boolean previouslyLocked, String prevLockBy) 
+						{
+							boolean okay = UIRegistry
+									.displayConfirm(
+											UIRegistry
+													.getResourceString("BaseTreeDef.TreeLockMsgTitle"),
+											String
+													.format(
+															UIRegistry
+																	.getResourceString("BaseTreeDef.TreeLockMsg"),
+															getName(),
+															prevLockBy),
+											UIRegistry
+													.getResourceString("BaseTreeDef.RemoveLock"),
+											UIRegistry
+													.getResourceString("CANCEL"),
+											JOptionPane.WARNING_MESSAGE);
+							if (okay) 
+							{
+								return USER_ACTION.Override;
+							}
+							return USER_ACTION.Error;
+						}
+
+					})) 
+			{
+				// hopefully lock problems will already have been reported
+				setRenumberingNodes(false);
+				setNodeNumbersAreUpToDate(wasUpToDate);
+				return false;
+			}
+		}
         try
         {
             if (useGlassPane)
@@ -592,12 +554,12 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             {
                 UIRegistry.displayLocalizedStatusBarText("BaseTreeDef.UPDATING_TREE", getName());
             }
-            nodeNumberer.execute();
+            treeRebuilder.execute();
             if (progDlg != null)
             {
                 UIHelper.centerAndShow(progDlg);
             }
-            setNodeNumbersAreUpToDate(nodeNumberer.get());
+            setNodeNumbersAreUpToDate(treeRebuilder.get());
             return true;
         }
         catch (Exception ex)
@@ -611,10 +573,13 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
         finally
         {
             setRenumberingNodes(false);
-            if (!TreeDefStatusMgr.unlockTree(this))
+            if (!lockedByCaller) 
             {
-            	//hopefully problems will already have been reported 
-            }
+				if (!TreeDefStatusMgr.unlockTree(this)) 
+				{
+					// hopefully problems will already have been reported
+				}
+			}
             if (useGlassPane)
             {
                 UIRegistry.clearSimpleGlassPaneMsg();
@@ -625,7 +590,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
             }
             if (nStatusBar != null)
             {
-                nStatusBar.setProgressDone(nodeNumberer.getProgressName());
+                nStatusBar.setProgressDone(treeRebuilder.getProgressName());
             }
             else
             {
@@ -687,7 +652,7 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
                 UIHelper.centerAndShow(dlg);
                 if (dlg.getBtnPressed() == CustomDialog.OK_BTN)
                 {
-                    updateAllNodeNumbers(null, useProgDlg);
+                    updateAllNodes(null, useProgDlg, false);
                     result = TreeDefStatusMgr.isNodeNumbersAreUpToDate(this);                    
                 }
                 else
@@ -779,6 +744,19 @@ public abstract class BaseTreeDef<N extends Treeable<N,D,I>,
 	{
 		// TODO Auto-generated method stub
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+	 */
+	@Override
+	public void forceLoad() 
+	{
+		Set<I> treeDefItems = getTreeDefItems();
+		for (I tdi : treeDefItems)
+		{
+			tdi.getTreeDef();
+		}
 	}    
 	
     

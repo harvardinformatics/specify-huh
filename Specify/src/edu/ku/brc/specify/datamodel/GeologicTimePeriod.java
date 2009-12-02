@@ -374,7 +374,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
         this.acceptedChildren = acceptedChildren;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AcceptedID")
     public GeologicTimePeriod getAcceptedGeologicTimePeriod()
     {
@@ -400,7 +400,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "GeologicTimePeriodTreeDefID", nullable = false)
     public GeologicTimePeriodTreeDef getDefinition()
     {
@@ -415,7 +415,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "GeologicTimePeriodTreeDefItemID", nullable = false)
     public GeologicTimePeriodTreeDefItem getDefinitionItem()
     {
@@ -434,7 +434,7 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
     public GeologicTimePeriod getParent()
     {
@@ -495,7 +495,27 @@ public class GeologicTimePeriod extends DataModelObjBase implements java.io.Seri
     {
         this.chronosStratsPaleoContext = chronosStratsPaleoContext;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return GeologicTimePeriod.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+    
     @Transient
     public Integer getTreeId()
     {

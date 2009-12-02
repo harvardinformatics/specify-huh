@@ -19,11 +19,13 @@
 */
 package edu.ku.brc.specify.dbsupport;
 
+import org.apache.log4j.Logger;
 import org.hibernate.event.PostInsertEvent;
 
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
-import edu.ku.brc.ui.CommandAction;
-import edu.ku.brc.ui.CommandDispatcher;
+import edu.ku.brc.dbsupport.DataProviderFactory;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.SpAuditLog;
 
 /**
  * This class listens for Insert events from Hibernate so it can update the Lucene index.  This
@@ -39,23 +41,106 @@ import edu.ku.brc.ui.CommandDispatcher;
  */
 public class PostInsertEventListener implements org.hibernate.event.PostInsertEventListener
 {
-
+    private static final Logger log = Logger.getLogger(PostInsertEventListener.class);
+    
+    private static boolean isAuditOn = true;
+    
     /* (non-Javadoc)
      * @see org.hibernate.event.PostInsertEventListener#onPostInsert(org.hibernate.event.PostInsertEvent)
      */
     @Override
     public void onPostInsert(PostInsertEvent obj)
     {
-        if (obj.getEntity() instanceof FormDataObjIFace)
+        if (isAuditOn() && obj.getEntity() instanceof FormDataObjIFace)
         {
             if (((FormDataObjIFace)obj.getEntity()).isChangeNotifier())
             {
-                CommandDispatcher.dispatch(new CommandAction("Database", "Insert", obj.getEntity()));
+                saveOnAuditTrail((byte)0, obj.getEntity());
             }
+        }
+    }
+    
+    /**
+     * @param action
+     * @param description
+     * @param dObjArg
+     */
+    public static void saveOnAuditTrail(final Byte    action,
+                                        final Object  dObjArg)
+    {
+        if (dObjArg instanceof FormDataObjIFace)
+        {
+            final FormDataObjIFace dObj    = (FormDataObjIFace)dObjArg;
+            
+            //javax.swing.SwingWorker<Integer, Integer> auditWorker = new javax.swing.SwingWorker<Integer, Integer>()
+            //{
+                //@Override
+                //protected Integer doInBackground() throws Exception
+                //{
+                    DataProviderSessionIFace localSession = null;
+                    try
+                    {
+                        localSession = DataProviderFactory.getInstance().createSession();
+                        
+                        localSession.beginTransaction();
+                        
+                        SpAuditLog spal = new SpAuditLog();
+                        spal.initialize();
+                        
+                        spal.setRecordId(dObj.getId());
+                        spal.setTableNum((short)dObj.getTableId());
+                        
+                        spal.setParentRecordId(dObj.getParentId());
+                        
+                        Integer parentId = dObj.getParentTableId();
+                        spal.setParentTableNum(parentId != null ? parentId.shortValue() : null);
+                        
+                        spal.setRecordVersion(dObj.getVersion() == null ? 0 : dObj.getVersion());
+                        spal.setAction(action);
+                        
+                        
+                        localSession.saveOrUpdate(spal);
+                        localSession.commit();
+                        
+                    } catch (Exception ex)
+                    {
+                        localSession.rollback();
+                        ex.printStackTrace();
+                        log.error(ex);
+                        
+                    } finally
+                    {
+                        if (localSession != null)
+                        {
+                            localSession.close();
+                        }
+                    }
+                    //return null;
+                //}
+            //};
+            //auditWorker.execute();
+            
         } else
         {
-            CommandDispatcher.dispatch(new CommandAction("Database", "Insert", obj.getEntity()));
+            log.error("Can't audit data object, not instanceof FormDataObjIFace: "+(dObjArg != null ? dObjArg.getClass().getSimpleName() : "null"));
         }
     }
 
+    /**
+     * @return the isAuditOn
+     */
+    public static boolean isAuditOn()
+    {
+        return isAuditOn;
+    }
+
+    /**
+     * @param isAuditOn the isAuditOn to set
+     */
+    public static void setAuditOn(boolean isAuditOn)
+    {
+        PostInsertEventListener.isAuditOn = isAuditOn;
+    }
+    
+    
 }

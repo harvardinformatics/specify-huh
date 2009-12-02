@@ -50,7 +50,7 @@ public class AgentVariant extends DataModelObjBase implements Serializable
     public static final Byte AUTHOR        = 2;
     public static final Byte AUTHOR_ABBREV = 3;
     public static final Byte LABLELNAME    = 4;
-    public static final Byte FULLNAME      = 5;
+    public static final Byte FULLNAME      = 5; // mmk: added this type
     
     protected Integer            agentVariantId;
     protected String             country;    // Java Two Character Code
@@ -217,7 +217,27 @@ public class AgentVariant extends DataModelObjBase implements Serializable
     {
         this.agent = agent;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Agent.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return agent != null ? agent.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

@@ -39,7 +39,7 @@ import edu.ku.brc.util.Pair;
  */
 public interface UIFieldFormatterIFace
 {
-    public enum PartialDateEnum {None, Full, Month, Year}
+    public enum PartialDateEnum {None, Full, Month, Year, Search}
     public enum FormatterType   {generic, date, numeric} // all lower case to follow convention in uiformatters.xml
 
     /**
@@ -213,7 +213,7 @@ public interface UIFieldFormatterIFace
 
     /**
      * Sets the class that is used for generating the next number in the sequence.
-     * @param autoNumber the autonukmber generator class
+     * @param autoNumber the autonumber generator class
      */
     public abstract void setAutoNumber(AutoNumberIFace autoNumber);
 
@@ -287,7 +287,7 @@ public interface UIFieldFormatterIFace
     public abstract void setPartialDateType(PartialDateEnum partialDateType);
     
     /**
-     * @return
+     * @return cloned object
      */
     public abstract Object clone() throws CloneNotSupportedException;
 

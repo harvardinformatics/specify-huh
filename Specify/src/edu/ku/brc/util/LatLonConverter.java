@@ -958,6 +958,7 @@ public class LatLonConverter
     {
         String[] parts = StringUtils.split(str," d°'\"" + DEGREES_SYMBOL);
         
+        // mmk: fixes bug in wb lat/long uploading
         String dir = null;
         if (parts.length < 4)
         {
@@ -993,6 +994,7 @@ public class LatLonConverter
     {
         String[] parts = StringUtils.split(dm," d°'\"" + DEGREES_SYMBOL);
         
+        // mmk: fixes bug in wb lat/long uploading
         String dir = null;
         if (parts.length < 3)
         {
@@ -1027,6 +1029,7 @@ public class LatLonConverter
     {
         String[] parts = StringUtils.split(str," d°'\"" + DEGREES_SYMBOL);
         
+        // mmk: fixes bug in wb lat/long uploading
         String dir = null;
         if (parts.length < 2)
         {

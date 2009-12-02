@@ -327,9 +327,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     {
         LoanPreparation loanPreparation = new LoanPreparation();
         
-        // CollectionMemberID (collectionCode)
-        loanPreparation.setCollectionMemberId(collectionMemberId);
-        
         // Description (higherTaxon, taxon)
         String taxonDescription = getTaxonDescription(asaLoan);
         if (taxonDescription != null) taxonDescription = truncate(taxonDescription, 50, "taxon description");
@@ -371,9 +368,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // Agent
         loanAgent.setAgent(agent);
-        
-        // CollectionMemberID
-        loanAgent.setCollectionMemberId(collectionMemberId);
         
         // LoanID
         loanAgent.setLoan(loan);
@@ -419,37 +413,35 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(LoanAgent loanAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, LoanID, Remarks, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, LoanID, Remarks, Role, TimestampCreated, Version";
             
-        String[] values = new String[7];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( loanAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( loanAgent.getCollectionMemberId());
-        values[2] = SqlUtils.sqlString( loanAgent.getLoan().getId());
-        values[3] = SqlUtils.sqlString( loanAgent.getRemarks());
-        values[4] = SqlUtils.sqlString( loanAgent.getRole());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( loanAgent.getLoan().getId());
+        values[2] = SqlUtils.sqlString( loanAgent.getRemarks());
+        values[3] = SqlUtils.sqlString( loanAgent.getRole());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
     }
     
     private String getInsertSql(LoanPreparation loanPreparation)
     {
-        String fieldNames = "CollectionMemberID, DescriptionOfMaterial, IsResolved, LoanID, OutComments, " +
+        String fieldNames = "DescriptionOfMaterial, IsResolved, LoanID, OutComments, " +
                             "Quantity, QuantityReturned, TimestampCreated, Version";
         
-        String[] values = new String[9];
+        String[] values = new String[8];
         
-        values[0] = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
-        values[1] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
-        values[2] = SqlUtils.sqlString( loanPreparation.getIsResolved());
-        values[3] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-        values[4] = SqlUtils.sqlString( loanPreparation.getOutComments());
-        values[5] = SqlUtils.sqlString( loanPreparation.getQuantity());
-        values[6] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-        values[7] = SqlUtils.now();
-        values[8] = SqlUtils.zero();
+        values[0] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
+        values[1] = SqlUtils.sqlString( loanPreparation.getIsResolved());
+        values[2] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+        values[3] = SqlUtils.sqlString( loanPreparation.getOutComments());
+        values[4] = SqlUtils.sqlString( loanPreparation.getQuantity());
+        values[5] = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+        values[6] = SqlUtils.now();
+        values[7] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }

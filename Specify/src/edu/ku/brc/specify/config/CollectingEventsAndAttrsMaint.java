@@ -7,23 +7,29 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.SwingWorker;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.prefs.AppPreferences;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectingEventAttribute;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
+import edu.ku.brc.specify.datamodel.Institution;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.PreparationAttribute;
 import edu.ku.brc.ui.UIRegistry;
@@ -46,11 +52,49 @@ public class CollectingEventsAndAttrsMaint
     
     protected static final Logger  log = Logger.getLogger(CollectingEventsAndAttrsMaint.class);
     
+    protected Connection               connection;
+    protected DataProviderSessionIFace session;
+    
+    protected FixUpWorker              fixUpWorker = null;
+    
+    
+    /**
+     * 
+     */
+    public CollectingEventsAndAttrsMaint()
+    {
+        try
+        {
+            connection = DBConnection.getInstance().createConnection();
+            session    = DataProviderFactory.getInstance().createSession();
+        
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+    
+    /**
+     * Cleans up connections.
+     */
+    public void shutdown()
+    {
+        try
+        {
+            connection.close();
+            session.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+    
     /**
      * @param collectionId
      * @return
      */
-    protected static int getCountForMaint(final int collectionId)
+    protected int getCountForMaint(final int collectionId)
     {
         int count = 0;
         boolean isEmbeddedCE = AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent();
@@ -58,95 +102,48 @@ public class CollectingEventsAndAttrsMaint
         {
             String sql = "SELECT SUM(cnt) FROM (SELECT CollectingEventID, count(*) AS cnt FROM collectionobject WHERE " +
                          "CollectingEventID IS NOT NULL AND CollectionMemberID = " + collectionId + " GROUP BY CollectingEventID) T1 WHERE cnt > 1";
-            count += BasicSQLUtils.getCountAsInt(sql);
+            count += BasicSQLUtils.getCountAsInt(connection, sql);
         }
         
         String sql = "SELECT COUNT(*) FROM (SELECT CollectionObjectAttributeID, count(*) AS cnt FROM collectionobject c WHERE " + 
                      "CollectionObjectAttributeID IS NOT NULL AND CollectionMemberId = " + collectionId + " GROUP BY CollectionObjectAttributeID) T1 WHERE cnt > 1";
-        count += BasicSQLUtils.getCountAsInt(sql);
+        count += BasicSQLUtils.getCountAsInt(connection, sql);
         
          sql = "SELECT * FROM (SELECT PreparationAttributeID, count(*) AS cnt FROM preparation WHERE " +
-              "PreparationAttributeID IS NOT NULL AND CollectionMemberId = " + collectionId + " GROUP BY PreparationAttributeID) T1 WHERE cnt > 1";
-        count += BasicSQLUtils.getCountAsInt(sql);
+               "PreparationAttributeID IS NOT NULL AND CollectionMemberId = " + collectionId + " GROUP BY PreparationAttributeID) T1 WHERE cnt > 1";
+        count += BasicSQLUtils.getCountAsInt(connection, sql);
         
         return count;
     }
     
-    protected static int getCECountForMaint()
+    /**
+     * @return
+     */
+    protected int getCECountForMaint()
     {
         String sql = "SELECT COUNT(*) FROM (SELECT CollectingEventAttributeID, count(*) AS cnt FROM collectingevent WHERE " + 
-        "CollectingEventAttributeID IS NOT NULL GROUP BY CollectingEventAttributeID) T1 WHERE cnt > 1";
-        return BasicSQLUtils.getCountAsInt(sql);
+                     "CollectingEventAttributeID IS NOT NULL GROUP BY CollectingEventAttributeID) T1 WHERE cnt > 1";
+        return BasicSQLUtils.getCountAsInt(connection, sql);
     }
     
     /**
      * @param collectionId
      * @return
      */
-    protected static Vector<Object[]> getCollectingEventsWithManyCollectionObjects(final int collectionId)
+    protected Vector<Object> getCollectingEventsWithManyCollectionObjects(final int collectionId)
     {
-        
         String sql = "SELECT * FROM (SELECT CollectingEventID, count(*) AS cnt FROM collectionobject c WHERE " +
                      "CollectingEventID IS NOT NULL AND CollectionMemberID = " + collectionId + " GROUP BY CollectingEventID) T1 WHERE cnt > 1";
-        return BasicSQLUtils.query(sql);
+        return BasicSQLUtils.querySingleCol(connection, sql);
         
     }
     
-    /**
-     * @param collectionId id of an 'embedded collecting event' collection.
-     * @throws Exception
-     */
-    protected static int duplicateCollectingEvents(final int collectionId)
+    protected int getCollectingEventsWithManyCollectionObjectsCount(final int collectionId)
     {
-        int cnt = 0;
-        for (Object[] ce : getCollectingEventsWithManyCollectionObjects(collectionId))
-        {
-            cnt += duplicateCollectingEvent(ce[0]);
-        }
-        return cnt;
-    }
-    
-    /**
-     * @param ceid id for a collecting event with many (> 1) collection objects
-     * @throws Exception
-     */
-    protected static int duplicateCollectingEvent(final Object ceid)
-    {
-        int cnt = 0;
-        Vector<Object[]> cos = BasicSQLUtils.query("SELECT CollectionObjectId FROM collectionobject WHERE CollectingEventID = " + ceid);
-        if (cos != null && cos.size() > 0)
-        {
-            DataProviderSessionIFace session = null;
-            try
-            {
-                session = DataProviderFactory.getInstance().createSession();
-                session.beginTransaction();
-                CollectingEvent ce = session.get(CollectingEvent.class, (Integer )ceid);
-                for (int co = 1; co < cos.size(); co++)
-                {
-                    CollectingEvent ceClone = (CollectingEvent)ce.clone();
-                    session.saveOrUpdate(ceClone);
-                    CollectionObject coObj = session.get(CollectionObject.class, (Integer )cos.get(co)[0]);
-                    coObj.setCollectingEvent(ceClone);
-                    session.saveOrUpdate(coObj);
-                    cnt++;
-                }
-                session.commit();
-                
-            } catch (Exception ex)
-            {
-                session.rollback();
-                log.error(ex);
-                
-            } finally
-            {
-                if (session != null)
-                {
-                    session.close();
-                }
-            }
-        }
-        return cnt;
+        String sql = "SELECT SUM(CNT) FROM (SELECT CollectingEventID, count(*) AS cnt FROM collectionobject c WHERE " +
+                     "CollectingEventID IS NOT NULL AND CollectionMemberID = " + collectionId + " GROUP BY CollectingEventID) T1 WHERE cnt > 1";
+        return BasicSQLUtils.getCountAsInt(connection, sql);
+        
     }
     
     /**
@@ -154,8 +151,45 @@ public class CollectingEventsAndAttrsMaint
      * 
      * Duplicates collecting events for all 'embedded collecting event' collections in the database. 
      */
-    public static void performMaint()
+    public void performMaint()
     {
+        
+        // First Check Prefs
+        String convPrefName = "INST.CONVERTED";
+        
+        AppPreferences remotePrefs = AppPreferences.getRemote();
+        if (remotePrefs.getBoolean(convPrefName, false))
+        {
+            return;
+        }
+        
+        // Skip converted databases
+        Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+        String      remarks     = institution.getRemarks();
+        if (StringUtils.isNotEmpty(remarks) && remarks.equals("Sp5Converted")) 
+        {
+            try
+            {
+                institution.setRemarks(null);
+                session.beginTransaction();
+                session.saveOrUpdate(institution);
+                session.commit();
+                
+                AppContextMgr.getInstance().setClassObject(Institution.class, institution);
+                remotePrefs.getBoolean(convPrefName, true);
+                return;
+                
+            } catch (Exception ex1)
+            {
+                ex1.printStackTrace();
+                session.rollback();
+                UIRegistry.showError("Database mainteneance could not be performed.\nTry again later.\nSpecify must exit now.");
+                DBConnection.shutdown();
+                HibernateUtil.shutdown();
+                System.exit(0);
+            }
+        }
+        
         final ArrayList<Integer> collectionsIds = new ArrayList<Integer>(16);
         for (Object[] row : BasicSQLUtils.query("SELECT CollectionID FROM collection WHERE IsEmbeddedCollectingEvent = TRUE"))
         {
@@ -167,7 +201,7 @@ public class CollectingEventsAndAttrsMaint
             return;
         }
         
-        int totCnt = getCECountForMaint();
+        int totCnt = 0;
         for (Integer id : collectionsIds)
         {
             totCnt += getCountForMaint(id);  // CollectionID
@@ -177,31 +211,31 @@ public class CollectingEventsAndAttrsMaint
         {
             return;
         }
-         
+        
         final int             totalCnt  = totCnt;
         final SimpleGlassPane glassPane = UIRegistry.writeSimpleGlassPaneMsg(getLocalizedMessage("PERFORMING_MAINT"), 24);
 
-        //glassPane.setProgress(0);
+        glassPane.setProgress(0);
         
-        SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>()
+        fixUpWorker = new FixUpWorker()
         {
             @Override
             protected Integer doInBackground() throws Exception
             {
                 int count = 0;
+                glassPane.setText("Fixing Collecting Event Attributes..."); // I18N
                 count += fixDupColEveAttrs();
-                firePropertyChange("CNT", count, (int)( (100.0 * totalCnt) / count));
+                firePropertyChange(CNT, count, (int)( (100.0 * count) / totalCnt));
                 
                 for (Integer id : collectionsIds)
                 {
-                    count += duplicateCollectingEvents(id);
-                    firePropertyChange("CNT", count, (int)( (100.0 * totalCnt) / count));
-                    
+                    glassPane.setText("Fixing Preparation Atttributes...");
                     count += fixDupPrepAttrs(id);
-                    firePropertyChange("CNT", count, (int)( (100.0 * totalCnt) / count));
+                    firePropertyChange(CNT, count, (int)( (100.0 * count) / totalCnt));
                     
+                    glassPane.setText("Fixing Collection Object Atttributes...");
                     count += fixDupColObjAttrs(id);
-                    firePropertyChange("CNT", count, (int)( (100.0 * totalCnt) / count));
+                    firePropertyChange(CNT, count, (int)( (100.0 * count) / totalCnt));
                 }
                 return null;
             }
@@ -210,39 +244,39 @@ public class CollectingEventsAndAttrsMaint
             {
                 super.done();
                 
-                //glassPane.setProgress(100);
+                glassPane.setProgress(100);
                 
                 UIRegistry.clearSimpleGlassPaneMsg();
             }
         };
         
-        worker.addPropertyChangeListener(
+        fixUpWorker.addPropertyChangeListener(
                 new PropertyChangeListener() {
                     public  void propertyChange(final PropertyChangeEvent evt) {
                         if (CNT.equals(evt.getPropertyName())) 
                         {
-                            /*int value = (Integer)evt.getNewValue();
-                            
+                            int value = (Integer)evt.getNewValue();
                             if (value < 100)
                             {
-                                glassPane.setProgress((Integer)evt.getNewValue());
+                                glassPane.setProgress(value);
                             } else
                             {
                                 glassPane.setProgress(100);
-                            }*/
+                            }
                         }
                     }
                 });
         
-        worker.execute();
+        fixUpWorker.execute();
     }
     
     /**
      * @param collectionId
      */
-    protected static int fixDupColObjAttrs(final int collectionId)
+    protected int fixDupColObjAttrs(final int collectionId)
     {
-        int count = 0;
+        int count    = 0;
+        int localCnt = 0;
         String sql = "SELECT * FROM (SELECT CollectionObjectAttributeID, count(*) AS cnt FROM collectionobject c WHERE " +
         		     " CollectionObjectAttributeID IS NOT NULL AND c.CollectionMemberId = " + collectionId + " GROUP BY CollectionObjectAttributeID) T1 WHERE cnt > 1";
         Vector<Object[]> rows = BasicSQLUtils.query(sql);
@@ -250,10 +284,9 @@ public class CollectingEventsAndAttrsMaint
         {
             for (Object[] row : rows)
             {
-                DataProviderSessionIFace session = null;
+                localCnt++;
                 try
                 {
-                    session = DataProviderFactory.getInstance().createSession();
                     int id = (Integer)row[0];
                     CollectionObjectAttribute colObjAttr = session.get(CollectionObjectAttribute.class, id);
                     Set<CollectionObject> cos = colObjAttr.getCollectionObjects();
@@ -276,6 +309,7 @@ public class CollectingEventsAndAttrsMaint
                                     session.saveOrUpdate(colObjAttribute);
                                     session.saveOrUpdate(co);
                                     session.commit();
+                                    session.evict(colObj);
                                     count++;
                                     
                                 } catch (Exception ex1)
@@ -286,23 +320,17 @@ public class CollectingEventsAndAttrsMaint
                             }
                             cnt++;
                         }
+                        session.evict(colObjAttr);
+                        
                     } else
                     {
                         log.error("CollectionObjectAttribute is: "+colObjAttr);
                     }
-                    session.close();
-                    session = null;
                     
                 } catch (Exception ex)
                 {
                     ex.printStackTrace();
                    
-                } finally
-                {
-                    if (session != null)
-                    {
-                        session.close();
-                    }
                 }
             }
         }
@@ -312,9 +340,10 @@ public class CollectingEventsAndAttrsMaint
     /**
      * @param collectionId
      */
-    protected static int fixDupColEveAttrs()
+    protected int fixDupColEveAttrs()
     {
-        int count = 0;
+        int count    = 0;
+        int localCnt = 0;
         String sql = "SELECT * FROM (SELECT CollectingEventAttributeID, count(*) AS cnt FROM collectingevent c WHERE " +
                      "CollectingEventAttributeID IS NOT NULL GROUP BY CollectingEventAttributeID) T1 WHERE cnt > 1";
         Vector<Object[]> rows = BasicSQLUtils.query(sql);
@@ -322,10 +351,10 @@ public class CollectingEventsAndAttrsMaint
         {
             for (Object[] row : rows)
             {
-                DataProviderSessionIFace session = null;
+                fixUpWorker.doFirePropertyChange(CNT, -1, (int)(localCnt / (double)rows.size()));
+                localCnt++;
                 try
                 {
-                    session = DataProviderFactory.getInstance().createSession();
                     int id = (Integer)row[0];
                     CollectingEventAttribute attrOwner = session.get(CollectingEventAttribute.class, id);
                     Set<CollectingEvent> set = attrOwner.getCollectingEvents();
@@ -348,6 +377,8 @@ public class CollectingEventsAndAttrsMaint
                                     session.saveOrUpdate(newAttr);
                                     session.saveOrUpdate(obj);
                                     session.commit();
+                                    
+                                    session.evict(owner);
                                     count++;
                                     
                                 } catch (Exception ex1)
@@ -358,43 +389,38 @@ public class CollectingEventsAndAttrsMaint
                             }
                             cnt++;
                         }
+                        session.evict(attrOwner);
+                        
                     } else
                     {
                         log.error("CollectingEventAttribute is: "+attrOwner);
                     }
-                    session.close();
-                    session = null;
                     
                 } catch (Exception ex)
                 {
                     ex.printStackTrace();
                    
-                } finally
-                {
-                    if (session != null)
-                    {
-                        session.close();
-                    }
                 }
             }
         }
         return count;
     }
     
-    protected static int fixDupPrepAttrs(final int collectionId)
+    protected int fixDupPrepAttrs(final int collectionId)
     {
-        int count = 0;
+        int count    = 0;
+        int localCnt = 0;
         String sql = "SELECT * FROM (SELECT PreparationAttributeID, count(*) AS cnt FROM preparation p WHERE " +
                      "PreparationAttributeID IS NOT NULL AND p.CollectionMemberId = " + collectionId + " GROUP BY PreparationAttributeID) T1 WHERE cnt > 1";
-        Vector<Object[]> rows = BasicSQLUtils.query(sql);
+        Vector<Object[]> rows = BasicSQLUtils.query(connection, sql);
         if (rows != null)
         {
             for (Object[] row : rows)
             {
-                DataProviderSessionIFace session = null;
+                fixUpWorker.doFirePropertyChange(CNT, -1, (int)(localCnt / (double)rows.size()));
+                localCnt++;
                 try
                 {
-                    session = DataProviderFactory.getInstance().createSession();
                     int id = (Integer)row[0];
                     PreparationAttribute attrOwner = session.get(PreparationAttribute.class, id);
                     Set<Preparation> set = attrOwner.getPreparations();
@@ -417,6 +443,7 @@ public class CollectingEventsAndAttrsMaint
                                     session.saveOrUpdate(newAttr);
                                     session.saveOrUpdate(obj);
                                     session.commit();
+                                    session.evict(owner);
                                     count++;
 
                                 } catch (Exception ex1)
@@ -427,27 +454,29 @@ public class CollectingEventsAndAttrsMaint
                             }
                             cnt++;
                         }
+                        session.evict(attrOwner);
+                        
                     } else
                     {
                         log.error("PreparationAttribute is: "+attrOwner);
                     }
-                    session.close();
-                    session = null;
                     
                 } catch (Exception ex)
                 {
                     ex.printStackTrace();
                    
-                } finally
-                {
-                    if (session != null)
-                    {
-                        session.close();
-                    }
                 }
             }
         }
         return count;
     }
 
+    
+    abstract class FixUpWorker extends SwingWorker<Integer, Integer>
+    {
+        public void doFirePropertyChange(final String propName, final Object oldVal, final Object newVal)
+        {
+            firePropertyChange(propName, oldVal, newVal);
+        }
+    }
 }

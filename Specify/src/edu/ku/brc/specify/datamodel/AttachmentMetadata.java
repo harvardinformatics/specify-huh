@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -123,7 +124,7 @@ public class AttachmentMetadata extends DataModelObjBase implements java.io.Seri
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AttachmentID")
     public Attachment getAttachment()
     {
@@ -133,6 +134,26 @@ public class AttachmentMetadata extends DataModelObjBase implements java.io.Seri
     public void setAttachment(Attachment attachment)
     {
         this.attachment = attachment;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Attachment.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return attachment != null ? attachment.getId() : null;
     }
 
     /* (non-Javadoc)

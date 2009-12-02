@@ -131,6 +131,7 @@ import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.ToolBarDropDownBtn;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.dnd.SimpleGlassPane;
 import edu.ku.brc.ui.dnd.Trash;
 import edu.ku.brc.util.Pair;
 
@@ -1845,7 +1846,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
     {
         if (workbench != null)
         {
-            UIRegistry.writeSimpleGlassPaneMsg(String.format(getResourceString("WB_LOADING_DATASET"), new Object[] {workbench.getName()}), GLASSPANE_FONT_SIZE);
+            final SimpleGlassPane glassPane = UIRegistry.writeSimpleGlassPaneMsg(String.format(getResourceString("WB_LOADING_DATASET"), new Object[] {workbench.getName()}), GLASSPANE_FONT_SIZE);
             
             // Make sure we have a session but use an existing one if it is passed in
             DataProviderSessionIFace tmpSession = session;
@@ -1870,24 +1871,39 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                              finiSession.attach(workbench);
                          }
                          final int rowCount = workbench.getWorkbenchRows().size() + 1;
-                         SwingUtilities.invokeLater(new Runnable() {
+                         /*SwingUtilities.invokeLater(new Runnable() {
                              public void run()
                              {
                                  UIRegistry.getStatusBar().setProgressRange(workbench.getName(), 0, rowCount);
                                  UIRegistry.getStatusBar().setIndeterminate(workbench.getName(), false);
                              }
-                         });
+                         });*/
                          
                          //force load the workbench here instead of calling workbench.forceLoad() because
                          //is so time-consuming and needs progress bar.
                          //workbench.getWorkbenchTemplate().forceLoad();
                          workbench.getWorkbenchTemplate().checkMappings(getDatabaseSchema());
-                         UIRegistry.getStatusBar().incrementValue(workbench.getName());
+                         //UIRegistry.getStatusBar().incrementValue(workbench.getName());
+                         int count = 1;
+                         // Adjust paint increment for number of rows in DataSet
+                         int mod;
+                         if (rowCount < 50) mod = 1;
+                         else if (rowCount < 100) mod = 10;
+                         else if (rowCount < 500) mod = 20;
+                         else  if (rowCount < 1000) mod = 40;
+                         else mod = 50;
                          for (WorkbenchRow row : workbench.getWorkbenchRows())
                          {
                              row.forceLoad();
-                             UIRegistry.getStatusBar().incrementValue(workbench.getName());
+                             //UIRegistry.getStatusBar().incrementValue(workbench.getName());
+                             
+                             if (count % mod == 0)
+                             {
+                                 glassPane.setProgress((int)( (100.0 * count) / rowCount));
+                             }
+                             count++;
                          }
+                         glassPane.setProgress(100);
                          
                          // do the conversion code right here!
                          boolean convertedAnImage = false;
@@ -1983,12 +1999,7 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 public void finished()
                 {
                     UIRegistry.clearSimpleGlassPaneMsg();
-//                    SwingUtilities.invokeLater(new Runnable() {
-//                        public void run()
-//                        {
-                            UIRegistry.getStatusBar().setProgressDone(workbench.getName());
-//                        }
-//                    });
+                    //UIRegistry.getStatusBar().setProgressDone(workbench.getName());
                 }
             };
             worker.start();
@@ -2235,9 +2246,21 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
         session.close();
         
         String actionStr = cmdAction.getPropertyAsString("action");
-        if (StringUtils.isNotEmpty(actionStr) && actionStr.equals("PrintBasicLabel")) // Research into JRDataSources 
+        if (StringUtils.isNotEmpty(actionStr)) 
         {
-            if (askUserForReportProps())
+            boolean isBasicLabel = actionStr.equals("PrintBasicLabel");
+        	boolean go = false;
+        	if (isBasicLabel)
+            {
+        		go = askUserForReportProps();
+            }
+        	else
+        	{
+        		//XXX general prop getting stuff will be handled in ReportTask???
+        		go = true;        		
+        	}
+        	
+        	if (go)
             {
                 RecordSet rs = new RecordSet();
                 rs.initialize();
@@ -2248,21 +2271,29 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 session.attach(workbench);
 
                 workbench.forceLoad();
-                WorkbenchJRDataSource dataSrc = new WorkbenchJRDataSource(workbench, workbench.getWorkbenchRowsAsList());
+                WorkbenchJRDataSource dataSrc = new WorkbenchJRDataSource(workbench, workbench.getWorkbenchRowsAsList(), !isBasicLabel);
                 session.close();
 
                 final CommandAction cmd = new CommandAction(ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, dataSrc);
-                cmd.setProperty("title", "Labels");
-                cmd.setProperty("file", "basic_label.jrxml");
-                // params hard-coded for harvard demo:
-                cmd.setProperty("params", "title="
+                
+                if (isBasicLabel)
+                {
+                	cmd.setProperty("title", "Labels");
+                	cmd.setProperty("file", "basic_label.jrxml");
+                	// params hard-coded for harvard demo:
+                	cmd.setProperty("params", "title="
                         + AppPreferences.getLocalPrefs().get("reportProperties.title", "")
                         + ";subtitle="
                         + AppPreferences.getLocalPrefs().get("reportProperties.subTitle", "")
                         + ";footer="
                         + AppPreferences.getLocalPrefs().get("reportProperties.footer", ""));
+                    cmd.setProperty("icon", IconManager.getIcon("Labels16"));
+                }
+                else
+                {
+                	//XXX icon and file props??? 
+                }
                 cmd.setProperty(NavBoxAction.ORGINATING_TASK, this);
-                cmd.setProperty("icon", IconManager.getIcon("Labels16"));
                 
                 SwingUtilities.invokeLater(new Runnable()
                 {
@@ -2717,8 +2748,10 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                               
                             	for (WorkbenchDataItem wbdi : wbtmi.getWorkbenchDataItems())
                                 {
-                                    session.delete(wbdi);
-                            		//wbdi.setWorkbenchTemplateMappingItem(null);
+                                    wbdi.getWorkbenchRow().getWorkbenchDataItems().remove(wbdi);
+                                    wbdi.setWorkbenchRow(null);
+                            		session.delete(wbdi);
+                            		wbdi.setWorkbenchTemplateMappingItem(null);
                                 }
                             	wbtmi.getWorkbenchDataItems().clear();
                             }
@@ -2735,11 +2768,12 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                     //log.debug("new ["+wbtmi.getCaption()+"]["+wbtmi.getViewOrder().shortValue()+"]");
                     session.saveOrUpdate(wbtmi) ;
                 }
-                
-                
+                                
                 //Check to see if geo/ref data needs to be updated
+                //This is actually only necessary if lat/long mappings have been switched - lat mapping changed to a long mapping or vice-versa.
+                //XXX Surely it is possible to tell if a lat/long switch has been made and not do this after every template change??
                 WorkbenchTemplateMappingItem aGeoRefMapping = null;
-                for (WorkbenchTemplateMappingItem wbtmi : items)
+                for (WorkbenchTemplateMappingItem wbtmi : workbenchTemplate.getWorkbenchTemplateMappingItems())
                 {
                     if (aGeoRefMapping == null && wbtmi.getTableName().equals("locality"))
                     {
@@ -2755,17 +2789,21 @@ protected boolean colsMatchByName(final WorkbenchTemplateMappingItem wbItem,
                 {
                 	for (Workbench wb : workbenchTemplate.getWorkbenches())
                 	{
-                		Workbench mwb = session.merge(wb);
-                		mwb.forceLoad();
-                		for (WorkbenchRow wbRow : mwb.getWorkbenchRows())
+                		wb.forceLoad();
+                		for (WorkbenchRow wbRow : wb.getWorkbenchRows())
                 		{
                 			wbRow.updateGeoRefTextFldsIfNecessary(aGeoRefMapping);
                 		}
-                		session.saveOrUpdate(mwb);
+                		//session.saveOrUpdate(wb);
                 	}
                 }
-                
+
                 session.saveOrUpdate(workbenchTemplate);
+                for (Workbench wb : workbenchTemplate.getWorkbenches())
+                {
+                	session.saveOrUpdate(wb);
+                }
+                
                 session.commit();
                 session.flush();
                 

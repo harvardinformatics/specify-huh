@@ -32,8 +32,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,6 +47,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -132,6 +136,7 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
     
     protected JComponent[]                comps = null;
     protected char                        autoNumberChar = UIFieldFormatterMgr.getAutoNumberPatternChar();
+    protected KeyStroke                   pasteKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * Constructor
@@ -422,6 +427,17 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                     JTextField tf = new BGTextField(f.getSize(), isViewOnly ? "" : f.getValue());
                     tfToAdd = tf;
                     
+                    if (inx == 0)
+                    {
+                        tf.addKeyListener(new KeyAdapter() {
+                            @Override
+                            public void keyPressed(KeyEvent e)
+                            {
+                                checkForPaste(e);
+                            }
+                        });
+                    }
+                    
                     JFormattedDoc document = new JFormattedDoc(tf, formatter, f);
                     tf.setDocument(document);
                     document.addDocumentListener(new DocumentAdaptor() {
@@ -457,21 +473,18 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                     
                     if (f.isIncrementer())
                     {
-                        if (true)
-                        {
-                            editTF     = tf;
-                            cardLayout = new CardLayout();
-                            cardPanel  = new JPanel(cardLayout);
-                            cardPanel.add("edit", tf);
-                            
-                            viewTF = new BGTextField(f.getSize(), isViewOnly ? "" : f.getValue());
-                            viewTF.setDocument(document);
-                            cardPanel.add("view", viewTF);
-                            
-                            cardLayout.show(cardPanel, "view");
-                            comp = cardPanel;
-                            tfToAdd = cardPanel;
-                        }
+                        editTF     = tf;
+                        cardLayout = new CardLayout();
+                        cardPanel  = new JPanel(cardLayout);
+                        cardPanel.add("edit", tf);
+                        
+                        viewTF = new BGTextField(f.getSize(), isViewOnly ? "" : f.getValue());
+                        viewTF.setDocument(document);
+                        cardPanel.add("view", viewTF);
+                        
+                        cardLayout.show(cardPanel, "view");
+                        comp = cardPanel;
+                        tfToAdd = cardPanel;
                     }
                 }
                 
@@ -479,6 +492,21 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                 builder.add(comp, cc.xy(inx+2, 2));
                 comps[inx] = tfToAdd;
                 inx++;
+            }
+        }
+    }
+    
+    /**
+     * @param e the key event
+     */
+    protected void checkForPaste(final KeyEvent e)
+    {
+        if (e.getKeyCode() == pasteKeyStroke.getKeyCode())
+        {
+            String text = UIHelper.getTextFromClipboard();
+            if (text != null && text.length() <= formatter.getLength())
+            {
+                setValue(text, null);
             }
         }
     }
@@ -984,6 +1012,26 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
     {
         UIValidatable.ErrorType oldState = valState;
         
+        if (isPartialOK)
+        {
+            boolean hasText = false;
+            for (int i=0;i<documents.size();i++)
+            {
+                JFormattedDoc doc = documents.get(i);
+                
+                if (!hasText && doc.getLength() > 0 && i > 0)
+                {
+                    return valState = UIValidatable.ErrorType.Error;
+                }
+                
+                if (doc.getLength() > 0)
+                {
+                    hasText = true;
+                }
+            }
+            return valState = UIValidatable.ErrorType.Valid;
+        }
+        
         if (isViewOnly)
         {
             valState = UIValidatable.ErrorType.Valid;
@@ -1003,6 +1051,9 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                 {
                     valState = UIFieldFormatter.isValid(formatter, data, !isAutoFmtOn) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
                 }
+            } else if (isPartialOK)
+            {
+                valState = StringUtils.isNotEmpty(data) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
             } else
             {
                 valState = UIFieldFormatter.isValid(formatter, data, !isAutoFmtOn) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
@@ -1224,14 +1275,25 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
             String text = getText();
             int bgStrLen = bgStr == null ? 0 : bgStr.length();
             int txtLen   = text  == null ? 0 : text.length();
-            if (isEnabled() && txtLen < bgStrLen)
+            if (isEnabled())
             {
-                FontMetrics fm   = g.getFontMetrics();
-                int          w   = fm.stringWidth(text);
-                pnt = new Point(inner.left+w, inner.top + fm.getAscent());
-
-                g.setColor(textColor);
-                g.drawString(bgStr.substring(text.length(), bgStr.length()), pnt.x, pnt.y);
+                if (txtLen < bgStrLen)
+                {
+                    FontMetrics fm   = g.getFontMetrics();
+                    int          w   = fm.stringWidth(text);
+                    pnt = new Point(inner.left+w, inner.top + fm.getAscent());
+    
+                    g.setColor(textColor);
+                    g.drawString(bgStr.substring(text.length(), bgStr.length()), pnt.x, pnt.y);
+                }
+                
+                if (valState == UIValidatable.ErrorType.Error && isEnabled())
+                {
+                    UIHelper.drawRoundedRect((Graphics2D)g, isNew ? new Color(249,249,0) : valTextColor.getColor(), getSize(), 1);
+                } else if (valState == UIValidatable.ErrorType.Incomplete && isEnabled())
+                {
+                    UIHelper.drawRoundedRect((Graphics2D)g, new Color(249,249,0), getSize(), 1);
+                }
             }
         }
     }

@@ -19,8 +19,13 @@
 */
 package edu.ku.brc.dbsupport;
 
+import java.io.File;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
+import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
@@ -33,6 +38,13 @@ import java.security.PrivilegedAction;
 public abstract class DBMSUserMgr
 {
     public static String factoryName = "edu.ku.brc.dbsupport.DBMSUserMgr"; //$NON-NLS-1$
+    
+    public enum DBSTATUS { ok, 
+                           hasTables, 
+                           missingDB,
+                           emptyDB, 
+                           error,
+                           cancelled }
     
     public static final int PERM_NONE        = 0;
     public static final int PERM_SELECT      = 1;
@@ -187,7 +199,102 @@ public abstract class DBMSUserMgr
     {
         this.hostName = hostName;
     }
+    
+    /**
+     * If there is no database, or the database has no tables then it returns true, 
+     * or it prompts the user whether to proceed.
+     * @param dbName database name
+     * @param hostName host or database server name
+     * @param itUsername the IT username
+     * @param itPassword the IT password
+     * @return if the database has table then it prompts the user,
+     * DBSTATUS.ok if no database, or the database has no tables; DBSTATUS.cancelled 
+     */
+    public static DBSTATUS isOkToProceed(final String dbName, 
+                                         final String hostName, 
+                                         final String itUsername,
+                                         final String itPassword)
+    {
+        DBSTATUS status = checkForDB(dbName, hostName, itUsername,itPassword);
+        if (status == status.hasTables || status == status.emptyDB)
+        {
+            status = UIHelper.promptForAction("PROCEED", "CANCEL", "DEL_CUR_DB_TITLE", UIRegistry.getLocalizedMessage("DEL_CUR_DB", dbName)) ? DBSTATUS.ok : DBSTATUS.cancelled;
+        }
+        return status;
+    }
 
+    /**
+     * Check to see if the database exists and has tables. 
+     * If the database is embedded then it doesn't check for the existence of tables, just if the data directory is there.
+     * @param dbName database name
+     * @param hostName host or database server name
+     * @param itUsername the IT username
+     * @param itPassword the IT password
+     * @return returns hasTables when there are table, 
+     * or missingOrEmpty when db is missing or there are no tables in it, 
+     * or error when the user couldn't get logged in (does not return 'ok' instead it returns 'emptyDB' or 'hasTables')
+     */
+    public static DBSTATUS checkForDB(final String dbName, 
+                                      final String hostName, 
+                                      final String itUsername,
+                                      final String itPassword)
+    {
+        
+        boolean isEmbedded = DBConnection.getInstance().isEmbedded();
+        if (isEmbedded)
+        {
+            File dbDataDir = DBConnection.getEmbeddedDataDir();
+            if (dbDataDir != null)
+            {
+                return dbDataDir.exists() ? DBSTATUS.hasTables : DBSTATUS.missingDB;
+                
+            }
+            return DBSTATUS.error;
+        }
+        
+        DBMSUserMgr mgr = null;
+        try
+        {
+            mgr = DBMSUserMgr.getInstance();
+            
+            if (mgr.connectToDBMS(itUsername, itPassword, hostName)) // can we even login?
+            {
+                if (mgr.doesDBExists(dbName)) // does it exist?
+                {
+                    mgr.close();
+                    
+                    if (mgr.connect(itUsername, itPassword, hostName, dbName)) // it exists, but can we open it?
+                    {
+                        return mgr.doesDBHaveTables() ? DBSTATUS.hasTables : DBSTATUS.emptyDB;
+                    }
+                    
+                    // We are here because the database exists, but we cannot open it
+                    return DBSTATUS.error;
+                    
+                } else
+                {
+                    return DBSTATUS.missingDB;
+                }
+            }
+            
+            // Can't login
+            return DBSTATUS.error;
+            
+        } catch (Exception ex)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SpecifyDBSetupWizard.class, ex);
+            
+        } finally
+        {
+            if (mgr != null)
+            {
+                mgr.close();
+            }
+        }
+        
+        return DBSTATUS.error;
+    }
 
 	/**
      * Returns the instance of the DataProviderIFace.

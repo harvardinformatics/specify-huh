@@ -46,9 +46,9 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "loanpreparation")
 @org.hibernate.annotations.Table(appliesTo="loanpreparation", indexes =
-    {   @Index (name="LoanPrepColMemIDX", columnNames={"CollectionMemberID"})
+    {   @Index (name="LoanPrepDspMemIDX", columnNames={"DisciplineID"})
     })
-public class LoanPreparation extends CollectionMember implements java.io.Serializable, PreparationHolderIFace, Comparable<LoanPreparation>
+public class LoanPreparation extends DisciplineMember implements java.io.Serializable, PreparationHolderIFace, Comparable<LoanPreparation>
 {
 
     // Fields    
@@ -305,7 +305,27 @@ public class LoanPreparation extends CollectionMember implements java.io.Seriali
     public void setLoanReturnPreparations(Set<LoanReturnPreparation> loanReturnPreparations) {
         this.loanReturnPreparations = loanReturnPreparations;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Loan.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+   public Integer getParentId()
+    {
+        return loan != null ? loan.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

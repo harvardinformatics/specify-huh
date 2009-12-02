@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -51,7 +52,7 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
                                                                      Comparable<AccessionAttachment>
 {
     protected Integer    accessionAttachmentId;
-    protected Accession     accession;
+    protected Accession  accession;
     protected Attachment attachment;
     protected Integer    ordinal;
     protected String     remarks;
@@ -93,7 +94,7 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
         this.accessionAttachmentId = accessionAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AccessionID", nullable = false)
     public Accession getAccession()
     {
@@ -105,7 +106,7 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
         this.accession = accession;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -198,6 +199,26 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
     public void setObject(Accession object)
     {
         setAccession(object);
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Accession.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return accession != null ? accession.getId() : null;
     }
     
     /* (non-Javadoc)

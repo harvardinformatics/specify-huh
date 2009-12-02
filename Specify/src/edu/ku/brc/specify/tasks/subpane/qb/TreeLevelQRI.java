@@ -153,7 +153,8 @@ public class TreeLevelQRI extends FieldQRI
      * @see edu.ku.brc.specify.tasks.subpane.qb.FieldQRI#getSQLFldSpec(edu.ku.brc.specify.tasks.subpane.qb.TableAbbreviator, boolean)
      */
     @Override
-    public String getSQLFldSpec(final TableAbbreviator ta, final boolean forWhereClause)
+    public String getSQLFldSpec(final TableAbbreviator ta, final boolean forWhereClause,
+    		final boolean forSchemaExport)
     {
         String result = getSQLFldName(ta);
         return result;
@@ -186,7 +187,25 @@ public class TreeLevelQRI extends FieldQRI
     	return 523;    	
     }
     
-    /**
+    
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.qb.FieldQRI#getNullCondition(edu.ku.brc.specify.tasks.subpane.qb.TableAbbreviator, boolean, boolean)
+	 */
+	@Override
+	public String getNullCondition(TableAbbreviator ta,
+			boolean forSchemaExport, boolean negate)
+	{
+        String result = "exists (select treetbl.nodeNumber from " + table.getTableTree().getName() + " treetbl where "
+        		+ "treetbl.rankId = " + rankId + " and " + ta.getAbbreviation(table.getTableTree()) + ".nodeNumber between "
+        		+ "treetbl.nodeNumber and treetbl.highestChildNodeNumber)";
+        if (!negate)
+        {
+        	result = "not " + result;
+        }
+        return result;
+	}
+
+	/**
      * @param criteria
      * @param ta
      * @param operStr
@@ -200,12 +219,12 @@ public class TreeLevelQRI extends FieldQRI
     public String getNodeNumberCriteria(final String criteria, final TableAbbreviator ta, 
                                         final String operStr, final boolean negate) throws ParseException
     {
-        if (criteria.equals("'%'"))
+        if (criteria.equals("'%'") || criteria.equals("'*'"))
         {
         	//same as no condition. Almost - Like '%' won't return nulls, but maybe it should.
         	return null;
         }
-        
+                
     	DataProviderSessionIFace session = DataProviderFactory.getInstance()
         .createSession();
         try
@@ -232,7 +251,6 @@ public class TreeLevelQRI extends FieldQRI
                 Treeable<?,?,?> node = (Treeable<?,?,?>)match;
                 nodeInfo.add(new Pair<Integer, Integer>(node.getNodeNumber(), node.getHighestChildNodeNumber()));
             }
-            String tblAlias = ta.getAbbreviation(table.getTableTree());
             StringBuilder result = new StringBuilder();
             for (Pair<Integer, Integer> node : nodeInfo)
             {
@@ -247,7 +265,7 @@ public class TreeLevelQRI extends FieldQRI
                         result.append(" or ");
                     }
                 }
-                result.append(tblAlias + ".nodeNumber");
+                result.append(ta.getAbbreviation(table.getTableTree()) + ".nodeNumber");
                 if (negate)
                 {
                     result.append(" not "); 
@@ -265,6 +283,7 @@ public class TreeLevelQRI extends FieldQRI
         }
     }
 
+    @SuppressWarnings("serial")
     public class NoTreeDefItemException extends Exception
     {
         /**

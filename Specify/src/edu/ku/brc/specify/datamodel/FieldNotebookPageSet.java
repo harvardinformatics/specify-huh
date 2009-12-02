@@ -38,8 +38,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
 /**
@@ -254,7 +252,7 @@ public class FieldNotebookPageSet extends DisciplineMember
      * @return the pages
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "pageSet")
-    @Cascade( { CascadeType.ALL })
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     @OrderBy("pageNumber ASC")
     public Set<FieldNotebookPage> getPages()
     {
@@ -262,7 +260,7 @@ public class FieldNotebookPageSet extends DisciplineMember
     }
     
     @OneToMany(mappedBy = "fieldNotebookPageSet")
-    @Cascade( {CascadeType.ALL} )
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     @OrderBy("ordinal ASC")
     public Set<FieldNotebookPageSetAttachment> getAttachments()
     {
@@ -277,7 +275,27 @@ public class FieldNotebookPageSet extends DisciplineMember
     //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return FieldNotebook.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return fieldNotebook != null ? fieldNotebook.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
      */

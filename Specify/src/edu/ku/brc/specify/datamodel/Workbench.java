@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -75,6 +76,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     protected SpPrincipal            group;
     protected String                 srcFilePath;
     protected String                 lockedByUserName;
+    
 
      // Transient Data
     protected Vector<WorkbenchRow> rows        = new Vector<WorkbenchRow>();
@@ -309,7 +311,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
     @JoinColumn(name = "WorkbenchTemplateID", nullable = false)
     public WorkbenchTemplate getWorkbenchTemplate() {
@@ -346,7 +348,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "SpecifyUserID", nullable = false)
     @Cascade( {CascadeType.MERGE, CascadeType.LOCK} )
     public SpecifyUser getSpecifyUser() {
@@ -360,7 +362,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "SpPrincipalID")
     @Cascade( {CascadeType.MERGE, CascadeType.LOCK} )
     public SpPrincipal getGroup() {
@@ -370,6 +372,7 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
     public void setGroup(SpPrincipal group) {
         this.group = group;
     }
+    
     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
@@ -549,7 +552,12 @@ public class Workbench extends DataModelObjBase implements java.io.Serializable,
         {
             rows.get(i).setRowNumber((short)(i));
         }
-        //deletedRows.add(wbRow);
+        
+        if (wbRow.getWorkbenchRowImages() != null)
+        {
+        	//This fixes bug #7721 (for mysterious reasons)
+        	wbRow.getWorkbenchRowImages().clear();
+        }
         workbenchRows.remove(wbRow);
         return wbRow;
     }

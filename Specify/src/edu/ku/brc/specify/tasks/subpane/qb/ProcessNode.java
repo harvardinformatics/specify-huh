@@ -21,6 +21,8 @@ package edu.ku.brc.specify.tasks.subpane.qb;
 
 import java.util.Vector;
 
+import edu.ku.brc.af.core.db.DBRelationshipInfo;
+
 
 /**
  * @author timbo
@@ -33,13 +35,28 @@ import java.util.Vector;
 public class ProcessNode
 {
     protected Vector<ProcessNode> kids = new Vector<ProcessNode>();
-    protected BaseQRI             qri;
-
+    protected BaseQRI             qri = null;
+    protected DBRelationshipInfo  rel = null;
+    
+    public ProcessNode()
+    {
+    	//zilchareeno
+    }
+    
     public ProcessNode(BaseQRI qri)
     {
         this.qri = qri;
+        if (qri instanceof RelQRI)
+        {
+        	this.rel = ((RelQRI )qri).getRelationshipInfo();
+        }
     }
-
+    
+    public ProcessNode(DBRelationshipInfo rel)
+    {
+    	this.rel = rel;
+    }
+    
     public Vector<ProcessNode> getKids()
     {
         return kids;
@@ -50,6 +67,11 @@ public class ProcessNode
         return qri;
     }
 
+    public DBRelationshipInfo getRel()
+    {
+    	return rel;
+    }
+    
     public boolean contains(BaseQRI qriArg)
     {
         for (ProcessNode pn : kids)
@@ -58,4 +80,23 @@ public class ProcessNode
         }
         return false;
     }
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		if (rel == null && qri == null)
+		{
+			return "root";
+		}
+		if (qri != null)
+		{
+			return qri.getTitle();
+		}
+		return rel.getTitle();
+	}
+    
+    
 }

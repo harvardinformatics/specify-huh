@@ -74,7 +74,9 @@ import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.GeoCoordDetail;
 import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.Permit;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.PreparationAttribute;
@@ -322,9 +324,9 @@ public class UploadTable implements Comparable<UploadTable>
     protected boolean shouldSkipMatching()
     {
         return isOneToOneChild() || 
-    	(tblClass.equals(CollectingEvent.class) && 
-    		AppContextMgr.getInstance().getClassObject(
-            Collection.class).getIsEmbeddedCollectingEvent());
+        	(tblClass.equals(CollectingEvent.class) && 
+        		AppContextMgr.getInstance().getClassObject(
+                Collection.class).getIsEmbeddedCollectingEvent());
     }
     
     /**
@@ -944,14 +946,22 @@ public class UploadTable implements Comparable<UploadTable>
                 parType[0] = parentTblClass;
                 String keyName = pt.getForeignKey();
                 String setterName = capitalize(keyName.substring(0, keyName.length() - 2));
-                if (tblClass == Preparation.class && setterName.equals("PreparedBy"))
+                //XXX This is mucho el cheapo. Probably should add an attribute to one the workbench xml file
+                //to specify the member name when it does not match the class name
+                //OR, if the ParentTableEntry.relationship included the relationship name (or was replaced
+                //by a DBRelationshipInfo object), the name could serve as a second choice for the member name.
+                if (tblClass.equals(Preparation.class) && setterName.equals("PreparedBy"))
                 {
                     setterName = "PreparedByAgent";
                 }
-                else if (tblClass == Determination.class
+                else if (tblClass.equals(Determination.class)
                         && setterName.equals("DeterminationStatus"))
                 {
                     setterName = "Status";
+                }
+                else if (tblClass.equals(GeoCoordDetail.class) && setterName.equals("Agent"))
+                {
+                	setterName = "GeoRefDetBy";
                 }
                 pt.setSetter(tblClass.getMethod("set" + setterName, parType));
             }
@@ -986,7 +996,7 @@ public class UploadTable implements Comparable<UploadTable>
                     arg[0] = parentRec;
                 }
                 pt.getSetter().invoke(rec, arg);
-                requirementsMet = requirementsMet && arg[0] != null || !pt.isRequired();
+                requirementsMet = requirementsMet && (arg[0] != null || !pt.isRequired());
             }
         }
         return requirementsMet;
@@ -1004,7 +1014,7 @@ public class UploadTable implements Comparable<UploadTable>
         name = name.substring(0, name.length()-1);
         return name.equalsIgnoreCase("latitude") || name.equalsIgnoreCase("longitude");
     }
- 
+    
     /**
      * @param ufld
      * @return true if ufld represents a latitude field.
@@ -1017,7 +1027,6 @@ public class UploadTable implements Comparable<UploadTable>
         name = name.substring(0, name.length()-1);
         return name.equalsIgnoreCase("latitude");
     }
-
     /**
      * @param fld
      * @return true if 
@@ -1153,6 +1162,7 @@ public class UploadTable implements Comparable<UploadTable>
             			throw new UploaderException(getResourceString("WB_UPLOAD_INVALID_GEOREF_VALUE"), UploaderException.INVALID_DATA);
                     }
                     arg[0] = val;
+                    
                 }
             }
             else if (fldClass == Boolean.class)
@@ -1213,7 +1223,7 @@ public class UploadTable implements Comparable<UploadTable>
             else
             {
                 UIFieldFormatterIFace formatter = ufld.getField().getFieldInfo().getFormatter();
-                if (StringUtils.isBlank(fldStr) && (formatter == null || !formatter.isIncrementer() || !formatter.isNumeric()))
+                if (StringUtils.isBlank(fldStr) && (formatter == null || !formatter.isIncrementer()/* || !formatter.isNumeric()*/))
                 {
                     arg[0] = null;
                 }
@@ -1228,7 +1238,7 @@ public class UploadTable implements Comparable<UploadTable>
                             {
                                 if (!this.validatingValues || autoAssignedVal == null)
                                 {
-                                    val = formatter.getNextNumber("");
+                                	val = formatter.getNextNumber(formatter.formatToUI("").toString());
                                     // XXX timo - Need to check here for a null return value.
                                     autoAssignedVal = formatter.formatToUI(val);
                                 }
@@ -1575,8 +1585,8 @@ public class UploadTable implements Comparable<UploadTable>
             critter.add(Restrictions.eq(propName, arg));
             if (arg instanceof DataModelObjBase) 
             { 
-                String value = DataObjFieldFormatMgr.getInstance().format(arg, arg.getClass());
-                if (value != null)
+            	String value = DataObjFieldFormatMgr.getInstance().format(arg, arg.getClass());
+                if (StringUtils.isNotBlank(value))
                 {
                     return value;
                 }
@@ -1951,7 +1961,8 @@ public class UploadTable implements Comparable<UploadTable>
     {
         boolean blankButRequired = fld.isRequired() && (fld.getValue() == null || fld.getValue().trim().equals(""));
         boolean isAutoAssignable = fld.getField().getFieldInfo() != null && fld.getField().getFieldInfo().getFormatter() != null
-            && fld.getField().getFieldInfo().getFormatter().isIncrementer() && fld.getField().getFieldInfo().getFormatter().isNumeric();
+            && fld.getField().getFieldInfo().getFormatter().isIncrementer(); 
+            //&& fld.getField().getFieldInfo().getFormatter().isNumeric();
         return blankButRequired && !isAutoAssignable;
     }
 
@@ -2054,46 +2065,46 @@ public class UploadTable implements Comparable<UploadTable>
     /**
      * @param row
      * @param uploadData
+     * @param seq
      * @return true if all the fields corresponding directly to columns in the dataset are blank,
      */
-    protected boolean isBlankRow(int row, UploadData uploadData)
+    protected boolean isBlankRow(int row, UploadData uploadData, int seq) 
     {
-        int seq = 0;
-    	for (Vector<UploadField> flds : uploadFields)
-        {
-            for (UploadField fld : flds)    
-        	{
-            	if (fld.getIndex() != -1)
-            	{
-            		fld.setValue(uploadData.get(row, fld.getIndex()));
-                    if (!isBlankVal(fld, seq, row, uploadData))
-                    {
-                    	return false;
-                    }
-            	}
-        	}
-            seq++;
-        }
-        return true;
-    }
+		for (UploadField fld : uploadFields.get(seq)) 
+		{
+			if (fld.getIndex() != -1 || fld.getField().isForeignKey()) 
+			{
+				int idx = fld.getIndex();
+				if (idx == -1)
+				{
+					idx = uploadData.indexOfWbFldName(fld.getWbFldName());
+				}
+				if (!StringUtils.isEmpty(uploadData.get(row, idx))) 
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
     
     /**
      * @param row
      * @param uploadData
      * @return true if a non-null constraint needs to be enforced.
      */
-    protected boolean shouldEnforceNonNullConstraint(final int row, final UploadData uploadData)
+    protected boolean shouldEnforceNonNullConstraint(final int row, final UploadData uploadData, final int seq)
     {
     	//This is a rather lame implementation.
     	//Generally, if all fields in a table are blank, and related tables don't require a record,
     	//then there is no need to enforce not-null constraints.
     	if (tblClass.equals(PrepType.class)) 
     	{
-    		return !Uploader.currentUpload.getUploadTableByName("Preparation").isBlankRow(row, uploadData);
+    		return !Uploader.currentUpload.getUploadTableByName("Preparation").isBlankRow(row, uploadData, seq);
     	}
-    	if (tblClass.equals(Accession.class)) 
+    	if (tblClass.equals(Accession.class) || tblClass.equals(Permit.class)) 
     	{
-    		return !Uploader.currentUpload.getUploadTableByName("Accession").isBlankRow(row, uploadData);
+    		return !isBlankRow(row, uploadData, seq);
     	}
     	return true;
     }
@@ -2120,8 +2131,11 @@ public class UploadTable implements Comparable<UploadTable>
         int blankSeq = 0;
         
         //for Locality table only
-        LatLonConverter.FORMAT llFmt = null;
+        LatLonConverter.FORMAT llFmt1 = null; 
+        LatLonConverter.FORMAT llFmt2 = null;
         GeoRefConverter gc = new GeoRefConverter();
+        UploadField llFld = null; //for 'generic' latlon errors.
+        
         Vector<UploadTableInvalidValue> invalidNulls = new Vector<UploadTableInvalidValue>();
         Vector<Integer> invalidBlankSeqs = new Vector<Integer>();
         for (Vector<UploadField> flds : uploadFields)
@@ -2142,7 +2156,7 @@ public class UploadTable implements Comparable<UploadTable>
                     {
                         if (invalidNull(fld, uploadData, row, seq)) 
                         { 
-                        	if (shouldEnforceNonNullConstraint(row, uploadData))
+                        	if (shouldEnforceNonNullConstraint(row, uploadData, seq))
                         	{
                         		throw new Exception(
                         				getResourceString("WB_UPLOAD_FIELD_MUST_CONTAIN_DATA")); 
@@ -2169,24 +2183,40 @@ public class UploadTable implements Comparable<UploadTable>
                 if (tblClass.equals(Locality.class))
                 {
                     //Check each row to see that lat/long formats are the same.
-                    if (fld.getField().getName().equalsIgnoreCase("latitude1") || fld.getField().getName().equalsIgnoreCase("latitude1")
-                            || fld.getField().getName().equalsIgnoreCase("longitude1") || fld.getField().getName().equalsIgnoreCase("longitude2"))
+                	String fldName = fld.getField().getName();
+                    if (fldName.equalsIgnoreCase("latitude1") || fldName.equalsIgnoreCase("latitude2")
+                            || fldName.equalsIgnoreCase("longitude1") || fldName.equalsIgnoreCase("longitude2"))
                     {
-                        LatLonConverter.FORMAT fmt = gc.getLatLonFormat(StringUtils.stripToNull(uploadData.get(row, fld.getIndex())));
+                        llFld = fld;
+                    	LatLonConverter.FORMAT fmt = gc.getLatLonFormat(StringUtils.stripToNull(fld.getValue()));
+                        LatLonConverter.FORMAT llFmt = fldName.endsWith("1") ? llFmt1 : llFmt2;
                         if (llFmt == null)
                         {
                             llFmt = fmt;
+                            if (fldName.endsWith("1"))
+                            {
+                            	llFmt1 = fmt;
+                            } else 
+                            {
+                            	llFmt2 = fmt;
+                            }
                         }
                         else
                         {
                             if (!llFmt.equals(fmt))
                             {
-                                invalidValues.add(new UploadTableInvalidValue(null, this, fld, row, 
-                                        new Exception(UIRegistry.getResourceString("WB_UPLOADER_UNMATCHING_LATLONG_FORMAT"))));
+                                invalidValues.add(new UploadTableInvalidValue(null, this, null, row, 
+                                        new Exception(UIRegistry.getResourceString("WB_UPLOADER_INVALID_LATLONG"))));
                             }
                         }
                     }
                 }
+            }
+            
+            if (tblClass.equals(Locality.class) && llFmt1 != llFmt2 && llFmt2 != null && llFmt2 != LatLonConverter.FORMAT.None)
+            {
+                invalidValues.add(new UploadTableInvalidValue(null, this, llFld, row, 
+                        new Exception(UIRegistry.getResourceString("WB_UPLOADER_INVALID_LATLONG"))));
             }
             if (isBlank)
             /* 
@@ -2393,6 +2423,11 @@ public class UploadTable implements Comparable<UploadTable>
         }
     }
 
+    /**
+     * @param rec
+     * 
+     * Called after a write to update Match selection history.
+     */
     protected void finishMatching(final DataModelObjBase rec)
     {
         if (restrictedValsForAddNewMatch != null)
@@ -2403,6 +2438,9 @@ public class UploadTable implements Comparable<UploadTable>
         }
     }
 
+    /**
+     * @return all tables that precede this table in the Upload graph
+     */
     public Vector<ParentTableEntry> getAncestors()
     {
         Vector<ParentTableEntry> result = new Vector<ParentTableEntry>();

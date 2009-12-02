@@ -42,6 +42,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+
 /**
 
  */
@@ -425,7 +427,38 @@ public class RepositoryAgreement extends DataModelObjBase implements AttachmentO
         this.division = division;
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        // Throws exception when inlined
+        Integer tblId = accessions != null && accessions.size() > 0 ? Accession.getClassTableId() : null;
+        tblId = tblId != null ? tblId : division != null ? Division.getClassTableId() : null;
+        return tblId;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        
+        if (division != null)
+        {
+            return division.getId();
+        }
+        if (accessions != null && accessions.size() == 1)
+        {
+            return ((FormDataObjIFace)accessions.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

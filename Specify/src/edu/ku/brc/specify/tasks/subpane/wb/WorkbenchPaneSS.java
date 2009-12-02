@@ -138,6 +138,7 @@ import edu.ku.brc.services.biogeomancer.GeoCoordDataIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordGeoLocateProvider;
 import edu.ku.brc.services.biogeomancer.GeoCoordProviderListenerIFace;
 import edu.ku.brc.services.biogeomancer.GeoCoordServiceProviderIFace;
+import edu.ku.brc.services.mapping.LatLonPlacemarkIFace;
 import edu.ku.brc.services.mapping.LocalityMapper;
 import edu.ku.brc.services.mapping.SimpleMapLocation;
 import edu.ku.brc.services.mapping.LocalityMapper.MapLocationIFace;
@@ -155,7 +156,6 @@ import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
 import edu.ku.brc.specify.rstools.ExportFileConfigurationFactory;
 import edu.ku.brc.specify.rstools.ExportToFile;
 import edu.ku.brc.specify.rstools.GoogleEarthExporter;
-import edu.ku.brc.specify.rstools.GoogleEarthPlacemarkIFace;
 import edu.ku.brc.specify.rstools.WorkbenchRowPlacemarkWrapper;
 import edu.ku.brc.specify.tasks.DataEntryTask;
 import edu.ku.brc.specify.tasks.InteractionsTask;
@@ -1983,21 +1983,24 @@ public class WorkbenchPaneSS extends BaseSubPane
                 String lon2 = row.getData((short)lon2Index);
                 Double latitude2 = null;
                 Double longitude2 = null;
+               
                 try
                 {
                     latitude2 = new Double(lat2);
                     longitude2 = new Double(lon2);
-                    newLoc = new SimpleMapLocation(latitude,longitude,latitude2,longitude2);
                 }
                 catch (Exception e)
                 {
-                    UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(WorkbenchPaneSS.class, e);
                     // this could be a number format exception
                     // or a null pointer exception if the field was empty
                     // either way, we'll just treat this record as though it only has lat1 and lon1
-                    newLoc = new SimpleMapLocation(latitude,longitude,null,null);
                 }
+                if ((latitude2 == null) ^ (longitude2 == null))
+                {
+                	latitude2 = null;
+                	longitude2 = null;
+                }
+                newLoc = new SimpleMapLocation(latitude,longitude,latitude2,longitude2);
             }
             else // use just the point
             {
@@ -2027,7 +2030,8 @@ public class WorkbenchPaneSS extends BaseSubPane
                 else
                 {
                     // in the future, we may want a different message for non-connection exceptions
-                    errorMsg = getResourceString("WB_MAP_SERVICE_CONNECTION_FAILURE");
+                    //errorMsg = getResourceString("WB_MAP_SERVICE_CONNECTION_FAILURE");
+                	errorMsg = e.getLocalizedMessage();
                 }
                 JStatusBar statusBar = UIRegistry.getStatusBar();
                 statusBar.setErrorMessage(errorMsg,e);
@@ -2451,7 +2455,7 @@ public class WorkbenchPaneSS extends BaseSubPane
         }
         
         // put all the selected rows in a List
-        List<GoogleEarthPlacemarkIFace> selectedRows = new Vector<GoogleEarthPlacemarkIFace>();
+        List<LatLonPlacemarkIFace> selectedRows = new Vector<LatLonPlacemarkIFace>();
         List<WorkbenchRow> rows = workbench.getWorkbenchRowsAsList();
         for (int i = 0; i < selection.length; ++i )
         {

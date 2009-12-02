@@ -67,6 +67,8 @@ import edu.ku.brc.ui.UIHelper;
  */
 public class UpdatesApp extends JPanel
 {
+    protected static boolean doingCmdLine = false;
+    
     protected BrowseBtnPanel baseBBP    = null;
     protected BrowseBtnPanel baseUpBBP  = null;
     protected BrowseBtnPanel macFullBBP = null;
@@ -99,7 +101,14 @@ public class UpdatesApp extends JPanel
      */
     public UpdatesApp()
     {
-        
+        if (!doingCmdLine)
+        {
+            createUI();
+        }
+    }
+    
+    protected void createUI()
+    {
         baseBBP    = new BrowseBtnPanel(baseTF, false, true);
         baseUpBBP  = new BrowseBtnPanel(baseUpTF, false, true);
         macFullBBP = new BrowseBtnPanel(macFullTF, false, true);
@@ -172,8 +181,6 @@ public class UpdatesApp extends JPanel
             
         } catch (Exception ex) 
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, ex);
             props = new Properties();
         }
         
@@ -196,62 +203,115 @@ public class UpdatesApp extends JPanel
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                merge();
-                doSave();
+                merge(baseTF.getText(), 
+                      baseUpTF.getText(), 
+                      macFullTF.getText(), 
+                      macUpTF.getText(), 
+                      outTF.getText(), 
+                      updateBaseTF.getText(),
+                      versionTF.getText(), 
+                      Integer.toString((Integer)verSub1.getValue()), 
+                      Integer.toString((Integer)verSub2.getValue()));
+                
+                doSave(outTF.getText());
             }
             
         });
         
     }
     
-    protected void merge()
+    /**
+     * @param baseStr
+     * @param baseUpStr
+     * @param macFullStr
+     * @param macUpStr
+     * @param outStr
+     * @param versionStr
+     * @param verSub1Str
+     * @param verSub2Str
+     */
+    protected void merge(final String baseStr, 
+                         final String baseUpStr, 
+                         final String macFullStr,
+                         final String macUpStr, 
+                         final String outStr, 
+                         final String baseVerStr,
+                         final String versionStr, 
+                         final String verSub1Str, 
+                         final String verSub2Str)
     {
-        try
+        if (!doingCmdLine)
         {
-            props.setProperty("baseTF",    baseTF.getText());
-            props.setProperty("baseUpTF",  baseUpTF.getText());
-            props.setProperty("macFullTF", macFullTF.getText());
-            props.setProperty("macUpTF",   macUpTF.getText());
-            props.setProperty("outTF",     outTF.getText());
-            props.setProperty("versionTF", versionTF.getText());
-            
-            props.setProperty("subVer1", Integer.toString((Integer)verSub1.getValue()));
-            props.setProperty("subVer2", Integer.toString((Integer)verSub2.getValue()));
-            
-            XStream xstream = new XStream();
-            FileUtils.writeStringToFile(new File("props.init"), xstream.toXML(props));
-            
-        } catch (Exception ex) 
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, ex);
-            ex.printStackTrace();
+            try
+            {
+                props.setProperty("baseTF",    baseStr);
+                props.setProperty("baseUpTF",  baseUpStr);
+                props.setProperty("macFullTF", macFullStr);
+                props.setProperty("macUpTF",   macUpStr);
+                props.setProperty("outTF",     outStr);
+                props.setProperty("versionTF", versionStr);
+                
+                props.setProperty("subVer1", verSub1Str);
+                props.setProperty("subVer2", verSub2Str);
+                
+                XStream xstream = new XStream();
+                FileUtils.writeStringToFile(new File("props.init"), xstream.toXML(props));
+                
+            } catch (Exception ex) 
+            {
+                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, ex);
+                ex.printStackTrace();
+            }
         }
         
-        statusTF.setText("Merging...");
+        String msg = "Merging...";
+        if (doingCmdLine)
+        {
+            System.err.println(msg);
+        } else
+        {
+            statusTF.setText(msg);
+        }
         
-        baseUpdateDesc    = read(new File(baseTF.getText()));
-        baseUpdateUpDesc  = read(new File(baseUpTF.getText()));
-        maxFullUpdateDesc = read(new File(macFullTF.getText()));
-        maxUpUpdateDesc   = read(new File(macUpTF.getText()));
+        baseUpdateDesc    = read(new File(baseStr));
+        baseUpdateUpDesc  = read(new File(baseUpStr));
+        maxFullUpdateDesc = read(new File(macFullStr));
+        maxUpUpdateDesc   = read(new File(macUpStr));
         
-        setAsFull(baseUpdateDesc, updateBaseTF.getText(), versionTF.getText(), (Integer)verSub1.getValue(), (Integer)verSub2.getValue());
-        setAsUpdate(baseUpdateUpDesc, versionTF.getText(), (Integer)verSub1.getValue(), (Integer)verSub2.getValue());
         
-        setAsFull(maxFullUpdateDesc, updateBaseTF.getText(), versionTF.getText(), (Integer)verSub1.getValue(), (Integer)verSub2.getValue());
-        setAsUpdate(maxUpUpdateDesc, versionTF.getText(), (Integer)verSub1.getValue(), (Integer)verSub2.getValue());
+        setAsFull(baseUpdateDesc, baseVerStr, versionStr, verSub1Str, verSub2Str);
+        setAsUpdate(baseUpdateUpDesc, versionStr, verSub1Str, verSub2Str);
+        
+        setAsFull(maxFullUpdateDesc, baseVerStr, versionStr, verSub1Str, verSub2Str);
+        setAsUpdate(maxUpUpdateDesc, versionStr, verSub1Str, verSub2Str);
         
         baseUpdateDesc.getEntries().addAll(baseUpdateUpDesc.getEntries());
         baseUpdateDesc.getEntries().addAll(maxFullUpdateDesc.getEntries());
         baseUpdateDesc.getEntries().addAll(maxUpUpdateDesc.getEntries());
         
-        statusTF.setText("Merged.");
+        msg = "Merged.";
+        if (doingCmdLine)
+        {
+            System.err.println(msg);
+        } else
+        {
+            statusTF.setText(msg);
+        }
+        doSave(outStr);
 
     }
     
-    protected void setAsFull(final UpdateDescriptor upDesc, final String baseVer, final String ver, final Integer vs1, final Integer vs2)
+    /**
+     * @param upDesc
+     * @param baseVer
+     * @param ver
+     * @param vs1
+     * @param vs2
+     */
+    protected void setAsFull(final UpdateDescriptor upDesc, final String baseVer, final String ver, final String vs1, final String vs2)
     {
-        int i2 = (vs2-2);
+        int i2 = (Integer.parseInt(vs2)- 2);
         if (i2 < 0)
         {
             i2 += 100;
@@ -259,21 +319,41 @@ public class UpdatesApp extends JPanel
         String newVersion = ver + "." + vs1 + "." + vs2;
         String verMax     = ver + "." + vs1 + "." + i2;
         
-        for (UpdateEntry entry : upDesc.getEntries())
+        try
         {
-            if (!entry.getNewVersion().equals(newVersion))
+            for (UpdateEntry entry : upDesc.getEntries())
             {
-                String msg = String.format("The Full entry '%s'\n has the wrong version number '%s'\nThe version should be '%s'!", entry.getFileName(), entry.getNewVersion(), newVersion);
-                JOptionPane.showConfirmDialog(null, msg, "Version Mismatch", JOptionPane.ERROR_MESSAGE);
+                if (!entry.getNewVersion().equals(newVersion))
+                {
+                    String msg = String.format("The Full entry '%s'\n has the wrong version number '%s'\nThe version should be '%s'!", entry.getFileName(), entry.getNewVersion(), newVersion);
+                    if (doingCmdLine)
+                    {
+                        System.err.println(msg);
+                    } else
+                    {
+                        JOptionPane.showConfirmDialog(null, msg, "Version Mismatch", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                entry.setUpdatableVersionMax(verMax);
+                entry.setUpdatableVersionMin(baseVer);
             }
-            entry.setUpdatableVersionMax(verMax);
-            entry.setUpdatableVersionMin(baseVer);
+            
+        } catch (java.lang.NullPointerException ex)
+        {
+        	System.err.println("****UpdateDescriptor has no entries.");
         }
+        
     }
     
-    protected void setAsUpdate(final UpdateDescriptor upDesc, final String ver, final Integer vs1, final Integer vs2)
+    /**
+     * @param upDesc
+     * @param ver
+     * @param vs1
+     * @param vs2
+     */
+    protected void setAsUpdate(final UpdateDescriptor upDesc, final String ver, final String vs1, final String vs2)
     {
-        int i2 = (vs2-1);
+        int i2 = (Integer.parseInt(vs2) - 1);
         if (i2 < 0)
         {
             i2 += 100;
@@ -281,36 +361,54 @@ public class UpdatesApp extends JPanel
         String newVersion = ver + "." + vs1 + "." + vs2;
         String verMin     = ver + "." + vs1 + "." + i2;
         
-        for (UpdateEntry entry : upDesc.getEntries())
+        try
         {
-            if (!entry.getNewVersion().equals(newVersion))
+            for (UpdateEntry entry : upDesc.getEntries())
             {
-                String msg = String.format("The Update entry '%s'\n has the wrong version number '%s'\nThe version should be '%s'!", entry.getFileName(), entry.getNewVersion(), newVersion);
-                JOptionPane.showConfirmDialog(null, msg, "Version Mismatch", JOptionPane.ERROR_MESSAGE);
+                if (!entry.getNewVersion().equals(newVersion))
+                {
+                    String msg = String.format("The Update entry '%s'\n has the wrong version number '%s'\nThe version should be '%s'!", entry.getFileName(), entry.getNewVersion(), newVersion);
+                    if (doingCmdLine)
+                    {
+                        System.err.println(msg);
+                    } else
+                    {
+                        JOptionPane.showConfirmDialog(null, msg, "Version Mismatch", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                entry.setUpdatableVersionMax(verMin);
+                entry.setUpdatableVersionMin(verMin);
             }
-            entry.setUpdatableVersionMax(verMin);
-            entry.setUpdatableVersionMin(verMin);
+
+        } catch (java.lang.NullPointerException ex)
+        {
+        	System.err.println("****UpdateDescriptor has no entries.");
         }
     }
     
-    protected void doOpen()
+    /**
+     * 
+     */
+    protected void doSave(final String outStr)
     {
         
-    }
-    
-    protected void doSave()
-    {
-        
-        write(baseUpdateDesc, outTF.getText());
+        write(baseUpdateDesc, outStr);
         
         statusTF.setText("Saved.");
     }
     
+    /**
+     * 
+     */
     protected void shutdown()
     {
         System.exit(0);
     }
     
+    /**
+     * @param file
+     * @return
+     */
     protected static UpdateDescriptor read(final File file)
     {
         XStream xstream = new XStream();
@@ -332,7 +430,10 @@ public class UpdatesApp extends JPanel
             }
         } else
         {
-            System.err.println("File: "+file.getAbsolutePath()+" doesn't exist.");
+        	try
+        	{
+        		System.err.println("File: "+file.getCanonicalPath()+" doesn't exist.");
+        	} catch (IOException ex) { ex.printStackTrace(); }
         }
         return null;
     }
@@ -357,8 +458,6 @@ public class UpdatesApp extends JPanel
             
         } catch (IOException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, ex);
             ex.printStackTrace();
         }
         System.out.println("Stop"); 
@@ -389,8 +488,6 @@ public class UpdatesApp extends JPanel
             }
         } catch (Exception ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, ex);
             ex.printStackTrace();
         }
         return menu;
@@ -444,56 +541,75 @@ public class UpdatesApp extends JPanel
      */
     public static void main(String[] args)
     {
-        SwingUtilities.invokeLater(new Runnable()
+        if (args.length == 9)
         {
-            public void run()
+        	for (int i=0;i<args.length;i++) 
+        	{
+        		System.out.println(i+"="+args[i]);
+        	}
+            doingCmdLine = true;
+            UpdatesApp updateApp = new UpdatesApp();
+            try
             {
-                
-                try
-                {
-                    UIHelper.OSTYPE osType = UIHelper.getOSType();
-                    if (osType == UIHelper.OSTYPE.Windows )
-                    {
-                        //UIManager.setLookAndFeel(new WindowsLookAndFeel());
-                        UIManager.setLookAndFeel(new PlasticLookAndFeel());
-                        PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
-                        
-                    } else if (osType == UIHelper.OSTYPE.Linux )
-                    {
-                        //UIManager.setLookAndFeel(new GTKLookAndFeel());
-                        UIManager.setLookAndFeel(new PlasticLookAndFeel());
-                        //PlasticLookAndFeel.setPlasticTheme(new SkyKrupp());
-                        //PlasticLookAndFeel.setPlasticTheme(new DesertBlue());
-                        //PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
-                        //PlasticLookAndFeel.setPlasticTheme(new DesertGreen());
-                       
-                    }
-                }
-                catch (Exception e)
-                {
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, e);
-                    System.err.println("Can't change L&F: "+e); //$NON-NLS-1$
-                }
-                
-                UpdatesApp panel = new UpdatesApp();
-                JFrame frame = new JFrame();
-                frame.setTitle("Install4J XML Updater");
-                frame.setContentPane(panel);
-                
-                JMenuBar menuBar = panel.createMenus();
-                if (menuBar != null)
-                {
-                    //top.add(menuBar, BorderLayout.NORTH);
-                    frame.setJMenuBar(menuBar);
-                }
-
-                frame.pack();
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setVisible(true);
-                
+                updateApp.merge(args[0], args[1],args[2], args[3], args[4], args[5], args[6], args[7], args[8]);         	
+            } catch (java.lang.NullPointerException ex)
+            {
+            	System.err.println("****The merge process failed:  check for errors above.");
             }
-        });
+
+            
+        } else
+        {
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    
+                    try
+                    {
+                        UIHelper.OSTYPE osType = UIHelper.getOSType();
+                        if (osType == UIHelper.OSTYPE.Windows )
+                        {
+                            //UIManager.setLookAndFeel(new WindowsLookAndFeel());
+                            UIManager.setLookAndFeel(new PlasticLookAndFeel());
+                            PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
+                            
+                        } else if (osType == UIHelper.OSTYPE.Linux )
+                        {
+                            //UIManager.setLookAndFeel(new GTKLookAndFeel());
+                            UIManager.setLookAndFeel(new PlasticLookAndFeel());
+                            //PlasticLookAndFeel.setPlasticTheme(new SkyKrupp());
+                            //PlasticLookAndFeel.setPlasticTheme(new DesertBlue());
+                            //PlasticLookAndFeel.setPlasticTheme(new ExperienceBlue());
+                            //PlasticLookAndFeel.setPlasticTheme(new DesertGreen());
+                           
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UpdatesApp.class, e);
+                        System.err.println("Can't change L&F: "+e); //$NON-NLS-1$
+                    }
+                    
+                    UpdatesApp panel = new UpdatesApp();
+                    JFrame frame = new JFrame();
+                    frame.setTitle("Install4J XML Updater");
+                    frame.setContentPane(panel);
+                    
+                    JMenuBar menuBar = panel.createMenus();
+                    if (menuBar != null)
+                    {
+                        //top.add(menuBar, BorderLayout.NORTH);
+                        frame.setJMenuBar(menuBar);
+                    }
+    
+                    frame.pack();
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    frame.setVisible(true);
+                }
+            });
+        }
     }
 
 }

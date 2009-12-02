@@ -69,6 +69,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     public static final byte                THESIS            = 4;
     public static final byte                SECTION_IN_BOOK   = 5;
 
+    // mmk: added two new types
     public static final byte                EXSICCATA         = 6;
     public static final byte                PROTOLOGUE        = 7;
     
@@ -230,7 +231,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
 	/**
      * @return the containedRFParent
      */
-    @ManyToOne
+	@ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ContainedRFParentID")
     public ReferenceWork getContainedRFParent()
     {
@@ -640,6 +641,29 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     {
         this.exsiccatae.remove(exsiccata);
         exsiccata.setReferenceWork(null);
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        // Throws exception when inlined
+        Integer tblId = journal != null ? Journal.getClassTableId() : null;
+        tblId = tblId != null ? tblId : containedRFParent != null ? ReferenceWork.getClassTableId() : null;
+        return tblId;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return journal != null ? journal.getId() : containedRFParent != null ? containedRFParent.getId() : null;
     }
     
     /* (non-Javadoc)

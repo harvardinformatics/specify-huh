@@ -111,17 +111,6 @@ public class OutgoingMiscLoader extends TransactionLoader
     {
         Shipment shipment = new Shipment();
         
-        // CollectionMemberId (transaction localUnit)
-        String collectionCode = outMisc.getLocalUnit();
-        Integer collectionMemberId = Integer.valueOf(0);
-
-        if (collectionCode != null)
-        {
-            getLogger().warn(rec() + "No collection code");
-            collectionMemberId = getCollectionId(collectionCode);
-            shipment.setCollectionMemberId(collectionMemberId);
-        }
-        
         // CreatedByAgentID
         Integer creatorOptrId = outMisc.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
@@ -242,30 +231,29 @@ public class OutgoingMiscLoader extends TransactionLoader
     
     private String getInsertSql(Shipment shipment)
     {
-        String fields = "CollectionMemberID, CreatedByAgentID, InsuredForAmount, NumberOfPackages, " +
+        String fields = "CreatedByAgentID, InsuredForAmount, NumberOfPackages, " +
                         "Number1, Number2, Remarks, ShipmentDate, ShipmentMethod, ShipmentNumber, ShippedToID, ShipperID, " +
                         "Text1, Text2, TimestampCreated, Version, YesNo1 YesNo2";
 
-        String[] values = new String[18];
+        String[] values = new String[17];
 
-        values[0]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
-        values[1]  = SqlUtils.sqlString( shipment.getCreatedByAgent().getId());
-        values[2]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
-        values[3]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-        values[4]  = SqlUtils.sqlString( shipment.getNumber1());
-        values[5]  = SqlUtils.sqlString( shipment.getNumber2());
-        values[6]  = SqlUtils.sqlString( shipment.getRemarks());
-        values[7]  = SqlUtils.sqlString( shipment.getShipmentDate());
-        values[8]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-        values[9]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-        values[10] = SqlUtils.sqlString( shipment.getShippedTo().getId());
-        values[11] = SqlUtils.sqlString( shipment.getShipper().getId());
-        values[12] = SqlUtils.sqlString( shipment.getText1());
-        values[13] = SqlUtils.sqlString( shipment.getText2());
-        values[14] = SqlUtils.now();
-        values[15] = SqlUtils.zero();
+        values[0]  = SqlUtils.sqlString( shipment.getCreatedByAgent().getId());
+        values[1]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
+        values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+        values[3]  = SqlUtils.sqlString( shipment.getNumber1());
+        values[4]  = SqlUtils.sqlString( shipment.getNumber2());
+        values[5]  = SqlUtils.sqlString( shipment.getRemarks());
+        values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
+        values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+        values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+        values[9]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
+        values[10] = SqlUtils.sqlString( shipment.getShipper().getId());
+        values[11] = SqlUtils.sqlString( shipment.getText1());
+        values[12] = SqlUtils.sqlString( shipment.getText2());
+        values[13] = SqlUtils.now();
+        values[14] = SqlUtils.zero();
+        values[15] = SqlUtils.sqlString( shipment.getYesNo1());
         values[16] = SqlUtils.sqlString( shipment.getYesNo1());
-        values[17] = SqlUtils.sqlString( shipment.getYesNo1());
         
         return SqlUtils.getInsertSql("shipment", fields, values);
     } 

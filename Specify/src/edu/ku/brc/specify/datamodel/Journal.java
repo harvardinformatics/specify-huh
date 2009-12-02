@@ -144,7 +144,7 @@ public class Journal extends DataModelObjBase implements java.io.Serializable
     }
 
     /**
-     * 
+     * mmk: increased length from 50 to 128
      */
     @Column(name = "JournalAbbreviation", unique = false, nullable = true, insertable = true, updatable = true, length = 128)
     public String getJournalAbbreviation() {

@@ -252,9 +252,6 @@ public class OutgoingGiftLoader extends TransactionLoader
         // Agent
         giftAgent.setAgent(agent);
 
-        // CollectionMemberId
-        giftAgent.setCollectionMemberId(collectionMemberId);
-
         // Gift
         giftAgent.setGift(gift);
 
@@ -289,16 +286,15 @@ public class OutgoingGiftLoader extends TransactionLoader
     
     private String getInsertSql(GiftAgent giftAgent)
     {
-        String fieldNames = "AgentID, CollectionMemberID, GiftID, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, GiftID, Role, TimestampCreated, Version";
 
-        String[] values = new String[6];
+        String[] values = new String[5];
 
         values[0] = SqlUtils.sqlString( giftAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( giftAgent.getCollectionMemberId());
-        values[2] = SqlUtils.sqlString( giftAgent.getGift().getId());
-        values[3] = SqlUtils.sqlString( giftAgent.getRole());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( giftAgent.getGift().getId());
+        values[2] = SqlUtils.sqlString( giftAgent.getRole());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     } 

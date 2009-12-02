@@ -75,7 +75,7 @@ public class IReportLauncher implements DatabaseLoginListener
         }
         
         //moved here because context needs to be set before loading prefs, we need to know the SpecifyUser
-        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseName, userName, true);
+        AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(databaseName, userName, true, true);
        // AppContextMgr.getInstance().
         SpecifyAppPrefs.initialPrefs();
         
@@ -141,7 +141,7 @@ public class IReportLauncher implements DatabaseLoginListener
                         Thread.currentThread().setContextClassLoader(MainFrame.reportClassLoader);
                         iReportMainFrame = new MainFrameSpecify(MainFrameSpecify.getDefaultArgs(), false, false);
                     }
-                    iReportMainFrame.refreshSpQBConnections();
+                    iReportMainFrame.refreshSpJRConnections();
                     iReportMainFrame.setVisible(true);
                 }
                 catch (Exception e)

@@ -139,7 +139,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Set<CollectionObjectAttachment> collectionObjectAttachments;
 
     protected Set<ExsiccataItem>              exsiccataItems;
-
+    
     // Constructors
 
     /** default constructor */
@@ -283,7 +283,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     *      * Image, Sound, Preparation, Container(Container Label?)
+     * Image, Sound, Preparation, Container(Container Label?) - this was suppose to be in Preparation
      */
     @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getDescription() {
@@ -1089,6 +1089,11 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         return collectionObjectAttachments;
     }
 
+    public void setCollectionObjectAttachments(Set<CollectionObjectAttachment> collectionObjectAttachments)
+    {
+        this.collectionObjectAttachments = collectionObjectAttachments;
+    }
+
     @OneToMany(mappedBy = "collectionObject")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<ExsiccataItem> getExsiccataItems()
@@ -1100,12 +1105,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     {
         this.exsiccataItems = exsiccataItems;
     }
-
-    public void setCollectionObjectAttachments(Set<CollectionObjectAttachment> collectionObjectAttachments)
-    {
-        this.collectionObjectAttachments = collectionObjectAttachments;
-    }
-
+    
    //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
@@ -1126,6 +1126,26 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
             }
         }
         return fieldNumber != null ? fieldNumber : super.getIdentityTitle();
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Collection.getClassTableId();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return collection != null ? collection.getId() : null;
     }
     
     /* (non-Javadoc)

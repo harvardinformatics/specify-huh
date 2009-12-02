@@ -162,13 +162,6 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
     	Borrow borrow = lookupBorrow(transactionId);
     	shipment.setBorrow(borrow);
     	
-    	// CollectionMemberId (transaction localUnit)
-    	String collectionCode = outReturnBatch.getCollectionCode();
-    	checkNull(collectionCode, "collection code");
-    	
-    	Integer collectionMemberId = getCollectionId(collectionCode);
-    	shipment.setCollectionMemberId(collectionMemberId);
-    	
     	// InsuredForAmount (shipment.isInsured)
     	
     	// NumberOfPackages (transaction boxCount)
@@ -266,25 +259,24 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 	
 	private String getInsertSql(Shipment shipment)
 	{
-		String fields = "BorrowID, CollectionMemberID, NumberOfPackages, " +
+		String fields = "BorrowID, NumberOfPackages, " +
 				        "Number1, Remarks, ShipperID, ShipmentDate, ShipmentMethod, " +
 				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
-		String[] values = new String[13];
+		String[] values = new String[12];
 		
 		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
-		values[1]  = SqlUtils.sqlString( shipment.getCollectionMemberId());
-		values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-		values[3]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[4]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[5]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
-		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.zero();
-		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
-		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[1]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+		values[2]  = SqlUtils.sqlString( shipment.getNumber1());
+		values[3]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[4]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[5]  = SqlUtils.sqlString( shipment.getShipmentDate());
+		values[6]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[7]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[8]  = SqlUtils.now();
+		values[9]  = SqlUtils.zero();
+		values[10] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[11] = SqlUtils.sqlString( shipment.getYesNo2());
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

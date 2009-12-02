@@ -32,6 +32,8 @@ import it.businesslogic.ireport.gui.ReportPropertiesFrame;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -51,6 +54,9 @@ import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -76,19 +82,30 @@ import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
 import edu.ku.brc.dbsupport.CustomQueryFactory;
+import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpAppResource;
+import edu.ku.brc.specify.datamodel.SpAppResourceData;
 import edu.ku.brc.specify.datamodel.SpAppResourceDir;
 import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.tasks.ReportsBaseTask;
-import edu.ku.brc.specify.tasks.subpane.qb.QBJRDataSourceConnection;
+import edu.ku.brc.specify.tasks.subpane.JRConnectionFieldDef;
+import edu.ku.brc.specify.tasks.subpane.SpJRIReportConnection;
+import edu.ku.brc.specify.tasks.subpane.qb.QBJRIReportConnection;
+import edu.ku.brc.specify.tasks.subpane.wb.WBJRIReportConnection;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.CustomDialog;
@@ -118,7 +135,9 @@ public class MainFrameSpecify extends MainFrame
     protected boolean             refreshingConnections       = false;
 
     protected static Integer      overwrittenReportId         = null;
-
+    
+    protected JMenuItem           homePageItem                = null;
+    
     /**
      * @param args -
      *            parameters to configure iReport mainframe
@@ -128,15 +147,67 @@ public class MainFrameSpecify extends MainFrame
         super(args);
         setNoExit(noExit);
         setEmbeddedIreport(embedded);
+        fixUpHelpLinks();
     }
 
-    public void refreshSpQBConnections()
+    /**
+     * Re maps help links for a couple items on iReport Help menu
+     */
+    public void fixUpHelpLinks()
+    {
+        int helpMenuIdx = 9;
+        int homePageItemIdx = 0;
+        int helpItemIdx = 1;
+        final String jasperHomePage = "http://jasperforge.org/";
+        
+    	JMenuBar mb = getJMenuBar();
+        JMenu hm = mb.getMenu(helpMenuIdx);
+        homePageItem = hm.getItem(homePageItemIdx);
+        //remove original listener linked to bad url
+        ActionListener[] als = homePageItem.getActionListeners();
+        for (int l = 0; l < als.length; l++)
+        {
+        	homePageItem.removeActionListener(als[l]);
+        }
+        //add new listener
+        homePageItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				openUrl(jasperHomePage);
+			}
+        	
+        });
+        
+        JMenuItem helpPageItem = hm.getItem(helpItemIdx);
+        als = helpPageItem.getActionListeners();
+        //remove original listener linked to bad url
+        for (int l = 0; l < als.length; l++)
+        {
+        	helpPageItem.removeActionListener(als[l]);
+        }
+        HelpMgr.registerComponent(helpPageItem, "iReport");
+ 
+    }
+    
+    
+    @Override
+	public void applyI18n() {
+		super.applyI18n();
+		if (homePageItem != null)
+		{
+	        homePageItem.setText(UIRegistry.getResourceString("MainFrameSpecify.JASPERHOMEPAGE"));
+		}
+	}
+
+	public void refreshSpJRConnections()
     {
         refreshingConnections = true;
         try
         {
             this.getConnections().clear();
             addSpQBConns();
+            addSpWBConns();
         }
         finally
         {
@@ -153,7 +224,7 @@ public class MainFrameSpecify extends MainFrame
         try
         {
             // XXX Added userId condition to be consistent with QueryTask, but, Users will probably want to share queries??
-            String sqlStr = "From SpQuery where specifyUserId = "
+            String sqlStr = "from SpQuery where specifyUserId = "
                     + AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId();
             List<?> qs = session.createQuery(sqlStr, false).list();
             Collections.sort(qs, new Comparator<Object>() {
@@ -167,9 +238,17 @@ public class MainFrameSpecify extends MainFrame
                     return o1.toString().compareTo(o2.toString());
                 }
             });
+            SpQuery prevQ = null;
             for (Object q : qs)
             {
-                addSpQBConn((SpQuery )q);
+                SpQuery spq = (SpQuery )q;
+            	//list may contain duplicates.
+                if (prevQ == null || !prevQ.getId().equals(spq.getId()))
+            	{
+            		addSpQBConn((SpQuery )q);
+            	}
+            	prevQ = spq;
+                
             }
         }
         catch (Exception e)
@@ -227,12 +306,72 @@ public class MainFrameSpecify extends MainFrame
         if (!AppContextMgr.isSecurityOn() ||
                 DBTableIdMgr.getInstance().getInfoById(q.getContextTableId()).getPermissions().canView())
         {
-            QBJRDataSourceConnection newq = new QBJRDataSourceConnection(q);
+            QBJRIReportConnection newq = new QBJRIReportConnection(q);
             newq.loadProperties(null);
             this.getConnections().add(newq);
         }
     }
     
+    /**
+     * @param wb
+     * 
+     * creates and adds a JR data connection for wb
+     * 
+     */
+    @SuppressWarnings("unchecked")  //iReport doesn't parameterize generics.
+    protected void addSpWBConn(final Workbench wb)
+    {
+        if (!AppContextMgr.isSecurityOn() ||
+                DBTableIdMgr.getInstance().getInfoById(Workbench.getClassTableId()).getPermissions().canView())
+        {
+            WBJRIReportConnection newWb = new WBJRIReportConnection(wb);
+            newWb.loadProperties(null);
+            this.getConnections().add(newWb);
+        }
+    }
+
+    /**
+     * adds JR data connections for specify workbenches.
+     */
+    protected void addSpWBConns()
+    {
+        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+        try
+        {
+            // XXX Added userId condition to be consistent with WorkbenchTask, but, Users will probably want to share queries??
+            String sqlStr = "From Workbench where specifyUserId = "
+                    + AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId();
+            List<?> wbs = session.createQuery(sqlStr, false).list();
+            Collections.sort(wbs, new Comparator<Object>() {
+
+                /* (non-Javadoc)
+                 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+                 */
+                //@Override
+                public int compare(Object o1, Object o2)
+                {
+                    return o1.toString().compareTo(o2.toString());
+                }
+            });
+            for (Object wb : wbs)
+            {
+                addSpWBConn((Workbench )wb);
+            }
+        }
+        catch (Exception e)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, e);
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        finally
+        {
+            session.close();
+        }
+        
+    }
+
     /**
      * @return default map for specify iReport implementation
      */
@@ -352,7 +491,29 @@ public class MainFrameSpecify extends MainFrame
         	//Need to get the latest copy from context mgr.
         	//If other new reports were created, context mgr may have updated this report's
         	//appResource when new reports' appResources are created and added to a directory - I think.
-        	appRes = AppContextMgr.getInstance().getResource(appRes.getName());
+        	AppResourceIFace freshAppRes = AppContextMgr.getInstance().getResource(appRes.getName());
+        	if (freshAppRes != null)
+        	{
+        		appRes = freshAppRes;
+        	}
+        	else
+        	{
+        		//somebody deleted it in a concurrent instance of Specify. Or Something.
+        		SpAppResource spAppRes = (SpAppResource )appRes;
+        		spAppRes.setSpAppResourceId(null);
+        		spAppRes.setVersion(0);
+        		spAppRes.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
+        		SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+        		SpAppResourceDir dir = spMgr.getSpAppResourceDirByName(spMgr.getDirName(spAppRes.getSpAppResourceDir()));
+        		spAppRes.setSpAppResourceDir(dir);
+        		spAppRes.setSpAppResourceDatas(new HashSet<SpAppResourceData>());
+        		spAppRes.setSpReports(new HashSet<SpReport>());
+        		if (rep != null)
+        		{
+        			rep.setSpReport(null);
+        		}
+        		newRep = true;
+        	}
         }
         boolean result = false;
         boolean savedAppRes = false;
@@ -417,18 +578,20 @@ public class MainFrameSpecify extends MainFrame
                 rep.setAppResource(freshRes);
                 spRep.setAppResource((SpAppResource) freshRes);
                 spRep.setRepeats(apr.getRepeats());
-                SpQuery q = rep.getConnection().getQuery();
+                DataModelObjBase obj = rep.getConnection().getSpObject();
                 // getting a fresh copy of the Query might be helpful
                 // in case one of its reports was deleted, but is probably
                 // no longer necessary with AppContextMgr.getInstance().setContext() call
                 // in the save method.
-                SpQuery freshQ = session.get(SpQuery.class, q.getId());
-                if (freshQ != null)
+                DataModelObjBase freshObject = session.get(obj.getClass(), obj.getId());
+                if (freshObject != null)
                 {
-                    spRep.setQuery(freshQ);
+                    //spRep.setQuery(freshQ);
+                    spRep.setReportObject(freshObject);
                     spRep.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
                     session.beginTransaction();
                     transOpen = true;
+                    session.saveOrUpdate(spRep.getReportObject());
                     session.save(spRep);
                     session.commit();
                     transOpen = false;
@@ -479,6 +642,12 @@ public class MainFrameSpecify extends MainFrame
         doSave(jrf, false);
     }
     
+    /**
+     * @param jrf frame containing report to save
+     * @param saveAs
+     * 
+     * save a report.
+     */
     protected void doSave(JReportFrame jrf, boolean saveAs)
     {
         //Reloading the context to prevent weird Hibernate issues that occur when resources are deleted in a
@@ -509,37 +678,28 @@ public class MainFrameSpecify extends MainFrame
         
         if (apr != null)
         {
-            Report report = jrf.getReport();
-
-            if (report instanceof ReportSpecify)
-            {    
-                ReportSpecify reportSpecify = (ReportSpecify) jrf.getReport();
-                ByteArrayOutputStream xmlOut = new ByteArrayOutputStream();
-                try
-                {
-                    modifyFieldsForSaving(reportSpecify);
-                    ReportWriter rw = new ReportWriter(reportSpecify);
-                    rw.writeToOutputStream(xmlOut);
-                }
-                finally
-                {
-                    modifyFieldsForEditing(reportSpecify);
-                }
-                boolean success = saveXML(xmlOut, apr, reportSpecify, saveAs);
-                if (success)
-                {
-                    jrf.setIsDocDirty(false);
-                    jrf.getReport().setReportChanges(0);                
-                }
-                else
-                {
-                    JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("REP_UNABLE_TO_SAVE_IREPORT"), UIRegistry.getResourceString("Error"), JOptionPane.ERROR_MESSAGE);                        
-                }
+            ReportSpecify rep = (ReportSpecify)jrf.getReport();
+            ByteArrayOutputStream xmlOut = new ByteArrayOutputStream();
+            try
+            {
+            	modifyFieldsForSaving(rep);
+            	ReportWriter rw = new ReportWriter(rep);
+            	rw.writeToOutputStream(xmlOut);
             }
-        }
-        else
-        {
-            jrf.getReport().saveXMLFile("iReport.jrxml");
+            finally
+            {
+            	modifyFieldsForEditing(rep);
+            }
+            boolean success = saveXML(xmlOut, apr, rep, saveAs);
+            if (success)
+            {
+                jrf.setIsDocDirty(false);
+                jrf.getReport().setReportChanges(0);                
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("REP_UNABLE_TO_SAVE_IREPORT"), UIRegistry.getResourceString("Error"), JOptionPane.ERROR_MESSAGE);                        
+            }
         }
     }
 
@@ -555,51 +715,40 @@ public class MainFrameSpecify extends MainFrame
     private AppResAndProps getAppResAndPropsForFrame(final JReportFrame jrf, boolean saveAs)
     {
         /* RULE: SpReport.name == SpAppResource.name (== jrf.getReport().name)*/
-        Report report = jrf.getReport();
-
-        SpReport spRep = null;
-        if (report instanceof ReportSpecify)
-        {
-            ReportSpecify reportSpecify = (ReportSpecify) report;
-            spRep = reportSpecify.getSpReport();
-
-            AppResourceIFace appRes = null;
-
-            if (!saveAs)
-            {
-                appRes = spRep == null ? getRepResource(report.getName()) :
-                    spRep.getAppResource();
-            }
-            if (appRes != null)
-            {
-                if (spRep != null) 
-                { 
-                    appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
-                    return getProps(report.getName(), -1, reportSpecify, appRes);
-                }
-            }
-            // else
-            if (AppContextMgr.isSecurityOn())
-            {
-                PermissionIFace permissions = SecurityMgr.getInstance().getPermission("Task.Reports");
-                if (!permissions.canAdd())
-                {
-                    JOptionPane.showMessageDialog(null, getResourceString("IReportLauncher.PERMISSION_TO_ADD_DENIED"),
-                            getResourceString("IReportLauncher.PERMISSION_DENIED_TITLE"),
-                            JOptionPane.ERROR_MESSAGE);
-                    return null;
-                }
-            }
-
-            AppResAndProps result = createAppResAndProps(report.getName(), -1, reportSpecify);
-            if (result != null)
-            {
-                report.setName(result.getAppRes().getName());
-            }
-            return result;
-        }
+        SpReport spRep = ((ReportSpecify) jrf.getReport()).getSpReport();
+        AppResourceIFace appRes = null;
         
-        return null;
+        if (!saveAs)
+    	{
+            appRes = spRep == null ? getRepResource(jrf.getReport().getName()) :
+    	            spRep.getAppResource();
+    	}
+        if (appRes != null)
+        {
+            if (spRep != null) 
+            { 
+                appRes.setTimestampModified(new Timestamp(System.currentTimeMillis()));
+                return getProps(jrf.getReport().getName(), -1, (ReportSpecify )jrf.getReport(), appRes);
+            }
+        }
+        // else
+        if (AppContextMgr.isSecurityOn())
+        {
+            PermissionIFace permissions = SecurityMgr.getInstance().getPermission("Task.Reports");
+            if (!permissions.canAdd())
+            {
+                JOptionPane.showMessageDialog(null, getResourceString("IReportLauncher.PERMISSION_TO_ADD_DENIED"),
+                        getResourceString("IReportLauncher.PERMISSION_DENIED_TITLE"),
+                        JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+        }
+        AppResAndProps result = createAppResAndProps(jrf.getReport().getName(), -1, (ReportSpecify )jrf.getReport());
+        if (result != null)
+        {
+            jrf.getReport().setName(result.getAppRes().getName());
+        }
+        return result;
     }
 
     /**
@@ -651,6 +800,22 @@ public class MainFrameSpecify extends MainFrame
     		}
     	}
     	return null;
+    }
+    
+    protected static SpAppResourceDir getDirForResource(final String dirName)
+    {
+    	SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+        if (dirName.equals("Personal"))
+        {        	
+        	for (SpAppResourceDir dir : spMgr.getSpAppResourceList())
+        	{
+        		if (dir.getIsPersonal())
+        		{
+        			return dir;
+        		}
+        	}
+    	}			
+    	return spMgr.getSpAppResourceDirByName(dirName);
     }
     
     /**
@@ -788,14 +953,15 @@ public class MainFrameSpecify extends MainFrame
             AppResourceIFace modifiedRes = null;
             if (appRes == null)
             {
-                //XXX - what level???
-                modifiedRes = AppContextMgr.getInstance().createAppResourceForDir(propPanel.getResDirCombo().getSelectedItem().toString());
+            	String dirName = ((RepResourcePropsPanel.ResDirItem )propPanel.getResDirCombo().getSelectedItem()).getName();                
+            	SpAppResourceDir dir = getDirForResource(dirName);
+            	modifiedRes = ((SpecifyAppContextMgr )AppContextMgr.getInstance()).createAppResourceForDir(dir);
             }
             else
             {
                 modifiedRes = appRes;
-                String dirName = propPanel.getResDirCombo().getSelectedItem().toString();
-                SpAppResourceDir dir = ((SpecifyAppContextMgr) AppContextMgr.getInstance()).getSpAppResourceDirByName(dirName);
+                String dirName = ((RepResourcePropsPanel.ResDirItem )propPanel.getResDirCombo().getSelectedItem()).getName();
+                SpAppResourceDir dir = getDirForResource(dirName);
                 ((SpAppResource )modifiedRes).setSpAppResourceDir(dir);
             }
             modifiedRes.setName(propPanel.getNameTxt().getText().trim());
@@ -843,6 +1009,9 @@ public class MainFrameSpecify extends MainFrame
         return null;
     }
     
+    /**
+     * @param reportId id of deleted report
+     */
     protected void removeFrameForDeletedReport(final Integer reportId)
     {
         if (reportId != null)
@@ -887,6 +1056,22 @@ public class MainFrameSpecify extends MainFrame
         setActiveReportForm(jrf);    
     }
 
+    protected boolean repResIsEditableByUser(AppResourceIFace repRes)
+    {
+    	//??? SpReport has a SpecifyUserID field too
+    	String sql = "select count(spq.SpQueryID) from spquery spq inner join spreport spr "
+    		+ " on spr.SpQueryID = spq.SpQueryID inner join spappresource spa "
+    		+ "on spa.SpAppResourceID = spr.AppResourceID where spq.SpecifyUserID = "
+    		+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId();
+    	try 
+    	{
+    		return BasicSQLUtils.getCount(sql) != 0; 
+    	} catch (Exception ex)
+    	{
+    		return false;
+    	}
+    }
+    
     /*
      * (non-Javadoc) Presents user with list of available report resources iReport report designer
      * frame for the selected report resource.
@@ -927,7 +1112,10 @@ public class MainFrameSpecify extends MainFrame
                                         && (StringUtils.isNotEmpty(rptType) 
                                         && (rptType.equals("Report") || rptType.equals("Invoice"))))
                                 {
-                                    list.add(ap);
+                                    if (repResIsEditableByUser(ap))
+                                    {
+                                    	list.add(ap);
+                                    }
                                 }
                             }
                             session.evict(ap);
@@ -1013,12 +1201,13 @@ public class MainFrameSpecify extends MainFrame
     	String result = new String(xml);
     	if (spRep != null)
     	{
-    		QBJRDataSourceConnection c = getConnectionByQuery(spRep.getQuery());
+    		//QBJRIReportConnection c = getConnectionByQuery(spRep.getQuery());
+    		SpJRIReportConnection c = getConnectionByObject(spRep.getReportObject());
     		if (c != null)
     		{
     			for (int f = 0; f < c.getFields(); f++)
     			{
-    				QBJRDataSourceConnection.QBJRFieldDef fld = c.getField(f);
+    				JRConnectionFieldDef fld = c.getField(f);
     				result = result.replace("$F{" + fld.getFldName() + "}", "$F{" + fld.getFldTitle() + "}");
     			}
     		}
@@ -1034,11 +1223,11 @@ public class MainFrameSpecify extends MainFrame
     protected static String modifyXMLForSaving(String xml, final ReportSpecify rep) 
     {
 		String result = new String(xml);
-    	QBJRDataSourceConnection c = rep.getConnection();
+		SpJRIReportConnection c = rep.getConnection();
 		if (c != null) 
 		{
 			for (int f = 0; f < c.getFields(); f++) {
-				QBJRDataSourceConnection.QBJRFieldDef fld = c.getField(f);
+				JRConnectionFieldDef fld = c.getField(f);
  				result = result.replace("$F{" + fld.getFldTitle() + "}", "$F{" + fld.getFldName() + "}");
 			}
 		}
@@ -1055,7 +1244,7 @@ public class MainFrameSpecify extends MainFrame
     	for (Object jrfObj : report.getFields())
     	{
     		JRField jrf = (JRField )jrfObj;
-    		QBJRDataSourceConnection.QBJRFieldDef qbjrf = report.getConnection().getFieldByName(jrf.getName());
+    		JRConnectionFieldDef qbjrf = report.getConnection().getFieldByName(jrf.getName());
     		if (qbjrf != null)
     		{
     			jrf.setName(qbjrf.getFldTitle());
@@ -1073,7 +1262,7 @@ public class MainFrameSpecify extends MainFrame
     	for (Object jrfObj : report.getFields())
     	{
     		JRField jrf = (JRField )jrfObj;
-    		QBJRDataSourceConnection.QBJRFieldDef qbjrf = report.getConnection().getFieldByTitle(jrf.getName());
+    		JRConnectionFieldDef qbjrf = report.getConnection().getFieldByTitle(jrf.getName());
     		if (qbjrf != null)
     		{
     			jrf.setName(qbjrf.getFldName());
@@ -1082,19 +1271,20 @@ public class MainFrameSpecify extends MainFrame
     }
 
     /**
-     * @param appResource -
+     * @param rep -
      *            a specify report resource
      * @return - a iReport designer frame for rep
      */
-    public JReportFrame openReportFromResource(final AppResourceIFace appResource)
+    public JReportFrame openReportFromResource(final AppResourceIFace rep)
     {
-        JReportFrame reportFrame = findReportFrameByResource(appResource);
+        JReportFrame reportFrame = findReportFrameByResource(rep);
         if (reportFrame == null)
         {
             try
             {
-                ReportSpecify report = makeReport(appResource);
-                report.setConnection(getConnectionByQuery(report.getSpReport().getQuery()));
+                ReportSpecify report = makeReport(rep);
+                //report.setConnection(getConnectionByQuery(report.getSpReport().getQuery()));
+                report.setConnection(getConnectionByObject(report.getSpReport().getReportObject()));
                 modifyFieldsForEditing(report);
                 updateReportFields(report);
                 report.setUsingMultiLineExpressions(false); // this.isUsingMultiLineExpressions());
@@ -1125,19 +1315,24 @@ public class MainFrameSpecify extends MainFrame
         return reportFrame;
     }
 
-    protected QBJRDataSourceConnection getConnectionByQuery(final SpQuery query)
+    /**
+     * @param object
+     * @return connection for object.
+     */
+    protected SpJRIReportConnection getConnectionByObject(final DataModelObjBase object)
     {
         for (int c = 0; c < getConnections().size(); c++)
         {
-            QBJRDataSourceConnection conn = (QBJRDataSourceConnection )getConnections().get(c);
-            if (conn.getName().equals(query.getName()))
+            SpJRIReportConnection conn = (SpJRIReportConnection )getConnections().get(c);
+            //this only works if getIdentityTitle() is overridden appropriately-
+            if (conn.getName().equals(object.getIdentityTitle()))
             {
                 return conn;
             }
         }
         return null;
     }
-    
+
     
     /**
      * @param rep
@@ -1154,11 +1349,11 @@ public class MainFrameSpecify extends MainFrame
                   rep, DataProviderSessionIFace.CompareType.Equals);
             if (spRep != null)
             {
-                report = new ReportSpecify(spRep); // TODO
+                report = new ReportSpecify(spRep);
             }
             else
             {
-                report = new ReportSpecify(rep);  // TODO
+                report = new ReportSpecify(rep);
             }
         }
         finally
@@ -1201,11 +1396,11 @@ public class MainFrameSpecify extends MainFrame
                   rep, DataProviderSessionIFace.CompareType.Equals);
             if (spRep != null)
             {
-                report = new ReportSpecify(spRep); // TODO
+                report = new ReportSpecify(spRep);
             }
             else
             {
-                report = new ReportSpecify(rep); // TODO
+                report = new ReportSpecify(rep);
             }
         }
         finally
@@ -1233,13 +1428,17 @@ public class MainFrameSpecify extends MainFrame
         }
     }
 
-    private ReportSpecify makeNewReport(final QBJRDataSourceConnection connection)
+    /**
+     * @param connection
+     * @return
+     */
+    private ReportSpecify makeNewReport(final SpJRIReportConnection connection)
     {
-        ReportSpecify report = new ReportSpecify(); // TODO 
+        ReportSpecify report = new ReportSpecify();
         report.setConnection(connection);
         for (int f=0; f < connection.getFields(); f++)
         {
-            QBJRDataSourceConnection.QBJRFieldDef fDef = connection.getField(f);
+        	JRConnectionFieldDef fDef = connection.getField(f);
             report.addField(new JRField(fDef.getFldTitle(), fDef.getFldClass().getName()));
         }
         return report;
@@ -1254,7 +1453,7 @@ public class MainFrameSpecify extends MainFrame
      */
     protected void updateReportFields(final ReportSpecify report)
     {
-    	QBJRDataSourceConnection c = report.getConnection();
+    	SpJRIReportConnection c = report.getConnection();
     	if (c != null)
     	{
     		//first remove fields that are not in the connection.
@@ -1304,6 +1503,7 @@ public class MainFrameSpecify extends MainFrame
      * @see it.businesslogic.ireport.gui.MainFrame#newWizard()
      */
     @Override
+    @SuppressWarnings("unchecked") //IReport code doesn't use generic params.
     public Report newWizard()
     {
         if (AppContextMgr.isSecurityOn())
@@ -1317,12 +1517,13 @@ public class MainFrameSpecify extends MainFrame
                 return null;
             }
         }
-        List<QBJRDataSourceConnection> spConns = new Vector<QBJRDataSourceConnection>();
-        for (Object conn : this.getConnections())
+        List<SpJRIReportConnection> spConns = new Vector<SpJRIReportConnection>();
+        Vector cons = this.getConnections();
+        for (Object conn : cons)
         {
-            if (conn instanceof QBJRDataSourceConnection)
+            if (conn instanceof SpJRIReportConnection)
             {
-                spConns.add((QBJRDataSourceConnection)conn);
+                spConns.add((SpJRIReportConnection)conn);
             }
         }
         if (spConns.size() == 0)
@@ -1330,7 +1531,7 @@ public class MainFrameSpecify extends MainFrame
             JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("REP_NO_QUERIES_FOR_DATA_SOURCES"), "", JOptionPane.INFORMATION_MESSAGE);
             return null;
         }
-        ChooseFromListDlg<QBJRDataSourceConnection> dlg = new ChooseFromListDlg<QBJRDataSourceConnection>(this, 
+        ChooseFromListDlg<SpJRIReportConnection> dlg = new ChooseFromListDlg<SpJRIReportConnection>(this, 
                 UIRegistry.getResourceString("REP_CHOOSE_SP_QUERY"), 
                 spConns);
         dlg.setVisible(true);
@@ -1452,7 +1653,7 @@ public class MainFrameSpecify extends MainFrame
     {
         if (!refreshingConnections)
         {
-            this.refreshSpQBConnections(); //in case new query has been in concurrent instance of Specify6
+            this.refreshSpJRConnections(); //in case new query has been in concurrent instance of Specify6
         }
         return super.getConnections();
     }
@@ -1493,60 +1694,19 @@ public class MainFrameSpecify extends MainFrame
         log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // This is for Windows and Exe4J, turn the args into System Properties
         
+        // Set App Name, MUST be done very first thing!
+        //UIRegistry.setAppName("iReports4Specify");  //$NON-NLS-1$
+        UIRegistry.setAppName("Specify");  //$NON-NLS-1$
         UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         
-        for (String s : args)
-        {
-            String[] pairs = s.split("="); //$NON-NLS-1$
-            if (pairs.length == 2)
-            {
-                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-                {
-                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-                } 
-            } else
-            {
-                String symbol = pairs[0].substring(2, pairs[0].length());
-                System.setProperty(symbol, symbol);
-            }
-        }
-        
-        // Now check the System Properties
-        String appDir = System.getProperty("appdir");
-        if (StringUtils.isNotEmpty(appDir))
-        {
-            UIRegistry.setDefaultWorkingPath(appDir);
-        }
-        
-        String appdatadir = System.getProperty("appdatadir");
-        if (StringUtils.isNotEmpty(appdatadir))
-        {
-            UIRegistry.setBaseAppDataDir(appdatadir);
-        }
-        
-        String embeddeddbdir = System.getProperty("embeddeddbdir");
-        if (StringUtils.isNotEmpty(embeddeddbdir))
-        {
-            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
-        }
-        
-        String mobile = System.getProperty("mobile");
-        if (StringUtils.isNotEmpty(mobile))
-        {
-            UIRegistry.setEmbeddedDBDir(UIRegistry.getMobileEmbeddedDBPath());
-        }
+        AppBase.processArgs(args);
 
-        // Set App Name, MUST be done very first thing!
-        UIRegistry.setAppName("iReports4Specify");  //$NON-NLS-1$
-        //UIRegistry.setAppName("Specify");  //$NON-NLS-1$
         
         // Then set this
         IconManager.setApplicationClass(Specify.class);
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_datamodel.xml")); //$NON-NLS-1$
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
         IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
-
-        
         
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr //$NON-NLS-1$
         System.setProperty(AppPreferences.factoryName,                  "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
@@ -1561,6 +1721,8 @@ public class MainFrameSpecify extends MainFrame
         System.setProperty(SchemaI18NService.factoryName,               "edu.ku.brc.specify.config.SpecifySchemaI18NService");         // Needed for Localization and Schema //$NON-NLS-1$
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
+        System.setProperty(DBMSUserMgr.factoryName,                     "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
+        System.setProperty(SchemaUpdateService.factoryName,             "edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService");   // needed for updating the schema
         
         final AppPreferences localPrefs = AppPreferences.getLocalPrefs();
         localPrefs.setDirPath(UIRegistry.getAppDataDir());
@@ -1572,7 +1734,7 @@ public class MainFrameSpecify extends MainFrame
         HibernateUtil.setListener("post-commit-insert", new edu.ku.brc.specify.dbsupport.PostInsertEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-delete", new edu.ku.brc.specify.dbsupport.PostDeleteEventListener()); //$NON-NLS-1$
 
-        ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
+        ImageIcon helpIcon = IconManager.getIcon(IconManager.makeIconName("AppIcon"), IconSize.Std16); //$NON-NLS-1$
         HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -1598,6 +1760,16 @@ public class MainFrameSpecify extends MainFrame
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, e);
                     log.error("Can't change L&F: ", e); //$NON-NLS-1$
+                }
+                
+                if (UIHelper.isLinux())
+                {
+                    Specify.checkForSpecifyAppsRunning();
+                }
+                
+                if (UIRegistry.isEmbedded())
+                {
+                    SpecifyDBSetupWizardFrame.checkForMySQLProcesses();
                 }
                 
                 DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
@@ -1701,9 +1873,9 @@ public class MainFrameSpecify extends MainFrame
                 };
                 String nameAndTitle = "Specify iReport"; // I18N
                 UIRegistry.setRelease(true);
-                UIHelper.doLogin(usrPwdProvider, false, false, new IReportLauncher(), 
-                                 "SPIReports", nameAndTitle, nameAndTitle, 
-                                 "SpecifyWhite32", "iReport"); // true means do auto login if it can, 
+                UIHelper.doLogin(usrPwdProvider, true, false, false, new IReportLauncher(), 
+                                 IconManager.makeIconName("SPIReports"), nameAndTitle, nameAndTitle, 
+                                 IconManager.makeIconName("SpecifyWhite32"), "iReport"); // true means do auto login if it can, 
                                                                // second bool means use dialog instead of frame
                 
                 localPrefs.load();

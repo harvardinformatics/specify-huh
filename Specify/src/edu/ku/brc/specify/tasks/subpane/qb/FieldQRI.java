@@ -92,14 +92,27 @@ public class FieldQRI extends BaseQRI
     }
     
     /**
+     * @param forWhereClause
+     * @param forSchemaExport
+     * @return
+     */
+    protected boolean addPartialDateColumn(final boolean forWhereClause, 
+    		final boolean forSchemaExport)
+    {
+    	return !forWhereClause && getFieldInfo() != null && getFieldInfo().isPartialDate() && !forSchemaExport;
+    }
+    
+    /**
      * @param ta
      * @param forWhereClause
+     * @param forSchemaExport
      * @return sql/hql specification for this field.
      */
-    public String getSQLFldSpec(final TableAbbreviator ta, final boolean forWhereClause)
+    public String getSQLFldSpec(final TableAbbreviator ta, final boolean forWhereClause, 
+    		final boolean forSchemaExport)
     {
         String result = ta.getAbbreviation(table.getTableTree()) + "." + getFieldName();
-        if (!forWhereClause && getFieldInfo() != null && getFieldInfo().isPartialDate())
+        if (addPartialDateColumn(forWhereClause, forSchemaExport))
         {
             String precName = getFieldInfo().getDatePrecisionName();
             result += ", " + ta.getAbbreviation(table.getTableTree()) + "." + precName;
@@ -113,6 +126,20 @@ public class FieldQRI extends BaseQRI
         return result;
     }
         
+    /**
+     * @param ta
+     * @param forSchemaExport
+     * @param negate
+     * @return the null or not null condition for the field
+     */
+    public String getNullCondition(final TableAbbreviator ta, final boolean forSchemaExport, final boolean negate)
+    {
+        return getSQLFldSpec(ta, true, forSchemaExport) + (negate ? " is not " : " is ") + "null";
+    }
+    
+    /**
+     * @return the data type for the field
+     */
     public Class<?> getDataClass()
     {
         if (fi != null)

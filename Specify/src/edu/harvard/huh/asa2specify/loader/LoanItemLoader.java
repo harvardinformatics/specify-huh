@@ -66,7 +66,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 		    LoanReturnPreparation loanReturnPreparation =
 		        getLoanReturnPreparation(loanItem, loanPreparation, collectionMemberId);
 
-		    loanReturnPreparation.setCollectionMemberId(loanPreparation.getCollectionMemberId());
 		    loanReturnPreparation.setLoanPreparation(loanPreparation);
 
 		    sql = getInsertSql(loanReturnPreparation);
@@ -135,9 +134,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 	{
 		LoanPreparation loanPreparation = new LoanPreparation();
 		
-		// CollectionMemberID
-		loanPreparation.setCollectionMemberId(collectionMemberId);
-		
 		// InComments
 		String transferredFrom = loanItem.getTransferredFrom();
 		if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
@@ -201,9 +197,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 	{		
 		LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
 		
-		// CollectionMemberID
-		loanReturnPreparation.setCollectionMemberId(collectionMemberId);
-
 		// LoanPreparation
 		loanReturnPreparation.setLoanPreparation(loanPreparation);
 		
@@ -219,41 +212,39 @@ public class LoanItemLoader extends CsvToSqlLoader
 
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
-		String fieldNames = "CollectionMemberID, DescriptionOfMaterial, InComments, IsResolved, LoanID, " +
+		String fieldNames = "DescriptionOfMaterial, InComments, IsResolved, LoanID, " +
 				            "OutComments, PreparationID, Quantity, QuantityResolved, QuantityReturned, TimestampCreated, " +
 				            "Version";
 		
-		String[] values = new String[12];
+		String[] values = new String[11];
 		
-		values[0]  = SqlUtils.sqlString( loanPreparation.getCollectionMemberId());
-		values[1]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
-		values[2]  = SqlUtils.sqlString( loanPreparation.getInComments());
-		values[3]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
-		values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-		values[5]  = SqlUtils.sqlString( loanPreparation.getOutComments());
-		values[6]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-		values[9]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-		values[10] = SqlUtils.now();
-		values[11] = SqlUtils.zero();
+		values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
+		values[1]  = SqlUtils.sqlString( loanPreparation.getInComments());
+		values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
+		values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+		values[4]  = SqlUtils.sqlString( loanPreparation.getOutComments());
+		values[5]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+		values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}
 	
 	private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
 	{
-		String fieldNames = "CollectionMemberID, LoanPreparationID, QuantityReturned, " +
+		String fieldNames = "LoanPreparationID, QuantityReturned, " +
 				            "ReturnedDate, TimestampCreated, Version";
 		
-		String[] values = new String[6];
+		String[] values = new String[5];
 		
-		values[0] = SqlUtils.sqlString( loanReturnPreparation.getCollectionMemberId());
-		values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-		values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-		values[3] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-		values[4] = SqlUtils.now();
-		values[5] = SqlUtils.zero();
+		values[0] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
+		values[1] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
+		values[2] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+		values[3] = SqlUtils.now();
+		values[4] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
 	}

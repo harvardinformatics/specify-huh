@@ -81,11 +81,6 @@ public class BotanistTeamLoader extends CsvToSqlLoader
     private GroupPerson getGroupPerson(BotanistTeamMember botanistTeamMember) throws LocalException
     {
         GroupPerson groupPerson = new GroupPerson();
-        
-        // CollectionMemberID  TODO: this is a problem; (see botanist id 152426, e.g.)
-        // we have more than one group with specimens in no fewer than five different collections
-        Integer nullCollectionId = Integer.valueOf(0);
-        groupPerson.setCollectionMemberId(nullCollectionId);
  
         // Group
         Integer teamId = botanistTeamMember.getTeamId();
@@ -123,16 +118,15 @@ public class BotanistTeamLoader extends CsvToSqlLoader
    
     private String getInsertSql(GroupPerson groupPerson)
     {
-    	String fieldNames = "CollectionMemberID, GroupID, MemberID, OrderNumber, TimestampCreated, Version";
+    	String fieldNames = "GroupID, MemberID, OrderNumber, TimestampCreated, Version";
     	
-    	String[] values = new String[6];
+    	String[] values = new String[5];
     	
-    	values[0] = SqlUtils.sqlString( groupPerson.getCollectionMemberId());
-    	values[1] = SqlUtils.sqlString( groupPerson.getGroup().getId());
-    	values[2] = SqlUtils.sqlString( groupPerson.getMember().getId());
-    	values[3] = SqlUtils.sqlString( groupPerson.getOrderNumber());
-    	values[4] = SqlUtils.now();
-    	values[5] = SqlUtils.zero();
+    	values[0] = SqlUtils.sqlString( groupPerson.getGroup().getId());
+    	values[1] = SqlUtils.sqlString( groupPerson.getMember().getId());
+    	values[2] = SqlUtils.sqlString( groupPerson.getOrderNumber());
+    	values[3] = SqlUtils.now();
+    	values[4] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }

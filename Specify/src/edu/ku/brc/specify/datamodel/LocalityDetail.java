@@ -514,7 +514,7 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
     /**
      * @return the utmDatum
      */
-    @Column(name = "getUtmDatum", unique = false, nullable = true, updatable = true, insertable = true)
+    @Column(name = "UtmDatum", unique = false, nullable = true, updatable = true, insertable = true, length = 32)
     public String getUtmDatum()
     {
         return utmDatum;
@@ -621,7 +621,26 @@ public class LocalityDetail extends DataModelObjBase implements Cloneable
         this.locality = locality;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Locality.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return locality != null ? locality.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

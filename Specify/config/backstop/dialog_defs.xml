@@ -15,7 +15,7 @@
     <dialog type="search" viewset="Search" view="DeterminationSearch"      name="DeterminationSearch"      class="edu.ku.brc.specify.datamodel.Determination"  idfield="determinationId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ExsiccataSearch"          name="ExsiccataSearch"          class="edu.ku.brc.specify.datamodel.Exsiccata"      idfield="exsiccataId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeographySearch"          name="GeographySearch"          class="edu.ku.brc.specify.datamodel.Geography"      idfield="geographyId" helpcontext="CBXQSearch"/>
-    <dialog type="search" viewset="Search" view="GeologicTimePeriodSearch" name="ChronosStratSearch"       class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="ChronosStratSearch"       name="ChronosStratSearch"       class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="JournalSearch"            name="JournalSearch"            class="edu.ku.brc.specify.datamodel.Journal"        idfield="journalId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="LithoStratSearch"         name="LithoStratSearch"         class="edu.ku.brc.specify.datamodel.LithoStrat"     idfield="lithoStratId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="LocalitySearch"           name="LocalitySearch"           class="edu.ku.brc.specify.datamodel.Locality"       idfield="localityId" helpcontext="CBXQSearch"/>
@@ -70,7 +70,7 @@
     <dialog type="display" view="Storage"            name="StorageDisplay"           class="edu.ku.brc.specify.datamodel.Storage" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Taxon"              name="TaxonDisplay"             class="edu.ku.brc.specify.datamodel.Taxon" helpcontext="CBXQViewEdit"/>
 
-	<!-- Attachment-related displays -->
+    <!-- Attachment-related displays -->
     <dialog type="display" view="ObjectAttachment" name="AccessionAttachmentDisplay"            class="edu.ku.brc.specify.datamodel.AccessionAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="AgentAttachmentDisplay"                class="edu.ku.brc.specify.datamodel.AgentAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="CollectingEventAttachmentDisplay"      class="edu.ku.brc.specify.datamodel.CollectingEventAttachment" helpcontext="CBXQViewEdit"/>
@@ -79,17 +79,17 @@
     <dialog type="display" view="ObjectAttachment" name="ConservEventAttachmentDisplay"         class="edu.ku.brc.specify.datamodel.ConservEventAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="DNASequencingRunAttachmentDisplay"     class="edu.ku.brc.specify.datamodel.DNASequencingRunAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="FieldNotebookAttachmentDisplay"        class="edu.ku.brc.specify.datamodel.FieldNotebookAttachment" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="ObjectAttachment" name="FieldNotebookAttachmentPageDisplay"    class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="ObjectAttachment" name="FieldNotebookAttachmentPageSetDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ObjectAttachment" name="FieldNotebookPageAttachmentDisplay"    class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ObjectAttachment" name="FieldNotebookPageSetAttachmentDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="LoanAttachmentDisplay"                 class="edu.ku.brc.specify.datamodel.LoanAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="LocalityAttachmentDisplay"             class="edu.ku.brc.specify.datamodel.LocalityAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="PermitAttachmentDisplay"               class="edu.ku.brc.specify.datamodel.PermitAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="PreparationAttachmentDisplay"          class="edu.ku.brc.specify.datamodel.PreparationAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="RepositoryAgreementAttachmentDisplay"  class="edu.ku.brc.specify.datamodel.RepositoryAgreementAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="TaxonAttachmentDisplay"                class="edu.ku.brc.specify.datamodel.TaxonAttachment" helpcontext="CBXQViewEdit"/>
-	
+    
 
-	<!--  Plugin -->    
+    <!--  Plugin -->    
     <dialog type="display" viewset="Fish Views" view="FishBase"           name="FishBase"                  title="FishBase"                class="org.dom4j.Element" helpcontext="CBXQViewEdit"/>
     
 </dialog>

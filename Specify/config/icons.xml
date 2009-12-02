@@ -7,15 +7,31 @@
     -->
     
     <icon name="AppIcon"          file="specify32.png" sizes="all"/>
-    <icon name="Specify16"        file="specify16.png" sizes="16"/>
+    <icon name="AppIconE"         file="specify32E.png" sizes="all"/>
+    <icon name="AppIconM"         file="specify32M.png" sizes="all"/>
+
     <icon name="SpecifyLargeIcon" file="specify128.png" sizes="NonStd"/>
+    <icon name="SpecifyLargeIconE" file="specify128E.png" sizes="NonStd"/>
+    <icon name="SpecifyLargeIconM" file="specify128M.png" sizes="NonStd"/>
+    
+    <icon name="Specify16"        file="specify16.png" sizes="16"/>   <!-- Not Needed anymore -->
     <icon name="SpecifySplash"    file="SpecifyBigSplash.png" sizes="NonStd"/>
     <icon name="SpecifySplashCache" file="SpecifyBigSplash.png" sizes="NonStd"/>
+    
     <icon name="WizardIcon"       file="spwizard128.png" sizes="NonStd"/>
+    <icon name="WizardIconE"      file="spwizard128E.png" sizes="NonStd"/>
+    <icon name="WizardIconM"      file="spwizard128M.png" sizes="NonStd"/>
+    
     <icon name="DatabaseIcon"     file="spbackup128.png" sizes="NonStd"/>
+    <icon name="DatabaseIconE"    file="spbackup128E.png" sizes="NonStd"/>
+    <icon name="DatabaseIconM"    file="spbackup128M.png" sizes="NonStd"/>
+    
     <icon name="SPIReports"       file="spireport128.png" sizes="NonStd"/>
     <icon name="SpBuilder"        file="spbuilder.png" sizes="NonStd"/>
+    
     <icon name="SpecifyWhite32"   file="specify32White.png" sizes="32"/>
+    <icon name="SpecifyEWhite32"   file="specify32EWhite.png" sizes="32"/>
+    <icon name="SpecifyMWhite32"   file="specify32MWhite.png" sizes="32"/>
     
     <icon name="Help"             file="win_help.png" sizes="16"/>
     <icon name="Save"             file="Save32x32.png" sizes="all"/>
@@ -76,7 +92,9 @@
     <icon name="Eraser"        file="Clear20x20.png"   sizes="NonStd"/>
     <icon name="CardImage"     file="ImageWindow20x20.png" sizes="NonStd"/>
     <icon name="LocalityMapper" file="map20x20.png" sizes="NonStd"/>
+    <icon name="MapIcon"        file="map.png" sizes="32"/>
     <icon name="ControlEdit"    file="EditProperties20x20.png" sizes="NonStd"/>
+    <icon name="EditProps"      file="EditProperties32x32.png" sizes="all"/>
     <icon name="Plugins"        file="plug_in.png" sizes="32"/>
     <icon name="DropIndicator"  file="dropindicator.png" sizes="NonStd"/>
     <icon name="Formatting"     file="formatting.png" sizes="32"/>
@@ -138,6 +156,9 @@
     
     <!-- <icon name="BGImage"  file="frogs_bg.gif" sizes="NonStd"/> -->
     
+    <icon name="ClipboardCopy"   file="clipboardCopy.png"  sizes="all"/>
+    <icon name="ClipboardPaste"  file="clipboardPaste.png" sizes="all"/>
+    
     <icon name="ValidationValid"   file="validation-valid.gif"    sizes="all"/>
     <icon name="ValidationWarning" file="FeedbackYellow32x32.png" sizes="all"/>
     <icon name="ValidationError"   file="FeedbackRed32x32.png"    sizes="all"/>
@@ -153,6 +174,10 @@
     
     <icon name="Down"             file="Down16x16.png" sizes="16"/>
     <icon name="Forward"          file="Forward16x16.png" sizes="16"/>
+    
+    <icon name="ExclaimGreen"     file="exclaim_green.gif" sizes="NonStd"/>
+    <icon name="ExclaimYellow"    file="exclaim_yellow.gif" sizes="NonStd"/>
+    <icon name="ExclaimRed"       file="exclaim.gif" sizes="NonStd"/>
     
     <icon name="MultiKid"         file="MultiKid.png" sizes="16"/>
     <icon name="SingleKid"        file="SingleKid.png" sizes="16"/>

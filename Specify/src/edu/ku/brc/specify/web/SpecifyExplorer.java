@@ -396,7 +396,7 @@ public class SpecifyExplorer extends HttpServlet
         System.setProperty(QueryAdjusterForDomain.factoryName,          "edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain"); // Needed for ExpressSearch //$NON-NLS-1$
         System.setProperty(SchemaI18NService.factoryName,               "edu.ku.brc.specify.config.SpecifySchemaI18NService");         // Needed for Localization and Schema //$NON-NLS-1$
         System.setProperty(WebLinkMgr.factoryName,                      "edu.ku.brc.specify.config.SpecifyWebLinkMgr");                // Needed for WebLnkButton //$NON-NLS-1$
-        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");         // Needed for WebLnkButton //$NON-NLS-1$
+        System.setProperty(DataObjFieldFormatMgr.factoryName,           "edu.ku.brc.specify.config.SpecifyDataObjFieldFormatMgr");     // Needed for WebLnkButton //$NON-NLS-1$
         System.setProperty(RecordSetFactory.factoryName,                "edu.ku.brc.specify.config.SpecifyRecordSetFactory");          // Needed for Searching //$NON-NLS-1$
         System.setProperty(DBTableIdMgr.factoryName,                    "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
@@ -584,7 +584,7 @@ public class SpecifyExplorer extends HttpServlet
             AppPreferences localPrefs = AppPreferences.getLocalPrefs();
             localPrefs.setDirPath(UIRegistry.getAppDataDir());
             
-            AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(DATABASE_NAME, "testuser", false);
+            AppContextMgr.CONTEXT_STATUS status = AppContextMgr.getInstance().setContext(DATABASE_NAME, "testuser", false, false);
             if (status == AppContextMgr.CONTEXT_STATUS.OK)
             {
                 if (AppContextMgr.getInstance().getClassObject(Discipline.class) != null)
@@ -3321,7 +3321,7 @@ public class SpecifyExplorer extends HttpServlet
     }
     
     @SuppressWarnings("unchecked")
-    protected JSONObject createNode(final Treeable treeable)
+    protected JSONObject createNode(final Treeable<?, ?, ?> treeable)
     {
         JSONObject json = new JSONObject();
         json.accumulate("name", treeable.getName());
@@ -3329,12 +3329,12 @@ public class SpecifyExplorer extends HttpServlet
         json.accumulate("uiProvider", "col");
                
         JSONArray childrenArray = new JSONArray();
-        Set<Treeable> children = (Set<Treeable>)treeable.getChildren();
+        Set<Treeable<?,?,?>> children = (Set<Treeable<?,?,?>>)treeable.getChildren();
         json.accumulate("leaf", children.size() == 0);
         
         //json.accumulate("count", children.size());
         
-        for (Treeable kid : children)
+        for (Treeable<?,?,?> kid : children)
         {
             childrenArray.add(createNode(kid));
         }

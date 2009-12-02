@@ -65,7 +65,6 @@ import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
-import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.tasks.subpane.DroppableFormObject;
 import edu.ku.brc.af.tasks.subpane.DroppableTaskPane;
 import edu.ku.brc.af.tasks.subpane.FormPane;
@@ -94,7 +93,6 @@ import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.busrules.PickListBusRules;
 import edu.ku.brc.specify.tools.schemalocale.PickListEditorDlg;
 import edu.ku.brc.specify.tools.schemalocale.SchemaToolsDlg;
-import edu.ku.brc.specify.ui.NumberingSchemeDlg;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
@@ -126,11 +124,11 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     public static final DataFlavor SYSTEMSETUPTASK_FLAVOR = new DataFlavor(SystemSetupTask.class, SYSTEMSETUPTASK);
 
     // Data Members
-	protected NavBox											globalNavBox				= null;
-	protected NavBox											navBox						= null;
-	protected PickListBusRules									pickListBusRules			= new PickListBusRules();
-	protected FormPane											formPane					= null;
-	protected Vector<Pair<BaseTreeTask<?, ?, ?>, JMenuItem>>	treeUpdateMenuItems			= new Vector<Pair<BaseTreeTask<?, ?, ?>, JMenuItem>>();
+    protected NavBox                                            globalNavBox                = null;
+    protected NavBox                                            navBox                      = null;
+    protected PickListBusRules                                  pickListBusRules            = new PickListBusRules();
+    protected FormPane                                          formPane                    = null;
+    protected Vector<Pair<BaseTreeTask<?, ?, ?>, JMenuItem>>    treeUpdateMenuItems         = new Vector<Pair<BaseTreeTask<?, ?, ?>, JMenuItem>>();
 
     /**
      * Default Constructor
@@ -208,7 +206,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             })); 
             navBoxes.add(collNavBox);
             
-            if (AppPreferences.getLocalPrefs().getBoolean("debug.menu", false))
+            /*if (AppPreferences.getLocalPrefs().getBoolean("debug.menu", false))
             {
                 collNavBox.add(NavBox.createBtnWithTT(getResourceString("ANS_EDITOR"), "AutoNumberingScheme", "", IconManager.STD_ICON_SIZE, new ActionListener() {
                     public void actionPerformed(ActionEvent e)
@@ -220,7 +218,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     }
                 })); 
                 navBoxes.add(collNavBox);
-            }
+            }*/
             
             
         }
@@ -229,19 +227,19 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     
     
     /* (non-Javadoc)
-	 * @see edu.ku.brc.af.tasks.BaseTask#doProcessAppCommands(edu.ku.brc.ui.CommandAction)
-	 */
-	@Override
-	protected void doProcessAppCommands(CommandAction cmdAction)
-	{
-		//super.doProcessAppCommands(cmdAction);  
-		for (Pair<BaseTreeTask<?,?,?>, JMenuItem> mi : treeUpdateMenuItems)
-		{
-			mi.getSecond().setVisible(mi.getFirst().isTreeOnByDefault());
-		}
-	}
+     * @see edu.ku.brc.af.tasks.BaseTask#doProcessAppCommands(edu.ku.brc.ui.CommandAction)
+     */
+    @Override
+    protected void doProcessAppCommands(CommandAction cmdAction)
+    {
+        //super.doProcessAppCommands(cmdAction);  
+        for (Pair<BaseTreeTask<?,?,?>, JMenuItem> mi : treeUpdateMenuItems)
+        {
+            mi.getSecond().setVisible(mi.getFirst().isTreeOnByDefault());
+        }
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
      * @see edu.ku.brc.af.core.Taskable#requestContext()
      */
     public void requestContext()
@@ -289,10 +287,11 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
      * Adds a new PickList to the NavBox Container.
      * @param pickList the new pickList
      */
-    protected void addPickList(final PickList pickList, final boolean isNew)
+    protected void addPickList(final PickList pickList, @SuppressWarnings("unused") final boolean isNew)
     {
         final String nameStr  = pickList.getName();
         
+        @SuppressWarnings("unused")
         RolloverCommand roc;
         if (pickList.getIsSystem())
         {
@@ -536,8 +535,11 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             
             if (dataItems != null)
             {
-                ViewIFace view = AppContextMgr.getInstance().getView("SystemSetup", viewName);
-                
+                ViewIFace view = AppContextMgr.getInstance().getView("Common", viewName);
+                if (view == null)
+                {
+                    view = AppContextMgr.getInstance().getView(null, viewName);
+                }
                 formPane = createFormPanel(tiTitle, 
                                             view.getViewSetName(), 
                                             view.getName(), 
@@ -874,20 +876,23 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
     }
 
     
+    /**
+     * @param tree
+     */
     protected void doTreeUpdate(final BaseTreeTask<?,?,?> tree)
     {
         try
         {
-        	boolean success = tree.getCurrentTreeDef().updateAllNodeNumbers(null, true); //true forces a progress dialog. 
-        															   //Currently can't get WriteGlassPane working in this context.(???)
-        	if (success)
-        	{
-        		UIRegistry.displayInfoMsgDlgLocalized("SystemSetupTask.TREE_UPDATE_SUCCESS", tree.getTitle());
-        	}
+            boolean success = tree.getCurrentTreeDef().updateAllNodes(null, true, false); //true forces a progress dialog. 
+                                                                       //Currently can't get WriteGlassPane working in this context.(???)
+            if (success)
+            {
+                UIRegistry.displayInfoMsgDlgLocalized("SystemSetupTask.TREE_UPDATE_SUCCESS", tree.getTitle());
+            }
         }
         catch (Exception ex)
         {
-        	UIRegistry.displayErrorDlgLocalized("SystemSetupTask.TREE_UPDATE_DISASTER", tree.getTitle());
+            UIRegistry.displayErrorDlgLocalized("SystemSetupTask.TREE_UPDATE_DISASTER", tree.getTitle());
             UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SystemSetupTask.class, ex);
         }
@@ -990,54 +995,54 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
 //        }
         
         if (!AppContextMgr.isSecurityOn()
-				|| SpecifyUser.isCurrentUserType(UserType.Manager))
-		{
-			Vector<BaseTreeTask<?,?,?>> trees = new Vector<BaseTreeTask<?,?,?>>(TreeTaskMgr.getInstance().getTreeTasks());
-			Collections.sort(trees, new Comparator<BaseTreeTask<?,?,?>>(){
+                || SpecifyUser.isCurrentUserType(UserType.Manager))
+        {
+            Vector<BaseTreeTask<?,?,?>> trees = new Vector<BaseTreeTask<?,?,?>>(TreeTaskMgr.getInstance().getTreeTasks());
+            Collections.sort(trees, new Comparator<BaseTreeTask<?,?,?>>(){
 
-				/* (non-Javadoc)
-				 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-				 */
-				@Override
-				public int compare(BaseTreeTask<?, ?, ?> arg0,
-						BaseTreeTask<?, ?, ?> arg1)
-				{
-					return arg0.getTitle().compareTo(arg1.getTitle());
-				}
-				
-			});
-        	for (final BaseTreeTask<?, ?, ?> tree : trees)
-			{
-				titleArg = getResourceString(getI18NKey("Tree_MENU")) + " " + tree.getTitle(); //$NON-NLS-1$
-				mneu = getI18NKey("Trees_MNU"); //$NON-NLS-1$
-				mi = UIHelper.createMenuItemWithAction((JMenu) null, titleArg,
-						mneu, titleArg, true, null);
-				mi.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent ae)
-					{
-						SwingUtilities.invokeLater(new Runnable(){
+                /* (non-Javadoc)
+                 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+                 */
+                @Override
+                public int compare(BaseTreeTask<?, ?, ?> arg0,
+                        BaseTreeTask<?, ?, ?> arg1)
+                {
+                    return arg0.getTitle().compareTo(arg1.getTitle());
+                }
+                
+            });
+            for (final BaseTreeTask<?, ?, ?> tree : trees)
+            {
+                titleArg = getResourceString(getI18NKey("Tree_MENU")) + " " + tree.getTitle(); //$NON-NLS-1$
+                mneu = getI18NKey("Trees_MNU"); //$NON-NLS-1$
+                mi = UIHelper.createMenuItemWithAction((JMenu) null, titleArg,
+                        mneu, titleArg, true, null);
+                mi.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent ae)
+                    {
+                        SwingUtilities.invokeLater(new Runnable(){
 
-							/* (non-Javadoc)
-							 * @see java.lang.Runnable#run()
-							 */
-							@Override
-							public void run()
-							{
-								doTreeUpdate(tree);							
-							}
-						});
-						
-					}
-				});
-				mi.setVisible(tree.isTreeOnByDefault());
-				treeUpdateMenuItems.add(new Pair<BaseTreeTask<?,?,?>, JMenuItem>(tree, mi));
-				mid = new MenuItemDesc(mi, FULL_TREE_MENU);
-				mid.setPosition(MenuItemDesc.Position.After, menuDesc);
+                            /* (non-Javadoc)
+                             * @see java.lang.Runnable#run()
+                             */
+                            @Override
+                            public void run()
+                            {
+                                doTreeUpdate(tree);                         
+                            }
+                        });
+                        
+                    }
+                });
+                mi.setVisible(tree.isTreeOnByDefault());
+                treeUpdateMenuItems.add(new Pair<BaseTreeTask<?,?,?>, JMenuItem>(tree, mi));
+                mid = new MenuItemDesc(mi, FULL_TREE_MENU);
+                mid.setPosition(MenuItemDesc.Position.After, menuDesc);
 
-				menuItems.add(mid);
-			}
-		}
-		
+                menuItems.add(mid);
+            }
+        }
+        
         
         
         if (!AppContextMgr.isSecurityOn() || 
@@ -1070,7 +1075,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
                     {
                         public void actionPerformed(ActionEvent ae)
                         {
-                        	doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
+                            doSchemaConfig(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
                         }
                     });
             mid = new MenuItemDesc(mi, SYSTEM_MENU);
@@ -1088,7 +1093,7 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             {
                 public void actionPerformed(ActionEvent ae)
                 {
-                	SystemSetupTask.this.requestContext();
+                    SystemSetupTask.this.requestContext();
                 }
             }); 
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
@@ -1302,8 +1307,8 @@ public class SystemSetupTask extends BaseTask implements FormPaneAdjusterIFace, 
             }
         } else if (cmdAction.isType(APP_CMD_TYPE)) 
         {
-        	//super.doCommand() not being called here, maybe for good reason?,
-        	//so calling this here.
+            //super.doCommand() not being called here, maybe for good reason?,
+            //so calling this here.
             doProcessAppCommands(cmdAction);
         }
 

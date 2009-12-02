@@ -746,14 +746,6 @@ public class ImportFileSplitter extends CustomDialog
         IconManager.setApplicationClass(Specify.class);
         IconManager.loadIcons(XMLHelper.getConfigDir("icons.xml")); //$NON-NLS-1$
         ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std16);
-//        if (StringUtils.isNotEmpty(appIconName))
-//        {
-//        	ImageIcon imgIcon = IconManager.getIcon(appIconName);
-//        	if (imgIcon != null)
-//        	{
-//        		icon = imgIcon;
-//        	}
-//        }
         
         try
         {
@@ -779,11 +771,12 @@ public class ImportFileSplitter extends CustomDialog
         }
         
         ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
-        HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); 
+        HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage());
         
 		ImportFileSplitter chunker = new ImportFileSplitter();
 		chunker.setCustomTitleBar(UIRegistry.getResourceString("ImportFileSplitter.Title"));
 		chunker.setIconImage(icon.getImage());
+		chunker.setHelpContext("slicer");
 		UIHelper.centerAndShow(chunker);
 		System.exit(0);
 	}

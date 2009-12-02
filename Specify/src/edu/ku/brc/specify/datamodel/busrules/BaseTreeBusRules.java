@@ -89,7 +89,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
                                        I extends TreeDefItemIface<T,D,I>>
                                        extends BaseBusRules
 {
-    public static final boolean ALLOW_CONCURRENT_FORM_ACCESS = false;
+    public static final boolean ALLOW_CONCURRENT_FORM_ACCESS = true;
 	
 	private static final Logger log = Logger.getLogger(BaseTreeBusRules.class);
     
@@ -172,6 +172,10 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
         }
     }
 
+    /**
+     * @return list of relationships for purposes of checking
+     * if a record can be deleted.
+     */
     public abstract String[] getRelatedTableAndColumnNames();
     
     
@@ -999,7 +1003,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             if (node.getDefinition().getDoNodeNumberUpdates() && node.getDefinition().getNodeNumbersAreUpToDate())
             {
                 log.info("Saved tree node was added.  Updating node numbers appropriately.");
-                TreeDataService<T,D,I> dataServ = TreeDataServiceFactory.createService();
+                TreeDataService dataServ = TreeDataServiceFactory.createService();
                 if (added)
                 {
                 	success = dataServ.updateNodeNumbersAfterNodeAddition(node, session);
@@ -1036,7 +1040,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 		{
 			return false;
 		}
-		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
 		{
 			return getRequiredLocks();
 		}
@@ -1116,7 +1120,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 			}
 		} finally
 		{
-			if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+			if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
 			{
 				this.freeLocks();
 			}
@@ -1283,7 +1287,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
         		//the name and isAccepted properties.
         		String tblName = DBTableIdMgr.getInstance().getInfoById(node.getTableId()).getName();
         		String sql = "SELECT count(*) FROM " + tblName + " where isAccepted "
-        			+ "and name = '" + BasicSQLUtils.escapeStringLiterals(node.getName()) + "'";
+        			+ "and name = " + BasicSQLUtils.getEscapedSQLStrExpr(node.getName());
         		if (parent.getTreeId() != null)
         		{
         			sql +=  " and parentid = " + parent.getTreeId();
@@ -1449,7 +1453,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 						return USER_ACTION.Error;
 					}
 			
-		});
+		}, false);
 		return result == TaskSemaphoreMgr.USER_ACTION.OK;
 	}
 	
@@ -1503,7 +1507,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 		{
 			return false;
 		}
-		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
 		{
 			freeLocks();
 		}
@@ -1520,7 +1524,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 			DataProviderSessionIFace session)
 	{
 		super.afterSaveFailure(dataObj, session);
-		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
 		{
 			freeLocks();
 		}

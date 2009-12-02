@@ -256,7 +256,7 @@ public class StatsTrackerTask extends BaseTask
      */
     protected void sendStats() throws Exception
     {
-/*        // check the website for the info about the latest version
+        // check the website for the info about the latest version
         HttpClient httpClient = new HttpClient();
         httpClient.getParams().setParameter("http.useragent", getClass().getName()); //$NON-NLS-1$
         
@@ -275,12 +275,12 @@ public class StatsTrackerTask extends BaseTask
             httpClient.executeMethod(postMethod);
             
             // get the server response
-            String responseString = postMethod.getResponseBodyAsString();
+            /*String responseString = postMethod.getResponseBodyAsString();
             
             if (StringUtils.isNotEmpty(responseString))
             {
                 System.err.println(responseString);
-            }
+            }*/
 
         }
         catch (Exception e)
@@ -289,7 +289,7 @@ public class StatsTrackerTask extends BaseTask
             //UsageTracker.incrHandledUsageCount();
             //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(StatsTrackerTask.class, e);
             throw new ConnectionException(e);
-        }*/
+        }
         
     }
     

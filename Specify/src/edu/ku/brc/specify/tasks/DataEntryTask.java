@@ -78,7 +78,9 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr;
+import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.SCOPE;
 import edu.ku.brc.specify.prefs.FormattingPrefsPanel;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
 import edu.ku.brc.specify.ui.DBObjDialogFactory.FormLockStatus;
@@ -364,7 +366,10 @@ public class DataEntryTask extends BaseTask
         {
             FormPane  formPane  = (FormPane)subPane;
             MultiView multiView = formPane.getMultiView();
-            if (multiView != null && multiView.isEditable())
+            //Bug 7691. TreeLocks get set when a form is first displayed, even when a recordset is being
+            //displayed and the formview is not yet editable. So the isEditable() condition needs to be removed.
+            //A better fix would be to check locks when view mode is switched.
+            if (multiView != null/* && (multiView.isEditable()*/)
             {
                 ViewIFace view = multiView.getView();
                 
@@ -391,8 +396,15 @@ public class DataEntryTask extends BaseTask
                     
                     if (!hasDataOfTreeClass)
                     {
-                        TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName()+"Form", TaskSemaphoreMgr.SCOPE.Discipline);
-                        TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
+                        if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS)
+                        {
+                        	//XXX treeviewer pane vs. data form pane???
+                        	TaskSemaphoreMgr.decrementUsageCount(title, treeDefClass.getSimpleName(), SCOPE.Discipline);
+                        } else
+                        {
+                        	TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName()+"Form", TaskSemaphoreMgr.SCOPE.Discipline);
+                        	TaskSemaphoreMgr.unlock("tabtitle", treeDefClass.getSimpleName(), TaskSemaphoreMgr.SCOPE.Discipline);
+                        }
                     }
                 }
             }

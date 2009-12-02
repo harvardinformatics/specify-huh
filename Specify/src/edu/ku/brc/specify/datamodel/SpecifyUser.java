@@ -211,7 +211,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
     /**
      * 
      */
-    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 64)
+    @Column(name = "Password", unique = false, nullable = false, insertable = true, updatable = true, length = 255)
     public String getPassword()
     {
         return this.password;
@@ -292,7 +292,10 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
      */
     public void setLoginOutTime(Timestamp loginOutTime)
     {
-        this.loginOutTime = loginOutTime;
+        if (loginOutTime != null && loginOutTime.getTime() > 0)
+        {
+            this.loginOutTime = loginOutTime;
+        }
     }
 
     /**
@@ -651,7 +654,7 @@ public class SpecifyUser extends DataModelObjBase implements java.io.Serializabl
         for (SpPrincipal principal : getSpPrincipals())
         {
             if (GroupPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()) ||
-                    AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
+                AdminPrincipal.class.getCanonicalName().equals(principal.getGroupSubClass()))
             {
                 ++count;
             }

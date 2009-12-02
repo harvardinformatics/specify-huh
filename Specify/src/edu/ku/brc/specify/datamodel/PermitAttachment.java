@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -93,7 +94,7 @@ public class PermitAttachment extends DataModelObjBase implements ObjectAttachme
         this.permitAttachmentId = permitAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PermitID", nullable = false)
     public Permit getPermit()
     {
@@ -105,7 +106,7 @@ public class PermitAttachment extends DataModelObjBase implements ObjectAttachme
         this.permit = permit;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -158,7 +159,27 @@ public class PermitAttachment extends DataModelObjBase implements ObjectAttachme
     {
         this.ordinal = ordinal;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Permit.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return permit != null ? permit.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getDataClass()
      */

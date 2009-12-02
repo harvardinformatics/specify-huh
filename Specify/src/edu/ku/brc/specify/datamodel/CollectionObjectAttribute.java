@@ -117,6 +117,7 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     protected Boolean yesNo5;
     protected Boolean yesNo6;
     protected Boolean yesNo7;
+    
     protected Set<CollectionObject> collectionObjects;
     
     // Constructors
@@ -230,7 +231,6 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
     {
         return collectionObjects;
     }
-
 
     @Column(name = "Text11", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
     public String getText11()
@@ -959,7 +959,31 @@ public class CollectionObjectAttribute extends CollectionMember implements Clone
         
         return obj;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectionObject.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (collectionObjects != null && collectionObjects.size() == 1)
+        {
+            return ((CollectionObject)collectionObjects.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */

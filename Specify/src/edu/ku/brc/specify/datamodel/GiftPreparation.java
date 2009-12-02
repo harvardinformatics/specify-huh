@@ -40,9 +40,9 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "giftpreparation")
 @org.hibernate.annotations.Table(appliesTo="giftpreparation", indexes =
-    {   @Index (name="GiftPrepColMemIDX", columnNames={"CollectionMemberID"})
+    {   @Index (name="GiftPrepDspMemIDX", columnNames={"DisciplineID"})
     })
-public class GiftPreparation extends CollectionMember implements java.io.Serializable, PreparationHolderIFace, Comparable<GiftPreparation>
+public class GiftPreparation extends DisciplineMember implements java.io.Serializable, PreparationHolderIFace, Comparable<GiftPreparation>
 {
 
     // Fields    
@@ -229,7 +229,27 @@ public class GiftPreparation extends CollectionMember implements java.io.Seriali
     {
         this.gift = gift;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Gift.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return gift != null ? gift.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

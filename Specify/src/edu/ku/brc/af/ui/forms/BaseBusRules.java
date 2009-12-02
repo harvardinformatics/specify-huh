@@ -35,14 +35,17 @@ import javax.swing.JButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.GenericLSIDGeneratorFactory;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.config.SpecifyLSIDGeneratorFactory;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -64,7 +67,7 @@ public class BaseBusRules implements BusinessRulesIFace
     protected Class<?>[]   dataClasses;
     
     /**
-     * The data class that is used within the busniess rules.
+     * The data class that is used within the business rules.
      * @param dataClass the data class
      */
     public BaseBusRules(final Class<?> ... dataClasses)
@@ -873,6 +876,79 @@ public class BaseBusRules implements BusinessRulesIFace
     {
         return processBusinessRules(dataObj);
     }
+    
+    /**
+     * @param data
+     */
+    protected void setLSID(final FormDataObjIFace data)
+    {
+        boolean doLSID = ((SpecifyLSIDGeneratorFactory)SpecifyLSIDGeneratorFactory.getInstance()).isPrefOn(data.getTableId());
+        if (doLSID)
+        {
+            //----------------------------------------------------------------
+            // We want Version to always be on
+            //AppPreferences remote = AppPreferences.getRemote();
+            //String                prefix       = "Prefs.LSID.";
+            boolean               doVersioning = true;//remote.getBoolean(prefix + "UseVersioning", false);
+            //----------------------------------------------------------------
+            UIFieldFormatterIFace formatter    = null;
+            
+            if (data.getTableId() == 1)
+            {
+                DBFieldInfo fi = DBTableIdMgr.getInstance().getInfoById(1).getFieldByColumnName("CatalogNumber");
+                formatter = fi.getFormatter();
+            }
+            
+            String lsid = GenericLSIDGeneratorFactory.getInstance().setLSIDOnId(data, doVersioning, formatter);
+            if (lsid != null)
+            {
+                FormHelper.setValue(data, "guid", lsid);
+            }
+        }
+    }
+    
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    collection.remove(obj);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Removed an Object from a Collection by Id.
+     * @param collection the Java Collection
+     * @param dataObj the data object to be removed
+     */
+    public static int countDataObjectById(final Collection<?> collection, final FormDataObjIFace dataObj)
+    {
+        int cnt = 0;
+        for (Object obj : collection.toArray())
+        {
+            if (obj instanceof FormDataObjIFace)
+            {
+                FormDataObjIFace colObj = (FormDataObjIFace)obj;
+                if (dataObj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
+                {
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#doesSearchObjectRequireNewParent()
@@ -936,27 +1012,5 @@ public class BaseBusRules implements BusinessRulesIFace
     public void aboutToShutdown()
     {
         // no op
-    }
-    
-    
-    /**
-     * Removed an Object from a Collection by Id.
-     * @param collection the Java Collection
-     * @param dataObj the data object to be removed
-     */
-    public static void removeById(final Collection<?> collection, final FormDataObjIFace dataObj)
-    {
-        for (Object obj : collection.toArray())
-        {
-            if (obj instanceof FormDataObjIFace)
-            {
-                FormDataObjIFace colObj = (FormDataObjIFace)obj;
-                if (obj == colObj || (colObj.getId() != null && dataObj.getId() != null && dataObj.getId().equals(colObj.getId())))
-                {
-                    collection.remove(obj);
-                    break;
-                }
-            }
-        }
     }
 }

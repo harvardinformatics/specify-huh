@@ -35,6 +35,8 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.Index;
 
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+
 /**
  * @author rod
  *
@@ -900,13 +902,37 @@ public class PreparationAttribute extends CollectionMember implements Cloneable
     @Override
     public Object clone() throws CloneNotSupportedException
     {
-        PreparationAttribute obj    = (PreparationAttribute)super.clone();
-        obj.preparationAttributeId  = null;
-        obj.preparations            = new HashSet<Preparation>();
+        PreparationAttribute obj = (PreparationAttribute)super.clone();
+        obj.preparationAttributeId    = null;
+        obj.preparations              = new HashSet<Preparation>();
         
         return obj;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Preparation.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (preparations != null && preparations.size() == 1)
+        {
+            return ((FormDataObjIFace)preparations.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */

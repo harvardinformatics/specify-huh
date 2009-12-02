@@ -37,6 +37,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+
 @SuppressWarnings("serial") //$NON-NLS-1$
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
@@ -180,7 +182,7 @@ public class GeographyTreeDef extends BaseTreeDef<Geography, GeographyTreeDef, G
 		this.treeEntries = treeEntries;
 	}
 
-    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "treeDef") //$NON-NLS-1$
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "treeDef") //$NON-NLS-1$
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
 	public Set<GeographyTreeDefItem> getTreeDefItems()
 	{
@@ -191,7 +193,34 @@ public class GeographyTreeDef extends BaseTreeDef<Geography, GeographyTreeDef, G
 	{
 		this.treeDefItems = treeDefItems;
 	}
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Discipline.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (disciplines != null && disciplines.size() == 1)
+        {
+            return ((FormDataObjIFace)disciplines.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.TreeDefIface#getTreeDefId()
+     */
     @Transient
 	public Integer getTreeDefId()
 	{

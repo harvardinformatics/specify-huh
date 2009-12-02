@@ -141,5 +141,4 @@ public class CollectingEventBusRules extends AttachmentOwnerBaseBusRules
         
         return false;
     }
-
 }

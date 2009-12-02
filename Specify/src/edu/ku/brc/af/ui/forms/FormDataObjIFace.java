@@ -148,6 +148,11 @@ public interface FormDataObjIFace
     public abstract int getTableId();
     
     /**
+     * @return the version number of the record or null if it does apply.
+     */
+    public abstract Integer getVersion();
+    
+    /**
      * Returns whether the viewing of this class is restrictable
      * @return - boolean whether the viewing of this class is restrictable
      */
@@ -175,6 +180,20 @@ public interface FormDataObjIFace
      * @return
      */
     public abstract Object clone() throws CloneNotSupportedException;
+    
+    //---------------------------------------------------------------------------
+    // Audit Support Support
+    //---------------------------------------------------------------------------
+
+    /**
+     * @return The parent data object's table id at the time the object is inserted, updated, or deleted.
+     */
+    public abstract Integer getParentTableId();
+    
+    /**
+     * @return The parent data object's primary record id at the time the object is inserted, updated, or deleted.
+     */
+    public abstract Integer getParentId();
     
     //---------------------------------------------------------------------------
     // Property Change Support

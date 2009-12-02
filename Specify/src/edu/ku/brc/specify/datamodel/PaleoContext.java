@@ -35,6 +35,8 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.Index;
 
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+
 /**
  * @author rods
  *
@@ -292,7 +294,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the bioStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="BioStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getBioStrat()
     {
@@ -313,7 +315,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
     *
     */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="ChronosStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public GeologicTimePeriod getChronosStrat()
     {
@@ -331,7 +333,7 @@ public class PaleoContext extends CollectionMember implements Cloneable
     /**
      * @return the lithoStrat
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name="LithoStratID", unique=false, nullable=true, insertable=true, updatable=true)
     public LithoStrat getLithoStrat()
     {
@@ -365,7 +367,31 @@ public class PaleoContext extends CollectionMember implements Cloneable
     {
         return paleoContextId;
     }
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return CollectionObject.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        
+        if (collectionObjects != null && collectionObjects.size() == 1)
+        {
+            return ((FormDataObjIFace)collectionObjects.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

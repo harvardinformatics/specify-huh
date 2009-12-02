@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -94,7 +95,7 @@ public class LocalityAttachment extends DataModelObjBase implements ObjectAttach
         this.localityAttachmentId = localityAttachmentId;
     }
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "LocalityID", nullable = false)
     public Locality getLocality()
     {
@@ -106,7 +107,7 @@ public class LocalityAttachment extends DataModelObjBase implements ObjectAttach
         this.locality = locality;
     }
 
-    @ManyToOne()
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
@@ -159,7 +160,27 @@ public class LocalityAttachment extends DataModelObjBase implements ObjectAttach
     {
         this.ordinal = ordinal;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Locality.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return locality != null ? locality.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getDataClass()
      */

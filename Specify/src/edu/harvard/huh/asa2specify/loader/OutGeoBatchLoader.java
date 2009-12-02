@@ -31,8 +31,6 @@ import edu.ku.brc.specify.datamodel.GiftPreparation;
 public class OutGeoBatchLoader extends CsvToSqlLoader
 {
     private static Logger log = Logger.getLogger(OutGeoBatchLoader.class);
-    
-    private static String DEFAULT_HERBARIUM = "A";
 
     private OutgoingGiftLookup outGiftLookup;
     
@@ -100,17 +98,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     private GiftPreparation getGiftPreparation(OutGeoBatch outGeoBatch) throws LocalException
     {
         GiftPreparation giftPrep = new GiftPreparation();
-        
-        // CollectionMemberID
-        String herbariumCode = outGeoBatch.getCollectionCode();
-        if (herbariumCode == null)
-        {
-            getLogger().warn(rec() + " no herbarium code; using A");
-            herbariumCode = DEFAULT_HERBARIUM;
-        }
-        
-        Integer collectionMemberId = getCollectionId(herbariumCode);
-        giftPrep.setCollectionMemberId(collectionMemberId);
 
         // DescriptionOfMaterial (geoUnit)
         String geoUnit = outGeoBatch.getGeoUnit();
@@ -142,18 +129,17 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     
     private String getInsertSql(GiftPreparation giftPrep)
     {
-        String fieldNames = "CollectionMemberID, DescriptionOfMaterial, GiftID, " +
+        String fieldNames = "DescriptionOfMaterial, GiftID, " +
                             "OutComments, Quantity, TimestampCreated, Version";
         
-        String[] values = new String[7];
+        String[] values = new String[6];
         
-        values[0] = SqlUtils.sqlString( giftPrep.getCollectionMemberId());
-        values[1] = SqlUtils.sqlString( giftPrep.getDescriptionOfMaterial());
-        values[2] = SqlUtils.sqlString( giftPrep.getGift().getId());
-        values[3] = SqlUtils.sqlString( giftPrep.getOutComments());
-        values[4] = SqlUtils.sqlString( giftPrep.getQuantity());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[0] = SqlUtils.sqlString( giftPrep.getDescriptionOfMaterial());
+        values[1] = SqlUtils.sqlString( giftPrep.getGift().getId());
+        values[2] = SqlUtils.sqlString( giftPrep.getOutComments());
+        values[3] = SqlUtils.sqlString( giftPrep.getQuantity());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("giftpreparation", fieldNames, values);
     }

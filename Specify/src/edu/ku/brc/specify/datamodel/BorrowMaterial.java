@@ -250,8 +250,26 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     }
 
 
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Borrow.getClassTableId();
+    }
 
-
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return borrow != null ? borrow.getId() : null;
+    }
 
     // Add Methods
 

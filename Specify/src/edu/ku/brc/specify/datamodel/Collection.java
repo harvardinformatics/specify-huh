@@ -744,6 +744,8 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
         {
             ans.getTableNumber();
             ans.getCollections();
+            ans.getDivisions();
+            ans.getDisciplines();
         }
     }
 
@@ -756,7 +758,27 @@ public class Collection extends UserGroupScope implements java.io.Serializable, 
     {
         return collectionName;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Discipline.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return discipline != null ? discipline.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

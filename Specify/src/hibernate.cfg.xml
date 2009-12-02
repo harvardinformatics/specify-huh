@@ -115,6 +115,8 @@
 		<mapping class="edu.ku.brc.specify.datamodel.InfoRequest"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Institution"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Journal"/>
+        <mapping class="edu.ku.brc.specify.datamodel.LatLonPolygon"/>
+        <mapping class="edu.ku.brc.specify.datamodel.LatLonPolygonPnt"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStrat"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStratTreeDef"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem"/>
@@ -149,10 +151,14 @@
 
 		<mapping class="edu.ku.brc.specify.datamodel.SpAppResourceDir"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpAppResource"/>
-		<mapping class="edu.ku.brc.specify.datamodel.SpAppResourceData"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAppResourceData"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAuditLog"/>
+        <mapping class="edu.ku.brc.specify.datamodel.SpAuditLogField"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpecifyUser"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchema"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaItem"/>
+		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaItemMapping"/>
+		<mapping class="edu.ku.brc.specify.datamodel.SpExportSchemaMapping"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpFieldValueDefault"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpLocaleContainer"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpLocaleContainerItem"/>
@@ -163,10 +169,11 @@
 		<mapping class="edu.ku.brc.specify.datamodel.SpQueryField"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpReport"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpTaskSemaphore"/>
-       <!-- <mapping class="edu.ku.brc.specify.datamodel.SpVersion"/> -->
+        <mapping class="edu.ku.brc.specify.datamodel.SpVersion"/>
         <mapping class="edu.ku.brc.specify.datamodel.SpViewSetObj"/>
-		
-		
+        
+        <mapping class="edu.ku.brc.specify.datamodel.SpVisualQuery"/>
+        
 		<!--
 		<mapping class="edu.ku.brc.specify.datamodel.SpUIAltView"/>
 		<mapping class="edu.ku.brc.specify.datamodel.SpUICell"/>
@@ -211,11 +218,9 @@
 		<listener type="post-delete" class="edu.ku.brc.specify.dbsupport.PostDeleteEventListener" />
 		-->
 		
-		<!--
-		<listener type="post-commit-update" class="edu.ku.brc.specify.dbsupport.DBSaveEventListener"  />
-		<listener type="post-commit-insert" class="edu.ku.brc.specify.dbsupport.DBSaveEventListener"  />
-		<listener type="post-commit-delete" class="edu.ku.brc.specify.dbsupport.DBFlushEventListener" /> 
-		 -->
+		<listener type="post-commit-update" class="edu.ku.brc.specify.dbsupport.PostUpdateEventListener"  />
+		<listener type="post-commit-insert" class="edu.ku.brc.specify.dbsupport.PostInsertEventListener"  />
+		<listener type="post-commit-delete" class="edu.ku.brc.specify.dbsupport.PostDeleteEventListener" /> 
 		
 	</session-factory>
 

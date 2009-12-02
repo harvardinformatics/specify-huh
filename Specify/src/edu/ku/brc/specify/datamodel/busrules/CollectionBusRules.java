@@ -142,6 +142,8 @@ public class CollectionBusRules extends BaseBusRules
      */
     private void addNewCollection()
     {
+        UIRegistry.loadAndPushResourceBundle("specifydbsetupwiz");
+        
         UIRegistry.writeSimpleGlassPaneMsg("Building Collection...", 20); // I18N
         isOKToCont = true;
         final AppContextMgr acm = AppContextMgr.getInstance();
@@ -227,20 +229,19 @@ public class CollectionBusRules extends BaseBusRules
                     
                     bldSampleDB.setSession(session);
                     
-                    AutoNumberingScheme catNumScheme = bldSampleDB.createAutoNumScheme(props, "catnumfmt", "Catalog Numbering Scheme",   CollectionObject.getClassTableId());
+                    AutoNumberingScheme catNumScheme = bldSampleDB.createAutoNumScheme(props, "catnumfmt", "Catalog Numbering Scheme", CollectionObject.getClassTableId());
                     AutoNumberingScheme accNumScheme = null;
 
-                    if (!institution.getIsAccessionsGlobal())
-                    {
-                        accNumScheme = bldSampleDB.createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId()); // I18N
-                        
-                    } else
+                    if (institution.getIsAccessionsGlobal())
                     {
                         List<?> list = hSession.getDataList("FROM AutoNumberingScheme WHERE tableNumber = "+Accession.getClassTableId());
                         if (list != null && list.size() == 1)
                         {
                             accNumScheme = (AutoNumberingScheme)list.get(0);
                         }
+                    } else
+                    {
+                        accNumScheme = bldSampleDB.createAutoNumScheme(props, "accnumfmt", "Accession Numbering Scheme", Accession.getClassTableId()); // I18N
                     }
                     
                     newCollection = bldSampleDB.createEmptyCollection(discipline, 
@@ -249,7 +250,6 @@ public class CollectionBusRules extends BaseBusRules
                                                                       userAgent,
                                                                       specifyAdminUser,
                                                                       catNumScheme,
-                                                                      accNumScheme,
                                                                       disciplineType.isEmbeddedCollecingEvent());
                             
                     acm.setClassObject(SpecifyUser.class, specifyAdminUser);
@@ -575,8 +575,8 @@ public class CollectionBusRules extends BaseBusRules
             Integer id = collection.getId();
             if (id != null)
             {
-                Collection currDiscipline = AppContextMgr.getInstance().getClassObject(Collection.class);
-                if (currDiscipline.getId().equals(collection.getId()))
+                Collection currCollection = AppContextMgr.getInstance().getClassObject(Collection.class);
+                if (currCollection.getId().equals(collection.getId()))
                 {
                     UIRegistry.showError("You cannot delete the current Collection.");
                     
@@ -590,7 +590,7 @@ public class CollectionBusRules extends BaseBusRules
                         {
                             pSession = session != null ? session : DataProviderFactory.getInstance().createSession();
                             
-                            Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+                            //Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
                             
                             pSession.attach(collection);
                             
@@ -600,11 +600,20 @@ public class CollectionBusRules extends BaseBusRules
                             for (AutoNumberingScheme ans : new Vector<AutoNumberingScheme>(colANSSet))
                             {
                                 pSession.attach(ans);
+                                //System.out.println("Removing: "+ans.getSchemeName()+", "+ans.getFormatName()+" "+ans.getTableNumber()+" disp: "+ans.getDisciplines().size()+" div: "+ans.getDivisions().size());
+                            }
+                            //System.out.println("----------------------");
+                            
+                            for (AutoNumberingScheme ans : new Vector<AutoNumberingScheme>(colANSSet))
+                            {
+                                //System.out.println("Removing: "+ans.getSchemeName()+", "+ans.getFormatName()+" "+ans.getTableNumber()+" "+ans.getDisciplines().size()+" "+ans.getDivisions().size());
+                                
+                                pSession.attach(ans);
                                 
                                 colANSSet.remove(ans);
                                 ans.getCollections().remove(collection);
                                 
-                                if (ans.getTableNumber() == Accession.getClassTableId() && !institution.getIsAccessionsGlobal())
+                                if (ans.getCollections().size() == 0)
                                 {
                                     pSession.delete(ans);
                                 }
@@ -616,13 +625,11 @@ public class CollectionBusRules extends BaseBusRules
                             delHelper.delRecordFromTable(Collection.class, collection.getId(), true);
                             delHelper.done();
                             
-                            //pSession.beginTransaction();
-                            //pSession.delete(collection);
-                            //pSession.commit();
-                            
                         } catch (Exception ex)
                         {
                             ex.printStackTrace();
+                            pSession.rollback();
+                            
                         } finally
                         {
                             if (pSession != null && session == null)

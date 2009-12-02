@@ -424,7 +424,31 @@ public class TreatmentEvent extends DataModelObjBase
     //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        // Throws exception when inlined
+        Integer tblId = accession != null ? Accession.getClassTableId() : null;
+        tblId = tblId != null ? tblId : collectionObject != null ? CollectionObject.getClassTableId() : null;
+        tblId = tblId != null ? tblId : division != null ? Division.getClassTableId() : null;
+        return tblId;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return accession != null ? accession.getId() : collectionObject != null ? collectionObject.getId() : division != null ? division.getId() : null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
      */

@@ -55,6 +55,7 @@ import edu.ku.brc.ui.UIRegistry;
  *
  *A tentative user interface for specifying properties Report resources.
  */
+@SuppressWarnings("serial")
 public class RepResourcePropsPanel extends JPanel
 {
     /**
@@ -86,7 +87,7 @@ public class RepResourcePropsPanel extends JPanel
      *
      *Title/Name pairs for ResourceDir list.
      */
-    private class ResDirItem extends edu.ku.brc.util.Pair<String, String>
+    public class ResDirItem extends edu.ku.brc.util.Pair<String, String>
     {
     	/**
     	 * @param title

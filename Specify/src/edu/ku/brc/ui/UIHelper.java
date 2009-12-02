@@ -54,7 +54,11 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -65,6 +69,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -84,6 +90,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.media.opengl.GLCanvas;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -146,6 +153,7 @@ import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
 import edu.ku.brc.af.ui.db.DatabaseLoginDlg;
 import edu.ku.brc.af.ui.db.DatabaseLoginListener;
@@ -184,7 +192,7 @@ public final class UIHelper
     
     // Static Data Members
     protected static final Logger   log      = Logger.getLogger(UIHelper.class);
-    protected static Calendar       calendar = new GregorianCalendar();
+    protected static Calendar       calendar;
     protected static OSTYPE         oSType;
     protected static boolean        isMacOS_10_5_X   = false;
     protected static BasicStroke    stdLineStroke    = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -211,7 +219,8 @@ public final class UIHelper
     
 
     static {
-
+        calendar = GregorianCalendar.getInstance();
+        
         String osStr = System.getProperty("os.name");
         if (osStr.startsWith("Mac OS X"))
         {
@@ -579,7 +588,7 @@ public final class UIHelper
         calendar.clear();
 
         int year  = iDate / 10000;
-        if (year > 1800)
+        if (year > 1700)
         {
             int tmp   = (iDate - (year * 10000));
             int month = tmp / 100;
@@ -1548,6 +1557,7 @@ public final class UIHelper
      * and if the login fails then it will display the dialog
      * @param userName single signon username (for application)
      * @param password single signon password (for application)
+     * @param engageUPPrefs indicates whether the username and password should be loaded and remembered by local prefs
      * @param doAutoLogin whether to try to automatically log the user in
      * @param doAutoClose whether it should automatically close the window when it is logged in successfully
      * @param useDialog use a Dialog or a Frame
@@ -1558,6 +1568,7 @@ public final class UIHelper
      */
     public static DatabaseLoginPanel doLogin(final String  userName,
                                              final String  password,
+                                             final boolean engageUPPrefs,
                                              final boolean doAutoClose,
                                              final boolean useDialog,
                                              final DatabaseLoginListener listener,
@@ -1565,13 +1576,14 @@ public final class UIHelper
                                              final String  appIconName,
                                              final String  helpContext)
     {     
-        return doLogin(userName, password, doAutoClose, useDialog, listener, iconName, null, null, appIconName, helpContext);
+        return doLogin(userName, password, engageUPPrefs, doAutoClose, useDialog, listener, iconName, null, null, appIconName, helpContext);
     }
     
     /**
      * Tries to do the login, if doAutoLogin is set to true it will try without displaying a dialog
      * and if the login fails then it will display the dialog
      * @param usrPwdProvider provides db username and password
+     * @param engageUPPrefs indicates whether the username and password should be loaded and remembered by local prefs
      * @param doAutoLogin whether to try to automatically log the user in
      * @param doAutoClose whether it should automatically close the window when it is logged in successfully
      * @param useDialog use a Dialog or a Frame
@@ -1583,6 +1595,7 @@ public final class UIHelper
      * @param helpContext help context for Help button on dialog
      */
     public static DatabaseLoginPanel doLogin(final MasterPasswordProviderIFace usrPwdProvider,
+                                             final boolean engageUPPrefs,
                                              final boolean doAutoClose,
                                              final boolean useDialog,
                                              final DatabaseLoginListener listener,
@@ -1592,7 +1605,7 @@ public final class UIHelper
                                              final String  appIconName,
                                              final String  helpContext)
     {     
-        return doLogin(null, null, usrPwdProvider, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext); 
+        return doLogin(null, null, engageUPPrefs, usrPwdProvider, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext); 
     }
     
     /**
@@ -1600,6 +1613,7 @@ public final class UIHelper
      * and if the login fails then it will display the dialog
      * @param userName single signon username (for application)
      * @param password single signon password (for application)
+     * @param engageUPPrefs indicates whether the username and password should be loaded and remembered by local prefs
      * @param doAutoLogin whether to try to automatically log the user in
      * @param doAutoClose whether it should automatically close the window when it is logged in successfully
      * @param useDialog use a Dialog or a Frame
@@ -1612,6 +1626,7 @@ public final class UIHelper
      */
     public static DatabaseLoginPanel doLogin(final String  userName,
                                              final String  password,
+                                             final boolean engageUPPrefs,
                                              final boolean doAutoClose,
                                              final boolean useDialog,
                                              final DatabaseLoginListener listener,
@@ -1621,7 +1636,7 @@ public final class UIHelper
                                              final String  appIconName,
                                              final String  helpContext)
     {     
-        return doLogin(userName, password, null, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext);
+        return doLogin(userName, password, engageUPPrefs, null, doAutoClose, useDialog, listener, iconName, title, appName, appIconName, helpContext);
     }
     
     /**
@@ -1629,6 +1644,8 @@ public final class UIHelper
      * and if the login fails then it will display the dialog
      * @param userName single signon username (for application)
      * @param password single signon password (for application)
+     * @param usrPwdProvider the provider
+     * @param engageUPPrefs indicates whether the username and password should be loaded and remembered by local prefs
      * @param doAutoLogin whether to try to automatically log the user in
      * @param doAutoClose whether it should automatically close the window when it is logged in successfully
      * @param useDialog use a Dialog or a Frame
@@ -1641,6 +1658,7 @@ public final class UIHelper
      */
     public static DatabaseLoginPanel doLogin(final String  userName,
                                              final String  password,
+                                             final boolean engageUPPrefs,
                                              final MasterPasswordProviderIFace usrPwdProvider,
                                              final boolean doAutoClose,
                                              final boolean useDialog,
@@ -1665,7 +1683,7 @@ public final class UIHelper
         if (useDialog)
         {
             JDialog.setDefaultLookAndFeelDecorated(false); 
-            DatabaseLoginDlg dlg = new DatabaseLoginDlg((Frame)UIRegistry.getTopWindow(), userName, password, listener, iconName, helpContext);
+            DatabaseLoginDlg dlg = new DatabaseLoginDlg((Frame)UIRegistry.getTopWindow(), userName, password, engageUPPrefs, listener, iconName, helpContext);
             JDialog.setDefaultLookAndFeelDecorated(true); 
             dlg.setDoAutoClose(doAutoClose);
             dlg.setModal(true);
@@ -1714,13 +1732,13 @@ public final class UIHelper
         DatabaseLoginPanel panel;
         if (StringUtils.isNotEmpty(title))
         {
-            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
-                                           false, title, appName, iconName, helpContext);
+            panel = new DatabaseLoginPanel(userName, password, engageUPPrefs, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
+                                           false, true, title, appName, iconName, helpContext);
         }
         else
         {
-            panel = new DatabaseLoginPanel(userName, password, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
-                                          false, null, null, iconName, helpContext);
+            panel = new DatabaseLoginPanel(userName, password, engageUPPrefs, usrPwdProvider, new DBListener(frame, listener, doAutoClose), 
+                                          false, true, null, null, iconName, helpContext);
         }
         
         panel.setAutoClose(doAutoClose);
@@ -2872,6 +2890,23 @@ public final class UIHelper
         return tf;
     }
     
+    
+    @SuppressWarnings("unchecked")
+    public static <T> T addAutoSelect(final JTextField tf)
+    {
+        if (!isMacOS())
+        {
+            tf.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e)
+                {
+                    ((JTextField)e.getSource()).selectAll();
+                }
+            });
+        }
+        return (T)tf;
+    }
+    
     /**
      * @param text
      * @return
@@ -3476,6 +3511,104 @@ public final class UIHelper
         actionMap.put(actionName, action);
     }
 
+
+    /**
+     * Checks to see if OpenGL works. This is rather a bizarre way to check, but I couldn't find
+     * a simple call to check to see if it would actually render. This seemed to be the only way.
+     */
+    public static boolean checkForOpenGL()
+    {
+        final AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+        
+        final String HAS_OPENGL_PREF = "SYSTEM.HasOpenGL";
+        final String USE_WORLDWIND   = "USE.WORLDWIND";
+        
+        final Boolean initialUseWordWind = localPrefs.getBoolean(USE_WORLDWIND, null);
+        final Boolean initialHasOpenGL   = localPrefs.getBoolean(HAS_OPENGL_PREF, null);
+        
+        if (isMacOS())
+        {
+            localPrefs.putBoolean(HAS_OPENGL_PREF, true);  
+            localPrefs.putBoolean(USE_WORLDWIND, true);
+            return true;
+        }
+    	
+    	try 
+    	{
+			SwingUtilities.invokeLater(new Runnable() 
+			{
+				@Override
+				public void run() 
+				{
+			        Boolean hasOpenGL = localPrefs.getBoolean(HAS_OPENGL_PREF, null);
+			        if (hasOpenGL == null)
+			        {
+			            final JDialog frame = new JDialog();
+			            try
+			            {
+			                GLCanvas canvas = new GLCanvas();
+			                
+			                frame.getContentPane().add(canvas);
+			                
+			                JFrame topFrame = (JFrame)UIRegistry.getTopWindow();
+			                if (topFrame != null)
+			                {
+			                    Rectangle screenRect = topFrame.getGraphicsConfiguration().getBounds();
+			                    frame.setBounds(screenRect.width, screenRect.height+50, 50, 50);
+			                    
+			                } else
+			                {
+			                    frame.setBounds(-100, -100, 50, 50);
+			                }
+			                frame.setVisible(true);
+			                
+			                hasOpenGL = true;
+			                
+                        } catch (javax.media.opengl.GLException ex)
+                        {
+                            hasOpenGL = false;
+                            
+                        } catch (Exception ex)
+                        {
+                            hasOpenGL = false;
+                            
+			            } finally
+			            {
+			                localPrefs.putBoolean(HAS_OPENGL_PREF, hasOpenGL != null ? hasOpenGL : UIHelper.isMacOS());
+			                if (initialUseWordWind == null || (initialHasOpenGL != null && hasOpenGL != initialHasOpenGL))
+                            {
+			                    localPrefs.putBoolean(USE_WORLDWIND, hasOpenGL);    
+                            }
+			                
+			                SwingUtilities.invokeLater(new Runnable() 
+			                {
+			                    @Override
+			                    public void run() 
+			                    {
+        			                if (frame != null)
+        			                {
+        			                    frame.setVisible(false);
+        			                }
+			                    }
+			                });
+			            }
+			        }
+				}
+				
+			});
+		} catch (java.lang.Error e) 
+		{
+		    e.printStackTrace();
+		    
+			localPrefs.putBoolean(HAS_OPENGL_PREF, false);
+			if (initialUseWordWind == null || (initialHasOpenGL != null && initialHasOpenGL))
+            {
+                localPrefs.putBoolean(USE_WORLDWIND, false);    
+            }
+		}
+
+        return localPrefs.getBoolean(HAS_OPENGL_PREF, false);  
+    }
     
     /**
      * A Two button prompt to ask the user for a decision.
@@ -3501,7 +3634,65 @@ public final class UIHelper
                                                      JOptionPane.YES_NO_OPTION,
                                                      JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
         return userChoice == JOptionPane.YES_OPTION;
-    }  
-                                
+    }
     
+    /**
+     * Sets the text into the System Clipboard.
+     * @param text the text to be placed in the clipboard
+     */
+    public static void setTextToClipboard(final String text)
+    {
+        StringSelection stsel  = new StringSelection(text);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stsel, stsel);
+    }
+    
+    /**
+     * @return the plain text flavor from the clipboard
+     */
+    public static String getTextFromClipboard()
+    {
+        Clipboard sysClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        for (DataFlavor flavor : sysClipboard.getAvailableDataFlavors())
+        {
+            if (flavor.isMimeTypeEqual(DataFlavor.getTextPlainUnicodeFlavor()))
+            {
+                try
+                {
+                    StringBuilder sb      = new StringBuilder();
+                    Object        dataObj = sysClipboard.getData(flavor);
+                    if (dataObj instanceof String)
+                    {
+                        sb.append((String)dataObj);
+                        
+                    } else if (dataObj instanceof InputStreamReader)
+                    {
+                        Reader        reader = (InputStreamReader)sysClipboard.getData(flavor);
+                        char[]        buffer = new char[1024];
+                        int           len    = reader.read(buffer);
+                        sb.append(new String(buffer, 0, len));
+                        
+                        while (len > -1)
+                        {
+                            len = reader.read(buffer);
+                            if (len > 0)
+                            {
+                                sb.append(buffer);
+                            }
+                        }
+                    }
+                    
+                    if (sb.length() > 0)
+                    {
+                        return sb.toString();
+                    }
+                    
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                break;
+            }
+        }
+        return null;
+    }
 }

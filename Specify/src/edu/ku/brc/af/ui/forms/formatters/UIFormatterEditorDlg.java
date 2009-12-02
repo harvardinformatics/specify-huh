@@ -70,6 +70,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.core.db.AutoNumberGeneric;
+import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterField.FieldType;
 import edu.ku.brc.ui.CustomDialog;
@@ -130,7 +131,6 @@ public class UIFormatterEditorDlg extends CustomDialog
     
     protected ListSelectionListener     fieldsTblSL                 = null;
     protected boolean                   hasChanged                  = false;
-    protected boolean                   isInError                   = false;
     protected boolean                   isNew;
     protected String                    fmtErrMsg                   = null;
     protected Color                     currentTxtBGColor           = null;
@@ -284,7 +284,7 @@ public class UIFormatterEditorDlg extends CustomDialog
         
         SpinnerModel retModel = new SpinnerNumberModel(1, //initial value
                 1, //min
-                10,   //max
+                fieldInfo.getLength(),   //max
                 1);               //step
         sizeSpinner = new JSpinner(retModel);
         isIncChk    = new JCheckBox("Is Incrementer");
@@ -352,8 +352,8 @@ public class UIFormatterEditorDlg extends CustomDialog
         setByYearSelected(selectedFormat);
         
         nameTF.setEditable(isNew);
-        nameTF.setText(selectedFormat.getTitle());
-        titleTF.setText(selectedFormat.getName());
+        nameTF.setText(selectedFormat.getName());
+        titleTF.setText(selectedFormat.getTitle());
         updateSample(); 
         
         hookTextChangeListener(nameTF,  "FFE_NO_NAME", 32);
@@ -808,7 +808,8 @@ public class UIFormatterEditorDlg extends CustomDialog
         {
             if (selectedFormat.getAutoNumber() == null)
             {
-                selectedFormat.setAutoNumber(new AutoNumberGeneric());
+                AutoNumberIFace autoNum = UIFieldFormatterMgr.getInstance().createAutoNumber(AutoNumberGeneric.class.getName(), fieldInfo.getTableInfo().getClassName(), fieldInfo.getName(), fields.size() == 1);
+                selectedFormat.setAutoNumber(autoNum);
             }
         } else
         {
@@ -837,8 +838,8 @@ public class UIFormatterEditorDlg extends CustomDialog
                                  getResourceString("CANCEL")  //$NON-NLS-1$
                   };
             loadAndPushResourceBundle("masterusrpwd");
-
-            userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
+            
+            userChoice = JOptionPane.showOptionDialog(this, 
                                                          getResourceString("UIFEDlg.ITEM_CHG"),  //$NON-NLS-1$
                                                          getResourceString("UIFEDlg.CHG_TITLE"),  //$NON-NLS-1$
                                                          JOptionPane.YES_NO_OPTION,
@@ -867,7 +868,6 @@ public class UIFormatterEditorDlg extends CustomDialog
      */
     private void resetError() 
     {
-        isInError = false;
         sampleLabel.setForeground(Color.BLACK);
     	fmtErrMsg = null;
     }
@@ -878,7 +878,6 @@ public class UIFormatterEditorDlg extends CustomDialog
     private void setError(final String message, final boolean doClearFmt) 
     {
         selectedFormat = doClearFmt ? null : selectedFormat;
-        isInError      = true;
         sampleLabel.setForeground(Color.red);
         sampleLabel.setText(message);
     }
@@ -926,15 +925,15 @@ public class UIFormatterEditorDlg extends CustomDialog
                 {
                     setError(fmtErrMsg, true); 
                     
-                } else if (isInError)
+                } else 
                 {
                     updateUIEnabled(); 
                     
-                } else if (checkFieldLen(txtFld.getDocument().getLength(), maxLen))
-                {
-                    updateUIEnabled();
-                    updateSample();
-                    sampleLabel.setText("");
+                    if (checkFieldLen(txtFld.getDocument().getLength(), maxLen))
+                    {
+                        sampleLabel.setText("");
+                        updateSample();
+                    }
                 }
                 hasChanged = true;
             }
@@ -993,6 +992,8 @@ public class UIFormatterEditorDlg extends CustomDialog
      */
     protected void updateUIEnabled()
     {
+        boolean txtFldHasError = false;
+        
         // If we have a field formatter sampler, then we can check if current format 
         // invalidates an existing value in database.
         if (fieldFormatterSampler != null && selectedFormat != null) 
@@ -1005,7 +1006,8 @@ public class UIFormatterEditorDlg extends CustomDialog
             catch (UIFieldFormatterInvalidatesExistingValueException e)
             {
                 setError(String.format(getResourceString("FFE_FORMAT_INVALIDATES_FIELD_VALUE"), //$NON-NLS-1$ 
-                        selectedFormat.getSample(), e.getInvalidatedValue().toString()), false);
+                         selectedFormat.getSample(), e.getInvalidatedValue().toString()), false);
+                txtFldHasError = true;
             }
         }
         
@@ -1058,20 +1060,22 @@ public class UIFormatterEditorDlg extends CustomDialog
         {
             totalLen   = fieldTxt.getText().length();
         }
+        if (!txtFldHasError)
+        {
+            txtFldHasError = nameTF.getText().length() == 0 || titleTF.getText().length() == 0;
+        }
         
         totLenLbl.setText(String.format("%d / %d", totalLen, fieldInfo.getLength()));
         
         boolean lenOK = checkFieldLen(totalLen, fieldInfo.getLength());
         
-        okBtn.setEnabled(hasChanged && 
-                         !isInError && 
-                         nameTF.getText().length() > 0 && 
-                         titleTF.getText().length() > 0 &&
+        okBtn.setEnabled(hasChanged &&  
+                         !txtFldHasError && 
                          fields.size() > 0 && lenOK);
         
         // create a sample and display it, if there's no error
         // otherwise, leave the sample panel area with the error message, set in setError() method.  
-        if (!isInError)
+        if (!txtFldHasError)
         {
             StringBuilder pattern = new StringBuilder();
             for (UIFieldFormatterField ff : fields)

@@ -238,7 +238,7 @@ public class Container extends CollectionMember implements java.io.Serializable
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "ParentID")
     public Container getParent()
     {
@@ -249,7 +249,28 @@ public class Container extends CollectionMember implements java.io.Serializable
     {
         this.parent = parent;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        return Container.getClassTableId();
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        return parent != null ? parent.getId() : null;
+    }
+
+    
     @OneToMany(mappedBy = "parent")
     @Cascade( { CascadeType.ALL })
     public Set<Container> getChildren()

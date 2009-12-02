@@ -39,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
@@ -103,8 +104,12 @@ public class UIRegistry
 {
     // Static Data Members
     protected static final String MISSING_FACTORY_MSG = "The object has not been set for the ViewBasedDialogFactoryIFace. This class can be used without first setting a factory implementing this interface.";
-    protected static final String EMBEDDED_DB_PATH = "embedded.dbpath";
-    protected static final String EMBEDDED_DB_DIR = "specify_data";
+    protected static final String EMBEDDED_DB_PATH        = "embedded.dbpath";
+    protected static final String MOBILE_EMBEDDED_DB_PATH = "mobile.embedded.dbpath";
+    protected static final String EMBEDDED_DB_DIR         = "SPECIFY_DATA";
+    
+    protected static final boolean debugPaths  = true;
+
     
     public static final String FRAME        = "frame";
     public static final String MENUBAR      = "menubar";
@@ -136,7 +141,10 @@ public class UIRegistry
     protected static boolean          isRelease        = false;
     protected static boolean          isTesting        = false;
     protected static int              STD_WAIT_TIME    = 2000; // 2 Seconds
-    protected static int              STD_FONT_SIZE    = 20;   // 20 point size
+    public    static int              STD_FONT_SIZE    = 20;   // 20 point size
+    
+    protected static Boolean          isEmbedded       = null;
+    protected static Boolean          isMobile         = null;
     
 
     // Data Members
@@ -165,6 +173,7 @@ public class UIRegistry
     protected String               resourceName   = "resources";
     protected Locale               resourceLocale = Locale.getDefault();
     protected Locale               platformLocale = Locale.getDefault();
+    protected static boolean       doShowAllResStrErors = false;
 
 
     protected ViewBasedDialogFactoryIFace viewbasedFactory = null;
@@ -437,7 +446,10 @@ public class UIRegistry
             
         } catch (MissingResourceException ex) 
         {
-            log.error("Couldn't find key["+key+"] in resource bundle ["+resourceName+"]");
+            if (resBundleStack.size() == 0 || doShowAllResStrErors)
+            {
+                log.warn("Couldn't find key["+key+"] in resource bundle ["+resourceName+"]");
+            }
             
             for (int i=resBundleStack.size()-1;i>-1;i--)
             {
@@ -448,11 +460,24 @@ public class UIRegistry
                     
                 } catch (MissingResourceException mre) 
                 {
-                    log.error("Couldn't find key["+key+"] in resource bundle ["+ri.getName()+"]");
+                    if (i == 0 || doShowAllResStrErors)
+                    {
+                        log.error("Couldn't find key["+key+"] in resource bundle ["+ri.getName()+"]");
+                    }
                 }
             }
             return key;
         }
+    }
+
+    /**
+     * This will enable the showing of all getResourceString ResourceBundle look up errors no matter
+     * the level. Otherwise it only shows the error when it is not found at all.
+     * @param doShowAllResStrErors the doShowAllResStrErors to set
+     */
+    public static void setDoShowAllResStrErors(boolean doShowAllResStrErors)
+    {
+        UIRegistry.doShowAllResStrErors = doShowAllResStrErors;
     }
 
     /**
@@ -550,7 +575,14 @@ public class UIRegistry
     		instance.defaultWorkingPath = UIHelper.stripSubDirs(file.getAbsolutePath(), 1);
     		log.debug("Working Path not set, setting it to["+instance.defaultWorkingPath+"]");
     	}
-    	log.debug("Def Working Path["+instance.defaultWorkingPath+"]");
+    	//log.debug("Def Working Path["+instance.defaultWorkingPath+"]");
+    	
+        if (debugPaths)
+        {
+            try {
+                log.debug("************************ getDefaultWorkingPath: ["+(new File(instance.defaultWorkingPath).getCanonicalPath())+"]");
+            } catch (Exception ex) {}
+        }
         return instance.defaultWorkingPath;
     }
 
@@ -580,7 +612,7 @@ public class UIRegistry
      */
     public static void setDefaultWorkingPath(final String defaultWorkingPath)
     {
-    	log.debug("Setting Working Path ["+defaultWorkingPath+"]");
+        dumpCanonicalPath("setDefaultWorkingPath", defaultWorkingPath);
         instance.defaultWorkingPath = defaultWorkingPath;
     }
 	
@@ -589,6 +621,7 @@ public class UIRegistry
 	 */
 	public static void setBaseAppDataDir(final String appDataDir) 
 	{
+        dumpCanonicalPath("setBaseAppDataDir", appDataDir);
 		instance.appDataDir = appDataDir;
 	}
 
@@ -625,7 +658,19 @@ public class UIRegistry
                 throw new RuntimeException("Couldn't create data directory for "+instance.appName+" ["+dir.getAbsolutePath()+"]");
             }
         }
-         
+        if (debugPaths)
+        {
+            try {
+                log.debug("************************ setDefaultWorkingPath: ["+dir.getCanonicalPath()+"]");
+            } catch (Exception ex) {}
+        }
+        try
+        {
+        	return dir.getCanonicalPath();
+        } catch (IOException ex)
+        {
+        	ex.printStackTrace();
+        }
         return dir.getAbsolutePath();
     }
 
@@ -635,7 +680,7 @@ public class UIRegistry
      */
     public static String getUserHomeAppDir()
     {
-        return getUserHomeDir() + File.separator + instance.appName;
+    	return getUserHomeDir() + File.separator + instance.appName;
     }
 
     /**
@@ -647,6 +692,16 @@ public class UIRegistry
      * @return the string to a platform specify user data directory
      */
     public static String getUserHomeDir()
+    {
+        //log.error("isMobile() "+isMobile()+"["+UIRegistry.getDefaultWorkingPath()+"]");
+        
+        return isMobile() ? UIRegistry.getDefaultWorkingPath() : getDefaultUserHomeDir();
+    }
+
+    /**
+     * @return
+     */
+    public static String getDefaultUserHomeDir()
     {
         String homeDir = System.getProperty("user.home");
         
@@ -1373,7 +1428,7 @@ public class UIRegistry
      * @param msg the message
      * @param pointSize the Font point size for the message to be writen in
      */
-    public static void writeGlassPaneMsg(final String msg, final int pointSize)
+    public static GhostGlassPane writeGlassPaneMsg(final String msg, final int pointSize)
     {
         GhostGlassPane glassPane = getGlassPane();
         if (glassPane != null)
@@ -1446,6 +1501,8 @@ public class UIRegistry
             glassPane.paintImmediately(glassPane.getBounds());
             showingGlassPane = true;
         }
+        
+        return glassPane;
     }
     
     /**
@@ -1489,11 +1546,13 @@ public class UIRegistry
             glassPane.setMargin(new Insets(0, 0, statusBar.getSize().height, 0));
         }
         
-        UIRegistry.getGlassPane().finishedWithDragAndDrop();
-
         oldGlassPane = UIRegistry.getGlassPane();
+        if (oldGlassPane != null)
+        {
+            oldGlassPane.finishedWithDragAndDrop();
+        }
         
-        if (glassPane != null)
+        if (glassPane != null && UIRegistry.getTopWindow() != null)
         {
             ((JFrame)UIRegistry.getTopWindow()).setGlassPane(glassPane);
             glassPane.setVisible(true);
@@ -1608,13 +1667,45 @@ public class UIRegistry
     }
     
     /**
+     * @param isMobile
+     */
+    public static void setMobile(final boolean isMobile)
+    {
+        UIRegistry.isMobile = isMobile;
+    }
+    
+    /**
+     * @return
+     */
+    public static boolean isMobile()
+    {
+        return isMobile != null && isMobile;
+    }
+    
+    /**
+     * @return the isEmbedded
+     */
+    public static Boolean isEmbedded()
+    {
+        return isEmbedded != null && isEmbedded;
+    }
+
+    /**
+     * @param isEmbedded the isEmbedded to set
+     */
+    public static void setEmbedded(final Boolean isEmbedded)
+    {
+        UIRegistry.isEmbedded = isEmbedded;
+    }
+
+    /**
      * Sets the path to the embedded DB.
      * @param path the path.
      */
     public static void setEmbeddedDBDir(final String path)
     {
-        log.debug("Setting Embedded DB Path: "+path);
-        
+        dumpCanonicalPath("setEmbeddedDBDir", path);
+
         if (StringUtils.isNotEmpty(path))
         {
             System.setProperty(EMBEDDED_DB_PATH, path);
@@ -1626,8 +1717,30 @@ public class UIRegistry
      */
     public static String getEmbeddedDBPath()
     {
-        log.debug("Embedded DB Path: "+System.getProperty(EMBEDDED_DB_PATH));
         return System.getProperty(EMBEDDED_DB_PATH);
+    }
+    
+    /**
+     * @param desc
+     * @param path
+     */
+    private static void dumpCanonicalPath(final String desc, final String path)
+    {
+        dumpCanonicalPath(desc, new File(path));
+    }
+    
+    /**
+     * @param desc
+     * @param path
+     */
+    private static void dumpCanonicalPath(final String desc, final File path)
+    {
+        if (debugPaths)
+        {
+            try {
+                log.debug("************************ "+desc+": ["+path.getCanonicalPath()+"]");
+            } catch (Exception ex) {}
+        }
     }
     
     /**
@@ -1635,6 +1748,7 @@ public class UIRegistry
      */
     public static String getDefaultEmbeddedDBPath()
     {
+        dumpCanonicalPath("getDefaultEmbeddedDBPath", getAppDataDir() + File.separator + EMBEDDED_DB_DIR);
         return UIRegistry.getAppDataDir() + File.separator + EMBEDDED_DB_DIR;
     }
     
@@ -1642,9 +1756,42 @@ public class UIRegistry
      * @return a default path to the embedded DB when it is suppose to be on removable media. 
      * Sos it is placed relative to the executable.
      */
+    public static String getDefaultMobileEmbeddedDBPath()
+    {
+        dumpCanonicalPath("getMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR);
+        return UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR;
+    }
+    
+    /**
+     * @return a default path to the embedded DB when it is suppose to be on removable media. 
+     * Sos it is placed relative to the executable.
+     */
+    public static String getDefaultMobileEmbeddedDBPath(final String dbName)
+    {
+        dumpCanonicalPath("getMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + dbName);
+        return UIRegistry.getDefaultWorkingPath() + File.separator + dbName;
+    }
+    
+    /**
+     * Sets the path to the embedded DB.
+     * @param path the path.
+     */
+    public static void setMobileEmbeddedDBDir(final String path)
+    {
+        dumpCanonicalPath("setMobileEmbeddedDBDir", path);
+
+        if (StringUtils.isNotEmpty(path))
+        {
+            System.setProperty(MOBILE_EMBEDDED_DB_PATH, path);
+        }
+    }
+    
+    /**
+     * @return the path to the embedded DB
+     */
     public static String getMobileEmbeddedDBPath()
     {
-        return UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR;
+        return System.getProperty(MOBILE_EMBEDDED_DB_PATH);
     }
     
     //---------------------------------------------------------

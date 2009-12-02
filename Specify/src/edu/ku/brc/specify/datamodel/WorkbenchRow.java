@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -65,6 +66,7 @@ import edu.ku.brc.util.GeoRefConverter.GeoRefFormat;
     {   
         @Index (name="RowNumberIDX", columnNames={"RowNumber"})
     })
+@SuppressWarnings("serial")
 public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchRow>, GeoCoordDataIFace
 {
     private static final Logger log = Logger.getLogger(WorkbenchRow.class);
@@ -544,7 +546,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     /**
      * 
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "WorkbenchID", nullable = false)
     public Workbench getWorkbench()
     {
@@ -719,7 +721,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         for (WorkbenchDataItem wbdi : workbenchDataItems)
         {
             WorkbenchTemplateMappingItem map = wbdi.getWorkbenchTemplateMappingItem();
-            if (map.getTableName().equals("locality"))
+            if (map.getTableName().equals("locality")) 
             {
                 if (map.getFieldName().equalsIgnoreCase("latitude1") || map.getFieldName().equalsIgnoreCase("latitude2")
                         || map.getFieldName().equalsIgnoreCase("longitude1") || map.getFieldName().equalsIgnoreCase("longitude2"))

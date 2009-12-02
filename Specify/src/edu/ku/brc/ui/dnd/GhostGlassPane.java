@@ -38,10 +38,10 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import edu.ku.brc.ui.DataFlavorTableExt;
+import edu.ku.brc.ui.ProgressGlassPane;
 import edu.ku.brc.ui.RolloverCommand;
 
 /**
@@ -57,7 +57,7 @@ import edu.ku.brc.ui.RolloverCommand;
  *
  */
 @SuppressWarnings("serial")
-public class GhostGlassPane extends JPanel
+public class GhostGlassPane extends ProgressGlassPane
 {
     public enum ImagePaintMode {CENTERED, DRAG, ABSOLUTE}
     private static final boolean DEBUG = false;
@@ -289,8 +289,14 @@ public class GhostGlassPane extends JPanel
     @Override
     protected void paintComponent(Graphics g)
     {
-        if (dragged == null || !isVisible())
+        if (!isVisible())
         {
+            return;
+        }
+        
+        if (dragged == null)
+        {
+            super.paintComponent(g);
             return;
         }
 
@@ -322,6 +328,9 @@ public class GhostGlassPane extends JPanel
         }
 
         g2.drawImage(dragged, newPnt.x, newPnt.y, (int)widthZoom, (int)heightZoom, null);
+        
+        super.paintComponent(g2);
+        
         g2.dispose();
     }
 
@@ -561,7 +570,7 @@ public class GhostGlassPane extends JPanel
 
             long elapsed = System.currentTimeMillis() - start;
             System.err.println(elapsed);
-
+            
             if (stopNow || elapsed > ANIMATION_DELAY)
             {
                 ((Timer) e.getSource()).stop();

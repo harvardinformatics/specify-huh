@@ -125,11 +125,12 @@
    <mapID target="Load" url="SpecifyHelp/Security/loading.html"/> 
    <mapID target="PrefsLoan" url="SpecifyHelp/Prefs/Loans.html"/> 
    <mapID target="slicer" url="SpecifyHelp/Uploading/splitter.html"/> 
+   <mapID target="LSIDPrefs" url="SpecifyHelp/Prefs/LSIDs.html"/> 
 
 
 <!-- Index Bookmarks -->
 
-   <mapID target="specify" url="http://specify6.specifysoftware.org"/>
+   <mapID target="specify" url="http:/specifysoftware.org"/>
    <mapID target="login" url="SpecifyHelp/Dialogs/Login.html#login"/>
    <mapID target="Forum" url="SpecifyHelp/Intro/about.html#user_forums"/>
    <mapID target="Sample_Resources" url="SpecifyHelp/Intro/about.html#sample_resources"/>
@@ -147,6 +148,7 @@
    <mapID target="Add_Collection" url="SpecifyHelp/Configuration/institution_hierarchy.html#add_collection"/>
    <mapID target="Add_User" url="SpecifyHelp/Security/permissions.html#add_user"/>
    <mapID target="SecuritySummary" url="SpecifyHelp/Security/permissions.html#security_summary"/>
+   <mapID target="SecurityAdmin" url="SpecifyHelp/Security/permissions.html"/>
    <mapID target="Set_Permissions" url="SpecifyHelp/Security/permissions.html#set_permissions"/>
    <mapID target="DataEntryConfigure" url="SpecifyHelp/Data_Entry/Data_Entry.html#data_entry_configure"/>
    <mapID target="SUBVIEW_FORM_HELP" url="SpecifyHelp/Dialogs/Using_Forms.html#sub_form"/>

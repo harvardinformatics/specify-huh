@@ -43,8 +43,6 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
@@ -177,6 +175,8 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
         isOKToCont = true;
         final AppContextMgr acm = AppContextMgr.getInstance();
         
+        UIRegistry.loadAndPushResourceBundle("specifydbsetupwiz");
+        
         final SpecifyDBSetupWizard wizardPanel = new SpecifyDBSetupWizard(SpecifyDBSetupWizard.WizardType.Division, null);
         
         String bldTitle = UIRegistry.getResourceString("CREATEDIV");
@@ -253,8 +253,10 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
                 acm.setClassObject(Discipline.class, null);
                 acm.setClassObject(Collection.class, null);
                 
-                UIFieldFormatterMgr.reset();
-                DataObjFieldFormatMgr.reset();
+                // I don't think this is necessary
+                // rods - 08/27/09
+                //UIFieldFormatterMgr.getInstance().reset();
+                //DataObjFieldFormatMgr.getInstance().reset();
                 
                 Session session = null;
                 try

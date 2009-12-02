@@ -21,6 +21,7 @@ package edu.ku.brc.af.auth;
 
 import static edu.ku.brc.ui.UIHelper.createI18NButton;
 import static edu.ku.brc.ui.UIHelper.createI18NFormLabel;
+import static edu.ku.brc.ui.UIHelper.createIconBtn;
 import static edu.ku.brc.ui.UIHelper.createPasswordField;
 import static edu.ku.brc.ui.UIHelper.createTextField;
 import static edu.ku.brc.ui.UIRegistry.getFormattedResStr;
@@ -72,11 +73,13 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.validation.ValPasswordField;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.DocumentAdaptor;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
@@ -309,10 +312,8 @@ public class UserAndMasterPasswordMgr
     {
         loadAndPushResourceBundle("masterusrpwd");
         
-        FormLayout layout = new FormLayout("p, 2px, f:p:g, 4px, p", "p,2px,p,2px,p,2dlu,p,2dlu,p");
+        FormLayout layout = new FormLayout("p, 2px, f:p:g, 4px, p, 4px, p, 4px, p", "p,2px,p,2px,p,2dlu,p,2dlu,p");
                  
-        //layout.setRowGroups(new int[][] { { 1, 3, 5 } });
-
         PanelBuilder pb = new PanelBuilder(layout);
         pb.setDefaultDialogBorder();
         
@@ -329,6 +330,9 @@ public class UserAndMasterPasswordMgr
         final JLabel     urlLbl      = createI18NFormLabel("URL");
         final JButton    createBtn   = createI18NButton("CREATE_KEY");
         
+        final JButton    copyCBBtn   = createIconBtn("ClipboardCopy", IconManager.STD_ICON_SIZE.Std24, "CPY_TO_CB_TT", null);
+        final JButton    pasteCBBtn  = createIconBtn("ClipboardPaste", IconManager.STD_ICON_SIZE.Std24, "CPY_FROM_CB_TT", null);
+        
         CellConstraints cc = new CellConstraints(); 
         
         int y = 1;
@@ -336,10 +340,12 @@ public class UserAndMasterPasswordMgr
         pb.add(isPrefBasedRB, cc.xy(3, y)); y += 2;
         pb.add(isNetworkRB,   cc.xy(3, y)); y += 2;
         
-        pb.addSeparator("", cc.xyw(1, y, 5));  y += 2;
+        pb.addSeparator("", cc.xyw(1, y, 9));  y += 2;
         pb.add(keyLbl,    cc.xy(1, y)); 
         pb.add(keyTxt,    cc.xy(3, y)); 
-        pb.add(createBtn, cc.xy(5, y));  y += 2;
+        pb.add(createBtn, cc.xy(5, y));  
+        pb.add(copyCBBtn, cc.xy(7, y));  
+        pb.add(pasteCBBtn, cc.xy(9, y));  y += 2;
         
         pb.add(urlLbl,    cc.xy(1, y)); 
         pb.add(urlTxt,    cc.xy(3, y));  y += 2;
@@ -357,6 +363,23 @@ public class UserAndMasterPasswordMgr
             }
         }
         
+        copyCBBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                // Copy to Clipboard
+                UIHelper.setTextToClipboard(keyTxt.getText());
+            }
+        });
+        
+        pasteCBBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                keyTxt.setText(UIHelper.getTextFromClipboard());
+            }
+        });
+        
         final CustomDialog dlg = new CustomDialog((Frame)null, getResourceString("MASTER_TITLE"), true, CustomDialog.OKCANCELHELP, pb.getPanel());
         if (!isEditMode)
         {
@@ -368,6 +391,8 @@ public class UserAndMasterPasswordMgr
         dlg.getOkBtn().setEnabled(false);
         urlLbl.setEnabled(false);  
         urlTxt.setEnabled(false);
+        copyCBBtn.setEnabled(true);  
+        pasteCBBtn.setEnabled(true);  
         
         DocumentListener dl = new DocumentAdaptor()
         {
@@ -389,6 +414,8 @@ public class UserAndMasterPasswordMgr
                 keyLbl.setEnabled(!isNet);  
                 keyTxt.setEnabled(!isNet);  
                 createBtn.setEnabled(!isNet);  
+                copyCBBtn.setEnabled(!isNet);  
+                pasteCBBtn.setEnabled(!isNet);  
                 urlLbl.setEnabled(isNet);  
                 urlTxt.setEnabled(isNet);
                 dlg.getOkBtn().setEnabled((isPrefBasedRB.isSelected() && !keyTxt.getText().isEmpty()) || 
@@ -555,17 +582,17 @@ public class UserAndMasterPasswordMgr
      * the user's password.
      */
     protected String getResourceStringFromURL(final String urlLoc,
-                                   final String username,
-                                   final String password)
+                                              final String username,
+                                              final String password)
     {
-        String encrytpedStr = Encryption.encrypt(username+","+password, password);
-        String fullURL      = urlLoc + "?data=" + encrytpedStr;
+        String encrytpedStr = Encryption.encrypt(username+","+password, username);
+        String fullURL      = urlLoc + "?data=" + encrytpedStr + ";db=" + DBConnection.getInstance().getDatabaseName();
         
         Exception exception = null;
         BufferedReader bufRdr = null;
         try 
         {
-            URL url = new URL(fullURL);
+            URL url = new URL(fullURL); 
 
             URLConnection urlConn = url.openConnection(); 
             urlConn.setDoInput(true); 

@@ -28,11 +28,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -51,6 +51,7 @@ import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.util.Pair;
+import edu.ku.brc.util.Triple;
 
 /**
  * @author rods
@@ -62,12 +63,13 @@ import edu.ku.brc.util.Pair;
  */
 public class AgentConverter
 {
+    
+    /*private enum ParseAgentType {LastNameOnlyLF,  // Last Name Field only with names in Last Name then First Name order
+                                 LastNameOnlyFL,  // Last Name Field only with names in First Name then Last Name order
+                                 LastThenFirstLF, // The first Last Name is in the First Name Field the rest of the data is in the Last Name field and the order is Last Name, Comma first Name
+    }*/
     protected static final Logger                           log                    = Logger.getLogger(AgentConverter.class);
-    protected static Integer                                nextAddressId = 0;
-    protected static SimpleDateFormat                       dateTimeFormatter      = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-    protected static Timestamp                              now                    = new Timestamp(System .currentTimeMillis());
-    protected static String                                 nowStr                 = dateTimeFormatter.format(now);
-
+    protected static Integer nextAddressId = 0;
 
     protected IdMapperMgr                                   idMapperMgr;
 
@@ -79,9 +81,15 @@ public class AgentConverter
     protected Statement                                     gStmt;
     protected Statement                                     updateStmtNewDB;
     
-    protected Hashtable<Integer, AgentInfo>                 agentHash = new Hashtable<Integer, AgentInfo>();
+    protected Hashtable<Integer, AgentInfo>                 agentHash  = new Hashtable<Integer, AgentInfo>();
+    protected Pair<String, String>                          namePair   = new Pair<String, String>();
+    protected Triple<String, String, String>                nameTriple = new Triple<String, String, String>();
 
     protected ConversionLogger.TableWriter                  tblWriter;
+    
+    // For Name Parsing
+    protected List<AgentNameInfo>                           names    = new Vector<AgentNameInfo>();
+    protected Stack<AgentNameInfo>                          recycler = new Stack<AgentNameInfo>();
 
     /**
      * @param conv
@@ -118,7 +126,7 @@ public class AgentConverter
      * The AgentAdress, Agent and Address (triple) can have a NULL Address but it cannot have a NULL
      * Agent. If there is a NULL Agent then this method will throw a RuntimeException.
      */
-    public boolean convertAgents()
+    public boolean convertAgents(final boolean doFixAgents)
     {
         boolean debugAgents = false;
 
@@ -152,21 +160,18 @@ public class AgentConverter
 
         StringBuilder sql = new StringBuilder("select ");
         log.debug(sql);
-        List<String> agentAddrFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(oldDBConn, "agentaddress", agentAddrFieldNames, BasicSQLUtils.mySourceServerType);
+        List<String> agentAddrFieldNames = getFieldNamesFromSchema(oldDBConn, "agentaddress");
         sql.append(buildSelectFieldList(agentAddrFieldNames, "agentaddress"));
         sql.append(", ");
         GenericDBConversion.addNamesWithTableName(oldFieldNames, agentAddrFieldNames, "agentaddress");
 
-        List<String> agentFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(oldDBConn, "agent", agentFieldNames, BasicSQLUtils.mySourceServerType);
+        List<String> agentFieldNames = getFieldNamesFromSchema(oldDBConn, "agent");
         sql.append(buildSelectFieldList(agentFieldNames, "agent"));
         log.debug(sql);
         sql.append(", ");
         GenericDBConversion.addNamesWithTableName(oldFieldNames, agentFieldNames, "agent");
 
-        List<String> addrFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(oldDBConn, "address", addrFieldNames, BasicSQLUtils.mySourceServerType);
+        List<String> addrFieldNames = getFieldNamesFromSchema(oldDBConn, "address");
         log.debug(sql);
         sql.append(buildSelectFieldList(addrFieldNames, "address"));
         GenericDBConversion.addNamesWithTableName(oldFieldNames, addrFieldNames, "address");
@@ -232,7 +237,7 @@ public class AgentConverter
             log.info("Hashing Agent Ids");
             stmtX    = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             agentCnt = BasicSQLUtils.getCount(oldDBConn, "select count(*) from agent order by AgentID");
-            rsX      = stmtX.executeQuery("select AgentID, AgentType, LastName, Name from agent order by AgentID");
+            rsX      = stmtX.executeQuery("select AgentID, AgentType, LastName, Name, FirstName from agent order by AgentID");
 
             conv.setProcess(0, agentCnt);
             
@@ -240,7 +245,7 @@ public class AgentConverter
             while (rsX.next())
             {
                 int agentId = rsX.getInt(1);
-                agentHash.put(agentId, new AgentInfo(agentId, agentIDMapper.get(agentId), rsX.getByte(2), rsX.getString(3), rsX.getString(4)));
+                agentHash.put(agentId, new AgentInfo(agentId, agentIDMapper.get(agentId), rsX.getByte(2), rsX.getString(3), rsX.getString(4), rsX.getString(5)));
                 if (cnt % 100 == 0)
                 {
                     conv.setProcess(0, cnt);
@@ -373,7 +378,7 @@ public class AgentConverter
             int lastNameInx  = indexFromNameMap.get("agent.LastName");
             int firstNameInx = indexFromNameMap.get("agent.FirstName");
             
-            Pair<String, String> namePair = new Pair<String, String>();
+            //Pair<String, String> namePair = new Pair<String, String>();
             
             int recordCnt = 0;
             while (rs.next())
@@ -450,7 +455,11 @@ public class AgentConverter
 
                         } else if (agentColumns[i].equals("agent.LastName") || agentColumns[i].equals("LastName"))
                         {
-                            sqlStr.append(BasicSQLUtils.getStrValue(namePair.second));
+                            
+                            int    lastNameLen = 50;
+                            String lastName    = namePair.second;
+                            lastName = lastName == null ? "" : lastName.length() <= lastNameLen ? lastName : lastName.substring(0, lastNameLen);
+                            sqlStr.append(BasicSQLUtils.getStrValue(lastName));
 
                         } else if (agentColumns[i].equals("agent.FirstName") || agentColumns[i].equals("FirstName"))
                         {
@@ -463,12 +472,7 @@ public class AgentConverter
                                 log.info("Adding: "+agentColumns[i]);
                             }
                             inx = indexFromNameMap.get(agentColumns[i]);
-                            Object dataObj = rs.getObject(inx);
-                            if (dataObj == null && StringUtils.contains(agentColumns[i], "TimestampCreated"))
-                            {
-                                dataObj = nowStr;
-                            }
-                            sqlStr.append(BasicSQLUtils.getStrValue(dataObj));
+                            sqlStr.append(BasicSQLUtils.getStrValue(rs.getObject(inx)));
                         }
                     }
                     sqlStr.append("," + conv.getCreatorAgentId(lastEditedBy) + "," + conv.getModifiedByAgentId(lastEditedBy) + ",0");
@@ -567,12 +571,7 @@ public class AgentConverter
                             } else
                             {
                                 // log.info(addressColumns[i]);
-                                Object dataObj = rs.getObject(inxInt);
-                                if (dataObj == null && StringUtils.contains(addressColumns[i], "TimestampCreated"))
-                                {
-                                    dataObj = nowStr;
-                                }
-                                value = BasicSQLUtils.getStrValue(dataObj);
+                                value = BasicSQLUtils.getStrValue(rs.getObject(inxInt));
                             }
                             if (debugAgents)log.info("Adding: "+addressColumns[i]);
                             sqlStr.append(value);
@@ -640,7 +639,7 @@ public class AgentConverter
             sql.append(buildSelectFieldList(agentAddrFieldNames, "agentaddress"));
             sql.append(", ");
 
-            getFieldNamesFromSchema(oldDBConn, "agent", agentFieldNames, BasicSQLUtils.mySourceServerType);
+            getFieldNamesFromSchema(oldDBConn, "agent", agentFieldNames);
             sql.append(buildSelectFieldList(agentFieldNames, "agent"));
 
             sql.append(" FROM agent Inner Join agentaddress ON agentaddress.AgentID = agent.AgentID where agentaddress.AddressID is null Order By agentaddress.AgentAddressID Asc");
@@ -754,12 +753,7 @@ public class AgentConverter
                         {
                             if (debugAgents) log.info(agentColumns[i]);
                             inx = indexFromNameMap.get(agentColumns[i]);
-                            Object dataObj = rs.getObject(inx);
-                            if (dataObj == null && StringUtils.contains(agentColumns[i], "TimestampCreated"))
-                            {
-                                dataObj = nowStr;
-                            }
-                            sqlStr.append(BasicSQLUtils.getStrValue(dataObj));
+                            sqlStr.append(BasicSQLUtils.getStrValue(rs.getObject(inx)));
                         }
                     }
                     sqlStr.append("," + conv.getCreatorAgentId(lastEditedBy) + "," + conv.getModifiedByAgentId(lastEditedBy) + ", 0"); // '0' is Version
@@ -865,7 +859,10 @@ public class AgentConverter
             }
             conv.setProcess(recordCnt);
             
-            fixAgentsLFirstLastName();
+            if (doFixAgents)
+            {
+                fixAgentsLFirstLastName();
+            }
             
             BasicSQLUtils.setIdentityInsertOFFCommandForSQLServer(newDBConn, "agent", BasicSQLUtils.myDestinationServerType);
             /*
@@ -922,6 +919,41 @@ public class AgentConverter
         }
     }
     
+    /**
+     * @param name
+     * @param np
+     * @return
+     */
+    protected boolean parseName(final String name, final Triple<String, String, String> np)
+    {
+        np.first  = null;
+        np.second = null;
+        np.third  = null;
+        
+        String[] toks = StringUtils.split(name, ' ');
+        switch (toks.length)
+        {
+            case 1 : 
+                np.third = toks[0];
+                break;
+                
+            case 2 : 
+                np.first = toks[0];
+                np.third = toks[1];
+                break;
+                
+            case 3 : 
+                np.first  = toks[0];
+                np.second = toks[1];
+                np.third  = toks[2];
+                break;
+                
+            default:
+                return false;
+        }
+        return true;
+    }
+    
 
     /**
      * @param newDBConnArg
@@ -934,10 +966,8 @@ public class AgentConverter
     {
         log.info("Duplicating [" + oldId + "] to [" + newId + "]");
 
-        List<String> agentAddrFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(newDBConnArg, "address", agentAddrFieldNames,
-                BasicSQLUtils.myDestinationServerType);
-        String fieldList = buildSelectFieldList(agentAddrFieldNames, "address");
+        List<String> agentAddrFieldNames = getFieldNamesFromSchema(newDBConnArg, "address");
+        String       fieldList           = buildSelectFieldList(agentAddrFieldNames, "address");
         log.info(fieldList);
 
         StringBuilder sqlStr = new StringBuilder();
@@ -1026,8 +1056,7 @@ public class AgentConverter
         }
         BasicSQLUtils.setIdentityInsertONCommandForSQLServer(newDBConn, "agent", BasicSQLUtils.myDestinationServerType);
 
-        List<String> oldAgentFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(oldDBConn, "agent", oldAgentFieldNames, BasicSQLUtils.mySourceServerType);
+        List<String> oldAgentFieldNames = getFieldNamesFromSchema(oldDBConn, "agent");
         
         String oldFieldListStr = buildSelectFieldList(oldAgentFieldNames, "agent");
         sql.append(oldFieldListStr);
@@ -1035,8 +1064,7 @@ public class AgentConverter
 
         //log.info(oldFieldListStr);
 
-        List<String> newAgentFieldNames = new ArrayList<String>();
-        getFieldNamesFromSchema(newDBConn, "agent", newAgentFieldNames, BasicSQLUtils.myDestinationServerType);
+        List<String> newAgentFieldNames = getFieldNamesFromSchema(newDBConn, "agent");
         String newFieldListStr = buildSelectFieldList(newAgentFieldNames, "agent");
 
         //log.info(newFieldListStr);
@@ -1129,12 +1157,7 @@ public class AgentConverter
 
                         } else
                         {
-                            Object dataObj = rsX.getObject(index.intValue());
-                            if (dataObj == null && StringUtils.contains(fieldName, "TimestampCreated"))
-                            {
-                                dataObj = nowStr;
-                            }
-                            value = BasicSQLUtils.getStrValue(dataObj);
+                            value = BasicSQLUtils.getStrValue(rsX.getObject(index.intValue()));
                         }
 
                         BasicSQLUtilsMapValueIFace valueMapper = conv.getColumnValueMapper().get(fieldName);
@@ -1296,23 +1319,23 @@ public class AgentConverter
                 log.info("Bad Agents > 25% => " + percent);
             }
             
-            tblWriter.log("<H3>Person Names not Fixed</H3>");
+            tblWriter.log("<H4>Person Names not Fixed</H4>");
             tblWriter.startTable();
-            tblWriter.log("New Agent ID", "Old Last Name", null);
+            tblWriter.logHdr("New Agent ID", "Old Last Name");
             String sql = "SELECT AgentID, LastName FROM agent WHERE FirstName is NULL AND LastName IS NOT NULL AND (LastName LIKE '%&%') AND AgentType = " + Agent.PERSON;
             ResultSet rs = gStmt.executeQuery(sql);
             while (rs.next())
             {
                 Integer  id        = rs.getInt(1);
                 String   lastName  = rs.getString(2);
-                tblWriter.log(id.toString(), lastName, null);
+                tblWriter.log(id.toString(), lastName);
             }
             rs.close();
             tblWriter.endTable();
             
-            tblWriter.log("<BR><h3>Person Names not Fixed</H3>");
+            tblWriter.log("<BR><H4>Person Names not Fixed</H4>");
             tblWriter.startTable();
-            tblWriter.log("Old Last Name", "New First Name", "New Last Name");
+            tblWriter.logHdr("Old Last Name", "New First Name", "New Last Name");
             StringBuilder sb = new StringBuilder();
             sql = "SELECT AgentID, LastName FROM agent WHERE FirstName is NULL AND LastName IS NOT NULL AND NOT (LastName LIKE '%&%') AND AgentType = " + Agent.PERSON;
             rs  = gStmt.executeQuery(sql);
@@ -1333,7 +1356,7 @@ public class AgentConverter
                     }
                     
                     tblWriter.log(lastName, firstName, sb.toString());
-                    sql = "UPDATE agent SET FirstName='" + firstName + "', LastName='" + sb.toString() + "' WHERE AgentID = " + id;
+                    sql = "UPDATE agent SET FirstName=\"" + firstName + "\", LastName=\"" + sb.toString() + "\" WHERE AgentID = " + id;
                     log.debug(sql);
                     updateStmtNewDB.executeUpdate(sql);
                 }
@@ -1357,6 +1380,9 @@ public class AgentConverter
     protected void fixupForCollectors(final Division    divisionArg,
                                       final Discipline  disciplineArg)
     {
+        //ParseAgentType parseType = ParseAgentType.LastNameOnlyLF;
+
+        
         Session     session = HibernateUtil.getNewSession();
         Transaction trans   = null;
         try
@@ -1365,20 +1391,21 @@ public class AgentConverter
             Discipline discipline     = (Discipline)session.createQuery("FROM Discipline WHERE id = " + disciplineArg.getId()).list().iterator().next();
             Agent      createdByAgent = (Agent)session.createQuery("FROM Agent WHERE id = " + conv.getCreatorAgentId(null)).list().iterator().next();
             
-            tblWriter.log("<H3>Splitting Mutliple Collectors names into Multiple Agents</H3>");
+            tblWriter.log("<H4>Splitting Mutliple Collectors names into Multiple Agents</H4>");
             tblWriter.startTable();
-            tblWriter.log("New Agent ID", "Old Last Name", null);
+            tblWriter.logHdr("New Agent ID", "Old Last Name", "Description");
             
-            Vector<Agent> agentToDelete = new Vector<Agent>();
+            Vector<Integer> agentToDelete = new Vector<Integer>();
             
             conv.setProcess(0, agentHash.values().size());
             int cnt = 0;
             
             for (AgentInfo agentInfo : agentHash.values())
             {
-                String text = agentInfo.getAgentType() != Agent.PERSON ? agentInfo.getName() : agentInfo.getLastName();
-                
-                if (StringUtils.contains(text, ","))
+                String lastNameText  = agentInfo.getAgentType() != Agent.PERSON ? agentInfo.getName() : agentInfo.getLastName();
+                //String firstNameText = agentInfo.getFirstName();
+
+                if ((StringUtils.contains(lastNameText, ",") || StringUtils.contains(lastNameText, ";")) && !StringUtils.contains(lastNameText, "'"))
                 {
                     String    sql = "SELECT c.CollectorID, c.CollectingEventID FROM collector c INNER JOIN agent ON c.AgentID = agent.AgentID WHERE agent.AgentID = " + agentInfo.getNewAgentId();
                     ResultSet rs  = gStmt.executeQuery(sql);
@@ -1387,6 +1414,8 @@ public class AgentConverter
                         int      highestOrder = 0;
                         Integer  colID        = rs.getInt(1);
                         Integer  ceId         = rs.getInt(2);
+                        
+                        tblWriter.log(ceId +" / " + colID +" / " + agentInfo.getNewAgentId().toString(), lastNameText, "&nbsp;");
                         
                         sql = "SELECT ce.CollectingEventID, c.CollectorID, c.OrderNumber, c.IsPrimary FROM collector c INNER JOIN collectingevent ce ON c.CollectingEventID = ce.CollectingEventID " + 
                               "WHERE c.CollectorID = " + colID + " ORDER BY c.OrderNumber DESC";
@@ -1401,16 +1430,19 @@ public class AgentConverter
                         Agent           origAgent = (Agent)session.createQuery("FROM Agent WHERE id = " + agentInfo.getNewAgentId()).list().get(0);
                         
                         // Now process the multiple Collectors
-                        String[] names = StringUtils.split(text, ",");
-                        for (int i=0;i<names.length;i++)
+                        String[] lastNames  = StringUtils.split(lastNameText, ",;");
+                        //String[] firstNames = StringUtils.split(firstNameText, ",;");
+                        for (int i=0;i<lastNames.length;i++)
                         {
-                            String[] nameStrs = StringUtils.split(names[i], " ");
-                            if (nameStrs.length > 1)
+                            if (parseName(lastNames[i], nameTriple))
                             {
-                                String firstName = nameStrs[0];
-                                String lastName  = names[i].substring(nameStrs[0].length()+1);
+                                String firstName = nameTriple.first;
+                                String middle    = nameTriple.second;
+                                String lastName  = nameTriple.third;
                                 
-                                List<Agent> agts          = (List<Agent>)session.createQuery("FROM Agent WHERE firstName = '"+ (firstName != null ? firstName : "") + "' AND lastName = '" + (lastName != null ? lastName : "") + "'").list();
+                                List<Agent> agts          = (List<Agent>)session.createQuery("FROM Agent WHERE firstName = " + (firstName != null ? "'" + firstName + "'" : "NULL") 
+                                                                         + " AND middleInitial = " + (middle != null ? "'"+middle+"'" : "NULL") 
+                                                                         + " AND lastName = " + (lastName != null ? "'" + lastName + "'" : "NULL")).list();
                                 Agent       existingAgent = agts != null && agts.size() > 0 ? agts.get(0) : null;
                                 
                                 trans = session.beginTransaction();
@@ -1422,7 +1454,7 @@ public class AgentConverter
                                         collector.setAgent(existingAgent);
                                         existingAgent.getCollectors().add(collector);
                                         
-                                        origAgent.getCollectors().clear();
+                                        /*origAgent.getCollectors().clear();
                                         origAgent.getDisciplines().clear();
                                         
                                         for (Agent a : new ArrayList<Agent>(discipline.getAgents()))
@@ -1445,9 +1477,11 @@ public class AgentConverter
                                         origAgent.setCreatedByAgent(null);
                                         origAgent.setModifiedByAgent(null);
                                         
-                                        //session.delete(origAgent);
+                                        //session.delete(origAgent);*/
                                         
-                                        agentToDelete.add(origAgent);
+                                        tblWriter.log(agentInfo.getNewAgentId().toString(), firstName+", "+lastName, "reusing collector,using existing agent");
+                                        
+                                        agentToDelete.add(origAgent.getId());
                                         
                                         session.saveOrUpdate(existingAgent);
                                         session.saveOrUpdate(collector);
@@ -1460,6 +1494,7 @@ public class AgentConverter
                                         origAgent.setLastName(lastName);
                                         origAgent.setAgentType(Agent.PERSON);
                                         
+                                        tblWriter.log(agentInfo.getNewAgentId().toString(), firstName+", "+lastName, "resetting agent names - reclaiming");
                                         session.saveOrUpdate(origAgent);
                                     }
                                     
@@ -1475,15 +1510,20 @@ public class AgentConverter
                                         agent.setAgentType(Agent.PERSON);
                                         agent.setCreatedByAgent(createdByAgent);
                                         agent.setDivision(division);
-                                        agent.setFirstName(nameStrs[0]);
-                                        agent.setLastName(names[i].substring(nameStrs[0].length()+1));
+                                        agent.setFirstName(nameTriple.first);
+                                        agent.setMiddleInitial(nameTriple.second);
+                                        agent.setLastName(nameTriple.third);
                                         division.getMembers().add(agent);
                                         agent.getDisciplines().add(discipline);
                                         discipline.getAgents().add(agent);
                                         
+                                        tblWriter.log(agentInfo.getNewAgentId().toString(), firstName+", "+lastName, "new agent, new collector");
+
+                                        
                                     } else
                                     {
                                         agent = existingAgent;
+                                        tblWriter.log(agentInfo.getNewAgentId().toString(), firstName+", "+lastName, "reusing, new collector");
                                     }
                                     
                                     Collector collector = new Collector();
@@ -1511,13 +1551,26 @@ public class AgentConverter
                 }
                 conv.setProcess(++cnt);
             }
+            tblWriter.endTable();
             
-            trans = session.beginTransaction();
-            for (Agent agt : agentToDelete)
+            Collections.sort(agentToDelete);
+            
+            tblWriter.log("<H4>Removing Original Agents</H4>");
+            tblWriter.startTable();
+            tblWriter.logHdr("New Agent ID", "LastName", "FirstName");
+            for (Integer id : agentToDelete)
             {
-                session.delete(agt);
+                System.out.println("Deleting Agent["+id+"]");
+                List<Object[]> rows = BasicSQLUtils.query("SELECT AgentID, LastName, MiddleInitial, FirstName FROM agent WHERE AgentID = " + id);
+                Object[] row = rows.get(0);
+                tblWriter.log(id.toString(), (row[1] == null ? "&nbsp;" : row[1].toString()) + (row[2] == null ? "" : " "+row[2].toString()), 
+                                             row[3] == null ? "&nbsp;" : row[3].toString());
+                
+                updateStmtNewDB.executeUpdate("DELETE FROM agent_discipline WHERE AgentID = " + id);
+                updateStmtNewDB.executeUpdate("DELETE FROM agent WHERE AgentID = " + id);
+                
             }
-            trans.commit();
+            tblWriter.endTable();
             
         } catch (Exception ex)
         {
@@ -1534,7 +1587,6 @@ public class AgentConverter
         }
     }
     
-
     //-------------------------------------------------------------------------
     //--
     //-------------------------------------------------------------------------
@@ -1613,7 +1665,101 @@ public class AgentConverter
             return newIdsToDuplicate;
         }
     }
+    
+    public List<AgentNameInfo> parseName(final String    firstName, 
+                                         final String    lastName,
+                                         @SuppressWarnings("unused") final char      innerSep,
+                                         final char      nameSep,
+                                         final boolean   isLastNameFieldFirst,
+                                         @SuppressWarnings("unused") final boolean   isLastNameFirst,
+                                         final boolean   trimAfterComma)
+    {
+        recycler.addAll(names);
+        names.clear();
+        
+        String   fullName = isLastNameFieldFirst ? lastName + (firstName != null ? " " + firstName : "") : (firstName != null ? (firstName + " ") : "") + lastName;
+        String[] toks     = StringUtils.split(fullName, nameSep);
+        
+        for (String name : toks)
+        {
+            if (trimAfterComma)
+            {
+                int inx = name.indexOf(',');
+                if (inx > -1)
+                {
+                    name = name.substring(0, inx);
+                }
+            }
+            
+            /*if (StringUtils.contains(name, nameSep))
+            {
+                String[] nameToks = StringUtils.split(name, innerSep);
+            }*/
+            
+        }
+        return names;
+    }
 
+    //-------------------------------------------------------------------------
+    //--
+    //-------------------------------------------------------------------------
+    class AgentNameInfo
+    {
+        protected String firstName;
+        protected String lastName;
+        protected String middle;
+        public AgentNameInfo(String firstName, String lastName, String middle)
+        {
+            super();
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.middle = middle;
+        }
+        /**
+         * @return the firstName
+         */
+        public String getFirstName()
+        {
+            return firstName;
+        }
+        /**
+         * @return the lastName
+         */
+        public String getLastName()
+        {
+            return lastName;
+        }
+        /**
+         * @return the middle
+         */
+        public String getMiddle()
+        {
+            return middle;
+        }
+        /**
+         * @param firstName the firstName to set
+         */
+        public void setFirstName(String firstName)
+        {
+            this.firstName = firstName;
+        }
+        /**
+         * @param lastName the lastName to set
+         */
+        public void setLastName(String lastName)
+        {
+            this.lastName = lastName;
+        }
+        /**
+         * @param middle the middle to set
+         */
+        public void setMiddle(String middle)
+        {
+            this.middle = middle;
+        }
+        
+    }
+    
     //-------------------------------------------------------------------------
     //--
     //-------------------------------------------------------------------------
@@ -1626,12 +1772,14 @@ public class AgentConverter
         boolean                     isUsed   = false;
         boolean                     wasAdded = false;
         String                      lastName;
+        String                      firstName;
         String                      name;
 
         public AgentInfo(Integer oldAgentId, 
                          Integer newAgentId,
                          byte    agentType,
                          String  lastName,
+                         String  firstName,
                          String  name)
         {
             super();
@@ -1639,6 +1787,7 @@ public class AgentConverter
             this.newAgentId = newAgentId;
             this.agentType  = agentType;
             this.lastName   = lastName;
+            this.firstName  = firstName;
             this.name       = name;
         }
 
@@ -1691,6 +1840,14 @@ public class AgentConverter
         public String getLastName()
         {
             return lastName;
+        }
+
+        /**
+         * @return the firstName
+         */
+        public String getFirstName()
+        {
+            return firstName;
         }
 
         /**

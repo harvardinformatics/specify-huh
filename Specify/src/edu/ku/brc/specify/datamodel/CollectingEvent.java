@@ -407,7 +407,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     /**
      *      * Locality where collection took place
      */
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "LocalityID")
     public Locality getLocality() 
     {
@@ -459,7 +459,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
    }
 
 
-    @ManyToOne
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "CollectingTripID")
     public CollectingTrip getCollectingTrip()
     {
@@ -498,7 +498,44 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     {
         this.collectingEventAttachments = collectingEventAttachments;
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
+     */
+    @Override
+    @Transient
+    public Integer getParentTableId()
+    {
+        if (collectingTrip != null)
+        {
+            return CollectingTrip.getClassTableId();
+        }
+        
+        if (collectionObjects != null && collectionObjects.size() > 0)
+        {
+            return CollectionObject.getClassTableId();
+        }
+        return null;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (collectingTrip != null)
+        {
+            return collectingTrip.getId();
+        }
+        if (collectionObjects != null && collectionObjects.size() == 1)
+        {
+            return ((CollectionObject)collectionObjects.toArray()[0]).getId();
+        }
+        return null;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */

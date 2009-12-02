@@ -21,7 +21,6 @@ package edu.ku.brc.specify.conversion;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -95,8 +94,7 @@ public class IdMapperMgr
         }
         String name = tableName.toLowerCase();
         
-        List<String> fieldNames = new ArrayList<String>();
-        BasicSQLUtils.getFieldNamesFromSchema(oldConn, name, fieldNames, BasicSQLUtils.mySourceServerType);
+        List<String> fieldNames = BasicSQLUtils.getFieldNamesFromSchema(oldConn, name);
         if (!fieldNames.get(0).equals(idName))
         {
             throw new RuntimeException("Table["+name+"] doesn't have first column id["+idName+"]");
@@ -177,10 +175,6 @@ public class IdMapperMgr
      */
     public IdMapperIFace get(final String tableName, final String idName)
     {
-        if (tableName.toLowerCase().equals("loanreturnphysicalobject") && idName.equals("LoanReturnPhysicalObjectID"))
-        {
-            System.out.println(tableName.toLowerCase()+"_"+idName+"  "+(idMappers.get(tableName.toLowerCase()+"_"+idName)));
-        }
         return idMappers.get(tableName.toLowerCase()+"_"+idName);
     }
     

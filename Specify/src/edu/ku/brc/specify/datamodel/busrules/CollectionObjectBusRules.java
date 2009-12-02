@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static edu.ku.brc.ui.UIRegistry.showLocalizedMsg;
 
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -43,6 +44,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
 import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
@@ -230,7 +232,6 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         if (AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent())
         {
             CollectingEvent ce = colObj.getCollectingEvent();
-            System.err.println(ce.getCollectors().size());
             if (ce != null)
             {
                 try
@@ -289,6 +290,17 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
     }
 
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        setLSID((FormDataObjIFace)dataObj);
+
+        return super.afterSaveCommit(dataObj, session);
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseBusRules#okToDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace, edu.ku.brc.ui.forms.BusinessRulesOkDeleteIFace)
      */
     @Override
@@ -301,7 +313,7 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         boolean isOK = true;
         if (deletable != null && dataObjArg instanceof FormDataObjIFace && ((FormDataObjIFace)dataObjArg).getId() != null)
         {
-            Integer count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM CollectionObject WHERE CollectionObjectID = " + ((FormDataObjIFace)dataObjArg).getId());
+            Integer count = BasicSQLUtils.getCount("SELECT COUNT(*) FROM collectionobject WHERE CollectionObjectID = " + ((FormDataObjIFace)dataObjArg).getId());
             if (count != null && count == 0)
             {
                 showLocalizedMsg("NO_RECORD_FOUND_TITLE", "NO_RECORD_FOUND");
@@ -482,5 +494,50 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         }
         return true;
     }
-
+    
+    public static void fixDupColObjAttrs()
+    {
+        String sql = "SELECT * FROM (SELECT CollectionObjectAttributeID, count(*) as cnt FROM collectionobject c WHERE CollectionObjectAttributeID IS NOT NULL group by CollectionObjectAttributeID) T1 WHERE cnt > 1";
+        Vector<Object[]> rows = BasicSQLUtils.query(sql);
+        if (rows != null)
+        {
+            for (Object[] row : rows)
+            {
+                DataProviderSessionIFace session = null;
+                try
+                {
+                    session = DataProviderFactory.getInstance().createSession();
+                    CollectionObjectAttribute colObjAttr = session.get(CollectionObjectAttribute.class, (Integer)row[1]);
+                    
+                    int cnt = 0;
+                    for (CollectionObject co : colObjAttr.getCollectionObjects())
+                    {
+                        if (cnt > 0)
+                        {
+                            CollectionObjectAttribute colObjAttribute = (CollectionObjectAttribute)colObjAttr.clone();
+                            co.setCollectionObjectAttribute(colObjAttribute);
+                            colObjAttribute.getCollectionObjects().add(co);
+                            
+                            session.beginTransaction();
+                            session.saveOrUpdate(colObjAttribute);
+                            session.saveOrUpdate(co);
+                            session.commit();
+                        }
+                        cnt++;
+                    }
+                    
+                } catch (Exception ex)
+                {
+                   session.rollback();
+                   ex.printStackTrace();
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                }
+            }
+        }
+    }
 }

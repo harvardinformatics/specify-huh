@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -129,12 +128,12 @@ public class DBTableIdMgr
      */
     public void initialize()
     {
-        initialize(new File(DatamodelHelper.getDatamodelFilePath()));
+        initialize(DatamodelHelper.getDatamodelFilePath());
     }
 
     /**
-     * Reads in datamodel input file and populates the hashtable of teh
-     * DBTableMgr with DBTableInfo
+     * Reads in datamodel input file and populates the Hashtable of the DBTableMgr with DBTableInfo
+     * @param inputFile the input file.
      */
     public void initialize(final File inputFile)
     {
@@ -142,15 +141,10 @@ public class DBTableIdMgr
 		String classname = null;
 		try
 		{
-			//FileInputStream fileInputStream = new FileInputStream(inputFile);
-			SAXReader       reader          = new SAXReader();
+			SAXReader reader = new SAXReader();
 			reader.setValidation(false);
             
-			//Document doc          = reader.read(fileInputStream);
-			//Element  databaseNode = doc.getRootElement();
-			String xmlStr = FileUtils.readFileToString(inputFile);
-	        Element  databaseNode = XMLHelper.readStrToDOM4J(xmlStr);
-
+	        Element databaseNode = XMLHelper.readFileToDOM4J(inputFile);
 
 			if (databaseNode != null)
 			{
@@ -205,6 +199,14 @@ public class DBTableIdMgr
                         tblInfo.setIdColumnName(getAttr(idElement, "column", null)); //$NON-NLS-1$
                         tblInfo.setIdFieldName(getAttr(idElement,  "name", null)); //$NON-NLS-1$
                         tblInfo.setIdType(getAttr(idElement,       "type", null)); //$NON-NLS-1$
+                    }
+                    
+                    for (Iterator<?> ir = tableNode.elementIterator("tableindex"); ir.hasNext();) //$NON-NLS-1$
+                    {
+                        Element irNode     = (Element) ir.next();
+                        String inxName     = getAttr(irNode, "indexName", null);
+                        String inxColNames = getAttr(irNode, "columnNames", null);
+                        tblInfo.addTableIndex(inxName, inxColNames);
                     }
                     
                     Element displayElement = (Element)tableNode.selectSingleNode("display"); //$NON-NLS-1$
@@ -289,7 +291,7 @@ public class DBTableIdMgr
 		{
 		    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
 		    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DBTableIdMgr.class, numEx);
-			log.error("Specify datamodel input file: " + DatamodelHelper.getDatamodelFilePath() //$NON-NLS-1$
+			log.error("Specify datamodel input file: " + inputFile.getAbsolutePath() //$NON-NLS-1$
 					+ " failed to provide valid table id for class/table:" + classname); //$NON-NLS-1$
 			log.error(numEx);
 		} catch (Exception ex)
@@ -300,7 +302,7 @@ public class DBTableIdMgr
 			ex.printStackTrace();
 		}
         Collections.sort(tables);
-        log.debug("Done Reading in datamodel file: " + DatamodelHelper.getDatamodelFilePath()); //$NON-NLS-1$
+        log.debug("Done Reading in datamodel file: " + inputFile.getAbsolutePath()); //$NON-NLS-1$
 	}
     
     /**

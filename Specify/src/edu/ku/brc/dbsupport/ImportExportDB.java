@@ -64,8 +64,7 @@ import edu.ku.brc.util.Pair;
 // TODO find a better way to stip the working set
 public class ImportExportDB
 {
-    
-    protected static final Logger log = Logger.getLogger(ImportExportDB.class);
+    private static final Logger log = Logger.getLogger(ImportExportDB.class);
     
     protected Session session;
     protected String  importFolderPath;
