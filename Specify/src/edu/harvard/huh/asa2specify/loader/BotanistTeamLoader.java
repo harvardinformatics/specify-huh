@@ -82,6 +82,9 @@ public class BotanistTeamLoader extends CsvToSqlLoader
     {
         GroupPerson groupPerson = new GroupPerson();
  
+        // Division
+        groupPerson.setDivision(getBotanyDivision());
+
         // Group
         Integer teamId = botanistTeamMember.getTeamId();
         checkNull(teamId, "team id");
@@ -118,15 +121,16 @@ public class BotanistTeamLoader extends CsvToSqlLoader
    
     private String getInsertSql(GroupPerson groupPerson)
     {
-    	String fieldNames = "GroupID, MemberID, OrderNumber, TimestampCreated, Version";
+    	String fieldNames = "DivisionID, GroupID, MemberID, OrderNumber, TimestampCreated, Version";
     	
-    	String[] values = new String[5];
+    	String[] values = new String[6];
     	
-    	values[0] = SqlUtils.sqlString( groupPerson.getGroup().getId());
-    	values[1] = SqlUtils.sqlString( groupPerson.getMember().getId());
-    	values[2] = SqlUtils.sqlString( groupPerson.getOrderNumber());
-    	values[3] = SqlUtils.now();
-    	values[4] = SqlUtils.zero();
+    	values[0] = SqlUtils.sqlString( groupPerson.getDivision().getId());
+    	values[1] = SqlUtils.sqlString( groupPerson.getGroup().getId());
+    	values[2] = SqlUtils.sqlString( groupPerson.getMember().getId());
+    	values[3] = SqlUtils.sqlString( groupPerson.getOrderNumber());
+    	values[4] = SqlUtils.now();
+    	values[5] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("groupperson", fieldNames, values);
     }
