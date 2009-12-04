@@ -390,14 +390,11 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Collecting Event]]></desc>
             
-            <columnDef os="exp">p,     2px, 150px, 5px:g, p,    2px, 255px, 5px:g, p:g,   0px</columnDef>
-            <columnDef>         100px, 2px, 120px, 5px,   80px, 2px, 215px, 2px,   301px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 200px, 5px,  100px, 2px, 255px, 293px,  70px, 0px, p:g</columnDef>
-
-            <!--<columnDef>100px,2px,150px,5px,100px,2px,240px,5px,75px,2px,146px,0px,11px,p:g</columnDef>
-            <columnDef os="lnx">115px,2px,185px,5px,100px,2px,255px,5px,90px,2px,156px,0px,11px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,256px,5px,80px,2px,275px,5px,90px,2px,185px,0px,11px,p:g</columnDef>
-            <columnDef os="exp">p,2px,150px,5px:g,p,2px,p,5px:g,p,2px,max(p;150px),p:g</columnDef> -->
+            <columnDef>         100px, 2px, 120px, 5px,  80px, 2px, 215px,   2px, 301px, 0px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 170px, 5px, 100px, 2px, 215px,   2px, 296px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 200px, 5px, 100px, 2px,     p, 293px,  70px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
+            
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
