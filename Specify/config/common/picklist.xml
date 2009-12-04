@@ -317,7 +317,7 @@
       <picklistitem title="Plate" value="9"/>
     </items>
   </picklist>
-  <picklist name="HUH Shipment Method" issystem="false" type="0" readonly="true" sizelimit="8">
+  <picklist name="HUH Shipment Method" issystem="false" type="0" readonly="true" sizelimit="9">
     <items>
       <picklistitem title="Air" value="Air"/>
       <picklistitem title="Express" value="Express"/>
@@ -326,6 +326,7 @@
       <picklistitem title="First class" value="FirstClass"/>
       <picklistitem title="Ground" value="Ground"/>
       <picklistitem title="Priority" value="Priority"/>
+      <picklistitem title="Hand carried" value="HandCarried"/>
       <picklistitem title="NA/Unknown" value="Unknown"/>
     </items>
   </picklist>
