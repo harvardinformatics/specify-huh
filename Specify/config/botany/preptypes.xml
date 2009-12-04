@@ -11,5 +11,7 @@
       <preptype name="In spirit medium"    isloanable="true"/>
       <preptype name="Protolog on sheet"   isloanable="true"/>
       <preptype name="Photograph"          isloanable="true"/>
+      <preptype name="On 35 mm slide"      isloanable="true"/>
+      <preptype name="On glycerine slide"  isloanable="true"/>
       <preptype name="Other"               isloanable="true"/>
 </vector>
