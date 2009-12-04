@@ -234,12 +234,14 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
-  <picklist name="HUH Determination Qualifier" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Determination Qualifier" type="0" issystem="false" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="aff." value="Affine"/>
       <picklistitem title="cf." value="Compare"/>
       <picklistitem title="?" value="InQuestion"/>
       <picklistitem title="not" value="Not"/>
+      <picklistitem title="s. lat." value="SensuLato"/>
+      <picklistitem title="s. str." value="SensuStricto"/>
     </items>
   </picklist>
   <picklist name="HUH Elevation Method" type="0" issystem="false" readonly="true" sizelimit="4">
