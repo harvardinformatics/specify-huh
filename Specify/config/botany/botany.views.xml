@@ -327,7 +327,7 @@
             <desc><![CDATA[Determination subform for Collection Object form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 210px, 5px,   71px, 2px, 200px, 5px,  80px, 2px, 140px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 210px, 5px,   71px, 2px, 190px, 5px,  75px, 2px, 140px, 0px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 210px, 5px,  110px, 2px, 205px, 5px,  95px, 2px, 156px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 253px, 5px,   95px, 2px, 238px, 5px, 140px, 2px, 185px, 0px, p:g</columnDef>
             <columnDef os="exp">p,     2px,     p, 5px:g,    p, 2px,     p, 15px,    p, 2px,     p, p:g</columnDef>
@@ -390,7 +390,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Collecting Event]]></desc>
             
-            <columnDef>         100px, 2px, 120px, 5px,  80px, 2px, 215px,   2px, 301px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 120px, 5px,  80px, 2px, 215px,   2px, 281px, 0px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 170px, 5px, 100px, 2px, 215px,   2px, 296px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 200px, 5px, 100px, 2px,     p, 293px,  70px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
