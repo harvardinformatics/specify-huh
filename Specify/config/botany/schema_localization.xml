@@ -64,7 +64,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Specimen\nDescription</text>
+            <text>Description</text>
           </str>
         </names>
         <descs>
@@ -82,7 +82,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Phenology</text>
+            <text>Container</text>
           </str>
         </names>
         <descs>
