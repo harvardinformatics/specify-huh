@@ -7351,7 +7351,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Host</text>
+            <text>Container</text>
           </str>
         </names>
         <descs>
@@ -8433,7 +8433,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Distribution</text>
+            <text>Host</text>
           </str>
         </names>
         <descs/>
@@ -8444,7 +8444,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Container</text>
+            <text>Distribution</text>
           </str>
         </names>
         <descs/>
@@ -8455,7 +8455,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Host</text>
+            <text>Text4</text>
           </str>
         </names>
         <descs/>
@@ -23352,11 +23352,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="number1">
         <version>0</version>
-        <isHidden>false</isHidden>
+        <isHidden>true</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Item number</text>
+            <text>Number2</text>
           </str>
         </names>
         <descs/>
@@ -23503,13 +23503,13 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code" isrequired="true">
+      <item name="text1" type="java.lang.String">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Herbarium</text>
+            <text>Provenance</text>
           </str>
         </names>
         <descs>
@@ -23519,13 +23519,13 @@ Preparation: A subdivision of a collection object that refers to the preparation
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
+      <item name="text2" type="java.lang.String">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Sex</text>
+            <text>Voucher</text>
           </str>
         </names>
         <descs>
@@ -23969,22 +23969,22 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="number4">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Number4</text>
+            <text>ItemNumber</text>
           </str>
         </names>
         <descs/>
       </item>
       <item name="number5">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Number5</text>
+            <text>Replicates</text>
           </str>
         </names>
         <descs/>
@@ -24057,11 +24057,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="text1">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text1</text>
+            <text>Reference</text>
           </str>
         </names>
         <descs/>
@@ -24264,35 +24264,35 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text3">
+      <item name="text3" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code" isrequired="true">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text3</text>
+            <text>Herbarium</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text4">
+      <item name="text4" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
         <version>0</version>
         <isHidden>true</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text4</text>
+            <text>Sex</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text5">
+      <item name="text5" type="java.lang.String" isUIFormatter="false" pickListName="HUH Phenology">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Text5</text>
+            <text>Phenology</text>
           </str>
         </names>
         <descs/>

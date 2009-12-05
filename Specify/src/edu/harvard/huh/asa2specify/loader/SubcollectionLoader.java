@@ -38,8 +38,8 @@ public class SubcollectionLoader extends TreeLoader
     
     private SubcollectionLookup subcollLookup;
     
-    private Storage A;
-    private Storage FH;
+    private Storage vascular;
+    private Storage cryptogams;
     
     private StorageTreeDef treeDef;
     private StorageTreeDefItem subcollDefItem;
@@ -80,8 +80,8 @@ public class SubcollectionLoader extends TreeLoader
         
         Storage building = createNode("HUH", site, buildingDefItem);
         
-        A = createNode("A", building, collectionDefItem);
-        FH = createNode("FH", building, collectionDefItem);
+        vascular = createNode("Vascular", building, collectionDefItem);
+        cryptogams = createNode("Cryptogams", building, collectionDefItem);
     }
 
     private StorageTreeDef getStorageTreeDef() throws LocalException
@@ -324,8 +324,8 @@ public class SubcollectionLoader extends TreeLoader
         
         // Parent
         String code = subcollection.getCollectionCode();
-        if (code.equals("A")) storage.setParent(A);
-        else if (code.equals("FH")) storage.setParent(FH);
+        if (code.equals("A")) storage.setParent(vascular);
+        else if (code.equals("FH")) storage.setParent(cryptogams);
         else throw new LocalException(rec() + "Unrecognized collection code: " + code);
         
         // RankId

@@ -3261,9 +3261,6 @@
                 	<cell type="label" labelfor="remarks"/>
                 	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
                 </row>
-                <row>
-	                <cell type="subview" id="prepAttr" viewname="PreparationAttr" name="preparationAttrs" colspan="12"/>
-                </row>
             </rows>
         </viewdef>
         
