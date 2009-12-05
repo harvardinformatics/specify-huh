@@ -2690,12 +2690,20 @@
             
             <rows>
                 <row>
-                    <cell type="label" labelfor="localityName"/>
-                    <cell type="field" id="localityName" name="localityName" uitype="text"  colspan="14"/>
+                    <cell type="label" label="Higher Geography :"/>
+                    <cell type="field" id="parent" name="geography.parent.fullName" uitype="dsptextfield" colspan="14"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="geography"/>
-                    <cell type="field" id="geography" name="geography" uitype="querycbx" initialize="name=Geography"  colspan="14"/>
+                    <cell type="label" labelfor="geoUnit"/>
+                    <cell type="field" id="geoUnit" name="geography" uitype="querycbx" initialize="name=Geography"  colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="verbatimLocality"/>
+                    <cell type="field" id="verbatimLocality" name="localityName" uitype="textareabrief" rows="2"  colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="14"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="5"/>

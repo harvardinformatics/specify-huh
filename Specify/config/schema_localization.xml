@@ -20773,7 +20773,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Geography</text>
+            <text>Geo Unit</text>
           </str>
         </names>
         <descs>
@@ -20961,7 +20961,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Locality Name</text>
+            <text>Verbatim Locality</text>
           </str>
         </names>
         <descs>
@@ -21148,7 +21148,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Locality</text>
+            <text>Remarks</text>
           </str>
         </names>
         <descs>
