@@ -182,7 +182,7 @@
                 </row>
                 
                <row>
-                    <cell type="separator" label="Attributes" colspan="12"/>
+                    <cell type="separator" label="Collection Attributes" colspan="12"/>
                 </row>
                 <row>
                     <!-- <cell type="label" labelfor="20"/>
