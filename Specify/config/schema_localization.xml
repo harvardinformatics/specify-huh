@@ -4974,7 +4974,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>End Date</text>
+            <text>To Date</text>
           </str>
         </names>
         <descs>
@@ -5085,7 +5085,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Start Date</text>
+            <text>From Date</text>
           </str>
         </names>
         <descs>
