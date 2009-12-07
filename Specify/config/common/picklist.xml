@@ -291,7 +291,7 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Plant Sexuality" type="0" issystem="false" readonly="false" sizelimit="-1">
+  <picklist name="HUH Plant Sexuality" type="0" issystem="false" readonly="false" sizelimit="2">
 	<items>
 		<picklistitem title="Female" value="Female"/>
 		<picklistitem title="Male" value="Male"/>
