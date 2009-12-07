@@ -2690,7 +2690,7 @@
             
             <rows>
                 <row>
-                    <cell type="label" label="Higher Geography :"/>
+                    <cell type="label" label="Higher Geography" labelfor="parent"/>
                     <cell type="field" id="parent" name="geography.parent.fullName" uitype="dsptextfield" colspan="14"/>
                 </row>
                 <row>
@@ -3240,9 +3240,9 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="itemNo"/>
-                	<cell type="field" id="itemNo" name="preparationAttribute.number4" uitype="text"/>
+                	<cell type="field" id="itemNo" name="preparationAttribute.number4" uitype="text" default="1"/>
                 	<cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="countAmt" uitype="text" />
+                    <cell type="field" id="3" name="countAmt" uitype="text" default="1"/>
                     <cell type="label" labelfor="replicates"/>
                 	<cell type="field" id="replicates" name="preparationAttribute.number5" uitype="text"/>
                 </row>
