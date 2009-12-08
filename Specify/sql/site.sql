@@ -12,7 +12,8 @@ select s.id,
 
 from site s
 
-where not(s.locality is null and
+where not(s.geo_unit_id is null and
+          s.locality is null and
           s.latitude_a is null and
           s.latitude_b is null and
           s.longitude_a is null and
