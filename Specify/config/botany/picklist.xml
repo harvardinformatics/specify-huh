@@ -38,7 +38,7 @@
       <picklistitem title="Collector" value="Collector"/>
   	</items>
   </picklist>
-    <picklist name="HUH Phenology" issystem="true" type="0" readonly="true" sizelimit="6">
+    <picklist name="HUH Phenology" issystem="false" type="0" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="not determined" value="NotDetermined"/>
       <picklistitem title="flower" value="Flower"/>
