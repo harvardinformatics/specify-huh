@@ -27,7 +27,7 @@
         
         <view name="CollectionObject"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
-            busrules="edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules"
+            busrules="edu.ku.brc.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
             resourcelabels="false"
             >

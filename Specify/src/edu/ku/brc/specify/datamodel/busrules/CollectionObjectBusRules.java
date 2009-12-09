@@ -188,21 +188,32 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
         }
         if (status == STATUS.OK)
         {
-            // check that a current determination exists
-            if (((CollectionObject) dataObj).getDeterminations().size() > 0)
+            status = checkDeterminations(dataObj);
+        }
+        return status;
+    }
+    
+    /**
+     * Process business rules specifically related to determinations.  Return OK status, or add error messages
+     * to reasonList and return Error status.
+     * @param dataObj
+     * @return 
+     */
+    protected STATUS checkDeterminations(final Object dataObj)
+    {
+        // check that a current determination exists
+        if (((CollectionObject) dataObj).getDeterminations().size() > 0)
+        {
+            int currents = 0;
+            for (Determination det : ((CollectionObject) dataObj).getDeterminations())
             {
-                int currents = 0;
-                for (Determination det : ((CollectionObject) dataObj).getDeterminations())
+                if (det.isCurrentDet())
                 {
-                    if (det.isCurrentDet())
-                    {
-                        currents++;
-                    }
+                    currents++;
                 }
-                if (currents != 1)
-                {
-                    status = STATUS.Error;
-                }
+            }
+            if (currents != 1)
+            {
                 if (currents == 0)
                 {
                     reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
@@ -211,9 +222,11 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
                 {
                     reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
                 }
+                return STATUS.Error;
             }
         }
-        return status;
+        
+        return STATUS.OK;
     }
 
     /*

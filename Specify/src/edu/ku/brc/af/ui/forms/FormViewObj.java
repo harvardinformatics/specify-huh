@@ -155,6 +155,7 @@ import edu.ku.brc.ui.ToggleButtonChooserDlg;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Orderable;
+import edu.ku.brc.util.Pair;
 
 /**
  * This implements a Form and is "owed" by a MultiView.<br>
@@ -2349,9 +2350,12 @@ public class FormViewObj implements Viewable,
      * @param mv
      * @return
      */
-    private BusinessRulesIFace recurseProcessBR(final MultiView mv)
+    private Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> recurseProcessBR(final MultiView mv)
     {
-        BusinessRulesIFace busRulesRV = null;
+        Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> busRulesRV = new Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS>();
+        busRulesRV.first = null;
+        busRulesRV.second = BusinessRulesIFace.STATUS.None;
+
         FormViewObj fvo = mv.getCurrentViewAsFormViewObj();
         if (fvo != null && fvo.getAltView().getMode() == AltViewIFace.CreationMode.EDIT)
         {
@@ -2362,17 +2366,40 @@ public class FormViewObj implements Viewable,
                 BusinessRulesIFace.STATUS status = busRules.processBusinessRules(fvoDataObj);
                 if (status != BusinessRulesIFace.STATUS.OK && status != BusinessRulesIFace.STATUS.None)
                 {
-                    busRulesRV = busRules;
+                    if (status == BusinessRulesIFace.STATUS.Error ||
+                       (status == BusinessRulesIFace.STATUS.Warning &&
+                                (busRulesRV.second == BusinessRulesIFace.STATUS.OK ||
+                                 busRulesRV.second == BusinessRulesIFace.STATUS.None)))
+                    {
+                        busRulesRV.first = busRules;
+                        busRulesRV.second = status;
+                    }
+                    if (status == BusinessRulesIFace.STATUS.Error)
+                    {
+                        return busRulesRV; // don't bother recursing, return errors immediately
+                    }
                 }
             }
         }
         
         for (MultiView childMV : mv.getKids())
         {
-            BusinessRulesIFace brInError = recurseProcessBR(childMV);
-            if (brInError != null)
+            Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> brInError = recurseProcessBR(childMV);
+            if (brInError.first != null)
             {
-                return brInError;
+                if (brInError.second == BusinessRulesIFace.STATUS.Error)
+                {
+                    return brInError; // don't bother iterating, return errors immediately
+                }
+                else
+                {   // just a warning
+                    if (busRulesRV.second == BusinessRulesIFace.STATUS.OK ||
+                                 busRulesRV.second == BusinessRulesIFace.STATUS.None)
+                    {
+                        busRulesRV.first = brInError.first;
+                        busRulesRV.second = brInError.second;
+                    }
+                }
             }
         }
         return busRulesRV;
@@ -2490,11 +2517,20 @@ public class FormViewObj implements Viewable,
                 
                 //log.debug("saveObject checking businessrules for [" + (dataObjArg != null ? dataObjArg.getClass(): "null") + "]");
                 //if (businessRules != null && businessRules.processBusinessRules(dataObjArg) == BusinessRulesIFace.STATUS.Error)
-                BusinessRulesIFace busRuleInError = recurseProcessBR(mvParent);
-                if (busRuleInError != null)
+                Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> busRuleAndStatus = recurseProcessBR(mvParent);
+                BusinessRulesIFace busRule = busRuleAndStatus.first;
+                BusinessRulesIFace.STATUS status = busRuleAndStatus.second;
+                
+                if (status.equals(BusinessRulesIFace.STATUS.Error))
                 {
-                    UIRegistry.showError(busRuleInError.getMessagesAsString());
+                    UIRegistry.showError(busRule.getMessagesAsString());
                     return null;
+                }
+                else if (status.equals(BusinessRulesIFace.STATUS.Warning))
+                {
+                    boolean isOKtoContinue = UIRegistry.displayConfirmLocalized(getResourceString("WARNING"), busRule.getMessagesAsString(), getResourceString("IGNORE"), getResourceString("CANCEL"), JOptionPane.WARNING_MESSAGE);
+
+                    if (!isOKtoContinue) return null;
                 }
                 
                 // Now update the auto number fields and re-get all the data
