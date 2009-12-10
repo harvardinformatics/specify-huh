@@ -54,6 +54,7 @@ import edu.ku.brc.af.prefs.AppPrefsChangeEvent;
 import edu.ku.brc.af.prefs.AppPrefsChangeListener;
 import edu.ku.brc.af.ui.ViewBasedDialogFactoryIFace;
 import edu.ku.brc.af.ui.forms.DataGetterForObj;
+import edu.ku.brc.af.ui.forms.DataObjectGettable;
 import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
@@ -98,7 +99,7 @@ public class TextFieldWithInfo extends JPanel implements GetSetValueIFace, AppPr
     protected String             uiFieldFormatterName;
     protected String             dataObjFormatterName;
     protected Class<?>           classObj    = null;
-    protected DataGetterForObj   getter      = null;
+    protected DataObjectGettable getter      = null;
     protected String             displayInfoDialogName;
     protected String[]           fieldNames;
     protected Object             dataObj     = null;
@@ -130,6 +131,39 @@ public class TextFieldWithInfo extends JPanel implements GetSetValueIFace, AppPr
         this.keyName          = keyName;
         this.format           = format;
         this.format           = format;
+        this.uiFieldFormatterName  = uiFieldFormatterName;
+        this.displayInfoDialogName = displayInfoDialogName;
+        this.dataObjFormatterName  = dataObjFormatterName;
+        
+        textField = new JTextField();
+
+        init(objTitle);
+    }
+    
+    /**
+     * Constructor.
+     * @param className the Class name of the java object that represents the table
+     * @param idName the POJO field name of the ID column
+     * @param keyName the POJO field name of the key column
+     * @param format the format specification (null is OK if displayNames is null)
+     * @param displayInfoDialogName the name to look up to display the search dialog (from the search dialog factory)
+     */
+    public TextFieldWithInfo(final String className,
+                             final String idName,
+                             final String keyName,
+                             final String format,
+                             final String uiFieldFormatterName,
+                             final String dataObjFormatterName,
+                             final DataObjectGettable getter,
+                             final String displayInfoDialogName,
+                             final String objTitle)
+    {
+        this.className        = className;
+        this.idName           = idName;
+        this.keyName          = keyName;
+        this.format           = format;
+        this.format           = format;
+        this.getter           = getter;
         this.uiFieldFormatterName  = uiFieldFormatterName;
         this.displayInfoDialogName = displayInfoDialogName;
         this.dataObjFormatterName  = dataObjFormatterName;

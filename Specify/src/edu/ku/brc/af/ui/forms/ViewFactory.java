@@ -828,7 +828,9 @@ public class ViewFactory
         String            txtName = cellField.getProperty("name");
         if (isNotEmpty(txtName))
         {
-            textFieldInfo = TypeSearchForQueryFactory.getTextFieldWithInfo(txtName, cellField.getFormatName());
+            DataObjectGettable getter = parent.getView().getAltView(null).getViewDef().getDataGettable();
+            
+            textFieldInfo = TypeSearchForQueryFactory.getTextFieldWithInfo(txtName, cellField.getFormatName(), getter);
             if (textFieldInfo != null)
             {
                 textFieldInfo.setMultiView(parent);

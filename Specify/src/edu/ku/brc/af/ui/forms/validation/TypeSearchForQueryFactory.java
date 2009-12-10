@@ -30,6 +30,7 @@ import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.db.TextFieldWithInfo;
+import edu.ku.brc.af.ui.forms.DataObjectGettable;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -148,6 +149,43 @@ public class TypeSearchForQueryFactory
                                              typeSearchInfo.getFormat(),
                                              typeSearchInfo.getUiFieldFormatterName(),
                                              dataObjFormatterNameArg,
+                                             tblInfo.getNewObjDialog(),
+                                             tblInfo.getTitle());
+    
+            }
+            // else
+            log.error("Table with ID["+typeSearchInfo.getTableId()+"] not found.");
+        } else
+        {
+            log.error("Object Type Search Name ["+name+"] not found.");
+        }
+        return null;
+    }
+    
+    /**
+     * Creates a new ValComboBoxFromQuery by name.
+     * @param name the name of the ValComboBoxFromQuery to return
+     * @return a ValComboBoxFromQuery by name
+     */
+    public static TextFieldWithInfo getTextFieldWithInfo(final String name,
+                                                         final String dataObjFormatterNameArg,
+                                                         final DataObjectGettable getter)
+    {
+        instance.load();
+        
+        TypeSearchInfo typeSearchInfo = instance.hash.get(name);
+        if (typeSearchInfo != null)
+        {
+            DBTableInfo tblInfo = DBTableIdMgr.getInstance().getInfoById(typeSearchInfo.getTableId());
+            if (tblInfo != null)
+            {
+                return new TextFieldWithInfo(tblInfo.getClassName(),
+                                             tblInfo.getIdFieldName(),
+                                             typeSearchInfo.getSearchFieldName(),
+                                             typeSearchInfo.getFormat(),
+                                             typeSearchInfo.getUiFieldFormatterName(),
+                                             dataObjFormatterNameArg,
+                                             getter,
                                              tblInfo.getNewObjDialog(),
                                              tblInfo.getTitle());
     

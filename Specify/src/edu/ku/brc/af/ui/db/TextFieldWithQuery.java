@@ -981,10 +981,10 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
                                 Object val = array[i];
                                 if (val instanceof Calendar)
                                 {
-                                    val = scrDateFormat.format((Calendar)val);
+                                    val = String.valueOf(((Calendar)val).get(Calendar.YEAR));
                                 } else if (val instanceof Date)
                                 {
-                                    val = scrDateFormat.format((Date)val);
+                                    val = String.valueOf(((Calendar)val).get(Calendar.YEAR));
                                     
                                 } else if (val instanceof String)
                                 {
