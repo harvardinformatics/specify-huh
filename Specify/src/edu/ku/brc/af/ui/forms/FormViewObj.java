@@ -2352,57 +2352,57 @@ public class FormViewObj implements Viewable,
      */
     private Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> recurseProcessBR(final MultiView mv)
     {
-        Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> busRulesRV = new Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS>();
-        busRulesRV.first = null;
-        busRulesRV.second = BusinessRulesIFace.STATUS.None;
+        BusinessRulesIFace        resultBusRules = null;
+        BusinessRulesIFace.STATUS resultStatus   = BusinessRulesIFace.STATUS.None;
 
         FormViewObj fvo = mv.getCurrentViewAsFormViewObj();
+        
         if (fvo != null && fvo.getAltView().getMode() == AltViewIFace.CreationMode.EDIT)
         {
             Object             fvoDataObj = fvo.getCurrentDataObj();
             BusinessRulesIFace busRules   = fvo.getBusinessRules();
+            
             if (busRules != null && fvoDataObj != null)
             {
                 BusinessRulesIFace.STATUS status = busRules.processBusinessRules(fvoDataObj);
-                if (status != BusinessRulesIFace.STATUS.OK && status != BusinessRulesIFace.STATUS.None)
+                if (status.compareTo(resultStatus) > 0)
                 {
-                    if (status == BusinessRulesIFace.STATUS.Error ||
-                       (status == BusinessRulesIFace.STATUS.Warning &&
-                                (busRulesRV.second == BusinessRulesIFace.STATUS.OK ||
-                                 busRulesRV.second == BusinessRulesIFace.STATUS.None)))
+                    resultStatus = status;
+                    if (status.compareTo(BusinessRulesIFace.STATUS.OK) > 0)
                     {
-                        busRulesRV.first = busRules;
-                        busRulesRV.second = status;
-                    }
-                    if (status == BusinessRulesIFace.STATUS.Error)
-                    {
-                        return busRulesRV; // don't bother recursing, return errors immediately
+                        resultBusRules = busRules;
                     }
                 }
             }
         }
         
-        for (MultiView childMV : mv.getKids())
+        // if no errors found so far, process children
+        if (resultStatus.compareTo(BusinessRulesIFace.STATUS.Error) < 0)
         {
-            Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> brInError = recurseProcessBR(childMV);
-            if (brInError.first != null)
+            for (MultiView childMV : mv.getKids())
             {
-                if (brInError.second == BusinessRulesIFace.STATUS.Error)
+                Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> childBusRulesPair = recurseProcessBR(childMV);
+
+                BusinessRulesIFace        childBusRules = childBusRulesPair.first;
+                BusinessRulesIFace.STATUS childStatus   = childBusRulesPair.second;
+
+                if (childStatus.compareTo(resultStatus) > 0)
                 {
-                    return brInError; // don't bother iterating, return errors immediately
-                }
-                else
-                {   // just a warning
-                    if (busRulesRV.second == BusinessRulesIFace.STATUS.OK ||
-                                 busRulesRV.second == BusinessRulesIFace.STATUS.None)
+                    resultStatus = childStatus;
+                    if (childStatus.compareTo(BusinessRulesIFace.STATUS.OK) > 0)
                     {
-                        busRulesRV.first = brInError.first;
-                        busRulesRV.second = brInError.second;
+                        resultBusRules = childBusRules;
+                    }
+                    if (childStatus.compareTo(BusinessRulesIFace.STATUS.Error) >= 0)
+                    {
+                        // don't iterate further, return first error
+                        break;
                     }
                 }
             }
         }
-        return busRulesRV;
+
+        return new Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS>(resultBusRules, resultStatus);
     }
     
     /**
@@ -2518,8 +2518,9 @@ public class FormViewObj implements Viewable,
                 //log.debug("saveObject checking businessrules for [" + (dataObjArg != null ? dataObjArg.getClass(): "null") + "]");
                 //if (businessRules != null && businessRules.processBusinessRules(dataObjArg) == BusinessRulesIFace.STATUS.Error)
                 Pair<BusinessRulesIFace, BusinessRulesIFace.STATUS> busRuleAndStatus = recurseProcessBR(mvParent);
-                BusinessRulesIFace busRule = busRuleAndStatus.first;
-                BusinessRulesIFace.STATUS status = busRuleAndStatus.second;
+
+                BusinessRulesIFace        busRule = busRuleAndStatus.first;
+                BusinessRulesIFace.STATUS status  = busRuleAndStatus.second;
                 
                 if (status.equals(BusinessRulesIFace.STATUS.Error))
                 {
