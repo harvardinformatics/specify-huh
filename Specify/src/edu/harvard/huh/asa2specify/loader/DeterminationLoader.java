@@ -17,8 +17,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaDetermination;
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
@@ -36,8 +34,6 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class DeterminationLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(DeterminationLoader.class);
-    
     private SpecimenLookup specimenLookup;
     private TaxonLookup    taxonLookup;
     
@@ -64,11 +60,6 @@ public class DeterminationLoader extends CsvToSqlLoader
         
         String sql = getInsertSql(determination);
         insert(sql);
-    }
-
-    public Logger getLogger()
-    {
-        return log;
     }
 
     private AsaDetermination parse(String[] columns) throws LocalException

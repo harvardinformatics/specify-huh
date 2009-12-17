@@ -24,6 +24,8 @@ import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader
 {
+    private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
+    
     protected static final String EMPTY = "EMPTY";
     
     private static Hashtable<String, Integer> collectionIdsByCode = new Hashtable<String, Integer>();
@@ -110,8 +112,11 @@ public abstract class CsvToSqlLoader
 
     public abstract void loadRecord(String[] columns) throws LocalException;
     
-    public abstract Logger getLogger();
-    
+    protected Logger getLogger()
+    {
+        return log;
+    }
+
     public void setFrame(ProgressFrame frame)
     {
         this.frame = frame;

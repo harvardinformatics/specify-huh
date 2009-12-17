@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.PublAuthor;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -18,8 +16,6 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublAuthorLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(PublAuthorLoader.class);
-    
     private PublicationLookup   publicationLookup;
     private BotanistLookup      botanistLookup;
     
@@ -56,11 +52,6 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		String sql = getInsertSql(author);
 		insert(sql);
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	private PublAuthor parse(String[] columns) throws LocalException
 	{

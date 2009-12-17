@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -22,8 +20,6 @@ import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
 
 public class GeoUnitLoader extends TreeLoader
 {
-    private static final Logger log  = Logger.getLogger(GeoUnitLoader.class);
-            
 	private GeoUnitLookup geoLookup;
 	   
 	// root
@@ -252,11 +248,6 @@ public class GeoUnitLoader extends TreeLoader
 		    sql = getInsertSql(synonym);
 		    insert(sql);
 		}
-	}
-
-	public Logger getLogger()
-	{
-	    return log;
 	}
 	
 	public void numberNodes() throws LocalException

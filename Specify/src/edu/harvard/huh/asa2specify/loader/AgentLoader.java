@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -21,8 +19,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class AgentLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(AgentLoader.class);
-    
 	private AgentLookup        agentLookup;
 	
 	private OrganizationLookup organizationLookup;
@@ -136,11 +132,6 @@ public class AgentLoader extends CsvToSqlLoader
         	String sql = getInsertSql(shippingAddress);
         	insert(sql);
         }
-	}
-	
-	public Logger getLogger()
-	{
-	    return log;
 	}
 
 	private String getGuid(Integer agentId)

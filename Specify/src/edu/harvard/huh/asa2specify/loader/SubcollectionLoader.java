@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
@@ -26,8 +24,6 @@ import edu.ku.brc.specify.datamodel.StorageTreeDefItem;
 
 public class SubcollectionLoader extends TreeLoader
 {
-    private static final Logger log  = Logger.getLogger(SubcollectionLoader.class);
-    
     private String getGuid(Integer subcollectionId)
 	{
 		return subcollectionId + " subcoll";
@@ -208,11 +204,6 @@ public class SubcollectionLoader extends TreeLoader
 
 	}
 
-	public Logger getLogger()
-    {
-        return log;
-    }
-	
 	public void numberNodes() throws LocalException
 	{
 	    numberNodes("storage", "StorageID");

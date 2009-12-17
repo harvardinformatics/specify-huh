@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaTaxon;
 import edu.harvard.huh.asa.AsaTaxon.ENDANGERMENT;
@@ -30,9 +28,7 @@ import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 
 public class TaxonLoader extends TreeLoader
 {
-    private static final Logger log  = Logger.getLogger(TaxonLoader.class);
-    
-	private TaxonTreeDef treeDef;
+    private TaxonTreeDef treeDef;
 	
 	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
 
@@ -167,11 +163,6 @@ public class TaxonLoader extends TreeLoader
 		    insert(sql);
 		}
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	public void numberNodes() throws LocalException
 	{

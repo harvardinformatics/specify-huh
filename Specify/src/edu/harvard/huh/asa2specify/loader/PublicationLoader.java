@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.Publication;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -17,8 +15,6 @@ import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublicationLoader extends AuditedObjectLoader
 {
-    private static final Logger log  = Logger.getLogger(PublicationLoader.class);
-    
  	private PublicationLookup publicationLookup;
 	
 	public PublicationLoader(File csvFile, Statement sqlStatement) throws LocalException
@@ -53,11 +49,6 @@ public class PublicationLoader extends AuditedObjectLoader
 		String sql = getInsertSql(referenceWork);
 		insert(sql);
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	public PublicationLookup getReferenceWorkLookup()
 	{

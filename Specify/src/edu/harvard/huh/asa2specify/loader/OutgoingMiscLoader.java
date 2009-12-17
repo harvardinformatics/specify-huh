@@ -18,8 +18,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.OutgoingMisc;
@@ -34,8 +32,6 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 public class OutgoingMiscLoader extends TransactionLoader
 {
-    private static final Logger log  = Logger.getLogger(OutgoingMiscLoader.class);
-    
     private static final String DEFAULT_SHIPPING_NUMBER = "none";
     
     private CarrierLookup carrierLookup;
@@ -60,11 +56,6 @@ public class OutgoingMiscLoader extends TransactionLoader
         
         String sql = getInsertSql(shipment);
         insert(sql);
-    }
-    
-    public Logger getLogger()
-    {
-        return log;
     }
     
     private OutgoingMisc parse(String[] columns) throws LocalException

@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -20,8 +18,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends AuditedObjectLoader
 {	
-    private static final Logger log  = Logger.getLogger(BotanistLoader.class);
-    
     private BotanistLookup botanistLookup;
     private AsaIdMapper optrs;
     
@@ -90,11 +86,6 @@ public class BotanistLoader extends AuditedObjectLoader
             update(sql);
         }
 	}
-
-    public Logger getLogger()
-    {
-        return log;
-    }
 
     protected static String getGuid(Integer botanistId)
     {

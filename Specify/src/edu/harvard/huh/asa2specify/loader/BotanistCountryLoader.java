@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.BotanistRoleCountry;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -18,8 +16,6 @@ import edu.ku.brc.specify.datamodel.Geography;
 
 public class BotanistCountryLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(BotanistCountryLoader.class);
-    
     // lookups for geography
     private GeoUnitLookup geoLookup;
     private BotanistLookup  botanistLookup;
@@ -49,11 +45,6 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		// convert agentgeography to sql and insert
 		String sql = getInsertSql(agentGeography);
 		insert(sql);
-	}
-
-	public Logger getLogger()
-	{
-	    return log;
 	}
 
 	private BotanistRoleCountry parse(String[] columns) throws LocalException

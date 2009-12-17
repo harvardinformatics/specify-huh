@@ -4,8 +4,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.Site;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -20,8 +18,6 @@ import edu.ku.brc.util.LatLonConverter.FORMAT;
 
 public class SiteLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(SiteLoader.class);
-    
 	// default locality name
 	private static final String UNNAMED = "Unnamed locality";
 
@@ -58,11 +54,6 @@ public class SiteLoader extends CsvToSqlLoader
 		String sql = getInsertSql(locality);
 		insert(sql);
 	}
-	
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	@Override
     protected void postLoad() throws LocalException

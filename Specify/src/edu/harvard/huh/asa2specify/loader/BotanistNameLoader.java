@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistName.TYPE;
@@ -18,8 +16,6 @@ import edu.ku.brc.specify.datamodel.AgentVariant;
 
 public class BotanistNameLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(BotanistNameLoader.class);
-    
     private BotanistLookup botanistLookup;
     
 	public BotanistNameLoader(File csvFile, Statement sqlStatement, BotanistLookup botanistLookup)
@@ -44,11 +40,6 @@ public class BotanistNameLoader extends CsvToSqlLoader
         // convert agentvariant to sql and insert
         String sql = getInsertSql(agentVariant);
         insert(sql);
-	}
-	
-	public Logger getLogger()
-	{
-	    return log;
 	}
 	
     // botanistId, nameType, name

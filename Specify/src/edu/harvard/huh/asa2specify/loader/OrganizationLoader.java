@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -20,8 +18,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class OrganizationLoader extends AuditedObjectLoader
 {
-    private static final Logger log  = Logger.getLogger(OrganizationLoader.class);
-	
 	private OrganizationLookup organizationLookup;
 	
 	private String getGuid(Integer organizationId)
@@ -66,6 +62,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 		}
 		return organizationLookup;
 	}
+	
 	private Agent lookup(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getById(botanistId);
@@ -117,11 +114,6 @@ public class OrganizationLoader extends AuditedObjectLoader
         }
 
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	private Integer getBotanistId(Integer organizationId)
 	{

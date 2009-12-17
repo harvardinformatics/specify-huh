@@ -3,8 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -16,8 +14,6 @@ import edu.ku.brc.specify.datamodel.AgentSpecialty;
 
 public class BotanistSpecialtyLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(BotanistSpecialtyLoader.class);
-    
     private BotanistLookup botanistLookup;
     
 	private int lastAgentId;
@@ -49,11 +45,6 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		// convert agentspecialty to sql and insert
 		String sql = getInsertSql(agentSpecialty);
 		insert(sql);
-	}
-
-	public Logger getLogger()
-	{
-	    return log;
 	}
 	
 	private BotanistRoleSpecialty parse(String[] columns) throws LocalException

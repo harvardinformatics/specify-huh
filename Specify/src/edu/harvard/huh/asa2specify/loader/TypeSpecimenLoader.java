@@ -17,8 +17,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.TypeSpecimen;
@@ -42,8 +40,6 @@ import edu.ku.brc.specify.datamodel.Taxon;
 
 public class TypeSpecimenLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(TypeSpecimenLoader.class);
-    
     private SpecimenLookup      specimenLookup;
     private TaxonLookup         taxonLookup;
     private PublicationLookup   publicationLookup;
@@ -154,13 +150,6 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             }
         }
     }
-    
-
-    public Logger getLogger()
-    {
-        return log;
-    }
-    
     
     private TypeSpecimen parse(String[] columns) throws LocalException
     {

@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -20,8 +18,6 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class AffiliateLoader extends AuditedObjectLoader
 {
-    private static final Logger log  = Logger.getLogger(AffiliateLoader.class);
-    
 	private AffiliateLookup affiliateLookup;
 	
     private BotanistLookup botanistLookup;
@@ -107,11 +103,6 @@ public class AffiliateLoader extends AuditedObjectLoader
 		    insert(sql);
 		}
 	}
-
-    public Logger getLogger()
-    {
-        return log;
-    }
     
 	private Integer getBotanistId(Integer affiliateId)
 	{
