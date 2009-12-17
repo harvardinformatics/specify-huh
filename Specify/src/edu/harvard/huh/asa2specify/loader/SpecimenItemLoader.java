@@ -8,8 +8,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BDate;
 import edu.harvard.huh.asa.SpecimenItem;
@@ -48,8 +46,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 {
     // See edu.ku.brc.specify.conversion.GenericDBConversion for AttributeDef
     
-    private static final Logger log  = Logger.getLogger(SpecimenItemLoader.class);
-    
 	private Hashtable<String, PrepType> prepTypesByNameAndColl;
 	
 	private SpecimenLookup collObjLookup;
@@ -85,9 +81,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private Integer      subcollectionId  = null;
 	private String       containerStr     = null;
 	
-	// This is the next available barcode for items without them.
-	// Check with specimen_item_id_barcode.csv
-	private int nextBarcode = 900000013;
+	private int nextCatalogNumber = 1;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
@@ -235,11 +229,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             throw new LocalException(e);
         }
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	public ContainerLookup getContainerLookup()
 	{
@@ -787,6 +776,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	{
         if (specimenItem.getId() == null) return null;
         
+        Integer specimenItemId = specimenItem.getId();
+        Integer barcode = lookupBarcode(specimenItemId);
+        if (barcode == null) barcode = specimenItem.getBarcode();
+        if (barcode == null)
+        {
+            getLogger().warn(rec() + "Null barcode");
+        }
+
         Preparation preparation = new Preparation();
         
 	    // CollectionMemberId
@@ -811,17 +808,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         preparation.setRemarks(note);
         
         // SampleNumber (barcode)
-        Integer specimenItemId = specimenItem.getId();
-	    Integer barcode = lookupBarcode(specimenItemId);
-	    if (barcode == null) barcode = specimenItem.getBarcode();
-	    if (barcode == null)
-	    {
-	        getLogger().warn(rec() + "Null barcode");
-	    }
-	    else
-	    {
-	        preparation.setSampleNumber(getPreparationLookup().formatPrepBarcode(barcode));
-	    }
+        String sampleNumber = null;
+        if (barcode != null) sampleNumber = getPreparationLookup().formatPrepBarcode(barcode);
+        preparation.setSampleNumber(sampleNumber);
 
 	    // Storage
 	    Integer subcollectionId = specimenItem.getSubcollectionId();
@@ -935,23 +924,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         collectionObject.setCatalogedDatePrecision(catalogedDatePrecision);
 
         // CatalogNumber
-        Integer barcode = null;
-
         Integer specimenItemId = specimenItem.getId();
-        if (specimenItemId != null)
-        {
-            barcode = lookupBarcode(specimenItemId);
-            if (barcode == null) barcode = specimenItem.getBarcode();
-        }
-        else
+        if (specimenItemId == null)
         {
             getLogger().warn(rec() + "Null specimen item");
-            barcode = nextBarcode();
         }
-
-        checkNull(barcode, "barcode");
         
-        String catalogNumber = getPreparationLookup().formatCollObjBarcode(barcode);
+        String catalogNumber = getPreparationLookup().formatCollObjBarcode(nextCatalogNumber());
         collectionObject.setCatalogNumber(catalogNumber);
         
         // CollectionMemberID
@@ -1090,9 +1069,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return false;
 	}
 	
-	private int nextBarcode()
+	private int nextCatalogNumber()
 	{
-	    return nextBarcode++;
+	    return nextCatalogNumber++;
 	}
 
 	private Container getContainer(SpecimenItem specimenItem, Integer collectionMemberId) throws LocalException
