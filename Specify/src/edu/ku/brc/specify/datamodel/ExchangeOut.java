@@ -59,7 +59,9 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
 
     protected Integer         exchangeOutId;
     protected Calendar        exchangeDate;
+    protected Short           nonSpecimenCount;
     protected Short           quantityExchanged;
+    protected Short           typeCount;
     protected String          descriptionOfMaterial;
     
     protected String          srcGeography;
@@ -103,7 +105,9 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         
         exchangeOutId    = null;
         exchangeDate     = null;
+        nonSpecimenCount = null;
         quantityExchanged = null;
+        typeCount        = null;
         descriptionOfMaterial = null;
         srcGeography     = null;
         srcTaxonomy      = null;
@@ -175,7 +179,19 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     {
         this.exchangeDate = exchangeDate;
     }
-
+    
+    /**
+     *      * Number of nonspecimens sent
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Short nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
     /**
      *      * Number of items sent
      */
@@ -191,9 +207,21 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     }
 
     /**
+     *      * Number of types sent
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Short typeCount) {
+        this.typeCount = typeCount;
+    }
+    
+    /**
      * 
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 120)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
     public String getDescriptionOfMaterial() 
     {
         return this.descriptionOfMaterial;

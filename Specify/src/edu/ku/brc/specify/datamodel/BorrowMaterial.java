@@ -57,7 +57,11 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
      protected Integer borrowMaterialId;
      protected String  materialNumber;
      protected String  description;
+     protected String  higherTaxon;
+     protected String  srcTaxonomy;
+     protected Short   nonSpecimenCount;
      protected Short   quantity;
+     protected Short   typeCount;
      protected String  outComments;
      protected String  inComments;
      protected Short   quantityResolved;
@@ -89,7 +93,11 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
         borrowMaterialId = null;
         materialNumber = null;
         description = null;
+        srcTaxonomy = null;
+        higherTaxon = null;
+        nonSpecimenCount = null;
         quantity = null;
+        typeCount = null;
         outComments = null;
         inComments = null;
         quantityResolved = null;
@@ -151,7 +159,7 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     /**
      *      * Description of the material. 'e.g. Bufo bufo skull'
      */
-    @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
     public String getDescription() {
         return this.description;
     }
@@ -159,9 +167,55 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     public void setDescription(String description) {
         this.description = description;
     }
+    
+    /**
+     * @return the family or other higher taxon group
+     */
+    @Column(name = "higherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getHigherTaxon()
+    {
+        return higherTaxon;
+    }
 
     /**
-     *      * Number of specimens (for lots)
+     * @return the genera involved in the borrow
+     */
+    @Column(name = "SrcTaxonomy", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
+    public String getSrcTaxonomy()
+    {
+        return srcTaxonomy;
+    }
+
+    /**
+     * @param srcTaxonomy the srcTaxonomy to set
+     */
+    public void setSrcTaxonomy(String srcTaxonomy)
+    {
+        this.srcTaxonomy = srcTaxonomy;
+    }
+
+    /**
+     * @param higher taxon to set
+     */
+    public void setHigherTaxon(String higherTaxon)
+    {
+        this.higherTaxon = higherTaxon;
+    }
+    
+    /**
+     *      * Number of non specimen items (for lots)
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Short nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
+    /**
+     *      * Total number of specimens (for lots)
      */
     @Column(name = "Quantity", unique = false, nullable = true, insertable = true, updatable = true)
     public Short getQuantity() {
@@ -171,7 +225,19 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     public void setQuantity(Short quantity) {
         this.quantity = quantity;
     }
-
+    
+    /**
+     *      * Number of type specimens (for lots)
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Short typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      *      * Notes concerning the return of the material
      */

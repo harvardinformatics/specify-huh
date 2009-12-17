@@ -54,7 +54,9 @@ public class BorrowReturnMaterial extends CollectionMember implements java.io.Se
 
      protected Integer        borrowReturnMaterialId;
      protected Calendar       returnedDate;
+     protected Short          nonSpecimenCount;
      protected Short          quantity;
+     protected Short          typeCount;
      protected String         remarks;
      protected Agent          agent;
      protected BorrowMaterial borrowMaterial;
@@ -82,7 +84,9 @@ public class BorrowReturnMaterial extends CollectionMember implements java.io.Se
         super.init();
         borrowReturnMaterialId = null;
         returnedDate = null;
+        nonSpecimenCount = null;
         quantity = null;
+        typeCount = null;
         remarks = null;
         agent = null;
         borrowMaterial = null;
@@ -138,7 +142,19 @@ public class BorrowReturnMaterial extends CollectionMember implements java.io.Se
     public void setReturnedDate(Calendar returnedDate) {
         this.returnedDate = returnedDate;
     }
-
+    
+    /**
+     *      * Number of non specimen items (for lots)
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Short nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
     /**
      *      * Quantity of preparations returned
      */
@@ -151,6 +167,18 @@ public class BorrowReturnMaterial extends CollectionMember implements java.io.Se
         this.quantity = quantity;
     }
 
+    /**
+     *      * Number of type specimens (for lots)
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Short typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      * 
      */

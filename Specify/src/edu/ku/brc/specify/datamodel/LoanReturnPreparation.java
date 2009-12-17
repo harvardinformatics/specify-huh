@@ -53,9 +53,11 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
 
     protected Integer                loanReturnPreparationId;
     protected Calendar               returnedDate;
+    protected Integer                nonSpecimenCount;
     protected Integer                quantityResolved;
     protected Integer                quantityReturned;
     protected String                 remarks;
+    protected Boolean                yesNo1;
     protected LoanPreparation        loanPreparation;
     protected DeaccessionPreparation deaccessionPreparation;
     protected Agent                  receivedBy;
@@ -81,9 +83,11 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
         super.init();
         loanReturnPreparationId = null;
         returnedDate            = null;
+        nonSpecimenCount        = null;
         quantityResolved        = null;
         quantityReturned        = null;
         remarks                 = null;
+        yesNo1                  = null;
         loanPreparation         = null;
         deaccessionPreparation  = null;
         receivedBy              = null;
@@ -141,6 +145,18 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
     }
 
     /**
+     *      * Number of nonspecimen items received
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Integer nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
+    /**
      * Number of specimens returned, deaccessioned or otherwise accounted for. (necessary for Lots)
      */
     @Column(name = "QuantityResolved", unique = false, nullable = true, insertable = true, updatable = true)
@@ -181,6 +197,18 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
         this.remarks = remarks;
     }
 
+    /**
+     *      * User definable
+     */
+    @Column(name="YesNo1", unique = false, nullable = true, updatable = true, insertable = true)
+    public Boolean getYesNo1() {
+        return this.yesNo1;
+    }
+    
+    public void setYesNo1(Boolean yesNo1) {
+        this.yesNo1 = yesNo1;
+    }
+    
     /**
      *      * Link to LoanPreparation table
      */

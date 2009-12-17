@@ -76,6 +76,12 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
     protected String                      text3;
     protected Float                       number1;
     protected Float                       number2;
+    protected Short                       discardCount;
+    protected Short                       distributeCount;
+    protected Short                       itemCount;
+    protected Short                       nonSpecimenCount;
+    protected Short                       returnCount;
+    protected Short                       typeCount;
     protected String                      remarks;
     protected Boolean                     yesNo1;
     protected Boolean                     yesNo2;
@@ -124,6 +130,12 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
         text3 = null;
         number1 = null;
         number2 = null;
+        discardCount = null;
+        distributeCount = null;
+        itemCount = null;
+        nonSpecimenCount = null;
+        returnCount = null;
+        typeCount = null;
         remarks = null;
         yesNo1 = null;
         yesNo2 = null;
@@ -377,7 +389,79 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
+    
+    /**
+     *      * Number of specimens discarded
+     */
+    @Column(name = "DiscardCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getDiscardCount() {
+        return this.discardCount;
+    }
+    
+    public void setDiscardCount(Short discardCount) {
+        this.discardCount = discardCount;
+    }
+    
+    /**
+     *      * Number of specimens distributed
+     */
+    @Column(name = "DistributeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getDistributeCount() {
+        return this.distributeCount;
+    }
+    
+    public void setDistributeCount(Short distributeCount) {
+        this.distributeCount = distributeCount;
+    }
+    
+    /**
+     *      * Number of nonspecimen received
+     */
+    @Column(name = "ItemCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getItemCount() {
+        return this.itemCount;
+    }
+    
+    public void setItemCount(Short itemCount) {
+        this.itemCount = itemCount;
+    }
 
+    /**
+     *      * Number of nonspecimen received
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Short nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
+    /**
+     *      * Number of specimens returned
+     */
+    @Column(name = "ReturnCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getReturnCount() {
+        return this.returnCount;
+    }
+    
+    public void setReturnCount(Short returnCount) {
+        this.returnCount = returnCount;
+    }
+    
+    /**
+     *      * Number of types received
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Short typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      *      * User definable
      */

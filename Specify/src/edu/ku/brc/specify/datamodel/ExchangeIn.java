@@ -55,7 +55,12 @@ public class ExchangeIn extends DataModelObjBase implements java.io.Serializable
 
     protected Integer         exchangeInId;
     protected Calendar        exchangeDate;
+    protected Short           discardCount;
+    protected Short           distributeCount;
+    protected Short           nonSpecimenCount;
     protected Short           quantityExchanged;
+    protected Short           returnCount;
+    protected Short           typeCount;
     protected String          descriptionOfMaterial;
     
     protected String          srcGeography;
@@ -97,7 +102,12 @@ public class ExchangeIn extends DataModelObjBase implements java.io.Serializable
         super.init();
         exchangeInId = null;
         exchangeDate = null;
+        discardCount = null;
+        distributeCount = null;
+        nonSpecimenCount = null;
         quantityExchanged = null;
+        returnCount = null;
+        typeCount = null;
         descriptionOfMaterial = null;
         srcGeography     = null;
         srcTaxonomy      = null;
@@ -165,7 +175,43 @@ public class ExchangeIn extends DataModelObjBase implements java.io.Serializable
     public void setExchangeDate(Calendar exchangeDate) {
         this.exchangeDate = exchangeDate;
     }
-
+    
+    /**
+     *      * Number of specimens discarded
+     */
+    @Column(name = "DiscardCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getDiscardCount() {
+        return this.discardCount;
+    }
+    
+    public void setDiscardCount(Short discardCount) {
+        this.discardCount = discardCount;
+    }
+    
+    /**
+     *      * Number of specimens distributed
+     */
+    @Column(name = "DistributeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getDistributeCount() {
+        return this.distributeCount;
+    }
+    
+    public void setDistributeCount(Short distributeCount) {
+        this.distributeCount = distributeCount;
+    }
+    
+    /**
+     *      * Number of nonspecimen items received
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Short nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+        
     /**
      *      * Number of items received
      */
@@ -177,11 +223,35 @@ public class ExchangeIn extends DataModelObjBase implements java.io.Serializable
     public void setQuantityExchanged(Short quantityExchanged) {
         this.quantityExchanged = quantityExchanged;
     }
-
+    
+    /**
+     *      * Number of specimens returned
+     */
+    @Column(name = "ReturnCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getReturnCount() {
+        return this.returnCount;
+    }
+    
+    public void setReturnCount(Short returnCount) {
+        this.returnCount = returnCount;
+    }
+    
+    /**
+     *      * Number of types received
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Short typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      * 
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 120)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
     public String getDescriptionOfMaterial() {
         return this.descriptionOfMaterial;
     }

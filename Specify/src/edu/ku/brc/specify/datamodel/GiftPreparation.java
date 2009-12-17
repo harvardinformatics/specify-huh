@@ -49,6 +49,9 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
 
     protected Integer                       giftPreparationId;
     protected Integer                       quantity;
+    protected Integer                       itemCount;
+    protected Integer                       nonSpecimenCount;
+    protected Integer                       typeCount;
     protected String                        descriptionOfMaterial;
     protected String                        outComments;          // Shipped Comments
     protected String                        inComments;           // Returned Comments
@@ -79,6 +82,9 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
         super.init();
         giftPreparationId = null;
         quantity = null;
+        itemCount = null;
+        nonSpecimenCount = null;
+        typeCount = null;
         descriptionOfMaterial = null;
         outComments = null;
         inComments = null;
@@ -138,6 +144,42 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
         this.quantity = quantity;
     }
 
+    /**
+     *      * Number of general collections items given
+     */
+    @Column(name = "ItemCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getItemCount() {
+        return this.itemCount;
+    }
+    
+    public void setItemCount(Integer itemCount) {
+        this.itemCount = itemCount;
+    }
+    
+    /**
+     *      * Number of nonspecimens given
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Integer nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
+    /**
+     *      * Number of types given
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Integer typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      * Description of gifted material (intended to be used for non-cataloged items, i.e. when PreparationID is null)
      */

@@ -59,8 +59,12 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     protected String                        outComments;          // Shipped Comments
     protected String                        inComments;           // Returned Comments
     protected String                        receivedComments;     // Received Comments
+    protected String                        higherTaxon;
+    protected String                        srcTaxonomy;
+    protected Integer                       nonSpecimenCount;
     protected Integer                       quantityResolved;
     protected Integer                       quantityReturned;
+    protected Integer                       typeCount;
     protected Boolean                       isResolved;
     protected Preparation                   preparation;
     protected Loan                          loan;
@@ -92,8 +96,12 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
         outComments = null;
         inComments = null;
         receivedComments = null;
+        higherTaxon = null;
+        srcTaxonomy = null;
+        nonSpecimenCount = null;
         quantityResolved = null;
         quantityReturned = null;
+        typeCount = null;
         isResolved = false;
         preparation = null;
         loan = null;
@@ -169,7 +177,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     /**
      *      * Description of loaned material (intended to be used for non-cataloged items, i.e. when PreparationID is null)
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length=4096)
     public String getDescriptionOfMaterial() 
     {
         return this.descriptionOfMaterial;
@@ -224,7 +232,53 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     {
         this.receivedComments = receivedComments;
     }
+    
+    /**
+     * @return the family or other higher taxon group
+     */
+    @Column(name = "higherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getHigherTaxon()
+    {
+        return higherTaxon;
+    }
 
+    /**
+     * @param higher taxon to set
+     */
+    public void setHigherTaxon(String higherTaxon)
+    {
+        this.higherTaxon = higherTaxon;
+    }
+    
+    /**
+     * @return the srcTaxonomy
+     */
+    @Column(name = "SrcTaxonomy", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
+    public String getSrcTaxonomy()
+    {
+        return srcTaxonomy;
+    }
+
+    /**
+     * @param srcTaxonomy the srcTaxonomy to set
+     */
+    public void setSrcTaxonomy(String srcTaxonomy)
+    {
+        this.srcTaxonomy = srcTaxonomy;
+    }
+    
+    /**
+     *      * Number of nonspecimen items sent
+     */
+    @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getNonSpecimenCount() {
+        return this.nonSpecimenCount;
+    }
+    
+    public void setNonSpecimenCount(Integer nonSpecimenCount) {
+        this.nonSpecimenCount = nonSpecimenCount;
+    }
+    
     /**
      *      * Number of specimens returned, deaccessioned or otherwise accounted for. (necessary for Lots)
      */
@@ -251,6 +305,18 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     public void setQuantityReturned(Integer quantityReturned) 
     {
         this.quantityReturned = quantityReturned;
+    }
+    
+    /**
+     *      * Number of types sent
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Integer typeCount) {
+        this.typeCount = typeCount;
     }
     
     /**
