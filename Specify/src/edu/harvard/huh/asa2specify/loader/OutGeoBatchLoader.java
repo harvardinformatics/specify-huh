@@ -17,8 +17,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.OutGeoBatch;
 import edu.harvard.huh.asa.Transaction;
@@ -30,8 +28,6 @@ import edu.ku.brc.specify.datamodel.GiftPreparation;
 
 public class OutGeoBatchLoader extends CsvToSqlLoader
 {
-    private static Logger log = Logger.getLogger(OutGeoBatchLoader.class);
-
     private OutgoingGiftLookup outGiftLookup;
     
     public OutGeoBatchLoader(File csvFile,
@@ -41,12 +37,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         super(csvFile, sqlStatement);
         
         this.outGiftLookup = outGiftLookup;
-    }
-
-    @Override
-    public Logger getLogger()
-    {
-        return log;
     }
 
     @Override
@@ -104,20 +94,27 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         if (geoUnit != null) geoUnit = truncate(geoUnit, 255, "src geography");
         giftPrep.setDescriptionOfMaterial(geoUnit);
         
+        // Discipline
+        giftPrep.setDiscipline(getBotanyDiscipline());
+        
         // Gift
         Integer transactionId = outGeoBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
         
         Gift gift = lookupGift(transactionId);
         giftPrep.setGift(gift);
-
-        // OutComments (itemCount, typeCount, nonSpecimenCount)
-        String itemCountNote = outGeoBatch.getItemCountNote();
-        giftPrep.setOutComments(itemCountNote);
+        
+        // NonSpecimenCount
+        int nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
+        giftPrep.setNonSpecimenCount(nonSpecimenCount);
 
         // Quantity (itemCount + typeCount + nonSpecimenCount)
         int quantity = outGeoBatch.getBatchQuantity();
         giftPrep.setQuantity(quantity);
+        
+        // TypeCount
+        int typeCount = outGeoBatch.getTypeCount();
+        giftPrep.setTypeCount(typeCount);
         
         return giftPrep;
     }
@@ -129,17 +126,20 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     
     private String getInsertSql(GiftPreparation giftPrep)
     {
-        String fieldNames = "DescriptionOfMaterial, GiftID, " +
-                            "OutComments, Quantity, TimestampCreated, Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, GiftID, " +
+                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, " +
+                            "Version";
         
-        String[] values = new String[6];
+        String[] values = new String[8];
         
         values[0] = SqlUtils.sqlString( giftPrep.getDescriptionOfMaterial());
-        values[1] = SqlUtils.sqlString( giftPrep.getGift().getId());
-        values[2] = SqlUtils.sqlString( giftPrep.getOutComments());
-        values[3] = SqlUtils.sqlString( giftPrep.getQuantity());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( giftPrep.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( giftPrep.getGift().getId());
+        values[3] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
+        values[4] = SqlUtils.sqlString( giftPrep.getQuantity());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.sqlString( giftPrep.getTypeCount());
+        values[7] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("giftpreparation", fieldNames, values);
     }

@@ -18,8 +18,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.OutgoingExchange;
 import edu.harvard.huh.asa.Transaction.TYPE;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -31,8 +29,6 @@ import edu.ku.brc.specify.datamodel.ExchangeOut;
 
 public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
 {
-    private static final Logger log  = Logger.getLogger(OutgoingExchangeLoader.class);
-            
     private OutgoingExchangeLookup outExchangeLookup;
     
     public OutgoingExchangeLoader(File csvFile,  Statement sqlStatement) throws LocalException
@@ -51,11 +47,6 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
         
         String sql = getInsertSql(exchangeOut);
         insert(sql);
-    }
-    
-    public Logger getLogger()
-    {
-        return log;
     }
     
     public OutgoingExchangeLookup getOutgoingExchangeLookup()
@@ -106,13 +97,10 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
         // CreatedByAgentID
         exchangeOut.setCreatedByAgent(createdByAgent);
         
-        // DescriptionOfMaterial
-        String descriptionOfMaterial = outExchange.getDescription();
-        if (descriptionOfMaterial != null)
-        {
-            descriptionOfMaterial = truncate(descriptionOfMaterial, 120, "description");
-        	exchangeOut.setDescriptionOfMaterial(descriptionOfMaterial);
-        }
+        // DescriptionOfMaterial (description + [boxCount])
+        String description = getDescriptionOfMaterial(outExchange);
+        if (description != null) description = truncate(description, 512, "description");
+        exchangeOut.setDescriptionOfMaterial(description);
         
         // DivisionID
         exchangeOut.setDivision(getBotanyDivision());
@@ -154,19 +142,17 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
             exchangeOut.setSrcGeography(geoUnit);
         }
         
-        // SrcTaxonomy
-
-        // Text1 (boxCount, typeCount, nonSpecimenCount)
-        String description = outExchange.getItemCountNote();
-        exchangeOut.setText1(description);
-        
-        // Text2 (localUnit, agent)
+        // SrcTaxonomy (local unit)
         String localUnit = outExchange.getLocalUnit();
-        String agentName = outExchange.getForUseBy();
+        exchangeOut.setSrcTaxonomy(localUnit);
         
-        String text2 = localUnit + (agentName == null ? "" : ".  For use by " + agentName);
- 
-        exchangeOut.setText2(text2);
+        // Text1 (for use by)
+        String forUseBy = outExchange.getForUseBy();
+        exchangeOut.setText1(forUseBy);
+        
+        // Text2 (purpose)
+        String purpose = outExchange.getPurpose().name();
+        exchangeOut.setText2(purpose);
         
         // TimestampCreated
         Date dateCreated = outExchange.getDateCreated();
@@ -186,27 +172,31 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
     private String getInsertSql(ExchangeOut exchangeOut)
     {
         String fieldNames = "CatalogedByID, CreatedByAgentID, DescriptionOfMaterial, DivisionID, " +
-                            "ExchangeDate, Number1, QuantityExchanged, Remarks, SentToOrganizationID, " +
-                            "SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+                            "ExchangeDate, NonSpecimenCount, Number1, QuantityExchanged, Remarks, " +
+                            "SentToOrganizationID, SrcGeography, SrcTaxonomy, Text1, Text2, " +
+                            "TimestampCreated, TypeCount, Version, YesNo1, YesNo2";
 
-        String[] values = new String[16];
+        String[] values = new String[19];
 
         values[0]  = SqlUtils.sqlString( exchangeOut.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeOut.getCreatedByAgent().getId());
         values[2]  = SqlUtils.sqlString( exchangeOut.getDescriptionOfMaterial());
         values[3]  = SqlUtils.sqlString( exchangeOut.getDivision().getId());
         values[4]  = SqlUtils.sqlString( exchangeOut.getExchangeDate());
-        values[5]  = SqlUtils.sqlString( exchangeOut.getNumber1());
-        values[6]  = SqlUtils.sqlString( exchangeOut.getQuantityExchanged());
-        values[7]  = SqlUtils.sqlString( exchangeOut.getRemarks());
-        values[8]  = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
-        values[9]  = SqlUtils.sqlString( exchangeOut.getSrcGeography());
-        values[10] = SqlUtils.sqlString( exchangeOut.getText1());
-        values[11] = SqlUtils.sqlString( exchangeOut.getText2());
-        values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
-        values[13] = SqlUtils.zero();
-        values[14] = SqlUtils.sqlString( exchangeOut.getYesNo1());
-        values[15] = SqlUtils.sqlString( exchangeOut.getYesNo2());
+        values[5]  = SqlUtils.sqlString( exchangeOut.getNonSpecimenCount());
+        values[6]  = SqlUtils.sqlString( exchangeOut.getNumber1());
+        values[7]  = SqlUtils.sqlString( exchangeOut.getQuantityExchanged());
+        values[8]  = SqlUtils.sqlString( exchangeOut.getRemarks());
+        values[9]  = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
+        values[10] = SqlUtils.sqlString( exchangeOut.getSrcGeography());
+        values[11] = SqlUtils.sqlString( exchangeOut.getSrcTaxonomy());
+        values[12] = SqlUtils.sqlString( exchangeOut.getText1());
+        values[13] = SqlUtils.sqlString( exchangeOut.getText2());
+        values[14] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
+        values[15] = SqlUtils.sqlString( exchangeOut.getTypeCount());
+        values[16] = SqlUtils.zero();
+        values[17] = SqlUtils.sqlString( exchangeOut.getYesNo1());
+        values[18] = SqlUtils.sqlString( exchangeOut.getYesNo2());
         
         return SqlUtils.getInsertSql("exchangeout", fieldNames, values);
     }

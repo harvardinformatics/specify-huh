@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.LoanItem;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
@@ -22,8 +20,6 @@ import edu.ku.brc.specify.datamodel.Preparation;
 // Run this class after SpecimenItemLoader and TransactionLoader
 public class LoanItemLoader extends CsvToSqlLoader
 {
-    private static final Logger log  = Logger.getLogger(LoanItemLoader.class);
-    
     private PreparationLookup prepLookup;
     private LoanLookup        loanLookup;
     
@@ -71,11 +67,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 		    sql = getInsertSql(loanReturnPreparation);
 		    insert(sql);
 		}
-	}
-
-	public Logger getLogger()
-	{
-	    return log;
 	}
 	
 	private Integer lookupBarcode(Integer barcode)
@@ -134,6 +125,9 @@ public class LoanItemLoader extends CsvToSqlLoader
 	{
 		LoanPreparation loanPreparation = new LoanPreparation();
 		
+        // Discipline
+        loanPreparation.setDiscipline(getBotanyDiscipline());
+        
 		// InComments
 		String transferredFrom = loanItem.getTransferredFrom();
 		if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
@@ -212,23 +206,24 @@ public class LoanItemLoader extends CsvToSqlLoader
 
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
-		String fieldNames = "DescriptionOfMaterial, InComments, IsResolved, LoanID, " +
+		String fieldNames = "DescriptionOfMaterial, DisciplineID, InComments, IsResolved, LoanID, " +
 				            "OutComments, PreparationID, Quantity, QuantityResolved, QuantityReturned, TimestampCreated, " +
 				            "Version";
 		
-		String[] values = new String[11];
+		String[] values = new String[12];
 		
 		values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
-		values[1]  = SqlUtils.sqlString( loanPreparation.getInComments());
-		values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
-		values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-		values[4]  = SqlUtils.sqlString( loanPreparation.getOutComments());
-		values[5]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.zero();
+		values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
+		values[2]  = SqlUtils.sqlString( loanPreparation.getInComments());
+		values[3]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
+		values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+		values[5]  = SqlUtils.sqlString( loanPreparation.getOutComments());
+		values[6]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+		values[9]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+		values[10] = SqlUtils.now();
+		values[11] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}

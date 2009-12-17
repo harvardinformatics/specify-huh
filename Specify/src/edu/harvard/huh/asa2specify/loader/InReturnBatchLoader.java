@@ -5,8 +5,6 @@ import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.InReturnBatch;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -16,9 +14,7 @@ import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 
 public class InReturnBatchLoader extends ReturnBatchLoader
-{
-    private static final Logger log  = Logger.getLogger(InReturnBatchLoader.class);
-    
+{ 
 	private LoanPreparationLookup loanPrepLookup;
 	
 	public InReturnBatchLoader(File csvFile,
@@ -42,11 +38,12 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 		
 		String sql = getInsertSql(loanReturnPreparation);
 		insert(sql);
-	}
-
-	public Logger getLogger()
-	{
-	    return log;
+		
+		String transferredTo = inReturnBatch.getTransferredTo();
+		if (transferredTo != null)
+		{
+		    sql = getUpdateSql(loanReturnPreparation.getLoanPreparation(), transferredTo);
+		}
 	}
 	
 	private InReturnBatch parse(String[] columns) throws LocalException
@@ -70,6 +67,9 @@ public class InReturnBatchLoader extends ReturnBatchLoader
     	
         LoanReturnPreparation loanReturnPreparation = new LoanReturnPreparation();
         
+        // Discipline
+        loanReturnPreparation.setDiscipline(getBotanyDiscipline());
+        
         // LoanPreparation
         Integer transactionId = inReturnBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
@@ -77,21 +77,17 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         LoanPreparation loanPreparation = lookupLoanPrep(transactionId);
         loanReturnPreparation.setLoanPreparation(loanPreparation);
         
-        // QuantityResolved/QuantityReturned (itemCount)
+        // NonSpecimenCount
+        int nonSpecimenCount = inReturnBatch.getNonSpecimenCount();
+        loanReturnPreparation.setNonSpecimenCount(nonSpecimenCount);
+        
+        // QuantityReturned
         int quantity = inReturnBatch.getBatchQuantity();
-        loanReturnPreparation.setQuantityResolved(quantity);
         loanReturnPreparation.setQuantityReturned(quantity);
         
-        // Remarks (item/type/nonsp counts, boxCount, isAcknowledged, transferredTo)
-        String remarks = getRemarks(inReturnBatch);
-        String transferNote = inReturnBatch.getTransferNote();
-        
-        if (remarks != null || transferNote != null)
-        {
-            if (remarks == null) remarks = transferNote;
-            else remarks = remarks + "  " + transferNote;
-        }
-        loanReturnPreparation.setRemarks(remarks);
+        // Remarks (boxCount)
+        String boxCount = inReturnBatch.getBoxCount();
+        loanReturnPreparation.setRemarks(boxCount);
         
         // ReturnedDate
         Date actionDate = inReturnBatch.getActionDate();
@@ -100,6 +96,10 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         	Calendar returnedDate = DateUtils.toCalendar(actionDate);
         	loanReturnPreparation.setReturnedDate(returnedDate);
         }
+        
+        // YesNo1 (isAcknowledged)
+        Boolean isAcknowledged = inReturnBatch.isAcknowledged();
+        loanReturnPreparation.setYesNo1(isAcknowledged);
         
         return loanReturnPreparation;
     }
@@ -111,18 +111,31 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
     {
-        String fieldNames = "LoanPreparationID, QuantityResolved, " +
-        		            "QuantityReturned, ReturnedDate, TimestampCreated, Version";
+        String fieldNames = "DisciplineID, LoanPreparationID, NonSpecimenCount, QuantityReturned, " +
+        		            "ReturnedDate, TimestampCreated, Version, YesNo1";
         
-        String[] values = new String[6];
+        String[] values = new String[8];
         
-        values[0] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-        values[1] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
-        values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-        values[3] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[0] = SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId());
+        values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
+        values[2] = SqlUtils.sqlString( loanReturnPreparation.getNonSpecimenCount());
+        values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
+        values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.zero();
+        values[7] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
+    }
+    
+    private String getUpdateSql(LoanPreparation loanPrep,  String transferredTo) throws LocalException
+    {
+        String[] fieldNames = { "OutComments" };
+
+        String[] values = new String[1];
+
+        values[0] = SqlUtils.sqlString( transferredTo);
+        
+        return SqlUtils.getUpdateSql("loanpreparation", fieldNames, values, "LoanPreparationID", SqlUtils.sqlString(loanPrep.getId()));
     }
 }

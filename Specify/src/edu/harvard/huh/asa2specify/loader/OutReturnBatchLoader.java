@@ -6,8 +6,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.OutReturnBatch;
@@ -27,8 +25,6 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 public class OutReturnBatchLoader extends ReturnBatchLoader
 {
-    private static final Logger log  = Logger.getLogger(OutReturnBatchLoader.class);
-    
     private static final String DEFAULT_SHIPPING_NUMBER = "none";
     
 	private BorrowMaterialLookup borrowMaterialLookup;
@@ -67,11 +63,6 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		sql = getInsertSql(shipment);
 		insert(sql);
 	}
-
-	public Logger getLogger()
-    {
-        return log;
-    }
 	
 	private OutReturnBatch parse(String[] columns) throws LocalException
 	{
@@ -122,13 +113,17 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		Integer collectionMemberId = getCollectionId(collectionCode);
 		borrowReturnMaterial.setCollectionMemberId(collectionMemberId);
 		
-		// Quantity
+		// NonSpecimenCount
+		int nonSpecimenCount = outReturnBatch.getNonSpecimenCount();
+		borrowReturnMaterial.setNonSpecimenCount((short) nonSpecimenCount);
+		
+		// Quantity (itemCount + typeCount + nonSpecimenCount)
 		short quantity = outReturnBatch.getBatchQuantity();
 		borrowReturnMaterial.setQuantity(quantity);
 		
-		// Remarks (type and non-specimen count)
-		String remarks = getRemarks(outReturnBatch);
-		borrowReturnMaterial.setRemarks(remarks);
+		// Remarks
+		String note = outReturnBatch.getNote();
+		borrowReturnMaterial.setRemarks(note);
 		
 		// ReturnedDate (actionDate)
 		Date actionDate = outReturnBatch.getActionDate();
@@ -138,6 +133,9 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 			borrowReturnMaterial.setReturnedDate(returnedDate);
 		}
 		
+		// TypeCount
+		int typeCount = outReturnBatch.getTypeCount();
+		borrowReturnMaterial.setTypeCount((short) typeCount);
 		return borrowReturnMaterial;
 	}
 	
@@ -241,18 +239,20 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
-		String fields = "BorrowMaterialID, CollectionMemberID, Quantity, " +
-				        "Remarks, ReturnedDate, TimestampCreated, Version";
+		String fields = "BorrowMaterialID, CollectionMemberID, NonSpecimenCount, Quantity, " +
+				        "Remarks, ReturnedDate, TimestampCreated, TypeCount, Version";
 		
-		String[] values = new String[7];
+		String[] values = new String[9];
 		
 		values[0] = SqlUtils.sqlString( borrowReturnMaterial.getBorrowMaterial().getId());
 		values[1] = SqlUtils.sqlString( borrowReturnMaterial.getCollectionMemberId());
-		values[2] = SqlUtils.sqlString( borrowReturnMaterial.getQuantity());
-		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
-		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
-		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.zero();
+		values[2] = SqlUtils.sqlString( borrowReturnMaterial.getNonSpecimenCount());
+		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getQuantity());
+		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
+		values[5] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
+		values[6] = SqlUtils.now();
+		values[7] = SqlUtils.sqlString( borrowReturnMaterial.getTypeCount());
+		values[8] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("borrowreturnmaterial", fields, values);
 	}

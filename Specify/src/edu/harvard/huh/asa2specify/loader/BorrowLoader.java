@@ -18,8 +18,6 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.AsaBorrow;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.ROLE;
@@ -38,8 +36,6 @@ import edu.ku.brc.specify.datamodel.BorrowMaterial;
 
 public class BorrowLoader extends TaxonBatchTransactionLoader
 {
-    private static final Logger log  = Logger.getLogger(BorrowLoader.class);
-    
     private static final String DEFAULT_BORROW_NUMBER = "none";
     
     private BorrowLookup         borrowLookup;
@@ -96,11 +92,6 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         BorrowMaterial borrowMaterial = getBorrowMaterial(asaBorrow, borrow, collectionMemberId);
         sql = getInsertSql(borrowMaterial);
         insert(sql);
-    }
-
-    public Logger getLogger()
-    {
-        return log;
     }
 
     public BorrowLookup getBorrowLookup()
@@ -296,11 +287,16 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // CollectionMemberID (collectionCode)
         borrowMaterial.setCollectionMemberId(collectionMemberId);
         
-        // Description (higherTaxon, taxon)
-        String taxonDescription = getTaxonDescription(asaBorrow);
-        taxonDescription = truncate(taxonDescription, 50, "taxon description");
-        borrowMaterial.setDescription(taxonDescription);
+        // Description
+        String description = asaBorrow.getDescription();
+        description = truncate(description, 512, "description");
+        borrowMaterial.setDescription(description);
    
+        // HigherTaxon
+        String higherTaxon = asaBorrow.getHigherTaxon();
+        higherTaxon = truncate(higherTaxon, 32, "higher taxon");
+        borrowMaterial.setHigherTaxon(higherTaxon);
+        
         // InComments (box count, type & non-specimen counts, description)
         String inComments = getCountsDescription(asaBorrow);
         borrowMaterial.setInComments(inComments);
@@ -313,17 +309,34 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
 
         //borrowMaterial.setIsResolved(quantityReturned == quantity && isClosed);
         
-        // MaterialNumber (transactionId)
-        String asaBorrowId = String.valueOf(asaBorrow.getId());
-        checkNull(asaBorrowId, "transaction id");
+        // MaterialNumber (transaction no)
+        String transactionNo = asaBorrow.getTransactionNo();
+        if ( transactionNo == null)
+        {
+            transactionNo = DEFAULT_BORROW_NUMBER;
+        }
+        transactionNo = truncate(transactionNo, 50, "material number");
         
-        borrowMaterial.setMaterialNumber(asaBorrowId);
+        borrowMaterial.setMaterialNumber(transactionNo);
+        
+        // NonSpecimenCount
+        int nonSpecimenCount = asaBorrow.getNonSpecimenCount();
+        borrowMaterial.setNonSpecimenCount((short) nonSpecimenCount);
         
         // Quantity (itemCount + typeCount + nonSpecimenCount)
         borrowMaterial.setQuantity((short) quantity);
         
         // QuantityReturned
         borrowMaterial.setQuantityReturned((short) quantityReturned);
+        
+        // SrcTaxonomy
+        String taxon = asaBorrow.getTaxon();
+        taxon = truncate(taxon, 512, "taxon");
+        borrowMaterial.setSrcTaxonomy(taxon);
+        
+        // TypeCount
+        int typeCount = asaBorrow.getTypeCount();
+        borrowMaterial.setTypeCount((short) typeCount);
         
         return borrowMaterial;
     }
@@ -375,20 +388,26 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
-        String fields = "BorrowID, CollectionMemberID, Description, InComments, MaterialNumber, " +
-                        "Quantity, QuantityReturned, TimestampCreated, Version";
+        String fields = "BorrowID, CollectionMemberID, Description, HigherTaxon, " +
+        		        "InComments, MaterialNumber, NonSpecimenCount, SrcTaxonomy, " +
+        		        "Quantity, QuantityReturned, Taxon, TimestampCreated, " +
+        		        "TypeCount, Version";
             
-        String[] values = new String[9];
+        String[] values = new String[13];
         
-        values[0] = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
-        values[1] = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
-        values[2] = SqlUtils.sqlString( borrowMaterial.getDescription());
-        values[3] = SqlUtils.sqlString( borrowMaterial.getInComments());
-        values[4] = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
-        values[5] = SqlUtils.sqlString( borrowMaterial.getQuantity());
-        values[6] = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
-        values[7] = SqlUtils.now();
-        values[8] = SqlUtils.zero();
+        values[0]  = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
+        values[1]  = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
+        values[2]  = SqlUtils.sqlString( borrowMaterial.getDescription());
+        values[3]  = SqlUtils.sqlString( borrowMaterial.getHigherTaxon());
+        values[4]  = SqlUtils.sqlString( borrowMaterial.getInComments());
+        values[5]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
+        values[6]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
+        values[7]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
+        values[7]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
+        values[8]  = SqlUtils.sqlString( borrowMaterial.getQuantity());
+        values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }

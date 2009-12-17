@@ -133,6 +133,26 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         
         return "(user: " + user + ", " + "type: " + userType + ", " + "purpose: " + purpose + ")";
     }
+
+    /**
+     * description + [boxCount]
+     * @param description
+     * @param boxCount
+     * @return
+     */
+    protected String getDescriptionOfMaterial(Transaction transaction)
+    {
+        String boxCount = transaction.getBoxCount();
+        String description = transaction.getDescription();
+        
+        if (boxCount == null) return description;
+
+        boxCount = "[box count: " + boxCount + "]";
+   
+        if (description == null) return boxCount;
+        
+        return description + " " + boxCount;
+    }
     
     protected Boolean isTheirs(REQUEST_TYPE requestType)
     {

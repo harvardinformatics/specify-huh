@@ -18,12 +18,9 @@ import java.io.File;
 import java.sql.Statement;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.ROLE;
-import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -35,15 +32,8 @@ import edu.ku.brc.specify.datamodel.GiftAgent;
 
 public class OutgoingGiftLoader extends TransactionLoader
 {
-    private static final Logger log  = Logger.getLogger(OutgoingGiftLoader.class);
-    
-    private static final String DEFAULT_GIFT_NUMBER = "none";
     private static String DEFAULT_HERBARIUM = "A";
     
-    private AsaStringMapper nameToBotanistMapper;
-    
-    private BotanistLookup botanistLookup;
-
     private OutgoingGiftLookup outGiftLookup;
     
     public OutgoingGiftLoader(File csvFile,
@@ -52,9 +42,6 @@ public class OutgoingGiftLoader extends TransactionLoader
                               File nameToBotanist) throws LocalException
     {
         super(csvFile, sqlStatement);
-        
-        this.botanistLookup = botanistLookup;
-        this.nameToBotanistMapper = new AsaStringMapper(nameToBotanist);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -65,28 +52,6 @@ public class OutgoingGiftLoader extends TransactionLoader
         setCurrentRecordId(transactionId);
         
         Gift gift = getGift(outgoingGift);
-        //Gift gift = getOutGoingGiftLookup().getById(outgoingGift.getId());
-        
-        String forUseBy = outgoingGift.getForUseBy();
-        Agent contactAgent = null;
-        Agent receiverAgent = null;
-        
-        contactAgent = lookupAgent(outgoingGift);
-
-        if (forUseBy != null)
-        {
-            Integer botanistId = getBotanistId(forUseBy);
-            
-            if (botanistId != null)
-            { 
-                receiverAgent = lookup(botanistId);
-                gift.setText2(getText2(outgoingGift.getLocalUnit(), null));
-            }
-            else
-            {                
-                gift.setText2(getText2(outgoingGift.getLocalUnit(), forUseBy));
-            }
-        }
         
         String sql = getInsertSql(gift);
         Integer giftId = insert(sql);
@@ -100,14 +65,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         }
         Integer collectionMemberId = getCollectionId(herbariumCode);
 
-        if (contactAgent != null)
-        {
-            GiftAgent contact = getGiftAgent(contactAgent, collectionMemberId, gift, ROLE.Contact);
-
-            sql = getInsertSql(contact);
-            insert(sql);
-        }
-        
+        Agent receiverAgent = lookupAgent(outgoingGift);
         if (receiverAgent != null)
         {
             GiftAgent receiver = getGiftAgent(receiverAgent, collectionMemberId, gift, ROLE.Receiver);
@@ -115,11 +73,6 @@ public class OutgoingGiftLoader extends TransactionLoader
             sql = getInsertSql(receiver);
             insert(sql);
         }
-    }
-    
-    public Logger getLogger()
-    {
-        return log;
     }
     
     public OutgoingGiftLookup getOutGoingGiftLookup()
@@ -142,16 +95,6 @@ public class OutgoingGiftLoader extends TransactionLoader
             };
         }
         return outGiftLookup;
-    }
-    
-    private Integer getBotanistId(String name)
-    {
-        return nameToBotanistMapper.map(name);
-    }
-    
-    private Agent lookup(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getById(botanistId);
     }
     
     private OutgoingGift parse(String[] columns) throws LocalException
@@ -183,18 +126,11 @@ public class OutgoingGiftLoader extends TransactionLoader
         }
             
         // GiftNumber
-        String transactionNo = outGift.getTransactionNo();
-        if ( transactionNo == null)
-        {
-            transactionNo = DEFAULT_GIFT_NUMBER;
-        }
-        
-        transactionNo = truncate(transactionNo, 50, "gift number");    
-        gift.setGiftNumber(transactionNo);
-            
-        // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = outGift.getId();
         checkNull(transactionId, "transaction id");
+        gift.setGiftNumber(String.valueOf(transactionId));
+        
+        // Number1 (id) TODO: temporary!! remove when done!
         gift.setNumber1((float) transactionId);
         
         // PurposeOfGift
@@ -205,43 +141,32 @@ public class OutgoingGiftLoader extends TransactionLoader
         String remarks = outGift.getRemarks();
         gift.setRemarks(remarks);
         
-        // Text1 (description, boxCount)
-        String boxCountNote = outGift.getBoxCountNote();
-        String description = outGift.getDescription();
+        // SpecialConditions
+        String specialConditions = getDescriptionOfMaterial(outGift);
+        gift.setSpecialConditions(specialConditions);
+
+        // Text1 (for use by)
+        String forUseBy = outGift.getForUseBy();
+        forUseBy = truncate(forUseBy, 300, "for use by");
+        gift.setText1(forUseBy);
         
-        String text1 = null;
-        
-        if (boxCountNote != null || description != null)
-        {
-            if (boxCountNote == null) text1 = description;
-            else if (description == null) text1 = boxCountNote;
-            else text1 = boxCountNote + "  " + description;
-        }
-        gift.setText1(text1);
-        
-        // Text2 (localUnit, purpose, forUseBy)
-        String text2 = getText2(outGift.getLocalUnit(), outGift.getForUseBy());
-        gift.setText2(text2);
+        // Text2  (local unit)
+        String localUnit = outGift.getLocalUnit();
+        gift.setText2(localUnit);
         
         // TimestampCreated
         Date dateCreated = outGift.getDateCreated();
         gift.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-
+        
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outGift.isAcknowledged();
         gift.setYesNo1(isAcknowledged);
         
         // YesNo2 (requestType = "theirs")
-        
-        return gift;
-    }
+        Boolean isTheirs = isTheirs(outGift.getRequestType());
+        gift.setYesNo2(isTheirs);
 
-    /**
-     * "[localUnit], [purpose].  For use by [forUseBy]."
-     */
-    private String getText2(String localUnit, String forUseBy)
-    {
-        return localUnit + ", " + (forUseBy == null ? "" : "  For use by " + forUseBy + ".");
+        return gift;
     }
     
     private GiftAgent getGiftAgent(Agent agent, Integer collectionMemberId, Gift gift, ROLE role)
@@ -252,6 +177,9 @@ public class OutgoingGiftLoader extends TransactionLoader
         // Agent
         giftAgent.setAgent(agent);
 
+        // Discipline
+        giftAgent.setDiscipline(getBotanyDiscipline());
+        
         // Gift
         giftAgent.setGift(gift);
 
@@ -286,15 +214,16 @@ public class OutgoingGiftLoader extends TransactionLoader
     
     private String getInsertSql(GiftAgent giftAgent)
     {
-        String fieldNames = "AgentID, GiftID, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, DisciplineID, GiftID, Role, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( giftAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( giftAgent.getGift().getId());
-        values[2] = SqlUtils.sqlString( giftAgent.getRole());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( giftAgent.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( giftAgent.getGift().getId());
+        values[3] = SqlUtils.sqlString( giftAgent.getRole());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     } 
