@@ -18,6 +18,7 @@ import edu.harvard.huh.asa2specify.IdNotFoundException;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.ui.ProgressFrame;
@@ -25,6 +26,8 @@ import edu.ku.brc.ui.ProgressFrame;
 public abstract class CsvToSqlLoader
 {
     private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
+    
+    private static final Agent NullAgent = new Agent();
     
     protected static final String EMPTY = "EMPTY";
     
@@ -167,6 +170,11 @@ public abstract class CsvToSqlLoader
             s = s.substring(0, len);
         }
         return s;
+    }
+
+    protected static Agent NullAgent()
+    {
+        return NullAgent;
     }
 
     protected Integer getCollectionId(String code) throws LocalException
