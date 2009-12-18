@@ -136,6 +136,12 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected Integer              number2;
     
     // relationships with other tables
+    protected Agent                citInAuthor;
+    protected Agent                parAuthor;
+    protected Agent                parExAuthor;
+    protected Agent                stdAuthor;
+    protected Agent                stdExAuthor;
+    
 	protected Set<Determination>   determinations;
 	protected Set<TaxonCitation>   taxonCitations;
     protected Set<CommonNameTx>    commonNames;
@@ -218,6 +224,11 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         hybridParent2                 = null;
         hybridChildren1               = new HashSet<Taxon>();
         hybridChildren2               = new HashSet<Taxon>();
+        citInAuthor                   = null;
+        parAuthor                     = null;
+        parExAuthor                   = null;
+        stdAuthor                     = null;
+        stdExAuthor                   = null;
         determinations                = new HashSet<Determination>();
         taxonCitations                = new HashSet<TaxonCitation>();
         commonNames                   = new HashSet<CommonNameTx>();
@@ -786,6 +797,71 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         this.hybridParent2 = hybridParent2;
     }
 
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "CitInAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getCitInAuthor() {
+        return this.citInAuthor;
+    }
+    
+    public void setCitInAuthor(Agent citInAuthor) {
+        this.citInAuthor = citInAuthor;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ParAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getParAuthor() {
+        return this.parAuthor;
+    }
+    
+    public void setParAuthor(Agent parAuthor) {
+        this.parAuthor = parAuthor;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ParExAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getParExAuthor() {
+        return this.parExAuthor;
+    }
+    
+    public void setParExAuthor(Agent parExAuthor) {
+        this.parExAuthor = parExAuthor;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "StdAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getStdAuthor() {
+        return this.stdAuthor;
+    }
+    
+    public void setStdAuthor(Agent stdAuthor) {
+        this.stdAuthor = stdAuthor;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "StdExAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getStdExAuthor() {
+        return this.stdExAuthor;
+    }
+    
+    public void setStdExAuthor(Agent stdExAuthor) {
+        this.stdExAuthor = stdExAuthor;
+    }
+    
     /**
      * Returns the set of Taxon objects where this object is the hybridParent1 value.
      * 

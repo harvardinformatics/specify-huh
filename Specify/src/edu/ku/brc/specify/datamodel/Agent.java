@@ -166,6 +166,12 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     protected Set<DNASequence>              dnaSequencers;
     protected Set<FieldNotebookPageSet>     pageSetSourceAgents;
     protected Set<DataModelObjBase>         lastEditedBys;
+    
+    protected Set<Taxon>                    citInAuthorTaxa;
+    protected Set<Taxon>                    parAuthorTaxa;
+    protected Set<Taxon>                    parExAuthorTaxa;
+    protected Set<Taxon>                    stdAuthorTaxa;
+    protected Set<Taxon>                    stdExAuthorTaxa;
     */
 
     protected Set<AgentAttachment>          agentAttachments;
@@ -272,6 +278,12 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         dnaSequencers                  = new HashSet<DNASequence>();
         pageSetSourceAgents            = new HashSet<FieldNotebookPageSet>();
         lastEditedBys                  = new HashSet<DataModelObjBase>();
+        
+        citInAuthorTaxa                = new HashSet<Taxon>();
+        parAuthorTaxa                  = new HashSet<Taxon>();
+        parExAuthorTaxa                = new HashSet<Taxon>();
+        stdAuthorTaxa                  = new HashSet<Taxon>();
+        stdExAuthorTaxa                = new HashSet<Taxon>();
         */
     }
     // End Initializer
