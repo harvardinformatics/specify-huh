@@ -81,6 +81,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer nle1PublicationId = typeSpecimen.getNle1PublicationId();
         if (nle1PublicationId != null)
         {
+            String collation = typeSpecimen.getNle1Collation();
+            String date = typeSpecimen.getNle1Date();
             String remarks = status + " designation";
             
             ReferenceWork parent = getPublicationLookup().getById(nle1PublicationId);
@@ -105,7 +107,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             }
             
             DeterminationCitation determinationCitation1 =
-                getDeterminationCitation(determination, collectionMemberId, referenceWork, remarks);
+                getDeterminationCitation(determination, collectionMemberId, referenceWork, collation, date, remarks);
 
             if (determinationCitation1 != null)
             {
@@ -117,6 +119,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer nle2PublicationId = typeSpecimen.getNle2PublicationId();
         if (nle2PublicationId != null)
         {
+            String collation = typeSpecimen.getNle2Collation();
+            String date = typeSpecimen.getNle2Date();
             String remarks = status + " designation clarification/refinement";
             
             ReferenceWork parent = getPublicationLookup().getById(nle2PublicationId);
@@ -141,7 +145,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             }
             
             DeterminationCitation determinationCitation2 =
-                getDeterminationCitation(determination, collectionMemberId, referenceWork, remarks);
+                getDeterminationCitation(determination, collectionMemberId, referenceWork, collation, date, remarks);
             
             if (determinationCitation2 != null)
             {
@@ -291,6 +295,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     private DeterminationCitation getDeterminationCitation(Determination determination,
     		                                               Integer       collectionMemberId,
     		                                               ReferenceWork referenceWork,
+    		                                               String        collation,
+    		                                               String        date,
     		                                               String        remarks)
     	throws LocalException
     {
@@ -308,6 +314,12 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         // Remarks
         determinationCitation.setRemarks(remarks);
 
+        // Text1 (collation)
+        determinationCitation.setText1(collation);
+        
+        // Text2 (date)
+        determinationCitation.setText2(date);
+        
         return determinationCitation;
     }
     
@@ -315,54 +327,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     {
         ReferenceWork referenceWork = new ReferenceWork();
 
-        String collation = typeSpecimen.getNle2Collation();
-        int indexOfColon = collation == null ? -1 : collation.indexOf(':');
-
         // ContainedRFParent
         referenceWork.setContainedRFParent(parent);
-        
-        // Pages
-        if (collation != null)
-        {
-            String pages = null;
-            if (indexOfColon >= 0 && indexOfColon < collation.length())
-            {
-                pages = collation.substring(collation.indexOf(':') + 1).trim();
-            }
-            else
-            {
-                pages = collation;
-            }
-            
-            if (pages != null) pages = truncate(pages, 50, "collation (pages)");
-            referenceWork.setPages(pages);
-        }
 
         // ReferenceWorkType
         referenceWork.setReferenceWorkType(ReferenceWork.SECTION_IN_BOOK);
-
-        // Text2
-        referenceWork.setText2(collation);
-        
-        // Title
-        String taxon = typeSpecimen.getTaxon();
-        taxon = truncate(taxon, 255, "title");
-        referenceWork.setTitle(taxon);
-
-        // Volume
-        if (collation != null)
-        {
-            String volume = null;
-            if (indexOfColon > 0) volume = collation.substring(0, indexOfColon).trim();
-            
-            if (volume != null) volume = truncate(volume, 25, "collation (volume)");
-            referenceWork.setVolume(volume);
-        }
-        
-        // WorkDate
-        String date = typeSpecimen.getNle2Date();
-        if (date != null) date = truncate(date, 25, "work date");
-        referenceWork.setWorkDate(date);
 
         return referenceWork;
     }
@@ -432,20 +401,15 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     
     private String getInsertSql(ReferenceWork referenceWork)
     {
-        String fieldNames = "ContainedRFParentID, Pages, ReferenceWorkType, Text2, " +
-        		            "TimestampCreated, Title, Version, Volume, WorkDate";
+        String fieldNames = "ContainedRFParentID, ReferenceWorkType, " +
+                            "TimestampCreated, Version";
         
-        String[] values = new String[9];
+        String[] values = new String[4];
         
         values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
-        values[1] = SqlUtils.sqlString( referenceWork.getPages());
-        values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-        values[3] = SqlUtils.sqlString( referenceWork.getText2());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.sqlString( referenceWork.getTitle());
-        values[6] = SqlUtils.zero();
-        values[7] = SqlUtils.sqlString( referenceWork.getVolume());
-        values[8] = SqlUtils.sqlString( referenceWork.getWorkDate());
+        values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+        values[2] = SqlUtils.now();
+        values[3] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);
     }
