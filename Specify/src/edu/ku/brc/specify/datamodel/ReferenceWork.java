@@ -262,7 +262,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     /**
      * 
      */
-    @Column(name = "Publisher", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "Publisher", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
     public String getPublisher() {
         return this.publisher;
     }
@@ -274,7 +274,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     /**
      * 
      */
-    @Column(name = "PlaceOfPublication", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "PlaceOfPublication", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
     public String getPlaceOfPublication() {
         return this.placeOfPublication;
     }
