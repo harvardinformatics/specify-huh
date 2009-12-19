@@ -116,9 +116,10 @@ public class Site
 	public Integer getDisciplineId() { return disciplineId; }
 	
 	public boolean hasData() {
-	    return locality   != null ||
+	    return geoUnitId  != null ||
+	           locality   != null ||
 	           latitudeA  != null ||
-	           longitudeB != null ||
+	           longitudeA != null ||
 	           latitudeB  != null ||
 	           longitudeB != null ||
 	           elevTo     != null ||
