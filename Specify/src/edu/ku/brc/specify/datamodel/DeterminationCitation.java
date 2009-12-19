@@ -53,6 +53,8 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
 
      protected Integer       determinationCitationId;
      protected String        remarks;
+     protected String        text1;
+     protected String        text2;
      protected ReferenceWork referenceWork;
      protected Determination determination;
 
@@ -79,6 +81,8 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
     {
         super.init();
         determinationCitationId = null;
+        text1 = null;
+        text2 = null;
         remarks = null;
         referenceWork = null;
         determination = null;
@@ -122,6 +126,30 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
         this.determinationCitationId = determinationCitationId;
     }
 
+    /**
+     *      * User definable
+     */
+    @Column(name = "Text1", length=300, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText1() {
+        return this.text1;
+    }
+    
+    public void setText1(String text1) {
+        this.text1 = text1;
+    }
+
+    /**
+     *      * User definable
+     */
+    @Column(name = "Text2", length=300, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText2() {
+        return this.text2;
+    }
+    
+    public void setText2(String text2) {
+        this.text2 = text2;
+    }
+    
     /**
      * 
      */
