@@ -80,7 +80,7 @@ public class AsaTaxon
 	private       String remarks;
 	private      Integer createdById;
 	private         Date dateCreated;
-	private      Integer basionymId;
+	private       String basionym;
 	private       String parAuthor;
 	private       String parExAuthor;
 	private       String stdAuthor;
@@ -129,7 +129,7 @@ public class AsaTaxon
 	
 	public Date getDateCreated() { return dateCreated; }
 	
-	public Integer getBasionymId() { return basionymId; }
+	public String getBasionym() { return basionym; }
 	
 	public String getParAuthor() { return parAuthor; }
 	
@@ -183,7 +183,7 @@ public class AsaTaxon
 	
 	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 	
-	public void setBasionymId(Integer basionymId) { this.basionymId = basionymId; }
+	public void setBasionym(String basionym) { this.basionym = basionym; }
 	
 	public void setParAuthor(String parAuthor) { this.parAuthor = parAuthor; }
 	
