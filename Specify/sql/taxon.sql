@@ -38,7 +38,7 @@ select t.container_id,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
        t.created_by_id,
        to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
-       t.basionym_id,
+       (select b.fullname from taxon b where b.id=t.basionym_id) as basionym,
 
        (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.par_author_id    and type_id=110105) as par_author,
        (select regexp_replace(name, '[[:space:]]+', ' ') from botanist_name where botanist_id=t.par_ex_author_id and type_id=110105) as par_ex_author,
