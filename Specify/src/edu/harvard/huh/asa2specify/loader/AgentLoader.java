@@ -205,7 +205,7 @@ public class AgentLoader extends CsvToSqlLoader
 			agent.setFirstName(firstName);
 		}
 	    
-		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration		Integer asaAgentId = asaAgent.getId();
+		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
 		Integer asaAgentId = asaAgent.getId();
 		checkNull(asaAgentId, "id");
 
@@ -405,8 +405,8 @@ public class AgentLoader extends CsvToSqlLoader
         
         if (lines.length == 0)
         {
-            // warn about this
-            getLogger().warn("No address lines: " + addressString);
+            // make a note about this
+            getLogger().info(rec() + "No address lines: " + addressString);
             return null;
         }
 
@@ -415,7 +415,7 @@ public class AgentLoader extends CsvToSqlLoader
         if (lines.length == 1)
         {
             // there is only one line, warn about this
-            getLogger().warn("One line address: " + addressString);
+            getLogger().warn(rec() + "One line address: " + addressString);
             fillAddressLines(lines, 1, address);
         }
         else
@@ -452,7 +452,7 @@ public class AgentLoader extends CsvToSqlLoader
                         // make sure there is a line to match for city, state
                         if (lines.length < 3)
                         {
-                            getLogger().warn("Only zip and country present: " + addressString);
+                            getLogger().warn(rec() + "Only zip and country present: " + addressString);
                         }
                         else
                         {
@@ -479,7 +479,7 @@ public class AgentLoader extends CsvToSqlLoader
                                 }
                                 else
                                 {
-                                    getLogger().warn("Couldn't match city and state: " + addressString);
+                                    getLogger().warn(rec() + "Couldn't match city and state: " + addressString);
                                     city = null;
                                     state = null;
                                 }
@@ -519,7 +519,7 @@ public class AgentLoader extends CsvToSqlLoader
                         }
                         else
                         {
-                            getLogger().warn("Couldn't match city and state: " + addressString);
+                            getLogger().warn(rec() + "Couldn't match city and state: " + addressString);
                             city = null;
                             state = null;
                         }
@@ -553,7 +553,7 @@ public class AgentLoader extends CsvToSqlLoader
                         
                         if (lines.length < 3)
                         {
-                            getLogger().warn("Only postal code and province present: " + addressString);
+                            getLogger().warn(rec() + "Only postal code and province present: " + addressString);
                         }
                         else
                         {
@@ -615,7 +615,7 @@ public class AgentLoader extends CsvToSqlLoader
 
                         if (lines.length < 3)
                         {
-                            getLogger().warn("Only matched country and postal code");
+                            getLogger().warn(rec() + "Only matched country and postal code");
                         }
                         else
                         {
@@ -687,7 +687,7 @@ public class AgentLoader extends CsvToSqlLoader
                     }
                     else
                     {
-                        getLogger().warn("Couldn't match city and state: " + addressString);
+                        getLogger().warn(rec() + "Couldn't match city and state: " + addressString);
                         city = null;
                         state = null;
                     }
@@ -726,7 +726,7 @@ public class AgentLoader extends CsvToSqlLoader
                 }
                 else
                 {
-                    getLogger().warn("Couldn't match city and state: " + addressString);
+                    getLogger().warn(rec() + "Couldn't match city and state: " + addressString);
                     city = null;
                     state = null;
                 }
@@ -759,7 +759,7 @@ public class AgentLoader extends CsvToSqlLoader
             else
             {
                 // matched neither a country nor a zip nor a city/state on the last line, warn about this
-                getLogger().warn("Didn't match country or zip code on last line: " + addressString);
+                getLogger().warn(rec() + "Didn't match country or zip code on last line: " + addressString);
                 fillAddressLines(lines, lines.length, address);
             }
         }
@@ -795,7 +795,7 @@ public class AgentLoader extends CsvToSqlLoader
         if (endIndex <= 0 || lines.length == 0)
         {
             // no lines left
-            getLogger().warn("No address line");
+            getLogger().info(rec() + "No address line");
         }
         else if (endIndex == 1)
         {
