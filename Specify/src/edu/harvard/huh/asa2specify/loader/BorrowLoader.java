@@ -345,7 +345,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
                             "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate, " +
-                            "Remarks, Text1, Text2,  TimestampCreated, Version, YesNo1, YesNo2";
+                            "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
         
         String[] values = new String[16];
         
@@ -371,7 +371,8 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(BorrowAgent borrowAgent)
     {
-        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Remarks, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Remarks, Role, " +
+        		            "TimestampCreated, Version";
 
         String[] values = new String[7];
 
@@ -390,8 +391,8 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     {
         String fields = "BorrowID, CollectionMemberID, Description, HigherTaxon, " +
         		        "InComments, MaterialNumber, NonSpecimenCount, SrcTaxonomy, " +
-        		        "Quantity, QuantityReturned, Taxon, TimestampCreated, " +
-        		        "TypeCount, Version";
+        		        "Quantity, QuantityReturned, TimestampCreated, TypeCount, " +
+        		        "Version";
             
         String[] values = new String[13];
         
@@ -403,11 +404,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[5]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
         values[6]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
         values[7]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
-        values[7]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
         values[8]  = SqlUtils.sqlString( borrowMaterial.getQuantity());
         values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
         values[10] = SqlUtils.now();
-        values[11] = SqlUtils.zero();
+        values[11]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
+        values[12] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }
