@@ -145,7 +145,7 @@ public class PublicationLoader extends AuditedObjectLoader
 
 		// Text2 (publ date)
 		String pubDate = publication.getPubDate();
-		referenceWork.setWorkDate(pubDate);
+		referenceWork.setText2(pubDate);
 	      
 		// TimestampCreated
         Date dateCreated = publication.getDateCreated();
