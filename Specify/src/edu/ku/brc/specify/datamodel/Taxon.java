@@ -606,7 +606,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         this.text1 = text1;
     }
 
-    @Column(name="Text2", length = 32)
+    @Column(name="Text2", length = 200)
     public String getText2()
     {
         return text2;
