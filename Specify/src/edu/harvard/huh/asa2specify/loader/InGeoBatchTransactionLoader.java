@@ -2,7 +2,10 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.harvard.huh.asa.InGeoBatchTransaction;
 import edu.harvard.huh.asa.Transaction;
@@ -20,6 +23,10 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public abstract class InGeoBatchTransactionLoader extends CountableTransactionLoader
 {
+    private final static Pattern NUMBER  = Pattern.compile("^(A|FH|GH)-(\\d+)$");
+    
+    private final static String ACC_NO_FMT = "000000";
+
     public InGeoBatchTransactionLoader(File csvFile,
                                        Statement sqlStatement,
                                        BotanistLookup botanistLookup,
@@ -70,12 +77,8 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         
         // AccessionNumber
         String transactionNo = inGift.getTransactionNo();
-        if ( transactionNo == null)
-        {
-            transactionNo = DEFAULT_ACCESSION_NUMBER;
-        }
-        transactionNo = truncate(transactionNo, 50, "invoice number");
-        accession.setAccessionNumber(transactionNo);
+        String accessionNumber = getAccessionNumber(transactionNo);
+        accession.setAccessionNumber(accessionNumber);
         
         // DateAccessioned
         Date openDate = inGift.getOpenDate();
@@ -164,6 +167,20 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         accessionAgent.setRole(Transaction.toString(role));
 
         return accessionAgent;
+    }
+    
+    protected String getAccessionNumber(String accNo) throws LocalException
+    {
+        // match ^(A|FH|GH)-(\d+)$ -> HUH-$1
+        Matcher numberMatcher = NUMBER.matcher(accNo);
+        if (numberMatcher.matches())
+        {
+            String s1 = numberMatcher.group(1);
+            String s2 = numberMatcher.group(2);
+            return  s1 + "-" + (new DecimalFormat( ACC_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+        }
+        
+        throw new LocalException(rec() + "didn't match accession number: " + accNo);
     }
     
     protected String getInsertSql(Accession accession)
