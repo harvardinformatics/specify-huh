@@ -16,7 +16,11 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.harvard.huh.asa.AsaLoan;
 import edu.harvard.huh.asa.Transaction;
@@ -38,8 +42,14 @@ import edu.ku.brc.specify.datamodel.LoanPreparation;
 
 public class LoanLoader extends TaxonBatchTransactionLoader
 {
-    private static final String DEFAULT_LOAN_NUMBER = "none";
-
+    private final static Pattern YY_DASH_YY_NUMBER       = Pattern.compile("^(\\d\\d)-(\\d\\d)(\\d+)$");
+    private final static Pattern YY_DASH_NUMBER_19XX     = Pattern.compile("^([6789]\\d)-(\\d\\d?\\d?\\d?)$");
+    private final static Pattern YY_SLASH_YY_DASH_NUMBER = Pattern.compile("^(\\d\\d)/(\\d\\d)-(\\d+)$");
+    private final static Pattern YY_DASH_NUMBER_20XX     = Pattern.compile("^(0\\d)-(\\d\\d\\d\\d\\d?)$");
+    private final static Pattern NUMBER                  = Pattern.compile("^(\\d+)$");
+    
+    private final static String LOAN_NO_FMT = "000000";
+    
     private AsaStringMapper nameToBotanistMapper;
     private BotanistLookup botanistLookup;
     
@@ -228,24 +238,22 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // LoanDate
         Date openDate = asaLoan.getOpenDate();
-        if (openDate != null)
-        {
-            loan.setLoanDate(DateUtils.toCalendar(openDate));
-        }
+        Calendar loanDate = DateUtils.toCalendar(openDate);
+        loan.setLoanDate(loanDate);
         
         // LoanNumber
-        String transactionNo = asaLoan.getTransactionNo();
-        if ( transactionNo == null)
-        {
-            transactionNo = DEFAULT_LOAN_NUMBER;
-        }
-        transactionNo = truncate(transactionNo, 50, "transaction number");
-        loan.setLoanNumber(transactionNo);
-
-        // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = asaLoan.getId();
         checkNull(transactionId, "transaction id");
         
+        String transactionNo = asaLoan.getTransactionNo();
+        
+        int year = loanDate.get(Calendar.YEAR);
+        
+        String loanNumber = getLoanNumber(transactionNo, year, transactionId);
+        
+        loan.setLoanNumber(loanNumber);
+        
+        // Number1 (id) TODO: temporary!! remove when done!        
         loan.setNumber1((float) transactionId);
         
         // OriginalDueDate
@@ -265,6 +273,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // Remarks
         String remarks = asaLoan.getRemarks();
         loan.setRemarks(remarks);
+        
+        // SrcGeography (transaction no)
+        loan.setSrcGeography(transactionNo);
         
         // Text1 (local unit)
         String localUnit = asaLoan.getLocalUnit();
@@ -365,13 +376,109 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         return loanAgent;
     }
     
+    protected String getLoanNumber(String loanNo, int year, int id)
+    {
+        if (id == 1)     return "1991-001375";
+        if (id == 21)    return "1991-001376";
+        if (id == 997)   return "1975-000210";
+        if (id == 1665)  return "1985-000277";
+        if (id == 2541)  return "1990-000021";
+        if (id == 2662)  return "1991-000090";
+        if (id == 2908)  return "1990-000018";
+        if (id == 2927)  return "1990-000173";
+        if (id == 13203) return "1986-000198";
+        if (id == 13204) return "1986-000199";
+        if (id == 13205) return "1987-000053";
+        
+        // match ^([6-9]\d)-(\d{1,4})$ -> 19$1-$2
+        Matcher yyDashNumber19xxMatcher = YY_DASH_NUMBER_19XX.matcher(loanNo);        
+        if (yyDashNumber19xxMatcher.matches())
+        {
+            String s1 = yyDashNumber19xxMatcher.group(1);
+            String s2 = yyDashNumber19xxMatcher.group(2);
+            
+            return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+        }
+                
+        // match ^(0[0-9])-(\d{4,5})$ -> 20$1-$2
+        Matcher yyDashNumber20xxMatcher = YY_DASH_NUMBER_20XX.matcher(loanNo);
+        if (yyDashNumber20xxMatcher.matches())
+        {
+            String s1 = yyDashNumber20xxMatcher.group(1);
+            String s2 = yyDashNumber20xxMatcher.group(2);
+            
+            int year1 = 2000 + Integer.parseInt(s1);
+            
+            if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
+            
+            return "20" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+        }
+        
+        // match ^(\d\d)-(\d\d)(\d+)$  if $2-$1=1, 19$1-$3, else 19$1-$2$3
+        Matcher yyNumberMatcher = YY_DASH_YY_NUMBER.matcher(loanNo);
+        if (yyNumberMatcher.matches())
+        {
+            String s1 = yyNumberMatcher.group(1);
+            String s2 = yyNumberMatcher.group(2);
+            String s3 = yyNumberMatcher.group(3);
+            
+            int year1 = 1900 + Integer.parseInt(s1);
+            int year2 = 1900 + Integer.parseInt(s2);
+
+            if (year2 - year1 == 1)
+            {
+                if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
+                
+                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+            }
+            else
+            {
+                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+            }
+        }
+        
+        // match ^(\d\d)/(\d\d)-(\d{2,3}$) -> if $2-$1=1, 19$1-$3
+        Matcher yySlashYYDashNumberMatcher = YY_SLASH_YY_DASH_NUMBER.matcher(loanNo);
+        if (yySlashYYDashNumberMatcher.matches())
+        {
+            String s1 = yySlashYYDashNumberMatcher.group(1);
+            String s2 = yySlashYYDashNumberMatcher.group(2);
+            String s3 = yySlashYYDashNumberMatcher.group(3);
+            
+            int year1 = 1900 + Integer.parseInt(s1);
+            int year2 = 1900 + Integer.parseInt(s2);
+
+            if (year2 - year1 == 1)
+            {
+                if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
+                
+                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+            }
+            else
+            {
+                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+            }
+        }
+
+        // match ^(\d+)$ -> $year-$1
+        Matcher numberMatcher = NUMBER.matcher(loanNo);
+        if (numberMatcher.matches())
+        {
+            return String.valueOf(year) + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( loanNo ) );
+        }
+        
+        getLogger().warn(rec() + "didn't match loan number: " + loanNo);
+        
+        return null;
+    }
+
     private String getInsertSql(Loan loan)
     {
         String fieldNames = "CreatedByAgentID, CurrentDueDate, DateClosed, DisciplineId, " +
                             "IsClosed, LoanDate, LoanNumber, Number1, OriginalDueDate, PurposeOfLoan, " +
-                            "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+                            "Remarks, SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
         
-        String[] values = new String[17];
+        String[] values = new String[18];
         
         values[0]  = SqlUtils.sqlString( loan.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( loan.getCurrentDueDate());
@@ -384,12 +491,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[8]  = SqlUtils.sqlString( loan.getOriginalDueDate());
         values[9]  = SqlUtils.sqlString( loan.getPurposeOfLoan());
         values[10] = SqlUtils.sqlString( loan.getRemarks());
-        values[11] = SqlUtils.sqlString( loan.getText1());
-        values[12] = SqlUtils.sqlString( loan.getText2());
-        values[13] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[14] = SqlUtils.zero();
-        values[15] = SqlUtils.sqlString( loan.getYesNo1());
-        values[16] = SqlUtils.sqlString( loan.getYesNo2());
+        values[11] = SqlUtils.sqlString( loan.getSrcGeography());
+        values[12] = SqlUtils.sqlString( loan.getText1());
+        values[13] = SqlUtils.sqlString( loan.getText2());
+        values[14] = SqlUtils.sqlString( loan.getTimestampCreated());
+        values[15] = SqlUtils.zero();
+        values[16] = SqlUtils.sqlString( loan.getYesNo1());
+        values[17] = SqlUtils.sqlString( loan.getYesNo2());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
     }
