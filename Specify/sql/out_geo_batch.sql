@@ -1,6 +1,6 @@
 select ogb.id,
        ogb.herb_transaction_id,
-       (select name from st_lookup where id=t.type_id) as transaction_type,
+       (select name from st_lookup where id=t.request_type_id) as request_type,
        (select acronym from organization where id=t.local_unit_id) as collection_code,
        ogb.item_count,
        ogb.type_count,
