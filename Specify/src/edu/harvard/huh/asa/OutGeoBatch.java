@@ -1,17 +1,23 @@
 package edu.harvard.huh.asa;
 
+import edu.harvard.huh.asa.Transaction.REQUEST_TYPE;
 import edu.harvard.huh.asa.Transaction.TYPE;
 
 public class OutGeoBatch extends CountableBatch
 {	
     private TYPE   type;
+    private REQUEST_TYPE requestType;
 	private String geoUnit;
 	
 	public TYPE getType() { return type; }
 	
+	public REQUEST_TYPE getRequestType() { return requestType; }
+	
 	public String getGeoUnit() { return geoUnit; }
 		
 	public void setType(TYPE type) { this.type = type; }
+	
+	public void setRequestType(REQUEST_TYPE requestType) { this.requestType = requestType; }
 	
 	public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
 	
