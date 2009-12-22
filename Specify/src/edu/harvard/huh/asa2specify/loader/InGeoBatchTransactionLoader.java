@@ -59,92 +59,92 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         return i + 5;
     }
     
-    protected Accession getAccession(InGeoBatchTransaction inGift) throws LocalException
+    protected Accession getAccession(InGeoBatchTransaction transaction) throws LocalException
     {
         Accession accession = new Accession();
 
         // TODO: AddressOfRecord
         
         // CreatedByAgent
-        Integer creatorOptrId = inGift.getCreatedById();
+        Integer creatorOptrId = transaction.getCreatedById();
         Agent createdByAgent = getAgentByOptrId(creatorOptrId);
         accession.setCreatedByAgent(createdByAgent);
         
         // AccessionCondition
-        String description = getDescriptionOfMaterial(inGift);
+        String description = getDescriptionOfMaterial(transaction);
         if (description != null) description = truncate(description, 255, "accession condition");
         accession.setAccessionCondition(description);
         
         // AccessionNumber
-        String transactionNo = inGift.getTransactionNo();
+        String transactionNo = transaction.getTransactionNo();
         String accessionNumber = getAccessionNumber(transactionNo);
         accession.setAccessionNumber(accessionNumber);
         
         // DateAccessioned
-        Date openDate = inGift.getOpenDate();
+        Date openDate = transaction.getOpenDate();
         if (openDate != null)
         {
             accession.setDateAccessioned(DateUtils.toCalendar(openDate));
         }
         
         // DiscardCount
-        int discardCount = inGift.getDiscardCount();
+        int discardCount = transaction.getDiscardCount();
         accession.setDiscardCount((short) discardCount);
         
         // DistributeCount
-        int distributeCount = inGift.getDistributeCount();
+        int distributeCount = transaction.getDistributeCount();
         accession.setDistributeCount((short) distributeCount);
         
         // Division
         accession.setDivision(getBotanyDivision());
         
         // ItemCount
-        int itemCount = inGift.getItemCount();
+        int itemCount = transaction.getItemCount();
         accession.setItemCount((short) itemCount);
         
         // NonSpecimenCount
-        int nonSpecimenCount = inGift.getNonSpecimenCount();
+        int nonSpecimenCount = transaction.getNonSpecimenCount();
         accession.setNonSpecimenCount((short) nonSpecimenCount);
         
         // Number1 (id) TODO: temporary!! remove when done!
-        Integer transactionId = inGift.getId();
+        Integer transactionId = transaction.getId();
         checkNull(transactionId, "transaction id");
         
         accession.setNumber1((float) transactionId);
         
         // Remarks
-        String remarks = inGift.getRemarks();
+        String remarks = transaction.getRemarks();
         accession.setRemarks(remarks);
         
         // ReturnCount
-        int returnCount = inGift.getReturnCount();
+        int returnCount = transaction.getReturnCount();
         accession.setReturnCount((short) returnCount);
         
         // Text1 (local unit)
-        String localUnit = inGift.getLocalUnit();
+        String localUnit = transaction.getLocalUnit();
         accession.setText1(localUnit);
         
         // Text2 (purpose)
-        String purpose = Transaction.toString(inGift.getPurpose());
+        String purpose = Transaction.toString(transaction.getPurpose());
         accession.setText2(purpose);
         
         // Text3 (geoUnit)
-        String geoUnit = inGift.getGeoUnit();
+        String geoUnit = transaction.getGeoUnit();
         accession.setText3(geoUnit);
         
         // Type
         accession.setType(Transaction.toString(ACCESSION_TYPE.Gift));
         
         // TypeCount
-        int typeCount = inGift.getTypeCount();
+        int typeCount = transaction.getTypeCount();
         accession.setTypeCount((short) typeCount);
         
         // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = inGift.isAcknowledged();
+        Boolean isAcknowledged = transaction.isAcknowledged();
         accession.setYesNo1(isAcknowledged);
         
         // YesNo2 (requestType = "theirs")
-        Boolean isTheirs = isTheirs(inGift.getRequestType());
+        Boolean isTheirs = isTheirs(transaction.getRequestType());
         accession.setYesNo2(isTheirs);
         
         return accession;

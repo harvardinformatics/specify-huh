@@ -64,14 +64,14 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         
         try
         {
-            outGeoBatch.setId(               SqlUtils.parseInt( columns[0] ));
-            outGeoBatch.setTransactionId(    SqlUtils.parseInt( columns[1] ));
-            outGeoBatch.setType(         Transaction.parseType( columns[2] ));
-            outGeoBatch.setCollectionCode(                      columns[3] );
-            outGeoBatch.setItemCount(        SqlUtils.parseInt( columns[4] ));
-            outGeoBatch.setTypeCount(        SqlUtils.parseInt( columns[5] ));
-            outGeoBatch.setNonSpecimenCount( SqlUtils.parseInt( columns[6] ));
-            outGeoBatch.setGeoUnit(                             columns[7] );
+            outGeoBatch.setId(                     SqlUtils.parseInt( columns[0] ));
+            outGeoBatch.setTransactionId(          SqlUtils.parseInt( columns[1] ));
+            outGeoBatch.setRequestType( Transaction.parseRequestType( columns[2]  ));
+            outGeoBatch.setCollectionCode(                            columns[3] );
+            outGeoBatch.setItemCount(              SqlUtils.parseInt( columns[4] ));
+            outGeoBatch.setTypeCount(              SqlUtils.parseInt( columns[5] ));
+            outGeoBatch.setNonSpecimenCount(       SqlUtils.parseInt( columns[6] ));
+            outGeoBatch.setGeoUnit(                                   columns[7] );
         }
         catch (NumberFormatException e)
         {

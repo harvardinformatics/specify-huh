@@ -81,8 +81,11 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         int nonSpecimenCount = inReturnBatch.getNonSpecimenCount();
         loanReturnPreparation.setNonSpecimenCount(nonSpecimenCount);
         
-        // QuantityReturned
+        // QuantityResolved (quantity returned)
         int quantity = inReturnBatch.getBatchQuantity();
+        loanReturnPreparation.setQuantityResolved(quantity);
+        
+        // QuantityReturned
         loanReturnPreparation.setQuantityReturned(quantity);
         
         // Remarks (boxCount)
@@ -111,19 +114,20 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
     {
-        String fieldNames = "DisciplineID, LoanPreparationID, NonSpecimenCount, QuantityReturned, " +
-        		            "ReturnedDate, TimestampCreated, Version, YesNo1";
+        String fieldNames = "DisciplineID, LoanPreparationID, NonSpecimenCount, QuantityResolved, " +
+        		            "QuantityReturned, ReturnedDate, TimestampCreated, Version, YesNo1";
         
-        String[] values = new String[8];
+        String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId());
         values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
         values[2] = SqlUtils.sqlString( loanReturnPreparation.getNonSpecimenCount());
-        values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-        values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
-        values[7] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
+        values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
+        values[4] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
+        values[5] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+        values[6] = SqlUtils.now();
+        values[7] = SqlUtils.zero();
+        values[8] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
     }

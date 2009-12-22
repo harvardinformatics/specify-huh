@@ -123,11 +123,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
             borrowMaterialLookup = new BorrowMaterialLookup()
             {
                 @Override
-                public BorrowMaterial getById(Integer transactionId) throws LocalException
+                public BorrowMaterial getByBorrowId(Integer borrowId) throws LocalException
                 {
                     BorrowMaterial borrowMaterial = new BorrowMaterial();
                     
-                    Integer borrowMaterialId = getInt("borrowmaterial", "BorrowMaterialID", "MaterialNumber", transactionId);
+                    Integer borrowMaterialId = getInt("borrowmaterial", "BorrowMaterialID", "BorrowID", borrowId);
                     
                     borrowMaterial.setBorrowMaterialId(borrowMaterialId);
                     
@@ -326,6 +326,9 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // Quantity (itemCount + typeCount + nonSpecimenCount)
         borrowMaterial.setQuantity((short) quantity);
         
+        // QuantityResolved (quantity returned)
+        borrowMaterial.setQuantityResolved((short) quantityReturned);
+        
         // QuantityReturned
         borrowMaterial.setQuantityReturned((short) quantityReturned);
         
@@ -391,10 +394,10 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     {
         String fields = "BorrowID, CollectionMemberID, Description, HigherTaxon, " +
         		        "InComments, MaterialNumber, NonSpecimenCount, SrcTaxonomy, " +
-        		        "Quantity, QuantityReturned, TimestampCreated, TypeCount, " +
-        		        "Version";
+        		        "Quantity, QuantityResolved, QuantityReturned, TimestampCreated, " +
+        		        "TypeCount, Version";
             
-        String[] values = new String[13];
+        String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
         values[1]  = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
@@ -405,10 +408,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[6]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
         values[7]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
         values[8]  = SqlUtils.sqlString( borrowMaterial.getQuantity());
-        values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
-        values[10] = SqlUtils.now();
-        values[11]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
-        values[12] = SqlUtils.zero();
+        values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityResolved());
+        values[10] = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.sqlString( borrowMaterial.getTypeCount());
+        values[13] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }

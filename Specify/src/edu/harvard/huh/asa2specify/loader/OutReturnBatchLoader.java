@@ -9,6 +9,7 @@ import java.util.HashMap;
 import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.OutReturnBatch;
+import edu.harvard.huh.asa.AsaShipment.CARRIER;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -55,13 +56,14 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		Integer outReturnBatchId = outReturnBatch.getId();
 		setCurrentRecordId(outReturnBatchId);
 		
-		BorrowReturnMaterial borrowReturnMaterial = getBorrowReturnMaterial(outReturnBatch);
-		String sql = getInsertSql(borrowReturnMaterial);
+        Shipment shipment = getShipment(outReturnBatch);
+        String sql = getInsertSql(shipment);
+        insert(sql);
+        
+        BorrowReturnMaterial borrowReturnMaterial = getBorrowReturnMaterial(outReturnBatch, shipment.getBorrow().getId());
+		sql = getInsertSql(borrowReturnMaterial);
 		insert(sql);
-		
-		Shipment shipment = getShipment(outReturnBatch);
-		sql = getInsertSql(shipment);
-		insert(sql);
+
 	}
 	
 	private OutReturnBatch parse(String[] columns) throws LocalException
@@ -95,7 +97,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		return outReturnBatch;
 	}
 	
-	private BorrowReturnMaterial getBorrowReturnMaterial(OutReturnBatch outReturnBatch) throws LocalException
+	private BorrowReturnMaterial getBorrowReturnMaterial(OutReturnBatch outReturnBatch, Integer borrowId) throws LocalException
 	{
 		BorrowReturnMaterial borrowReturnMaterial = new BorrowReturnMaterial();
 		
@@ -103,7 +105,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		Integer transactionId = outReturnBatch.getTransactionId();
 		checkNull(transactionId, "transaction id");
 		
-		BorrowMaterial borrowMaterial = lookupBorrowMaterial(transactionId);
+		BorrowMaterial borrowMaterial = lookupBorrowMaterial(borrowId);
 		borrowReturnMaterial.setBorrowMaterial(borrowMaterial);
 
 		// CollectionMemberID (collectionCode)
@@ -139,9 +141,9 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		return borrowReturnMaterial;
 	}
 	
-	private BorrowMaterial lookupBorrowMaterial(Integer transactionId) throws LocalException
+	private BorrowMaterial lookupBorrowMaterial(Integer borrowId) throws LocalException
 	{
-		return borrowMaterialLookup.getById(transactionId);
+		return borrowMaterialLookup.getByBorrowId(borrowId);
 	}
 	
 	private Borrow lookupBorrow(Integer transactionId) throws LocalException
@@ -159,6 +161,9 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
     	    	
     	Borrow borrow = lookupBorrow(transactionId);
     	shipment.setBorrow(borrow);
+    	
+    	// Discipline
+    	shipment.setDiscipline(getBotanyDiscipline());
     	
     	// InsuredForAmount (shipment.isInsured)
     	
@@ -188,11 +193,21 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
         Float cost = outReturnBatch.getCost();
         shipment.setNumber1(cost);
     	
-    	// Shipper (carrier)
-    	String carrier = AsaShipment.toString(outReturnBatch.getCarrier());
-    	Agent shipper = lookupCarrier(carrier);
-    	
-    	shipment.setShipper(shipper);
+        // Shipper (carrier)
+        Agent shipper = null;
+
+        CARRIER carrier = outReturnBatch.getCarrier();
+        
+        if (! CARRIER.Unknown.equals(carrier))
+        {
+            shipper = lookupCarrier(AsaShipment.toString(carrier));
+        }
+        else
+        {
+            shipper = new Agent();
+        }
+        shipment.setShipper(shipper);
+
     	
     	// ShipmentDate (actionDate)
     	Date actionDate = outReturnBatch.getActionDate();
@@ -259,24 +274,25 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 	
 	private String getInsertSql(Shipment shipment)
 	{
-		String fields = "BorrowID, NumberOfPackages, " +
-				        "Number1, Remarks, ShipperID, ShipmentDate, ShipmentMethod, " +
+		String fields = "BorrowID, DisciplineID, NumberOfPackages, Number1, " +
+				        "Remarks, ShipperID, ShipmentDate, ShipmentMethod, " +
 				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
-		String[] values = new String[12];
+		String[] values = new String[13];
 		
 		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
-		values[1]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-		values[2]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[3]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[4]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[5]  = SqlUtils.sqlString( shipment.getShipmentDate());
-		values[6]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[7]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[8]  = SqlUtils.now();
-		values[9]  = SqlUtils.zero();
-		values[10] = SqlUtils.sqlString( shipment.getYesNo1());
-		values[11] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[1]  = SqlUtils.sqlString( shipment.getDiscipline().getId());
+		values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+		values[3]  = SqlUtils.sqlString( shipment.getNumber1());
+		values[4]  = SqlUtils.sqlString( shipment.getRemarks());
+		values[5]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
+		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.zero();
+		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

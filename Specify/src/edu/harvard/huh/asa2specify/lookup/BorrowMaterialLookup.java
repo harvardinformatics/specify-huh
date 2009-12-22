@@ -19,5 +19,5 @@ import edu.ku.brc.specify.datamodel.BorrowMaterial;
 
 public interface BorrowMaterialLookup
 {    
-    public BorrowMaterial getById(Integer transactionId) throws LocalException;
+    public BorrowMaterial getByBorrowId(Integer borrowId) throws LocalException;
 }
