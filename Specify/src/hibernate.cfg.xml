@@ -43,6 +43,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.AddressOfRecord"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Agent"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AgentAttachment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.AgentCitation"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AgentGeography"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AgentSpecialty"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AgentVariant"/>
