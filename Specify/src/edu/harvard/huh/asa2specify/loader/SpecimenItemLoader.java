@@ -1033,7 +1033,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             String container = specimenItem.getContainer();
             checkNull(container, "container");
             
-            String collectingTripName = truncate(container, 64, "collecting trip name");
+            String collectingTripName = truncate(container, 200, "collecting trip name");
             
             CollectingTrip existingTrip = lookupCollectingTrip(collectingTripName);
 
@@ -1094,7 +1094,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 container.setCollectionMemberId(collectionMemberId);
 
                 // Name
-                containerStr = truncate(containerStr, 64, "container name");
+                containerStr = truncate(containerStr, 200, "container name");
                 container.setName(containerStr);
             }
             else
