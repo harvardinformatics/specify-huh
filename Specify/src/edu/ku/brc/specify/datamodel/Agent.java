@@ -175,6 +175,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     */
 
     protected Set<AgentAttachment>          agentAttachments;
+    protected Set<AgentCitation>            agentCitations;
     protected Set<AgentGeography>           agentGeographies;
     protected Set<AgentSpecialty>           agentSpecialties;
     
@@ -236,6 +237,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         agentAttachments               = new HashSet<AgentAttachment>();
         variants                       = new HashSet<AgentVariant>();
         agentGeographies               = new HashSet<AgentGeography>();
+        agentCitations                 = new HashSet<AgentCitation>();
         agentSpecialties               = new HashSet<AgentSpecialty>();
 
         /*
@@ -871,6 +873,18 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     public void setAgentAttachments(Set<AgentAttachment> agentAttachments)
     {
         this.agentAttachments = agentAttachments;
+    }
+    
+    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "agent")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<AgentCitation> getAgentCitations()
+    {
+        return this.agentCitations;
+    }
+
+    public void setAgentCitations(Set<AgentCitation> agentCitations)
+    {
+        this.agentCitations = agentCitations;
     }
     
     /**

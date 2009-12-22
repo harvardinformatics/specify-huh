@@ -95,6 +95,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     protected Boolean                       yesNo1;
     protected Boolean                       yesNo2;
     protected String                        guid;
+    protected Set<AgentCitation>            agentCitations;
     protected Set<LocalityCitation>         localityCitations;
     protected Set<CollectionObjectCitation> collectionObjectCitations;
     protected Set<TaxonCitation>            taxonCitations;
@@ -105,6 +106,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     
     protected ReferenceWork                 containedRFParent;
     protected Set<ReferenceWork>            containedReferenceWorks;
+    
     
     // Constructors
 
@@ -143,6 +145,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         yesNo1 = null;
         yesNo2 = null;
         guid   = null;
+        agentCitations = new HashSet<AgentCitation>();
         localityCitations = new HashSet<LocalityCitation>();
         collectionObjectCitations = new HashSet<CollectionObjectCitation>();
         taxonCitations = new HashSet<TaxonCitation>();
@@ -153,6 +156,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         
         containedRFParent       = null;
         containedReferenceWorks = new HashSet<ReferenceWork>();
+
     }
     // End Initializer
 
@@ -477,6 +481,19 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "referenceWork")
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
+    public Set<AgentCitation> getAgentCitations() {
+        return this.agentCitations;
+    }
+    
+    public void setAgentCitations(Set<AgentCitation> agentCitations) {
+        this.agentCitations = agentCitations;
+    }
+    
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "referenceWork")
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Set<LocalityCitation> getLocalityCitations() {
         return this.localityCitations;
     }
@@ -566,7 +583,12 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
 
 
     // Add Methods
-
+    public void addAgentCitations(final AgentCitation agentCitation)
+    {
+        this.agentCitations.add(agentCitation);
+        agentCitation.setReferenceWork(this);
+    }
+    
     public void addLocalityCitations(final LocalityCitation localityCitation)
     {
         this.localityCitations.add(localityCitation);
@@ -606,7 +628,12 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     // Done Add Methods
 
     // Delete Methods
-
+    public void removeAgentCitations(final AgentCitation agentCitation)
+    {
+        this.agentCitations.remove(agentCitation);
+        agentCitation.setReferenceWork(null);
+    }
+    
     public void removeLocalityCitations(final LocalityCitation localityCitation)
     {
         this.localityCitations.remove(localityCitation);
