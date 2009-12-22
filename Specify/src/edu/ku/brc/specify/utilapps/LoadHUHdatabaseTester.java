@@ -14,6 +14,7 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.AgentLoader;
 import edu.harvard.huh.asa2specify.loader.BorrowLoader;
+import edu.harvard.huh.asa2specify.loader.BotanistCitationLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistNameLoader;
@@ -90,6 +91,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
 
     protected static Vector<DatabaseDriverInfo> driverList;
    
+    private String specifyDbName = "specify6";
+    
     /**
      * @param args
      */
@@ -135,30 +138,31 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doAgent       = false; // 12
         boolean doPub         = false; // 13
         boolean doPubAuth     = false; // 14
+        boolean doBotCit      = false; // 15
         
-        boolean doTax         = false; // 15
+        boolean doTax         = false; // 16
         
-        boolean doSubcoll     = false; // 16
+        boolean doSubcoll     = false; // 17
         
-        boolean doSpec        = false; // 17
+        boolean doSpec        = false; // 18
         
-        boolean doDet         = false; // 18
+        boolean doDet         = false; // 19
         
-        boolean doType        = false; // 19
+        boolean doType        = false; // 20
         
-        boolean doBorrow      = false; // 20
-        boolean doInEx        = false; // 21
-        boolean doInGift      = false; // 22
-        boolean doLoan        = false; // 23
-        boolean doOutEx       = false; // 24
-        boolean doOutGift     = false; // 25
-        boolean doOutGeoBatch = false; // 26
-        boolean doPurch       = false; // 27
-        boolean doStaffColl   = false; // 28
-        boolean doShip        = false; // 29
-        boolean doInRetBatch  = false; // 30
-        boolean doLoanIt      = false; // 31
-        boolean doOutRetBatch = false; // 32
+        boolean doBorrow      = false; // 21
+        boolean doInEx        = false; // 22
+        boolean doInGift      = false; // 23
+        boolean doLoan        = false; // 24
+        boolean doOutEx       = false; // 25
+        boolean doOutGift     = false; // 26
+        boolean doOutGeoBatch = false; // 27
+        boolean doPurch       = false; // 28
+        boolean doStaffColl   = false; // 29
+        boolean doShip        = false; // 30
+        boolean doInRetBatch  = false; // 31
+        boolean doLoanIt      = false; // 32
+        boolean doOutRetBatch = false; // 33
         
         try
         {
@@ -307,10 +311,21 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + publAuthorRecords + " publ_author records");
             }
             
+            BotanistCitationLoader botCitLoader = new BotanistCitationLoader(new File(dir, "bot_cit.csv"),
+                                                                             statement,
+                                                                             pubLookup,
+                                                                             botanistLookup);
+            if (doBotCit)
+            {
+                int botCitRecords = botCitLoader.loadRecords();
+                log.info("Processed " + botCitRecords + " botanist_role_citation records");
+            }
+            
             TaxonLoader taxonLoader = new TaxonLoader(new File(dir, "taxon.csv"),
                                                       statement,
                                                       pubLookup,
                                                       botanistLookup);
+
             if (doTax)
             {
                 int taxonRecords = taxonLoader.loadRecords(); 
@@ -391,7 +406,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             BorrowMaterialLookup borrowMaterialLookup = borrowLoader.getBorrowMaterialLookup();
 
             IncomingExchangeLoader inExchangeLoader =
-                new IncomingExchangeLoader(new File(dir, "incoming_exchange_test.csv"), statement);
+                new IncomingExchangeLoader(new File(dir, "incoming_exchange.csv"), statement);
 
             if (doInEx)
             {
@@ -478,7 +493,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + staffCollRecords + " staff collection records");
             }
             
-            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
+            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "loan_shipment.csv"),
                                                                statement,
                                                                loanLookup,
                                                                outExchangeLookup,
@@ -531,7 +546,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
     }
     
     void setUpConnection() {
-        String dbName = "specify";
+        String dbName = specifyDbName;
 
         Vector<DatabaseDriverInfo> driverList = DatabaseDriverInfo.getDriversList();
         DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getInfoByName(driverList, "MySQL");
