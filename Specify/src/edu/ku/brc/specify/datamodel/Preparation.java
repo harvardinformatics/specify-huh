@@ -41,6 +41,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
@@ -59,10 +60,14 @@ import edu.ku.brc.dbsupport.DBConnection;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "preparation")
+@Table(name = "preparation", uniqueConstraints = {
+        @UniqueConstraint(columnNames={"SampleNumber"} ) 
+        }
+)
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
-        @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"})
+        @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"}),
+        @Index (name="SampleNumberIDX", columnNames={"SampleNumber"}),
     })
 public class Preparation extends CollectionMember implements AttachmentOwnerIFace<PreparationAttachment>, 
                                                              AttributeProviderIFace, 
@@ -426,7 +431,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     /**
      * @return the sampleNumber
      */
-    @Column(name = "SampleNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "SampleNumber", unique = true, nullable = true, insertable = true, updatable = true, length = 32)
     public String getSampleNumber()
     {
         return sampleNumber;
