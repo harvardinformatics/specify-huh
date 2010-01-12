@@ -3695,4 +3695,20 @@ public final class UIHelper
         }
         return null;
     }
+    
+    /**
+     * bind the pressed and released events for the KeyStroke with key code name
+     * newKeyName to the corresponding actions mapped to the KeyStroke with oldKeyName
+     */
+    public static void cloneKeyMapping(JButton jbutton, String oldKeyName, String newKeyName)
+    {
+        //Enter key acts like space key
+        KeyStroke spaceKey = KeyStroke.getKeyStroke("SPACE");
+        KeyStroke spaceKeyReleased = KeyStroke.getKeyStroke("released " + "SPACE");
+        KeyStroke enterKey = KeyStroke.getKeyStroke("ENTER");
+        KeyStroke enterKeyReleased = KeyStroke.getKeyStroke("released ENTER");
+        
+        jbutton.getInputMap().put(enterKey, jbutton.getInputMap().get(spaceKey));
+        jbutton.getInputMap().put(enterKeyReleased, jbutton.getInputMap().get(spaceKeyReleased));
+    }
 }

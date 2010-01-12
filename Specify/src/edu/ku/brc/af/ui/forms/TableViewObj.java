@@ -390,6 +390,9 @@ public class TableViewObj implements Viewable,
                                     editRow(table.getSelectedRow(), true);
                                 }
                             });
+                            
+                            //Enter key acts like space key
+                            UIHelper.cloneKeyMapping(newButton, "SPACE", "ENTER");
                         }
                         
                         boolean isAbove = mvParent.getSeparator() != null;  

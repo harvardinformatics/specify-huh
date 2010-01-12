@@ -363,6 +363,9 @@ public class ResultSetController implements ValidationListener
                 rowBuilder.add(newRecBtn, cc.xy(col,1));
                 col += 2;
             }
+            
+            //Enter key acts like space key
+            UIHelper.cloneKeyMapping(newRecBtn, "SPACE", "ENTER");
         }
         
         if (addDelBtn)
