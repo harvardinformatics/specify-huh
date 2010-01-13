@@ -262,6 +262,8 @@ public class DropDownButton extends JPanel implements ChangeListener, PopupMenuL
         
         addMouseListener(mouseInputAdapter);
         addMouseMotionListener(mouseInputAdapter);
+        
+        UIHelper.cloneKeyMapping(mainBtn, "SPACE", "ENTER");
     }
      
     /**
