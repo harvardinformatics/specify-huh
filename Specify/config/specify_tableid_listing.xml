@@ -4,7 +4,7 @@
 
     Last used ID is 137 or 532
     
-    126 are available
+    ... are available
     
     PLEASE Keep this file in alphabetical order! 
 
@@ -40,6 +40,7 @@
             <display view="AgentAttachment" newobjdlg="AgentAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
+        <table name="edu.ku.brc.specify.datamodel.AgentCitation" abbrev="agcit" id="126" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AgentGeography" abbrev="ageo" id="78" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AgentSpecialty" abbrev="agsp" id="86" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AgentVariant" abbrev="av" id="107" workbench="false" searchable="true">
