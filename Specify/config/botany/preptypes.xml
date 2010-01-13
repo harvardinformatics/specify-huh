@@ -13,5 +13,7 @@
       <preptype name="Photograph"          isloanable="true"/>
       <preptype name="On 35 mm slide"      isloanable="true"/>
       <preptype name="On glycerine slide"  isloanable="true"/>
+      <preptype name="Fossil"              isloanable="true"/>
+      <preptype name="DNA sample"          isloanable="true"/>
       <preptype name="Other"               isloanable="true"/>
 </vector>
