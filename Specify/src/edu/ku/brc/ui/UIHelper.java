@@ -3701,7 +3701,7 @@ public final class UIHelper
      * bind the pressed and released events for the KeyStroke with key code name
      * newKeyName to the corresponding actions mapped to the KeyStroke with oldKeyName
      */
-    public static void cloneKeyMapping(JButton jbutton, String oldKeyName, String newKeyName)
+    public static void cloneKeyMapping(JComponent jComponent, String oldKeyName, String newKeyName)
     {
         // New key acts like old key
         KeyStroke spaceKey = KeyStroke.getKeyStroke(oldKeyName);
@@ -3709,7 +3709,7 @@ public final class UIHelper
         KeyStroke enterKey = KeyStroke.getKeyStroke(newKeyName);
         KeyStroke enterKeyReleased = KeyStroke.getKeyStroke("released " + newKeyName);
         
-        jbutton.getInputMap().put(enterKey, jbutton.getInputMap().get(spaceKey));
-        jbutton.getInputMap().put(enterKeyReleased, jbutton.getInputMap().get(spaceKeyReleased));
+        jComponent.getInputMap().put(enterKey, jComponent.getInputMap().get(spaceKey));
+        jComponent.getInputMap().put(enterKeyReleased, jComponent.getInputMap().get(spaceKeyReleased));
     }
 }
