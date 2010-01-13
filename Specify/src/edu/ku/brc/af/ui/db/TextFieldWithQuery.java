@@ -503,10 +503,10 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         {
             return;
         }
+        
         //log.debug(ev.getKeyCode() +"  "+ KeyEvent.VK_TAB+"   "+ KeyEvent.VK_CONTROL);
         //log.debug(Integer.toHexString(ev.getKeyCode()) +"  "+ KeyEvent.VK_TAB+"  "+ KeyEvent.VK_CONTROL);
-        if (ev.getKeyCode() == KeyEvent.VK_TAB || 
-            ev.getKeyCode() == KeyEvent.VK_SHIFT || 
+        if (ev.getKeyCode() == KeyEvent.VK_SHIFT || 
             ev.getKeyCode() == KeyEvent.VK_LEFT || 
             ev.getKeyCode() == KeyEvent.VK_RIGHT || 
             ev.getKeyCode() == KeyEvent.VK_CONTROL || 
@@ -525,32 +525,35 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         //log.debug("hasNewText "+hasNewText+"    len: "+currentText.length());
         if (currentText.length() == 0 || !hasNewText)
         {
+            if (ev.getKeyCode() == KeyEvent.VK_TAB) return; // allow focus to proceed to next component
+            
             if (ev.getKeyCode() != JAutoCompComboBox.SEARCH_KEY &&
-                    ev.getKeyCode() != KeyEvent.VK_DOWN )
+                ev.getKeyCode() != KeyEvent.VK_DOWN && 
+                ev.getKeyCode() != KeyEvent.VK_ENTER)
             {
-                if (ev.getKeyCode() != KeyEvent.VK_ENTER)
-                {
-                    // Add variable to track whether it once had a value and now it does not rods - 02/28/08
-                    wasCleared = selectedId != null;
-                    
-                    idList.clear();
-                    list.clear();
-                    selectedId = null;
-                    
-                    // 02/09/08 - This should not be done here - rods
-                    // The reason is, that we may have added something only to remove
-                    // before leaving the control. So we should never send the notification
-                    // just because we delete the contents. (see wasCleared above)
-                    
-                    /*if (listSelectionListeners != null)
+                // Add variable to track whether it once had a value and now it does not rods - 02/28/08
+                wasCleared = selectedId != null;
+
+                idList.clear();
+                list.clear();
+                selectedId = null;
+
+                // 02/09/08 - This should not be done here - rods
+                // The reason is, that we may have added something only to remove
+                // before leaving the control. So we should never send the notification
+                // just because we delete the contents. (see wasCleared above)
+
+                /*if (listSelectionListeners != null)
                     {
                         notifyListenersOfChange(TextFieldWithQuery.this);
                     }*/
-                    //log.debug("setting hasNewText to true"); //$NON-NLS-1$
-                    hasNewText  = true;
-                }
+                //log.debug("setting hasNewText to true"); //$NON-NLS-1$
+                hasNewText  = true;
+
             } else
             {
+                if (ev.getKeyCode() == KeyEvent.VK_ENTER && selectedId != null) return;
+                
                 popupFromBtn = false;
                 showPopup(); // add only
                 return;
@@ -572,7 +575,9 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         }*/
 
         if (ev.getKeyCode() == JAutoCompComboBox.SEARCH_KEY ||
-            ev.getKeyCode() == KeyEvent.VK_DOWN)
+            ev.getKeyCode() == KeyEvent.VK_DOWN ||
+            ev.getKeyCode() == KeyEvent.VK_TAB ||
+            (ev.getKeyCode() == KeyEvent.VK_ENTER && (selectedId == null || hasNewText)))
         {
             String text = textField.getText();
             if (uiFieldFormatter != null && !uiFieldFormatter.isNumeric())
@@ -583,6 +588,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
             text = StringUtils.replace(text, "\"", "\\\"");
             doQuery(text);
         }
+
     }
     
     /**

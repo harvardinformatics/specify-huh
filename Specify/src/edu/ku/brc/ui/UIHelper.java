@@ -2773,6 +2773,7 @@ public final class UIHelper
                                 {
                                     mi.doClick();
                                     popupMenu.setVisible(false);
+                                    popupMenu.removeKeyListener(this); // remove the special key listener
                                 }
                             }
                         }
