@@ -3702,11 +3702,11 @@ public final class UIHelper
      */
     public static void cloneKeyMapping(JButton jbutton, String oldKeyName, String newKeyName)
     {
-        //Enter key acts like space key
-        KeyStroke spaceKey = KeyStroke.getKeyStroke("SPACE");
-        KeyStroke spaceKeyReleased = KeyStroke.getKeyStroke("released " + "SPACE");
-        KeyStroke enterKey = KeyStroke.getKeyStroke("ENTER");
-        KeyStroke enterKeyReleased = KeyStroke.getKeyStroke("released ENTER");
+        // New key acts like old key
+        KeyStroke spaceKey = KeyStroke.getKeyStroke(oldKeyName);
+        KeyStroke spaceKeyReleased = KeyStroke.getKeyStroke("released " + oldKeyName);
+        KeyStroke enterKey = KeyStroke.getKeyStroke(newKeyName);
+        KeyStroke enterKeyReleased = KeyStroke.getKeyStroke("released " + newKeyName);
         
         jbutton.getInputMap().put(enterKey, jbutton.getInputMap().get(spaceKey));
         jbutton.getInputMap().put(enterKeyReleased, jbutton.getInputMap().get(spaceKeyReleased));
