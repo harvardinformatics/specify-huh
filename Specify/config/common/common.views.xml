@@ -781,7 +781,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="divisionCBX" uitype="combobox" ignore="true"/>
+                    <cell type="field" id="4" name="division" uitype="combobox" ignore="true"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="dateAccessioned" uitype="formattedtext" uifieldformatter="Date" default="today"/>
                     <cell type="label" labelfor="6"/>
@@ -876,7 +876,7 @@
                     <cell type="field" id="3" name="type" uitype="combobox" />
                     
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="divisionCBX" uitype="combobox" ignore="true"/>
+                    <cell type="field" id="4" name="division" uitype="combobox" ignore="true"/>
                     
                 </row>
                 <row>
@@ -1371,9 +1371,9 @@
             type="form"
             name="Collector"
             class="edu.ku.brc.specify.datamodel.Collector"
-            gettable="edu.harvard.huh.specify.ui.forms.AgentVarForAgentGetter"
-            settable="edu.harvard.huh.specify.ui.forms.AgentVarForAgentSetter">
-            <desc><![CDATA[The Collector form.]]></desc>
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Collector form. Called when adding a new collector.]]></desc>
             <enableRules/>
             
             <columnDef>100px,3dlu,p,p:g</columnDef>
@@ -1382,7 +1382,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=AgentVariant;title=AgentVariant" uifieldformatter="Agent"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Collector" uifieldformatter="Agent" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1425,18 +1425,30 @@
             <columnDef>p,5dlu,p:g,5dlu,p</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
-                <row>
+                <!-- <row>
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="agent.lastName" uitype="text" cols="20" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="agent.firstName" uitype="text" cols="20" colspan="3"/>
-                </row>WebLinkButton
+                </row>
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="agent.email" uitype="text" cols="32"/>
                     <cell type="field" id="mailto" name="agent" uitype="plugin" initialize="name=WebLinkButton;url=mailto:$email$;label=Send Mail;watch=7"/>
+                </row> -->
+                <row>
+                	<cell type="label" labelfor="collectorName"/>
+                	<cell type="field" id="collectorName" name="collectorName" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="startDate"/>
+                	<cell type="field" id="startDate" name="agent.dateOfBirth" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="endDate"/>
+                	<cell type="field" id="endDate" name="agent.dateOfDeath" uitype="text"/>
                 </row>
             </rows>
         </viewdef>
@@ -3248,7 +3260,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" />
+                    <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet"/>
                     <cell type="label" labelfor="herbarium"/>
                     <cell type="field" id="herbarium" name="preparationAttribute.text3" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
                     <cell type="label" label="  "/>
