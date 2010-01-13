@@ -56,6 +56,7 @@
       <picklistitem title="in bag" value="in bag"/>
       <picklistitem title="in spirit medium" value="in spirit medium"/>
       <picklistitem title="wood" value="wood"/>
+      <picklistitem title="fossil" value="fossil"/>
       <picklistitem title="on microscope slide" value="on microscope slide"/>
       <picklistitem title="DNA sample" value="DNA sample"/>
       <picklistitem title="photograph" value="photograph"/>
