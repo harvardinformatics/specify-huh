@@ -101,6 +101,7 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
     protected ValComboBox  appIconCBX;
     protected String       newAppIconName = null;
     protected ValComboBox  dateFieldCBX;
+    protected ValComboBox  dateFieldMonCBX;
     protected boolean      clearFontSettings = false;
     protected ValComboBox  bnrIconSizeCBX;
     
@@ -122,9 +123,27 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
     protected void addFormats(final Vector<String> formats, final Character ch)
     {
         formats.add("MM"+ch+"dd"+ch+"yyyy");
+        formats.add("MMM"+ch+"dd"+ch+"yyyy");
         formats.add("dd"+ch+"MM"+ch+"yyyy");
+        formats.add("dd"+ch+"MMM"+ch+"yyyy");
         formats.add("yyyy"+ch+"MM"+ch+"dd");
+        formats.add("yyyy"+ch+"MMM"+ch+"dd");
         formats.add("yyyy"+ch+"dd"+ch+"MM");
+        formats.add("yyyy"+ch+"dd"+ch+"MMM");
+    }
+    
+    /**
+     * @param formats
+     * @param ch
+     */
+    protected void addFormatsMon(final Vector<String> formats, final Character ch)
+    {
+        formats.add("MM"+ch+"yyyy");
+        formats.add("MMM"+ch+"yyyy");
+        formats.add("MM"+ch+"yyyy");
+        formats.add("MMM"+ch+"yyyy");
+        formats.add("yyyy"+ch+"MM");
+        formats.add("yyyy"+ch+"MMM");
     }
     
     /**
@@ -187,6 +206,66 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
                 inx++;
             }
             dateFieldCBX.getComboBox().setSelectedIndex(selectedInx);
+        }
+    }
+    
+    protected void fillDateFormatMon()
+    {
+        
+        String currentFormat = AppPreferences.getRemote().get("ui.formatting.scrdateformatmon", null);
+        
+        TimeZone tz = TimeZone.getDefault();
+        DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+        dateFormatter.setTimeZone(tz);
+        String dateStr = dateFormatter.format(Calendar.getInstance().getTime());
+        Character ch = null;
+        for (int i=0;i<10;i++)
+        {
+            if (!StringUtils.isNumeric(dateStr.substring(i,i+1)))
+            {
+                ch = dateStr.charAt(i);
+                break;
+            }
+        }
+        
+        if (ch != null)
+        {
+            boolean skip = false;
+            Vector<String> formats = new Vector<String>();
+            if (ch == '/')
+            {
+                addFormatsMon(formats, '/');
+                skip = true;
+            }
+            if (ch != '.')
+            {
+                addFormatsMon(formats, '.');
+                skip = true;
+            }
+            if (ch != '-')
+            {
+                addFormatsMon(formats, '-');
+                skip = true;
+            }
+            
+            if (!skip)
+            {
+                addFormatsMon(formats, ch);
+            }
+            
+            int selectedInx = 0;
+            int inx        = 0;
+            DefaultComboBoxModel model = (DefaultComboBoxModel)dateFieldMonCBX.getModel();
+            for (String fmt : formats)
+            {
+                model.addElement(fmt);
+                if (currentFormat != null && currentFormat.equals(fmt))
+                {
+                    selectedInx = inx;
+                }
+                inx++;
+            }
+            dateFieldMonCBX.getComboBox().setSelectedIndex(selectedInx);
         }
     }
     
@@ -405,6 +484,8 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
         //-----------------------------------
         dateFieldCBX = form.getCompById("scrdateformat"); //$NON-NLS-1$
         fillDateFormat();
+        dateFieldMonCBX = form.getCompById("scrdateformatmon"); //$NON-NLS-1$
+        fillDateFormatMon();
         
         //-----------------------------------
         // FormType

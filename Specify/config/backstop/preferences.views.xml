@@ -213,6 +213,16 @@
                     </cell>
                 </row>
                 <row>
+                    <cell type="label" name="scrdateformatmonLabel" labelfor="scrdateformatmon" label="SCRN_DATE_MON_FORMAT"/>
+                    <cell type="panel" id="datemon" name="datemon" coldef="p,f:p:g" rowdef="p" colspan="5">
+                        <rows>
+                            <row>
+                                <cell type="field" uitype="combobox" id="scrdateformatmon" name="ui.formatting.scrdateformatmon" isrequired="true" colspan="1"/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
                     <cell type="label" labelfor="valtextcolor" label="ERROR_CLR"/>
                     <cell type="field" uitype="colorchooser" id="valtextcolor" name="ui.formatting.valtextcolor"/>
                 </row>
