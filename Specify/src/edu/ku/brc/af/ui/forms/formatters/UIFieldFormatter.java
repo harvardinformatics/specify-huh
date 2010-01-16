@@ -26,6 +26,8 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
@@ -793,7 +795,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         
         for (UIFieldFormatterField field : formatter.getFields())
         {
-            if (month == null && field.getValue().equals("MM"))
+            if (month == null && (field.getValue().equals("MM") || field.getValue().equals("MMM")))
             {
                 month    = field;
                 monthInx = inx;
@@ -824,11 +826,30 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         
         if (month != null)
         {
-            String val    = text.substring(monthInx, monthInx+month.getSize());
-            int    monVal = Integer.parseInt(val);
-            if (monVal < 1 || monVal > 12)
+            String val = text.substring(monthInx, monthInx+month.getSize());
+            int monVal = 0;
+            
+            if (month.getType().equals(UIFieldFormatterField.FieldType.numeric))
             {
-                return false;
+                monVal = Integer.parseInt(val);
+                if (monVal < 1 || monVal > 12)
+                {
+                    return false;
+                }
+            }
+            else if (month.getType().equals(UIFieldFormatterField.FieldType.alpha))
+            {
+                try
+                {
+                    Date monthDate = new SimpleDateFormat("MMM").parse(val);
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(monthDate);
+                    monVal = calendar.get(Calendar.MONTH) + 1;
+                }
+                catch (ParseException p)
+                {
+                    return false;
+                }
             }
             
             if (day != null)
