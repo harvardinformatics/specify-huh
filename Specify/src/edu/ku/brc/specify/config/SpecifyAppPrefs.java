@@ -89,6 +89,7 @@ public class SpecifyAppPrefs
     {
         //FastDateFormat fastDateFormat = FastDateFormat.getDateInstance(FastDateFormat.SHORT);      
         AppPrefsCache.register(AppPrefsCache.getDefaultDatePattern(), "ui", "formatting", "scrdateformat");
+        AppPrefsCache.register(AppPrefsCache.getDefaultDatePattern(), "ui", "formatting", "scrdateformatmon");
         
         ColorWrapper valtextcolor = new ColorWrapper(Color.RED);
         AppPrefsCache.register(valtextcolor, "ui", "formatting", "valtextcolor");
