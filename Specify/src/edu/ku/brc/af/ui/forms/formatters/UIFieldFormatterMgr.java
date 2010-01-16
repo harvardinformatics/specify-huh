@@ -890,15 +890,28 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
                         partialType == UIFieldFormatter.PartialDateEnum.Search || 
                         partialType == UIFieldFormatter.PartialDateEnum.Month)
                     {
-                        String s = "";
-                        s += c;
-                        s += c;
-                        UIFieldFormatterField f = new UIFieldFormatterField(UIFieldFormatterField.FieldType.numeric, 2, s.toUpperCase(), false);
+                        int start = i;
+                        while (i < formatStr.length() && formatStr.charAt(i) == 'M')
+                        {
+                            i++;
+                            newFormatStr.append(c);
+                        }
+                        UIFieldFormatterField f;
+                        if (i - start > 2)
+                        {
+                            f = new UIFieldFormatterField(
+                                    UIFieldFormatterField.FieldType.alpha, 3,
+                                    "MMM", false);
+                        } else
+                        {
+                            f = new UIFieldFormatterField(
+                                    UIFieldFormatterField.FieldType.numeric, 2,
+                                    "MM", false);
+                        }
+                        
                         formatter.getFields().add(f);
                         currChar = c;
-                        newFormatStr.append(c);
-                        newFormatStr.append(c);
-
+                        i--;
                     } else
                     {
                         wasConsumed = true;
