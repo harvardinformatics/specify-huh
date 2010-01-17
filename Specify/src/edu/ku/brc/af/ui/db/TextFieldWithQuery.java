@@ -140,7 +140,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
     protected String[]                         keyColumns;
     protected int                              numColumns               = -1;
     protected Object[]                         values;
-    protected Hashtable<Integer, Object[]>     duplicatehash            = new Hashtable<Integer, Object[]>();
+    protected Hashtable<String, Object[]>     duplicatehash            = new Hashtable<String, Object[]>();
     
     protected List<ListSelectionListener>      listSelectionListeners = new ArrayList<ListSelectionListener>();
     protected PopupMenuListener                popupMenuListener   = null;
@@ -791,7 +791,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         {
             if (cnt > 0) whereSB.append(" OR "); //$NON-NLS-1$
             whereSB.append(" LOWER("); //$NON-NLS-1$
-            whereSB.append(tableInfo.getAbbrev() + "." + keyCol);
+            addTblAbbrev(tableInfo.getAbbrev(), keyCol, whereSB);
             whereSB.append(") LIKE '"); //$NON-NLS-1$
             if (uiFieldFormatter != null && uiFieldFormatter.isNumeric())
             {
@@ -867,14 +867,14 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
                 if (isForCount)
                 {
                     sb.append("count(");                 //$NON-NLS-1$
-                    sb.append(tableInfo.getAbbrev() + "." + tableInfo.getIdFieldName());
+                    addTblAbbrev(tableInfo.getAbbrev(), tableInfo.getIdFieldName(), sb);
                     sb.append(")"); //$NON-NLS-1$
                     
                 } else
                 {
-                    sb.append(tableInfo.getAbbrev() + "." + displayColumns);
+                	addTblAbbrev(tableInfo.getAbbrev(), displayColumns, sb);
                     sb.append(","); //$NON-NLS-1$
-                    sb.append(tableInfo.getAbbrev() + "." + tableInfo.getIdFieldName());                
+                    addTblAbbrev(tableInfo.getAbbrev(), tableInfo.getIdFieldName(), sb);              
                 }
     
                 sb.append(" FROM "); //$NON-NLS-1$
@@ -965,9 +965,11 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
                 Integer id = (Integer)array[numColumns];
                 idList.addElement(id);
                 
-                if (duplicatehash.get(id) == null)
+                String key = makeKey(array);
+                
+                if (duplicatehash.get(key) == null)
                 {
-                    duplicatehash.put(id, array);
+                    duplicatehash.put(key, array);
                     
                     if (numColumns == 1)
                     {
@@ -1051,6 +1053,21 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
             
             duplicatehash.clear();
         }
+    }
+    
+    private String makeKey(Object[] objects)
+    {
+    	if (objects == null) return null;
+    	
+    	StringBuffer sb = new StringBuffer();
+    	
+    	for (int i=0; i<objects.length; i++)
+    	{
+    		sb.append(objects[i]);
+    		sb.append("|");
+    	}
+    	
+    	return sb.toString();
     }
     
     /**
