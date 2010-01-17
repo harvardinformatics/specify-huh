@@ -4,7 +4,7 @@
     <views>
         <view name="Agent"
             class="edu.ku.brc.specify.datamodel.Agent"
-            busrules="edu.ku.brc.specify.datamodel.busrules.AgentBusRules"
+            busrules="edu.ku.brc.specify.datamodel.busrules.HUHAgentBusRules"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Agent subform within the AccessionAgent form.]]></desc>
@@ -741,7 +741,7 @@
                 <!-- Parent Organization -->
                 <row>
                 	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=Agent;title=Agent" colspan="5"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="5"/>
                 </row>
 
                 <!-- "Remarks:" -->
@@ -1403,7 +1403,7 @@
             class="edu.ku.brc.specify.datamodel.Taxon"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
-            useresourcelabels="true">
+            useresourcelabels="false">
             <desc><![CDATA[New Taxon Node Form]]></desc>
            <enableRules>
                <!--    <rule id="acceptedParent"><![CDATA[!isAccepted.isSelected()]]></rule> -->
@@ -1489,16 +1489,16 @@
                 </row>
                 <row>
                 	<cell type="label" label="                    ("/>
-                	<cell type="field" id="parAuthor" uitype="text" name="unitName1"/>
+                	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AgentByAgentVar;title=Par Author;editbtn=false;newbtn=false"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="parExAuthor" uitype="text" name="unitName2" colspan="8"/>
+                	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AgentByAgentVar;title=Par Ex Author;editbtn=false;newbtn=false" colspan="8"/>
                 	<cell type="label" label=")"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="field" id="stdAuthor" uitype="text" name="unitName3"/>
+                	<cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=AgentByAgentVar;title=Std Author;editbtn=false;newbtn=false"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="stdExAuthor" uitype="text" name="unitName4" colspan="8"/>
+                	<cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=AgentByAgentVar;title=Std Ex Author;editbtn=false;newbtn=false" colspan="8"/>
                 	<cell type="label" label=" "/>
                 </row>
                 <row>
