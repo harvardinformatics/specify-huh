@@ -1616,7 +1616,7 @@ repositoryagreement.RepositoryAgreementNumber,
  address.Country
  FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID
  LEFT JOIN address ON agent.AgentID = address.AgentID
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY agent.AgentID]]>
+ WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY agent.AgentID ORDER BY agent.LastName, agent.FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1643,7 +1643,7 @@ repositoryagreement.RepositoryAgreementNumber,
  permit.EndDate, 
  permit.RenewalDate, 
  permit.Type
- FROM permit LEFT JOIN agent ON permit.IssuedByID = agent.AgentID WHERE (%s)]]>
+ FROM permit LEFT JOIN agent ON permit.IssuedByID = agent.AgentID WHERE (%s) ORDER BY permit.PermitNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="6" col="PermitID" visible="false"/>
@@ -1661,7 +1661,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="102" tableid="7" name="AccessionSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT AccessionID, AccessionNumber, Status, Type, DateAccessioned, DateReceived FROM accession WHERE (%s)]]>
+                    <![CDATA[SELECT AccessionID, AccessionNumber, Status, Type, DateAccessioned, DateReceived FROM accession WHERE (%s) ORDER BY AccessionNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="7" col="AccessionID" visible="false"/>
@@ -1677,7 +1677,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="103" tableid="3" name="GeographySearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT geography.GeographyID, geography.Name, geography.FullName, geographytreedefitem.Name FROM geography INNER JOIN geographytreedefitem ON geography.GeographyTreeDefItemID = geographytreedefitem.GeographyTreeDefItemID WHERE geography.GeographyTreeDefID = GEOTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT geography.GeographyID, geography.Name, geography.FullName, geographytreedefitem.Name FROM geography INNER JOIN geographytreedefitem ON geography.GeographyTreeDefItemID = geographytreedefitem.GeographyTreeDefItemID WHERE geography.GeographyTreeDefID = GEOTREEDEFID AND (%s) ORDER BY geography.RankID, geography.Name]]>
                 </sql>
                 <captions>
                     <caption tableid="3" col="geography.GeographyID" visible="false"/>
@@ -1692,7 +1692,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="104" tableid="65" name="PrepTypeSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[select PrepTypeID, Name from preptype where CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[select PrepTypeID, Name from preptype where CollectionMemberID = COLMEMID AND (%s) ORDER BY Name]]>
                 </sql>
                 <captions>
                     <caption tableid="65" col="PrepTypeID" visible="false"/>
@@ -1704,7 +1704,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="105" tableid="26" name="DisciplineSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT DisciplineID, Type, Name FROM discipline WHERE (%s)]]>
+                    <![CDATA[SELECT DisciplineID, Type, Name FROM discipline WHERE (%s) ORDER BY Name]]>
                 </sql>
                 <captions>
                     <caption tableid="26" col="DisciplineID" visible="false"/>
@@ -1717,7 +1717,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="106" tableid="97" name="CatalogNumberingSchemeSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT CatalogNumberingSchemeID, SchemeName, IsNumericOnly FROM catalognumberingscheme WHERE (%s)]]>
+                    <![CDATA[SELECT CatalogNumberingSchemeID, SchemeName, IsNumericOnly FROM catalognumberingscheme WHERE (%s) ORDER BY SchemeName]]>
                 </sql>
                 <captions>
                     <caption tableid="97" col="CatalogNumberingSchemeID" visible="false"/>
@@ -1730,10 +1730,11 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="107" tableid="4" name="TaxonSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT taxon.TaxonID, taxon.FullName, taxon.CommonName FROM taxon WHERE taxon.TaxonTreeDefID = TAXTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT taxon.TaxonID, taxon.RankID, taxon.FullName, taxon.CommonName FROM taxon WHERE taxon.TaxonTreeDefID = TAXTREEDEFID AND (%s) ORDER BY taxon.RankID, taxon.Name]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID" visible="false"/>
+                    <caption tableid="4" col="taxon.RankID" visible="false"/>
                     <caption tableid="4" col="taxon.FullName"/>
                     <caption tableid="4" col="taxon.CommonName"/>
                 </captions>
@@ -1743,7 +1744,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="108" tableid="5" name="AgentNameSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT AgentID, FirstName, LastName, MiddleInitial FROM agent WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT AgentID, FirstName, LastName, MiddleInitial FROM agent WHERE CollectionMemberID = COLMEMID AND (%s) ORDER BY LastName, FirstName, MiddleInitial]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>
@@ -1757,7 +1758,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="109" tableid="58" name="StorageSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT StorageID, FullName FROM storage WHERE StorageTreeDefID = STORTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT StorageID, FullName, Text2, Text1 FROM storage WHERE StorageTreeDefID = STORTREEDEFID AND (%s) ORDER BY FullName]]>
                 </sql>
                 <captions>
                     <caption tableid="58" col="StorageID" visible="false"/>
@@ -1769,7 +1770,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="110" tableid="46" name="ChronosStratSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT GeologicTimePeriodID, FullName FROM geologictimeperiod WHERE GeologicTimePeriodTreeDefID = GTPTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT GeologicTimePeriodID, FullName FROM geologictimeperiod WHERE GeologicTimePeriodTreeDefID = GTPTREEDEFID AND (%s) ORDER BY FullName]]>
                 </sql>
                 <captions>
                     <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
@@ -1781,7 +1782,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="111" tableid="100" name="LithoStratSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT LithoStratID, FullName FROM lithostrat WHERE LithoStratTreeDefID = LITHOTREEDEFID AND (%s)]]>
+                    <![CDATA[SELECT LithoStratID, FullName FROM lithostrat WHERE LithoStratTreeDefID = LITHOTREEDEFID AND (%s) ORDER BY FullName]]>
                 </sql>
                 <captions>
                     <caption tableid="100" col="LithoStratID" visible="false"/>
@@ -1793,7 +1794,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="112" tableid="32" name="PaleoContextSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT PaleoContextID, TopDistance, DistanceUnits FROM paleocontext WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT PaleoContextID, TopDistance, DistanceUnits FROM paleocontext WHERE CollectionMemberID = COLMEMID AND (%s) ORDER BY TopDistance]]>
                 </sql>
                 <captions>
                     <caption tableid="32" col="PaleoContextID" visible="false"/>
@@ -1814,7 +1815,7 @@ repositoryagreement.RepositoryAgreementNumber,
  INNER JOIN specifyuser ON collectiontype.SpecifyUserID = specifyuser.SpecifyUserID 
  WHERE specifyuser.SpecifyUserID = SPECIFYUSERID AND loan.DisciplineID = DSPLNID AND 
  (not (currentduedate is null)) AND (IsClosed = false or IsClosed is null) AND 
-                    datediff(CURDATE(), currentduedate) > 0]]>
+                    datediff(CURDATE(), currentduedate) > 0 ORDER BY loan.LoanDate]]>
                 </sql>
                 <captions>
                     <caption tableid="52" col="loan.LoanID" visible="false"/>
@@ -1829,7 +1830,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="114" tableid="2" name="LocalitySearch" priority="1" color="30, 144, 255">
             <detailView icon="Locality">
                 <sql>
-                    <![CDATA[SELECT LocalityID, LocalityName,Latitude1,Longitude1 FROM locality WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT LocalityID, LocalityName,Latitude1,Longitude1 FROM locality WHERE DisciplineID = DSPLNID AND (%s) ORDER BY LocalityName]]>
                 </sql>
                 <captions>
                     <caption tableid="2" col="LocalityID" visible="false"/>
@@ -1843,7 +1844,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="115" tableid="41" name="AttachmentSearch" priority="1" color="30, 144, 255">
             <detailView icon="Attachment">
                 <sql>
-                    <![CDATA[SELECT AttachmentID, OrigFilename FROM attachment WHERE (%s)]]>
+                    <![CDATA[SELECT AttachmentID, OrigFilename FROM attachment WHERE (%s) ORDER BY OrigFilename]]>
                 </sql>
                 <captions>
                     <caption tableid="41" col="AttachmentID" visible="false"/>
@@ -1855,7 +1856,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="116" tableid="1" name="CollectionObjectSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT CollectionObjectID, CatalogNumber FROM collectionobject WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT CollectionObjectID, CatalogNumber FROM collectionobject WHERE CollectionMemberID = COLMEMID AND (%s) ORDER BY CatalogNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="CollectionObjectID" visible="false"/>
@@ -1867,7 +1868,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="117" tableid="10" name="CollectingEventSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectionObject">
                 <sql>
-                    <![CDATA[SELECT CollectingEventID, StationFieldNumber, StartDate, StartDatePrecision FROM collectingevent WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT CollectingEventID, StationFieldNumber, StartDate, StartDatePrecision FROM collectingevent WHERE DisciplineID = DSPLNID AND (%s) ORDER BY StartDate, StationFieldNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="10" col="CollectingEventID" visible="false"/>
@@ -1883,7 +1884,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="118" tableid="46" name="BioStratSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT GeologicTimePeriodID, FullName FROM geologictimeperiod WHERE GeologicTimePeriodTreeDefID = GTPTREEDEFID AND geologictimeperiod.IsBioStrat = 1 AND (%s)]]>
+                    <![CDATA[SELECT GeologicTimePeriodID, FullName FROM geologictimeperiod WHERE GeologicTimePeriodTreeDefID = GTPTREEDEFID AND geologictimeperiod.IsBioStrat = 1 AND (%s) ORDER BY Name]]>
                 </sql>
                 <captions>
                     <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
@@ -1896,7 +1897,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="119" tableid="51" name="JournalSearch" priority="1" color="30, 144, 255">
             <detailView icon="Journal">
                 <sql>
-                    <![CDATA[SELECT JournalID, JournalName, JournalAbbreviation, ISSN, GUID FROM journal WHERE (%s)]]>
+                    <![CDATA[SELECT JournalID, JournalName, JournalAbbreviation, ISSN, GUID FROM journal WHERE (%s) ORDER BY JournalAbbreviation]]>
                 </sql>
                 <captions>
                     <caption tableid="51" col="JournalID" visible="false"/>
@@ -1911,7 +1912,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="120" tableid="67" name="AppraisalSearch" priority="1" color="30, 144, 255">
             <detailView icon="Appraisal">
                 <sql>
-                    <![CDATA[SELECT AppraisalID, AppraisalNumber FROM appraisal WHERE (%s)]]>
+                    <![CDATA[SELECT AppraisalID, AppraisalNumber FROM appraisal WHERE (%s) ORDER BY AppraisalNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="67" col="AppraisalID" visible="false"/>
@@ -1923,7 +1924,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="121" tableid="69" name="ReferenceWorkSearch" priority="1" color="30, 144, 255">
             <detailView icon="ReferenceWork">
                 <sql>
-                    <![CDATA[SELECT ReferenceWorkID, Title FROM referencework WHERE (%s)]]>
+                    <![CDATA[SELECT ReferenceWorkID, Title FROM referencework WHERE (%s) ORDER BY Title]]>
                 </sql>
                 <captions>
                     <caption tableid="69" col="ReferenceWorkID" visible="false"/>
@@ -1935,7 +1936,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="122" tableid="87" name="CollectingTripSearch" priority="1" color="30, 144, 255">
             <detailView icon="CollectingTrip">
                 <sql>
-                    <![CDATA[SELECT CollectingTripID, CollectingTripName, StartDate FROM collectingtrip WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT CollectingTripID, CollectingTripName, StartDate FROM collectingtrip WHERE DisciplineID = DSPLNID AND (%s) ORDER BY CollectingTripName]]>
                 </sql>
                 <captions>
                     <caption tableid="87" col="CollectingTripID" visible="false"/>
@@ -1948,7 +1949,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="123" tableid="96" name="DivisionSearch" priority="1" color="30, 144, 255">
             <detailView icon="Division">
                 <sql>
-                    <![CDATA[SELECT DivisionID, Name FROM division WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT DivisionID, Name FROM division WHERE DisciplineID = DSPLNID AND (%s) ORDER BY Name]]>
                 </sql>
                 <captions>
                     <caption tableid="96" col="DivisionID" visible="false"/>
@@ -1960,7 +1961,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="124" tableid="66" name="ProjectSearch" priority="1" color="30, 144, 255">
             <detailView icon="Project">
                 <sql>
-                    <![CDATA[SELECT ProjectID, ProjectName, ProjectNumber FROM project WHERE CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[SELECT ProjectID, ProjectName, ProjectNumber FROM project WHERE CollectionMemberID = COLMEMID AND (%s) ORDER BY ProjectName]]>
                 </sql>
                 <captions>
                     <caption tableid="66" col="ProjectID" visible="false"/>
@@ -1973,7 +1974,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="125" tableid="70" name="RepositoryAgreementSearch" priority="1" color="30, 144, 255">
             <detailView icon="RepositoryAgreement">
                 <sql>
-                    <![CDATA[SELECT RepositoryAgreementID, RepositoryAgreementNumber, StartDate FROM repositoryagreement WHERE DisciplineID = DSPLNID AND (%s)]]>
+                    <![CDATA[SELECT RepositoryAgreementID, RepositoryAgreementNumber, StartDate FROM repositoryagreement WHERE DisciplineID = DSPLNID AND (%s) ORDER BY RepositoryAgreementNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="70" col="ProjectID" visible="false"/>
@@ -1986,7 +1987,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="126" tableid="89" name="ExsiccataSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[select ExsiccataID, Title from exsiccata where (%s)]]>
+                    <![CDATA[select ExsiccataID, Title from exsiccata where (%s) ORDER BY Title]]>
                 </sql>
                 <captions>
                     <caption tableid="89" col="ExsiccataID" visible="false"/>
@@ -1998,7 +1999,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="127" tableid="31" name="ContainerSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[select ContainerID, Name from container where CollectionMemberID = COLMEMID AND (%s)]]>
+                    <![CDATA[select ContainerID, Name from container where CollectionMemberID = COLMEMID AND (%s) ORDER BY Name]]>
                 </sql>
                 <captions>
                     <caption tableid="65" col="ContainerID" visible="false"/>
