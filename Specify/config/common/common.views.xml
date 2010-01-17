@@ -1382,7 +1382,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Collector" uifieldformatter="Agent" colspan="2"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=AgentByAgentVar;title=Collector" uifieldformatter="Agent" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
