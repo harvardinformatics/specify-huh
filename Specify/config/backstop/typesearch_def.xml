@@ -13,8 +13,8 @@
     <typesearch tableid="5"   name="Agent"                  searchfield="lastName"        displaycols="lastName,firstName" format="%s, %s" dataobjformatter="Agent">
         SELECT %s1 FROM Agent ag JOIN ag.disciplines as dsp WHERE dsp.disciplineId = DSPLNID AND %s2 ORDER BY ag.lastName
     </typesearch>
-    <typesearch tableid="5" name="AgentByAgentVar" searchfield="av.name,ag.lastName" displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)"     dataobjformatter="Agent">
-           SELECT %s1 FROM AgentVariant av LEFT JOIN av.agent ag WHERE %s2 ORDER BY av.name, ag.dateOfBirth
+    <typesearch tableid="5" name="AgentByAgentVar" searchfield="av.name" displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)"     dataobjformatter="Agent">
+           SELECT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
    </typesearch>
     <typesearch tableid="5"   name="AgentSSPU"              searchfield="lastName"        displaycols="lastName,firstName" format="%s, %s" dataobjformatter="Agent">
         SELECT %s1 FROM Agent ag LEFT JOIN ag.specifyUser s WHERE s = null AND %s2 ORDER BY ag.lastName
@@ -54,6 +54,9 @@
     <typesearch tableid="2"   name="Locality"               searchfield="localityName"    displaycols="localityName"       format="%s"     dataobjformatter="Locality">
         SELECT %s1 FROM Locality loc JOIN loc.discipline as dsp WHERE dsp.disciplineId = DSPLNID AND %s2 ORDER BY localityName
     </typesearch>
+    <typesearch tableid="5"   name="OrgByAcronym"           searchfield="ag.abbreviation" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="Agent">
+           SELECT %s1 FROM Agent ag WHERE %s2 ORDER BY ag.abbreviation, ag.lastName
+   </typesearch>
     <typesearch tableid="69"  name="ReferenceWork"          searchfield="title"           displaycols="title"              format="%s"     dataobjformatter=""/>
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter=""/>
     <typesearch tableid="70"  name="RepositoryAgreement"    searchfield="repositoryAgreementNumber" displaycols="repositoryAgreementNumber" format="%s"     dataobjformatter=""/>
