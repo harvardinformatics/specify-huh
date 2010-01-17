@@ -57,7 +57,7 @@
     <typesearch tableid="5"   name="OrgByAcronym"           searchfield="ag.abbreviation" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="Agent">
            SELECT %s1 FROM Agent ag WHERE %s2 ORDER BY ag.abbreviation, ag.lastName
    </typesearch>
-    <typesearch tableid="69"  name="ReferenceWork"          searchfield="title"           displaycols="title"              format="%s"     dataobjformatter=""/>
+    <typesearch tableid="69"  name="ReferenceWork"          searchfield="title,text1"     displaycols="title,text1"        format="%s (%s)" dataobjformatter=""/>
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter=""/>
     <typesearch tableid="70"  name="RepositoryAgreement"    searchfield="repositoryAgreementNumber" displaycols="repositoryAgreementNumber" format="%s"     dataobjformatter=""/>
     <typesearch tableid="58"  name="Storage"                searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
