@@ -38,7 +38,7 @@
       <picklistitem title="Collector" value="Collector"/>
   	</items>
   </picklist>
-    <picklist name="HUH Phenology" issystem="false" type="0" readonly="true" sizelimit="6">
+    <picklist name="HUH Phenology"  type="0" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="not determined" value="NotDetermined"/>
       <picklistitem title="flower" value="Flower"/>
@@ -48,7 +48,7 @@
       <picklistitem title="sporophyte" value="Sporophyte"/>
     </items>
   </picklist>
-  <picklist name="HUH Preparation Types" issystem="false" type="0" readonly="true" sizelimit="12">
+  <picklist name="HUH Preparation Types"  type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="on sheet" value="on sheet"/>
       <picklistitem title="in packet" value="in packet"/>
@@ -65,7 +65,7 @@
       <picklistitem title="other" value="other"/>
     </items>
   </picklist>
-  <picklist name="HUH Type Status" issystem="false" type="0" readonly="true" sizelimit="15">
+  <picklist name="HUH Type Status"  type="0" readonly="true" sizelimit="15">
     <items>
 		<picklistitem title="Epitype" value="Epitype"/>
 		<picklistitem title="Isoepitype" value="Isoepitype"/>

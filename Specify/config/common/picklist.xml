@@ -200,7 +200,7 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
-  <picklist name="HUH Accession Type" issystem="false" type="0" readonly="true" sizelimit="5">
+  <picklist name="HUH Accession Type" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
       <picklistitem title="Gift" value="Gift"/>
       <picklistitem title="Collection" value="Collection"/>
@@ -226,7 +226,7 @@
       <picklistitem title="Received Specimens" value="rec"/>
     </items>
   </picklist>
-  <picklist name="HUH CITES Status" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH CITES Status" type="0" issystem="true" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="[none]" value="None"/>
       <picklistitem title="CITES I" value="CitesI"/>
@@ -234,7 +234,7 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
-  <picklist name="HUH Determination Qualifier" type="0" issystem="false" readonly="true" sizelimit="6">
+  <picklist name="HUH Determination Qualifier" type="0" issystem="true" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="aff." value="Affine"/>
       <picklistitem title="cf." value="Compare"/>
@@ -244,7 +244,7 @@
       <picklistitem title="s. str." value="SensuStricto"/>
     </items>
   </picklist>
-  <picklist name="HUH Elevation Method" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Elevation Method" type="0" issystem="true" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
       <picklistitem title="altimeter" value="Altimeter"/>
@@ -252,7 +252,7 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Collection Code" type="0" issystem="false" readonly="true" sizelimit="6">
+  <picklist name="HUH Collection Code" type="0" issystem="true" readonly="true" sizelimit="6">
   	<items>
   		<picklistitem title="Arnold Arboretum" value="A"/>
   		<picklistitem title="Oakes Ames Orchid" value="AMES"/>
@@ -262,7 +262,7 @@
   		<picklistitem title="New England Botanical Club" value="NEBC"/>
   	</items>
   </picklist>
-  <picklist name="HUH Geographic Regions" type="0" issystem="false" readonly="true" sizelimit="18">
+  <picklist name="HUH Geographic Regions" type="0" issystem="true" readonly="true" sizelimit="18">
 	<items>
 		<picklistitem title="Africa" value="Africa"/>
 		<picklistitem title="Antarctica" value="Antarctica"/>
@@ -283,7 +283,7 @@
 		<picklistitem title="Miscellaneous" value="Miscellaneous"/>
 	</items>
   </picklist>
-  <picklist name="HUH Lat-Long Method" type="0" issystem="false" readonly="true" sizelimit="4">
+  <picklist name="HUH Lat-Long Method" type="0" issystem="true" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
       <picklistitem title="gazetteer" value="Gazetteer"/>
@@ -291,7 +291,7 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Plant Sexuality" type="0" issystem="false" readonly="false" sizelimit="2">
+  <picklist name="HUH Plant Sexuality" type="0" issystem="true" readonly="false" sizelimit="2">
 	<items>
 		<picklistitem title="Female" value="Female"/>
 		<picklistitem title="Male" value="Male"/>
@@ -303,7 +303,7 @@
   		<picklistitem title="W" value="W"/>
   	</items>
   </picklist>
-  <picklist name="HUH Reference Work Type" issystem="false" type="0" readonly="true" sizelimit="10">
+  <picklist name="HUH Reference Work Type" issystem="true" type="0" readonly="true" sizelimit="10">
     <items>
       <picklistitem title="Book" value="0"/>
       <picklistitem title="Electronic Media" value="1"/>
@@ -317,7 +317,7 @@
       <picklistitem title="Plate" value="9"/>
     </items>
   </picklist>
-  <picklist name="HUH Shipment Method" issystem="false" type="0" readonly="true" sizelimit="9">
+  <picklist name="HUH Shipment Method" issystem="true" type="0" readonly="true" sizelimit="9">
     <items>
       <picklistitem title="Air" value="Air"/>
       <picklistitem title="Express" value="Express"/>
@@ -330,7 +330,7 @@
       <picklistitem title="NA/Unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Taxon Group" type="0" issystem="false" readonly="true" sizelimit="7">
+  <picklist name="HUH Taxon Group" type="0" issystem="true" readonly="true" sizelimit="7">
     <items>
       <picklistitem title="Fungi and Lichens" value="FungiLichens"/>
       <picklistitem title="Monera" value="Monera"/>
@@ -341,7 +341,7 @@
       <picklistitem title="Diatoms" value="Diatoms"/>
     </items>
   </picklist>
-  <picklist name="HUH Taxon Status" type="0" issystem="false" readonly="true" sizelimit="10">
+  <picklist name="HUH Taxon Status" type="0" issystem="true" readonly="true" sizelimit="10">
     <items>
       <picklistitem title="nom. leg." value="NomLeg"/>
       <picklistitem title="nom. nov." value="NomNov"/>
@@ -361,7 +361,7 @@
   		<picklistitem title="S" value="S"/>
   	</items>
   </picklist>
-  <picklist name="HUH Transaction Purposes" issystem="false" type="0" readonly="true" sizelimit="5">
+  <picklist name="HUH Transaction Purposes" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
       <picklistitem title="for id" value="ForID"/>
       <picklistitem title="for study" value="ForStudy"/>
@@ -387,7 +387,7 @@
       <picklistitem title="Student" value="Student"/>
     </items>
   </picklist>
-  <picklist name="HUH Type Confidence" type="0" issystem="false" readonly="false" sizelimit="2">
+  <picklist name="HUH Type Confidence" type="0" issystem="true" readonly="false" sizelimit="2">
     <items>
       <picklistitem title="possible" value="Possible"/>
       <picklistitem title="probable" value="Probable"/>

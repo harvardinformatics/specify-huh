@@ -17147,7 +17147,7 @@
           </str>
         </descs>
       </item>
-      <item name="purposeOfGift" isUIFormatter="false"  pickListName="HUH TransactionPurposes">
+      <item name="purposeOfGift" isUIFormatter="false"  pickListName="HUH Transaction Purposes">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -17230,7 +17230,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Description</text>
+            <text>For Use By</text>
           </str>
         </names>
         <descs>
@@ -17240,13 +17240,13 @@
           </str>
         </descs>
       </item>
-      <item name="text2" isUIFormatter="false" isRequired="false">
+      <item name="text2" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Local Unit/\nFor Use By</text>
+            <text>Local Unit</text>
           </str>
         </names>
         <descs>
@@ -17302,11 +17302,11 @@
       </item>
       <item name="yesNo2">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Yes No2</text>
+            <text>Their Request?</text>
           </str>
         </names>
         <descs/>
@@ -17471,13 +17471,13 @@
         </names>
         <descs/>
       </item>
-      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false">
+      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" picklist="HUH Geographic Regions">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Description</text>
+            <text>Geography</text>
           </str>
         </names>
         <descs/>
