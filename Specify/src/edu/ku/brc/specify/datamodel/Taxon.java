@@ -1276,7 +1276,63 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         return fullNameBuilder.toString().trim();
     }
 	
-	/**
+    @Transient
+    public String getAuthorship()
+    {
+        boolean hasStdAuthor = getStdAuthor() != null;
+        boolean hasParAuthor = getParAuthor() != null;
+        boolean hasStdExAuthor = getStdExAuthor() != null;
+        boolean hasParExAuthor = getParExAuthor() != null;
+        
+        String stdAuthorName = "";
+        if (hasStdAuthor)
+        {
+            stdAuthorName = getStdAuthor().getAuthorName();
+            if (stdAuthorName == null) stdAuthorName = getStdAuthor().getLastName();
+        }
+        
+        String parAuthorName = "";
+        if (hasParAuthor)
+        {
+            parAuthorName = getParAuthor().getAuthorName();
+            if (parAuthorName == null) parAuthorName = getParAuthor().getLastName();
+        } 
+            
+        String stdExAuthorName = "";
+        if (hasStdExAuthor)
+        {
+            stdExAuthorName = getStdExAuthor().getAuthorName();
+            if (stdExAuthorName == null) stdExAuthorName = getStdExAuthor().getLastName();
+        }
+        if (stdExAuthorName != null) stdExAuthorName = " ex " + stdExAuthorName;
+        
+        String parExAuthorName = "";
+        if (hasParExAuthor)
+        {
+            parExAuthorName = getParExAuthor().getAuthorName();
+            if (parExAuthorName == null) parExAuthorName = getParExAuthor().getLastName();
+        }
+        if (parExAuthorName != null) parExAuthorName = " ex " + parExAuthorName;
+        
+        if (hasParAuthor || hasParExAuthor)
+        {
+            parAuthorName = "(" + parAuthorName + parExAuthorName + ")";
+            
+            if (hasStdAuthor || hasStdExAuthor)
+            {
+                stdAuthorName = " " + stdAuthorName;;
+            }
+        }
+        
+        if (hasStdAuthor || hasStdExAuthor)
+        {
+            stdAuthorName = stdAuthorName + stdExAuthorName;
+        }
+        
+        return parAuthorName + stdAuthorName;
+    }
+
+    /**
 	 * Returns the number of proper descendants for node.
 	 * 
 	 * @param node the node to count descendants for
