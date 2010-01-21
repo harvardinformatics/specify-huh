@@ -22,7 +22,7 @@ public class Transaction
 		
 
     // config/common/picklist
-    public enum ACCESSION_TYPE { Gift, Collection, Disposal, FieldWork, Lost, Other, Purchase };
+    public enum ACCESSION_TYPE { Gift, Collection, Disposal, Exchange, FieldWork, Lost, Other, Purchase };
     
     public enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
 	
