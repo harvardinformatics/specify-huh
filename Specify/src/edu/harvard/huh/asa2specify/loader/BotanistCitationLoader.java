@@ -102,7 +102,7 @@ public class BotanistCitationLoader extends CsvToSqlLoader
 		String role = botanistRoleCitation.getRole();
 		checkNull(role, "role");
 		role = truncate(role, 64, "role");
-		agentCitation.setText1(role);
+		agentCitation.setRole(role);
 
 		// Text1 (collation)
 		String collation = botanistRoleCitation.getCollation();
