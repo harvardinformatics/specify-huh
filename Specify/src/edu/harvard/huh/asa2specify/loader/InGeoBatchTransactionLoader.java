@@ -59,7 +59,7 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         return i + 5;
     }
     
-    protected Accession getAccession(InGeoBatchTransaction transaction) throws LocalException
+    protected Accession getAccession(InGeoBatchTransaction transaction, ACCESSION_TYPE type) throws LocalException
     {
         Accession accession = new Accession();
 
@@ -80,6 +80,9 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         String accessionNumber = getAccessionNumber(transactionNo);
         accession.setAccessionNumber(accessionNumber);
         
+        // AltAccessionNumber
+        accession.setAltAccessionNumber(transactionNo);
+
         // DateAccessioned
         Date openDate = transaction.getOpenDate();
         if (openDate != null)
@@ -133,7 +136,7 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         accession.setText3(geoUnit);
         
         // Type
-        accession.setType(Transaction.toString(ACCESSION_TYPE.Gift));
+        accession.setType(Transaction.toString(type));
         
         // TypeCount
         int typeCount = transaction.getTypeCount();
@@ -171,13 +174,18 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
     
     protected String getAccessionNumber(String accNo) throws LocalException
     {
-        // match ^(A|FH|GH)-(\d+)$ -> HUH-$1
+        // match ^(A|FH|GH)-(\d+)$
         Matcher numberMatcher = NUMBER.matcher(accNo);
         if (numberMatcher.matches())
         {
             String s1 = numberMatcher.group(1);
+            
+            /*if (s1.equals("A"))       s1 = "   A";
+            else if (s1.equals("FH")) s1 = "  FH";
+            else if (s1.equals("GH")) s1 = "  GH";*/
+            
             String s2 = numberMatcher.group(2);
-            return  s1 + "-" + (new DecimalFormat( ACC_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+            return  "HUH-" + (new DecimalFormat( ACC_NO_FMT ) ).format( Integer.parseInt( s2 ) );
         }
         
         throw new LocalException(rec() + "didn't match accession number: " + accNo);
@@ -185,34 +193,35 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
     
     protected String getInsertSql(Accession accession)
     {
-        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
-                            "DiscardCount, DistributeCount, DivisionID, ItemCount, NonSpecimenCount, " +
-                            "Number1, Remarks, ReturnCount, Text1, Text2, Text3, Type, TypeCount, " +
-                            "TimestampCreated, Version, YesNo1, YesNo2";
+        String fieldNames = "AccessionCondition, AccessionNumber, AltAccessionNumber, CreatedByAgentID, " +
+                            "DateAccessioned, DiscardCount, DistributeCount, DivisionID, ItemCount, " +
+                            "NonSpecimenCount, Number1, Remarks, ReturnCount, Text1, Text2, Text3, Type, " +
+                            "TypeCount, TimestampCreated, Version, YesNo1, YesNo2";
 
-        String[] values = new String[21];
+        String[] values = new String[22];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
-        values[2]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
-        values[3]  = SqlUtils.sqlString( accession.getDateAccessioned());
-        values[4]  = SqlUtils.sqlString( accession.getDiscardCount());
-        values[5]  = SqlUtils.sqlString( accession.getDistributeCount());
-        values[6]  = SqlUtils.sqlString( accession.getDivision().getId());
-        values[7]  = SqlUtils.sqlString( accession.getItemCount());
-        values[8]  = SqlUtils.sqlString( accession.getNonSpecimenCount());
-        values[9]  = SqlUtils.sqlString( accession.getNumber1());
-        values[10] = SqlUtils.sqlString( accession.getRemarks());
-        values[11] = SqlUtils.sqlString( accession.getReturnCount());
-        values[12] = SqlUtils.sqlString( accession.getText1());
-        values[13] = SqlUtils.sqlString( accession.getText2());
-        values[14] = SqlUtils.sqlString( accession.getText3());
-        values[15] = SqlUtils.sqlString( accession.getType());
-        values[16] = SqlUtils.sqlString( accession.getTypeCount());
-        values[17] = SqlUtils.now();
-        values[18] = SqlUtils.zero();
-        values[19] = SqlUtils.sqlString( accession.getYesNo1());
+        values[2]  = SqlUtils.sqlString( accession.getAltAccessionNumber());
+        values[3]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
+        values[4]  = SqlUtils.sqlString( accession.getDateAccessioned());
+        values[5]  = SqlUtils.sqlString( accession.getDiscardCount());
+        values[6]  = SqlUtils.sqlString( accession.getDistributeCount());
+        values[7]  = SqlUtils.sqlString( accession.getDivision().getId());
+        values[8]  = SqlUtils.sqlString( accession.getItemCount());
+        values[9]  = SqlUtils.sqlString( accession.getNonSpecimenCount());
+        values[10]  = SqlUtils.sqlString( accession.getNumber1());
+        values[11] = SqlUtils.sqlString( accession.getRemarks());
+        values[12] = SqlUtils.sqlString( accession.getReturnCount());
+        values[13] = SqlUtils.sqlString( accession.getText1());
+        values[14] = SqlUtils.sqlString( accession.getText2());
+        values[15] = SqlUtils.sqlString( accession.getText3());
+        values[16] = SqlUtils.sqlString( accession.getType());
+        values[17] = SqlUtils.sqlString( accession.getTypeCount());
+        values[18] = SqlUtils.now();
+        values[19] = SqlUtils.zero();
         values[20] = SqlUtils.sqlString( accession.getYesNo1());
+        values[21] = SqlUtils.sqlString( accession.getYesNo1());
         
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }

@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.StaffCollection;
+import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.ku.brc.specify.datamodel.Accession;
@@ -38,7 +39,7 @@ public class StaffCollectionLoader extends InGeoBatchTransactionLoader
         Integer transactionId = staffCollection.getId();
         setCurrentRecordId(transactionId);
         
-        Accession accession = getAccession(staffCollection);
+        Accession accession = getAccession(staffCollection, ACCESSION_TYPE.FieldWork);
         
         String sql = getInsertSql(accession);
         Integer accessionId = insert(sql);

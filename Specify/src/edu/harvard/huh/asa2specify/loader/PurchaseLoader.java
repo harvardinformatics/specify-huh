@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Purchase;
+import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.ku.brc.specify.datamodel.Accession;
@@ -38,7 +39,7 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
         Integer transactionId = purchase.getId();
         setCurrentRecordId(transactionId);
         
-        Accession accession = getAccession(purchase);
+        Accession accession = getAccession(purchase, ACCESSION_TYPE.Purchase);
         //Accession accession = getById(purchase.getId());
         
         String sql = getInsertSql(accession);

@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.IncomingExchange;
+import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.ku.brc.specify.datamodel.Accession;
@@ -38,8 +39,8 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         Integer transactionId = incomingExchange.getId();
         setCurrentRecordId(transactionId);
         
-        Accession accession = getAccession(incomingExchange);
-        
+        Accession accession = getAccession(incomingExchange, ACCESSION_TYPE.Exchange);
+
         String sql = getInsertSql(accession);
         Integer accessionId = insert(sql);
         accession.setAccessionId(accessionId);
