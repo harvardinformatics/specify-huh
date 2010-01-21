@@ -217,11 +217,9 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String description = Transaction.toString(asaBorrow.getPurpose());
         borrow.setText1(description);
         
-        // Text2 (for use by?)
-        if (asaBorrow.getForUseBy() != null)
-        {
-            getLogger().warn(rec() + "ignoring for_use_by: " + asaBorrow.getForUseBy());
-        }
+        // Text2 (local unit)
+        String localUnit = asaBorrow.getLocalUnit();
+        borrow.setText1(localUnit);
         
         // TimestampCreated
         Date dateCreated = asaBorrow.getDateCreated();
