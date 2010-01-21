@@ -59,47 +59,34 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         return description;
     }
     
-    protected String getCountsDescription(TaxonBatchTransaction tbTx)
+    protected String getDescriptionWithBoxCount(TaxonBatchTransaction tbTx)
     {
-        String inComments = null;
+        String descAndBoxCount = null;
         
         String description = tbTx.getDescription();
         String boxCount = tbTx.getBoxCount();
-        Integer typeCount = tbTx.getTypeCount();
-        Integer nonSpecimenCount = tbTx.getNonSpecimenCount();
         
-        if (description != null || boxCount != null || (typeCount != null && typeCount > 0) || (nonSpecimenCount != null && nonSpecimenCount > 0))
+        if (description != null || boxCount != null)
         {
-            String counts = null;
-
-            if (boxCount != null || typeCount != null || nonSpecimenCount != null)
+            if (boxCount != null)
             {
-                String itemCounts = tbTx.getItemCountNote();
-                
-                if (boxCount != null)
+                try
                 {
-                    try
-                    {
-                        int boxes = Integer.parseInt(boxCount);
-                        boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
-                    }
-                    catch (NumberFormatException nfe)
-                    {
-                        ;
-                    }
-                    boxCount = boxCount + ".";
+                    int boxes = Integer.parseInt(boxCount);
+                    boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
                 }
-                
-                if (boxCount == null) counts =  itemCounts;
-                else if (itemCounts == null) counts = boxCount;
-                else counts = boxCount + "  " + itemCounts;
+                catch (NumberFormatException nfe)
+                {
+                    ;
+                }
+                boxCount = boxCount + ".";
             }
 
-            if (counts == null) inComments = description;
-            else if (description == null) inComments = counts;
-            else inComments = counts + "  " + description;
+            if (boxCount == null) descAndBoxCount = description;
+            else if (description == null) descAndBoxCount = boxCount;
+            else descAndBoxCount = description + "  " + boxCount;
         }
         
-        return inComments;
+        return descAndBoxCount;
     }
 }
