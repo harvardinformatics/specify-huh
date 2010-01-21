@@ -4226,13 +4226,13 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>For use by</text>
+            <text>LocalUnit</text>
           </str>
         </names>
         <descs>
