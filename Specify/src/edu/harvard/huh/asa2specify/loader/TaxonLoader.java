@@ -200,7 +200,7 @@ public class TaxonLoader extends TreeLoader
 
 	private AsaTaxon parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 27)
+	    if (columns.length < 25)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -209,33 +209,31 @@ public class TaxonLoader extends TreeLoader
 
 		try
 		{
-		    taxon.setParentId(              SqlUtils.parseInt( columns[0]  ));
-		    taxon.setId(                    SqlUtils.parseInt( columns[1]  ));
-		    taxon.setRank(                                     columns[2]  );
-		    taxon.setGroup(               AsaTaxon.parseGroup( columns[3]  ));
-		    taxon.setStatus(             AsaTaxon.parseStatus( columns[4]  ));
-		    taxon.setEndangerment( AsaTaxon.parseEndangerment( columns[5]  ));
-		    taxon.setIsHybrid(           Boolean.parseBoolean( columns[6]  ));
-		    taxon.setFullName(                                 columns[7]  );
-		    taxon.setName(                                     columns[8]  );
-		    taxon.setAuthor(                                   columns[9]  );
-		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[10] ));
-		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[11] ));
-		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[12] ));
-		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[13] ));
-		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[14] ));
-		    taxon.setCitPublId(             SqlUtils.parseInt( columns[15] ));
-		    taxon.setCitCollation(                             columns[16] );
-		    taxon.setCitDate(                                  columns[17] );
-		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[18] ));
-		    taxon.setCreatedById(           SqlUtils.parseInt( columns[19] ));
-		    taxon.setDateCreated(          SqlUtils.parseDate( columns[20] ));
-		    taxon.setBasionym(                                 columns[21] );
-		    taxon.setParAuthor(                                columns[22] );
-		    taxon.setParExAuthor(                              columns[23] );
-		    taxon.setStdAuthor(                                columns[24] );
-		    taxon.setStdExAuthor(                              columns[25] );
-		    taxon.setCitInAuthor(                              columns[26] );
+		    taxon.setFullName(                                 columns[0]  );
+		    taxon.setParentId(              SqlUtils.parseInt( columns[1]  ));
+		    taxon.setId(                    SqlUtils.parseInt( columns[2]  ));
+		    taxon.setRank(                                     columns[3]  );
+		    taxon.setRankType(                                 columns[4]  );
+		    taxon.setRankAbbrev(                               columns[5]  );
+		    taxon.setGroup(               AsaTaxon.parseGroup( columns[6]  ));
+		    taxon.setStatus(             AsaTaxon.parseStatus( columns[7]  ));
+		    taxon.setEndangerment( AsaTaxon.parseEndangerment( columns[8]  ));
+		    taxon.setIsHybrid(           Boolean.parseBoolean( columns[9]  ));
+		    //taxon.setFullName(                               columns[10] );
+		    taxon.setName(                                     columns[11] );
+		    taxon.setAuthor(                                   columns[12] );
+		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[13] ));
+		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[14] ));
+		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[15] ));
+		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[16] ));
+		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[17] ));
+		    taxon.setCitPublId(             SqlUtils.parseInt( columns[18] ));
+		    taxon.setCitCollation(                             columns[19] );
+		    taxon.setCitDate(                                  columns[20] );
+		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[21] ));
+		    taxon.setCreatedById(           SqlUtils.parseInt( columns[22] ));
+		    taxon.setDateCreated(          SqlUtils.parseDate( columns[23] ));
+		    taxon.setBasionym(                                 columns[24] );
 		}
 		catch (NumberFormatException e)
 		{
