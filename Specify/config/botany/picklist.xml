@@ -48,7 +48,7 @@
       <picklistitem title="sporophyte" value="Sporophyte"/>
     </items>
   </picklist>
-  <picklist name="HUH Preparation Types"  type="0" readonly="true" sizelimit="12">
+  <picklist name="HUH Preparation Type"  type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="on sheet" value="on sheet"/>
       <picklistitem title="in packet" value="in packet"/>

@@ -262,7 +262,7 @@
   		<picklistitem title="New England Botanical Club" value="NEBC"/>
   	</items>
   </picklist>
-  <picklist name="HUH Geographic Regions" type="0" issystem="true" readonly="true" sizelimit="18">
+  <picklist name="HUH Geographic Region" type="0" issystem="true" readonly="true" sizelimit="18">
 	<items>
 		<picklistitem title="Africa" value="Africa"/>
 		<picklistitem title="Antarctica" value="Antarctica"/>
@@ -361,7 +361,7 @@
   		<picklistitem title="S" value="S"/>
   	</items>
   </picklist>
-  <picklist name="HUH Transaction Purposes" issystem="true" type="0" readonly="true" sizelimit="5">
+  <picklist name="HUH Transaction Purpose" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
       <picklistitem title="for id" value="ForID"/>
       <picklistitem title="for study" value="ForStudy"/>
