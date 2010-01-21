@@ -62,6 +62,8 @@ public class AsaTaxon
     private      Integer parentId;
     private      Integer id;
 	private       String rank;
+	private       String rankType;
+	private       String rankAbbrev;
 	private        GROUP group;
 	private       STATUS status;
 	private ENDANGERMENT endangerment;
@@ -92,6 +94,10 @@ public class AsaTaxon
 	public Integer getId() { return id; }
 	
 	public String getRank() { return rank; }
+	
+	public String getRankType() { return rankType; }
+	
+	public String getRankAbbrev() { return rankAbbrev; }
 	
 	public GROUP getGroup() { return group; }
 	
@@ -146,6 +152,10 @@ public class AsaTaxon
     public void setParentId(Integer parentId) { this.parentId = parentId; }
     
     public void setRank(String rank) { this.rank = rank; }
+    
+    public void setRankType(String rankType) { this.rankType = rankType; }
+    
+    public void setRankAbbrev(String rankAbbrev) { this.rankAbbrev = rankAbbrev; }
     
     public void setGroup(GROUP group) { this.group = group; }
     
