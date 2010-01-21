@@ -381,7 +381,24 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     
     protected String getLoanNumber(String loanNo, int year, int id)
     {
-        if (id == 1)     return "1991-001375";
+        if (id == 1)     return "91-001375";//return "1991-001375";
+        if (id == 21)    return "91-001376";//return "1991-001376";
+        if (id == 636)   return "52-000279";//return "1952-000279";
+        if (id == 848)   return "59-000436";//return "1959-000436";
+        if (id == 997)   return "75-000210";//return "1975-000210";
+        if (id == 1034)  return "77-000037";//return "1977-000037";
+        if (id == 1665)  return "85-000277";//return "1985-000277";
+        if (id == 2541)  return "90-000021";//return "1990-000021";
+        if (id == 2662)  return "91-000090";//return "1991-000090";
+        if (id == 2908)  return "90-000018";//return "1990-000018";
+        if (id == 2927)  return "90-000173";//return "1990-000173";
+        if (id == 4470)  return "52-000702";//return "1952-000702";
+        if (id == 7008)  return "58-000301";//return "1958-000301";
+        if (id == 13203) return "86-000198";//return "1986-000198";
+        if (id == 13204) return "86-000199";//return "1986-000199";
+        if (id == 13205) return "87-000053";//return "1987-000053";
+        
+      /*if (id == 1)     return "1991-001375";
         if (id == 21)    return "1991-001376";
         if (id == 997)   return "1975-000210";
         if (id == 1665)  return "1985-000277";
@@ -391,7 +408,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         if (id == 2927)  return "1990-000173";
         if (id == 13203) return "1986-000198";
         if (id == 13204) return "1986-000199";
-        if (id == 13205) return "1987-000053";
+        if (id == 13205) return "1987-000053";*/
         
         // match ^([6-9]\d)-(\d{1,4})$ -> 19$1-$2
         Matcher yyDashNumber19xxMatcher = YY_DASH_NUMBER_19XX.matcher(loanNo);        
@@ -400,7 +417,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             String s1 = yyDashNumber19xxMatcher.group(1);
             String s2 = yyDashNumber19xxMatcher.group(2);
             
-            return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+            //return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+            return s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
         }
                 
         // match ^(0[0-9])-(\d{4,5})$ -> 20$1-$2
@@ -414,7 +432,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             
             if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
             
-            return "20" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+            //return "20" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
+            return s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 ) );
         }
         
         // match ^(\d\d)-(\d\d)(\d+)$  if $2-$1=1, 19$1-$3, else 19$1-$2$3
@@ -432,11 +451,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             {
                 if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
                 
-                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+                //return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+                return s1 + "-" +(new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
             }
             else
             {
-                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+                //return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+                return s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
             }
         }
         
@@ -455,11 +476,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             {
                 if (Math.abs(year - year1) > 1) getLogger().warn(rec() + "loan number " + loanNo + " doesn't match year " + year);
                 
-                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+                //return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
+                return s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s3 ) );
             }
             else
             {
-                return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+                //return "19" + s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
+                return s1 + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( s2 + s3 ) );
             }
         }
 
@@ -467,7 +490,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         Matcher numberMatcher = NUMBER.matcher(loanNo);
         if (numberMatcher.matches())
         {
-            return String.valueOf(year) + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( loanNo ) );
+            //return String.valueOf(year) + "-" + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( loanNo ) );
+            return String.valueOf(year).substring(2) + (new DecimalFormat( LOAN_NO_FMT ) ).format( Integer.parseInt( loanNo ) );
         }
         
         getLogger().warn(rec() + "didn't match loan number: " + loanNo);
