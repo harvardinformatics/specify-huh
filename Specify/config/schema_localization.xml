@@ -269,13 +269,13 @@
           </str>
         </descs>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Details</text>
+            <text>Local Unit</text>
           </str>
         </names>
         <descs>
@@ -285,7 +285,7 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purposes">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purpose">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -301,13 +301,13 @@
           </str>
         </descs>
       </item>
-      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Src Geography</text>
+            <text>Geography</text>
           </str>
         </names>
         <descs>
@@ -4210,7 +4210,7 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Purposes" isRequired="false">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Purpose" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -4541,13 +4541,13 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Taxa</text>
+            <text>Description</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Higher taxon and taxon.</text>
+            <text>Description.</text>
           </str>
         </descs>
       </item>
@@ -4654,6 +4654,22 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Quantity returned.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="srcTaxonomy" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Taxa</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Taxa.</text>
           </str>
         </descs>
       </item>
@@ -4799,7 +4815,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Out Comments</text>
           </str>
         </names>
         <descs>
@@ -14000,7 +14016,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs>
@@ -14020,24 +14036,24 @@
         </names>
         <descs/>
       </item>
-      <item name="srcGeography">
+      <item name="srcGeography" pickListName="HUH Geographic Region">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Source Geography</text>
+            <text>Geography</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="srcTaxonomy">
+      <item name="srcTaxonomy" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Source Taxonomy</text>
+            <text>Local Unit</text>
           </str>
         </names>
         <descs/>
@@ -14048,23 +14064,23 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Counts</text>
+            <text>For Use By</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Box count, type count, non-specimen count.</text>
+            <text>For Use By</text>
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purpose">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Local Unit</text>
+            <text>Purpose</text>
           </str>
         </names>
         <descs>
@@ -17147,7 +17163,7 @@
           </str>
         </descs>
       </item>
-      <item name="purposeOfGift" isUIFormatter="false"  pickListName="HUH Transaction Purposes">
+      <item name="purposeOfGift" isUIFormatter="false"  pickListName="HUH Transaction Purpose">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -17175,7 +17191,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Remarks</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs/>
@@ -17224,7 +17240,7 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" isUIFormatter="false" isRequired="false">
+      <item name="text1" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purpose">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -17471,7 +17487,7 @@
         </names>
         <descs/>
       </item>
-      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" picklist="HUH Geographic Regions">
+      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -19808,7 +19824,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Source Geography</text>
+            <text>Asa Transaction No.</text>
           </str>
         </names>
         <descs/>
@@ -19824,13 +19840,13 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>For Use By</text>
+            <text>Local Unity</text>
           </str>
         </names>
         <descs>
@@ -19842,11 +19858,11 @@
       </item>
       <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text2</text>
+            <text>For Use By</text>
           </str>
         </names>
         <descs>
@@ -23435,7 +23451,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="prepType" type="ManyToOne" isUIFormatter="false" pickListName="HUH Preparation Types" isRequired="true">
+      <item name="prepType" type="ManyToOne" isUIFormatter="false" pickListName="HUH Preparation Type" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
