@@ -64,6 +64,7 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
     protected String                      type;
     protected String                      status;
     protected String                      accessionNumber;
+    protected String                      altAccessionNumber;
     protected String                      verbatimDate;
     protected Calendar                    dateAccessioned;
     protected Calendar                    dateReceived;
@@ -120,6 +121,7 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
         type = null;
         status = null;
         accessionNumber = null;
+        altAccessionNumber = null;
         verbatimDate = null;
         dateAccessioned = null;
         dateReceived = null;
@@ -227,6 +229,19 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
         this.accessionNumber = accessionNumber;
     }
 
+    /**
+     * A legacy accession number
+     */
+    @Column(name = "AltAccessionNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 60)
+    public String getAltAccessionNumber() {
+        return this.altAccessionNumber;
+    }
+
+    public void setAltAccessionNumber(final String altAccessionNumber) 
+    {
+        this.altAccessionNumber = altAccessionNumber;
+    }
+    
     /**
      * @return the dateAcknowledged
      */
