@@ -14,6 +14,8 @@ select b.id,
        regexp_replace(b.remarks, '[[:space:]]+', ' ') as remarks,
        b.created_by_id,
        to_char(b.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       b.updated_by_id,
+       to_char(b.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        regexp_replace(b.uri, '[[:space:]]+', ' ') as url, 
 
        regexp_replace(author.note, '[[:space:]]+', ' ') as author_note,
