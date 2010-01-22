@@ -1682,6 +1682,22 @@
           </str>
         </descs>
       </item>
+      <item name="dateOfBirthPrecision" isUIFormatter="false" isRequired="false" pickListName="HUH Date Confidence">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Date Confidence</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The confidence of the precision of the date, e.g. questionable, circa</text>
+          </str>
+        </descs>
+      </item>
       <item name="dateOfDeath" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -1695,6 +1711,22 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>The date a botanist died, stopped collecting, or stopped publishing.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="dateOfDeathPrecision" isUIFormatter="false" isRequired="false" pickListName="HUH Date Confidence">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Date Confidence</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The confidence of the precision of the date, e.g. questionable, circa</text>
           </str>
         </descs>
       </item>
