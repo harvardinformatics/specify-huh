@@ -53,6 +53,7 @@ import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.dbsupport.TypeCode;
 import edu.ku.brc.specify.dbsupport.TypeCodeItem;
@@ -95,7 +96,9 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     protected String                        middleInitial;
     protected String                        title;               // Mr., Mrs., Dr.
     protected Calendar                      dateOfBirth;
+    protected String                        dateOfBirthPrecision; // "ca.", "?"
     protected Calendar                      dateOfDeath;
+    protected String                        dateOfDeathPrecision; // "ca.", "?"
     protected String                        interests;
     protected String                        abbreviation;
     protected String                        initials;
@@ -208,7 +211,9 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         middleInitial             = null;
         title                     = null;
         dateOfBirth               = null;
+        dateOfBirthPrecision      = null;
         dateOfDeath               = null;
+        dateOfDeathPrecision      = null;
         interests                 = null;
         abbreviation              = null;
         initials                  = null;
@@ -407,6 +412,18 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     }
 
     /**
+     * 
+     */
+    @Column(name = "DateOfBirthPrecision", length = 4)
+    public String getDateOfBirthPrecision() {
+        return this.dateOfBirthPrecision;
+    }
+    
+    public void setDateOfBirthPrecision(String dateOfBirthPrecision) {
+        this.dateOfBirthPrecision = dateOfBirthPrecision;
+    }
+    
+    /**
      * @return the dateOfDeath
      */
     @Temporal(TemporalType.DATE)
@@ -424,6 +441,18 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         this.dateOfDeath = dateOfDeath;
     }
 
+    /**
+     * 
+     */
+    @Column(name = "DateOfDeathPrecision", length = 4)
+    public String getDateOfDeathPrecision() {
+        return this.dateOfDeathPrecision;
+    }
+    
+    public void setDateOfDeathPrecision(String dateOfDeathPrecision) {
+        this.dateOfDeathPrecision = dateOfDeathPrecision;
+    }
+    
     /**
      *      * of Person or Organization
      */
