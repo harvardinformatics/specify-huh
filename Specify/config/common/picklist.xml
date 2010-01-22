@@ -234,6 +234,12 @@
       <picklistitem title="CITES III" value="CitesIII"/>
     </items>
   </picklist>
+  <picklist name="HUH Date Confidence" type="0" issystem="true" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="ca." value="ca."/>
+      <picklistitem title="?" value="?"/>
+    </items>
+  </picklist>
   <picklist name="HUH Determination Qualifier" type="0" issystem="true" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="aff." value="Affine"/>
