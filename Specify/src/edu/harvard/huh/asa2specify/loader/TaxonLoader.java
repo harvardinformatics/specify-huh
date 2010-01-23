@@ -265,8 +265,12 @@ public class TaxonLoader extends TreeLoader
         specifyTaxon.setCreatedByAgent(createdByAgent);
         
 		// FullName
-		String fullName = asaTaxon.getFullName();
+        String name = asaTaxon.getName();
+        checkNull(name, "name");
+
+        String fullName = asaTaxon.getFullName();
 		checkNull(fullName, "full name");
+		
 		fullName = truncate(fullName, 255, "full name");
 		specifyTaxon.setFullName(fullName);
 
@@ -282,8 +286,6 @@ public class TaxonLoader extends TreeLoader
         specifyTaxon.setIsHybrid(isHybrid);
 
         // Name
-		String name = asaTaxon.getName();
-		checkNull(name, "name");
 		name = truncate(name, 64, "name");
 		specifyTaxon.setName(name);
 
