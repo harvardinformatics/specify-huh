@@ -2,16 +2,13 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Date;
 import java.util.HashMap;
 
 import edu.harvard.huh.asa.GeoUnit;
-import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.harvard.huh.asa2specify.lookup.OptrLookup;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
@@ -290,29 +287,30 @@ public class GeoUnitLoader extends TreeLoader
     
 	private GeoUnit parse(String[] columns) throws LocalException
 	{
-	    if (columns.length < 15)
+        GeoUnit geoUnit = new GeoUnit();
+	    
+        int i = super.parse(columns, geoUnit);
+        
+	    if (columns.length < i + 13)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
 
-	    GeoUnit geoUnit = new GeoUnit();
 	    try
 	    {
-	        geoUnit.setParentId(     SqlUtils.parseInt( columns[0]  ));
-	        geoUnit.setId(           SqlUtils.parseInt( columns[1]  ));
-	        geoUnit.setRank(                            columns[2]  );
-	        geoUnit.setIsoCode(                         columns[3]  );
-	        geoUnit.setDisplayQualifier(                columns[4]  );
-	        geoUnit.setName(                            columns[5]  );
-	        geoUnit.setVernacularName(                  columns[6]  );
-	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( columns[7]  ));
-	        geoUnit.setCreatedById(  SqlUtils.parseInt( columns[8]  ));
-	        geoUnit.setDateCreated( SqlUtils.parseDate( columns[9]  ));
-            geoUnit.addVariantName(                     columns[10] );
-            geoUnit.addVariantName(                     columns[11] );
-            geoUnit.addVariantName(                     columns[12] );
-            geoUnit.addVariantName(                     columns[13] );
-            geoUnit.addVariantName(                     columns[14] );
+	        geoUnit.setParentId(     SqlUtils.parseInt( columns[i + 0]  ));
+	        geoUnit.setRank(                            columns[i + 1]  );
+	        geoUnit.setIsoCode(                         columns[i + 2]  );
+	        geoUnit.setDisplayQualifier(                columns[i + 3]  );
+	        geoUnit.setName(                            columns[i + 4]  );
+	        geoUnit.setVernacularName(                  columns[i + 5]  );
+	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 6]  ));
+	        geoUnit.setCreatedById(  SqlUtils.parseInt( columns[i + 7]  ));
+            geoUnit.addVariantName(                     columns[i + 8]  );
+            geoUnit.addVariantName(                     columns[i + 9]  );
+            geoUnit.addVariantName(                     columns[i + 10] );
+            geoUnit.addVariantName(                     columns[i + 11] );
+            geoUnit.addVariantName(                     columns[i + 12] );
 	    }
 	    catch (NumberFormatException e)
 	    {
@@ -339,11 +337,6 @@ public class GeoUnitLoader extends TreeLoader
 			geography.setCommonName(vernacularName);
 		}
         
-        // CreatedByAgent
-        Integer creatorOptrId = geoUnit.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        geography.setCreatedByAgent(createdByAgent);
-		
 		// GeographyTreeDef
 		geography.setDefinition(treeDef);
 		
@@ -414,14 +407,12 @@ public class GeoUnitLoader extends TreeLoader
 		// Remarks
 		String remarks = geoUnit.getRemarks();
 		geography.setRemarks(remarks);
-
-		// TimestampCreated
-        Date dateCreated = geoUnit.getDateCreated();
-        geography.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // Version
         geography.setVersion(1);
 
+        setAuditFields(geoUnit, geography);
+        
         return geography;
 	}
 
@@ -440,10 +431,7 @@ public class GeoUnitLoader extends TreeLoader
 		synonym.setAcceptedGeography(geography);
 		
 		// CommonName
-		
-		// CreatedBy
-		synonym.setCreatedByAgent(geography.getCreatedByAgent());
-	    	
+			
 		// FullName
 		fullName = truncate(name, 255, "variant full name");
 		synonym.setFullName(fullName);
@@ -473,11 +461,10 @@ public class GeoUnitLoader extends TreeLoader
 		
 		// Remarks
 		
-		// TimestampCreated
-	    synonym.setTimestampCreated(geography.getTimestampCreated());
-		
 		// Version
 	    synonym.setVersion(1);
+	    
+	    setNullAuditFields(geography);
 	    
 	    return synonym;
 	}
@@ -497,10 +484,11 @@ public class GeoUnitLoader extends TreeLoader
 	private String getInsertSql(Geography geography)
 	{
 	    String fieldNames = "AcceptedID, CommonName, CreatedByAgentID, FullName, GeographyCode, " +
-	                        "GeographyTreeDefID, GeographyTreeDefItemID, GUID, IsAccepted, Name, " +
-	                        "ParentID, RankID, Remarks, TimestampCreated, Version";
+	                        "GeographyTreeDefID, GeographyTreeDefItemID, GUID, IsAccepted, " +
+	                        "ModifiedByAgentID, Name, ParentID, RankID, Remarks, TimestampCreated, " +
+	                        "TimestampModified, Version";
 
-	    String[] values = new String[15];
+	    String[] values = new String[17];
 
 	    values[0]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
 	    values[1]  = SqlUtils.sqlString( geography.getCommonName());
@@ -511,12 +499,14 @@ public class GeoUnitLoader extends TreeLoader
 	    values[6]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
 	    values[7]  = SqlUtils.sqlString( geography.getGuid());
 	    values[8]  = SqlUtils.sqlString( geography.getIsAccepted());
-	    values[9]  = SqlUtils.sqlString( geography.getName());
-	    values[10] = SqlUtils.sqlString( geography.getParent().getId());
-	    values[11] = SqlUtils.sqlString( geography.getRankId());
-	    values[12] = SqlUtils.sqlString( geography.getRemarks());
-	    values[13] = SqlUtils.sqlString( geography.getTimestampCreated());
-	    values[14] = SqlUtils.sqlString( geography.getVersion());
+	    values[9]  = SqlUtils.sqlString( geography.getModifiedByAgent().getId());
+	    values[10] = SqlUtils.sqlString( geography.getName());
+	    values[11] = SqlUtils.sqlString( geography.getParent().getId());
+	    values[12] = SqlUtils.sqlString( geography.getRankId());
+	    values[13] = SqlUtils.sqlString( geography.getRemarks());
+	    values[14] = SqlUtils.sqlString( geography.getTimestampCreated());
+	    values[15] = SqlUtils.sqlString( geography.getTimestampModified());
+	    values[16] = SqlUtils.sqlString( geography.getVersion());
 
 	    return SqlUtils.getInsertSql("geography", fieldNames, values);
 	}

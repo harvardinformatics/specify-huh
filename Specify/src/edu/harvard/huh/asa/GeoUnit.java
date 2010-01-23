@@ -1,10 +1,9 @@
 package edu.harvard.huh.asa;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GeoUnit
+public class GeoUnit extends AuditedObject
 {
     private     Integer parentId;
 	private     Integer id;
@@ -14,8 +13,7 @@ public class GeoUnit
     private      String name;
     private      String vernacularName;
 	private      String remarks;
-	private     Integer createdById;
-	private        Date dateCreated;
+
 	private Set<String> variantNames = new HashSet<String>();
     
     public Integer getParentId() { return parentId; }
@@ -33,10 +31,6 @@ public class GeoUnit
 	public String getRank() { return rank; }
 	
 	public String getRemarks() { return remarks; }
-
-	public Integer getCreatedById() { return createdById; }
-	    
-	public Date getDateCreated() { return dateCreated; }
 	
 	public Set<String> getVariantNames() { return variantNames; }
 	    
@@ -55,10 +49,6 @@ public class GeoUnit
 	public void setRank(String rank) { this.rank = rank; }
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
-	
-	public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-	    
-	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 	
 	public void addVariantName(String variantName)
 	{

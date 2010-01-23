@@ -61,28 +61,27 @@ public class PublicationLoader extends AuditedObjectLoader
 
 	private Publication parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 14)
+        Publication publication = new Publication();
+        
+        int i = super.parse(columns, publication);
+        
+		if (columns.length < i + 11)
 		{
 			throw new LocalException("Not enough columns");
 		}
-
-		Publication publication = new Publication();
 		try
 		{
-			publication.setId(           SqlUtils.parseInt( columns[0]  ));
-			publication.setIsbn(                            columns[1]  );
-			publication.setPubPlace(                        columns[2]  );
-			publication.setPublisher(                       columns[3]  );
-			publication.setUrl(                             columns[4]  );
-			publication.setTitle(                           columns[5]  );
-			publication.setPubDate(                         columns[6]  );
-			publication.setIsJournal( Boolean.parseBoolean( columns[7]  ));
-			publication.setIssn(                            columns[8]  );
-			publication.setBph(                             columns[9]  );
-			publication.setAbbreviation(                    columns[10] );
-            publication.setCreatedById(  SqlUtils.parseInt( columns[11] ));
-            publication.setDateCreated( SqlUtils.parseDate( columns[12] ));
-			publication.setRemarks( SqlUtils.iso8859toUtf8( columns[13] ));
+			publication.setIsbn(                            columns[i + 0]  );
+			publication.setPubPlace(                        columns[i + 1]  );
+			publication.setPublisher(                       columns[i + 2]  );
+			publication.setUrl(                             columns[i + 3]  );
+			publication.setTitle(                           columns[i + 4]  );
+			publication.setPubDate(                         columns[i + 5]  );
+			publication.setIsJournal( Boolean.parseBoolean( columns[i + 6]  ));
+			publication.setIssn(                            columns[i + 7]  );
+			publication.setBph(                             columns[i + 8]  );
+			publication.setAbbreviation(                    columns[i + 9]  );
+			publication.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 10] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -95,12 +94,7 @@ public class PublicationLoader extends AuditedObjectLoader
 	private ReferenceWork getReferenceWork(Publication publication) throws LocalException
 	{		
 		ReferenceWork referenceWork = new ReferenceWork();
-
-		// CreatedByAgent
-        Integer creatorOptrId = publication.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        referenceWork.setCreatedByAgent(createdByAgent);
-        
+		
 		// GUID: temporarily hold asa publication.id TODO: don't forget to unset this after migration
 		Integer publicationId = publication.getId();
 		checkNull(publicationId, "id");
@@ -146,11 +140,7 @@ public class PublicationLoader extends AuditedObjectLoader
 		// Text2 (publ date)
 		String pubDate = publication.getPubDate();
 		referenceWork.setText2(pubDate);
-	      
-		// TimestampCreated
-        Date dateCreated = publication.getDateCreated();
-        referenceWork.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
+		
 		// Title (abbreviation)
         String abbrev = publication.getAbbreviation();
         if (abbrev == null)
@@ -177,26 +167,28 @@ public class PublicationLoader extends AuditedObjectLoader
 
 	private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "CreatedByAgentID, GUID, ISBN, PlaceOfPublication, Publisher, " +
-				            "ReferenceWorkType, Remarks, Text1, Text2, TimestampCreated, " +
-				            "Title, URL, Version, WorkDate";
+		String fieldNames = "CreatedByAgentID, GUID, ISBN, ModifiedByAgentID, PlaceOfPublication, " +
+				            "Publisher, ReferenceWorkType, Remarks, Text1, Text2, TimestampCreated, " +
+				            "TimestampModified, Title, URL, Version, WorkDate";
 
-		String[] values = new String[14];
+		String[] values = new String[16];
 
 		values[0]  = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
 		values[1]  = SqlUtils.sqlString( referenceWork.getGuid());
 		values[2]  = SqlUtils.sqlString( referenceWork.getIsbn());
-		values[3]  = SqlUtils.sqlString( referenceWork.getPlaceOfPublication());
-		values[4]  = SqlUtils.sqlString( referenceWork.getPublisher());
-		values[5]  = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[6]  = SqlUtils.sqlString( referenceWork.getRemarks());
-		values[7]  = SqlUtils.sqlString( referenceWork.getText1());
-		values[8]  = SqlUtils.sqlString( referenceWork.getText2());
-        values[9]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
-        values[10] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[11] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[12] = SqlUtils.zero();
-		values[13] = SqlUtils.sqlString( referenceWork.getWorkDate());
+		values[3]  = SqlUtils.sqlString( referenceWork.getModifiedByAgent().getId());
+		values[4]  = SqlUtils.sqlString( referenceWork.getPlaceOfPublication());
+		values[5]  = SqlUtils.sqlString( referenceWork.getPublisher());
+		values[6]  = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+		values[7]  = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[8]  = SqlUtils.sqlString( referenceWork.getText1());
+		values[9]  = SqlUtils.sqlString( referenceWork.getText2());
+        values[10] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
+        values[11] = SqlUtils.sqlString( referenceWork.getTimestampModified());
+        values[12] = SqlUtils.sqlString( referenceWork.getTitle());
+		values[13] = SqlUtils.sqlString( referenceWork.getUrl());
+		values[14] = SqlUtils.zero();
+		values[15] = SqlUtils.sqlString( referenceWork.getWorkDate());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}

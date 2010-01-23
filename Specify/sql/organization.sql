@@ -1,4 +1,8 @@
 select o.id,
+       o.created_by_id,
+       to_char(o.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       o.updated_by_id,
+       to_char(o.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        regexp_replace(o.name, '[[:space:]]+', ' ') as name,
        o.acronym,
        (select name from geo_name where type_id=110701 and geo_unit_id=o.city_id) as city,
@@ -7,8 +11,6 @@ select o.id,
               (select name from geo_name where type_id=110701 and geo_unit_id=cities_in_countries.country_id),
               (select name from geo_name where type_id=110701 and geo_unit_id=cities_in_states.country_id)) as country,
        regexp_replace(o.uri, '[[:space:]]+', ' ') as uri,
-       o.created_by_id,
-       to_char(o.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
        regexp_replace(o.remarks, '[[:space:]]', ' ') as remarks
 from
        organization o,

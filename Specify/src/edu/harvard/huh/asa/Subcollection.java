@@ -1,10 +1,7 @@
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class Subcollection
+public class Subcollection extends AuditedObject
 {
-	private Integer id;
 	private  String collectionCode;
 	private  String taxonGroup;
 	private  String name;
@@ -13,14 +10,10 @@ public class Subcollection
 	private  String location;
 	private  String cabinet;
 	private  String remarks;
-	private Integer createdById;
-	private    Date dateCreated;
 	
 	private static final int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539 };
 	
-	public Integer getId() { return id; }
-	
-	public String getGuid() { return id + " subcollection"; }
+	public String getGuid() { return getId() + " subcollection"; }
 
 	public String getCollectionCode() { return collectionCode; }
 
@@ -42,7 +35,7 @@ public class Subcollection
 	{
 	    for (int i = 0; i < exsiccataeIds.length; i++)
 	    {
-	        if (id == exsiccataeIds[i]) return true;
+	        if (getId() == exsiccataeIds[i]) return true;
 	    }
 	    return false;
 	}
@@ -55,12 +48,6 @@ public class Subcollection
 	        }
 	        return false;
 	}
-
-	public Integer getCreatedById() { return createdById; }
-
-	public Date getDateCreated() { return dateCreated; }
-
-	public void setId(Integer id) { this.id = id; }
 
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 
@@ -77,8 +64,4 @@ public class Subcollection
 	public void setCabinet(String cabinet) { this.cabinet = cabinet; }
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
-
-    public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-    
-    public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 }

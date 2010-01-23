@@ -14,22 +14,15 @@
  */
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class Affiliate
+public class Affiliate extends AuditedObject
 {
-    private Integer id;
     private  String surname;
     private  String givenName;
     private  String position;
     private  String phone;
     private  String email;
     private  String address;
-    private Integer createdById;
-    private    Date dateCreated;
     private  String remarks;
-    
-    public Integer getId() { return id; }
     
     public String getSurname() { return surname; }
     
@@ -43,13 +36,7 @@ public class Affiliate
     
     public String getAddress() { return address; }
     
-    public Integer getCreatedById() { return createdById; }
-
-    public Date getDateCreated() { return dateCreated; }
-    
     public String getRemarks() { return remarks; }
- 
-    public void setId(Integer id) { this.id = id; }
     
     public void setSurname(String surname) { this.surname = surname; }
     
@@ -62,10 +49,6 @@ public class Affiliate
     public void setEmail(String email) { this.email = email; }
     
     public void setAddress(String address) { this.address = address; }
-    
-    public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-    
-    public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
 }

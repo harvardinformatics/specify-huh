@@ -16,13 +16,18 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.Hashtable;
 
+import edu.harvard.huh.asa.AuditedObject;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
+import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OptrLookup;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 
 public abstract class AuditedObjectLoader extends CsvToSqlLoader
 {
@@ -79,5 +84,59 @@ public abstract class AuditedObjectLoader extends CsvToSqlLoader
             AgentsByOptrId.put(optrId, agent);
         }
     	return agent;
+    }
+    
+    protected int parse(String[] columns, AuditedObject object) throws LocalException
+    {
+        if (columns.length < 18)
+        {
+            throw new LocalException("Not enough columns");
+        }
+        
+        try
+        {
+            object.setId(          SqlUtils.parseInt(  columns[0] ));
+            object.setCreatedById( SqlUtils.parseInt(  columns[1] ));
+            object.setCreateDate(  SqlUtils.parseDate( columns[2] ));
+            object.setUpdatedById( SqlUtils.parseInt(  columns[3] ));
+            object.setUpdateDate(  SqlUtils.parseDate( columns[4] ));   
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return 5; // index of next column
+    }
+    
+    protected void setAuditFields(AuditedObject asaObject, DataModelObjBase specifyObject) throws LocalException
+    {
+        // CreatedByAgent
+        Integer creatorOptrId = asaObject.getCreatedById();
+        checkNull(creatorOptrId, "created by id");
+        
+        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
+        specifyObject.setCreatedByAgent(createdByAgent);
+        
+        // ModifiedByAgent
+        Integer updaterOptrId = asaObject.getUpdatedById();
+        checkNull(updaterOptrId, "updated by id");
+        
+        Agent  modifiedByAgent = getAgentByOptrId(updaterOptrId);
+        specifyObject.setModifiedByAgent(modifiedByAgent);
+        
+        // TimestampCreated
+        Date dateCreated = asaObject.getCreateDate();
+        specifyObject.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+
+        // TimestampModified
+        Date dateModified = asaObject.getUpdateDate();
+        specifyObject.setTimestampModified(DateUtils.toTimestamp(dateModified));
+    }
+    
+    protected void setNullAuditFields(DataModelObjBase specifyObject)
+    {
+        specifyObject.setCreatedByAgent(NullAgent());
+        specifyObject.setModifiedByAgent(NullAgent());
     }
 }

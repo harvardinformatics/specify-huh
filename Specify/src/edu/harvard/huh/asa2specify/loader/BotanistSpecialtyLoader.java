@@ -94,17 +94,17 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		}
 		agentSpecialty.setOrderNumber(orderNumber);
 		
-        // SpecialtyName
-		String role = botanistRoleSpecialty.getRole();
+		// Role
+        String role = botanistRoleSpecialty.getRole();
         checkNull(role, "role");
+        role = truncate(role, 64, "specialty role");
+        agentSpecialty.setRole(role);
         
+        // SpecialtyName
 		String specialty = botanistRoleSpecialty.getSpecialty();
 		checkNull(specialty, "specialty");
+		agentSpecialty.setSpecialtyName(specialty);
 		
-		String specialtyName = specialty + " (" + role + ")";
-		specialtyName = truncate(specialtyName, 64, "specialty name");
-		agentSpecialty.setSpecialtyName(specialtyName);
-
 		return agentSpecialty;
 	}
 
@@ -115,12 +115,13 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 
 	private String getInsertSql(AgentSpecialty agentSpecialty)
 	{
-		String fieldNames = "AgentId, OrderNumber, SpecialtyName, TimestampCreated, Version";
+		String fieldNames = "AgentId, OrderNumber, Role, SpecialtyName, TimestampCreated, Version";
 
-		String[] values = new String[5];
+		String[] values = new String[6];
 
 		values[0] = SqlUtils.sqlString( agentSpecialty.getAgent().getAgentId());
 		values[1] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
+		values[2] = SqlUtils.sqlString( agentSpecialty.getRole());
 		values[2] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
 		values[3] = SqlUtils.now();
 		values[4] = SqlUtils.zero();

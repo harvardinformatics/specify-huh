@@ -1,4 +1,8 @@
 select p.id,
+       p.created_by_id,
+       to_char(p.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       p.updated_by_id,
+       to_char(p.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        (select min(text) from publ_number where type_id=110404 and publication_id=p.id) as isbn,
        regexp_replace(p.publ_place, '[[:space:]]+', ' ') as pub_place,
        regexp_replace(p.publisher, '[[:space:]]+', ' ') as publisher,
@@ -17,8 +21,6 @@ select p.id,
            (select decode(max(text), null, '', min(text), 'BPH2 ' || max(text), 'BPH2 ' || max(text) || '; ' || min(text)) from publ_number where type_id=110402 and publication_id=p.id)
           ) as bph,
        regexp_replace((select title from publ_title pt where pt.publication_id=p.id and pt.type_id=110203), '[[:space:]]+', ' ') as abbrev,
-       p.created_by_id,
-       to_char(p.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
        regexp_replace(p.remarks, '[[:space:]]+', ' ') as remarks
 
 from

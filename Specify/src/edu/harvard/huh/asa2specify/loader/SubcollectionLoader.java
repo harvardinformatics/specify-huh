@@ -2,12 +2,10 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Date;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
-import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
@@ -257,26 +255,25 @@ public class SubcollectionLoader extends TreeLoader
 	
 	private Subcollection parse(String[] columns) throws LocalException
     {
-    	if (columns.length < 11)
+	    Subcollection subcollection = new Subcollection();
+	    
+	    int i = super.parse(columns, subcollection);
+	    
+    	if (columns.length < i + 8)
     	{
     		throw new LocalException("Not enough columns");
     	}
 
-    	Subcollection subcollection = new Subcollection();
-
     	try
     	{
-    	    subcollection.setId(           SqlUtils.parseInt( columns[0]  ));
-    	    subcollection.setCollectionCode(                  columns[1]  );
-    	    subcollection.setTaxonGroup(                      columns[2]  );
-    	    subcollection.setName(                            columns[3]  );
-    	    subcollection.setAuthor(                          columns[4]  );
-    	    subcollection.setSpecimenCount(                   columns[5]  );
-    	    subcollection.setLocation(                        columns[6]  );
-    	    subcollection.setCabinet(                         columns[7]  );
-            subcollection.setCreatedById(  SqlUtils.parseInt( columns[8]  ));
-            subcollection.setDateCreated( SqlUtils.parseDate( columns[9]  ));            
-    		subcollection.setRemarks(                         columns[10] );
+    	    subcollection.setCollectionCode(                  columns[i + 0]  );
+    	    subcollection.setTaxonGroup(                      columns[i + 1]  );
+    	    subcollection.setName(                            columns[i + 2]  );
+    	    subcollection.setAuthor(                          columns[i + 3]  );
+    	    subcollection.setSpecimenCount(                   columns[i + 4]  );
+    	    subcollection.setLocation(                        columns[i + 5]  );
+    	    subcollection.setCabinet(                         columns[i + 6]  );        
+    		subcollection.setRemarks(                         columns[i + 7] );
     	}
     	catch (NumberFormatException e)
     	{
@@ -346,17 +343,14 @@ public class SubcollectionLoader extends TreeLoader
         if (group != null) group = truncate(group, 32, "group");
         storage.setText2(group);
         
+        setAuditFields(subcollection, storage);
+        
         return storage;
 	}
     
     private ReferenceWork getReferenceWork(Subcollection subcollection) throws LocalException
     {
     	ReferenceWork referenceWork = new ReferenceWork();
-        
-        // CreatedByAgent
-        Integer creatorOptrId = subcollection.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        referenceWork.setCreatedByAgent(createdByAgent);
         
         // GUID
     	Integer subcollectionId = subcollection.getId();
@@ -372,15 +366,13 @@ public class SubcollectionLoader extends TreeLoader
         String remarks = getExsiccataDescription(subcollection);
         referenceWork.setRemarks(remarks);
         
-        // TimestampCreated
-        Date dateCreated = subcollection.getDateCreated();
-        referenceWork.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
         // Title
         String title = subcollection.getName();
         checkNull(title, "title");
         title = truncate(title, 255, "title");
         referenceWork.setTitle(title);
+        
+        setAuditFields(subcollection, referenceWork);
         
         return referenceWork;
     }
@@ -469,23 +461,16 @@ public class SubcollectionLoader extends TreeLoader
     {	
         Exsiccata exsiccata = new Exsiccata();
         
-        // CreatedByAgent
-        Integer creatorOptrId = subcollection.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        exsiccata.setCreatedByAgent(createdByAgent);
-
         // ReferenceWork
         exsiccata.setReferenceWork(referenceWork);
-        
-        // TimestampCreated
-        Date dateCreated = subcollection.getDateCreated();
-        exsiccata.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // Title
         String title = subcollection.getName();
         checkNull(title, "title");
         title = truncate(title, 255, "title");
         exsiccata.setTitle(title);
+        
+        setAuditFields(subcollection, exsiccata);
         
         return exsiccata;
     }
@@ -507,11 +492,6 @@ public class SubcollectionLoader extends TreeLoader
         else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
         else agent.setAgentType( Agent.PERSON );
         
-        // CreatedByAgent
-        Integer creatorOptrId = subcollection.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
-        
         // FirstName
         String firstName = botanist.getFirstName();
         if (firstName != null)
@@ -526,10 +506,7 @@ public class SubcollectionLoader extends TreeLoader
         lastName = truncate(lastName, 50, "last name");
         agent.setLastName(lastName);
 
-
-        // TimestampCreated
-        Date dateCreated = subcollection.getDateCreated();
-        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
+        setAuditFields(subcollection, agent);
         
         return agent;
     }
@@ -552,77 +529,88 @@ public class SubcollectionLoader extends TreeLoader
     
     private String getInsertSql(Storage storage) throws LocalException
     {
-        String fieldNames = "Abbrev, FullName, IsAccepted, Name, Number1, " +
-        		            "Number2, ParentID, RankID, Remarks, StorageTreeDefID, " +
-        		            "StorageTreeDefItemID, Text1, Text2, TimestampCreated, Version";
+        String fieldNames = "Abbrev, CreatedByAgentID, FullName, IsAccepted, ModifiedByAgentID, Name, " +
+        		            "Number1, Number2, ParentID, RankID, Remarks, StorageTreeDefID, " +
+        		            "StorageTreeDefItemID, Text1, Text2, TimestampCreated, TimestampModified, Version";
         
-        String[] values = new String[15];
+        String[] values = new String[18];
         
         values[0]  = SqlUtils.sqlString( storage.getAbbrev());
-        values[1]  = SqlUtils.sqlString( storage.getFullName());
-        values[2]  = SqlUtils.sqlString( storage.getIsAccepted());
-        values[3]  = SqlUtils.sqlString( storage.getName());
-        values[4]  = SqlUtils.sqlString( storage.getNumber1());
-        values[5]  = SqlUtils.sqlString( storage.getNumber2());
-        values[6]  = SqlUtils.sqlString( storage.getParent().getId());
-        values[7]  = SqlUtils.sqlString( storage.getRankId());
-        values[8]  = SqlUtils.sqlString( storage.getRemarks());
-        values[9]  = SqlUtils.sqlString( storage.getDefinition().getId());
-        values[10] = SqlUtils.sqlString( storage.getDefinitionItem().getId());
-        values[11] = SqlUtils.sqlString( storage.getText1());
-        values[12] = SqlUtils.sqlString( storage.getText2());
-        values[13] = SqlUtils.now();
-        values[14] = SqlUtils.zero();
+        values[1]  = SqlUtils.sqlString( storage.getCreatedByAgent().getId());
+        values[2]  = SqlUtils.sqlString( storage.getFullName());
+        values[3]  = SqlUtils.sqlString( storage.getIsAccepted());
+        values[4]  = SqlUtils.sqlString( storage.getModifiedByAgent().getId());
+        values[5]  = SqlUtils.sqlString( storage.getName());
+        values[6]  = SqlUtils.sqlString( storage.getNumber1());
+        values[7]  = SqlUtils.sqlString( storage.getNumber2());
+        values[8]  = SqlUtils.sqlString( storage.getParent().getId());
+        values[9]  = SqlUtils.sqlString( storage.getRankId());
+        values[10] = SqlUtils.sqlString( storage.getRemarks());
+        values[11] = SqlUtils.sqlString( storage.getDefinition().getId());
+        values[12] = SqlUtils.sqlString( storage.getDefinitionItem().getId());
+        values[13] = SqlUtils.sqlString( storage.getText1());
+        values[14] = SqlUtils.sqlString( storage.getText2());
+        values[15] = SqlUtils.sqlString( storage.getTimestampCreated());
+        values[16] = SqlUtils.sqlString( storage.getTimestampModified());
+        values[17] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("storage", fieldNames, values);
     }
     
     private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "CreatedByAgentID, GUID, ReferenceWorkType, Remarks, TimestampCreated, " +
-				            "Title, Version";
+		String fieldNames = "CreatedByAgentID, GUID, ModifiedByAgentID, ReferenceWorkType, " +
+				            "Remarks, TimestampCreated, TimestampModified, Title, Version";
 
-		String[] values = new String[7];
+		String[] values = new String[9];
 
 		values[0] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
 		values[1] = SqlUtils.sqlString( referenceWork.getGuid());
-		values[2] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[3] = SqlUtils.sqlString( referenceWork.getRemarks());
-		values[4] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
-		values[5] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[6] = SqlUtils.zero();
+		values[2] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
+		values[3] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[5] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
+		values[5] = SqlUtils.sqlString( referenceWork.getTimestampModified());
+		values[7] = SqlUtils.sqlString( referenceWork.getTitle());
+		values[8] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
     
     private String getInsertSql(Agent agent) throws LocalException
     {
-        String fieldNames = "AgentType, CreatedByAgentID, FirstName, GUID, LastName, TimestampCreated, Version";
+        String fieldNames = "AgentType, CreatedByAgentID, FirstName, GUID, LastName, " +
+        		            "ModifiedByAgentID, TimestampCreated, TimestampModified, Version";
 
-        String[] values = new String[7];
+        String[] values = new String[9];
 
         values[0] = SqlUtils.sqlString( agent.getAgentType());
         values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
         values[2] = SqlUtils.sqlString( agent.getFirstName());
         values[3] = SqlUtils.sqlString( agent.getGuid());
         values[4] = SqlUtils.sqlString( agent.getLastName());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[5] = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
+        values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
+        values[7] = SqlUtils.sqlString( agent.getTimestampModified());
+        values[8] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
 
     private String getInsertSql(Exsiccata exsiccata) throws LocalException
     {
-    	String fieldNames = "CreatedByAgentID, Title, ReferenceWorkID, TimestampCreated, Version";
+    	String fieldNames = "CreatedByAgentID, ModifiedByAgentID, ReferenceWorkID, TimestampCreated, " +
+    			            "TimestampModified, Title, Version";
  
-    	String[] values = new String[5];
+    	String[] values = new String[7];
     	
     	values[0] = SqlUtils.sqlString( exsiccata.getCreatedByAgent().getId());
-    	values[1] = SqlUtils.sqlString( exsiccata.getTitle());
+    	values[1] = SqlUtils.sqlString( exsiccata.getModifiedByAgent().getId());
     	values[2] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
-    	values[3] = SqlUtils.now();
-    	values[4] = SqlUtils.zero();
+    	values[3] = SqlUtils.sqlString( exsiccata.getTimestampCreated());
+        values[4] = SqlUtils.sqlString( exsiccata.getTimestampModified());
+    	values[5] = SqlUtils.sqlString( exsiccata.getTitle());
+    	values[6] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }

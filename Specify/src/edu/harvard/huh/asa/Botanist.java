@@ -1,10 +1,9 @@
 package edu.harvard.huh.asa;
 
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Botanist
+public class Botanist extends AuditedObject
 {    
     // TODO: dates type: no place to put this at the moment: birth/death, flourished, collected, received specimens
     // TODO: date precision: doing nothing with this at the moment: ?, circa; null means default, exact
@@ -19,8 +18,6 @@ public class Botanist
     private Integer endYear;
 	private  String endPrecision;
 	private  String remarks;
-	private Integer createdById;
-	private    Date dateCreated;
 	private  String uri;
 	private  String authorNote;
 	private  String collectorNote;
@@ -48,10 +45,6 @@ public class Botanist
 	
 	public String getRemarks() { return remarks; }
 	
-	public Integer getCreatedById() { return createdById; }
-	
-	public Date getDateCreated() { return dateCreated; }
-	
 	public String getUri() { return uri; }
 	
 	public String getAuthorNote() { return authorNote; }
@@ -77,10 +70,6 @@ public class Botanist
 	public void setEndPrecision(String endPrecision) { this.endPrecision = endPrecision; }
     
 	public void setRemarks(String remarks) { this.remarks = remarks; }
-	
-	public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-	
-	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 	
 	public void setUri(String uri) { this.uri = uri; }
 	

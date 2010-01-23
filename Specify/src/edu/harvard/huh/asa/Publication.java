@@ -14,26 +14,19 @@
  */
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class Publication
+public class Publication extends AuditedObject
 {
-    private Integer id;
-    private  String isbn;
-    private  String pubPlace;
-    private  String pubDate;
-    private  String publisher;
-    private  String url;
-    private  String title;
+    private String  isbn;
+    private String  pubPlace;
+    private String  pubDate;
+    private String  publisher;
+    private String  url;
+    private String  title;
     private Boolean isJournal;
-    private  String issn;
-    private  String bph;
-    private  String abbreviation;
-    private Integer createdById;
-    private    Date dateCreated;
-    private  String remarks;
-
-    public Integer getId() { return this.id; }
+    private String  issn;
+    private String  bph;
+    private String  abbreviation;
+    private String  remarks;
     
     public String getIsbn() { return this.isbn; }
     
@@ -55,13 +48,7 @@ public class Publication
     
     public String getAbbreviation() { return this.abbreviation; }
     
-    public Integer getCreatedById() { return createdById; }
-
-    public Date getDateCreated() { return dateCreated; }
-    
     public String getRemarks() { return this.remarks; }
-    
-    public void setId(Integer id) { this.id = id; }
     
     public void setIsbn(String isbn) { this.isbn = isbn; }
     
@@ -82,10 +69,6 @@ public class Publication
     public void setAbbreviation(String abbreviation) { this.abbreviation = abbreviation; }
     
     public void setIssn(String issn) { this.issn = issn; }
-    
-    public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-    
-    public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
 }

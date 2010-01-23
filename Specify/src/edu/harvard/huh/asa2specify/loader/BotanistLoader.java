@@ -3,7 +3,6 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 import java.util.Calendar;
-import java.util.Date;
 
 import edu.harvard.huh.asa.Botanist;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
@@ -100,31 +99,29 @@ public class BotanistLoader extends AuditedObjectLoader
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
     private Botanist parse(String[] columns) throws LocalException
     {
-        if (columns.length < 17)
+        Botanist botanist = new Botanist();
+        
+        int i = super.parse(columns, botanist);
+        
+        if (columns.length < i + 12)
         {
             throw new LocalException("Not enough columns");
         }
-
-        Botanist botanist = new Botanist();        
+        
         try
         {
-            botanist.setId(           SqlUtils.parseInt( columns[0]  ));
-            botanist.setIsTeam(      Boolean.parseBoolean( columns[1]  ));
-            botanist.setIsCorporate( Boolean.parseBoolean( columns[2]  ));
-            botanist.setName(                            columns[3]  );
-            botanist.setDatesType(                       columns[4]  );
-            botanist.setStartYear(    SqlUtils.parseInt( columns[5]  ));
-            botanist.setStartPrecision(                  columns[6]  );
-            botanist.setEndYear(      SqlUtils.parseInt( columns[7]  ));
-            botanist.setEndPrecision(                    columns[8]  );
-            botanist.setRemarks( SqlUtils.iso8859toUtf8( columns[9]  ));
-            botanist.setCreatedById(  SqlUtils.parseInt( columns[10] ));
-            botanist.setDateCreated( SqlUtils.parseDate( columns[11] ));
-            botanist.setUpdatedById(  SqlUtils.parseInt( columns[12] ));
-            botanist.setDateUpdated( SqlUtils.parseDate( columns[13] ));
-            botanist.setUri(                             columns[14] );
-            botanist.setAuthorNote(                      columns[15] );
-            botanist.setCollectorNote(                   columns[16] );
+            botanist.setIsTeam(     Boolean.parseBoolean(  columns[i + 0]  ));
+            botanist.setIsCorporate( Boolean.parseBoolean( columns[i + 1]  ));
+            botanist.setName(                              columns[i + 2]  );
+            botanist.setDatesType(                         columns[i + 3]  );
+            botanist.setStartYear(      SqlUtils.parseInt( columns[i + 4]  ));
+            botanist.setStartPrecision(                    columns[i + 5]  );
+            botanist.setEndYear(        SqlUtils.parseInt( columns[i + 6]  ));
+            botanist.setEndPrecision(                      columns[i + 7]  );
+            botanist.setRemarks(   SqlUtils.iso8859toUtf8( columns[i + 8]  ));
+            botanist.setUri(                               columns[i + 9]  );
+            botanist.setAuthorNote(                        columns[i + 10] );
+            botanist.setCollectorNote(                     columns[i + 11] );
         }
         catch (NumberFormatException e)
         {
@@ -146,14 +143,7 @@ public class BotanistLoader extends AuditedObjectLoader
         if (botanist.isOrganization()) agent.setAgentType( Agent.ORG );
         else if (botanist.isGroup())   agent.setAgentType( Agent.GROUP );
         else                           agent.setAgentType( Agent.PERSON );
-        
-		// CreatedByAgent
-        Integer creatorOptrId = botanist.getCreatedById();
-        checkNull(creatorOptrId, "created by id");
-        
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
-        
+                
 		// DateOfBirth: this is going to hold start dates no matter what the type for the time being
 		Integer startYear = botanist.getStartYear();
 		if (startYear != null)
@@ -212,13 +202,6 @@ public class BotanistLoader extends AuditedObjectLoader
 		String lastName = botanist.getLastName();
 		lastName = truncate(lastName, 200, "last name");
         agent.setLastName(lastName);
-
-        // ModifiedByAgent
-        Integer updaterOptrId = botanist.getUpdatedById();
-        checkNull(updaterOptrId, "created by id");
-        
-        Agent  modifiedByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setModifiedByAgent(modifiedByAgent);
         
 		// Remarks
         String remarks = botanist.getRemarks();
@@ -233,18 +216,12 @@ public class BotanistLoader extends AuditedObjectLoader
         if (collectorNote != null) remarks = remarks + " [collector note: " + collectorNote + "]";
         
         agent.setRemarks(remarks);
-
-        // TimestampCreated
-        Date dateCreated = botanist.getDateCreated();
-        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-
-        // TimestampModified
-        Date dateModified = botanist.getDateUpdated();
-        agent.setTimestampModified(DateUtils.toTimestamp(dateModified));
         
         // URL
         String url = botanist.getUri();
         agent.setUrl(url);
+
+        setAuditFields(botanist, agent);
 
         return agent;
 	}

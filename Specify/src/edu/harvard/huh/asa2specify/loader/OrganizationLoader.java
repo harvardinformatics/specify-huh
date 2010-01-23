@@ -2,11 +2,9 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Date;
 
 import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
-import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
@@ -122,24 +120,24 @@ public class OrganizationLoader extends AuditedObjectLoader
 	   
 	private Organization parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 10)
+	    Organization organization = new Organization();
+	    
+	    int i = super.parse(columns, organization);
+	    
+		if (columns.length < i + 7)
 		{
 			throw new LocalException("Not enough columns");
 		}
 		
-		Organization organization = new Organization();
 		try
 		{
-			organization.setId(           SqlUtils.parseInt( columns[0] ));
-			organization.setName(                            columns[1] );
-			organization.setAcronym(                         columns[2] );
-			organization.setCity(                            columns[3] );
-			organization.setState(                           columns[4] );
-			organization.setCountry(                         columns[5] );
-			organization.setUri(                             columns[6] );
-			organization.setCreatedById(  SqlUtils.parseInt( columns[7] ));
-            organization.setDateCreated( SqlUtils.parseDate( columns[8] ));            
-			organization.setRemarks( SqlUtils.iso8859toUtf8( columns[9] ));
+			organization.setName(                            columns[i + 0] );
+			organization.setAcronym(                         columns[i + 1] );
+			organization.setCity(                            columns[i + 2] );
+			organization.setState(                           columns[i + 3] );
+			organization.setCountry(                         columns[i + 4] );
+			organization.setUri(                             columns[i + 5] );        
+			organization.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 6] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -163,11 +161,6 @@ public class OrganizationLoader extends AuditedObjectLoader
 		
 		// AgentType
 		agent.setAgentType(Agent.ORG);
-
-        // CreatedByAgent
-        Integer creatorOptrId = organization.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
         
 		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
 		Integer organizationId = organization.getId();
@@ -186,10 +179,6 @@ public class OrganizationLoader extends AuditedObjectLoader
 		String remarks = organization.getRemarks();
 		agent.setRemarks((remarks));
 
-        // TimestampCreated
-        Date dateCreated = organization.getDateCreated();
-        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-		
         // URL
 		String url = organization.getUri();
 		if (url != null)
@@ -197,6 +186,8 @@ public class OrganizationLoader extends AuditedObjectLoader
 			url = truncate(url, 255, "url");
 			agent.setUrl(url);
 		}
+		
+		setAuditFields(organization, agent);
 		
 		return agent;
 	}
@@ -241,19 +232,22 @@ public class OrganizationLoader extends AuditedObjectLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "Abbreviation, AgentType, CreatedByAgentID, GUID, " +
-				            "LastName, Remarks, TimestampCreated, URL, Version";
+				            "LastName, ModifiedByAgentID, Remarks, TimestampCreated, " +
+				            "TimestampModified, URL, Version";
 
-		String[] values = new String[9];
+		String[] values = new String[11];
 
-		values[0] = SqlUtils.sqlString( agent.getAbbreviation());
-		values[1] = SqlUtils.sqlString( agent.getAgentType());
-		values[2] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[3] = SqlUtils.sqlString( agent.getGuid());
-		values[4] = SqlUtils.sqlString( agent.getLastName());
-		values[5] = SqlUtils.sqlString( agent.getRemarks());
-		values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[7] = SqlUtils.sqlString( agent.getUrl());
-		values[8] = SqlUtils.zero();
+		values[0]  = SqlUtils.sqlString( agent.getAbbreviation());
+		values[1]  = SqlUtils.sqlString( agent.getAgentType());
+		values[2]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
+		values[3]  = SqlUtils.sqlString( agent.getGuid());
+		values[4]  = SqlUtils.sqlString( agent.getLastName());
+		values[5]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
+		values[6]  = SqlUtils.sqlString( agent.getRemarks());
+		values[7]  = SqlUtils.sqlString( agent.getTimestampCreated());
+		values[8]  = SqlUtils.sqlString( agent.getTimestampModified());
+		values[9]  = SqlUtils.sqlString( agent.getUrl());
+		values[10] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

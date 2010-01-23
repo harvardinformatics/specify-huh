@@ -2,11 +2,9 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Date;
 
 import edu.harvard.huh.asa.Affiliate;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
-import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
@@ -116,24 +114,24 @@ public class AffiliateLoader extends AuditedObjectLoader
 
 	private Affiliate parse(String[] columns) throws LocalException
 	{
-		if (columns.length < 10)
+	    Affiliate affiliate = new Affiliate();
+	    
+	    int i = super.parse(columns, affiliate);
+	    
+		if (columns.length < i + 7)
 		{
 			throw new LocalException("Not enough columns");
 		}
-
-		Affiliate affiliate = new Affiliate();
+		
 		try
 		{
-		    affiliate.setId(           SqlUtils.parseInt( columns[0] ));
-		    affiliate.setSurname(                         columns[1] );
-		    affiliate.setGivenName(                       columns[2] );
-		    affiliate.setPosition(                        columns[3] );
-		    affiliate.setPhone(                           columns[4] );
-		    affiliate.setEmail(                           columns[5] );
-		    affiliate.setAddress(                         columns[6] );
-		    affiliate.setCreatedById(  SqlUtils.parseInt( columns[7] ));
-            affiliate.setDateCreated( SqlUtils.parseDate( columns[8] ));
-		    affiliate.setRemarks( SqlUtils.iso8859toUtf8( columns[9] ));
+		    affiliate.setSurname(                         columns[i + 0] );
+		    affiliate.setGivenName(                       columns[i + 1] );
+		    affiliate.setPosition(                        columns[i + 2] );
+		    affiliate.setPhone(                           columns[i + 3] );
+		    affiliate.setEmail(                           columns[i + 4] );
+		    affiliate.setAddress(                         columns[i + 5] );
+		    affiliate.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 6] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -149,11 +147,6 @@ public class AffiliateLoader extends AuditedObjectLoader
 		
 		// AgentType
 		agent.setAgentType(Agent.PERSON);
-		
-		// CreatedBy
-        Integer creatorOptrId = affiliate.getCreatedById();
-        Agent  createdByAgent = getAgentByOptrId(creatorOptrId);
-        agent.setCreatedByAgent(createdByAgent);
         
 		// Division
 		agent.setDivision(getBotanyDivision());
@@ -199,11 +192,9 @@ public class AffiliateLoader extends AuditedObjectLoader
         String remarks = affiliate.getRemarks();
         agent.setRemarks(remarks);
         
-        // TimestampCreated
-        Date dateCreated = affiliate.getDateCreated();
-        agent.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
-		return agent;
+        setAuditFields(affiliate, agent);
+
+        return agent;
 	}
 
 	private Address getAddress(Affiliate affiliate, Agent agent) throws LocalException
@@ -241,9 +232,10 @@ public class AffiliateLoader extends AuditedObjectLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "AgentType, CreatedByAgentID, DivisionID, Email, FirstName, " +
-				            "GUID, JobTitle, LastName, Remarks, TimestampCreated, Version";
+				            "GUID, JobTitle, LastName, ModifiedByAgentID, Remarks, " +
+				            "TimestampCreated, TimestampModified, Version";
 
-		String[] values = new String[11];
+		String[] values = new String[13];
 
 		values[0]  = SqlUtils.sqlString( agent.getAgentType());
         values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
@@ -253,9 +245,11 @@ public class AffiliateLoader extends AuditedObjectLoader
 		values[5]  = SqlUtils.sqlString( agent.getGuid());
 		values[6]  = SqlUtils.sqlString( agent.getJobTitle());
 		values[7]  = SqlUtils.sqlString( agent.getLastName());
-		values[8]  = SqlUtils.sqlString( agent.getRemarks());
-        values[9]  = SqlUtils.sqlString( agent.getTimestampCreated());
-        values[10] = SqlUtils.zero();
+		values[8]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
+		values[9]  = SqlUtils.sqlString( agent.getRemarks());
+        values[10] = SqlUtils.sqlString( agent.getTimestampCreated());
+        values[11] = SqlUtils.sqlString( agent.getTimestampModified());
+        values[12] = SqlUtils.zero();
         
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
