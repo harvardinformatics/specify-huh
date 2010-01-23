@@ -54,6 +54,7 @@ public class AgentSpecialty extends DataModelObjBase implements Serializable, Or
     protected Integer agentSpecialtyId;
     protected Integer orderNumber;
     protected String  specialtyName;
+    protected String  role;
     
     protected Agent agent;
     
@@ -79,6 +80,7 @@ public class AgentSpecialty extends DataModelObjBase implements Serializable, Or
         orderNumber      = null;
         specialtyName    = null;
         agent            = null;
+        role             = null;
     }
     
     @Id
@@ -137,6 +139,17 @@ public class AgentSpecialty extends DataModelObjBase implements Serializable, Or
     public void setSpecialtyName(String specialtyName)
     {
         this.specialtyName = specialtyName;
+    }
+    
+    @Column(name = "Role", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getRole()
+    {
+        return role;
+    }
+
+    public void setRole(String role)
+    {
+        this.role = role;
     }
     
     /**
