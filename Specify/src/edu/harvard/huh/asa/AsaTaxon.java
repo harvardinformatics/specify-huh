@@ -1,8 +1,6 @@
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class AsaTaxon
+public class AsaTaxon extends AuditedObject
 {
     // from st_lookup category 129
     public static enum STATUS              {  NomLeg,      NomNov,      NomCons,      OrthCons,      NomRej,      NomSuperfl,      Synonym,    LaterHomonym,   OrthVar,      NomInvalid,      Unknown  };
@@ -60,7 +58,6 @@ public class AsaTaxon
     }
 
     private      Integer parentId;
-    private      Integer id;
 	private       String rank;
 	private       String rankType;
 	private       String rankAbbrev;
@@ -80,19 +77,16 @@ public class AsaTaxon
 	private       String citCollation;
 	private       String citDate;
 	private       String remarks;
-	private      Integer createdById;
-	private         Date dateCreated;
 	private       String basionym;
 	private       String parAuthor;
 	private       String parExAuthor;
 	private       String stdAuthor;
 	private       String stdExAuthor;
 	private       String citInAuthor;
+	private       String dataSource;
 	
     public Integer getParentId() { return parentId; }
     
-	public Integer getId() { return id; }
-	
 	public String getRank() { return rank; }
 	
 	public String getRankType() { return rankType; }
@@ -131,10 +125,6 @@ public class AsaTaxon
 
 	public String getRemarks() { return remarks; }
 	
-	public Integer getCreatedById() { return createdById; }
-	
-	public Date getDateCreated() { return dateCreated; }
-	
 	public String getBasionym() { return basionym; }
 	
 	public String getParAuthor() { return parAuthor; }
@@ -147,7 +137,7 @@ public class AsaTaxon
 	
 	public String getCitInAuthor() { return citInAuthor; }
 	
-	public void setId(Integer id) { this.id = id; }
+	public String getDataSource() { return dataSource; }
     
     public void setParentId(Integer parentId) { this.parentId = parentId; }
     
@@ -189,10 +179,6 @@ public class AsaTaxon
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
 	
-	public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-	
-	public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
-	
 	public void setBasionym(String basionym) { this.basionym = basionym; }
 	
 	public void setParAuthor(String parAuthor) { this.parAuthor = parAuthor; }
@@ -204,4 +190,6 @@ public class AsaTaxon
 	public void setStdExAuthor(String stdExAuthor) { this.stdExAuthor = stdExAuthor; }
 	
 	public void setCitInAuthor(String citInAuthor) { this.citInAuthor = citInAuthor; }
+	
+	public void setDataSource(String dataSource) { this.dataSource = dataSource; }
 }

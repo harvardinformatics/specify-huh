@@ -24,18 +24,8 @@ public abstract class TransactionLoader extends AuditedObjectLoader
     //       loan_item        -> loan
     //       taxon_batch      -> borrow/loan
     //       due_date         -> borrow/loan
-    
-    // TODO: go through all the xAgents to determine if the affiliates/asaAgents match their assigned roles.
 
-    // TODO: go through all Text1 fields to determine if there's a more appropriate field to put description into
-    
-    // TODO: go through all the date fields to determine if open/close dates have been appropriately applied
-    
     // TODO: get list of conditions to raise warnings and exceptions
-    
-    // TODO: assign userType
-    
-    // TODO: assign boxCount
 
     protected static final String DEFAULT_ACCESSION_NUMBER   = "none";
     
@@ -63,31 +53,34 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 
 	protected int parse(String[] columns, Transaction transaction) throws LocalException
 	{
-    	if (columns.length < 18)
+    	if (columns.length < 20)
     	{
     		throw new LocalException("Not enough columns");
     	}
 		
 		try
 		{
-			transaction.setId(                     SqlUtils.parseInt( columns[0]  ));
-			transaction.setType(               Transaction.parseType( columns[1]  ));
-			transaction.setAgentId(                SqlUtils.parseInt( columns[2]  ));
-			transaction.setLocalUnit(                                 columns[3]  );
-			transaction.setRequestType( Transaction.parseRequestType( columns[4]  ));
-			transaction.setPurpose(         Transaction.parsePurpose( columns[5]  ));
-			transaction.setAffiliateId(            SqlUtils.parseInt( columns[6]  ));
-			transaction.setUserType(       Transaction.parseUserType( columns[7]  ));
-			transaction.setIsAcknowledged(      Boolean.parseBoolean( columns[8]  ));
-			transaction.setOpenDate(              SqlUtils.parseDate( columns[9]  ));
-			transaction.setCloseDate(             SqlUtils.parseDate( columns[10] ));			
-			transaction.setTransactionNo(                             columns[11] );
-			transaction.setForUseBy(                                  columns[12] );
-			transaction.setBoxCount(                                  columns[13] );
-			transaction.setDescription(                               columns[14] );
-			transaction.setRemarks(                                   columns[15] );
-			transaction.setCreatedById(             Integer.parseInt( columns[16] ));
-			transaction.setDateCreated(           SqlUtils.parseDate( columns[17] ));        
+		    transaction.setId(                     SqlUtils.parseInt( columns[0]  ));
+		    transaction.setCreatedById(             Integer.parseInt( columns[1]  ));
+		    transaction.setCreateDate(            SqlUtils.parseDate( columns[2]  ));
+		    transaction.setUpdatedById(             Integer.parseInt( columns[3]  ));
+		    transaction.setUpdateDate(            SqlUtils.parseDate( columns[4]  ));
+			transaction.setType(               Transaction.parseType( columns[5]  ));
+			transaction.setAgentId(                SqlUtils.parseInt( columns[6]  ));
+			transaction.setLocalUnit(                                 columns[7]  );
+			transaction.setRequestType( Transaction.parseRequestType( columns[8]  ));
+			transaction.setPurpose(         Transaction.parsePurpose( columns[9]  ));
+			transaction.setAffiliateId(            SqlUtils.parseInt( columns[10] ));
+			transaction.setUserType(       Transaction.parseUserType( columns[11] ));
+			transaction.setIsAcknowledged(      Boolean.parseBoolean( columns[12] ));
+			transaction.setOpenDate(              SqlUtils.parseDate( columns[13] ));
+			transaction.setCloseDate(             SqlUtils.parseDate( columns[14] ));			
+			transaction.setTransactionNo(                             columns[15] );
+			transaction.setForUseBy(                                  columns[16] );
+			transaction.setBoxCount(                                  columns[17] );
+			transaction.setDescription(                               columns[18] );
+			transaction.setRemarks(                                   columns[19] );
+        
 		}
 		catch (NumberFormatException e)
 		{
@@ -98,7 +91,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 			throw new LocalException("Couldn't parse field", e);
 		}
 		
-		return 18; // index of next column
+		return 20; // index of next column
 	}
      
     protected Agent lookupAgent(Transaction transaction) throws LocalException

@@ -1,8 +1,6 @@
 package edu.harvard.huh.asa;
 
-import java.util.Date;
-
-public class SpecimenItem
+public class SpecimenItem extends AuditedObject
 {	
 	// TODO: normalize alignment of variable declarations
 	
@@ -25,7 +23,6 @@ public class SpecimenItem
 		return reproStatus.name();
 	}
 	
-    private      Integer id;
 	private      Integer specimenId;
 	private      Integer barcode;
 	private      Integer collectorId;
@@ -54,18 +51,13 @@ public class SpecimenItem
 	private       String substrate;
 	private       String container;
 	private      Integer subcollectionId;
-	private         Date catalogedDate;
-	private      Integer catalogedById;	
 	private        BDate collDate;
-	private      Boolean hasExsiccata;
 	private      Integer replicates;
 	private       String location;
 	private       String vernacularName;
 	private       String distribution;
 	
 	private Boolean hasCollectingTrip;
-	
-	public Integer getId() { return this.id; }
 	
 	public Integer getSpecimenId() { return this.specimenId; }
 	
@@ -115,8 +107,6 @@ public class SpecimenItem
 	
 	public String getContainer() { return this.container; }
 	
-	public Date getCatalogedDate() { return this.catalogedDate; }
-	
 	public Integer getSeriesId() { return this.seriesId; }
 	
 	public String getSeriesName() { return this.seriesName; }
@@ -126,8 +116,6 @@ public class SpecimenItem
 	public String getSeriesAbbrev() { return this.seriesAbbrev; }
 	
 	public Integer getSubcollectionId() { return this.subcollectionId; }
-	
-	public Integer getCatalogedById() { return this.catalogedById; }
 	
 	public Boolean hasExsiccata()
 	{
@@ -155,8 +143,6 @@ public class SpecimenItem
 	    
 	    return this.hasCollectingTrip;
 	}
-
-	public void setId(Integer id) { this.id = id; }
 	
 	public void setSpecimenId(Integer specimenId) { this.specimenId = specimenId; }
 	
@@ -206,8 +192,6 @@ public class SpecimenItem
 	
 	public void setContainer(String container) { this.container = container; }
 	
-	public void setCatalogedDate(Date catalogedDate) { this.catalogedDate = catalogedDate; }
-	
 	public void setSeriesId(Integer seriesId) { this.seriesId = seriesId; }
 	
 	public void setSeriesName(String seriesName) { this.seriesName = seriesName; }
@@ -216,11 +200,7 @@ public class SpecimenItem
 	
 	public void setSeriesAbbrev(String seriesAbbrev) { this.seriesAbbrev = seriesAbbrev; }
 	
-	public void setCatalogedById(Integer catalogedById) { this.catalogedById = catalogedById; }
-	
 	public void setSubcollectionId(Integer subcollectionId) { this.subcollectionId = subcollectionId; }
-	
-	public void setHasExsiccata(Boolean hasExsiccata) { this.hasExsiccata = hasExsiccata; }
 	
 	public void setReplicates(Integer replicates) { this.replicates = replicates; }
 	

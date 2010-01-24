@@ -211,11 +211,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // TODO: AddressOfRecord
         
-        // CreatedByAgentID
-        Integer creatorOptrId = asaLoan.getCreatedById();
-        Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        loan.setCreatedByAgent(createdByAgent);
-        
         // CurrentDueDate
         Date currentDueDate = asaLoan.getCurrentDueDate();
         if (currentDueDate != null)
@@ -285,10 +280,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         String forUseBy = asaLoan.getForUseBy();
         loan.setText2(forUseBy);
         
-        // TimestampCreated
-        Date dateCreated = asaLoan.getDateCreated();
-        loan.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaLoan.isAcknowledged();
         loan.setYesNo1(isAcknowledged);
@@ -296,6 +287,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // YesNo2 (requestType = "theirs")
         Boolean isTheirs = isTheirs(asaLoan.getRequestType());
         loan.setYesNo2(isTheirs);
+        
+        setAuditFields(asaLoan, loan);
         
         return loan;
     }
@@ -502,10 +495,11 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(Loan loan)
     {
         String fieldNames = "CreatedByAgentID, CurrentDueDate, DateClosed, DisciplineId, " +
-                            "IsClosed, LoanDate, LoanNumber, Number1, OriginalDueDate, PurposeOfLoan, " +
-                            "Remarks, SrcGeography, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+                            "IsClosed, LoanDate, LoanNumber, ModifiedByAgentID, Number1, " +
+                            "OriginalDueDate, PurposeOfLoan, Remarks, SrcGeography, Text1, " +
+                            "Text2, TimestampCreated, TimestampModified, Version, YesNo1, YesNo2";
         
-        String[] values = new String[18];
+        String[] values = new String[20];
         
         values[0]  = SqlUtils.sqlString( loan.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( loan.getCurrentDueDate());
@@ -514,17 +508,19 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[4]  = SqlUtils.sqlString( loan.getIsClosed());
         values[5]  = SqlUtils.sqlString( loan.getLoanDate());
         values[6]  = SqlUtils.sqlString( loan.getLoanNumber());
-        values[7]  = SqlUtils.sqlString( loan.getNumber1());
-        values[8]  = SqlUtils.sqlString( loan.getOriginalDueDate());
-        values[9]  = SqlUtils.sqlString( loan.getPurposeOfLoan());
-        values[10] = SqlUtils.sqlString( loan.getRemarks());
-        values[11] = SqlUtils.sqlString( loan.getSrcGeography());
-        values[12] = SqlUtils.sqlString( loan.getText1());
-        values[13] = SqlUtils.sqlString( loan.getText2());
-        values[14] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[15] = SqlUtils.zero();
-        values[16] = SqlUtils.sqlString( loan.getYesNo1());
-        values[17] = SqlUtils.sqlString( loan.getYesNo2());
+        values[7]  = SqlUtils.sqlString( loan.getModifiedByAgent().getId());
+        values[8]  = SqlUtils.sqlString( loan.getNumber1());
+        values[9]  = SqlUtils.sqlString( loan.getOriginalDueDate());
+        values[10] = SqlUtils.sqlString( loan.getPurposeOfLoan());
+        values[11] = SqlUtils.sqlString( loan.getRemarks());
+        values[12] = SqlUtils.sqlString( loan.getSrcGeography());
+        values[13] = SqlUtils.sqlString( loan.getText1());
+        values[14] = SqlUtils.sqlString( loan.getText2());
+        values[15] = SqlUtils.sqlString( loan.getTimestampCreated());
+        values[16] = SqlUtils.sqlString( loan.getTimestampModified());
+        values[17] = SqlUtils.zero();
+        values[18] = SqlUtils.sqlString( loan.getYesNo1());
+        values[19] = SqlUtils.sqlString( loan.getYesNo2());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
     }

@@ -1,4 +1,8 @@
 select t.id,
+       t.created_by_id,
+       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       t.updated_by_id,
+       to_char(t.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        (select name from st_lookup where id=t.type_id) as transaction_type,
        t.agent_id,
        (select acronym from organization where id=t.local_unit_id) as local_unit,
@@ -14,8 +18,6 @@ select t.id,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
-       t.created_by_id,
-       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
 
        tb.item_count,
        tb.type_count,
@@ -23,7 +25,7 @@ select t.id,
 
        to_char((select min(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
        to_char((select max(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
-       
+
        (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
        regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from,

@@ -1,14 +1,18 @@
-select regexp_replace(decode(tx.rank_type, 'infraspecific', (select name from taxon where id=grandparent.id) || ' ' ||
+select tx.*,
+
+       regexp_replace(decode(tx.rank_type, 'infraspecific', (select name from taxon where id=grandparent.id) || ' ' ||
                                              (select name from taxon where id=parent.id) || ' ' ||
                                              tx.rank_abbrev || tx.name,
                                 'specific', (select name from taxon where id=parent.id) || ' ' || tx.name,
                                   tx.name
-              ), '[[:space:]]+', ' ') as fullname,
-
-              tx.*
+              ), '[[:space:]]+', ' ') as fullname
 from
-  (select t.container_id,
-         t.id,
+  (select t.id,
+         t.created_by_id,
+         to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+         t.updated_by_id,
+         to_char(t.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
+         t.container_id,
          tr.name as rank,
          (select name from st_lookup where id=tr.type_id) as rank_type,
          tr.abbrev as rank_abbrev,
@@ -47,9 +51,10 @@ from
          regexp_replace(t.cit_collation, '[[:space:]]+', ' ') as cit_collation,
          t.cit_date,
          regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
-         t.created_by_id,
-         to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
-         (select b.fullname from taxon b where b.id=t.basionym_id) as basionym
+         
+         (select b.fullname from taxon b where b.id=t.basionym_id) as basionym,
+
+         t.data_source
 
   from taxon t, taxon_rank tr
   where t.rank_id=tr.id

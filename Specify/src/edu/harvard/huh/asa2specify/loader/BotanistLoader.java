@@ -259,7 +259,8 @@ public class BotanistLoader extends AuditedObjectLoader
 	{
 	    String[] fieldNames = { "AgentType", "CreatedByAgentID","DateOfBirth", "DateOfBirthPrecision",
 	                            "DateOfDeath", "DateOfDeathPrecision", "FirstName", "GUID", "LastName",
-	    		                "ModifiedByAgentID", "Remarks", "TimestampCreated", "TimestampModified", "URL" };
+	    		                "ModifiedByAgentID", "Remarks", "TimestampCreated", "TimestampModified",
+	    		                "URL" };
 
 	    String[] values = new String[14];
 
@@ -269,14 +270,14 @@ public class BotanistLoader extends AuditedObjectLoader
 	    values[3]  = SqlUtils.sqlString( agent.getDateOfBirthPrecision());
 	    values[4]  = SqlUtils.sqlString( agent.getDateOfDeath());
 	    values[5]  = SqlUtils.sqlString( agent.getDateOfDeathPrecision());
-	    values[4]  = SqlUtils.sqlString( agent.getFirstName());
-	    values[5]  = SqlUtils.sqlString( agent.getGuid());
-	    values[6]  = SqlUtils.sqlString( agent.getLastName());
-	    values[7]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-	    values[8]  = SqlUtils.sqlString( agent.getRemarks());
-	    values[9]  = SqlUtils.sqlString( agent.getTimestampCreated());
-	    values[10] = SqlUtils.sqlString( agent.getTimestampModified());
-	    values[11] = SqlUtils.sqlString( agent.getUrl());
+	    values[6]  = SqlUtils.sqlString( agent.getFirstName());
+	    values[7]  = SqlUtils.sqlString( agent.getGuid());
+	    values[8]  = SqlUtils.sqlString( agent.getLastName());
+	    values[9]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
+	    values[10] = SqlUtils.sqlString( agent.getRemarks());
+	    values[11] = SqlUtils.sqlString( agent.getTimestampCreated());
+	    values[12] = SqlUtils.sqlString( agent.getTimestampModified());
+	    values[13] = SqlUtils.sqlString( agent.getUrl());
 
 	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", SqlUtils.sqlString(agentId));
 	}

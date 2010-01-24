@@ -65,11 +65,6 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
 
         // TODO: AddressOfRecord
         
-        // CreatedByAgent
-        Integer creatorOptrId = transaction.getCreatedById();
-        Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        accession.setCreatedByAgent(createdByAgent);
-        
         // AccessionCondition
         String description = getDescriptionOfMaterial(transaction);
         if (description != null) description = truncate(description, 255, "accession condition");
@@ -150,6 +145,8 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         Boolean isTheirs = isTheirs(transaction.getRequestType());
         accession.setYesNo2(isTheirs);
         
+        setAuditFields(transaction, accession);
+        
         return accession;
     }
     
@@ -178,9 +175,9 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         Matcher numberMatcher = NUMBER.matcher(accNo);
         if (numberMatcher.matches())
         {
-            String s1 = numberMatcher.group(1);
+            /*String s1 = numberMatcher.group(1);
             
-            /*if (s1.equals("A"))       s1 = "   A";
+            if (s1.equals("A"))       s1 = "   A";
             else if (s1.equals("FH")) s1 = "  FH";
             else if (s1.equals("GH")) s1 = "  GH";*/
             
@@ -195,10 +192,11 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
     {
         String fieldNames = "AccessionCondition, AccessionNumber, AltAccessionNumber, CreatedByAgentID, " +
                             "DateAccessioned, DiscardCount, DistributeCount, DivisionID, ItemCount, " +
-                            "NonSpecimenCount, Number1, Remarks, ReturnCount, Text1, Text2, Text3, Type, " +
-                            "TypeCount, TimestampCreated, Version, YesNo1, YesNo2";
+                            "ModifiedByAgentID, NonSpecimenCount, Number1, Remarks, ReturnCount, Text1, " +
+                            "Text2, Text3, Type, TypeCount, TimestampCreated, TimestampModified, Version, " +
+                            "YesNo1, YesNo2";
 
-        String[] values = new String[22];
+        String[] values = new String[24];
 
         values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
         values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
@@ -209,19 +207,21 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
         values[6]  = SqlUtils.sqlString( accession.getDistributeCount());
         values[7]  = SqlUtils.sqlString( accession.getDivision().getId());
         values[8]  = SqlUtils.sqlString( accession.getItemCount());
-        values[9]  = SqlUtils.sqlString( accession.getNonSpecimenCount());
-        values[10]  = SqlUtils.sqlString( accession.getNumber1());
-        values[11] = SqlUtils.sqlString( accession.getRemarks());
-        values[12] = SqlUtils.sqlString( accession.getReturnCount());
-        values[13] = SqlUtils.sqlString( accession.getText1());
-        values[14] = SqlUtils.sqlString( accession.getText2());
-        values[15] = SqlUtils.sqlString( accession.getText3());
-        values[16] = SqlUtils.sqlString( accession.getType());
-        values[17] = SqlUtils.sqlString( accession.getTypeCount());
-        values[18] = SqlUtils.now();
-        values[19] = SqlUtils.zero();
-        values[20] = SqlUtils.sqlString( accession.getYesNo1());
-        values[21] = SqlUtils.sqlString( accession.getYesNo1());
+        values[9]  = SqlUtils.sqlString( accession.getModifiedByAgent().getId());
+        values[10] = SqlUtils.sqlString( accession.getNonSpecimenCount());
+        values[11]  = SqlUtils.sqlString( accession.getNumber1());
+        values[12] = SqlUtils.sqlString( accession.getRemarks());
+        values[13] = SqlUtils.sqlString( accession.getReturnCount());
+        values[14] = SqlUtils.sqlString( accession.getText1());
+        values[15] = SqlUtils.sqlString( accession.getText2());
+        values[16] = SqlUtils.sqlString( accession.getText3());
+        values[17] = SqlUtils.sqlString( accession.getType());
+        values[18] = SqlUtils.sqlString( accession.getTypeCount());
+        values[19] = SqlUtils.sqlString( accession.getTimestampCreated());
+        values[20] = SqlUtils.sqlString( accession.getTimestampModified());
+        values[21] = SqlUtils.zero();
+        values[22] = SqlUtils.sqlString( accession.getYesNo1());
+        values[23] = SqlUtils.sqlString( accession.getYesNo1());
         
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }

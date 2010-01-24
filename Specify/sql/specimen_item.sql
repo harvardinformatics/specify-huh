@@ -1,4 +1,8 @@
 select si.id,
+       s.created_by_id,
+       to_char(s.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
+       s.updated_by_id,
+       to_char(s.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        s.id,
        regexp_replace(si.barcode, '[[:space:]]+', ' ') as barcode,
        regexp_replace(s.collector_no, '[[:space:]]+', ' ') as collector_no,
@@ -13,13 +17,13 @@ select si.id,
        regexp_replace(si.accession_no, '[[:space:]]+', ' ') as accession_no,
        regexp_replace(si.provenance, '[[:space:]]+', ' ') as provenance,
        (select name from st_lookup where id=si.status_id) as accession_status,
-       decode(d.start_year, 0, null, d.start_year) as start_year,
-       decode(d.start_month, 0, null, d.start_month) as start_month,
-       decode(d.start_day, 0, null, d.start_day) as start_day,
+       d.start_year,
+       d.start_month,
+       d.start_day,
        (select name from st_lookup where id=d.start_precision_id) as start_precision,
-       decode(d.end_year, 0, null, d.end_year) as end_year,
-       decode(d.end_month, 0, null, d.end_month) as end_month,
-       decode(d.end_day, 0, null, d.end_day) as end_day,
+       d.end_year,
+       d.end_month,
+       d.end_day,
        (select name from st_lookup where id=d.end_precision_id) as end_precision,
        regexp_replace(d.text, '[[:space:]]+', ' ') as date_text,
        regexp_replace(si.item_no, '[[:space:]]+', ' ') as item_no,
@@ -38,9 +42,8 @@ select si.id,
        regexp_replace(s.series_no, '[[:space:]]+', ' ') as series_number,
        regexp_replace(si.container, '[[:space:]]+', ' ') as container,
        si.subcollection_id,
-       decode((select author from subcollection where id=si.subcollection_id), null, '', 'true') as has_exsiccata,
        si.replicates,
-       si.location || decode(si.temp_location, '', null, '; temporarily held: ' || si.temp_location) as location
+       si.location || decode(si.temp_location, '', null, '; temporarily held: ' || si.temp_location) as location,
        s.vernacular_name,
        s.distribution
 from
@@ -54,4 +57,17 @@ where
        s.collector_id=b.id(+) and
        s.date_id=d.id
 
-order by s.id, si.specimen_id
+order by s.id, si.id
+
+/*
+select si.id, si.barcode
+
+from specimen s, specimen_item si
+
+where si.specimen_id=s.id and 
+si.barcode in (
+  select barcode from
+    (select barcode, count(id) from specimen_item group by barcode having count(id) > 1)
+)
+order by si.barcode
+*/

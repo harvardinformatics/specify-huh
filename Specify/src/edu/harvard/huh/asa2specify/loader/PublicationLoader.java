@@ -2,14 +2,11 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
-import java.util.Date;
 
 import edu.harvard.huh.asa.Publication;
-import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 public class PublicationLoader extends AuditedObjectLoader
@@ -156,6 +153,8 @@ public class PublicationLoader extends AuditedObjectLoader
 		referenceWork.setUrl(url);
 
 		// WorkDate
+		
+		setAuditFields(publication, referenceWork);
 		
 		return referenceWork;
 	}

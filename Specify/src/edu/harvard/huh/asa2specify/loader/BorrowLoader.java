@@ -156,11 +156,6 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // CollectionMemberID
         borrow.setCollectionMemberId(collectionMemberId);
         
-        // CreatedByAgentID
-        Integer creatorOptrId = asaBorrow.getCreatedById();
-        Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        borrow.setCreatedByAgent(createdByAgent);
-        
         // CurrentDueDate
         Date currentDueDate = asaBorrow.getCurrentDueDate();
         if (currentDueDate != null)
@@ -221,10 +216,6 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String localUnit = asaBorrow.getLocalUnit();
         borrow.setText1(localUnit);
         
-        // TimestampCreated
-        Date dateCreated = asaBorrow.getDateCreated();
-        borrow.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
-        
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaBorrow.isAcknowledged();
         borrow.setYesNo1(isAcknowledged);
@@ -232,6 +223,8 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // YesNo2 (requestType = "theirs")
         Boolean isTheirs = isTheirs(asaBorrow.getRequestType());
         borrow.setYesNo2(isTheirs);
+        
+        setAuditFields(asaBorrow, borrow);
         
         return borrow;
     }
@@ -337,10 +330,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(Borrow borrow)
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
-                            "InvoiceNumber, IsClosed, Number1, OriginalDueDate, ReceivedDate, " +
-                            "Remarks, Text1, Text2, TimestampCreated, Version, YesNo1, YesNo2";
+                            "InvoiceNumber, IsClosed, ModifiedByAgentID, Number1, OriginalDueDate, " +
+                            "ReceivedDate, Remarks, Text1, Text2, TimestampCreated, TimestampModified, " +
+                            "Version, YesNo1, YesNo2";
         
-        String[] values = new String[16];
+        String[] values = new String[18];
         
         values[0]  = SqlUtils.sqlString( borrow.getCollectionMemberId());
         values[1]  = SqlUtils.sqlString( borrow.getCreatedByAgent().getId());
@@ -348,16 +342,18 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[3]  = SqlUtils.sqlString( borrow.getDateClosed());
         values[4]  = SqlUtils.sqlString( borrow.getInvoiceNumber());
         values[5]  = SqlUtils.sqlString( borrow.getIsClosed());
-        values[6]  = SqlUtils.sqlString( borrow.getNumber1());
-        values[7]  = SqlUtils.sqlString( borrow.getOriginalDueDate());
-        values[8]  = SqlUtils.sqlString( borrow.getReceivedDate());
-        values[9]  = SqlUtils.sqlString( borrow.getRemarks());
-        values[10] = SqlUtils.sqlString( borrow.getText1());
-        values[11] = SqlUtils.sqlString( borrow.getText2());
-        values[12] = SqlUtils.sqlString( borrow.getTimestampCreated());
-        values[13] = SqlUtils.zero();
-        values[14] = SqlUtils.sqlString( borrow.getYesNo1());
-        values[15] = SqlUtils.sqlString( borrow.getYesNo2());
+        values[6]  = SqlUtils.sqlString( borrow.getModifiedByAgent().getId());
+        values[7]  = SqlUtils.sqlString( borrow.getNumber1());
+        values[8]  = SqlUtils.sqlString( borrow.getOriginalDueDate());
+        values[9]  = SqlUtils.sqlString( borrow.getReceivedDate());
+        values[10] = SqlUtils.sqlString( borrow.getRemarks());
+        values[11] = SqlUtils.sqlString( borrow.getText1());
+        values[12] = SqlUtils.sqlString( borrow.getText2());
+        values[13] = SqlUtils.sqlString( borrow.getTimestampCreated());
+        values[14] = SqlUtils.sqlString( borrow.getTimestampModified());
+        values[15] = SqlUtils.zero();
+        values[16] = SqlUtils.sqlString( borrow.getYesNo1());
+        values[17] = SqlUtils.sqlString( borrow.getYesNo2());
         
         return SqlUtils.getInsertSql("borrow", fieldNames, values);
     }

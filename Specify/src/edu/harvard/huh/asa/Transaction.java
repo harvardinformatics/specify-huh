@@ -2,7 +2,7 @@ package edu.harvard.huh.asa;
 
 import java.util.Date;
 
-public class Transaction
+public class Transaction extends AuditedObject
 {
 	// from st_lookup category 150
 	public static enum TYPE             { Loan,    Borrow,   InExchange,          OutExchange,         InGift,          OutGift,         InSpecial,               OutSpecial,              Purchase,   StaffCollection,    OutMiscellaneous        };
@@ -115,27 +115,22 @@ public class Transaction
         return null;
     }
     
-    private       Integer id;
-	private          TYPE type;
-	private       Integer agentId;
-	private        String localUnit;
-	private  REQUEST_TYPE requestType;
-	private       PURPOSE purpose;
-	private       Integer affiliateId;
-	private     USER_TYPE userType;
-	private       Boolean isAcknowledged;
-	private          Date openDate;
-	private          Date closeDate;
-	private        String transactionNo;
-	private        String forUseBy;
-	private        String boxCount;
-	private        String description;
-	private        String remarks;
-	private       Integer createdById;
-	private          Date dateCreated;
-	
-	public Integer getId() { return id; }
-	
+	private TYPE         type;
+	private Integer      agentId;
+	private String       localUnit;
+	private REQUEST_TYPE requestType;
+	private PURPOSE      purpose;
+	private Integer      affiliateId;
+	private USER_TYPE    userType;
+	private Boolean      isAcknowledged;
+	private Date         openDate;
+	private Date         closeDate;
+	private String       transactionNo;
+	private String       forUseBy;
+	private String       boxCount;
+	private String       description;
+	private String       remarks;
+    
 	public TYPE getType() { return type; }
 	
 	public Integer getAgentId() { return agentId; }
@@ -165,13 +160,7 @@ public class Transaction
 	public String getDescription() { return description; }
 	
 	public String getRemarks() { return remarks; }
-	
-	public Integer getCreatedById() { return createdById; }
-
-	public Date getDateCreated() { return dateCreated; }
-			
-	public void setId(Integer id) { this.id = id; }
-	
+    
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setAgentId(Integer agentId) { this.agentId = agentId; }
@@ -201,8 +190,4 @@ public class Transaction
 	public void setDescription(String description) { this.description = description; }
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
-	
-    public void setCreatedById(Integer createdById) { this.createdById = createdById; }
-    
-    public void setDateCreated(Date dateCreated) { this.dateCreated = dateCreated; }
 }

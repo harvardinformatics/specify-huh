@@ -102,11 +102,6 @@ public class OutgoingMiscLoader extends TransactionLoader
     {
         Shipment shipment = new Shipment();
         
-        // CreatedByAgentID
-        Integer creatorOptrId = outMisc.getCreatedById();
-        Agent createdByAgent = getAgentByOptrId(creatorOptrId);
-        shipment.setCreatedByAgent(createdByAgent);
-        
         // InsuredForAmount (isInsured)
         Boolean isInsured = outMisc.isInsured();
         shipment.setInsuredForAmount(isInsured ? "insured" : "not insured");
@@ -178,10 +173,6 @@ public class OutgoingMiscLoader extends TransactionLoader
         // Text2 (transactionId)
         Integer transactionId = outMisc.getId();
         shipment.setText2("Asa transaction id: " + String.valueOf(transactionId));
-
-        // TimestampCreated
-        Date dateCreated = outMisc.getDateCreated();
-        shipment.setTimestampCreated(DateUtils.toTimestamp(dateCreated));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outMisc.isAcknowledged();
@@ -190,6 +181,8 @@ public class OutgoingMiscLoader extends TransactionLoader
         // YesNo2 (isCostEstimated)
         Boolean isEstimatedCost = outMisc.isEstimatedCost();
         shipment.setYesNo2(isEstimatedCost);
+        
+        setAuditFields(outMisc, shipment);
         
         return shipment;
     }
@@ -222,29 +215,32 @@ public class OutgoingMiscLoader extends TransactionLoader
     
     private String getInsertSql(Shipment shipment)
     {
-        String fields = "CreatedByAgentID, InsuredForAmount, NumberOfPackages, " +
-                        "Number1, Number2, Remarks, ShipmentDate, ShipmentMethod, ShipmentNumber, ShippedToID, ShipperID, " +
-                        "Text1, Text2, TimestampCreated, Version, YesNo1 YesNo2";
+        String fields = "CreatedByAgentID, InsuredForAmount, ModifiedByAgentID, NumberOfPackages, " +
+                        "Number1, Number2, Remarks, ShipmentDate, ShipmentMethod, ShipmentNumber, " +
+                        "ShippedToID, ShipperID, Text1, Text2, TimestampCreated, TimestampModified, " +
+                        "Version, YesNo1, YesNo2";
 
-        String[] values = new String[17];
+        String[] values = new String[19];
 
         values[0]  = SqlUtils.sqlString( shipment.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( shipment.getInsuredForAmount());
-        values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-        values[3]  = SqlUtils.sqlString( shipment.getNumber1());
-        values[4]  = SqlUtils.sqlString( shipment.getNumber2());
-        values[5]  = SqlUtils.sqlString( shipment.getRemarks());
-        values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
-        values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-        values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-        values[9]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
-        values[10] = SqlUtils.sqlString( shipment.getShipper().getId());
-        values[11] = SqlUtils.sqlString( shipment.getText1());
-        values[12] = SqlUtils.sqlString( shipment.getText2());
-        values[13] = SqlUtils.now();
-        values[14] = SqlUtils.zero();
-        values[15] = SqlUtils.sqlString( shipment.getYesNo1());
-        values[16] = SqlUtils.sqlString( shipment.getYesNo1());
+        values[2]  = SqlUtils.sqlString( shipment.getModifiedByAgent().getId());
+        values[3]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
+        values[4]  = SqlUtils.sqlString( shipment.getNumber1());
+        values[5]  = SqlUtils.sqlString( shipment.getNumber2());
+        values[6]  = SqlUtils.sqlString( shipment.getRemarks());
+        values[7]  = SqlUtils.sqlString( shipment.getShipmentDate());
+        values[8]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+        values[9]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+        values[10]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
+        values[11] = SqlUtils.sqlString( shipment.getShipper().getId());
+        values[12] = SqlUtils.sqlString( shipment.getText1());
+        values[13] = SqlUtils.sqlString( shipment.getText2());
+        values[14] = SqlUtils.sqlString( shipment.getTimestampCreated());
+        values[15] = SqlUtils.sqlString( shipment.getTimestampModified());
+        values[16] = SqlUtils.zero();
+        values[17] = SqlUtils.sqlString( shipment.getYesNo1());
+        values[18] = SqlUtils.sqlString( shipment.getYesNo1());
         
         return SqlUtils.getInsertSql("shipment", fields, values);
     } 

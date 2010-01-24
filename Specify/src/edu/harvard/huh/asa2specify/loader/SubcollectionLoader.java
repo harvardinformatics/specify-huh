@@ -559,58 +559,47 @@ public class SubcollectionLoader extends TreeLoader
     
     private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "CreatedByAgentID, GUID, ModifiedByAgentID, ReferenceWorkType, " +
-				            "Remarks, TimestampCreated, TimestampModified, Title, Version";
+		String fieldNames = "GUID, ReferenceWorkType, Remarks, TimestampCreated, Title, Version";
 
-		String[] values = new String[9];
+		String[] values = new String[6];
 
-		values[0] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
-		values[1] = SqlUtils.sqlString( referenceWork.getGuid());
-		values[2] = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
-		values[3] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[4] = SqlUtils.sqlString( referenceWork.getRemarks());
-		values[5] = SqlUtils.sqlString( referenceWork.getTimestampCreated());
-		values[5] = SqlUtils.sqlString( referenceWork.getTimestampModified());
-		values[7] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[8] = SqlUtils.zero();
+		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
+		values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
+		values[2] = SqlUtils.sqlString( referenceWork.getRemarks());
+		values[3] = SqlUtils.now();
+		values[4] = SqlUtils.sqlString( referenceWork.getTitle());
+		values[5] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
     
     private String getInsertSql(Agent agent) throws LocalException
     {
-        String fieldNames = "AgentType, CreatedByAgentID, FirstName, GUID, LastName, " +
-        		            "ModifiedByAgentID, TimestampCreated, TimestampModified, Version";
+        String fieldNames = "AgentType, FirstName, GUID, LastName, " +
+        		            "TimestampCreated, Version";
 
-        String[] values = new String[9];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( agent.getAgentType());
-        values[1] = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-        values[2] = SqlUtils.sqlString( agent.getFirstName());
-        values[3] = SqlUtils.sqlString( agent.getGuid());
-        values[4] = SqlUtils.sqlString( agent.getLastName());
-        values[5] = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-        values[6] = SqlUtils.sqlString( agent.getTimestampCreated());
-        values[7] = SqlUtils.sqlString( agent.getTimestampModified());
-        values[8] = SqlUtils.zero();
+        values[1] = SqlUtils.sqlString( agent.getFirstName());
+        values[2] = SqlUtils.sqlString( agent.getGuid());
+        values[3] = SqlUtils.sqlString( agent.getLastName());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
 
     private String getInsertSql(Exsiccata exsiccata) throws LocalException
     {
-    	String fieldNames = "CreatedByAgentID, ModifiedByAgentID, ReferenceWorkID, TimestampCreated, " +
-    			            "TimestampModified, Title, Version";
+    	String fieldNames = "ReferenceWorkID, TimestampCreated, Title, Version";
  
-    	String[] values = new String[7];
+    	String[] values = new String[4];
     	
-    	values[0] = SqlUtils.sqlString( exsiccata.getCreatedByAgent().getId());
-    	values[1] = SqlUtils.sqlString( exsiccata.getModifiedByAgent().getId());
-    	values[2] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
-    	values[3] = SqlUtils.sqlString( exsiccata.getTimestampCreated());
-        values[4] = SqlUtils.sqlString( exsiccata.getTimestampModified());
-    	values[5] = SqlUtils.sqlString( exsiccata.getTitle());
-    	values[6] = SqlUtils.zero();
+    	values[0] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
+    	values[1] = SqlUtils.now();
+    	values[2] = SqlUtils.sqlString( exsiccata.getTitle());
+    	values[3] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }
