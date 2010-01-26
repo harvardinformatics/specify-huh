@@ -16,6 +16,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -88,7 +89,7 @@ public abstract class AuditedObjectLoader extends CsvToSqlLoader
     
     protected int parse(String[] columns, AuditedObject object) throws LocalException
     {
-        if (columns.length < 18)
+        if (columns.length < 5)
         {
             throw new LocalException("Not enough columns");
         }
@@ -138,5 +139,7 @@ public abstract class AuditedObjectLoader extends CsvToSqlLoader
     {
         specifyObject.setCreatedByAgent(NullAgent());
         specifyObject.setModifiedByAgent(NullAgent());
+        
+        specifyObject.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
     }
 }

@@ -256,6 +256,7 @@ public class TreeDefSetupPanel extends BaseSetupPanel implements SetupPanelIFace
                 {
                     Element level        = (Element)levelObj;
                     String  name         = getAttr(level, "name", null);
+                    String  abbrev       = getAttr(level, "abbrev", null);
                     int     rank         = getAttr(level, "rank", -1);
                     boolean enforced     = getAttr(level, "enforced", false);
                     boolean isInFullName = getAttr(level, "infullname", false);
@@ -280,7 +281,7 @@ public class TreeDefSetupPanel extends BaseSetupPanel implements SetupPanelIFace
                             include = true;
                         }
                         String sep = classType == TaxonTreeDef.class ? " " : ", ";
-                        treeDefList.add(new TreeDefRow(name, rank, include, enforced, required && isInFullName, required || rank == 0, sep));
+                        treeDefList.add(new TreeDefRow(name, abbrev, rank, include, enforced, required && isInFullName, required || rank == 0, sep));
                     }
                 }
                 

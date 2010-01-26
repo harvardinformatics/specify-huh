@@ -1303,6 +1303,7 @@ public class BuildSampleDatabase
                     ttdi.setFullNameSeparator(row.getSeparator());
                     ttdi.setIsEnforced(row.isEnforced());
                     ttdi.setIsInFullName(row.isInFullName());
+                    ttdi.setTextBefore(row.getAbbrev());
                     
                     taxonList.add(ttdi);
                     

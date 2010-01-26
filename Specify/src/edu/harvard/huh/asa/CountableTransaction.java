@@ -20,11 +20,11 @@ public class CountableTransaction extends Transaction
     private Integer typeCount;
     private Integer nonSpecimenCount;
     
-    public Integer getItemCount() { return itemCount; }
+    public Integer getItemCount() { return itemCount == null ? 0 : itemCount; }
     
-    public Integer getTypeCount() { return typeCount; }
+    public Integer getTypeCount() { return typeCount == null ? 0 : typeCount; }
     
-    public Integer getNonSpecimenCount() { return nonSpecimenCount; }
+    public Integer getNonSpecimenCount() { return nonSpecimenCount == null ? 0 : nonSpecimenCount; }
     
     public void setItemCount(Integer itemCount) { this.itemCount = itemCount; }
     

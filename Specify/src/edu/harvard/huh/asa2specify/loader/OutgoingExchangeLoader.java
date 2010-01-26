@@ -109,6 +109,10 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
             exchangeOut.setExchangeDate(DateUtils.toCalendar(openDate));
         }
         
+        // NonSpecimenCount
+        int nonSpecimenCount = outExchange.getNonSpecimenCount();
+        exchangeOut.setTypeCount((short) nonSpecimenCount);
+        
         // Number1 (id) TODO: temporary!! remove when done!
         Integer transactionId = outExchange.getId();
         if (transactionId == null)
@@ -150,6 +154,10 @@ public class OutgoingExchangeLoader extends OutGeoBatchTransactionLoader
         // Text2 (purpose)
         String purpose = outExchange.getPurpose().name();
         exchangeOut.setText2(purpose);
+        
+        // TypeCount
+        int typeCount = outExchange.getTypeCount();
+        exchangeOut.setTypeCount((short) typeCount);
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outExchange.isAcknowledged();

@@ -127,11 +127,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
         // Discipline
         loanPreparation.setDiscipline(getBotanyDiscipline());
-        
-		// InComments
-		String transferredFrom = loanItem.getTransferredFrom();
-		if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
-		loanPreparation.setInComments(transferredFrom);
 
 		// IsResolved
 		boolean isResolved = loanItem.getReturnDate() != null;
@@ -141,11 +136,6 @@ public class LoanItemLoader extends CsvToSqlLoader
 		Integer transactionId = loanItem.getLoanId();
 		Loan loan = lookupLoan(transactionId);
 		loanPreparation.setLoan(loan);
-		
-		// OutComments
-        String transferredTo = loanItem.getTransferredTo();
-        if (transferredTo != null) transferredTo = "Transferred to " + transferredTo + ".";
-        loanPreparation.setOutComments(transferredTo);
 
 		// PreparationID
 		Preparation preparation = null;
@@ -184,6 +174,10 @@ public class LoanItemLoader extends CsvToSqlLoader
 		// QuantityReturned
 		loanPreparation.setQuantityReturned(isResolved ? 1 : 0);
 
+        // ReceivedComments (transferred from, transferred to)
+		String receivedComments = loanItem.getReceivedComments();
+		loanPreparation.setReceivedComments(receivedComments);
+
 		return loanPreparation;
 	}
 	
@@ -195,6 +189,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 		
 		// DisciplineID
 		loanReturnPreparation.setDiscipline(getBotanyDiscipline());
+		
 		// LoanPreparation
 		loanReturnPreparation.setLoanPreparation(loanPreparation);
 		
@@ -213,24 +208,23 @@ public class LoanItemLoader extends CsvToSqlLoader
 
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
-		String fieldNames = "DescriptionOfMaterial, DisciplineID, InComments, IsResolved, LoanID, " +
-				            "OutComments, PreparationID, Quantity, QuantityResolved, QuantityReturned, " +
-				            "TimestampCreated, Version";
+		String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, LoanID, " +
+				            "PreparationID, Quantity, QuantityResolved, QuantityReturned, " +
+				            "ReceivedComments, TimestampCreated, Version";
 		
-		String[] values = new String[12];
+		String[] values = new String[11];
 		
 		values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
 		values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
-		values[2]  = SqlUtils.sqlString( loanPreparation.getInComments());
-		values[3]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
-		values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-		values[5]  = SqlUtils.sqlString( loanPreparation.getOutComments());
-		values[6]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-		values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-		values[9]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-		values[10] = SqlUtils.now();
-		values[11] = SqlUtils.zero();
+		values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
+		values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+		values[4]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+		values[5]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+		values[6]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+		values[8]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}

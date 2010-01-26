@@ -33,6 +33,7 @@ import edu.harvard.huh.asa2specify.loader.OutGeoBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutReturnBatchLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingExchangeLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingGiftLoader;
+import edu.harvard.huh.asa2specify.loader.OutgoingMiscLoader;
 import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
 import edu.harvard.huh.asa2specify.loader.PublicationLoader;
 import edu.harvard.huh.asa2specify.loader.PurchaseLoader;
@@ -91,7 +92,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
 
     protected static Vector<DatabaseDriverInfo> driverList;
    
-    private String specifyDbName = "specify6";
+    private String specifyDbName = "specify";
     
     /**
      * @param args
@@ -163,6 +164,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doInRetBatch  = false; // 31
         boolean doLoanIt      = false; // 32
         boolean doOutRetBatch = false; // 33
+        boolean doOutMisc     = false; // 34
         
         try
         {
@@ -535,6 +537,16 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int outReturnBatchRecords = outReturnBatchLoader.loadRecords();
                 log.info("Processed " + outReturnBatchRecords + " out return batch records");
+            }
+            
+            OutgoingMiscLoader outMiscLoader = new OutgoingMiscLoader(new File (dir, "out_misc.csv"),
+                                                                      statement,
+                                                                      carrierLookup);
+            
+            if (doOutMisc)
+            {
+                int outMiscRecords = outMiscLoader.loadRecords();
+                log.info("Processed " + outMiscRecords + " outgoing misc records");
             }
 
         }

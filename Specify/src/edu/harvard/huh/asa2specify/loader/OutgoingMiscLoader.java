@@ -188,23 +188,29 @@ public class OutgoingMiscLoader extends TransactionLoader
     }
     
     /**
-     * "[purpose].  For use by [[forUseBy].  [shippingDesc].  [transactionDesc].  [transactionRemarks]."
+     * "[localUnit]  [purpose].  [requestType] request.  For use by [[forUseBy].  [shippingDesc].  [transactionDesc].  [transactionRemarks]."
      */
     private String getRemarks(OutgoingMisc outMisc)
-    {        
+    {
+        String localUnit = outMisc.getLocalUnit();
         String purpose = Transaction.toString(outMisc.getPurpose());
+        String requestType = outMisc.getRequestType().name();
         String forUseBy = outMisc.getForUseBy();
         String shippingDesc = outMisc.getShippingDesc();
         String transactionDesc = outMisc.getDescription();
         String transactionRemarks = outMisc.getRemarks();
         
         purpose = purpose.substring(0, 1).toUpperCase() + purpose.substring(1) + ".";
-        if (forUseBy != null) forUseBy = "For use by " + forUseBy + ".";
-        if (shippingDesc != null & ! shippingDesc.endsWith(".")) shippingDesc = shippingDesc + ".";
-        if (transactionDesc != null & ! transactionDesc.endsWith(".")) transactionDesc = transactionDesc + ".";
-        if (transactionRemarks != null & ! transactionRemarks.endsWith(".")) transactionRemarks = transactionRemarks + ".";
         
-        String remarks = purpose;
+        if (requestType.indexOf('s') >= 0) requestType.replace("s", "");
+        requestType = requestType + " request.";
+
+        if (forUseBy != null) forUseBy = "For use by " + forUseBy + ".";
+        if (shippingDesc != null && ! shippingDesc.endsWith(".")) shippingDesc = shippingDesc + ".";
+        if (transactionDesc != null && ! transactionDesc.endsWith(".")) transactionDesc = transactionDesc + ".";
+        if (transactionRemarks != null && ! transactionRemarks.endsWith(".")) transactionRemarks = transactionRemarks + ".";
+        
+        String remarks = (localUnit != null ? localUnit + " " : "") + purpose + "  " + requestType;
         if (forUseBy != null) remarks = remarks + "  " + forUseBy;
         if (shippingDesc != null) remarks = remarks + "  " + shippingDesc;
         if (transactionDesc != null) remarks = remarks + "  " + transactionDesc;
@@ -232,7 +238,7 @@ public class OutgoingMiscLoader extends TransactionLoader
         values[7]  = SqlUtils.sqlString( shipment.getShipmentDate());
         values[8]  = SqlUtils.sqlString( shipment.getShipmentMethod());
         values[9]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-        values[10]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
+        values[10] = SqlUtils.sqlString( shipment.getShippedTo().getId());
         values[11] = SqlUtils.sqlString( shipment.getShipper().getId());
         values[12] = SqlUtils.sqlString( shipment.getText1());
         values[13] = SqlUtils.sqlString( shipment.getText2());

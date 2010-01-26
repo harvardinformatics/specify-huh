@@ -18,8 +18,6 @@ select t.id,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
-       t.created_by_id,
-       to_char(t.create_date, 'YYYY-MM-DD HH24:MI:SS') as date_created,
 
        igb.item_count,
        igb.type_count,

@@ -12,7 +12,7 @@ from loan_item li,
      (select specimen_id, barcode from specimen_item) si,
      (select id, herbarium_id from specimen) s
 
-where l.barcode=si.barcode(+) and
+where li.barcode=si.barcode(+) and
       si.specimen_id=s.id(+) and
       li.loan_id=ht.id
 

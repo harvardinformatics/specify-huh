@@ -263,8 +263,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         String purposeOfLoan = Transaction.toString(purpose);
         loan.setPurposeOfLoan(purposeOfLoan);
         
-        // ReceivedComments
-        
         // Remarks
         String remarks = asaLoan.getRemarks();
         loan.setRemarks(remarks);
@@ -338,6 +336,10 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // QuantityReturned
         loanPreparation.setQuantityReturned(quantityReturned);
+
+        // ReceivedComments (transferred from)
+        String transferredFrom = asaLoan.getReceivedComments();
+        loanPreparation.setInComments(transferredFrom);
         
         // SrcTaxonomy
         String srcTaxonomy = asaLoan.getTaxon();
@@ -347,7 +349,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         int typeCount = asaLoan.getTypeCount();
         loanPreparation.setTypeCount(typeCount);
 
-        return loanPreparation;
+        return loanPreparation;        
+
     }
 
     private LoanAgent getLoanAgent(Loan loan, Agent agent, ROLE role, String userType) throws LocalException
@@ -545,10 +548,10 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(LoanPreparation loanPreparation)
     {
         String fieldNames = "DescriptionOfMaterial, DisciplineID, HigherTaxon, IsResolved, LoanID, " +
-        		            "NonSpecimenCount, Quantity, QuantityResolved, QuantityReturned, " +
-        		            "SrcTaxonomy, TimestampCreated, TypeCount, Version";
+        		            "NonSpecimenCount, ReceivedComments, Quantity, QuantityResolved, " +
+        		            "QuantityReturned, SrcTaxonomy, TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[13];
+        String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
         values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
@@ -556,13 +559,14 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[3]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
         values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
         values[5]  = SqlUtils.sqlString( loanPreparation.getNonSpecimenCount());
-        values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-        values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-        values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-        values[9]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.sqlString( loanPreparation.getTypeCount());
-        values[12] = SqlUtils.zero();
+        values[6]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+        values[7]  = SqlUtils.sqlString( loanPreparation.getQuantity());
+        values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
+        values[9]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
+        values[10] = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.sqlString( loanPreparation.getTypeCount());
+        values[13] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }

@@ -32,6 +32,7 @@ import com.thoughtworks.xstream.XStream;
 public class TreeDefRow 
 {
     protected String  defName;
+    protected String  abbrev;
     protected int     rank;
     protected boolean isIncluded;
     protected boolean isEnforced;
@@ -62,12 +63,46 @@ public class TreeDefRow
         this.isRequired = isRequired;
         this.separator = separator;
     }
+    
+    /**
+     * @param defName
+     * @param rank
+     * @param isEnforced
+     * @param isInFullName
+     */
+    public TreeDefRow(String defName,
+                      String abbrev,
+                      int rank, 
+                      boolean isIncluded, 
+                      boolean isEnforced, 
+                      boolean isInFullName, 
+                      boolean isRequired, 
+                      String separator)
+    {
+        super();
+        this.defName = defName;
+        this.abbrev = abbrev;
+        this.rank = rank;
+        this.isIncluded = isIncluded;
+        this.isEnforced = isEnforced;
+        this.isInFullName = isInFullName;
+        this.isRequired = isRequired;
+        this.separator = separator;
+    }
+    
     /**
      * @return the defName
      */
     public String getDefName()
     {
         return defName;
+    }
+    /**
+     * @return the abbrev
+     */
+    public String getAbbrev()
+    {
+        return abbrev;
     }
     /**
      * @return the rank

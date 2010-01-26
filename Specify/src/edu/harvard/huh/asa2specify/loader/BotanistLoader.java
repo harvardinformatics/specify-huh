@@ -245,8 +245,8 @@ public class BotanistLoader extends AuditedObjectLoader
 		values[7]  = SqlUtils.sqlString( agent.getGuid());
 		values[8]  = SqlUtils.sqlString( agent.getInitials());
 	    values[9]  = SqlUtils.sqlString( agent.getLastName());
-	    values[10]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-	    values[11]  = SqlUtils.sqlString( agent.getRemarks());
+	    values[10] = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
+	    values[11] = SqlUtils.sqlString( agent.getRemarks());
 		values[12] = SqlUtils.sqlString( agent.getTimestampCreated());
 		values[13] = SqlUtils.sqlString( agent.getTimestampModified());
 		values[14] = SqlUtils.sqlString( agent.getUrl());

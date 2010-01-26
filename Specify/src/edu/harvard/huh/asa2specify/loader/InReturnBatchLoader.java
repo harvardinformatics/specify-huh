@@ -39,7 +39,7 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 		String sql = getInsertSql(loanReturnPreparation);
 		insert(sql);
 		
-		String transferredTo = inReturnBatch.getTransferredTo();
+		String transferredTo = inReturnBatch.getReceivedComments();
 		if (transferredTo != null)
 		{
 		    sql = getUpdateSql(loanReturnPreparation.getLoanPreparation(), transferredTo);
@@ -134,7 +134,7 @@ public class InReturnBatchLoader extends ReturnBatchLoader
     
     private String getUpdateSql(LoanPreparation loanPrep,  String transferredTo) throws LocalException
     {
-        String[] fieldNames = { "OutComments" };
+        String[] fieldNames = { "InComments" };
 
         String[] values = new String[1];
 

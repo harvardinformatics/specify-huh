@@ -19,4 +19,13 @@ public class InReturnBatch extends ReturnBatch
         
         return null;
     }
+    
+    public String getReceivedComments()
+    {
+        String transferredTo = getTransferredTo();
+        if (transferredTo != null) transferredTo = "Transferred to " + transferredTo + ".";
+        
+        if (transferredTo != null) return transferredTo;
+        else return null;
+    }
 }

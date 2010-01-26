@@ -440,64 +440,61 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    
 	    int i = super.parse(columns, specimenItem);
 	    
-		if (columns.length < i + 46)
+		if (columns.length < i + 41)
 		{
 			throw new LocalException("Not enough columns");
 		}
 
 		
 		try {
-		    specimenItem.setId(                      SqlUtils.parseInt( columns[0]  ));
-		    specimenItem.setCreatedById(             SqlUtils.parseInt( columns[1]  ));
-		    specimenItem.setCreateDate( SqlUtils.parseDate(             columns[2]  ));
-		    specimenItem.setUpdatedById(             SqlUtils.parseInt( columns[3]  ));
-            specimenItem.setUpdateDate( SqlUtils.parseDate(             columns[4]  ));
-		    specimenItem.setSpecimenId(              SqlUtils.parseInt( columns[5]  ));
-		    specimenItem.setBarcode(                 SqlUtils.parseInt( columns[6]  ));
-		    specimenItem.setCollectorNo(                                columns[7]  );
-            specimenItem.setCultivated(           Boolean.parseBoolean( columns[8]  ));
-            specimenItem.setDescription(                                columns[9]  );
-            specimenItem.setHabitat(                                    columns[10] );
-            specimenItem.setSubstrate(                                  columns[11] );
-            specimenItem.setReproStatus( SpecimenItem.parseReproStatus( columns[12] ));
-            specimenItem.setSex(                                        columns[13] );
-            specimenItem.setRemarks(                                    columns[14] );
-            specimenItem.setAccessionNo(                                columns[15] );
-            specimenItem.setProvenance(                                 columns[16] );
-            specimenItem.setAccessionStatus(                            columns[17] );
+		    specimenItem.setSpecimenId(              SqlUtils.parseInt( columns[i + 0]  ));
+		    specimenItem.setBarcode(                 SqlUtils.parseInt( columns[i + 1]  ));
+		    specimenItem.setCollectorNo(                                columns[i + 2]  );
+		    //specimenItem.setCreateDate(           SqlUtils.parseDate( columns[i + 3]  );
+            specimenItem.setCultivated(           Boolean.parseBoolean( columns[i + 4]  ));
+            specimenItem.setDescription(                                columns[i + 5]  );
+            specimenItem.setHabitat(                                    columns[i + 6]  );
+            specimenItem.setSubstrate(                                  columns[i + 7]  );
+            specimenItem.setReproStatus( SpecimenItem.parseReproStatus( columns[i + 8]  ));
+            specimenItem.setSex(                                        columns[i + 9]  );
+            specimenItem.setRemarks(                                    columns[i + 10] );
+            specimenItem.setAccessionNo(                                columns[i + 11] );
+            specimenItem.setProvenance(                                 columns[i + 12] );
+            specimenItem.setAccessionStatus(                            columns[i + 13] );
             
             BDate bdate = new BDate();
             specimenItem.setCollDate( bdate );
 
-            bdate.setStartYear(  SqlUtils.parseInt( columns[18] ));
-            bdate.setStartMonth( SqlUtils.parseInt( columns[19] ));
-            bdate.setStartDay(   SqlUtils.parseInt( columns[20] ));
-            bdate.setStartPrecision(                columns[21] );
-            bdate.setEndYear(    SqlUtils.parseInt( columns[22] ));
-            bdate.setEndMonth(   SqlUtils.parseInt( columns[23] ));
-            bdate.setEndDay(     SqlUtils.parseInt( columns[24] ));
-            bdate.setEndPrecision(                  columns[25] );
-            bdate.setText(                          columns[26] );  
+            bdate.setStartYear(  SqlUtils.parseInt( columns[i + 14] ));
+            bdate.setStartMonth( SqlUtils.parseInt( columns[i + 15] ));
+            bdate.setStartDay(   SqlUtils.parseInt( columns[i + 16] ));
+            bdate.setStartPrecision(                columns[i + 17] );
+            bdate.setEndYear(    SqlUtils.parseInt( columns[i + 18] ));
+            bdate.setEndMonth(   SqlUtils.parseInt( columns[i + 19] ));
+            bdate.setEndDay(     SqlUtils.parseInt( columns[i + 20] ));
+            bdate.setEndPrecision(                  columns[i + 21] );
+            bdate.setText(                          columns[i + 22] );  
             
-            specimenItem.setItemNo(          SqlUtils.parseInt( columns[27] ));
-            specimenItem.setOversize(     Boolean.parseBoolean( columns[28] ));
-            specimenItem.setVoucher(                            columns[29] );
-            specimenItem.setReference(                          columns[30] );
-            specimenItem.setNote(                               columns[31] );
-            specimenItem.setHerbariumCode(                      columns[32] );
-            specimenItem.setSeriesId(        SqlUtils.parseInt( columns[33] ));
-            specimenItem.setSeriesName(                         columns[34] );
-            specimenItem.setSiteId(          SqlUtils.parseInt( columns[35] ));
-            specimenItem.setCollectorId(     SqlUtils.parseInt( columns[36] ));
-            specimenItem.setFormat(                             columns[37] );
-            specimenItem.setSeriesAbbrev(                       columns[38] );
-            specimenItem.setSeriesNo(                           columns[39] );
-            specimenItem.setContainer(                          columns[40] );
-            specimenItem.setSubcollectionId( SqlUtils.parseInt( columns[41] ));
-            specimenItem.setReplicates(      SqlUtils.parseInt( columns[42] ));
-            specimenItem.setLocation(                           columns[43] );
-            specimenItem.setVernacularName(                     columns[44] );
-            specimenItem.setDistribution(                       columns[45] );
+            specimenItem.setItemNo(          SqlUtils.parseInt( columns[i + 23] ));
+            specimenItem.setOversize(     Boolean.parseBoolean( columns[i + 24] ));
+            specimenItem.setVoucher(                            columns[i + 25] );
+            specimenItem.setReference(                          columns[i + 26] );
+            specimenItem.setNote(                               columns[i + 27] );
+            specimenItem.setHerbariumCode(                      columns[i + 28] );
+            specimenItem.setSeriesId(        SqlUtils.parseInt( columns[i + 29] ));
+            specimenItem.setSeriesName(                         columns[i + 30] );
+            specimenItem.setSiteId(          SqlUtils.parseInt( columns[i + 31] ));
+            specimenItem.setCollectorId(     SqlUtils.parseInt( columns[i + 32] ));
+            //specimenItem.setCreatedById(   SqlUtils.parseInt( columns[i + 33] ));
+            specimenItem.setFormat(                             columns[i + 34] );
+            specimenItem.setSeriesAbbrev(                       columns[i + 35] );
+            specimenItem.setSeriesNo(                           columns[i + 36] );
+            specimenItem.setContainer(                          columns[i + 37] );
+            specimenItem.setSubcollectionId( SqlUtils.parseInt( columns[i + 38] ));
+            specimenItem.setReplicates(      SqlUtils.parseInt( columns[i + 39] ));
+            specimenItem.setLocation(                           columns[i + 40] );
+            specimenItem.setVernacularName(                     columns[i + 41] );
+            specimenItem.setDistribution(                       columns[i + 42] );
 		}
         catch (NumberFormatException e)
         {

@@ -49,6 +49,10 @@ public class ShipmentLoader extends CsvToSqlLoader
 	private OutgoingExchangeLookup outExchangeLookup;
 	private OutgoingGiftLookup outGiftLookup;
 	
+	private Gift nullGift = new Gift();
+	private ExchangeOut nullExchange = new ExchangeOut();
+	private Loan nullLoan = new Loan();
+	
     public ShipmentLoader(File csvFile, 
     		              Statement sqlStatement,
     		              LoanLookup loanLookup,
@@ -176,22 +180,22 @@ public class ShipmentLoader extends CsvToSqlLoader
     	{
     		ExchangeOut exchangeOut = lookupExchangeOut(transactionId);
     		shipment.setExchangeOut(exchangeOut);
-    		shipment.setGift(new Gift());
-    		shipment.setLoan(new Loan());
+    		shipment.setGift(nullGift);
+    		shipment.setLoan(nullLoan);
     	}
     	else if (type.equals(TYPE.OutGift))
     	{
     		Gift gift = lookupGift(transactionId);
     		shipment.setGift(gift);
-    		shipment.setExchangeOut(new ExchangeOut());
-    		shipment.setLoan(new Loan());
+    		shipment.setExchangeOut(nullExchange);
+    		shipment.setLoan(nullLoan);
     	}
     	else if (type.equals(TYPE.Loan))
     	{
     		Loan loan = lookupLoan(transactionId);
     		shipment.setLoan(loan);
-    		shipment.setExchangeOut(new ExchangeOut());
-    		shipment.setGift(new Gift());
+    		shipment.setExchangeOut(nullExchange);
+    		shipment.setGift(nullGift);
     	}
     	else
     	{

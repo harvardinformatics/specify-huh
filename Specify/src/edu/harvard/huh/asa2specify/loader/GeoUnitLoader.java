@@ -291,7 +291,7 @@ public class GeoUnitLoader extends TreeLoader
 	    
         int i = super.parse(columns, geoUnit);
         
-	    if (columns.length < i + 13)
+	    if (columns.length < i + 12)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -305,12 +305,11 @@ public class GeoUnitLoader extends TreeLoader
 	        geoUnit.setName(                            columns[i + 4]  );
 	        geoUnit.setVernacularName(                  columns[i + 5]  );
 	        geoUnit.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 6]  ));
-	        geoUnit.setCreatedById(  SqlUtils.parseInt( columns[i + 7]  ));
+            geoUnit.addVariantName(                     columns[i + 7]  );
             geoUnit.addVariantName(                     columns[i + 8]  );
             geoUnit.addVariantName(                     columns[i + 9]  );
             geoUnit.addVariantName(                     columns[i + 10] );
             geoUnit.addVariantName(                     columns[i + 11] );
-            geoUnit.addVariantName(                     columns[i + 12] );
 	    }
 	    catch (NumberFormatException e)
 	    {
@@ -464,7 +463,7 @@ public class GeoUnitLoader extends TreeLoader
 		// Version
 	    synonym.setVersion(1);
 	    
-	    setNullAuditFields(geography);
+	    setNullAuditFields(synonym);
 	    
 	    return synonym;
 	}

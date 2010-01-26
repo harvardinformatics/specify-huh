@@ -16,5 +16,12 @@ package edu.harvard.huh.asa;
 
 public class AsaLoan extends TaxonBatchTransaction
 {
-    
+    public String getReceivedComments()
+    {
+        String transferredFrom = getTransferredFrom();
+        if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
+        
+        if (transferredFrom != null) return transferredFrom;
+        else return null;
+    }
 }

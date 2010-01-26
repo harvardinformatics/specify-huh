@@ -127,6 +127,8 @@ public class SubcollectionLoader extends TreeLoader
         // StorageTreeDefItem
         storage.setDefinitionItem(defItem);
         
+        setNullAuditFields(storage);
+
         String sql = getInsertSql(storage);
         Integer storageId = insert(sql);
         
@@ -372,8 +374,6 @@ public class SubcollectionLoader extends TreeLoader
         title = truncate(title, 255, "title");
         referenceWork.setTitle(title);
         
-        setAuditFields(subcollection, referenceWork);
-        
         return referenceWork;
     }
     
@@ -470,8 +470,6 @@ public class SubcollectionLoader extends TreeLoader
         title = truncate(title, 255, "title");
         exsiccata.setTitle(title);
         
-        setAuditFields(subcollection, exsiccata);
-        
         return exsiccata;
     }
     
@@ -505,8 +503,6 @@ public class SubcollectionLoader extends TreeLoader
         checkNull(lastName, "last name");
         lastName = truncate(lastName, 50, "last name");
         agent.setLastName(lastName);
-
-        setAuditFields(subcollection, agent);
         
         return agent;
     }

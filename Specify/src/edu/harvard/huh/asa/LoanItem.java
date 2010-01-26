@@ -44,4 +44,18 @@ public class LoanItem
 	public void setCollection(String collection) { this.collection = collection; }
 	
 	public void setLocalUnit(String localUnit) { this.localUnit = localUnit; }
+	
+    public String getReceivedComments()
+    {
+        String transferredFrom = getTransferredFrom();
+        if (transferredFrom != null) transferredFrom = "Transferred from " + transferredFrom + ".";
+        
+        String transferredTo = getTransferredTo();
+        if (transferredTo != null) transferredTo = "Transferred to " + transferredTo + ".";
+        
+        if (transferredFrom != null && transferredTo != null) return transferredFrom + "  " + transferredTo;
+        else if (transferredFrom != null) return transferredFrom;
+        else if (transferredTo != null) return transferredTo;
+        else return null;
+    }
 }

@@ -17,7 +17,7 @@ select t.id,
        regexp_replace(t.for_use_by, '[[:space:]]+', ' ') as for_use_by,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
-       regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
+       regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks
 
 from herb_transaction t
 
