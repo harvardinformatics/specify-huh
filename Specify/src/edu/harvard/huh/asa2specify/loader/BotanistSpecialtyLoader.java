@@ -122,9 +122,9 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		values[0] = SqlUtils.sqlString( agentSpecialty.getAgent().getAgentId());
 		values[1] = SqlUtils.sqlString( agentSpecialty.getOrderNumber());
 		values[2] = SqlUtils.sqlString( agentSpecialty.getRole());
-		values[2] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
-		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.zero();
+		values[3] = SqlUtils.sqlString( agentSpecialty.getSpecialtyName());
+		values[4] = SqlUtils.now();
+		values[5] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agentspecialty", fieldNames, values);
 	}
