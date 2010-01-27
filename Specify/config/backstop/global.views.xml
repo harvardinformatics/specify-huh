@@ -660,35 +660,37 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Agent subform for Acessions.]]></desc>
 
-            <columnDef>         100px, 2px, 190px,        5px,   100px, 2px, 190px,        5px,   105px, 2px,  89px, 2px, 35px, 15px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 200px,        5px,   115px, 2px, 200px,        5px,   119px, 2px, 115px, 2px, 35px, 15px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 230px,        5px,   120px, 2px, 230px,        5px,   139px, 2px, 125px, 2px, 38px, 15px, p:g</columnDef>
-            <columnDef os="exp">p,     2px, max(p;190px), 5px:g, p,     2px, max(p;190px), 5px:g, p,     2px,  89px, 2px, p,    p,    p:g</columnDef>
+            <columnDef>          98px, 2px, 150px,        5px,   40px, 5px,  80px, 2px, 150px,        5px,   40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="lnx">113px, 2px, 160px,        5px,   40px, 5px,  95px, 2px, 160px,        5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px, 190px,        5px,   40px, 5px, 100px, 2px, 190px,        5px,   40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
             <rows>
                 <row>
                     <cell type="label" labelfor="0"/>
-                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles"/>
+                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles" colspan="3"/>
                     <cell type="label" labelfor="abbrev"/>
                     <cell type="field" id="abbrev" name="abbreviation" uitype="text" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="lastName" uitype="text" cols="20"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="firstName" uitype="text" cols="20"/>
+                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
                     <!-- <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="middleInitial" uitype="text" colspan="3"/> -->
                 </row>
                 <!-- "Dates of Birth/Death: -->
                 <row>
                 	<cell type="label" labelfor="19" />
-                	<cell type="field" id="19" name="dateOfBirth" uitype="formattedtext" uifieldformatter="Date"/>
+                	<cell type="field" id="19" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" uifieldformatter="PartialDateYear"/>
+                	<cell type="field" id="startPrec" name="dateOfBirthPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="20" />
-                	<cell type="field" id="20" name="dateOfDeath" uitype="formattedtext" uifieldformatter="Date"/>
+                	<cell type="field" id="20" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" uifieldformatter="PartialDateYear"/>
+                	<cell type="field" id="endPrec" name="dateOfDeathPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="datesType"/>
                 	<cell type="field" id="datesType" name="initials" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
                 </row>
@@ -699,7 +701,7 @@
                 <!-- "Job Title:" -->
                 <row>
                 	<cell type="label" labelfor="14" />
-                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="5" />
+                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="9" />
                 </row>
                 <!-- "Initials:"
                 <row>
@@ -716,7 +718,9 @@
                 <!-- "URL:" -->
                 <row>
                 	<cell type="label" labelfor="17" />
-                	<cell type="field" id="17" name="url" uitype="text" colspan="5" />
+                	<cell type="field" id="17" name="url" uitype="text" colspan="9" />
+                	<cell type="label" labelfor="email" />
+                	<cell type="field" id="email" name="email" uitype="text" colspan="3"/>
                 </row>
                 <!-- "Author Name:"
                 <row>
@@ -741,35 +745,41 @@
                 <!-- Parent Organization -->
                 <row>
                 	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="5"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="9"/>
                 </row>
 
+				<!-- Interests -->
+                <row>
+                	<cell type="label" labelfor="interests"/>
+                	<cell type="field" id="interests" name="interests" uitype="text" colspan="9"/>
+                </row>
+                
                 <!-- "Remarks:" -->
                 <row>
                 	<cell type="label" labelfor="16" />
-                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="12"/>
+                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
                 </row>
 
 			    <row>
-                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="14"/>
+                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="14"/>
+                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="18"/>
                 </row>
 			    <row>
-                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="14"/>
+                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="18"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentGeography" id="22" name="agentGeographies" colspan="14"/>
+                    <cell type="subview" viewname="AgentGeography" id="22" name="agentGeographies" colspan="18"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentSpecialty" id="23" name="agentSpecialties" colspan="14"/>
+                    <cell type="subview" viewname="AgentSpecialty" id="23" name="agentSpecialties" colspan="18"/>
 			    </row>
                 <row>
-                    <cell type="separator" label="Attachments" colspan="14"/>
+                    <cell type="separator" label="Attachments" colspan="18"/>
                 </row>
                 <row>
-                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="14" initialize="btn=true;icon=AgentAttachment"/>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
                 
 	    	</rows>
