@@ -106,7 +106,7 @@ public class PartialDateFormatter extends UIFieldFormatter
                 
             } else if (dType == 2)
             {
-                dateStr = scrDateFormatMon.format(date);
+                dateStr = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformatyear").format(date);
                 
             } else if (dType == 3)
             {
