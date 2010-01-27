@@ -341,7 +341,7 @@ public class PartialDateUI extends JPanel implements GetSetValueIFace,
     /**
      * 
      */
-    private void verifyGetterSetters()
+    protected void verifyGetterSetters()
     {
         if (getter == null)
         {
