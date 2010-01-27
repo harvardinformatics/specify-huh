@@ -33,7 +33,7 @@ import edu.ku.brc.specify.datamodel.Agent;
  * Created Date: Jan 24, 2007
  *
  */
-public class HUHAgentBusRules extends AttachmentOwnerBaseBusRules
+public class HUHAgentBusRules extends AgentBusRules
 {    
     /**
      * Constructor.
