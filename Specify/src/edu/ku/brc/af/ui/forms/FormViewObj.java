@@ -4840,7 +4840,7 @@ public class FormViewObj implements Viewable,
                                 DBFieldInfo fi = tableInfo.getFieldByName(fieldInfo.getFormCell().getName());
                                 if (fi != null)
                                 {
-                                    format = fi.getFormatStr();
+                                    format = fi.getFormatStr(); // schema_localization.xml
                                 }
                             }
                             
