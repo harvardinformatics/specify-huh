@@ -472,6 +472,7 @@ public class LoadHUHdatabase
             OutGeoBatchLoader outGeoBatchLoader =
                 new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
                                       statement,
+                                      outExchangeLookup,
                                       outGiftLookup);
             
             outGeoBatchLoader.setFrame(frame);

@@ -469,6 +469,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             OutGeoBatchLoader outGeoBatchLoader =
                 new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
                                       statement,
+                                      outExchangeLookup,
                                       outGiftLookup);
             
             if (doOutGeoBatch)
@@ -495,7 +496,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + staffCollRecords + " staff collection records");
             }
             
-            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "loan_shipment.csv"),
+            ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
                                                                loanLookup,
                                                                outExchangeLookup,

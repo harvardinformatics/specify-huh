@@ -14,13 +14,7 @@
  */
 package edu.harvard.huh.asa;
 
-public class OutgoingExchange extends OutGeoBatchTransaction
+public class OutgoingExchange extends Transaction
 {
-
-    private String  geoUnit;
-    
-    public String getGeoUnit() { return geoUnit; }
-    
-    public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
     
 }
