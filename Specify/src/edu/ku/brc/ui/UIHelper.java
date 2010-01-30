@@ -1409,6 +1409,94 @@ public final class UIHelper
     /**
      * Return an array of values given a FormCell definition. Note: The returned array is owned by the utility and
      * may be longer than the number of fields defined in the CellForm object. Any additional "slots" in the array that are used
+     * are set to null.  Use the given DateWrapper to format date values.
+     * @param fieldNames the array of field name to be filled ( the array is really the path to the object)
+     * @param dataObj the dataObj from which to get the data from
+     * @param getter the DataObjectGettable to use to get the data
+     * @param dateFmt the DateWrapper representing the format to be applied to the data
+     * @return an array of values at least as long as the fielName list, but may be longer
+     */
+    public static Object[] getFieldValues(final String[] fieldNames,
+                                          final Object dataObj,
+                                          final DataObjectGettable getter,
+                                          final DateWrapper dateFmt)
+    {
+        if (dateFmt == null) return getFieldValues(fieldNames, dataObj, getter);
+
+        if (fieldNames.length > values.length)
+        {
+            values = new Object[fieldNames.length];
+        } else
+        {
+            for (int i=fieldNames.length;i<values.length;i++)
+            {
+                values[i] = null;
+            }
+        }
+
+        boolean  allFieldsNull = true;
+
+        int cnt = 0;
+        for (String fldName : fieldNames)
+        {
+            Object dataValue;
+            if (getter.usesDotNotation())
+            {
+                int inx = fldName.indexOf(".");
+                if (inx > -1)
+                {
+                    StringTokenizer st = new StringTokenizer(fldName, ".");
+                    Object data       = dataObj;
+                    Object parentData = null;
+                    String fieldName  = null;
+                    while (data != null && st.hasMoreTokens())
+                    {
+                        parentData = data;
+                        fieldName  = st.nextToken();
+                        data = getter.getFieldValue(parentData, fieldName);
+                    }
+                    
+                    dataValue = data;
+                    if (parentData instanceof FormDataObjIFace && dataValue != null)
+                    {
+                        FormDataObjIFace parentObj = (FormDataObjIFace)parentData;
+                        UIFieldFormatterIFace fmtr = DBTableIdMgr.getFieldFormatterFor(parentObj.getDataClass(), fieldName);
+                        if (fmtr != null)
+                        {
+                            dataValue = fmtr.formatToUI(dataValue);
+                        }
+                    }
+                } else
+                {
+                    dataValue = getter.getFieldValue(dataObj, fldName);
+                }
+            } else
+            {
+                dataValue = getter.getFieldValue(dataObj, fldName);
+            }
+
+            if (dataValue instanceof java.util.Date)
+            {
+                dataValue = dateFmt.format((java.util.Date)dataValue);
+
+            } else if (dataValue instanceof java.util.Calendar)
+            {
+                dataValue = dateFmt.format(((java.util.Calendar)dataValue).getTime());
+            }
+
+            if (allFieldsNull && dataValue != null)
+            {
+                allFieldsNull = false;
+            }
+            values[cnt++] = dataValue;
+        }
+
+         return allFieldsNull ? null : values;
+    }
+    
+    /**
+     * Return an array of values given a FormCell definition. Note: The returned array is owned by the utility and
+     * may be longer than the number of fields defined in the CellForm object. Any additional "slots" in the array that are used
      * are set to null;
      * @param formCell the definition of the field to get
      * @param dataObj the dataObj from which to get the data from
