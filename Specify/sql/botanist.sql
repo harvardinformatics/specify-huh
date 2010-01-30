@@ -5,9 +5,9 @@ select b.id,
        to_char(b.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        decode(b.team_flag, 1, 'true', '') as is_team,
        decode(b.corporate_flag, 1, 'true', '') as is_corporate,
-       regexp_replace(nvl((select bn.name from botanist_name bn where bn.type_id=110105 and bn.botanist_id=b.id),
+       regexp_replace(nvl((select bn.name from botanist_name bn where bn.type_id=110101 and bn.botanist_id=b.id),
                            nvl((select bn.name from botanist_name bn where bn.type_id=110103 and bn.botanist_id=b.id),
-                               (select bn.name from botanist_name bn where bn.type_id=110101 and bn.botanist_id=b.id)
+                               (select bn.name from botanist_name bn where bn.type_id=110105 and bn.botanist_id=b.id)
                           )
                       ), '[[:space:]]+', ' ') as name,
        (select name from st_lookup where id=b.dates_type_id) as dates_type,
