@@ -2585,7 +2585,19 @@ public class TableViewObj implements Viewable,
                     session.attach(rowObj);
                 }
 
-                Object[] dataValues = UIHelper.getFieldValues(new String[] {colInfo.getFullCompName()}, rowObj, dataGetter);
+                DateWrapper dateFmt = null;
+                if (colInfo.getFormCell() instanceof FormCellFieldIFace)
+                {
+                    FormCellFieldIFace fcf = (FormCellFieldIFace)colInfo.getFormCell();
+                    String uiFmt = fcf.getUIFieldFormatterName();
+                    if (StringUtils.isNotEmpty(uiFmt))
+                    {
+                        UIFieldFormatterIFace fmt = UIFieldFormatterMgr.getInstance().getFormatter(uiFmt);
+                        if (fmt != null) dateFmt = fmt.getDateWrapper();
+                    }
+                }
+                
+                Object[] dataValues = UIHelper.getFieldValues(new String[] {colInfo.getFullCompName()}, rowObj, dataGetter, dateFmt);
                 if (dataValues == null || dataValues[0] == null)
                 {
                     return null;
