@@ -1515,16 +1515,24 @@
                     <cell type="field" id="mailto" name="agent" uitype="plugin" initialize="name=WebLinkButton;url=mailto:$email$;label=Send Mail;watch=7"/>
                 </row> -->
                 <row>
-                	<cell type="label" labelfor="collectorName"/>
-                	<cell type="field" id="collectorName" name="agent.lastName" uitype="text"/>
+                	<cell type="label" labelfor="collectorLastName"/>
+                	<cell type="field" id="collectorLastName" name="agent.lastName" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="collectorFirstName"/>
+                	<cell type="field" id="collectorFirstName" name="agent.firstName" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="datesType"/>
+                	<cell type="field" id="datesType" name="agent.initials" uitype="combobox" picklist="HUH Agent Dates Type"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="startDate"/>
-                	<cell type="field" id="startDate" name="agent.dateOfBirth" uitype="text"/>
+                	<cell type="field" id="startDate" name="agent.dateOfBirth" uitype="text" uifieldformatter="PartialDateYear"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="endDate"/>
-                	<cell type="field" id="endDate" name="agent.dateOfDeath" uitype="text"/>
+                	<cell type="field" id="endDate" name="agent.dateOfDeath" uitype="text" uifieldformatter="PartialDateYear"/>
                 </row>
             </rows>
         </viewdef>
@@ -3631,6 +3639,8 @@
                 	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
                 	<cell type="label" labelfor="weight"/>
                 	<cell type="field" id="weight" name="weight" uitype="text"/>
+                	<cell type="label" labelfor="asaTransactionId"/>
+                	<cell type="field" id="asaTransactionId" name="text2" uitype="dsptextfield"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="cost"/>
