@@ -686,10 +686,10 @@
                 <!-- "Dates of Birth/Death: -->
                 <row>
                 	<cell type="label" labelfor="19" />
-                	<cell type="field" id="19" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" uifieldformatter="PartialDateYear"/>
+                	<cell type="field" id="19" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" />
                 	<cell type="field" id="startPrec" name="dateOfBirthPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="20" />
-                	<cell type="field" id="20" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" uifieldformatter="PartialDateYear"/>
+                	<cell type="field" id="20" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfDeath;pd=Year"/>
                 	<cell type="field" id="endPrec" name="dateOfDeathPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="datesType"/>
                 	<cell type="field" id="datesType" name="initials" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
