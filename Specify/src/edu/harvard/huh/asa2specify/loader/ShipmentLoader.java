@@ -186,16 +186,16 @@ public class ShipmentLoader extends CsvToSqlLoader
     	else if (type.equals(TYPE.OutGift))
     	{
     		Gift gift = lookupGift(transactionId);
-    		shipment.setGift(gift);
-    		shipment.setExchangeOut(nullExchange);
+            shipment.setExchangeOut(nullExchange);
+            shipment.setGift(gift);
     		shipment.setLoan(nullLoan);
     	}
     	else if (type.equals(TYPE.Loan))
     	{
     		Loan loan = lookupLoan(transactionId);
-    		shipment.setLoan(loan);
     		shipment.setExchangeOut(nullExchange);
     		shipment.setGift(nullGift);
+            shipment.setLoan(loan);
     	}
     	else
     	{
