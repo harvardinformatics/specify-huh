@@ -37,7 +37,6 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.af.ui.forms.ViewFactory;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatter;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace.PartialDateEnum;
@@ -76,6 +75,18 @@ public class FixedPartialDateUI extends PartialDateUI
         else dateType = PartialDateEnum.Year;
 
         createUI();
+        
+        int inx = dateType.ordinal();
+        
+        if (inx > 0)
+        {
+            inx--; // need to subtract one because the first item is "None"
+        } else
+        {
+            log.error(dateTypeName+" was zero and shouldn't have been!");
+        }
+        
+        currentUIV = uivs[inx];
     }
     
     /**
@@ -166,7 +177,6 @@ public class FixedPartialDateUI extends PartialDateUI
         formatSelector = createComboBox(labels);
         formatSelector.setSelectedIndex(0);
         
-        JComponent typDisplayComp = null;
         if (!isDisplayOnly)
         {
             comboBoxAL = new ActionListener() {
@@ -189,7 +199,6 @@ public class FixedPartialDateUI extends PartialDateUI
                     }
                 }
             };
-            typDisplayComp = formatSelector;
             formatSelector.addActionListener(comboBoxAL);
         }
         
@@ -197,15 +206,6 @@ public class FixedPartialDateUI extends PartialDateUI
         CellConstraints cc      = new CellConstraints();
         builder.add(cardPanel,      cc.xy(1,1));
         
-    }
-    
-    /* (non-Javadoc)
-     * @see edu.ku.brc.af.ui.forms.UIPluginable#getCarryForwardFields()
-     */
-    @Override
-    public String[] getCarryForwardFields()
-    {
-        return new String[] { dateFieldName };
     }
     
     /* (non-Javadoc)
