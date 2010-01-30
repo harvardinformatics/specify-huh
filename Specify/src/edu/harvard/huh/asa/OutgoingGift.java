@@ -14,31 +14,7 @@
  */
 package edu.harvard.huh.asa;
 
-public class OutgoingGift extends OutGeoBatchTransaction
+public class OutgoingGift extends Transaction
 {
-    
-    /**
-     * "[boxCount] boxes.  Gift includes [itemCount] general collections, [nonSpecimenCount] non-specimens,
-     *  and [typeCount] types.
-     */
-    @Override
-    public String getItemCountNote()
-    {        
-        String boxCountNote = getBoxCountNote();
-        
-        Integer itemCount = getItemCount();
-        Integer typeCount = getTypeCount();
-        Integer nonSpecimenCount = getNonSpecimenCount();
-        
-        if (itemCount == null) itemCount = 0; 
-        if (typeCount == null) typeCount = 0;
-        if (nonSpecimenCount == null) nonSpecimenCount = 0;
-        
-        String itemCountNote = itemCount + " general collection" + (itemCount == 1 ? "" : "s");
-        String nonSpecimenNote = nonSpecimenCount + " non-specimen" + (nonSpecimenCount == 1 ? "" : "s");
-        String typeNote = typeCount + " type" + (typeCount == 1 ? "" : "s");
-        
-        return boxCountNote + "  Gift includes " +  itemCountNote + ", " + 
-               nonSpecimenNote + ", and " + typeNote + ".";
-    }
+
 }
