@@ -2510,7 +2510,7 @@ public class ViewFactory
                 tableInfo = DBTableIdMgr.getInstance().getByClassName(parentsMV.getView().getClassName());
             }
             
-            // Special situation where we create a table from a Form Definition
+            // Special situation where we create a table from a Form Definition (e.g. Collectors table, common.views.xml)
             if (viewDef instanceof FormViewDef)
             {
                 FormViewDefIFace          formViewDef   = (FormViewDefIFace)viewDef;  
