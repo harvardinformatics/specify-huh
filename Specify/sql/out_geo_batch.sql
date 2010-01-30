@@ -1,5 +1,6 @@
 select ogb.id,
        ogb.herb_transaction_id,
+       (select name from st_lookup where id=t.type_id) as transaction_type,
        (select name from st_lookup where id=t.request_type_id) as request_type,
        (select acronym from organization where id=t.local_unit_id) as collection_code,
        ogb.item_count,
@@ -11,6 +12,6 @@ from out_geo_batch ogb,
      herb_transaction t
 
 where ogb.herb_transaction_id=t.id and
-      (select name from st_lookup where id=t.type_id) = 'outgoing gift'
+      (select name from st_lookup where id=t.type_id) in ('outgoing gift','outgoing exchange','outgoing special exch')
 
 order by t.id
