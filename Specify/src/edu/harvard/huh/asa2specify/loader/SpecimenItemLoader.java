@@ -414,13 +414,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             execute(sql);
         }
         
-        // TODO: probably drop these indexes after import
-        getLogger().info("Creating sample number index");
-        String sql =  "create index samplenum on preparation(SampleNumber)";
-        execute(sql);
-        
+        // TODO: probably drop these indexes after import        
         getLogger().info("Creating alt catalog number index");
-        sql =  "create index altcatnum on collectionobject(AltCatalogNumber)";
+        String sql =  "create index altcatnum on collectionobject(AltCatalogNumber)";
         execute(sql);
     }
     
