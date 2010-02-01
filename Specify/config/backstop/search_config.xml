@@ -1209,6 +1209,36 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
+<table id="55" tableid="1" indexed="false" name="PrepCollObject" priority="1" color="30, 144, 144">
+            <joins>
+                <!-- <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>-->
+                <join tableid="63">preparation.PreparationID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ collectionobject.CollectionObjectID, 
+ SampleNumber, 
+ CatalogedDate, 
+ CatalogedDatePrecision, 
+ %s 
+ From collectionobject 
+ Inner Join preparation ON preparation.CollectionObjectID = collectionobject.CollectionObjectID
+ WHERE preparation.CollectionMemberID = COLMEMID AND 
+ collectionobject.CollectionMemberID = COLMEMID AND
+ %s order by SampleNumber]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
+                    <caption tableid="63" col="SampleNumber"/>
+                    <caption tableid="1" formatter="PartialDate">
+                        <col name="CatalogedDate"          field="catalogedDate"/>
+                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
+                    </caption>
+                </captions>
+            </detailView>
+        </table>
 
 
 
