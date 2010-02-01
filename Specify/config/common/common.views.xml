@@ -3390,7 +3390,7 @@
                     <cell type="label" labelfor="herbarium"/>
                     <cell type="field" id="herbarium" name="preparationAttribute.text3" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
                     <cell type="label" labelfor="barcode"/>
-                    <cell type="field" id="barcode" name="sampleNumber" uitype="text" isrequired="true"/>
+                    <cell type="field" id="barcode" name="sampleNumber" uitype="text" isrequired="true" initialize="editoncreate=true"/>
                     
                 </row>
                 <row>
