@@ -656,7 +656,7 @@
         
         <view name="Preparation"
               class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.ku.brc.specify.datamodel.busrules.PreparationBusRules"
+              busrules="edu.ku.brc.specify.datamodel.busrules.HUHPreparationBusRules"
                resourcelabels="false">
             <desc><![CDATA[Subform within the Preparation form.]]></desc>
             <altviews>
@@ -3389,8 +3389,9 @@
                     <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet"/>
                     <cell type="label" labelfor="herbarium"/>
                     <cell type="field" id="herbarium" name="preparationAttribute.text3" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-                    <cell type="label" label="  "/>
-                    <cell type="field" id="isOnLoan" name="isOnLoan" uitype="checkbox" label="ISONLOAN" readonly="true"/>
+                    <cell type="label" labelfor="barcode"/>
+                    <cell type="field" id="barcode" name="sampleNumber" uitype="text" isrequired="true"/>
+                    
                 </row>
                 <row>
                 	<cell type="label" labelfor="itemNo"/>
@@ -3405,6 +3406,8 @@
                     <cell type="field" id="phenology" name="preparationAttribute.text5" uitype="combobox" picklist="HUH Phenology"/>
                 	<cell type="label" labelfor="sex"/>
                 	<cell type="field" id="sex" name="preparationAttribute.text4" uitype="combobox" picklist="HUH Plant Sexuality"/>
+                	<cell type="label" label="  "/>
+                    <cell type="field" id="isOnLoan" name="isOnLoan" uitype="checkbox" label="ISONLOAN" readonly="true"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="voucher"/>
