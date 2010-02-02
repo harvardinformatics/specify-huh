@@ -256,7 +256,7 @@
   
         <view name="Taxon"
             class="edu.ku.brc.specify.datamodel.Taxon"
-            busrules="edu.ku.brc.specify.datamodel.busrules.TaxonBusRules"
+            busrules="edu.ku.brc.specify.datamodel.busrules.HUHTaxonBusRules"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Taxon data entry form.]]></desc>
@@ -1429,10 +1429,17 @@
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
-
+				<row>
+					<cell type="label" labelfor="fullName"/>
+					<cell type="field" id="fullName" name="fullName" uitype="dsptextfield" colspan="3"/>
+					<cell type="label" labelfor="author"/>
+					<cell type="field" id="author" name="author" uitype="dsptextfield" colspan="8"/>
+				</row>
                 <row>
                     <cell type="label" labelfor="name"/>
-                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="14"/>
+                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="5"/>
+                    <cell type="label" labelfor="definitionItem"/>
+                	<cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem" colspan="6"/>
                     <!-- <cell type="field" id="WebLink" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=FishBase;icon=FishBase"/> -->
                     <!-- <cell type="field" id="WebLink" name="this" uitype="plugin" initialize="name=WebLinkButton;url=http://www.ncbi.nlm.nih.gov/sites/gquery?term=$genusName$%20$speciesName$;label=NCBI"/> -->
                     <!-- <cell type="field" id="WebLink" name="this" uitype="plugin" initialize="name=WebLinkButton;url=[GBIF_Canada]?king=$kingdomName$AMPp_action=containingAMP;taxa=$genusName$%20$speciesName$AMPp_format=html;label=ITIS"/> -->
@@ -1440,9 +1447,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="parent"/>
-                	<cell type="field" id="parent"  uitype="querycbx" isrequired="true" initialize="name=Taxon;title=Taxon;editbtn=false;newbtn=false;editoncreate=true" name="parent"  colspan="5"/>
-                    <cell type="label" labelfor="definitionItem"/>
-                	<cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem" colspan="6"/>
+                	<cell type="field" id="parent"  uitype="querycbx" isrequired="true" initialize="name=Taxon;title=Taxon;editbtn=false;newbtn=false;editoncreate=true" name="parent"  colspan="9"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="commonName"/>
