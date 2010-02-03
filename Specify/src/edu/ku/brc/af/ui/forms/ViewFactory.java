@@ -1880,7 +1880,7 @@ public class ViewFactory
                                 {
                                     ((TableViewObj)viewable).setVisibleRowCount(cellSubView.getTableRows());
                                 }
-                                if (viewable.getValidator() != null)
+                                if (viewable.getValidator() != null && childInfo != null)
                                 {
                                     viewable.getValidator().setRequired(childInfo.isRequired());
                                 }
