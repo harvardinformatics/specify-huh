@@ -225,6 +225,10 @@
                     <cell type="subview" viewname="CollectingEventSub" id="21" label="Collection Information" name="collectingEvent" colspan="12" rows="5"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="frequency" colspan="3"/>
+                	<cell type="field" id="frequency" name="collectionObjectAttribute.text4" uitype="text" colspan="7"/>
+                </row>
+                <row>
                     <cell type="separator" label="Collection Attributes" colspan="12"/>
                 </row>
                 <row>
