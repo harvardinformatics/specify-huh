@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"  ?>
+<!-- Created with iReport - A designer for JasperReports -->
+<!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+<jasperReport
+		 name="LoanInvoice_subreport1"
+		 columnCount="1"
+		 printOrder="Vertical"
+		 orientation="Portrait"
+		 pageWidth="782"
+		 pageHeight="555"
+		 columnWidth="782"
+		 columnSpacing="0"
+		 leftMargin="0"
+		 rightMargin="0"
+		 topMargin="0"
+		 bottomMargin="0"
+		 whenNoDataType="NoPages"
+		 scriptletClass="edu.ku.brc.specify.config.Scriptlet"
+		 isTitleNewPage="false"
+		 isSummaryNewPage="false">
+	<property name="ireport.scriptlethandling" value="0" />
+	<property name="ireport.encoding" value="UTF-8" />
+	<import value="java.util.*" />
+	<import value="net.sf.jasperreports.engine.*" />
+	<import value="net.sf.jasperreports.engine.data.*" />
+
+	<parameter name="itemnum" isForPrompting="false" class="java.lang.String"/>
+	<queryString><![CDATA[select loan.LoanID,
+       loan.LoanNumber as loanNumber,
+       loan.LoanDate        as loanDate,
+       loan.CurrentDueDate  as currentDueDate,
+       loan.Text1           as herbarium,
+
+       borrower.Title       as borrowerTitle,
+       borrower.FirstName   as borrowerFirstName,
+       borrower.Initials    as borrowerMiddleInitial,
+       borrower.LastName    as borrowerLastName,
+
+       forstudyby.Title     as forstudybyTitle,
+       forstudyby.FirstName as forstudybyFirstName,
+       forstudyby.Initials  as forstudybyMiddleInitial,
+       forstudyby.LastName  as forstudybyLastName,
+
+       if (loanprep.PreparationID is null, loan.Text1, prepattr.Text3) as herbarium,
+       prep.SampleNumber    as barcode,
+       loanprep.HigherTaxon as higherTaxon,
+       loanprep.SrcTaxonomy as taxon,
+       if (loanprep.PreparationID is null,
+           loanprep.Quantity - loanprep.TypeCount - loanprep.NonSpecimenCount,
+           if(types.CollectionObjectID is null, 1, 0)
+          ) as items,
+       loanprep.NonSpecimenCount as nonSpecimens,
+       if (loanprep.PreparationID is null,
+           loanprep.TypeCount,
+           if(types.CollectionObjectID is null, 0, 1)
+          ) as types,
+       loanprep.DescriptionOfMaterial as description
+
+from loan
+     left join loanagent borroweragent on loan.LoanID=borroweragent.LoanID
+     left join agent borrower on borroweragent.AgentID=borrower.AgentID
+     left join loanagent forstudyagent on loan.LoanID=forstudyagent.LoanID
+     left join agent forstudyby on forstudyagent.AgentID=forstudyby.AgentID
+     left join loanpreparation loanprep on loan.LoanID=loanprep.LoanID
+     left join preparation prep on loanprep.PreparationID=prep.PreparationID
+     left join preparationattribute prepattr on prep.PreparationAttributeID=prepattr.PreparationAttributeID
+     left join (select distinct CollectionObjectID from determination where TypeStatusName is not null) types on prep.CollectionObjectID=types.CollectionObjectID
+
+where borroweragent.Role="Borrower"
+      and forstudyagent.Role="Other"
+      and loan.LoanID $P!{itemnum}]]></queryString>
+
+	<field name="loanNumber" class="java.lang.String"/>
+	<field name="loanDate" class="java.sql.Date"/>
+	<field name="currentDueDate" class="java.sql.Date"/>
+	<field name="borrowerTitle" class="java.lang.String"/>
+	<field name="borrowerFirstName" class="java.lang.String"/>
+	<field name="borrowerMiddleInitial" class="java.lang.String"/>
+	<field name="borrowerLastName" class="java.lang.String"/>
+	<field name="forstudybyTitle" class="java.lang.String"/>
+	<field name="forstudybyFirstName" class="java.lang.String"/>
+	<field name="forstudybyMiddleInitial" class="java.lang.String"/>
+	<field name="forstudybyLastName" class="java.lang.String"/>
+	<field name="herbarium" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
+	<field name="higherTaxon" class="java.lang.String"/>
+	<field name="taxon" class="java.lang.String"/>
+	<field name="items" class="java.lang.Integer"/>
+	<field name="nonSpecimens" class="java.lang.Integer"/>
+	<field name="types" class="java.lang.Integer"/>
+	<field name="description" class="java.lang.String"/>
+	
+	<variable name="itemCount" class="java.lang.Integer" resetType="Report" incrementType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new Integer($F{items}.intValue())]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="nonSpecimenCount" class="java.lang.Integer" resetType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new java.lang.Integer(  $F{nonSpecimens}.intValue() )]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="typeCount" class="java.lang.Integer" resetType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new Integer ( $F{types}.intValue() )]]></variableExpression>
+	</variable>
+	
+	<background>
+		<band isSplitAllowed="true"/>
+	</background>
+	<title>
+		<band isSplitAllowed="true"/>
+	</title>
+	<pageHeader>
+		<band isSplitAllowed="true"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="157" isSplitAllowed="true">
+			<rectangle>
+				<reportElement mode="Transparent" x="419" y="4" width="263" height="101"/>
+			</rectangle>
+			<staticText>
+				<reportElement key="staticText-9" mode="Transparent" x="431" y="11" width="113" height="15" forecolor="#000000" backcolor="#FFFFFF"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top" rotation="None" lineSpacing="Single" markup="none">
+					<font fontName="Serif" size="12" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Term of loan:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="444" y="26" width="100" height="20"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Loan due date:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="431" y="46" width="238" height="27"/>
+				<textElement>
+					<font fontName="Serif" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Email: jmacklin@oeb.harvard.edu; HUHrequests@oeb.harvard.edu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="431" y="72" width="238" height="27"/>
+				<textElement>
+					<font fontName="Serif" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Requests for loan extensions should be made to Dr. James Macklin and/or HUHrequests]]></text>
+			</staticText>
+			<textField pattern="yyyy/MM/dd" isBlankWhenNull="false">
+				<reportElement key="textField" x="544" y="26" width="110" height="18"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font size="12" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{currentDueDate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-3" x="544" y="10" width="97" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[((edu.ku.brc.specify.config.Scriptlet)$P{REPORT_SCRIPTLET}).dateDifference($F{loanDate}, $F{currentDueDate})]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement mode="Transparent" x="9" y="15" width="186" height="51"/>
+			</rectangle>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="101" y="15" width="95" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font size="14" isBold="true" isUnderline="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{loanNumber}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="9" y="15" width="92" height="19"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Loan Number: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="9" y="73" width="28" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To: ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="44" y="78" width="152" height="13"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[((edu.ku.brc.specify.config.Scriptlet)$P{REPORT_SCRIPTLET}).buildNameString($F{borrowerFirstName}, $F{borrowerLastName}, $F{borrowerMiddleInitial})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="9" y="139" width="34" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Coll.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="64" y="139" width="67" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Barcode:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="168" y="139" width="48" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Taxon:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="293" y="139" width="46" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Items:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="352" y="123" width="67" height="34"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Non-specimens:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="431" y="139" width="51" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Types:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="505" y="139" width="84" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Description:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="9" y="99" width="77" height="18"/>
+				<textElement>
+					<font fontName="Serif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[For use by:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="86" y="104" width="152" height="13"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[((edu.ku.brc.specify.config.Scriptlet)$P{REPORT_SCRIPTLET}).buildNameString($F{forstudybyFirstName}, $F{forstudybyLastName}, $F{forstudybyMiddleInitial})]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="177" isSplitAllowed="true">
+			
+			<textField>
+				<reportElement x="8" y="12" width="45" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{herbarium}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="64" y="12" width="94" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{barcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="168" y="12" width="48" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{higherTaxon}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="224" y="12" width="53" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxon}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="293" y="12" width="46" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{items}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="352" y="12" width="67" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{nonSpecimens}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="431" y="12" width="51" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{types}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="505" y="12" width="239" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band isSplitAllowed="true"/>
+	</columnFooter>
+	<pageFooter>
+		<band isSplitAllowed="true"/>
+	</pageFooter>
+	<summary>
+		<band isSplitAllowed="true"/>
+	</summary>
+</jasperReport>
