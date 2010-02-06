@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"  ?>
+<!-- Created with iReport - A designer for JasperReports -->
+<!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+<jasperReport
+		 name="LoanPrep_subreport"
+		 columnCount="1"
+		 printOrder="Vertical"
+		 orientation="Portrait"
+		 pageWidth="782"
+		 pageHeight="555"
+		 columnWidth="782"
+		 columnSpacing="0"
+		 leftMargin="0"
+		 rightMargin="0"
+		 topMargin="0"
+		 bottomMargin="0"
+		 whenNoDataType="NoPages"
+		 scriptletClass="edu.ku.brc.specify.config.Scriptlet"
+		 isTitleNewPage="false"
+		 isSummaryNewPage="false">
+	<property name="ireport.scriptlethandling" value="0" />
+	<property name="ireport.encoding" value="UTF-8" />
+	<import value="java.util.*" />
+	<import value="net.sf.jasperreports.engine.*" />
+	<import value="net.sf.jasperreports.engine.data.*" />
+
+	<parameter name="itemnum" isForPrompting="false" class="java.lang.Long"/>
+	<parameter name="SUBREPORT_DIR" isForPrompting="false" class="java.lang.String"/>
+	
+	<queryString><![CDATA[select
+       if (loanprep.PreparationID is null, loan.Text2, prepattr.Text3) as herbarium,
+       
+       prep.SampleNumber as barcode,
+       
+       if (loanprep.HigherTaxon is null, family.FullName, loanprep.HigherTaxon) as higherTaxon,
+       
+       loanprep.SrcTaxonomy as taxon,
+       
+       if (loanprep.PreparationID is null,
+           loanprep.Quantity - loanprep.TypeCount - loanprep.NonSpecimenCount,
+           if(types.CollectionObjectID is null, 1, 0)
+          ) as items,
+       
+       if(loanprep.NonSpecimenCount is null, 0, loanprep.NonSpecimenCount)
+            as nonSpecimens,
+       
+       if (loanprep.PreparationID is null,
+           loanprep.TypeCount,
+           if(types.CollectionObjectID is null, 0, 1)
+          ) as types,
+          
+       loanprep.DescriptionOfMaterial as description
+
+     from loan
+     left join loanpreparation loanprep on loan.LoanID=loanprep.LoanID
+     left join preparation prep on loanprep.PreparationID=prep.PreparationID
+     left join preparationattribute prepattr on prep.PreparationAttributeID=prepattr.PreparationAttributeID
+     left join (select distinct CollectionObjectID from determination where TypeStatusName is not null) types on prep.CollectionObjectID=types.CollectionObjectID
+     left join (select distinct f.FullName, d.CollectionObjectID from taxon f, taxon t, determination d
+                where d.TaxonID=t.taxonID and f.RankID=140 and f.NodeNumber < t.NodeNumber and t.NodeNumber <= f.HighestChildNodeNumber) family on family.CollectionObjectID=prep.CollectionObjectID
+
+    where loan.LoanID $P!{itemnum} order by loanprep.HigherTaxon, prep.SampleNumber]]></queryString>
+
+	<field name="barcode" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="herbarium" class="java.lang.String"/>
+	<field name="higherTaxon" class="java.lang.String"/>
+	<field name="items" class="java.lang.Integer"/>
+	<field name="nonSpecimens" class="java.lang.Integer"/>
+	<field name="taxon" class="java.lang.String"/>
+	<field name="types" class="java.lang.Integer"/>
+	
+	<variable name="itemCount" class="java.lang.Integer" resetType="Report" incrementType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new Integer($F{items}.intValue())]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="nonSpecimenCount" class="java.lang.Integer" resetType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new java.lang.Integer(  $F{nonSpecimens}.intValue() )]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="typeCount" class="java.lang.Integer" resetType="Report" calculation="Nothing">
+		<variableExpression><![CDATA[new Integer ( $F{types}.intValue() )]]></variableExpression>
+	</variable>
+	
+	<background>
+		<band isSplitAllowed="true"/>
+	</background>
+		<detail>
+		<band height="40" isSplitAllowed="true">	
+			<textField isBlankWhenNull="true">
+				<reportElement x="8" y="10" width="45" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{herbarium}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="64" y="10" width="94" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{barcode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="168" y="10" width="48" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{higherTaxon}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="224" y="10" width="53" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxon}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="293" y="10" width="46" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{items}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="352" y="10" width="67" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{nonSpecimens}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="431" y="10" width="51" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{types}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="505" y="10" width="239" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>
