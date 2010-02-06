@@ -43,6 +43,9 @@ public class HUHPreparationBusRules extends PreparationBusRules
     @Override
     public STATUS processBusinessRules(final Object dataObj)
     {
+        Preparation preparation = (Preparation) dataObj;
+        if (preparation.getCountAmt() == null) preparation.setCountAmt(1);
+        
         reasonList.clear();
         STATUS status =  super.processBusinessRules(dataObj);
 
