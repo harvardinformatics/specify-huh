@@ -270,13 +270,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // SrcGeography (transaction no)
         loan.setSrcGeography(transactionNo);
         
-        // Text1 (local unit)
-        String localUnit = asaLoan.getLocalUnit();
-        loan.setText1(localUnit);
-        
-        // Text2 (for use by)
+        // Text1 (for use by)
         String forUseBy = asaLoan.getForUseBy();
-        loan.setText2(forUseBy);
+        loan.setText1(forUseBy);
+        
+        // Text2 (local unit)
+        String localUnit = asaLoan.getLocalUnit();
+        loan.setText2(localUnit);
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaLoan.isAcknowledged();

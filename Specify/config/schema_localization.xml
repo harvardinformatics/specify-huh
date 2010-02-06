@@ -17283,7 +17283,7 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction Purpose">
+      <item name="text1" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -19883,13 +19883,13 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
+      <item name="text1" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Local Unit</text>
+            <text>For Use By</text>
           </str>
         </names>
         <descs>
@@ -19899,13 +19899,13 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>For Use By</text>
+            <text>Local Unit</text>
           </str>
         </names>
         <descs>
