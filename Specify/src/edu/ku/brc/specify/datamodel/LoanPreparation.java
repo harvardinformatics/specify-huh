@@ -236,7 +236,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     /**
      * @return the family or other higher taxon group
      */
-    @Column(name = "higherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "HigherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
     public String getHigherTaxon()
     {
         return higherTaxon;
