@@ -57,7 +57,7 @@ from gift
      left join (select * from giftagent where Role="Receiver") receiveragent on gift.GiftID=receiveragent.GiftID
      left join agent receiver on receiveragent.AgentID=receiver.AgentID
      left join (select * from giftagent where Role="ForUseBy") forusebyagent on gift.GiftID=forusebyagent.GiftID
-     left join agent foruseby on forusebyagent.AgentID=foruseby.AgentID
+     left join agent forUseBy on forusebyagent.AgentID=forUseBy.AgentID
 
 where gift.GiftID = $P!{itemnum}]]></queryString>
 
