@@ -8376,7 +8376,7 @@
         </names>
         <descs/>
       </item>
-      <item name="number8">
+      <item name="number8" type="java.lang.Short" pickListName="HUH Mixed Collection Status">
         <version>0</version>
         <isHidden>true</isHidden>
         <names>

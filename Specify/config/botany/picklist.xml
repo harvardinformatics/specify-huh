@@ -38,6 +38,12 @@
       <picklistitem title="Collector" value="Collector"/>
   	</items>
   </picklist>
+  <picklist name="HUH Mixed Collection Status" issytem="true" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="parent" value="1"/>
+      <picklistitem title="child" value="2"/>
+  	</items>
+  </picklist>
     <picklist name="HUH Phenology"  type="0" readonly="true" sizelimit="6">
     <items>
       <picklistitem title="not determined" value="NotDetermined"/>
