@@ -25,7 +25,7 @@
 	<import value="net.sf.jasperreports.engine.*" />
 	<import value="net.sf.jasperreports.engine.data.*" />
 
-	<parameter name="itemnum" isForPrompting="false" class="java.lang.String"/>
+	<parameter name="itemnum" isForPrompting="false" class="java.lang.Long"/>
 	<parameter name="SUBREPORT_DIR" isForPrompting="false" class="java.lang.String"/>
 	
 	<queryString><![CDATA[select
@@ -53,16 +53,14 @@
        forUseBy.LastName  as forUseByLastName,
        forUseBy.JobTitle  as forUseByJobTitle
 
-from shipment
-     left join gift on shipment.GiftID=gift.GiftID
+from gift
      left join (select * from giftagent where Role="Receiver") receiveragent on gift.GiftID=receiveragent.GiftID
      left join agent receiver on receiveragent.AgentID=receiver.AgentID
      left join (select * from giftagent where Role="ForUseBy") forusebyagent on gift.GiftID=forusebyagent.GiftID
      left join agent foruseby on forusebyagent.AgentID=foruseby.AgentID
 
-where shipment.ShipmentID $P!{itemnum}]]></queryString>
+where gift.GiftID = $P!{itemnum}]]></queryString>
 
-	<field name="currentDueDate"        class="java.sql.Date"/>
 	<field name="forUseByText"          class="java.lang.String"/>
 	<field name="forUseByFirstName"     class="java.lang.String"/>
 	<field name="forUseByJobTitle"      class="java.lang.String"/>
@@ -271,7 +269,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="177" isSplitAllowed="true">
+		<band height="100" isSplitAllowed="true">
 				<subreport  isUsingCache="true">
 					<reportElement
 						x="1"

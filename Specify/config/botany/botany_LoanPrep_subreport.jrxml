@@ -41,14 +41,13 @@
            if(types.CollectionObjectID is null, 1, 0)
           ) as items,
        
-       if(loanprep.NonSpecimenCount is null, 0, loanprep.NonSpecimenCount)
-            as nonSpecimens,
+       if(loanprep.NonSpecimenCount is null, 0, loanprep.NonSpecimenCount) as nonSpecimens,
        
        if (loanprep.PreparationID is null,
            loanprep.TypeCount,
            if(types.CollectionObjectID is null, 0, 1)
           ) as types,
-          
+       
        loanprep.DescriptionOfMaterial as description
 
      from loan
@@ -59,16 +58,16 @@
      left join (select distinct f.FullName, d.CollectionObjectID from taxon f, taxon t, determination d
                 where d.TaxonID=t.taxonID and f.RankID=140 and f.NodeNumber < t.NodeNumber and t.NodeNumber <= f.HighestChildNodeNumber) family on family.CollectionObjectID=prep.CollectionObjectID
 
-    where loan.LoanID $P!{itemnum} order by loanprep.HigherTaxon, prep.SampleNumber]]></queryString>
+    where loan.LoanID = $P!{itemnum} order by higherTaxon, barcode]]></queryString>
 
-	<field name="barcode" class="java.lang.String"/>
-	<field name="description" class="java.lang.String"/>
 	<field name="herbarium" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
 	<field name="higherTaxon" class="java.lang.String"/>
+	<field name="taxon" class="java.lang.String"/>
 	<field name="items" class="java.lang.Integer"/>
 	<field name="nonSpecimens" class="java.lang.Integer"/>
-	<field name="taxon" class="java.lang.String"/>
 	<field name="types" class="java.lang.Integer"/>
+	<field name="description" class="java.lang.String"/>
 	
 	<variable name="itemCount" class="java.lang.Integer" resetType="Report" incrementType="Report" calculation="Nothing">
 		<variableExpression><![CDATA[new Integer($F{items}.intValue())]]></variableExpression>

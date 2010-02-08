@@ -29,14 +29,15 @@
 	<parameter name="SUBREPORT_DIR" isForPrompting="false" class="java.lang.String"/>
 	
 	<queryString>
-	<![CDATA[select shipment.NumberOfPackages as shipmentNumberOfPackages,
+	<![CDATA[select shipment.NumberOfPackages as numberOfPackages,
 	                shipment.ShipmentNumber   as shipmentNumber,
                     shipment.ShipmentMethod   as shipmentMethod,
                     shipment.ShipmentDate     as shipmentDate,
-                    shipment.ShippedToID      as shipmentShippedToID,
-                    shipment.LoanID           as shipmentLoanID,                    
+                    shipment.ShippedToID      as shippedToID,       
 
-       shippedto.Title     as shippedToTitle,
+       (select Title from picklistitem where Value=shippedto.Title and PickListID=
+         (select PickListID from picklist where Name="AgentTitles")) as shippedtoTitle,
+         
        shippedto.FirstName as shippedToFirstName,
        shippedto.Initials  as shippedToMiddleInitial,
        shippedto.LastName  as shippedToLastName,
@@ -50,33 +51,43 @@
        shipaddr.Country     as shipaddrCountry,
 
        preparer.FirstName as preparerFirstName,
-       preparer.LastName  as preparerLastName
+       preparer.LastName  as preparerLastName,
+       
+       transaction.TransactionID as transactionID,
+       transaction.Type          as transactionType
 
 from shipment
      left join agent shippedto on shipment.ShippedToID=shippedto.AgentID
      left join (select * from address where IsShipping=true) shipaddr on shippedto.AgentID=shipaddr.AgentID
      left join agent preparer on shipment.ShippedByID=preparer.AgentID
-
+     left join ((select eo.ExchangeOutID as TransactionID, "ExchangeOut" as Type from exchangeout eo) union
+                (select g.GiftID as TransactionID, "Gift" as Type from gift g) union
+                (select l.LoanID as TransactionID, "Loan" as Type from loan l)) transaction
+                on ((transaction.TransactionID=shipment.ExchangeOutID and transaction.Type="ExchangeOut") or
+                    (transaction.TransactionID=shipment.GiftID and transaction.Type="Gift") or
+                    (transaction.TransactionID=shipment.LoanID and transaction.Type="Loan"))
+                    
 where shipment.ShipmentID $P!{itemnum}]]></queryString>
 
-	<field name="shipmentNumberOfPackages" class="java.lang.Integer"/>
-	<field name="shipmentNumber" class="java.lang.String"/>
-	<field name="shipmentMethod" class="java.lang.String"/>
-	<field name="shipmentDate" class="java.sql.Date"/>
-	<field name="shipmentShippedToID" class="java.lang.Long"/>
-	<field name="shippedtoTitle" class="java.lang.String"/>
-	<field name="shippedtoFirstName" class="java.lang.String"/>
+	<field name="numberOfPackages"       class="java.lang.Integer"/>
+	<field name="preparerLastName"       class="java.lang.String"/>
+	<field name="preparerFirstName"      class="java.lang.String"/>
+	<field name="shipaddrAddress"        class="java.lang.String"/>
+	<field name="shipaddrAddress2"       class="java.lang.String"/>
+	<field name="shipaddrCity"           class="java.lang.String"/>
+	<field name="shipaddrState"          class="java.lang.String"/>
+	<field name="shipaddrPostalCode"     class="java.lang.String"/>
+	<field name="shipaddrCountry"        class="java.lang.String"/>
+	<field name="shipmentDate"           class="java.sql.Date"/>
+	<field name="shipmentMethod"         class="java.lang.String"/>
+	<field name="shipmentNumber"         class="java.lang.String"/>
+	<field name="shippedtoFirstName"     class="java.lang.String"/>
+	<field name="shippedtoJobTitle"      class="java.lang.String"/>
+	<field name="shippedtoLastName"      class="java.lang.String"/>
 	<field name="shippedtoMiddleInitial" class="java.lang.String"/>
-	<field name="shippedtoLastName" class="java.lang.String"/>
-	<field name="shippedtoJobTitle" class="java.lang.String"/>
-	<field name="shipaddrAddress" class="java.lang.String"/>
-	<field name="shipaddrAddress2" class="java.lang.String"/>
-	<field name="shipaddrCity" class="java.lang.String"/>
-	<field name="shipaddrState" class="java.lang.String"/>
-	<field name="shipaddrPostalCode" class="java.lang.String"/>
-	<field name="shipaddrCountry" class="java.lang.String"/>
-	<field name="preparerLastName" class="java.lang.String"/>
-	<field name="preparerFirstName" class="java.lang.String"/>
+	<field name="shippedtoTitle"         class="java.lang.String"/>
+	<field name="transactionID"          class="java.lang.Long"/>
+	<field name="transactionType"        class="java.lang.String"/>
 
 	<variable name="itemsLoan" class="java.lang.Integer" resetType="Report" calculation="Sum">
 	</variable>
@@ -116,20 +127,20 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 				</image>
 				<staticText>
 					<reportElement
-						x="424"
+						x="400"
 						y="1"
-						width="57"
+						width="64"
 						height="20"
 						key="staticText-2"/>
 					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
 					<textElement>
 						<font pdfFontName="Helvetica-Bold" size="14" isBold="true" isUnderline="true"/>
 					</textElement>
-				<text><![CDATA[Loan # :]]></text>
+				<text><![CDATA[Shipping # :]]></text>
 				</staticText>
 				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
-						x="481"
+						x="480"
 						y="1"
 						width="95"
 						height="20"
@@ -138,7 +149,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					<textElement>
 						<font pdfFontName="Helvetica-Bold" size="14" isBold="true" isUnderline="true"/>
 					</textElement>
-				<textFieldExpression   class="java.lang.String"><![CDATA[$F{shipmentNumber}]]></textFieldExpression><!-- $F{loanLoanNumber} -->
+				<textFieldExpression   class="java.lang.String"><![CDATA[$F{shipmentNumber}]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement
@@ -153,19 +164,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					</textElement>
 				<text><![CDATA[Date:]]></text>
 				</staticText>
-				<staticText>
-					<reportElement
-						x="406"
-						y="73"
-						width="57"
-						height="18"
-						key="staticText-4"/>
-					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-					<textElement textAlignment="Right">
-						<font pdfFontName="Helvetica-Bold" size="12" isBold="true"/>
-					</textElement>
-				<text><![CDATA[Due Date:]]></text>
-				</staticText>
+				
 				<textField isStretchWithOverflow="false" pattern="yyyy/MM/dd" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						x="465"
@@ -177,21 +176,9 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					<textElement>
 						<font size="12"/>
 					</textElement>
-				<textFieldExpression   class="java.util.Date"><![CDATA[$F{shipmentDate}]]></textFieldExpression> <!-- $F{loanLoanDate} -->
+				<textFieldExpression   class="java.util.Date"><![CDATA[$F{shipmentDate}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="false" pattern="yyyy/MM/dd" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
-					<reportElement
-						x="465"
-						y="73"
-						width="110"
-						height="18"
-						key="textField"/>
-					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-					<textElement>
-						<font pdfFontName="Helvetica-Bold" size="12" isBold="true"/>
-					</textElement>
-				<textFieldExpression   class="java.util.Date"><![CDATA[$F{shipmentDate}]]></textFieldExpression> <!-- $F{loanCurrentDueDate} -->
-				</textField>
+
 				<staticText>
 					<reportElement
 						x="380"
@@ -220,9 +207,9 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 				</staticText>
 				<staticText>
 					<reportElement
-						x="380"
+						x="300"
 						y="150"
-						width="93"
+						width="150"
 						height="15"
 						key="staticText-7"/>
 					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
@@ -231,19 +218,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					</textElement>
 				<text><![CDATA[Number of packages:]]></text>
 				</staticText>
-				<staticText>
-					<reportElement
-						x="380"
-						y="170"
-						width="92"
-						height="15"
-						key="staticText-9"/>
-					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-					<textElement textAlignment="Right">
-						<font/>
-					</textElement>
-				<text><![CDATA[Length of Loan:]]></text>
-				</staticText>
+
 				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						x="477"
@@ -281,7 +256,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					<textElement>
 						<font/>
 					</textElement>
-				<textFieldExpression   class="java.lang.String"><![CDATA[((edu.harvard.huh.specify.config.HUHScriptlet)$P{REPORT_SCRIPTLET}).buildNameString($F{shippedtoFirstName}, $F{shippedtoLastName}, $F{shippedtoMiddleInitial})]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.String"><![CDATA[((edu.harvard.huh.specify.config.HUHScriptlet)$P{REPORT_SCRIPTLET}).buildNameString($F{shippedtoTitle}, $F{shippedtoFirstName}, $F{shippedtoLastName}, $F{shippedtoMiddleInitial})]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="false" isBlankWhenNull="true" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
@@ -405,19 +380,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 					</textElement>
 				<text><![CDATA[Dissection or C&S requires prior authorization]]></text>
 				</staticText>
-				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
-					<reportElement
-						x="477"
-						y="170"
-						width="97"
-						height="15"
-						key="textField-3"/>
-					<box topBorder="None" topBorderColor="#000000" leftBorder="None" leftBorderColor="#000000" rightBorder="None" rightBorderColor="#000000" bottomBorder="None" bottomBorderColor="#000000"/>
-					<textElement>
-						<font/>
-					</textElement>
-				<textFieldExpression   class="java.lang.String"><![CDATA[((edu.harvard.huh.specify.config.HUHScriptlet)$P{REPORT_SCRIPTLET}).dateDifference($F{shipmentDate}, $F{shipmentDate})]]></textFieldExpression> <!-- ((edu.harvard.huh.specify.config.HUHScriptlet)$P{REPORT_SCRIPTLET}).dateDifference($F{loanLoanDate}, $F{loanCurrentDueDate}) -->
-				</textField>
+
 				<staticText>
 					<reportElement
 						x="156"
@@ -459,16 +422,18 @@ U.S.A.]]></text>
 			</band>
 		</columnHeader>
 		<detail>
-			<band height="200"  isSplitAllowed="true" >
+			<band height="25"  isSplitAllowed="true" >
 				<subreport  isUsingCache="true">
 					<reportElement
 						x="1"
 						y="1"
 						width="549"
-						height="98"
+						height="20"
+						positionType="Float" 
+						isRemoveLineWhenBlank="true"
 						key="subreport-1"/>
 					<subreportParameter  name="itemnum">
-						<subreportParameterExpression><![CDATA[$P{itemnum}]]></subreportParameterExpression>
+						<subreportParameterExpression><![CDATA[$F{transactionID}]]></subreportParameterExpression>
 					</subreportParameter>
 					<subreportParameter  name="SUBREPORT_DIR">
 						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
@@ -477,47 +442,7 @@ U.S.A.]]></text>
 					<returnValue subreportVariable="items" toVariable="itemsLoan"/>
 					<returnValue subreportVariable="nonSpecimens" toVariable="nonSpecimensLoan"/>
 					<returnValue subreportVariable="types" toVariable="typesLoan"/>
-					<subreportExpression  class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_LoanInvoice_subreport.jasper"]]></subreportExpression>
-				</subreport>
-				<subreport  isUsingCache="true">
-					<reportElement
-						x="1"
-						y="100"
-						width="549"
-						height="98"
-						positionType="Float"
-						key="subreport-2"/>
-					<subreportParameter  name="itemnum">
-						<subreportParameterExpression><![CDATA[$P{itemnum}]]></subreportParameterExpression>
-					</subreportParameter>
-					<subreportParameter  name="SUBREPORT_DIR">
-						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
-					</subreportParameter>
-					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-					<returnValue subreportVariable="items" toVariable="itemsGift"/>
-					<returnValue subreportVariable="nonSpecimens" toVariable="nonSpecimensGift"/>
-					<returnValue subreportVariable="types" toVariable="typesGift"/>
-					<subreportExpression  class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_GiftInvoice_subreport.jasper"]]></subreportExpression>
-				</subreport>
-				<subreport  isUsingCache="true">
-					<reportElement
-						x="1"
-						y="100"
-						width="549"
-						height="98"
-						positionType="Float"
-						key="subreport-2"/>
-					<subreportParameter  name="itemnum">
-						<subreportParameterExpression><![CDATA[$P{itemnum}]]></subreportParameterExpression>
-					</subreportParameter>
-					<subreportParameter  name="SUBREPORT_DIR">
-						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
-					</subreportParameter>
-					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-					<returnValue subreportVariable="items" toVariable="itemsExch"/>
-					<returnValue subreportVariable="nonSpecimens" toVariable="nonSpecimensExch"/>
-					<returnValue subreportVariable="types" toVariable="typesExch"/>
-					<subreportExpression  class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_ExchangeOutInvoice_subreport.jasper"]]></subreportExpression>
+					<subreportExpression  class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_" + $F{transactionType} + "Invoice_subreport.jasper"]]></subreportExpression>
 				</subreport>
 			</band>
 		</detail>

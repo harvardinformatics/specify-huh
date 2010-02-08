@@ -54,14 +54,13 @@
        forUseBy.LastName  as forUseByLastName,
        forUseBy.JobTitle  as forUseByJobTitle
 
-from shipment
-     left join loan on shipment.LoanID=loan.LoanID
+from loan
      left join (select * from loanagent where Role="Borrower") borroweragent on loan.LoanID=borroweragent.LoanID
      left join agent borrower on borroweragent.AgentID=borrower.AgentID
      left join (select * from loanagent where Role="ForUseBy") forusebyagent on loan.LoanID=forusebyagent.LoanID
      left join agent forUseBy on forusebyagent.AgentID=forUseBy.AgentID
 
-where shipment.ShipmentID $P!{itemnum}]]></queryString>
+where loan.LoanID = $P!{itemnum}]]></queryString>
 
 	<field name="borrowerFirstName"     class="java.lang.String"/>
 	<field name="borrowerJobTitle"      class="java.lang.String"/>
@@ -272,7 +271,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="177" isSplitAllowed="true">
+		<band height="100" isSplitAllowed="true">
 				<subreport  isUsingCache="true">
 					<reportElement
 						x="1"

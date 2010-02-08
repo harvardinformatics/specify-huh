@@ -44,11 +44,10 @@
        receiver.LastName    as receiverLastName,
        receiver.JobTitle    as receiverJobTitle
 
-from shipment
-     left join exchangeout on shipment.ExchangeOutID=exchangeout.ExchangeOutID
+from exchangeout
      left join agent receiver on receiver.AgentID=exchangeout.SentToOrganizationID
 
-where shipment.ShipmentID $P!{itemnum}]]></queryString>
+where exchangeout.ExchangeOutID = $P!{itemnum}]]></queryString>
 
 	<field name="description"             class="java.lang.String"/>
 	<field name="exchangeDate"            class="java.sql.Date"/>
@@ -101,7 +100,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 				<textElement>
 					<font fontName="Serif" size="12" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Loan due date:]]></text>
+				<text><![CDATA[exchange due date:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="431" y="46" width="238" height="27"/>
@@ -162,7 +161,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 				<textElement>
 					<font fontName="Serif" size="12" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Loan Number: ]]></text>
+				<text><![CDATA[exchange Number: ]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="9" y="73" width="28" height="18"/>
@@ -252,7 +251,7 @@ where shipment.ShipmentID $P!{itemnum}]]></queryString>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="177" isSplitAllowed="true">
+		<band height="100" isSplitAllowed="true">
 				<subreport  isUsingCache="true">
 					<reportElement
 						x="1"
