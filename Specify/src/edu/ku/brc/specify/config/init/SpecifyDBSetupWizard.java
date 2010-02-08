@@ -199,7 +199,7 @@ public class SpecifyDBSetupWizard extends JPanel
             props.put("instAbbrev", "HUH");
     
             props.put("divName", "Botany");
-            props.put("divAbbrev", "bot");
+            props.put("divAbbrev", "Botany");
     
             props.put("collName", "Harvard University Herbaria");
             props.put("collPrefix", "HUH");
