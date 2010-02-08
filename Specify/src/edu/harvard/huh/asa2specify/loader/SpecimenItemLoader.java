@@ -1086,6 +1086,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 // Name
                 containerStr = truncate(containerStr, 200, "container name");
                 container.setName(containerStr);
+                
+                // Type
+                container.setType(Container.LOGICAL);
             }
             else
             {
@@ -1359,14 +1362,15 @@ public class SpecimenItemLoader extends AuditedObjectLoader
        
     private String getInsertSql(Container container) throws LocalException
     {
-        String fieldNames = "Name, CollectionMemberID, TimestampCreated, Version";
+        String fieldNames = "Name, CollectionMemberID, TimestampCreated, Type, Version";
         
-        String[] values = new String[4];
+        String[] values = new String[5];
         
         values[0] = SqlUtils.sqlString( container.getName());
         values[1] = SqlUtils.sqlString( container.getCollectionMemberId());
         values[2] = SqlUtils.now();
-        values[3] = SqlUtils.zero();
+        values[3] = SqlUtils.sqlString( container.getType());
+        values[4] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
