@@ -862,7 +862,7 @@ public class BuildSampleDatabase
         startTx();
         
         Hashtable<String, Boolean> colNameHash   = null;
-        if (StringUtils.isNotEmpty(taxonFileName))
+        if (false)
         {
             colNameHash = getColumnNamesFromXLS(taxonFileName, usingOtherTxnFile);
         }
@@ -914,7 +914,7 @@ public class BuildSampleDatabase
         
         log.debug(" preLoadTaxon ["+preLoadTaxon+"]");
         log.debug(" fileName     ["+taxonFileName+"]");
-        if (preLoadTaxon && taxonFileName != null)
+        if (false)
         {
             convertTaxonFromXLS(taxonTreeDef, taxonFileName, usingOtherTxnFile); // this does a startTx() / commitTx()
         }
