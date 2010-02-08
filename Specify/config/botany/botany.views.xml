@@ -344,7 +344,7 @@
             </rows>
         </viewdef>
         
-        <viewdef
+        <!--<viewdef
             name="Preparation Brief"
             type="form"
             class="edu.ku.brc.specify.datamodel.Preparation"
@@ -367,7 +367,7 @@
                 	<cell type="subview" viewname="Preparation Brief" id="collobj" label="Preparation" name="preparations" colspan="9" rows="5"/>
                 </row>
             </rows>
-        </viewdef>
+        </viewdef>-->
         
         <viewdef
             name="CollectionObjectAttributeSub"
@@ -520,7 +520,7 @@
             
             <columnDef>         110px, 2px, 270px, 25px, 110px, 2px, 270px, 5px,   p:g</columnDef>
             <columnDef os="lnx">125px, 2px, 270px, 25px, 125px, 2px, 270px, 5px,   p:g</columnDef>
-            <columnDef os="mac">140px, 2px, 313px, 25px, 140px, 2px, 313px, 5px,   p:g</columnDef>
+            <columnDef os="mac">120px, 2px, 313px, 25px, 120px, 2px, 270px, 5px,   p:g</columnDef>
             <columnDef os="exp">p,     2px, p,     25px,     p, 2px,     p, 5px:g, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
