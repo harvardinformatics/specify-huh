@@ -1836,7 +1836,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Inst Content Contact</text>
+            <text>Curator/Contact</text>
           </str>
         </names>
         <descs/>
@@ -2213,6 +2213,171 @@
       </str>
     </descs>
     <aggregator>AgentAttachment</aggregator>
+  </container>
+   <container name="agentcitation">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="agent" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Botanist</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="createdByAgent" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="citation" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Publication</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The publication in which the botanist is cited.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Modified by Agent</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="text1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Collation</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="text2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Publication Date</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="remarks" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Alt Source</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="role" isUIFormatter="false" isRequired="false" pickListName="HUH Botanist Role">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Role</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Role of the agent as &quot;author&quot; or &quot;collector&quot; within the citation.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="timestampCreated" isUIFormatter="false" isRequired="true">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="timestampModified" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="version" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+    </items>
+    <names>
+      <str language="en">
+        <version>0</version>
+        <text>Botanist Citation</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>A publication in which a botanist is cited.</text>
+      </str>
+    </descs>
   </container>
   <container name="agentgeography">
     <version>0</version>
