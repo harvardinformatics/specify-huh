@@ -40,9 +40,15 @@
             <display view="AgentAttachment" newobjdlg="AgentAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.AgentCitation" abbrev="agcit" id="126" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.AgentGeography" abbrev="ageo" id="78" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.AgentSpecialty" abbrev="agsp" id="86" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.AgentCitation" abbrev="agcit" id="126" searchable="true">
+        	<display view="AgentCitation" newobjdlg="AgentCitation"/>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.AgentGeography" abbrev="ageo" id="78" searchable="true">
+			<display view="AgentGeography" newobjdlg="AgentGeography"/>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.AgentSpecialty" abbrev="agsp" id="86" searchable="true">
+			<display view="AgentSpecialty" newobjdlg="AgentSpecialty"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.AgentVariant" abbrev="av" id="107" workbench="false" searchable="true">
         	<display view="AgentVariant" newobjdlg="AgentVariant"/>
         </table>
