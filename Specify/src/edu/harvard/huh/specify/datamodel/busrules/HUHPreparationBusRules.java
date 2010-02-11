@@ -17,64 +17,64 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-package edu.ku.brc.specify.datamodel.busrules;
+package edu.harvard.huh.specify.datamodel.busrules;
 
-import static edu.ku.brc.ui.UIRegistry.getResourceString;
-
-import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
 /**
- * This alters the UI depending on which type of agent is set.
- * 
- * @author rods
+ * @author rod
  *
- * @code_status Complete
+ * @code_status Alpha
  *
- * Created Date: Jan 24, 2007
+ * Feb 11, 2008
  *
  */
-public class HUHAgentBusRules extends AgentBusRules
-{    
-    /**
-     * Constructor.
-     */
-    public HUHAgentBusRules()
+public class HUHPreparationBusRules extends PreparationBusRules
+{
+    public HUHPreparationBusRules()
     {
         super();
     }
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
      */
     @Override
     public STATUS processBusinessRules(final Object dataObj)
     {
+        Preparation preparation = (Preparation) dataObj;
+        if (preparation.getCountAmt() == null) preparation.setCountAmt(1);
+        
         reasonList.clear();
         STATUS status =  super.processBusinessRules(dataObj);
-        
+
         if (status == STATUS.OK)
         {
-            status = checkVariants((Agent) dataObj);
+            status = processBusinessRules(null, dataObj, true);
         }
         return status;
     }
     
-    /**
-     * Process business rules specifically related to determinations.  Return OK status, or add error messages
-     * to reasonList and return Error status.
-     * @param dataObj
-     * @return 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object, java.lang.Object, boolean)
      */
-    protected STATUS checkVariants(final Agent agent)
+    @Override
+    public STATUS processBusinessRules(final Object parentDataObj, final Object dataObj, final boolean isEdit)
     {
-        // check that at least one variant exists
-        if (agent.getVariants().size() < 1)
+        reasonList.clear();
+        
+        if (!(dataObj instanceof Preparation))
         {
-            reasonList.add(getResourceString("AgentBusRules.NO_VARIANTS"));
-
-            return STATUS.Warning;
+            return STATUS.Error;
         }
-
-        return STATUS.OK;
+        
+        STATUS duplicateNumberStatus = isCheckDuplicateNumberOK("sampleNumber", 
+                                                                (FormDataObjIFace)dataObj, 
+                                                                Preparation.class, 
+                                                                "preparationId");
+        
+        return duplicateNumberStatus;
     }
 }

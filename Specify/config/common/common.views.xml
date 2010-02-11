@@ -656,7 +656,7 @@
         
         <view name="Preparation"
               class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.ku.brc.specify.datamodel.busrules.HUHPreparationBusRules"
+              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
                resourcelabels="false">
             <desc><![CDATA[Subform within the Preparation form.]]></desc>
             <altviews>
@@ -669,7 +669,7 @@
         
         <view name="Preparation Brief"
               class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.ku.brc.specify.datamodel.busrules.HUHPreparationBusRules"
+              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
                resourcelabels="false">
             <desc><![CDATA[Subform within the Curation (Brief) form.]]></desc>
             <altviews>

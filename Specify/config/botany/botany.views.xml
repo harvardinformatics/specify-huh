@@ -39,7 +39,7 @@
         
         <view name="CollectionObject"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
-            busrules="edu.ku.brc.specify.datamodel.busrules.HUHCollectionObjectBusRules"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
             resourcelabels="false"
             >
@@ -50,22 +50,9 @@
             </altviews>
         </view>
         
-        <view name="Collection Object Brief"
-            class="edu.ku.brc.specify.datamodel.CollectionObject"
-            busrules="edu.ku.brc.specify.datamodel.busrules.HUHCollectionObjectBusRules"
-            isinternal="false"
-            resourcelabels="false"
-            >
-            <desc><![CDATA[The Collection Object form.]]></desc>
-            <altviews>
-                <altview name="Collection Object Brief View" viewdef="Collection Object Brief" mode="view"/>
-                <altview name="Collection Object Brief Edit" viewdef="Collection Object Brief" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
         <view name="Curation Brief"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
-            busrules="edu.ku.brc.specify.datamodel.busrules.HUHCollectionObjectBusRules"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
             resourcelabels="false"
             >
