@@ -100,9 +100,9 @@ where shipment.ShipmentID $P!{itemnum}]]>
 		<band isSplitAllowed="true"/>
 	</background>
 	<title>
-		<band height="295" isSplitAllowed="true">
+		<band height="301" isSplitAllowed="true">
 			<rectangle>
-				<reportElement key="rectangle-1" mode="Transparent" x="331" y="208" width="237" height="66"/>
+				<reportElement key="rectangle-1" mode="Transparent" x="400" y="49" width="170" height="44"/>
 			</rectangle>
 			<textField isBlankWhenNull="false">
 				<reportElement key="textField" x="498" y="53" width="73" height="20"/>
@@ -330,7 +330,7 @@ U.S.A.]]></text>
 				<imageExpression class="java.lang.String"><![CDATA[$P{RPT_IMAGE_DIR} + "/huh_logo_bw_100.png"]]></imageExpression>
 			</image>
 			<rectangle>
-				<reportElement key="rectangle-1" mode="Transparent" x="400" y="49" width="170" height="44"/>
+				<reportElement key="rectangle-1" mode="Transparent" x="331" y="208" width="237" height="66"/>
 			</rectangle>
 			<staticText>
 				<reportElement x="22" y="233" width="210" height="12"/>
@@ -394,6 +394,12 @@ U.S.A.]]></text>
 				</textElement>
 				<text><![CDATA[: Acknowledgement of receipt of transaction by loanee]]></text>
 			</staticText>
+			<line>
+				<reportElement key="line-1" x="4" y="285" width="566" height="1"/>
+			</line>
+			<line>
+				<reportElement key="line-1" x="4" y="287" width="566" height="1"/>
+			</line>
 		</band>
 	</title>
 	<pageHeader>
@@ -427,13 +433,7 @@ U.S.A.]]></text>
 		<band height="70" isSplitAllowed="true">
 			<elementGroup>
 				<line>
-					<reportElement key="line-1" x="-1" y="18" width="552" height="1"/>
-				</line>
-				<line>
-					<reportElement key="line-1" x="11" y="-38" width="552" height="1"/>
-				</line>
-				<line>
-					<reportElement key="line-1" x="11" y="-36" width="552" height="1"/>
+					<reportElement key="line-1" x="4" y="30" width="566" height="1"/>
 				</line>
 			</elementGroup>
 			<textField>
@@ -485,14 +485,14 @@ U.S.A.]]></text>
 				<reportElement x="425" y="247" width="119" height="1"/>
 			</line>
 			<staticText>
-				<reportElement x="345" y="10" width="112" height="16"/>
+				<reportElement x="327" y="33" width="112" height="16"/>
 				<textElement>
 					<font fontName="SansSerif" size="10" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total specimens: ]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement x="469" y="11" width="39" height="15"/>
+				<reportElement x="479" y="33" width="39" height="15"/>
 			</rectangle>
 			<textField evaluationTime="Report">
 				<reportElement x="519" y="300" width="40" height="20"/>
@@ -516,15 +516,21 @@ U.S.A.]]></text>
 				<text><![CDATA[Sign as indicated above]]></text>
 			</staticText>
 			<line>
-				<reportElement x="11" y="297" width="549" height="1"/>
+				<reportElement x="4" y="285" width="566" height="3"/>
 			</line>
 			<staticText>
-				<reportElement x="11" y="26" width="138" height="16"/>
+				<reportElement x="13" y="49" width="138" height="16"/>
 				<textElement>
 					<font fontName="SansSerif" size="10" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Transaction comments: ]]></text>
 			</staticText>
+			<line>
+				<reportElement key="line-1" x="4" y="17" width="567" height="1"/>
+			</line>
+			<line>
+				<reportElement key="line-1" x="4" y="15" width="567" height="1"/>
+			</line>
 		</band>
 	</lastPageFooter>
 	<summary>
