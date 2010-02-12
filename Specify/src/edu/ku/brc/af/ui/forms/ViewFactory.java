@@ -636,6 +636,8 @@ public class ViewFactory
             ValComboBoxFromQuery cbx = TypeSearchForQueryFactory.createValComboBoxFromQuery(cbxName, btnOpts, cellField.getFormatName(), helpContext);
             if (cbx != null)
             {
+                if (cellField.getProperty("title") != null) cbx.setFrameTitle(cellField.getProperty("title"));
+
                 cbx.setRequired(isRequired);
                 cbx.setSearchDlgName(cellField.getProperty("searchdlg"));
                 cbx.setDisplayDlgName(cellField.getProperty("displaydlg"));
@@ -680,7 +682,7 @@ public class ViewFactory
         ValComboBox            cbx          = null;
         if (adapter != null)
         {
-            cbx = new ValComboBox(adapter); // false means don't auto-create picklist
+            cbx = new ValComboBox(adapter);
                 
         } else
         {
