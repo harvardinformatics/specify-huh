@@ -16,6 +16,9 @@ import edu.ku.brc.specify.datamodel.Geography;
 
 public class BotanistCountryLoader extends CsvToSqlLoader
 {
+    private int lastAgentId;
+    private int orderNumber;
+    
     // lookups for geography
     private GeoUnitLookup geoLookup;
     private BotanistLookup  botanistLookup;
@@ -29,6 +32,9 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		
 		this.geoLookup = geoLookup;
 		this.botanistLookup = botanistLookup;
+		
+		lastAgentId = 0;
+		orderNumber = 1;
 	}
   
 	@Override
@@ -89,6 +95,18 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		Geography geography = lookupGeography(geoUnitId);
 		agentGeography.setGeography(geography);
 		
+	      // OrderNumber
+        if (agent.getId() != lastAgentId)
+        {
+            orderNumber = 1;
+            lastAgentId = agent.getId();
+        }
+        else
+        {
+            orderNumber++;
+        }
+        agentGeography.setOrderNumber(orderNumber);
+        
 		// Role
 		String role = botanistRoleCountry.getRole();
 		checkNull(role, "role");
@@ -117,16 +135,17 @@ public class BotanistCountryLoader extends CsvToSqlLoader
   
 	private String getInsertSql(AgentGeography agentGeography)
 	{
-		String fieldNames = "AgentId, GeographyID, Remarks, Role, TimestampCreated, Version";
+		String fieldNames = "AgentId, GeographyID, OrderNumber, Remarks, Role, TimestampCreated, Version";
 
-		String[] values = new String[6];
+		String[] values = new String[7];
 
 		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getId());
 		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getId());
-		values[2] = SqlUtils.sqlString( agentGeography.getRemarks()); 
-		values[3] = SqlUtils.sqlString( agentGeography.getRole());
-		values[4] = SqlUtils.now();
-		values[5] = SqlUtils.zero();
+		values[2] = SqlUtils.sqlString( agentGeography.getOrderNumber());
+		values[3] = SqlUtils.sqlString( agentGeography.getRemarks()); 
+		values[4] = SqlUtils.sqlString( agentGeography.getRole());
+		values[5] = SqlUtils.now();
+		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}
