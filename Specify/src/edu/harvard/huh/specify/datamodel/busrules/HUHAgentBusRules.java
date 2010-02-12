@@ -27,11 +27,7 @@ import java.awt.Window;
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 
-import edu.ku.brc.af.core.AppContextMgr;
-import edu.ku.brc.af.prefs.AppPreferences;
-import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.busrules.AgentBusRules;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
