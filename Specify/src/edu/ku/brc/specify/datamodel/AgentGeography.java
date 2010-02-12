@@ -34,6 +34,8 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 
+import edu.ku.brc.util.Orderable;
+
 /**
  * @author mkelly
  * 
@@ -46,10 +48,11 @@ import org.apache.commons.lang.StringUtils;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "agentgeography")
-public class AgentGeography extends DataModelObjBase implements Serializable
+public class AgentGeography extends DataModelObjBase implements Serializable, Orderable, Comparable<AgentGeography>
 {
 
     protected Integer agentGeographyId;
+    protected Integer orderNumber;
     protected String  role;
     protected String  remarks;
     
@@ -75,6 +78,7 @@ public class AgentGeography extends DataModelObjBase implements Serializable
     {
         super.init();
         agentGeographyId = null;
+        orderNumber      = null;
         role             = null;
         remarks          = null;
         agent            = null;
@@ -111,6 +115,18 @@ public class AgentGeography extends DataModelObjBase implements Serializable
         return AgentGeography.class;
     }
 
+    /**
+     * 
+     */
+    @Column(name = "OrderNumber", nullable = false)
+    public Integer getOrderNumber() {
+        return this.orderNumber;
+    }
+    
+    public void setOrderNumber(Integer orderNumber) {
+        this.orderNumber = orderNumber;
+    }
+    
     public void setAgentGeographyId(Integer agentGeographyId)
     {
         this.agentGeographyId = agentGeographyId;
@@ -213,6 +229,30 @@ public class AgentGeography extends DataModelObjBase implements Serializable
         return 78;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.util.Orderable#getOrderIndex()
+     */
+    @Transient
+    public int getOrderIndex()
+    {
+        return getOrderNumber();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.util.Orderable#setOrderIndex(int)
+     */
+    public void setOrderIndex(int order)
+    {
+        setOrderNumber(order);
+    }
+    
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(AgentGeography obj)
+    {
+        return orderNumber.compareTo(obj.orderNumber);
+    }
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getIdentityTitle()
      */
