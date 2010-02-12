@@ -37,7 +37,7 @@
             </altviews>
         </view>    
         
-        <view name="CollectionObject"
+        <view name="Curation (Long)"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
@@ -50,7 +50,7 @@
             </altviews>
         </view>
         
-        <view name="Curation Brief"
+        <view name="Curation (Brief)"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"

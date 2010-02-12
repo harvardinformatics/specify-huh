@@ -2,12 +2,12 @@
 <views>
 	<std>
 	    
-	    <view sidebar="true"  title="Curation (Long)"    view="CollectionObject"   iconname="CollectionObject"   tooltip="long form" mnemonic="C"/>  -->
-	    <view sidebar="true"  title="Curation (Brief)"   view="Curation Brief"     iconname="CollectionObject"   tooltip="short form" mnemonic="B"/>
+	    <view sidebar="true"  title="Curation (Long)"    view="Curation (Long)"    iconname="CollectionObject"   tooltip="long form" mnemonic="C"/>  -->
+	    <view sidebar="true"  title="Curation (Brief)"   view="Curation (Brief)"   iconname="CollectionObject"   tooltip="short form" mnemonic="B"/>
 	    <view sidebar="false" title="Collecting Event"   view="CollectingEvent"    iconname="CollectingEvent"    tooltip="" mnemonic="E"/>    
 	    <view sidebar="true"  title="Taxon"              view="Taxon"              iconname="Taxon"              tooltip="" mnemonic="X"/> 
 	    <view sidebar="true"  title="Botanist"           view="Botanist"           iconname="Agent"              tooltip="author/collector" mnemonic="B"/>
-	    <view sidebar="true"  title="Transaction Agent"  view="TransactionAgent"   iconname="Agent"              tooltip="agent/affiliate" mnemonic="T"/>
+	    <view sidebar="true"  title="Transaction Agent"  view="Transaction Agent"  iconname="Agent"              tooltip="agent/affiliate" mnemonic="T"/>
 	    <view sidebar="true"  title="Geography"          view="Geography"          iconname="Geography"          tooltip="" mnemonic="G"/> 
 		<view sidebar="true"  title="Locality"           view="Locality"           iconname="Locality"           tooltip="" mnemonic="L"/> 
 	</std>

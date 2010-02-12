@@ -33,7 +33,7 @@
             <altviews defaultmode="view">
                 <altview name="AgentGeography View" title="AgentGeography" viewdef="AgentGeography" mode="view" validated="false"/>
                 <altview name="AgentGeography Edit" title="AgentGeography" viewdef="AgentGeography" mode="edit" validated="true" default="true"/>
-                <altview name="AgentGeography Table View" viewdef="AgentGeography Table"    label="Table View" mode="view" />
+                <altview name="AgentGeography Table View" viewdef="AgentGeography Table"    label="Table View" mode="view" default="true"/>
                 <altview name="AgentGeography Table Edit" viewdef="AgentGeography Table"    label="Table Edit" mode="edit"/>
             </altviews>
         </view>
@@ -74,7 +74,7 @@
             </altviews>
         </view>
         
-        <view name="TransactionAgent"
+        <view name="Transaction Agent"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
             isinternal="false"
@@ -83,6 +83,18 @@
             <altviews defaultmode="view">
                 <altview name="Transaction Agent View" title="Transaction Agent" viewdef="Transaction Agent" mode="view" validated="false"/>
                 <altview name="Transaction Agent Edit" title="Transaction Agent" viewdef="Transaction Agent" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view name="Organization"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Organization form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="Organization View" title="Organization" viewdef="Organization" mode="view" validated="false"/>
+                <altview name="Organization Edit" title="Organization" viewdef="Organization" mode="edit" validated="true" default="true"/>
             </altviews>
         </view>
         
@@ -593,9 +605,9 @@
             <enableRules/>
             
             <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px, p:g</columnDef>
-            <columnDef>         100px, 2px, 190px, 5px,  50px, 2px, 478px, p, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 150px, 5px,  80px, 2px, 471px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 471px, p:g</columnDef>
+            <columnDef>         100px, 2px, 190px, 5px,  50px, 2px, 420px, p, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 150px, 5px,  80px, 2px, 420px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 420px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
@@ -630,7 +642,7 @@
         </viewdef>
         
         <viewdef
-	    name="AgentGeography"
+	    	name="AgentGeography"
             type="form"          
             class="edu.ku.brc.specify.datamodel.AgentGeography"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -645,9 +657,9 @@
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
-  		<row>
+  				<row>
                     <cell type="label" labelfor="role"/>
-                    <cell type="field" id="role" name="role" uitype="combobox" picklist="AgentRole"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="HUH Botanist Role"/>
                     <cell type="label" labelfor="geography"/>
                     <cell type="field" id="geography" uitype="querycbx" initialize="name=Geography" name="geography"/>
                 </row>
@@ -666,22 +678,24 @@
         </viewdef>
         
         <viewdef
-            name="AgentSpecialty"
-            type="form"
+	    	name="AgentSpecialty"
+            type="form"          
             class="edu.ku.brc.specify.datamodel.AgentSpecialty"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[The AgentSpecialty form.]]></desc>
             <enableRules/>
             
-            <columnDef os="exp">p,     2px, 400px, 2px, p:g</columnDef>
-            <columnDef>         100px, 2px, 478px, p,   p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 471px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 471px, 2px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 190px, 5px, 100px, 2px, 420px, p, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 150px, 5px, 100px, 2px, 420px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px, 100px, 2px, 420px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
-  	        <row>
+  				<row>
+                    <cell type="label" labelfor="role"/>
+                    <cell type="field" id="role" name="role" uitype="text"/>
                     <cell type="label" labelfor="specialtyName"/>
                     <cell type="field" id="specialtyName" uitype="text" name="specialtyName"/>
                 </row>
@@ -851,19 +865,24 @@
                     <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="18"/>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="16"/>
                 </row>
 			    <row>
-                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentGeography" id="agentGeographies" name="agentGeographies" colspan="18"/>
+				    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentGeography" defaulttype="AgentGeography Table View" id="agentGeographies" name="agentGeographies" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentSpecialty" id="agentSpecialties" name="agentSpecialties" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentSpecialty" defaulttype="AgentSpecialty Table View" id="agentSpecialties" name="agentSpecialties" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentCitation" id="agentCitations" name="agentCitations" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentCitation" defaulttype="AgentCitation Table View" id="agentCitations" name="agentCitations" colspan="16"/>
 			    </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="18"/>
@@ -884,7 +903,7 @@
             <desc><![CDATA[Agent form for botanist (collector/author) data entry.]]></desc>
 
             <columnDef>          98px, 2px, 150px,        5px,   40px, 5px,  80px, 2px, 150px,        5px,   40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="lnx">113px, 2px, 160px,        5px,   40px, 5px,  95px, 2px, 160px,        5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="lnx"> 98px, 2px, 160px,        5px,   40px, 5px,  95px, 2px, 160px,        5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
             <columnDef os="mac">128px, 2px, 190px,        5px,   40px, 5px, 100px, 2px, 190px,        5px,   40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
             <columnDef os="exp">p,     2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
@@ -920,19 +939,24 @@
                 	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="18"/>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="16"/>
                 </row>
 			    <row>
-                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentVariant" id="10" name="variants" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentGeography" id="agentGeographies" name="agentGeographies" colspan="18"/>
+				    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentGeography" defaulttype="AgentGeography Table View" id="agentGeographies" name="agentGeographies" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentSpecialty" id="agentSpecialties" name="agentSpecialties" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentSpecialty" defaulttype="AgentSpecialty Table View" id="agentSpecialties" name="agentSpecialties" colspan="16"/>
 			    </row>
 			    <row>
-                    <cell type="subview" viewname="AgentCitation" id="agentCitations" name="agentCitations" colspan="18"/>
+			    	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentCitation" defaulttype="AgentCitation Table View" id="agentCitations" name="agentCitations" colspan="16"/>
 			    </row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="18"/>
@@ -960,20 +984,18 @@
 
             <rows>
                 <row>
-                    <cell type="label" labelfor="0"/>
-                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles" colspan="3"/>
-                    <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
-                    <!-- <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="middleInitial" uitype="text" colspan="3"/> -->
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
                 </row>
                 <!-- "Job Title:" -->
                 <row>
@@ -994,7 +1016,7 @@
                 <!-- Parent Organization -->
                 <row>
                 	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="9"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
                 </row>
 
 				<!-- Interests -->
@@ -1009,10 +1031,6 @@
                 	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
                 </row>
 
-				<row>
-					<cell type="label" labelfor="collContentContact"/>
-					<cell type="field" id="collContentContact" name="collContentContact" uitype="querycbx" initialize="name=Agent;title=Curator/Contact" colspan="9"/>
-				</row>
 			    <row>
                     <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
                 </row>
@@ -1033,24 +1051,64 @@
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
 
-            <desc><![CDATA[Agent subform for Acessions.]]></desc>
-            <columnDef>p,3dlu,p,p:g</columnDef>
-            <!--  <rowDef>p,2dlu,p,2dlu,p,2dlu,p,10px,p:g</rowDef> -->
-			<rowDef auto="true" cell="p" sep="2dlu"/>
-			
+            <desc><![CDATA[Organization subform.]]></desc>
+            <columnDef>          98px, 2px, 150px,        5px,   40px, 5px,  80px, 2px, 150px,        5px,   40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="lnx">113px, 2px, 160px,        5px,   40px, 5px,  95px, 2px, 160px,        5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px, 190px,        5px,   40px, 5px, 100px, 2px, 190px,        5px,   40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+
             <rows>
                 <row>
-                    <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="lastName" uitype="text" cols="30" />
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3" default="0"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="abbreviation" uitype="text" cols="20"/>
+                	<cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
+                </row>
+                <!-- "URL:" -->
+                <row>
+                	<cell type="label" labelfor="17" />
+                	<cell type="field" id="17" name="url" uitype="text" colspan="9" />
                 </row>
                 <row>
-                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="4"/>
+                	<cell type="label" labelfor="7"/>
+                	<cell type="field" id="7" name="email" uitype="text" colspan="9" cols="32"/>
+                    <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=7"/>
                 </row>
-            </rows>
+                
+                <!-- Parent Organization -->
+                <row>
+                	<cell type="label" labelfor="organization"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
+                </row>
+
+				<!-- Interests -->
+                <row>
+                	<cell type="label" labelfor="interests"/>
+                	<cell type="field" id="interests" name="interests" uitype="text" colspan="9"/>
+                </row>
+                
+                <!-- "Remarks:" -->
+                <row>
+                	<cell type="label" labelfor="16" />
+                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
+                </row>
+
+			    <row>
+                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="18"/>
+                </row>
+                <row>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
+                </row>
+                
+	    	</rows>
         </viewdef>
 
         <viewdef
