@@ -717,7 +717,10 @@ public class DataEntryTask extends BaseTask
                             
                             NavBoxAction nba = new NavBoxAction(cmdAction);
                             
-                            NavBoxItemIFace nbi = NavBox.createBtnWithTT(tableInfo.getTitle(), dev.getIconName(), dev.getToolTip(), IconManager.STD_ICON_SIZE, nba);
+                            String title = dev.getTitle() == null ? tableInfo.getTitle() : dev.getTitle();
+                            
+                            NavBoxItemIFace nbi = NavBox.createBtnWithTT(title, dev.getIconName(), dev.getToolTip(), IconManager.STD_ICON_SIZE, nba);
+                            
                             if (nbi instanceof NavBoxButton)
                             {
                                 NavBoxButton nbb = (NavBoxButton)nbi;
