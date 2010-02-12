@@ -158,6 +158,17 @@
         </view>
         
         <view 
+            name="OrganizationSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Organization Search Form]]></desc>
+            <altviews>
+                <altview name="OrganizationSearch" viewdef="OrganizationSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view 
             name="PrepTypeSearch"
             class="edu.ku.brc.specify.datamodel.PrepType"
             usedefbusrule="false"
@@ -586,6 +597,47 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
             </rows>
         </viewdef>      
+        
+        <viewdef type="form"
+            name="OrganizationSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Organization Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Organization Info" colspan="7"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="abbrev" label="Acronym"/>
+                    <cell type="field" id="abbrev" name="Abbreviation" uitype="text" cols="20"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="1" label="Name"/>
+                    <cell type="field" id="1" name="LastName" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="4" label="Address"/>
+                    <cell type="field" id="4" name="Address" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5" label="City"/>
+                    <cell type="field" id="5" name="City" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="6" label="State"/>
+                    <cell type="field" id="6" name="State" uitype="text" cols="15"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="7" label="Postal Code"/>
+                    <cell type="field" id="7" name="Postalcode" uitype="text" cols="11"/>
+                    <cell type="label" labelfor="8" label="Country"/>
+                    <cell type="field" id="8" name="Country" uitype="text" cols="20"/>
+                </row>
+            </rows>
+        </viewdef>
         
         <viewdef type="form"
             name="PermitSearch"
