@@ -1580,13 +1580,25 @@
         </names>
         <descs/>
       </item>
+      <item name="agentSpecialties" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Specialties</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
       <item name="agentGeographies" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Agent Geographies</text>
+            <text>Geographies</text>
           </str>
         </names>
         <descs/>
@@ -1598,7 +1610,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Agent Specialties</text>
+            <text>Specialties</text>
           </str>
         </names>
         <descs/>
@@ -2436,6 +2448,23 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
+      <item name="orderNumber" isUIFormatter="false" isRequired="true">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Order Number</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The priority of specialization, for agents with primary and secondary areas of specialization.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
       <item name="remarks" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -2573,6 +2602,23 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>The priority of specialization, for agents with primary and secondary areas of specialization.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="role" isUIFormatter="false" isRequired="false" pickListName="HUH Botanist Role">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Role</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Role of the agent as &quot;author&quot; or &quot;collector&quot; for the specialization.</text>
           </str>
         </descs>
         <spExportSchemaItems/>
