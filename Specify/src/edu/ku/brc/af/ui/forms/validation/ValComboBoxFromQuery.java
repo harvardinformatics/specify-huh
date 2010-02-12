@@ -531,6 +531,9 @@ public class ValComboBoxFromQuery extends JPanel implements UIValidatable,
         
         ViewBasedSearchDialogIFace dlg = UIRegistry.getViewbasedFactory().createSearchDialog(UIHelper.getWindow(searchBtn), 
                                                                                              dlgName);
+
+        if (frameTitle != null) dlg.setTitle(frameTitle + " " + UIRegistry.getResourceString("SEARCH"));
+        
         dlg.setMultipleSelection(false);
         if (builder != null)
         {
