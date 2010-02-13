@@ -54,11 +54,19 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
             insert(sql);
         }
         
-        Agent donorAgent = lookupAgent(purchase);
+        Agent donorAgent = lookupOrganization(purchase);
         if (donorAgent != null)
         {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Contributor);
+            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Seller);
             sql = getInsertSql(donor);
+            insert(sql);
+        }
+        
+        Agent contactAgent = lookupAgent(purchase);
+        if (contactAgent != null)
+        {
+            AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
+            sql = getInsertSql(contact);
             insert(sql);
         }
     }

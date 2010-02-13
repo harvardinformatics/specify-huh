@@ -56,9 +56,18 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
         Agent donorAgent = lookupAgent(incomingExchange);
         if (donorAgent != null)
         {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Contributor);
+            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Contact);
             sql = getInsertSql(donor);
             insert(sql);
+            
+            Agent contributorAgent = lookupOrganization(incomingExchange);
+            
+            if (contributorAgent != null)
+            {
+                AccessionAgent contributor = getAccessionAgent(accession, contributorAgent, ROLE.Contributor);
+                sql = getInsertSql(contributor);
+                insert(sql);
+            }
         }
     }
     

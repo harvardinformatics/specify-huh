@@ -9,6 +9,7 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 
 // Run this class after AffiliateLoader, AgentLoader, and OrganizationLoader
 public abstract class TaxonBatchTransactionLoader extends CountableTransactionLoader
@@ -17,9 +18,10 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
                              Statement sqlStatement,
                              BotanistLookup botanistLookup,
                              AffiliateLookup affiliateLookup,
-                             AgentLookup agentLookup) throws LocalException
+                             AgentLookup agentLookup,
+                             OrganizationLookup organizationLookup) throws LocalException
     {
-        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup);
+        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup, organizationLookup);
     }
         
     protected int parse(String[] columns, TaxonBatchTransaction tbTx) throws LocalException

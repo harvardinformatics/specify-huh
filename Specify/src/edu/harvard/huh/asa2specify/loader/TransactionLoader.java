@@ -11,6 +11,7 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 
 // Run this class after AffiliateLoader, AgentLoader, and OrganizationLoader
@@ -32,18 +33,21 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 	private static BotanistLookup BotanistLookup;
 	private static AgentLookup AgentLookup;
 	private static AffiliateLookup AffiliateLookup;
+	private static OrganizationLookup OrganizationLookup;
 	
 	public TransactionLoader(File csvFile,
 	                         Statement sqlStatement,
 	                         BotanistLookup botanistLookup,
 	                         AffiliateLookup affiliateLookup,
-	                         AgentLookup agentLookup) throws LocalException
+	                         AgentLookup agentLookup,
+	                         OrganizationLookup organizationLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		if (BotanistLookup == null) BotanistLookup  = botanistLookup;
 		if (AgentLookup == null) AgentLookup = agentLookup;
 		if (AffiliateLookup == null) AffiliateLookup = affiliateLookup;
+		if (OrganizationLookup == null) OrganizationLookup = organizationLookup;
 	}
 
 	protected TransactionLoader(File csvFile, Statement sqlStatement) throws LocalException
@@ -53,7 +57,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 
 	protected int parse(String[] columns, Transaction transaction) throws LocalException
 	{
-    	if (columns.length < 20)
+    	if (columns.length < 21)
     	{
     		throw new LocalException("Not enough columns");
     	}
@@ -67,19 +71,20 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 		    transaction.setUpdateDate(            SqlUtils.parseDate( columns[4]  ));
 			transaction.setType(               Transaction.parseType( columns[5]  ));
 			transaction.setAgentId(                SqlUtils.parseInt( columns[6]  ));
-			transaction.setLocalUnit(                                 columns[7]  );
-			transaction.setRequestType( Transaction.parseRequestType( columns[8]  ));
-			transaction.setPurpose(         Transaction.parsePurpose( columns[9]  ));
-			transaction.setAffiliateId(            SqlUtils.parseInt( columns[10] ));
-			transaction.setUserType(       Transaction.parseUserType( columns[11] ));
-			transaction.setIsAcknowledged(      Boolean.parseBoolean( columns[12] ));
-			transaction.setOpenDate(              SqlUtils.parseDate( columns[13] ));
-			transaction.setCloseDate(             SqlUtils.parseDate( columns[14] ));			
-			transaction.setTransactionNo(                             columns[15] );
-			transaction.setForUseBy(                                  columns[16] );
-			transaction.setBoxCount(                                  columns[17] );
-			transaction.setDescription(                               columns[18] );
-			transaction.setRemarks(                                   columns[19] );
+			transaction.setOrganizationId(         SqlUtils.parseInt( columns[7]  ));
+			transaction.setLocalUnit(                                 columns[8]  );
+			transaction.setRequestType( Transaction.parseRequestType( columns[9]  ));
+			transaction.setPurpose(         Transaction.parsePurpose( columns[10]  ));
+			transaction.setAffiliateId(            SqlUtils.parseInt( columns[11] ));
+			transaction.setUserType(       Transaction.parseUserType( columns[12] ));
+			transaction.setIsAcknowledged(      Boolean.parseBoolean( columns[13] ));
+			transaction.setOpenDate(              SqlUtils.parseDate( columns[14] ));
+			transaction.setCloseDate(             SqlUtils.parseDate( columns[15] ));			
+			transaction.setTransactionNo(                             columns[16] );
+			transaction.setForUseBy(                                  columns[17] );
+			transaction.setBoxCount(                                  columns[18] );
+			transaction.setDescription(                               columns[19] );
+			transaction.setRemarks(                                   columns[20] );
         
 		}
 		catch (NumberFormatException e)
@@ -112,6 +117,15 @@ public abstract class TransactionLoader extends AuditedObjectLoader
         else return AffiliateLookup.getById(affiliateId);
     }
     
+    protected Agent lookupOrganization(Transaction transaction) throws LocalException
+    {
+        Integer organizationId = transaction.getOrganizationId();
+        
+        if (organizationId == null) return null;
+        
+        else return OrganizationLookup.getById(organizationId);
+    }
+
     /**
      * (user: [for_use_by], type: [user_type], purpose: [purpose])
      */

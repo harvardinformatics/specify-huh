@@ -5,6 +5,7 @@ select t.id,
        to_char(t.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        (select name from st_lookup where id=t.type_id) as transaction_type,
        t.agent_id,
+       a.organization_id,
        (select acronym from organization where id=t.local_unit_id) as local_unit,
        (select name from st_lookup where id=t.request_type_id) as request_type,
        (select name from st_lookup where id=t.purpose_id) as purpose,
@@ -30,9 +31,11 @@ select t.id,
        igb.cost
 
 from herb_transaction t,
+     agent a,
      in_geo_batch igb
 
 where t.id=igb.herb_transaction_id(+) and
+      t.agent_id=a.id(+) and
       (select name from st_lookup where id=t.type_id) = 'incoming gift'
 
 order by t.id

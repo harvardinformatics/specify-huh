@@ -5,6 +5,7 @@ select t.id,
        to_char(t.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        (select name from st_lookup where id=t.type_id) as transaction_type,
        t.agent_id,
+       a.organization_id,
        (select acronym from organization where id=t.local_unit_id) as local_unit,
        (select name from st_lookup where id=t.request_type_id) as request_type,
        (select name from st_lookup where id=t.purpose_id) as purpose,
@@ -32,6 +33,7 @@ select t.id,
        return_items.quantity as quantity_returned
 
 from herb_transaction t,
+     agent a,
      taxon_batch tb,
 
      (select ht.id as borrow_id,
@@ -44,6 +46,7 @@ from herb_transaction t,
 
 where (select name from st_lookup where id=t.type_id) = 'borrow' and
       t.id=tb.herb_transaction_id and
+      t.agent_id=a.id(+) and
       t.id=return_items.borrow_id(+)
 
 order by t.id

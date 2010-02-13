@@ -125,7 +125,8 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setRestrictions(purpose);
         
         // SentToOrganization
-        Agent agentSentTo = lookupAgent(outExchange);
+        Agent agentSentTo = lookupOrganization(outExchange);
+        if (agentSentTo == null) agentSentTo = lookupAgent(outExchange);
         checkNull(agentSentTo, "recipient");
         exchangeOut.setAgentSentTo(agentSentTo);
         

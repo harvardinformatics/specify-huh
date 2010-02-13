@@ -24,7 +24,7 @@ public class Transaction extends AuditedObject
     // config/common/picklist
     public enum ACCESSION_TYPE { Gift, Collection, Disposal, Exchange, FieldWork, Lost, Other, Purchase };
     
-    public enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, Guest, Lender, Other, Preparer, Receiver, Reviewer, Sponsor, Staff, Student };
+    public enum ROLE { Borrower, Benefactor, Collector, Contact, Contributor, Donor, ForUseBy, Guest, Lender, Other, Preparer, Receiver, Reviewer, Seller, Sponsor, Staff, Student };
 	
 	public static TYPE parseType(String string) throws AsaException
 	{
@@ -117,6 +117,7 @@ public class Transaction extends AuditedObject
     
 	private TYPE         type;
 	private Integer      agentId;
+	private Integer      organizationId;
 	private String       localUnit;
 	private REQUEST_TYPE requestType;
 	private PURPOSE      purpose;
@@ -134,6 +135,8 @@ public class Transaction extends AuditedObject
 	public TYPE getType() { return type; }
 	
 	public Integer getAgentId() { return agentId; }
+	
+	public Integer getOrganizationId() { return organizationId; }
 	
 	public String getLocalUnit() { return localUnit; }
 	
@@ -164,6 +167,8 @@ public class Transaction extends AuditedObject
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setAgentId(Integer agentId) { this.agentId = agentId; }
+	
+	public void setOrganizationId(Integer organizationId) { this.organizationId = organizationId; }
 	
 	public void setLocalUnit(String localUnit) { this.localUnit = localUnit; }
 	

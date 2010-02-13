@@ -5,6 +5,7 @@ select t.id,
        to_char(t.update_date, 'YYYY-MM-DD HH24:MI:SS') as date_updated,
        (select name from st_lookup where id=t.type_id) as transaction_type,
        t.agent_id,
+       a.organization_id,
        (select acronym from organization where id=t.local_unit_id) as local_unit,
        (select name from st_lookup where id=t.request_type_id) as request_type,
        (select name from st_lookup where id=t.purpose_id) as purpose,
@@ -19,8 +20,10 @@ select t.id,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks
 
-from herb_transaction t
+from herb_transaction t,
+     agent a
 
-where (select name from st_lookup where id=t.type_id) = 'outgoing gift'
+where (select name from st_lookup where id=t.type_id) = 'outgoing gift' and
+      t.agent_id=a.id(+)
 
 order by t.id

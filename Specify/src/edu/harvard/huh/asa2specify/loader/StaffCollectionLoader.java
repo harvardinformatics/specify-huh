@@ -52,14 +52,7 @@ public class StaffCollectionLoader extends InGeoBatchTransactionLoader
             sql = getInsertSql(receiver);
             insert(sql);
         }
-        
-        Agent donorAgent = lookupAgent(staffCollection);
-        if (donorAgent != null)
-        {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Donor);
-            sql = getInsertSql(donor);
-            insert(sql);
-        }
+
     }
     
     private StaffCollection parse(String[] columns) throws LocalException

@@ -397,7 +397,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                          statement,
                                                          botanistLookup,
                                                          affiliateLookup,
-                                                         agentLookup);
+                                                         agentLookup,
+                                                         orgLookup);
             if (doBorrow)
             {
                 int borrowRecords = borrowLoader.loadRecords();
@@ -430,6 +431,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                    botanistLookup,
                                                    affiliateLookup,
                                                    agentLookup,
+                                                   orgLookup,
                                                    new File(dir, "loan_botanist.csv"));
             
             if (doLoan)

@@ -8,6 +8,7 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 
 public abstract class OutGeoBatchTransactionLoader extends CountableTransactionLoader
 {
@@ -15,9 +16,10 @@ public abstract class OutGeoBatchTransactionLoader extends CountableTransactionL
                              Statement sqlStatement,
                              BotanistLookup botanistLookup,
                              AffiliateLookup affiliateLookup,
-                             AgentLookup agentLookup) throws LocalException
+                             AgentLookup agentLookup,
+                             OrganizationLookup organizationLookup) throws LocalException
     {
-        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup);
+        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup, organizationLookup);
     }
         
     protected OutGeoBatchTransactionLoader(File csvFile, Statement sqlStatement) throws LocalException

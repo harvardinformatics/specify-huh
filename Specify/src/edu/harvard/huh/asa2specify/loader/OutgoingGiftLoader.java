@@ -65,12 +65,21 @@ public class OutgoingGiftLoader extends TransactionLoader
         }
         Integer collectionMemberId = getCollectionId(herbariumCode);
 
-        Agent receiverAgent = lookupAgent(outgoingGift);
+        Agent receiverAgent = lookupOrganization(outgoingGift);
         if (receiverAgent != null)
         {
             GiftAgent receiver = getGiftAgent(receiverAgent, collectionMemberId, gift, ROLE.Receiver);
 
             sql = getInsertSql(receiver);
+            insert(sql);
+        }
+        
+        Agent contactAgent = lookupAgent(outgoingGift);
+        if (contactAgent != null)
+        {
+            GiftAgent contact = getGiftAgent(contactAgent, collectionMemberId, gift, ROLE.Contact);
+
+            sql = getInsertSql(contact);
             insert(sql);
         }
     }

@@ -17,6 +17,7 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -31,9 +32,10 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
                                        Statement sqlStatement,
                                        BotanistLookup botanistLookup,
                                        AffiliateLookup affiliateLookup,
-                                       AgentLookup agentLookup) throws LocalException
+                                       AgentLookup agentLookup,
+                                       OrganizationLookup organizationLookup) throws LocalException
     {
-        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup);
+        super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup, organizationLookup);
     }
         
     protected InGeoBatchTransactionLoader(File csvFile, Statement sqlStatement) throws LocalException
@@ -45,7 +47,7 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
     {        
         int i = super.parse(columns, inGeoBatchTx);
         
-        if (columns.length < i + 5)
+        if (columns.length < i + 6)
         {
             throw new LocalException("Not enough columns");
         }

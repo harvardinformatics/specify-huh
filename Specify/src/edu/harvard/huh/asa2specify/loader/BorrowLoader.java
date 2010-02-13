@@ -29,6 +29,7 @@ import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
@@ -45,13 +46,15 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
                         Statement sqlStatement,
                         BotanistLookup botanistLookup,
                         AffiliateLookup affiliateLookup,
-                        AgentLookup agentLookup) throws LocalException
+                        AgentLookup agentLookup,
+                        OrganizationLookup organizationLookup) throws LocalException
    {
         super(csvFile,
               sqlStatement,
               botanistLookup,
               affiliateLookup,
-              agentLookup);
+              agentLookup,
+              organizationLookup);
    }
 
     // Loads records from asa tables herb_transaction (type='borrow') and taxon_batch.
@@ -79,6 +82,13 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         if (borrower != null)
         {
             sql = getInsertSql(borrower);
+            insert(sql);
+        }
+        
+        BorrowAgent contact = getBorrowAgent(asaBorrow, borrow, ROLE.Contact, collectionMemberId); // "contact"
+        if (contact != null)
+        {
+            sql = getInsertSql(contact);
             insert(sql);
         }
         
@@ -240,11 +250,15 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         {
             agent = lookupAffiliate(transaction);
         }
-        else if (role.equals(ROLE.Lender))
+        else if (role.equals(ROLE.Contact))
         {
             agent = lookupAgent(transaction);
         }
-        
+        else if (role.equals(ROLE.Lender))
+        {
+            agent = lookupOrganization(transaction);
+        }
+
         if (agent ==  null || agent.getId() == null) return null;
         
         borrowAgent.setAgent(agent);

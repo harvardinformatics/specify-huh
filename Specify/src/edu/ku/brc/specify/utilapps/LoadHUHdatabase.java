@@ -405,7 +405,8 @@ public class LoadHUHdatabase
                                                          statement,
                                                          botanistLookup,
                                                          affiliateLookup,
-                                                         agentLookup);
+                                                         agentLookup,
+                                                         orgLookup);
             borrowLoader.setFrame(frame);
             int borrowRecords = borrowLoader.loadRecords();
             log.info("Loaded " + borrowRecords + " borrow records");
@@ -436,6 +437,7 @@ public class LoadHUHdatabase
                                                    botanistLookup,
                                                    affiliateLookup,
                                                    agentLookup,
+                                                   orgLookup,
                                                    new File(dir, "loan_botanist.csv"));
             loanLoader.setFrame(frame);
             int loanLoaderRecords = loanLoader.loadRecords();

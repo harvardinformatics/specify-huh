@@ -35,6 +35,7 @@ import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanPreparationLookup;
+import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanAgent;
@@ -61,13 +62,15 @@ public class LoanLoader extends TaxonBatchTransactionLoader
                       BotanistLookup botanistLookup,
                       AffiliateLookup affiliateLookup,
                       AgentLookup agentLookup,
+                      OrganizationLookup organizationLookup,
                       File nameToBotanist) throws LocalException
     {
         super(csvFile,
               sqlStatement,
               botanistLookup,
               affiliateLookup,
-              agentLookup);
+              agentLookup,
+              organizationLookup);
         
         this.nameToBotanistMapper = new AsaStringMapper(nameToBotanist);
     }
@@ -87,6 +90,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         Loan loan = getLoan(asaLoan);
         
         String forUseBy = asaLoan.getForUseBy();
+        Agent forUseByAgent = null;
         Agent borrowerAgent = null;
         Agent contactAgent = null;
         
@@ -98,14 +102,16 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             
             if (botanistId != null)
             { 
-                borrowerAgent = lookup(botanistId);
+                forUseByAgent = lookup(botanistId);
             }
         }
         else
         {
-            borrowerAgent = lookupAgent(asaLoan);
+            forUseByAgent = lookupAgent(asaLoan);
         }
 
+        borrowerAgent = lookupOrganization(asaLoan);
+        
         String sql = getInsertSql(loan);
         Integer loanId = insert(sql);
         loan.setLoanId(loanId);
@@ -131,6 +137,16 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             }
         }
 
+        if (forUseByAgent != null)
+        {
+            LoanAgent user = getLoanAgent(loan, forUseByAgent, ROLE.ForUseBy, Transaction.toString(asaLoan.getUserType()));
+            if (user != null)
+            {
+                sql = getInsertSql(user);
+                insert(sql);
+            }
+        }
+        
         LoanPreparation loanPrep = getLoanPreparation(asaLoan, loan, collectionMemberId);
         if (loanPrep != null)
         {

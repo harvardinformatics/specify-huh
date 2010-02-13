@@ -53,13 +53,14 @@ public class IncomingGiftLoader extends InGeoBatchTransactionLoader
             insert(sql);
         }
         
-        Agent donorAgent = lookupAgent(incomingGift);
-        if (donorAgent != null)
+        Agent contactAgent = lookupAgent(incomingGift);
+        if (contactAgent != null)
         {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Donor);
-            sql = getInsertSql(donor);
+            AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Donor);
+            sql = getInsertSql(contact);
             insert(sql);
         }
+
     }
     
     private IncomingGift parse(String[] columns) throws LocalException
