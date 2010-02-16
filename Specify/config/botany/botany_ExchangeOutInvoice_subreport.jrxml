@@ -157,9 +157,6 @@ where exchangeout.ExchangeOutID = $P!{itemnum}]]>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{herbarium}]]></textFieldExpression>
 			</textField>
-			<line>
-				<reportElement key="line-1" x="8" y="5" width="566" height="1"/>
-			</line>
 			<staticText>
 				<reportElement key="staticText-9" mode="Transparent" x="311" y="14" width="191" height="15" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
@@ -188,14 +185,14 @@ where exchangeout.ExchangeOutID = $P!{itemnum}]]>
 			<staticText>
 				<reportElement x="8" y="74" width="634" height="18"/>
 				<textElement>
-					<font fontName="SansSerif" size="10" isBold="true"/>
+					<font fontName="SansSerif" size="8" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Coll.   Taxon                                              Comments                                                        General   Types     Received   ]]></text>
+				<text><![CDATA[Coll.   Taxon                         Comments                                                                                             Gen.   Non-Spec   Types     Received   ]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="100" isSplitAllowed="true">
+		<band height="124" isSplitAllowed="true">
 			<subreport isUsingCache="true">
 				<reportElement key="subreport-1" x="1" y="0" width="593" height="98"/>
 				<subreportParameter name="itemnum">
@@ -207,6 +204,9 @@ where exchangeout.ExchangeOutID = $P!{itemnum}]]>
 				<returnValue subreportVariable="typeCount" toVariable="types"/>
 				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_ExchangeOutPrep_subreport.jasper"]]></subreportExpression>
 			</subreport>
+			<line>
+				<reportElement key="line-1" x="8" y="113" width="566" height="1"/>
+			</line>
 		</band>
 	</detail>
 	<columnFooter>
