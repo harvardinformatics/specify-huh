@@ -100,7 +100,7 @@ where shipment.ShipmentID $P!{itemnum}]]>
 		<band isSplitAllowed="true"/>
 	</background>
 	<title>
-		<band height="301" isSplitAllowed="true">
+		<band height="289" isSplitAllowed="true">
 			<rectangle>
 				<reportElement key="rectangle-1" mode="Transparent" x="400" y="49" width="170" height="44"/>
 			</rectangle>
@@ -406,7 +406,7 @@ U.S.A.]]></text>
 		<band isSplitAllowed="true"/>
 	</pageHeader>
 	<columnHeader>
-		<band height="9" isSplitAllowed="true"/>
+		<band height="1" isSplitAllowed="true"/>
 	</columnHeader>
 	<detail>
 		<band height="25" isSplitAllowed="true">
