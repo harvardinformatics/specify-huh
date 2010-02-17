@@ -298,7 +298,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     	if (!isOpeningTree) // as oppose to opening the TreeDef
     	{
             PermissionSettings perms = DBTableIdMgr.getInstance().getByShortClassName(treeClass.getSimpleName()).getPermissions();
-            final boolean isViewOnly = perms != null && perms.isViewOnly();
+            final boolean isViewOnly = true;//perms != null && perms.isViewOnly();
             final boolean isViewable = perms == null || perms.canView();
             final boolean isEditable = perms == null || perms.canModify();
             
