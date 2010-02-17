@@ -37,6 +37,7 @@ public class DataEntryView implements TaskConfigItemIFace, Comparable<TaskConfig
     protected String  view;
     protected String  iconName;
     protected String  toolTip;
+    protected String  mnemonic;
     protected int     order;
     protected boolean isSideBar;
     
@@ -145,6 +146,20 @@ public class DataEntryView implements TaskConfigItemIFace, Comparable<TaskConfig
     public void setToolTip(String toolTip)
     {
         this.toolTip = toolTip;
+    }
+    /**
+     * @return the mnemonic
+     */
+    public String getMnemonic()
+    {
+        return mnemonic;
+    }
+    /**
+     * @param mnemonic the mnemonic to set
+     */
+    public void setMnemonic(String mnemonic)
+    {
+        this.mnemonic = mnemonic;
     }
     /**
      * @return the isSideBar
