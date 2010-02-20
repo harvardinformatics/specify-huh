@@ -15,7 +15,6 @@ import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
@@ -131,12 +130,7 @@ public class TaxonLoader extends TreeLoader
 		Integer citPublId = asaTaxon.getCitPublId();
 		if (citPublId != null)
 		{
-		    ReferenceWork parent = lookupPublication(citPublId);
-		    ReferenceWork referenceWork = getReferenceWork(asaTaxon, parent);
-
-		    sql = getInsertSql(referenceWork);
-            Integer referenceWorkId = insert(sql);
-            referenceWork.setReferenceWorkId(referenceWorkId);
+		    ReferenceWork referenceWork = lookupPublication(citPublId);
 		    
             // CitInAuthor or StdExAuthor or StdAuthor
             Agent authorAgent = asaTaxon.getCitInAuthorId() != null ? taxon.getCitInAuthor() : 
@@ -144,13 +138,7 @@ public class TaxonLoader extends TreeLoader
 
             if (authorAgent != null)
             {
-                if (authorAgent.getId() != null)
-                {
-                    Author author = getAuthor(authorAgent, referenceWork, 1);
-                    sql = getInsertSql(author);
-                    insert(sql);
-                }
-                else
+                if (authorAgent.getId() == null)
                 {
                     getLogger().warn(rec() + taxon.getFullName() + " Publication but no author");
                 }
@@ -381,35 +369,6 @@ public class TaxonLoader extends TreeLoader
 	{
 		return String.valueOf(asaTaxonId);
 	}
-
-    private ReferenceWork getReferenceWork(AsaTaxon asaTaxon, ReferenceWork parent)
-    {
-        ReferenceWork referenceWork = new ReferenceWork();
-
-        // ContainedRFParent
-        referenceWork.setContainedRFParent(parent);
-
-        // ReferenceWorkType
-        referenceWork.setReferenceWorkType(ReferenceWork.PROTOLOGUE);
-
-        return referenceWork;
-    }
-    
-    private Author getAuthor(Agent agent, ReferenceWork referenceWork, int orderNumber)
-    {
-        Author author = new Author();
-
-        // Agent
-        author.setAgent(agent);
-        
-        // OrderNumber
-        author.setOrderIndex(orderNumber);
-        
-        // ReferenceWork
-        author.setReferenceWork(referenceWork);
-        
-        return author;
-    }
     
 	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon, Taxon taxon, ReferenceWork referenceWork) throws LocalException
 	{	        
@@ -495,35 +454,5 @@ public class TaxonLoader extends TreeLoader
         values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
-    }
-    
-    private String getInsertSql(ReferenceWork referenceWork)
-    {
-        String fieldNames = "ContainedRFParentID, ReferenceWorkType, " +
-        		            "TimestampCreated, Version";
-        
-        String[] values = new String[4];
-        
-        values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
-        values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-        values[2] = SqlUtils.now();
-        values[3] = SqlUtils.zero();
-        
-        return SqlUtils.getInsertSql("referencework", fieldNames, values);
-    }
-    
-    private String getInsertSql(Author author)
-    {
-        String fieldNames = "AgentID, OrderNumber, ReferenceWorkID, TimestampCreated, Version";
-        
-        String[] values = new String[5];
-        
-        values[0] = SqlUtils.sqlString( author.getAgent().getId());
-        values[1] = SqlUtils.sqlString( author.getOrderNumber());
-        values[2] = SqlUtils.sqlString( author.getReferenceWork().getId());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
-        
-        return SqlUtils.getInsertSql("author", fieldNames, values);
     }
 }
