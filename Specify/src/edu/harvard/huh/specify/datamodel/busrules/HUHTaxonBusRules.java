@@ -21,20 +21,29 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.Component;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+
 import org.hibernate.Hibernate;
 
+import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentVariant;
+import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Taxon;
-import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 import edu.ku.brc.specify.datamodel.busrules.TaxonBusRules;
-import edu.ku.brc.specify.treeutils.TreeHelper;
+import edu.ku.brc.specify.tasks.TreeTaskMgr;
+import edu.ku.brc.ui.GetSetValueIFace;
 
 /**
  * This alters the UI depending on which type of agent is set.
@@ -54,6 +63,52 @@ public class HUHTaxonBusRules extends TaxonBusRules
     public HUHTaxonBusRules()
     {
         super();
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#initialize(edu.ku.brc.ui.forms.Viewable)
+     */
+    @Override
+    public void initialize(Viewable viewableArg)
+    {
+        super.initialize(viewableArg);
+        
+        Component fishBaseWL = formViewObj.getControlById("WebLink");
+        if (fishBaseWL != null && !Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.fish))
+        {
+            fishBaseWL.setVisible(false);
+        }
+        
+        // TODO: the form system MUST require the hybridParent1 and hybridParent2 widgets to be present if the isHybrid checkbox is present
+        final JCheckBox        hybridCheckBox = (JCheckBox)formViewObj.getControlByName(IS_HYBRID);
+
+        
+        if (hybridCheckBox != null)
+        {
+            final Component hybrid1Component  = formViewObj.getControlByName(HYBRIDPARENT1);
+            final Component hybrid2Component  = formViewObj.getControlByName(HYBRIDPARENT2);
+            
+            setVisible(HYBRIDPARENT1, hybridCheckBox.isSelected());
+            setVisible(HYBRIDPARENT2, hybridCheckBox.isSelected());
+            
+            hybridCheckBox.addItemListener(new ItemListener()
+            {
+                public void itemStateChanged(ItemEvent e)
+                {
+                    boolean isHybrid = hybridCheckBox.isSelected();
+                    setVisible(HYBRIDPARENT1, isHybrid);
+                    setVisible(HYBRIDPARENT2, isHybrid);
+                    
+                    if (!hybridCheckBox.isSelected())
+                    {
+                        if (hybrid1Component != null) ((GetSetValueIFace)hybrid1Component).setValue(null, null);
+                        if (hybrid2Component != null) ((GetSetValueIFace)hybrid2Component).setValue(null, null);
+                    }
+                }
+            });
+        }
+        
+        TreeTaskMgr.checkLocks();
     }
     
     /* (non-Javadoc)
@@ -196,17 +251,8 @@ public class HUHTaxonBusRules extends TaxonBusRules
             }
             
             Hibernate.initialize(author);
-            
-            boolean foundIt = false;
-            for (AgentVariant variant : author.getVariants())
-            {
-                if (variant.getVarType().equals(AgentVariant.AUTHOR_ABBREV))
-                {
-                    foundIt = true;
-                    break;
-                }
-            }
-            if (!foundIt)
+
+            if (author.getAuthorName() == null)
             {
                 reasonList.add(String.format(getResourceString("TaxonBusRules.NO_AUTHOR_ABBREV_VAR"), author.getLastName()));
                 authorStatus = STATUS.Error;
@@ -228,5 +274,18 @@ public class HUHTaxonBusRules extends TaxonBusRules
         }
         
         return STATUS.OK;
+    }
+    
+    // this is modified from HUHAgentBusRules, factor it out
+    protected void setVisible(String componentId, boolean visible)
+    {
+        Component field  = formViewObj.getCompById(componentId);
+        if (field != null) field.setVisible(visible);
+        
+        JLabel label = formViewObj.getLabelFor(field);
+        if (label != null)
+        {
+            label.setVisible(visible);
+        }
     }
 }
