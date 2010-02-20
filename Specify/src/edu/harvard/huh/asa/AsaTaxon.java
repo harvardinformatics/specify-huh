@@ -77,7 +77,7 @@ public class AsaTaxon extends AuditedObject
 	private       String citCollation;
 	private       String citDate;
 	private       String remarks;
-	private       String basionym;
+	private       Integer basionymId;
 	private       String parAuthor;
 	private       String parExAuthor;
 	private       String stdAuthor;
@@ -125,7 +125,7 @@ public class AsaTaxon extends AuditedObject
 
 	public String getRemarks() { return remarks; }
 	
-	public String getBasionym() { return basionym; }
+	public Integer getBasionymId() { return basionymId; }
 	
 	public String getParAuthor() { return parAuthor; }
 	
@@ -179,7 +179,7 @@ public class AsaTaxon extends AuditedObject
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
 	
-	public void setBasionym(String basionym) { this.basionym = basionym; }
+	public void setBasionymId(Integer basionymId) { this.basionymId = basionymId; }
 	
 	public void setParAuthor(String parAuthor) { this.parAuthor = parAuthor; }
 	

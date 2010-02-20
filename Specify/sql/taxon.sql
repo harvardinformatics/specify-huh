@@ -1,11 +1,23 @@
 select tx.*,
 
-       regexp_replace(decode(tx.rank_type, 'infraspecific', (select name from taxon where id=grandparent.id) || ' ' ||
-                                             (select name from taxon where id=parent.id) || ' ' ||
-                                             tx.rank_abbrev || tx.name,
-                                'specific', (select name from taxon where id=parent.id) || ' ' || tx.name,
-                                  tx.name
-              ), '[[:space:]]+', ' ') as fullname
+       regexp_replace(
+         decode(tx.rank_type, 'infraspecific',
+                              (select decode(hybrid_flag, 1, unistr('\00d7'), '') || name from taxon where id=grandparent.id) || ' ' ||
+                                 (select decode(hybrid_flag, 1, unistr('\00d7'), '') || name from taxon where id=parent.id) || ' ' ||
+                                      decode(tx.rank_abbrev, 'nothomorph', 'nothovar.', 
+                                               'nothovar.', 'nothovar.',
+                                                 'forma', decode(tx.is_hybrid, 'true', 'nothof.', 'f.'),
+                                                   decode(tx.is_hybrid, 'true', 'notho', '') || tx.rank_abbrev) || ' ' || tx.name,
+
+                              'specific', (select decode(hybrid_flag, 1, unistr('\00d7'), '') || name from taxon where id=parent.id) || ' ' ||
+                                            decode(tx.is_hybrid, 'true', unistr('\00d7'), '') || tx.name,
+
+                              'generic', decode(tx.rank, 'genus',
+                                                          decode(tx.is_hybrid, 'true', unistr('\00d7') || tx.name, tx.name),
+                                                          (select name from taxon where id=parent.id) || ' ' ||
+                                                            decode(tx.is_hybrid, 'true', 'notho', '') || tx.rank_abbrev || ' ' || tx.name),
+                              tx.name),
+              '[[:space:]]+', ' ') as fullname
 from
   (select t.id,
          t.created_by_id,
@@ -20,7 +32,6 @@ from
          (select name from st_lookup where id=t.status_id) as status,
          (select decode(name, '[none]', '', name) from st_lookup where id=t.endangered_id) as endangerment,
          (decode(t.hybrid_flag, 1, 'true', '')) as is_hybrid,
-         regexp_replace(t.fullname, '[[:space:]]+', ' ') as fullname,
          regexp_replace(t.name, '[[:space:]]+', ' ') as name,
          regexp_replace(
            concat(
@@ -51,8 +62,6 @@ from
          regexp_replace(t.cit_collation, '[[:space:]]+', ' ') as cit_collation,
          t.cit_date,
          regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
-         
-         (select b.fullname from taxon b where b.id=t.basionym_id) as basionym,
 
          t.data_source
 

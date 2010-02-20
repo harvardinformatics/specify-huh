@@ -62,8 +62,8 @@ public class TaxonLoader extends TreeLoader
 		taxonRankIdsByType.put("species",        220);
 		taxonRankIdsByType.put("subspecies",     230);
 		taxonRankIdsByType.put("variety",        240);
-		taxonRankIdsByType.put("nothovariety",   242);
-		taxonRankIdsByType.put("nothomorph",     244);
+		taxonRankIdsByType.put("nothovariety",   240); // ICBN 4.4. "The subordinate ranks of nothotaxa are the same as the subordinate ranks of non-hybrid taxa"
+		taxonRankIdsByType.put("nothomorph",     240); // ICBN H.12.2. "Names published at the rank of nothomorph are treated as having been published as names of varieties"
 		taxonRankIdsByType.put("subvariety",     250);
 		taxonRankIdsByType.put("forma",          260);
 		taxonRankIdsByType.put("subforma",       270);
@@ -138,25 +138,22 @@ public class TaxonLoader extends TreeLoader
             Integer referenceWorkId = insert(sql);
             referenceWork.setReferenceWorkId(referenceWorkId);
 		    
-            // CitInAuthor
-            Agent authorAgent = null;
-            Integer citInAuthorId = asaTaxon.getCitInAuthorId();
-            Integer stdAuthorId = asaTaxon.getStdAuthorId();
-            
-            if (citInAuthorId != null)
-            {
-                authorAgent = lookupBotanist(citInAuthorId);
-            }
-            else if (stdAuthorId != null)
-            {
-                authorAgent = lookupBotanist(stdAuthorId);
-            }
+            // CitInAuthor or StdExAuthor or StdAuthor
+            Agent authorAgent = asaTaxon.getCitInAuthorId() != null ? taxon.getCitInAuthor() : 
+                asaTaxon.getStdExAuthor() != null ? taxon.getStdExAuthor() : taxon.getStdAuthor();
 
             if (authorAgent != null)
             {
-                Author author = getAuthor(authorAgent, referenceWork, 1);
-                sql = getInsertSql(author);
-                insert(sql);
+                if (authorAgent.getId() != null)
+                {
+                    Author author = getAuthor(authorAgent, referenceWork, 1);
+                    sql = getInsertSql(author);
+                    insert(sql);
+                }
+                else
+                {
+                    getLogger().warn(rec() + taxon.getFullName() + " Publication but no author");
+                }
             }
 
             TaxonCitation taxonCitation = getTaxonCitation(asaTaxon, taxon, referenceWork);
@@ -202,7 +199,7 @@ public class TaxonLoader extends TreeLoader
 	    
 	    int i = super.parse(columns, taxon);
 	    
-	    if (columns.length < i + 23)
+	    if (columns.length < i + 21)
 	    {
 	        throw new LocalException("Not enough columns");
 	    }
@@ -217,21 +214,19 @@ public class TaxonLoader extends TreeLoader
 		    taxon.setStatus(             AsaTaxon.parseStatus( columns[i + 5]  ));
 		    taxon.setEndangerment( AsaTaxon.parseEndangerment( columns[i + 6]  ));
 		    taxon.setIsHybrid(           Boolean.parseBoolean( columns[i + 7]  ));
-		    //taxon.setFullName(                               columns[i + 8]  );
-		    taxon.setName(                                     columns[i + 9]  );
-		    taxon.setAuthor(                                   columns[i + 10] );
-		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[i + 11] ));
-		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[i + 12] ));
-		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[i + 13] ));
-		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[i + 14] ));
-		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[i + 15] ));
-		    taxon.setCitPublId(             SqlUtils.parseInt( columns[i + 16] ));
-		    taxon.setCitCollation(                             columns[i + 17] );
-		    taxon.setCitDate(                                  columns[i + 18] );
-		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[i + 19] ));
-		    taxon.setBasionym(                                 columns[i + 20] );
-		    taxon.setDataSource(                               columns[i + 21] );
-		    taxon.setFullName(                                 columns[i + 22] );
+		    taxon.setName(                                     columns[i + 8]  );
+		    taxon.setAuthor(                                   columns[i + 9]  );
+		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[i + 10] ));
+		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[i + 11] ));
+		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[i + 12] ));
+		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[i + 13] ));
+		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[i + 14] ));
+		    taxon.setCitPublId(             SqlUtils.parseInt( columns[i + 15] ));
+		    taxon.setCitCollation(                             columns[i + 16] );
+		    taxon.setCitDate(                                  columns[i + 17] );
+		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[i + 18] ));
+		    taxon.setDataSource(                               columns[i + 19] );
+		    taxon.setFullName(                                 columns[i + 20] );
 		}
 		catch (NumberFormatException e)
 		{
@@ -256,6 +251,12 @@ public class TaxonLoader extends TreeLoader
 		// CITES Status TODO: cites status = none: insert none or leave null?
 		ENDANGERMENT endangerment = asaTaxon.getEndangerment();
 		specifyTaxon.setCitesStatus(AsaTaxon.toString(endangerment));
+        
+		// CitInAuthor
+        Agent citInAuthor = NullAgent();
+        Integer citInAuthorId = asaTaxon.getCitInAuthorId();
+        if (citInAuthorId != null) citInAuthor = lookupBotanist(citInAuthorId);
+        specifyTaxon.setCitInAuthor(citInAuthor);
         
 		// FullName
         String name = asaTaxon.getName();
@@ -312,6 +313,16 @@ public class TaxonLoader extends TreeLoader
 		String rank = asaTaxon.getRank();
 		checkNull(rank, "rank");
 		
+		if (rank.startsWith("notho"))
+		{
+		    getLogger().warn(rec() + "Changing notho rank to non-hybrid");
+		    if (!asaTaxon.isHybrid())
+		    {
+		        getLogger().warn(rec() + "Changing isHybrid to true");
+		        specifyTaxon.setIsHybrid(true);
+		    }
+		}
+
 		Integer rankId = taxonRankIdsByType.get(rank);
 		checkNull(rankId, "rank id");
 		
@@ -356,10 +367,6 @@ public class TaxonLoader extends TreeLoader
 		// Text1 (status)
 		STATUS status = asaTaxon.getStatus();
         specifyTaxon.setText1(AsaTaxon.toString(status));
-	        
-		// Text2 (basionym)
-		String basionym = asaTaxon.getBasionym();
-		specifyTaxon.setText2(basionym);
         
         // Version
         specifyTaxon.setVersion(1);
@@ -437,37 +444,36 @@ public class TaxonLoader extends TreeLoader
 	
 	private String getInsertSql(Taxon taxon)
 	{
-		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, GroupNumber, " +
-				            "IsAccepted, IsHybrid, ModifiedByAgentID, Name, ParAuthorID, " +
+		String fieldNames = "Author, CitesStatus, CitInAuthorID, CreatedByAgentID, FullName, " +
+				            "GroupNumber, IsAccepted, IsHybrid, ModifiedByAgentID, Name, ParAuthorID, " +
 				            "ParExAuthorID, ParentID, RankID, Remarks, Source, StdAuthorID, " +
-				            "StdExAuthorID, TaxonomicSerialNumber, TaxonTreeDefID, " +
-				            "TaxonTreeDefItemID, Text1, Text2, TimestampCreated, " +
-				            "TimestampModified, Version";
+				            "StdExAuthorID, TaxonomicSerialNumber, TaxonTreeDefID, TaxonTreeDefItemID, " +
+				            "Text1, TimestampCreated, TimestampModified, Version";
 
 		String[] values = new String[25];
 
 		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
 		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
-		values[2]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
-		values[3]  = SqlUtils.sqlString( taxon.getFullName());
-		values[4]  = SqlUtils.sqlString( taxon.getGroupNumber());
-		values[5]  = SqlUtils.sqlString( taxon.getIsAccepted());
-		values[6]  = SqlUtils.sqlString( taxon.getIsHybrid());
-		values[7]  = SqlUtils.sqlString( taxon.getModifiedByAgent().getId());
-		values[8]  = SqlUtils.sqlString( taxon.getName());
-		values[9]  = SqlUtils.sqlString( taxon.getParAuthor().getId());
-		values[10] = SqlUtils.sqlString( taxon.getParExAuthor().getId());
-		values[11] = SqlUtils.sqlString( taxon.getParent().getId());
-		values[12] = SqlUtils.sqlString( taxon.getRankId());
-		values[13] = SqlUtils.sqlString( taxon.getRemarks());
-		values[14] = SqlUtils.sqlString( taxon.getSource());
-		values[15] = SqlUtils.sqlString( taxon.getStdAuthor().getId());
-		values[16] = SqlUtils.sqlString( taxon.getStdExAuthor().getId());
-		values[17] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
-		values[18] = SqlUtils.sqlString( taxon.getDefinition().getId());
-		values[19] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
-		values[20] = SqlUtils.sqlString( taxon.getText1());
-		values[21] = SqlUtils.sqlString( taxon.getText2());
+		values[2]  = SqlUtils.sqlString( taxon.getCitInAuthor().getId());
+		values[3]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
+		values[4]  = SqlUtils.sqlString( taxon.getFullName());
+		values[5]  = SqlUtils.sqlString( taxon.getGroupNumber());
+		values[6]  = SqlUtils.sqlString( taxon.getIsAccepted());
+		values[7]  = SqlUtils.sqlString( taxon.getIsHybrid());
+		values[8]  = SqlUtils.sqlString( taxon.getModifiedByAgent().getId());
+		values[9]  = SqlUtils.sqlString( taxon.getName());
+		values[10] = SqlUtils.sqlString( taxon.getParAuthor().getId());
+		values[11] = SqlUtils.sqlString( taxon.getParExAuthor().getId());
+		values[12] = SqlUtils.sqlString( taxon.getParent().getId());
+		values[13] = SqlUtils.sqlString( taxon.getRankId());
+		values[14] = SqlUtils.sqlString( taxon.getRemarks());
+		values[15] = SqlUtils.sqlString( taxon.getSource());
+		values[16] = SqlUtils.sqlString( taxon.getStdAuthor().getId());
+		values[17] = SqlUtils.sqlString( taxon.getStdExAuthor().getId());
+		values[18] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
+		values[19] = SqlUtils.sqlString( taxon.getDefinition().getId());
+		values[20] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
+		values[21] = SqlUtils.sqlString( taxon.getText1());
 		values[22] = SqlUtils.sqlString( taxon.getTimestampCreated());
 		values[23] = SqlUtils.sqlString( taxon.getTimestampModified());
 		values[24] = SqlUtils.sqlString( taxon.getVersion());

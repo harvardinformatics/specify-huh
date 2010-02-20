@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.AgentLoader;
+import edu.harvard.huh.asa2specify.loader.BasionymLoader;
 import edu.harvard.huh.asa2specify.loader.BorrowLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCitationLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistCountryLoader;
@@ -142,29 +143,30 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doBotCit      = false; // 15
         
         boolean doTax         = false; // 16
+
+        boolean doBasionym    = false; // 17
+        boolean doSubcoll     = false; // 18
         
-        boolean doSubcoll     = false; // 17
+        boolean doSpec        = false; // 19
         
-        boolean doSpec        = false; // 18
+        boolean doDet         = false; // 20
         
-        boolean doDet         = false; // 19
+        boolean doType        = false; // 21
         
-        boolean doType        = false; // 20
-        
-        boolean doBorrow      = false; // 21
-        boolean doInEx        = false; // 22
-        boolean doInGift      = false; // 23
-        boolean doLoan        = false; // 24
-        boolean doOutEx       = false; // 25
-        boolean doOutGift     = false; // 26
-        boolean doOutGeoBatch = false; // 27
-        boolean doPurch       = false; // 28
-        boolean doStaffColl   = false; // 29
-        boolean doShip        = false; // 30
-        boolean doInRetBatch  = false; // 31
-        boolean doLoanIt      = false; // 32
-        boolean doOutRetBatch = false; // 33
-        boolean doOutMisc     = false; // 34
+        boolean doBorrow      = false; // 22
+        boolean doInEx        = false; // 23
+        boolean doInGift      = false; // 24
+        boolean doLoan        = false; // 25
+        boolean doOutEx       = false; // 26
+        boolean doOutGift     = false; // 27
+        boolean doOutGeoBatch = false; // 28
+        boolean doPurch       = false; // 29
+        boolean doStaffColl   = false; // 30
+        boolean doShip        = false; // 31
+        boolean doInRetBatch  = false; // 32
+        boolean doLoanIt      = false; // 33
+        boolean doOutRetBatch = false; // 34
+        boolean doOutMisc     = false; // 35
         
         try
         {
@@ -331,7 +333,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             if (doTax)
             {
                 int taxonRecords = taxonLoader.loadRecords(); 
-                log.info("Processed " + taxonRecords + " taxonRecords");
+                log.info("Processed " + taxonRecords + " taxon records");
+
                 log.info("Numbering taxon tree...");
                 taxonLoader.numberNodes();
                 log.info("Numbered taxon tree");
@@ -339,6 +342,16 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             TaxonLookup taxonLookup = taxonLoader.getTaxonLookup();
             
+            BasionymLoader basionymLoader = new BasionymLoader(new File(dir, "basionym.csv"),
+                                                               statement,
+                                                               taxonLookup);
+            
+            if (doBasionym)
+            {
+                int basionymRecords = basionymLoader.loadRecords();
+                log.info("Processed " + basionymRecords + " basionym records");
+            }
+
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
