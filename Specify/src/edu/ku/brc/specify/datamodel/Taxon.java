@@ -60,6 +60,7 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="TaxonCommonNameIDX", columnNames={"CommonName"}),
         @Index (name="TaxonNameIDX", columnNames={"Name"}),
         @Index (name="TaxonFullNameIDX", columnNames={"FullName"}),
+        @Index (name="TaxonAuthorIDX", columnNames={"Author"}),
         @Index (name="EnvironmentalProtectionStatusIDX", columnNames={"EnvironmentalProtectionStatus"})
     })
 public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<TaxonAttachment>, 
@@ -124,6 +125,9 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected Taxon                acceptedTaxon;
     protected Set<Taxon>           acceptedChildren;
 
+    // basionym
+    protected Taxon                basionymTaxon;
+
     // tree structure fields
     protected Taxon                parent;
     protected Set<Taxon>           children;
@@ -136,6 +140,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected Integer              number2;
     
     // relationships with other tables
+    protected Agent                citInAuthor;
     protected Agent                parAuthor;
     protected Agent                parExAuthor;
     protected Agent                stdAuthor;
@@ -223,6 +228,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         hybridParent2                 = null;
         hybridChildren1               = new HashSet<Taxon>();
         hybridChildren2               = new HashSet<Taxon>();
+        citInAuthor                   = null;
         parAuthor                     = null;
         parExAuthor                   = null;
         stdAuthor                     = null;
@@ -242,6 +248,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         acceptedTaxon                 = null;
         acceptedChildren              = new HashSet<Taxon>();
 
+        basionymTaxon                 = null;
 	}
 
     @Id
@@ -760,7 +767,18 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         setAcceptedTaxon(acceptedParent);
     }
 
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "BasionymID")
+    public Taxon getBasionymTaxon()
+    {
+        return this.basionymTaxon;
+    }
 
+    public void setBasionymTaxon(Taxon basionymTaxon)
+    {
+        this.basionymTaxon = basionymTaxon;
+    }
+    
     /**
      * If this object represents a hybrid taxon, this returns the primary parent of the taxon.
      * 
@@ -793,6 +811,19 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     public void setHybridParent2(Taxon hybridParent2)
     {
         this.hybridParent2 = hybridParent2;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "CitInAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getCitInAuthor() {
+        return this.citInAuthor;
+    }
+    
+    public void setCitInAuthor(Agent citInAuthor) {
+        this.citInAuthor = citInAuthor;
     }
     
     /**
