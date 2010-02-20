@@ -22,24 +22,31 @@ package edu.harvard.huh.specify.datamodel.busrules;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 import org.hibernate.Hibernate;
 
+import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.ValComboBox;
+import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Taxon;
+import edu.ku.brc.specify.datamodel.TaxonTreeDef;
+import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 import edu.ku.brc.specify.datamodel.busrules.TaxonBusRules;
 import edu.ku.brc.specify.tasks.TreeTaskMgr;
@@ -56,7 +63,15 @@ import edu.ku.brc.ui.GetSetValueIFace;
  *
  */
 public class HUHTaxonBusRules extends TaxonBusRules
-{    
+{
+    protected final static String NAME = "name";
+    
+    private JLabel parentLabel;
+    private JLabel nameLabel;
+    
+    private String parentLabelDefault;
+    private String nameLabelDefault;
+    
     /**
      * Constructor.
      */
@@ -73,15 +88,8 @@ public class HUHTaxonBusRules extends TaxonBusRules
     {
         super.initialize(viewableArg);
         
-        Component fishBaseWL = formViewObj.getControlById("WebLink");
-        if (fishBaseWL != null && !Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.fish))
-        {
-            fishBaseWL.setVisible(false);
-        }
-        
         // TODO: the form system MUST require the hybridParent1 and hybridParent2 widgets to be present if the isHybrid checkbox is present
         final JCheckBox        hybridCheckBox = (JCheckBox)formViewObj.getControlByName(IS_HYBRID);
-
         
         if (hybridCheckBox != null)
         {
@@ -108,9 +116,35 @@ public class HUHTaxonBusRules extends TaxonBusRules
             });
         }
         
+        Component parentComp = formViewObj.getControlByName(PARENT);
+        Component nameComp = formViewObj.getControlByName(NAME);
+
+        parentLabel = formViewObj.getLabelFor(parentComp);
+        nameLabel = formViewObj.getLabelFor(nameComp);
+
+        if (parentLabel != null) parentLabelDefault = parentLabel.getText();
+        if (nameLabel != null) nameLabelDefault = nameLabel.getText();
+
         TreeTaskMgr.checkLocks();
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#afterFillForm(java.lang.Object)
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public void afterFillForm(final Object dataObj)
+    {
+        super.afterFillForm(dataObj);
+        
+        Taxon taxon = (Taxon) formViewObj.getDataObj();
+        if (taxon != null)
+        {
+            fixParentLabel(taxon.getParent());
+            fixNameLabel(taxon.getDefinitionItem());
+        }
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseBusRules#beforeSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
@@ -286,6 +320,83 @@ public class HUHTaxonBusRules extends TaxonBusRules
         if (label != null)
         {
             label.setVisible(visible);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void parentChanged(final FormViewObj form, 
+                                 final ValComboBoxFromQuery parentComboBox, 
+                                 final ValComboBox rankComboBox,
+                                 final JCheckBox acceptedCheckBox,
+                                 final ValComboBoxFromQuery acceptedParentWidget)
+    {
+        super.parentChanged(form, parentComboBox, rankComboBox, acceptedCheckBox, acceptedParentWidget);
+
+        Taxon parentObj = (Taxon)parentComboBox.getValue();
+        
+        fixParentLabel(parentObj);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void rankChanged(final FormViewObj form,
+            final ValComboBoxFromQuery parentComboBox, 
+            final ValComboBox rankComboBox,
+            final JCheckBox acceptedCheckBox,
+            final ValComboBoxFromQuery acceptedParentWidget)
+    {
+        super.rankChanged(form, parentComboBox, rankComboBox, acceptedCheckBox, acceptedParentWidget);
+        
+        TaxonTreeDefItem rankObj = (TaxonTreeDefItem)rankComboBox.getValue();
+        
+        fixNameLabel(rankObj);
+    }
+    
+    /**
+     * Clears the values and hides some UI depending on what type is selected
+     * @param cbx the type cbx
+     */
+    protected void fixNameLabel(final TaxonTreeDefItem defItem)
+    {
+        if (formViewObj != null && nameLabel != null && defItem != null)
+        {
+            Taxon taxon = (Taxon)formViewObj.getDataObj();
+
+            if (taxon != null)
+            {
+                Integer rankId = defItem.getRankId();
+                if (rankId != null)
+                {
+                    nameLabel.setText(defItem.getRankId() > TaxonTreeDef.GENUS ? "Epithet:" : "Name:"); // I18N?
+                }
+            }
+        }
+        else if (nameLabel != null)
+        {
+            nameLabel.setText(nameLabelDefault);
+        }
+    }
+    
+    /**
+     * Clears the values and hides some UI depending on what type is selected
+     * @param cbx the type cbx
+     */
+    protected void fixParentLabel(final Taxon parent)
+    {
+        if (formViewObj != null && parentLabel != null && parent != null)
+        {
+            Taxon taxon = (Taxon)formViewObj.getDataObj();
+
+            if (taxon != null)
+            {
+                TaxonTreeDefItem parentDefItem = parent.getDefinitionItem();
+                parentLabel.setText(parentDefItem.getName());
+            }
+        }
+        else if (parentLabel != null)
+        {
+            parentLabel.setText(parentLabelDefault);
         }
     }
 }
