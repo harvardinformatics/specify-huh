@@ -216,6 +216,7 @@
       <picklistitem title="HUH Name" value="2"/>
       <picklistitem title="B &amp; P Abbrev." value="3"/>
       <picklistitem title="Label Name" value="4"/>
+      <picklistitem title="Full Name" value="5"/>
     </items>
   </picklist>
   <picklist name="HUH Agent Dates Type" issystem="true" type="0" readonly="true" sizelimit="4">
