@@ -80,7 +80,7 @@ public class PickListTableAdapter extends PickListDBAdapter
             strBuf.append('.'); 
             strBuf.append(fieldName); 
         }
-        strBuf.append("FROM ");
+        strBuf.append(" FROM ");
         strBuf.append(tableInfo.getShortClassName());
         
         strBuf.append(" ");
