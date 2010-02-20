@@ -47,7 +47,7 @@ from
                       (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.std_ex_author_id and type_id=110105)
                       )
                ),
-             (select decode(name, null, '', ' cit. in ' || name) from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105)
+             (select decode(name, null, '', '') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105) /* hook for cit in author*/
            ),
            '[[:space:]]+',
            ' '
