@@ -22,28 +22,24 @@ package edu.harvard.huh.specify.datamodel.busrules;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
 import org.hibernate.Hibernate;
 
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
@@ -53,22 +49,29 @@ import edu.ku.brc.specify.tasks.TreeTaskMgr;
 import edu.ku.brc.ui.GetSetValueIFace;
 
 /**
- * This alters the UI depending on which type of agent is set.
+ * This alters the UI depending on the rank, parent, and hybrid status of the taxon.
+ * It makes some configurations of authors illegal.
  * 
- * @author rods
+ * @author mkelly
  *
- * @code_status Complete
+ * @code_status alpha
  *
- * Created Date: Jan 24, 2007
+ * Created Date: Feb 22, 2010
  *
  */
 public class HUHTaxonBusRules extends TaxonBusRules
 {
     protected final static String NAME = "name";
-    
-    private JLabel parentLabel;
-    private JLabel nameLabel;
-    
+
+    // There are separate FormViewObj objects for view mode and edit mode.
+    // The parent class sets the global var formViewObj to the oneused during bus rules initialization.
+    // However, the "current" form view changes when the mode changes. This makes label lookup by component
+    // problematic because different form views may have createddifferent components out of the same form
+    // cell def.  So if you call this.formViewObj.getLabelFor(comp),you might be asking that formViewObj
+    // about a component it knows nothing about.
+    private FormViewObj editViewObj;
+    private FormViewObj viewViewObj;
+
     private String parentLabelDefault;
     private String nameLabelDefault;
     
@@ -116,14 +119,19 @@ public class HUHTaxonBusRules extends TaxonBusRules
             });
         }
         
-        Component parentComp = formViewObj.getControlByName(PARENT);
-        Component nameComp = formViewObj.getControlByName(NAME);
-
-        parentLabel = formViewObj.getLabelFor(parentComp);
-        nameLabel = formViewObj.getLabelFor(nameComp);
-
-        if (parentLabel != null) parentLabelDefault = parentLabel.getText();
-        if (nameLabel != null) nameLabelDefault = nameLabel.getText();
+        if (CreationMode.EDIT.equals(formViewObj.getAltView().getMode()))
+        {
+            this.editViewObj = formViewObj;
+        }
+        else if (CreationMode.VIEW.equals(formViewObj.getAltView().getMode()))
+        {
+            this.viewViewObj = formViewObj;
+        }
+        String parentLabelText = getLabelText(formViewObj, PARENT);
+        if (parentLabelText != null) this.parentLabelDefault = parentLabelText;
+        
+        String nameLabelText = getLabelText(formViewObj, NAME);
+        if (nameLabelText != null) this.nameLabelDefault = nameLabelText;
 
         TreeTaskMgr.checkLocks();
     }
@@ -137,12 +145,10 @@ public class HUHTaxonBusRules extends TaxonBusRules
     {
         super.afterFillForm(dataObj);
         
-        Taxon taxon = (Taxon) formViewObj.getDataObj();
-        if (taxon != null)
-        {
-            fixParentLabel(taxon.getParent());
-            fixNameLabel(taxon.getDefinitionItem());
-        }
+        Taxon taxon = (Taxon) dataObj;
+
+        fixParentLabel(taxon != null ? taxon.getParent() : null);
+        fixNameLabel(taxon != null ? taxon.getDefinitionItem() : null);
     }
 
     /* (non-Javadoc)
@@ -315,8 +321,8 @@ public class HUHTaxonBusRules extends TaxonBusRules
     {
         Component field  = formViewObj.getCompById(componentId);
         if (field != null) field.setVisible(visible);
-        
-        JLabel label = formViewObj.getLabelFor(field);
+
+        JLabel label = getLabel(componentId);
         if (label != null)
         {
             label.setVisible(visible);
@@ -349,7 +355,7 @@ public class HUHTaxonBusRules extends TaxonBusRules
         super.rankChanged(form, parentComboBox, rankComboBox, acceptedCheckBox, acceptedParentWidget);
         
         TaxonTreeDefItem rankObj = (TaxonTreeDefItem)rankComboBox.getValue();
-        
+
         fixNameLabel(rankObj);
     }
     
@@ -359,44 +365,131 @@ public class HUHTaxonBusRules extends TaxonBusRules
      */
     protected void fixNameLabel(final TaxonTreeDefItem defItem)
     {
-        if (formViewObj != null && nameLabel != null && defItem != null)
+        JLabel nameLabel = getLabel(NAME);
+        if (nameLabel != null && defItem != null)
         {
-            Taxon taxon = (Taxon)formViewObj.getDataObj();
-
-            if (taxon != null)
+            Integer rankId = defItem.getRankId();
+            if (rankId != null)
             {
-                Integer rankId = defItem.getRankId();
-                if (rankId != null)
-                {
-                    nameLabel.setText(defItem.getRankId() > TaxonTreeDef.GENUS ? "Epithet:" : "Name:"); // I18N?
-                }
+                nameLabel.setText(defItem.getRankId() > TaxonTreeDef.GENUS ? "Epithet:" : "Name:"); // I18N?
             }
         }
         else if (nameLabel != null)
         {
-            nameLabel.setText(nameLabelDefault);
+            String defaultText = getDefaultLabelText(NAME);
+            if (defaultText != null) nameLabel.setText(defaultText);
         }
     }
     
-    /**
-     * Clears the values and hides some UI depending on what type is selected
-     * @param cbx the type cbx
-     */
-    protected void fixParentLabel(final Taxon parent)
-    {
-        if (formViewObj != null && parentLabel != null && parent != null)
+    private void fixParentLabel(final Taxon parent)
+    {       
+        JLabel parentLabel = getLabel(PARENT);
+        if (parentLabel != null && parent != null)
         {
-            Taxon taxon = (Taxon)formViewObj.getDataObj();
-
-            if (taxon != null)
-            {
-                TaxonTreeDefItem parentDefItem = parent.getDefinitionItem();
-                parentLabel.setText(parentDefItem.getName());
-            }
+            TaxonTreeDefItem parentDefItem = parent.getDefinitionItem();
+            parentLabel.setText(parentDefItem.getName());
         }
         else if (parentLabel != null)
         {
-            parentLabel.setText(parentLabelDefault);
+            String defaultText = getDefaultLabelText(PARENT);
+            if (defaultText != null) parentLabel.setText(defaultText);
         }
     }
+
+    private JLabel getLabel(String componentId)
+    {
+        if (PARENT.equals(componentId))
+        {
+            JLabel label = getLabel(PARENT, CreationMode.EDIT);
+            if (label != null) return label;
+            else return getLabel(PARENT, CreationMode.VIEW);
+        }
+        else
+        {
+            return this.formViewObj.getLabelFor(this.formViewObj.getControlById(componentId));
+        }
+    }
+
+    private JLabel getLabel(String componentId, CreationMode mode)
+    {
+        if (CreationMode.EDIT.equals(mode))
+        {
+            FormViewObj formViewObj = getEditViewObj();
+            return getLabel(componentId, formViewObj);
+        }
+        else if (CreationMode.VIEW.equals(mode))
+        {
+            FormViewObj formViewObj = getViewViewObj();
+            return getLabel(componentId, formViewObj);
+        }
+        return null;
+    }
+
+    private JLabel getLabel(String componentId, FormViewObj formViewObj)
+    {
+        if (formViewObj != null)
+        {
+            Component parentComponent = formViewObj.getControlById(componentId);
+            if (parentComponent != null)
+            {
+                JLabel label = formViewObj.getLabelFor(parentComponent);
+                if (label != null)
+                {
+                    return label;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getLabelText(FormViewObj formViewObj, String componentId)
+    {
+        JLabel parentLabel = getLabel(componentId, formViewObj);
+        if (parentLabel != null)
+        {
+            return parentLabel.getText();
+        }
+        return null;
+    }
+
+    private String getDefaultLabelText(String componentId)
+    {
+        if (NAME.equals(componentId))
+        {
+            return this.nameLabelDefault;
+        }
+        else if (PARENT.equals(componentId))
+        {
+            return this.parentLabelDefault;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private FormViewObj getViewViewObj()
+    {
+        if (this.viewViewObj == null)
+        {
+            if (this.formViewObj != null && CreationMode.VIEW.equals(this.formViewObj.getAltView().getMode()))
+            {
+                this.viewViewObj = this.formViewObj;
+            }
+        }
+        return this.viewViewObj;
+    }
+
+    private FormViewObj getEditViewObj()
+    {
+        if (this.editViewObj == null)
+        {
+            if (this.formViewObj != null && CreationMode.VIEW.equals(this.formViewObj.getAltView().getMode()))
+            {
+                this.editViewObj = this.formViewObj;
+            }
+        }
+        return this.editViewObj;
+    }
+
 }
