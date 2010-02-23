@@ -37,7 +37,10 @@ import edu.harvard.huh.asa2specify.loader.OutgoingGiftLoader;
 import edu.harvard.huh.asa2specify.loader.OutgoingMiscLoader;
 import edu.harvard.huh.asa2specify.loader.PublAuthorLoader;
 import edu.harvard.huh.asa2specify.loader.PublicationLoader;
+import edu.harvard.huh.asa2specify.loader.PublicationNumberLoader;
+import edu.harvard.huh.asa2specify.loader.PublicationTitleLoader;
 import edu.harvard.huh.asa2specify.loader.PurchaseLoader;
+import edu.harvard.huh.asa2specify.loader.RelatedPublicationLoader;
 import edu.harvard.huh.asa2specify.loader.SeriesLoader;
 import edu.harvard.huh.asa2specify.loader.ShipmentLoader;
 import edu.harvard.huh.asa2specify.loader.SiteLoader;
@@ -140,33 +143,36 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doAgent       = false; // 12
         boolean doPub         = false; // 13
         boolean doPubAuth     = false; // 14
-        boolean doBotCit      = false; // 15
+        boolean doPubNumber   = false; // 15
+        boolean doPubTitle    = false; // 16
+        boolean doRelatedPub  = false; // 17
+        boolean doBotCit      = false; // 18
         
-        boolean doTax         = false; // 16
+        boolean doTax         = false; // 19
 
-        boolean doBasionym    = false; // 17
-        boolean doSubcoll     = false; // 18
+        boolean doBasionym    = false; // 20
+        boolean doSubcoll     = false; // 21
         
-        boolean doSpec        = false; // 19
+        boolean doSpec        = false; // 22
         
-        boolean doDet         = false; // 20
+        boolean doDet         = false; // 23
         
-        boolean doType        = false; // 21
+        boolean doType        = false; // 24
         
-        boolean doBorrow      = false; // 22
-        boolean doInEx        = false; // 23
-        boolean doInGift      = false; // 24
-        boolean doLoan        = false; // 25
-        boolean doOutEx       = false; // 26
-        boolean doOutGift     = false; // 27
-        boolean doOutGeoBatch = false; // 28
-        boolean doPurch       = false; // 29
-        boolean doStaffColl   = false; // 30
-        boolean doShip        = false; // 31
-        boolean doInRetBatch  = false; // 32
-        boolean doLoanIt      = false; // 33
-        boolean doOutRetBatch = false; // 34
-        boolean doOutMisc     = false; // 35
+        boolean doBorrow      = false; // 25
+        boolean doInEx        = false; // 26
+        boolean doInGift      = false; // 27
+        boolean doLoan        = false; // 28
+        boolean doOutEx       = false; // 29
+        boolean doOutGift     = false; // 30
+        boolean doOutGeoBatch = false; // 31
+        boolean doPurch       = false; // 32
+        boolean doStaffColl   = false; // 33
+        boolean doShip        = false; // 34
+        boolean doInRetBatch  = false; // 35
+        boolean doLoanIt      = false; // 36
+        boolean doOutRetBatch = false; // 37
+        boolean doOutMisc     = false; // 38
         
         try
         {
@@ -315,6 +321,33 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + publAuthorRecords + " publ_author records");
             }
             
+            PublicationNumberLoader publNumberLoader = new PublicationNumberLoader(new File(dir, "publ_number.csv"),
+                                                                                   statement,
+                                                                                   pubLookup);
+            if (doPubNumber)
+            {
+                int publNumberRecords = publNumberLoader.loadRecords();
+                log.info("Processed " + publNumberRecords + " publ_number records");
+            }
+
+            PublicationTitleLoader publTitleLoader = new PublicationTitleLoader(new File(dir, "publ_title.csv"),
+                                                                                statement,
+                                                                                pubLookup);
+            if (doPubTitle)
+            {
+                int publTitleRecords = publTitleLoader.loadRecords();
+                log.info("Processed " + publTitleRecords + " publ_title records");
+            }
+
+            RelatedPublicationLoader relatedPubLoader = new RelatedPublicationLoader(new File(dir, "related_pub.csv"),
+                                                                                     statement,
+                                                                                     pubLookup);
+            if (doRelatedPub)
+            {
+                int relatedPubRecords = relatedPubLoader.loadRecords();
+                log.info("Processed " + relatedPubRecords + " related publication records");
+            }
+
             BotanistCitationLoader botCitLoader = new BotanistCitationLoader(new File(dir, "bot_cit.csv"),
                                                                              statement,
                                                                              pubLookup,
