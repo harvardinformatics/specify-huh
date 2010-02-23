@@ -147,6 +147,8 @@
 		<mapping class="edu.ku.brc.specify.datamodel.RecordSet"/>
 		<mapping class="edu.ku.brc.specify.datamodel.RecordSetItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.ReferenceWork"/>
+		<mapping class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"/>
+		<mapping class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"/>
 		<mapping class="edu.ku.brc.specify.datamodel.RepositoryAgreement"/>
 		<mapping class="edu.ku.brc.specify.datamodel.RepositoryAgreementAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Shipment"/>

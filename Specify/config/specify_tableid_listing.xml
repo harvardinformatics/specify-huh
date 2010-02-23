@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 139 or 532
+    Last used ID is 141 or 532
     
     ... are available
     
@@ -33,8 +33,8 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.AddressOfRecord" abbrev="aor" id="125" workbench="false" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Agent" abbrev="ag" id="5" workbench="true" searchable="true">
-            <display view="Agent" dataobjformatter="Agent" searchdlg="AgentSearch" newobjdlg="AgentDisplay"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.AgentBusRules</businessrule>
+            <display view="Botanist" dataobjformatter="Agent" searchdlg="AgentSearch" newobjdlg="AgentDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentAttachment" abbrev="agat" id="109" searchable="true">
             <display view="AgentAttachment" newobjdlg="AgentAttachmentDisplay"/>
@@ -333,9 +333,11 @@
         <table name="edu.ku.brc.specify.datamodel.RecordSet" abbrev="rs" id="68"/>
         <table name="edu.ku.brc.specify.datamodel.RecordSetItem" abbrev="rsi" id="502"/>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWork" abbrev="rw" id="69" searchable="true">
-            <display view="ReferenceWork" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
+            <display view="Publication" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkBusRules</businessrule>          
         </table>
+        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" abbrev="rwi" id="140" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="141" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.RepositoryAgreement" abbrev="ra" id="70" searchable="true">
             <display view="RepositoryAgreement" searchdlg="RepositoryAgreementSearch" newobjdlg="RepositoryAgreementDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.RepositoryAgreementBusRules</businessrule>

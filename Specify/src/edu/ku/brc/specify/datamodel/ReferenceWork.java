@@ -54,7 +54,8 @@ import edu.ku.brc.ui.UIRegistry;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "referencework")
 @org.hibernate.annotations.Table(appliesTo="referencework", indexes =
-    {   @Index (name="RefWrkTitleIDX", columnNames={"Title"}),
+    {   @Index (name="RefWrkText1IDX", columnNames={"Text1"}),
+        @Index (name="RefWrkTitleIDX", columnNames={"Title"}),
         @Index (name="RefWrkPublisherIDX", columnNames={"Publisher"}),
         @Index (name="RefWrkGuidIDX", columnNames={"GUID"}),
         @Index (name="ISBNIDX", columnNames={"ISBN"})
@@ -104,10 +105,12 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     protected Set<Author>                   authors;
     protected Set<Exsiccata>                exsiccatae;
     
+    protected ReferenceWork                 precedingWork;
+    protected ReferenceWork                 succeedingWork;
     protected ReferenceWork                 containedRFParent;
     protected Set<ReferenceWork>            containedReferenceWorks;
-    
-    
+    protected Set<ReferenceWorkVariant>     variants;
+    protected Set<ReferenceWorkIdentifier>  identifiers;
     // Constructors
 
     /** default constructor */
@@ -154,9 +157,12 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         authors = new HashSet<Author>();
         exsiccatae = new HashSet<Exsiccata>();
         
+        precedingWork           = null;
+        succeedingWork          = null;
         containedRFParent       = null;
         containedReferenceWorks = new HashSet<ReferenceWork>();
-
+        variants                = new HashSet<ReferenceWorkVariant>();
+        identifiers             = new HashSet<ReferenceWorkIdentifier>();
     }
     // End Initializer
 
@@ -250,6 +256,42 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         this.containedRFParent = containedRFParent;
     }
 
+    /**
+     * @return the precedingWork
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "PrecedingWorkID")
+    public ReferenceWork getPrecedingWork()
+    {
+        return precedingWork;
+    }
+
+    /**
+     * @param precedingWork the precedingWork to set
+     */
+    public void setPrecedingWork(ReferenceWork precedingWork)
+    {
+        this.precedingWork = precedingWork;
+    }
+    
+    /**
+     * @return the succeedingWork
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "SucceedingWorkID")
+    public ReferenceWork getSucceedingWork()
+    {
+        return succeedingWork;
+    }
+
+    /**
+     * @param succeedingWork the succeedingWork to set
+     */
+    public void setSucceedingWork(ReferenceWork succeedingWork)
+    {
+        this.succeedingWork = succeedingWork;
+    }
+    
     /**
      *      * Title of reference
      */
@@ -580,7 +622,37 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         this.exsiccatae = exsiccatae;
     }
 
+    /**
+     * @return the variants
+     */
+    @OneToMany(mappedBy = "referenceWork")
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
+    public Set<ReferenceWorkVariant> getVariants()
+    {
+        return variants;
+    }
 
+    /**
+     * @param variants the variants to set
+     */
+    public void setVariants(Set<ReferenceWorkVariant> variants)
+    {
+        this.variants = variants;
+    }
+    
+    /**
+    *
+    */
+   @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "referenceWork")
+   @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+   public Set<ReferenceWorkIdentifier> getReferenceWorkIdentifiers() {
+       return this.identifiers;
+   }
+
+   public void setReferenceWorkIdentifiers(Set<ReferenceWorkIdentifier> identifiers) {
+       this.identifiers = identifiers;
+   }
+   
 
     // Add Methods
     public void addAgentCitations(final AgentCitation agentCitation)
