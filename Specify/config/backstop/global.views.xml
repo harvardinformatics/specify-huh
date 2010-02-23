@@ -175,7 +175,7 @@
             <altviews>
                 <!--  <altview name="Author View" viewdef="Author" mode="view"/>
                 <altview name="Author Edit" viewdef="Author" mode="edit" default="true"/>  -->
-               <altview name="Authors Table View" viewdef="Authors Table" mode="view"/>
+                <altview name="Authors Table View" viewdef="Authors Table" mode="view"/>
                 <altview name="Authors Table Edit" viewdef="Authors Table" mode="edit"/>
             </altviews>
         </view>
@@ -186,7 +186,9 @@
             <desc><![CDATA[The Author subform for Reference Work form.]]></desc>
             <altviews>
                     <altview name="Author View" viewdef="Author" mode="view" default="true"/>
-                    <altview name="Author Edit" viewdef="Author" mode="edit"/> 
+                    <altview name="Author Edit" viewdef="Author" mode="edit"/>
+                    <altview name="Author Table View" viewdef="Author Table" label="Table View" mode="view"/>
+                    <altview name="Author Table Edit" viewdef="Author Table" label="Table Edit" mode="edit"/> 
             </altviews>
         </view>
         
@@ -222,14 +224,14 @@
             </altviews>
         </view>
         
-        <view name="ReferenceWork"
+        <view name="Publication"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[The ReferenceWork Form.]]></desc>
             <altviews>
-                <altview name="ReferenceWork View" viewdef="ReferenceWork" mode="view" validated="false" default="true"/>                
-                <altview name="ReferenceWork Edit" viewdef="ReferenceWork" mode="edit" validated="true"/>                
+                <altview name="Publication View" viewdef="Publication" mode="view" validated="false" default="true"/>                
+                <altview name="Publication Edit" viewdef="Publication" mode="edit" validated="true"/>                
             </altviews>
         </view>
         
@@ -250,6 +252,30 @@
             <altviews>
                 <altview name="RefWorkTaxCitSub View" viewdef="RefWorkTaxCitSub" mode="view"  default="true"/>                
                 <altview name="RefWorkTaxCitSub Edit" viewdef="RefWorkTaxCitSub" mode="edit"/>                
+            </altviews>
+        </view>
+        
+        <view name="Reference Numbers"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            resourcelabels="false">
+            <desc><![CDATA[Reference Numbers subform within the Publication form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="Reference Numbers View" title="Reference Numbers" viewdef="Reference Numbers" mode="view" validated="false"/>
+                <altview name="Reference Numbers Edit" title="Reference Numbers" viewdef="Reference Numbers" mode="edit" validated="true" default="true"/>
+                <altview name="Reference Numbers Table View" viewdef="Reference Numbers Table"    label="Table View" mode="view" />
+                <altview name="Reference Numbers Table Edit" viewdef="Reference Numbers Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="ReferenceWorkVariant"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            resourcelabels="false">
+            <desc><![CDATA[ReferenceWorkVariant subform within the Publication form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="ReferenceWorkVariant View" title="ReferenceWorkVariant" viewdef="ReferenceWorkVariant" mode="view" validated="false"/>
+                <altview name="ReferenceWorkVariant Edit" title="ReferenceWorkVariant" viewdef="ReferenceWorkVariant" mode="edit" validated="true" default="true"/>
+                <altview name="ReferenceWorkVariant Table View" viewdef="ReferenceWorkVariant Table"    label="Table View" mode="view" />
+                <altview name="ReferenceWorkVariant Table Edit" viewdef="ReferenceWorkVariant Table"    label="Table Edit" mode="edit"/>
             </altviews>
         </view>
         
@@ -1353,8 +1379,8 @@
         </viewdef>
         
         <viewdef 
-            type="form"
-            name="Author"
+        	name="Author"
+            type="form"         
             class="edu.ku.brc.specify.datamodel.Author"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1375,6 +1401,17 @@
                     <cell type="field" id="2" name="remarks" uitype="textareabrief" rows="2" colspan="2"/>
                 </row>
             </rows>
+        </viewdef>
+        
+        <viewdef
+	        name="Author Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.Author"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Author grid view.]]></desc>
+            <definition>Author</definition>
         </viewdef>
         
         <viewdef
@@ -1439,7 +1476,7 @@
         </viewdef>
         
         <viewdef
-            name="ReferenceWork"
+            name="Publication"
             type="form"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -1449,58 +1486,70 @@
             <columnDef os="exp">p,     2px, 160px, 5px:g, p,     2px, 150px, 5px:g, p,     2px, 151px, p,    p:g</columnDef>
             <columnDef>         100px, 2px, 160px, 5px,   100px, 2px, 150px, 5px,   150px, 2px, 151px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 203px, 5px,   100px, 2px, 203px, 5px,   185px, 2px, 195px, 15px, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2dlu"/>
+            <rowDef auto="true" cell="p" sep="3dlu"/>
             <rows>
-                <row>
+                <!-- <row>
                     <cell type="label" labelfor="containedRFParent"/>
                     <cell type="field" id="containedRFParent" uitype="querycbx" initialize="name=ReferenceWork" name="containedRFParent" colspan="5"/>
-                </row>
+                </row> -->
                 <row>
                     <cell type="label" labelfor="8"/>
                     <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
-                    <cell type="label" labelfor="isbn"/>
-                    <cell type="field" id="isbn" name="isbn" uitype="text"/>
+                    <!-- <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="volume" uitype="text" cols="10"/>
+                    <cell type="label" labelfor="6"/>
+                    <cell type="field" id="6" name="pages" uitype="text"/> -->
                 </row>
                 <row>
                 	<cell type="label" labelfor="title"/>
-                    <cell type="field" id="title" name="text1" uitype="text" colspan="9"/>
+                    <cell type="field" id="title" name="text1" uitype="textareabrief" rows="3" colspan="9"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="abbrev"/>
                     <cell type="field" id="abbrev" name="title" uitype="text" colspan="9"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="publisher" uitype="text" cols="50" colspan="5"/>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="placeOfPublication" uitype="text" cols="50"/>
+                	<cell type="label" label=" "/>
+                	<cell type="subview" viewname="ReferenceWorkVariant" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
                 </row>
                 <row>
-                    
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="volume" uitype="text" cols="10"/>
-                    <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="pages" uitype="text"/>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="Author" id="authors" name="authors" initialize="name=Author" defaulttype="table" rows="3" colspan="5"/>
+					<cell type="subview" viewname="Reference Numbers" id="identifiers" name="referenceWorkIdentifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                	<cell type="separator" label="" colspan="10"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="placeOfPublication" uitype="text" cols="50"/>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="publisher" uitype="text" cols="50" colspan="5"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="workDate" uitype="text" colspan="9"/>
+                    <cell type="field" id="4" name="workDate" uitype="textareabrief" rows="2" colspan="9"/>
                 </row>
-                <row>
+                <!-- <row>
                     <cell type="label" labelfor="18"/>
                     <cell type="field" id="18" name="journal" uitype="querycbx" initialize="name=Journal;title=Journal" colspan="5"/>
-
-                </row>
+                </row> -->
                 <row>
                 	<cell type="label" labelfor="url"/>
                 	<cell type="field" id="url" uitype="text" name="url" colspan="9"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
+                    <cell type="label" labelfor="precedingWork"/>
+                    <cell type="field" id="precedingWork" name="precedingWork" uitype="querycbx" initialize="name=ReferenceWork;title=Preceded By" colspan="7"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="Authors" id="10" name="authors" initialize="name=Agent" colspan="12"/>
+                    <cell type="label" labelfor="succeedingWork"/>
+                    <cell type="field" id="succeedingWork" name="succeedingWork" uitype="querycbx" initialize="name=ReferenceWork;title=Succeeded By" colspan="7"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="remarks"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="4" colspan="9"/>
                 </row>
             </rows>
         </viewdef> 
@@ -1594,6 +1643,78 @@
                 </row>
             </rows>
         </viewdef> 
+        
+        <viewdef
+            name="Reference Numbers"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Reference Numbers form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,     2px, 200px, 5px:g, p,     2px, 255px, 5px:g,   p,     2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 200px, 5px,   100px, 2px, 210px, 5px,     100px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px, 5px,   138px, 2px, 255px, 5px,     138px, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="type"/>
+                	<cell type="field" id="type" name="type" uitype="combobox" picklist="HUH Publication Number Type"/>
+                	<cell type="label" labelfor="identifier"/>
+                	<cell type="field" id="identifier" name="identifier" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+	        name="Reference Numbers Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Reference Numbers grid view.]]></desc>
+            <definition>Reference Numbers</definition>
+        </viewdef>
+        
+        <viewdef
+            name="ReferenceWorkVariant"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The ReferenceWorkVariant form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>         100px, 2px, 190px,        5px,  50px, 2px, 478px, p, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 200px,        5px,  70px, 2px, 523px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px,        5px,  80px, 2px, 663px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;190px), 5px, 100px, 2px, p:g</columnDef>
+            
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+  		        <row>
+                    <!-- <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="varType" uitype="combobox" picklist="HUH ReferenceWork Variant" /> -->
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="name" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+	        name="ReferenceWorkVariant Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[ReferenceWorkVariant grid view.]]></desc>
+            <definition>ReferenceWorkVariant</definition>
+        </viewdef>
         
         <viewdef
             type="form"
