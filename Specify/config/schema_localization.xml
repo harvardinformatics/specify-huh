@@ -25466,6 +25466,17 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
+      <item name="referenceWorkIdentifiers" type="OneToMany">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Reference Numbers</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="isbn" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -25581,10 +25592,22 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Place Of Publication</text>
+            <text>Place</text>
           </str>
         </names>
         <descs/>
+      </item>
+      <item name="precedingWork" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Preceded By</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
       </item>
       <item name="publisher" type="java.lang.String">
         <version>0</version>
@@ -25626,6 +25649,18 @@ Specify provides an extensive array of utilities for curatorial management of sp
             <text>Additional Comments</text>
           </str>
         </descs>
+      </item>
+      <item name="succeedingWork" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Succeeded By</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
       </item>
       <item name="taxonCitations" type="OneToMany">
         <version>0</version>
@@ -25726,6 +25761,17 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
+      <item name="variants">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Variant Titles</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="version">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -25757,7 +25803,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Date</text>
+            <text>Dates</text>
           </str>
         </names>
         <descs/>
@@ -25805,6 +25851,290 @@ Specify provides an extensive array of utilities for curatorial management of sp
       <str language="en" country="" variant="">
         <version>0</version>
         <text>A literary reference work.</text>
+      </str>
+    </descs>
+  </container>
+  <container name="referenceworkidentifier" type="">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="referenceWork" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Publication</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="identifier" type="java.lang.String">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Number</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="modifiedByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="timestampCreated" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was created.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampModified" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was last modified.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="type" type="java.lang.String">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Type</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Reference Number</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Describes a reference number (Catalog Number) of a Publication.</text>
+      </str>
+    </descs>
+  </container>
+  <container name="referenceworkvariant" type="">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="referenceWork" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Publication</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="country" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Country</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Country of variant or vernacular name.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="language" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Language</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>International character code for language as it pertains to the publication variant title.</text>
+          </str>
+        </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="modifiedByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="name" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Name</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The full name used as a variant or vernacular name.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampCreated" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was created.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampModified" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was last modified.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="variant" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Variant</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="varType" type="java.lang.Byte" isUIFormatter="false" pickListName="HUH Publication Title Type" isRequired="true">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Variant</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Indicates whether the record is a variant (0) or a vernacular name (1).</text>
+          </str>
+        </descs>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Variant Title</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>This is primarily used by Botanists for capturing Variant and Vernacular names. This table is searchable but does not have any specific business rules associated with it.</text>
       </str>
     </descs>
   </container>
