@@ -1209,7 +1209,7 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-<table id="55" tableid="1" indexed="false" name="PrepCollObject" priority="1" color="30, 144, 144">
+		<table id="55" tableid="1" indexed="false" name="PrepCollObject" priority="1" color="30, 144, 144">
             <joins>
                 <!-- <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>-->
                 <join tableid="63">preparation.PreparationID</join>
@@ -1240,7 +1240,31 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-
+		<table id="56" tableid="69" indexed="false" name="ReferenceWorkFromReferenceWorkVariant" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="141">referenceworkvariant.ReferenceWorkVariantID</join>
+                <join tableid="69">referencework.ReferenceWorkID</join>
+            </joins>
+            <detailView icon="ReferenceWork">
+                <sql>
+                    <![CDATA[
+ SELECT referencework.ReferenceWorkID,
+ referenceworkvariant.Name, 
+ referencework.Text1,
+ %s
+ FROM referencework
+ INNER JOIN referenceworkvariant ON referencework.ReferenceWorkID = referenceworkvariant.ReferenceWorkID
+ WHERE %s order by referenceworkvariant.Name asc]]>
+                </sql>
+                <captions>
+                    <caption tableid="69" col="referencework.ReferenceWorkID" visible="false"/>
+                    <caption tableid="141" col="referenceworkvariant.Name"/>
+                    <caption tableid="69" key="ReferenceWork" dataobjformatter="ReferenceWork">
+                        <col name="referencework.Text1"  field="text1"/>                    
+                    </caption>
+                </captions>
+            </detailView>
+        </table>
 
         
         
