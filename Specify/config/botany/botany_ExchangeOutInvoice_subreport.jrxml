@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
 <jasperReport
-		 name="botany_ExchangeOutInvoice_subreport"
+		 name="ExchangeOutInvoice_subreport"
 		 columnCount="1"
 		 printOrder="Vertical"
 		 orientation="Portrait"
@@ -192,9 +192,9 @@ where exchangeout.ExchangeOutID = $P!{itemnum}]]>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="124" isSplitAllowed="true">
+		<band height="52" isSplitAllowed="true">
 			<subreport isUsingCache="true">
-				<reportElement key="subreport-1" x="1" y="0" width="593" height="98"/>
+				<reportElement key="subreport-1" x="1" y="0" width="593" height="49"/>
 				<subreportParameter name="itemnum">
 					<subreportParameterExpression><![CDATA[$F{exchangeOutID}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -204,16 +204,17 @@ where exchangeout.ExchangeOutID = $P!{itemnum}]]>
 				<returnValue subreportVariable="typeCount" toVariable="types"/>
 				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_ExchangeOutPrep_subreport.jasper"]]></subreportExpression>
 			</subreport>
-			<line>
-				<reportElement key="line-1" x="8" y="113" width="566" height="1"/>
-			</line>
 		</band>
 	</detail>
 	<columnFooter>
 		<band isSplitAllowed="true"/>
 	</columnFooter>
 	<pageFooter>
-		<band isSplitAllowed="true"/>
+		<band height="8" isSplitAllowed="true">
+			<line>
+				<reportElement key="line-1" x="8" y="4" width="566" height="1"/>
+			</line>
+		</band>
 	</pageFooter>
 	<summary>
 		<band isSplitAllowed="true"/>
