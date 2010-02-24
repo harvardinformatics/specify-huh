@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
 <jasperReport
-		 name="botany_GiftPrep_subreport"
+		 name="GiftPrep_subreport"
 		 columnCount="1"
 		 printOrder="Vertical"
 		 orientation="Portrait"
@@ -77,7 +77,7 @@
 		<band isSplitAllowed="true"/>
 	</background>
 	<detail>
-		<band height="89" isSplitAllowed="true">
+		<band height="68" isSplitAllowed="true">
 			<textField isBlankWhenNull="true">
 				<reportElement x="11" y="1" width="45" height="20"/>
 				<textElement/>
