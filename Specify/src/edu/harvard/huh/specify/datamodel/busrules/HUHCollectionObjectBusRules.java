@@ -21,11 +21,13 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
@@ -126,20 +128,19 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             }
         }
     }
-
+    
     /*
      * (non-Javadoc)
      * 
      * @see edu.ku.brc.specify.datamodel.busrules.COllectionObjectBusRules(java.lang.Object)
      */
-    @Override
     protected STATUS checkDeterminations(final Object dataObj)
     {
         // check that a current determination exists
-        if (((CollectionObject) dataObj).getDeterminations().size() > 0)
+        if (((Fragment) dataObj).getDeterminations().size() > 0)
         {
             int currents = 0;
-            for (Determination det : ((CollectionObject) dataObj).getDeterminations())
+            for (Determination det : ((Fragment) dataObj).getDeterminations())
             {
                 if (det.isCurrentDet())
                 {
@@ -162,5 +163,4 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         
         return STATUS.OK;
     }
-
 }

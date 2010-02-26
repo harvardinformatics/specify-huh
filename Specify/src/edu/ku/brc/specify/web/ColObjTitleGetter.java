@@ -19,6 +19,9 @@
 */
 package edu.ku.brc.specify.web;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
@@ -26,6 +29,7 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 
 /**
  * @author rod
@@ -56,8 +60,14 @@ public class ColObjTitleGetter implements TitleGetterIFace
             CollectionObject colObj = (CollectionObject)dataObj;
             if (colObj != null)
             {
+            	Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+            	for (Fragment frag : colObj.getFragments())
+            	{
+            		determinations.addAll(frag.getDeterminations());
+            	}                                                                 // mmk fragment
+            	
                 //System.out.print("Det: "+colObj.getDeterminations());
-                for (Determination det : colObj.getDeterminations())
+                for (Determination det : determinations)
                 {
                     if (det.isCurrentDet())
                     {

@@ -28,6 +28,7 @@ import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Taxon;
 
 // Run this class after TaxonLoader and SpecimenItemLoader.
@@ -112,7 +113,8 @@ public class DeterminationLoader extends CsvToSqlLoader
         checkNull(specimenId, "specimen id");
         
         CollectionObject collectionObject = lookupSpecimen(specimenId);
-        determination.setCollectionObject(collectionObject);
+        Fragment fragment = null; // TODO implement fragment determination load
+        determination.setFragment(fragment);
 
         // CollectionMemberID
         String collectionCode = asaDet.getCollectionCode();
@@ -200,13 +202,13 @@ public class DeterminationLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, DeterminedDate, " +
+        String fieldNames = "FragmentID, CollectionMemberID, TaxonID, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Qualifier, " +
         		            "Remarks, TimestampCreated, Version";
 
         String[] values = new String[14];
         
-        values[0]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
+        values[0]  = SqlUtils.sqlString( determination.getFragment().getId());
         values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
         values[2]  = SqlUtils.sqlString( determination.getTaxon().getId());
         values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());

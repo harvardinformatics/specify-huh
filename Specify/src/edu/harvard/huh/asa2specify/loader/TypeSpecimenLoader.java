@@ -33,6 +33,7 @@ import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.DeterminationCitation;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 
@@ -222,7 +223,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         checkNull(specimenId, "specimen id");
         
         CollectionObject collectionObject = getSpecimenLookup().getById(specimenId);
-        determination.setCollectionObject(collectionObject);
+        Fragment fragment = null;  // TODO implement fragment type determination load
+        determination.setFragment(fragment);
         
         // Confidence
         CONDITIONALITY conditionality = typeSpecimen.getConditionality();
@@ -375,14 +377,14 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
+        String fieldNames = "CollectionMemberID, FragmentID, Confidence, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, Text2, " +
         		            "TimestampCreated, TypeStatusName, Version, YesNo2";
 
         String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
-        values[1]  = SqlUtils.sqlString( determination.getCollectionObject().getId());
+        values[1]  = SqlUtils.sqlString( determination.getFragment().getId());
         values[2]  = SqlUtils.sqlString( determination.getConfidence());
         values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
         values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());

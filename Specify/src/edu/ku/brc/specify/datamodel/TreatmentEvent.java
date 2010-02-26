@@ -80,9 +80,9 @@ public class TreatmentEvent extends DataModelObjBase
     protected String   fieldNumber;
     protected String   remarks;
     
-    protected Accession        accession;
-    protected CollectionObject collectionObject;
-    protected Division         division;
+    protected Accession   accession;
+    protected Preparation preparation;
+    protected Division    division;
     
     /**
      * 
@@ -114,7 +114,7 @@ public class TreatmentEvent extends DataModelObjBase
         fieldNumber          = null;
         remarks              = null;
         accession            = null;
-        collectionObject     = null;
+        preparation          = null;
         division             = null;
     }
 
@@ -240,11 +240,11 @@ public class TreatmentEvent extends DataModelObjBase
     }
 
     /**
-     * @param collectionObject the collectionObject to set
+     * @param preparation the preparation to set
      */
-    public void setCollectionObject(CollectionObject collectionObject)
+    public void setPreparation(Preparation preparation)
     {
-        this.collectionObject = collectionObject;
+        this.preparation = preparation;
     }
 
     /**
@@ -401,13 +401,13 @@ public class TreatmentEvent extends DataModelObjBase
     }
 
     /**
-     * @return the collectionObject
+     * @return the preparation
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = true, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject()
+    @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Preparation getPreparation()
     {
-        return collectionObject;
+        return preparation;
     }
     
 
@@ -434,7 +434,7 @@ public class TreatmentEvent extends DataModelObjBase
     {
         // Throws exception when inlined
         Integer tblId = accession != null ? Accession.getClassTableId() : null;
-        tblId = tblId != null ? tblId : collectionObject != null ? CollectionObject.getClassTableId() : null;
+        tblId = tblId != null ? tblId : preparation != null ? Preparation.getClassTableId() : null;
         tblId = tblId != null ? tblId : division != null ? Division.getClassTableId() : null;
         return tblId;
     }
@@ -446,7 +446,7 @@ public class TreatmentEvent extends DataModelObjBase
     @Transient
     public Integer getParentId()
     {
-        return accession != null ? accession.getId() : collectionObject != null ? collectionObject.getId() : division != null ? division.getId() : null;
+        return accession != null ? accession.getId() : preparation != null ? preparation.getId() : division != null ? division.getId() : null;
     }
     
     /* (non-Javadoc)

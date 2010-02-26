@@ -23,7 +23,9 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static edu.ku.brc.ui.UIRegistry.showLocalizedMsg;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +49,7 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionObjectAttribute;
 import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
@@ -202,30 +205,34 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
     protected STATUS checkDeterminations(final Object dataObj)
     {
         // check that a current determination exists
-        if (((CollectionObject) dataObj).getDeterminations().size() > 0)
-        {
-            int currents = 0;
-            for (Determination det : ((CollectionObject) dataObj).getDeterminations())
-            {
-                if (det.isCurrentDet())
-                {
-                    currents++;
-                }
-            }
-            if (currents != 1)
-            {
-                if (currents == 0)
-                {
-                    reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
-                }
-                else
-                {
-                    reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
-                }
-                return STATUS.Error;
-            }
-        }
-        
+    	CollectionObject collObj = (CollectionObject) dataObj;
+    	
+    	for (Fragment fragment : collObj.getFragments()) // mmk fragment
+    	{
+    		if (fragment.getDeterminations().size() > 0)
+    		{
+    			int currents = 0;
+    			for (Determination det : fragment.getDeterminations())
+    			{
+    				if (det.isCurrentDet())
+    				{
+    					currents++;
+    				}
+    			}
+    			if (currents != 1)
+    			{
+    				if (currents == 0)
+    				{
+    					reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
+    				}
+    				else
+    				{
+    					reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
+    				}
+    				return STATUS.Error;
+    			}
+    		}
+    	}
         return STATUS.OK;
     }
 
@@ -351,7 +358,13 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
                 {
                     // 03/25/09 rods - Added these extra null checks because of Bug 6848
                     // I can't reproduce it and these should never be null.
-                    for (Preparation prep : colObj.getPreparations())
+                	Set<Preparation> preparations = new HashSet<Preparation>(); // mmk fragment
+                	for (Fragment fragment : colObj.getFragments())
+                	{
+                		preparations.add(fragment.getPreparation());
+                	}
+                	
+                    for (Preparation prep : preparations)
                     {
                         if (prep != null)
                         {

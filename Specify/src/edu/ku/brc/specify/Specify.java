@@ -181,6 +181,7 @@ import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.FieldNotebookAttachment;
 import edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment;
 import edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Institution;
 import edu.ku.brc.specify.datamodel.LoanAttachment;
 import edu.ku.brc.specify.datamodel.LocalityAttachment;
@@ -1566,8 +1567,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         if (co != null && storage != null)
         {
             Set<Preparation> preps = storage.getPreparations();
-            for (Preparation prep : co.getPreparations())
+            for (Fragment fragment : co.getFragments())
             {
+            	Preparation prep = fragment.getPreparation();
                 preps.add(prep);
                 prep.setStorage(storage);
                 session.saveOrUpdate(prep);
@@ -1601,7 +1603,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             {
                 for (Determination deter : taxon.getDeterminations())
                 {
-                    addCOToStorage(session, storage, deter.getCollectionObject());
+                    addCOToStorage(session, storage, deter.getFragment().getCollectionObject());
                 }
             }
             session.commit();
@@ -1613,7 +1615,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             {
                 for (Determination deter : taxon.getDeterminations())
                 {
-                    addCOToStorage(session, storage, deter.getCollectionObject());
+                    addCOToStorage(session, storage, deter.getFragment().getCollectionObject());
                 }
             }
             session.commit();
@@ -1646,7 +1648,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 {
                     for (Determination deter : taxon.getDeterminations())
                     {
-                        addCOToStorage(session, storage, deter.getCollectionObject());
+                        addCOToStorage(session, storage, deter.getFragment().getCollectionObject());
                     }
                 }
                 session.commit();

@@ -191,6 +191,7 @@ import edu.ku.brc.specify.datamodel.DataType;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
@@ -1413,7 +1414,7 @@ public class BuildSampleDatabase
      * @param dataObjects
      */
     protected void addConservatorData(final List<Agent> agents, 
-                                      final List<CollectionObject> colObjs)
+                                      final List<Preparation> preps)
     {
         //startTx();
         
@@ -1422,7 +1423,7 @@ public class BuildSampleDatabase
         desc.setShortDesc("Short Description");
         //desc.addReference(divs.get(0), "division");
         
-        desc.addReference(colObjs.get(0), "collectionObject");
+        desc.addReference(preps.get(0), "preparation");
         
         //desc.setCollectionObject(colObjs.get(0));
         //colObjs.get(0).getConservDescriptions().add(desc);
@@ -2249,7 +2250,7 @@ public class BuildSampleDatabase
         ////////////////////////////////
         log.info("Creating collection objects");
 
-        List<CollectionObject> collObjs = new Vector<CollectionObject>();
+        List<Fragment> fragments = new Vector<Fragment>();
         Collection      col     = collection;
         
         Calendar[] catDates = new Calendar[8];
@@ -2266,10 +2267,16 @@ public class BuildSampleDatabase
         for (int i=0;i<colEves.length;i++)
         {
             colEves[i] = createFakeCollectingEvent(agents, farmpond, "cut");
-            collObjs.add(createCollectionObject(prefix + Integer.toString(catNo), "RSC"+Integer.toString(catNo), agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase"));
+            String catalogNumber = "RSC"+Integer.toString(catNo);
+            CollectionObject collObj = createCollectionObject(prefix + Integer.toString(catNo), catalogNumber, agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase");
+            Fragment fragment = createFragment(collObj);
+            fragments.add(fragment);
             catNo++;
         }
-        dataObjects.addAll(collObjs);
+        for (Fragment frag : fragments)
+        {
+        	dataObjects.add(frag.getCollectionObject());
+        }
         
         for (CollectingEvent ce : colEves)
         {
@@ -2298,22 +2305,22 @@ public class BuildSampleDatabase
         Calendar whileBack = Calendar.getInstance(); 
         whileBack.set(2000, 7, 4, 9, 33, 12);
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
         determs.get(13).setRemarks("This determination is totally wrong.  What a foolish determination.");
         
         persist(determs);
@@ -2333,29 +2340,29 @@ public class BuildSampleDatabase
         
         List<Preparation> preps = new Vector<Preparation>();
         Calendar prepDate = Calendar.getInstance();
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
 
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
 
         dataObjects.addAll(prepTypesForSaving);
         dataObjects.addAll(preps);
@@ -2845,10 +2852,13 @@ public class BuildSampleDatabase
             
             CollectingEvent  ce = createFakeCollectingEvent(agents, localities.get(inx), "cut");
             CollectionObject co = createCollectionObject(catNumStr, "RSC"+Integer.toString(catNo), agents.get(agentInx), collection,  1, ce, catDates[calInx], "BuildSampleDatabase");
-            Determination    dt = createDetermination(co, getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent);
+    
+            Fragment fragment = createFragment(co);
+            
+            Determination    dt = createDetermination(fragment, getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent);
             
             Calendar prepDate = Calendar.getInstance();
-            Preparation prep = createPreparation(pressed, agents.get(agentInx2), co, (Storage)locs.get(7), rand.nextInt(20)+1, prepDate);
+            Preparation prep = createPreparation(pressed, agents.get(agentInx2), fragment, (Storage)locs.get(7), rand.nextInt(20)+1, prepDate);
 
             persist(ce);
             persist(co);
@@ -3351,7 +3361,7 @@ public class BuildSampleDatabase
         
         log.info("Creating collection objects");
 
-        List<CollectionObject> collObjs = new Vector<CollectionObject>();
+        List<Fragment> fragments = new Vector<Fragment>(); // mmk fragment
         Collection      col     = collection;
         
         Calendar[] catDates = new Calendar[8];
@@ -3368,10 +3378,20 @@ public class BuildSampleDatabase
         for (int i=0;i<colEves.length;i++)
         {
             colEves[i] = createFakeCollectingEvent(agents, farmpond, "Dug");
-            collObjs.add(createCollectionObject(prefix + Integer.toString(catNo), "RSC"+Integer.toString(catNo), agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase"));
+            
+            CollectionObject collObj = createCollectionObject(prefix + Integer.toString(catNo), "RSC"+Integer.toString(catNo), agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase");
+
+            Fragment fragment = createFragment(collObj);
+            fragments.add(fragment);
+            
             catNo++;
         }
-        dataObjects.addAll(collObjs);
+        
+        for (Fragment frag : fragments) // mmk fragment
+        {
+        	dataObjects.add(frag.getCollectionObject());
+        }
+        
         for (CollectingEvent ce : colEves)
         {
             persist(ce);
@@ -3399,22 +3419,22 @@ public class BuildSampleDatabase
         Calendar whileBack = Calendar.getInstance(); 
         whileBack.set(2000, 7, 4, 9, 33, 12);
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
         determs.get(13).setRemarks("This determination is totally wrong.  What a foolish determination.");
         
         persist(determs);
@@ -3434,29 +3454,29 @@ public class BuildSampleDatabase
         
         List<Preparation> preps = new Vector<Preparation>();
         Calendar prepDate = Calendar.getInstance();
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
 
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
 
         dataObjects.addAll(prepTypesForSaving);
         dataObjects.addAll(preps);
@@ -4567,7 +4587,7 @@ public class BuildSampleDatabase
         log.info("Creating collection objects");
         frame.setDesc("Creating collection objects...");
 
-        List<CollectionObject> collObjs = new Vector<CollectionObject>();
+        List<Fragment> fragments = new Vector<Fragment>();
         Collection      col     = collection;
         
         Calendar[] catDates = new Calendar[8];
@@ -4584,10 +4604,21 @@ public class BuildSampleDatabase
         for (int i=0;i<colEves.length;i++)
         {
             colEves[i] = createFakeCollectingEvent(agents, farmpond, method);
-            collObjs.add(createCollectionObject(prefix + Integer.toString(catNo), "RSC"+Integer.toString(catNo), agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase"));
+            
+            CollectionObject collObj = createCollectionObject(prefix + Integer.toString(catNo), "RSC"+Integer.toString(catNo), agents.get(i), col,  1, colEves[i], catDates[i], "BuildSampleDatabase");
+
+            Fragment fragment = createFragment(collObj);
+            
+            fragments.add(fragment);
+            
             catNo++;
         }
-        dataObjects.addAll(collObjs);
+        
+        for (Fragment frag : fragments)
+        {
+            dataObjects.add(frag.getCollectionObject());
+        }
+
         for (CollectingEvent ce : colEves)
         {
             persist(ce);
@@ -4616,22 +4647,22 @@ public class BuildSampleDatabase
         Calendar whileBack = Calendar.getInstance(); 
         whileBack.set(2000, 7, 4, 9, 33, 12);
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
-        determs.add(createDetermination(collObjs.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(5), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(6), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
+        determs.add(createDetermination(fragments.get(7), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), true, recent));
         
-        determs.add(createDetermination(collObjs.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
-        determs.add(createDetermination(collObjs.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(0), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(1), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(2), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(3), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, whileBack));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
+        determs.add(createDetermination(fragments.get(4), getRandomAgent(agents), getRandomTaxon(TaxonTreeDef.SPECIES, taxa), false, longAgo));
         determs.get(13).setRemarks("This determination is totally wrong.  What a foolish determination.");
         
         persist(determs);
@@ -4652,29 +4683,29 @@ public class BuildSampleDatabase
         
         List<Preparation> preps = new Vector<Preparation>();
         Calendar prepDate = Calendar.getInstance();
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(2), collObjs.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(3), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(0), collObjs.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(2), fragments.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(3), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(0), fragments.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
 
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-        preps.add(createPreparation(pressed, agents.get(1), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+        preps.add(createPreparation(pressed, agents.get(1), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
 
         dataObjects.addAll(prepTypesForSaving);
         dataObjects.addAll(preps);
@@ -5795,7 +5826,7 @@ public class BuildSampleDatabase
         log.info("Creating collection objects");
 
         List<DNASequence>      dnaObjs  = new Vector<DNASequence>();
-        List<CollectionObject> collObjs = new Vector<CollectionObject>();
+        List<Fragment> fragments = new Vector<Fragment>();
         Collection      col     = collection;
         
         Calendar[] catDates = new Calendar[oldWay ? 8 : 50];
@@ -5808,14 +5839,14 @@ public class BuildSampleDatabase
         String prefix = "000000";
         if (oldWay)
         {
-            collObjs.add(createCollectionObject(prefix + "100", "RSC100", agents.get(0), col,  3, ce1, catDates[0], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "101", "RSC101", agents.get(0), col,  2, ce1, catDates[1], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "102", "RSC102", agents.get(1), col,  7, ce1, catDates[2], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "103", "RSC103", agents.get(1), col, 12, ce1, catDates[3], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "104", "RSC104", agents.get(2), col,  8, ce2, catDates[4], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "105", "RSC105", agents.get(2), col,  1, ce2, catDates[5], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "106", "RSC106", agents.get(2), col,  1, ce2, catDates[6], "BuildSampleDatabase"));
-            collObjs.add(createCollectionObject(prefix + "107", "RSC107", agents.get(3), col,  1, ce2, catDates[7], "BuildSampleDatabase"));
+            fragments.add(createFragment(createCollectionObject(prefix + "100", "RSC100", agents.get(0), col,  3, ce1, catDates[0], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "101", "RSC101", agents.get(0), col,  2, ce1, catDates[1], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "102", "RSC102", agents.get(1), col,  7, ce1, catDates[2], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "103", "RSC103", agents.get(1), col, 12, ce1, catDates[3], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "104", "RSC104", agents.get(2), col,  8, ce2, catDates[4], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "105", "RSC105", agents.get(2), col,  1, ce2, catDates[5], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "106", "RSC106", agents.get(2), col,  1, ce2, catDates[6], "BuildSampleDatabase")));
+            fragments.add(createFragment(createCollectionObject(prefix + "107", "RSC107", agents.get(3), col,  1, ce2, catDates[7], "BuildSampleDatabase")));
         } else
         {
             for (int i=0;i<catDates.length;i++)
@@ -5823,7 +5854,7 @@ public class BuildSampleDatabase
                 Integer catNum = i + 100;
                 int agentInx = rand.nextInt(agents.size());
                 CollectingEvent ce = ceList.get(rand.nextInt(ceList.size()));
-                collObjs.add(createCollectionObject(prefix + catNum, "RSC"+catNum, agents.get(agentInx), col,  rand.nextInt(12)+1, ce, catDates[i], "BuildSampleDatabase"));
+                fragments.add(createFragment(createCollectionObject(prefix + catNum, "RSC"+catNum, agents.get(agentInx), col,  rand.nextInt(12)+1, ce, catDates[i], "BuildSampleDatabase")));
             }
             
 /*
@@ -5856,8 +5887,8 @@ public class BuildSampleDatabase
                 dna.initialize();
                 
                 //dna.setSeqDate(cal); //moved to DNASequencingRun
-                dna.setCollectionMemberId(collObjs.get(i).getCollectionMemberId());
-                dna.setCollectionObject(collObjs.get(i));
+                dna.setCollectionMemberId(fragments.get(i).getCollectionMemberId());
+                dna.setCollectionObject(fragments.get(i).getCollectionObject());
                 //dna.setGeneName("COI5'");
                 int agentInx = rand.nextInt(agents.size());
                 dna.setCreatedByAgent(agents.get(agentInx));
@@ -5885,9 +5916,14 @@ public class BuildSampleDatabase
         colObjAttrDef.setDiscipline(discipline);
         discipline.getAttributeDefs().add(colObjAttrDef);
         
-        CollectionObjectAttr colObjAttr = createCollectionObjectAttr(collObjs.get(0), colObjAttrDef, "Full", null);
+        CollectionObjectAttr colObjAttr = createCollectionObjectAttr(fragments.get(0).getCollectionObject(), colObjAttrDef, "Full", null);
         dataObjects.add(colObjAttrDef);
-        dataObjects.addAll(collObjs);
+        
+        for (Fragment frag : fragments)
+        {
+        	dataObjects.add(frag.getCollectionObject());
+        }
+        
         dataObjects.addAll(dnaObjs);
         dataObjects.add(colObjAttr);
         
@@ -5915,28 +5951,28 @@ public class BuildSampleDatabase
         int baseInx = 41 - (doShallowTaxonTree ? 30 : 0);
         if (oldWay)
         {
-            determs.add(createDetermination(collObjs.get(0), agents.get(0), (Taxon)taxa.get(baseInx+1), true, recent));
-            determs.add(createDetermination(collObjs.get(1), agents.get(0), (Taxon)taxa.get(baseInx+2), true, recent));
-            determs.add(createDetermination(collObjs.get(2), agents.get(0), (Taxon)taxa.get(baseInx+3), true, recent));
-            determs.add(createDetermination(collObjs.get(3), agents.get(0), (Taxon)taxa.get(baseInx+4), true, recent));
-            determs.add(createDetermination(collObjs.get(4), agents.get(0), (Taxon)taxa.get(baseInx+5), true, recent));
-            determs.add(createDetermination(collObjs.get(5), agents.get(0), (Taxon)taxa.get(baseInx+6), true, recent));
-            determs.add(createDetermination(collObjs.get(6), agents.get(3), (Taxon)taxa.get(baseInx+7), true, recent));
-            determs.add(createDetermination(collObjs.get(7), agents.get(4), (Taxon)taxa.get(baseInx+8), true, recent));
+            determs.add(createDetermination(fragments.get(0), agents.get(0), (Taxon)taxa.get(baseInx+1), true, recent));
+            determs.add(createDetermination(fragments.get(1), agents.get(0), (Taxon)taxa.get(baseInx+2), true, recent));
+            determs.add(createDetermination(fragments.get(2), agents.get(0), (Taxon)taxa.get(baseInx+3), true, recent));
+            determs.add(createDetermination(fragments.get(3), agents.get(0), (Taxon)taxa.get(baseInx+4), true, recent));
+            determs.add(createDetermination(fragments.get(4), agents.get(0), (Taxon)taxa.get(baseInx+5), true, recent));
+            determs.add(createDetermination(fragments.get(5), agents.get(0), (Taxon)taxa.get(baseInx+6), true, recent));
+            determs.add(createDetermination(fragments.get(6), agents.get(3), (Taxon)taxa.get(baseInx+7), true, recent));
+            determs.add(createDetermination(fragments.get(7), agents.get(4), (Taxon)taxa.get(baseInx+8), true, recent));
             
-            determs.add(createDetermination(collObjs.get(0), agents.get(0), (Taxon)taxa.get(baseInx), false, longAgo));
-            determs.add(createDetermination(collObjs.get(1), agents.get(1), (Taxon)taxa.get(baseInx+7), false, whileBack));
-            determs.add(createDetermination(collObjs.get(2), agents.get(1), (Taxon)taxa.get(baseInx+9), false, whileBack));
-            determs.add(createDetermination(collObjs.get(3), agents.get(2), (Taxon)taxa.get(baseInx+10), false, whileBack));
-            determs.add(createDetermination(collObjs.get(4), agents.get(2), (Taxon)taxa.get(baseInx+10), false, whileBack));
-            determs.add(createDetermination(collObjs.get(4), agents.get(3), (Taxon)taxa.get(baseInx+13), false, longAgo));
-            determs.add(createDetermination(collObjs.get(4), agents.get(4), (Taxon)taxa.get(baseInx+12), false, longAgo));
+            determs.add(createDetermination(fragments.get(0), agents.get(0), (Taxon)taxa.get(baseInx), false, longAgo));
+            determs.add(createDetermination(fragments.get(1), agents.get(1), (Taxon)taxa.get(baseInx+7), false, whileBack));
+            determs.add(createDetermination(fragments.get(2), agents.get(1), (Taxon)taxa.get(baseInx+9), false, whileBack));
+            determs.add(createDetermination(fragments.get(3), agents.get(2), (Taxon)taxa.get(baseInx+10), false, whileBack));
+            determs.add(createDetermination(fragments.get(4), agents.get(2), (Taxon)taxa.get(baseInx+10), false, whileBack));
+            determs.add(createDetermination(fragments.get(4), agents.get(3), (Taxon)taxa.get(baseInx+13), false, longAgo));
+            determs.add(createDetermination(fragments.get(4), agents.get(4), (Taxon)taxa.get(baseInx+12), false, longAgo));
             determs.get(13).setRemarks("This determination is totally wrong.  What a foolish determination.");
         } else
         {
-            for (CollectionObject co : collObjs)
+            for (Fragment frag : fragments)
             {
-                determs.add(createDetermination(co, agents.get(0), (Taxon)taxa.get(baseInx+rand.nextInt(13)), true, recent));
+                determs.add(createDetermination(frag, agents.get(0), (Taxon)taxa.get(baseInx+rand.nextInt(13)), true, recent));
             }
         }
         
@@ -5975,34 +6011,34 @@ public class BuildSampleDatabase
         Calendar prepDate = Calendar.getInstance();
         if (oldWay)
         {
-            preps.add(createPreparation(pt.get(0), agents.get(0), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(0), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(1), collObjs.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(1), collObjs.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(2), collObjs.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(2), collObjs.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(3), collObjs.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(0), agents.get(3), collObjs.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(1), collObjs.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(1), collObjs.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(1), collObjs.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(2), collObjs.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(3), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(1), agents.get(0), collObjs.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(2), agents.get(1), collObjs.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(2), agents.get(1), collObjs.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(2), agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(0), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(0), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(1), fragments.get(2), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(1), fragments.get(3), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(2), fragments.get(4), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(2), fragments.get(5), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(3), fragments.get(6), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(0), agents.get(3), fragments.get(7), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(1), fragments.get(0), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(1), fragments.get(1), (Storage)locs.get(11), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(1), fragments.get(2), (Storage)locs.get(10), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(2), fragments.get(3), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(3), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(1), agents.get(0), fragments.get(5), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(2), agents.get(1), fragments.get(6), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(2), agents.get(1), fragments.get(7), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(2), agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
     
-            preps.add(createPreparation(pt.get(3), agents.get(1), collObjs.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(3), agents.get(1), collObjs.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(3), agents.get(1), collObjs.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(3), agents.get(1), collObjs.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
-            preps.add(createPreparation(pt.get(3), agents.get(1), collObjs.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(3), agents.get(1), fragments.get(0), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(3), agents.get(1), fragments.get(1), (Storage)locs.get(7), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(3), agents.get(1), fragments.get(2), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(3), agents.get(1), fragments.get(3), (Storage)locs.get(8), rand.nextInt(20)+1, prepDate));
+            preps.add(createPreparation(pt.get(3), agents.get(1), fragments.get(4), (Storage)locs.get(9), rand.nextInt(20)+1, prepDate));
         } else
         {
-            for (CollectionObject co : collObjs)
+            for (Fragment frag : fragments)
             {
-                preps.add(createPreparation(pt.get(0), agents.get(rand.nextInt(4)), co, (Storage)locs.get(rand.nextInt(6)+7), rand.nextInt(20)+1, prepDate));
+                preps.add(createPreparation(pt.get(0), agents.get(rand.nextInt(4)), frag, (Storage)locs.get(rand.nextInt(6)+7), rand.nextInt(20)+1, prepDate));
             }
         }
 
@@ -6370,7 +6406,7 @@ public class BuildSampleDatabase
                 log.error("Could not create attachments", e);
             }
         
-        addConservatorData(agents, collObjs);
+        addConservatorData(agents, preps);
         
         commitTx();
         
@@ -9282,4 +9318,17 @@ public class BuildSampleDatabase
         }
     }
 
+    private Fragment createFragment(final CollectionObject parent)
+    {
+    	Fragment fragment = new Fragment();
+
+    	fragment.initialize();
+    	fragment.setCatalogNumber(parent.getCatalogNumber());
+    	fragment.setCollectionMemberId(parent.getCollectionMemberId());
+    	fragment.setCollectionObject(parent);
+    	
+    	parent.getFragments().add(fragment);
+    	
+    	return fragment;
+    }
 }

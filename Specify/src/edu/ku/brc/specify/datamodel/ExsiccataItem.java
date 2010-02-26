@@ -54,8 +54,7 @@ public class ExsiccataItem extends DataModelObjBase implements java.io.Serializa
      protected String           fascicle;
      
      protected Exsiccata        exsiccata;
-     protected CollectionObject collectionObject;
-
+     protected Fragment         fragment;
 
     // Constructors
 
@@ -78,7 +77,7 @@ public class ExsiccataItem extends DataModelObjBase implements java.io.Serializa
         number = null;
         fascicle = null;
         exsiccata = null;
-        collectionObject = null;
+        fragment = null;
     }
     // End Initializer
 
@@ -155,18 +154,18 @@ public class ExsiccataItem extends DataModelObjBase implements java.io.Serializa
     public void setExsiccata(Exsiccata exsiccata) {
         this.exsiccata = exsiccata;
     }
-
+    
     /**
      *      * Biological Object cited
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject() {
-        return this.collectionObject;
+    @JoinColumn(name = "FragmentID", unique = false, nullable = false, insertable = true, updatable = true)
+    public Fragment getFragment() {
+        return this.fragment;
     }
     
-    public void setCollectionObject(CollectionObject collectionObject) {
-        this.collectionObject = collectionObject;
+    public void setFragment(Fragment fragment) {
+        this.fragment = fragment;
     }
     
     /* (non-Javadoc)

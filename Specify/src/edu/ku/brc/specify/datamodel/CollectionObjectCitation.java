@@ -52,7 +52,7 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
      protected String           remarks;
      protected Boolean          isFigured;
      protected ReferenceWork    referenceWork;
-     protected CollectionObject collectionObject;
+     protected Fragment         fragment;
 
 
     // Constructors
@@ -78,7 +78,7 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
         collectionObjectCitationId = null;
         remarks = null;
         referenceWork = null;
-        collectionObject = null;
+        fragment = null;
     }
     // End Initializer
 
@@ -166,13 +166,13 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
      *      * Biological Object cited
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject() {
-        return this.collectionObject;
+    @JoinColumn(name = "FragmentID", unique = false, nullable = false, insertable = true, updatable = true)
+    public Fragment getFragment() {
+        return this.fragment;
     }
     
-    public void setCollectionObject(CollectionObject collectionObject) {
-        this.collectionObject = collectionObject;
+    public void setFragment(Fragment fragment) {
+        this.fragment = fragment;
     }
     
     /* (non-Javadoc)
@@ -182,7 +182,7 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
     @Transient
     public Integer getParentTableId()
     {
-        return CollectionObject.getClassTableId();
+        return Fragment.getClassTableId();
     }
 
     /* (non-Javadoc)
@@ -192,7 +192,7 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
     @Transient
     public Integer getParentId()
     {
-        return collectionObject != null ? collectionObject.getId() : null;
+        return fragment != null ? fragment.getId() : null;
     }
     
     /* (non-Javadoc)

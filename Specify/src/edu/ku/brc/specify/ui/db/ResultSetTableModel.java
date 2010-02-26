@@ -205,7 +205,7 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
         } else
         {
             SQLExecutionProcessor sqlProc = new SQLExecutionProcessor(this, results.getSQL(results.getSearchTerm(), ids));
-            if (doSequentiallyArg)
+            if (true)
             {
                 sqlProc.execute();
                 

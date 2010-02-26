@@ -86,6 +86,7 @@ import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.DeterminationCitation;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
@@ -752,7 +753,7 @@ public class DataBuilder
         return colObj;
     }
 
-    public static Determination createDetermination(final CollectionObject collectionObject,
+    public static Determination createDetermination(final Fragment fragment,
                                                     final Agent determiner,
                                                     final Taxon taxon,
                                                     final boolean isCurrent,
@@ -763,16 +764,16 @@ public class DataBuilder
         determination.initialize();
 
         determination.setIsCurrent(isCurrent);
-        determination.setCollectionObject(collectionObject);
+        determination.setFragment(fragment);
         determination.setDeterminedDate(calendar);
         determination.setDeterminer(determiner);
         determination.setTaxon(taxon);
 
         //status.getDeterminations().add(determination);
-        collectionObject.getDeterminations().add(determination);
+        fragment.getDeterminations().add(determination);
         //taxon.getDeterminations().add(determination);
 
-        persist(collectionObject);
+        persist(fragment);
         persist(determination);
         persist(taxon);
         return determination;
@@ -1298,7 +1299,7 @@ public class DataBuilder
 
     public static Preparation createPreparation(final PrepType prepType,
                                                 final Agent preparedBy,
-                                                final CollectionObject colObj,
+                                                final Fragment fragment,
                                                 final Storage storage,
                                                 final int count,
                                                 final Calendar preparedDate)
@@ -1306,7 +1307,7 @@ public class DataBuilder
         Preparation prep = new Preparation();
         prep.initialize();
 
-        prep.setCollectionObject(colObj);
+        prep.getFragments().add(fragment);
         prep.setCountAmt(count);
         prep.setModifiedByAgent(null);
         prep.setStorage(storage);
@@ -1318,7 +1319,7 @@ public class DataBuilder
         prep.setText1(null);
         prep.setText2(null);
 
-        colObj.getPreparations().add(prep);
+        fragment.setPreparation(prep);
 
         persist(prep);
         return prep;
@@ -1665,13 +1666,11 @@ public class DataBuilder
                                                           final String guid,
                                                           //final String altCatalogNumber,
                                                           final Integer groupPermittedToView,
-                                                          final Boolean deaccessioned,
                                                           final String catalogNumber,
                                                           final CollectingEvent collectingEvent,
                                                           final Collection collection,
                                                           final Accession accession,
-                                                          final Agent cataloger,
-                                                          final Container container)
+                                                          final Agent cataloger)
     {
         CollectionObject collectionobject = new CollectionObject();
         collectionobject.initialize();
@@ -1683,13 +1682,11 @@ public class DataBuilder
         collectionobject.setCatalogedDateVerbatim(catalogedDateVerbatim);
         collectionobject.setGuid(guid);
         //collectionobject.setAltCatalogNumber(altCatalogNumber);
-        collectionobject.setDeaccessioned(deaccessioned);
         collectionobject.setCatalogNumber(catalogNumber);
         collectionobject.setCollectingEvent(collectingEvent);
         collectionobject.setCollection(collection);
         collectionobject.setAccession(accession);
         collectionobject.setCataloger(cataloger);
-        collectionobject.setContainer(container);
         collectionobject.setName(name);
         collectionobject.setDescription(description);
         persist(collectionobject);
@@ -1713,12 +1710,12 @@ public class DataBuilder
     }
 
     public static CollectionObjectCitation createCollectionObjectCitation(final ReferenceWork referenceWork,
-                                                                          final CollectionObject collectionObject)
+                                                                          final Fragment fragment)
     {
         CollectionObjectCitation collectionobjectcitation = new CollectionObjectCitation();
         collectionobjectcitation.initialize();
         collectionobjectcitation.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        collectionobjectcitation.setCollectionObject(collectionObject);
+        collectionobjectcitation.setFragment(fragment);
         collectionobjectcitation.setReferenceWork(referenceWork);
         persist(collectionobjectcitation);
         return collectionobjectcitation;
@@ -1742,14 +1739,14 @@ public class DataBuilder
                                             final String name,
                                             final String description,
                                             final Integer number,
-                                            final CollectionObject colObj,
+                                            final Fragment fragment,
                                             final Storage storage)
     {
         Container container = new Container();
         container.initialize();
         container.setNumber(number);
         container.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        container.getCollectionObjects().add(colObj);
+        container.getFragments().add(fragment);
         container.setName(name);
         container.setStorage(storage);
         container.setDescription(description);
@@ -1814,14 +1811,14 @@ public class DataBuilder
                                                     final String method,
                                                     final String featureOrBasis,
                                                     final Taxon taxon,
-                                                    final CollectionObject collectionObject,
+                                                    final Fragment fragment,
                                                     final Agent determiner)
     {
         Determination determination = new Determination();
         determination.initialize();
         determination.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
         determination.setIsCurrent(isCurrent);
-        determination.setCollectionObject(collectionObject);
+        determination.setFragment(fragment);
         determination.setTypeStatusName(typeStatusName);
         determination.setDeterminedDate(determinedDate);
         determination.setConfidence(confidence);

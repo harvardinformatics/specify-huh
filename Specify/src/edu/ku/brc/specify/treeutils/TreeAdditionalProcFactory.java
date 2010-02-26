@@ -119,7 +119,7 @@ public class TreeAdditionalProcFactory
             {
             	for (Determination det : new Vector<Determination>(srcTax.getDeterminations()))
             	{
-            		log.debug(det.getCollectionObject().getIdentityTitle()+" has  "+det.getIdentityTitle()+ "  "+det.getTaxon().getIdentityTitle()+" "+det.getCollectionObject().getCollectionMemberId());
+            		log.debug(det.getFragment().getIdentityTitle()+" has  "+det.getIdentityTitle()+ "  "+det.getTaxon().getIdentityTitle()+" "+det.getFragment().getCollectionMemberId());
             		det.setPreferredTaxon(dstTaxon);
             		session.saveOrUpdate(det);
             	}

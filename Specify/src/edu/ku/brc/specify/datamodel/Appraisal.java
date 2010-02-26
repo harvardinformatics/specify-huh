@@ -70,9 +70,9 @@ public class Appraisal extends DataModelObjBase
     protected String     monetaryUnitType;
     protected String     notes;
     
-    protected Set<CollectionObject> collectionObjects;
-    protected Accession             accession;
-    protected Agent                 agent;
+    protected Set<Preparation> preparations;
+    protected Accession        accession;
+    protected Agent            agent;
     
     
     /**
@@ -99,7 +99,7 @@ public class Appraisal extends DataModelObjBase
         notes             = null;
         agent             = null;
         
-        collectionObjects = new HashSet<CollectionObject>();
+        preparations      = new HashSet<Preparation>();
         accession         = null;
 
     }
@@ -153,11 +153,11 @@ public class Appraisal extends DataModelObjBase
     }
 
     /**
-     * @param collectionObjects the collectionObjects to set
+     * @param preparations the preparations to set
      */
-    public void setCollectionObjects(Set<CollectionObject> collectionObjects)
+    public void setPreparations(Set<Preparation> preparations)
     {
-        this.collectionObjects = collectionObjects;
+        this.preparations = preparations;
     }
 
     /**
@@ -227,13 +227,13 @@ public class Appraisal extends DataModelObjBase
     }
 
     /**
-     * @return the collectionObjects
+     * @return the preparations
      */
     @OneToMany(cascade = {}, mappedBy = "appraisal")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionObject> getCollectionObjects()
+    public Set<Preparation> getPreparations()
     {
-        return collectionObjects;
+        return preparations;
     }
 
     /**
@@ -300,9 +300,9 @@ public class Appraisal extends DataModelObjBase
         {
             return Accession.getClassTableId();
         }
-        if (collectionObjects != null && collectionObjects.size() > 0)
+        if (preparations != null && preparations.size() > 0)
         {
-            return CollectionObject.getClassTableId();
+            return Preparation.getClassTableId();
         }
         return null;
     }
@@ -319,9 +319,9 @@ public class Appraisal extends DataModelObjBase
             return accession.getId();
         } 
         
-        if (collectionObjects != null && collectionObjects.size() == 1)
+        if (preparations != null && preparations.size() == 1)
         {
-            return ((FormDataObjIFace)collectionObjects.toArray()[0]).getId();
+            return ((FormDataObjIFace)preparations.toArray()[0]).getId();
         }
         return null;
     }

@@ -19,7 +19,9 @@
 */
 package edu.ku.brc.specify.dbsupport;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -32,6 +34,7 @@ import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 
 /**
@@ -100,10 +103,14 @@ public class RecordSetLoader
                 for (RecordSetItemIFace rsItem: recordSet.getOrderedItems())
                 {
                     CollectionObject colObj = (CollectionObject)session.get(recordClass, rsItem.getRecordId());
-                    for (Determination det : colObj.getDeterminations())
-                    {
-                        det.getTaxon().getId();
-                    }
+                    
+                	for (Fragment frag : colObj.getFragments())                       // mmk fragment
+                	{
+                		for (Determination det : frag.getDeterminations())
+                		{
+                			det.getTaxon().getId();
+                		}
+                	}
                     CollectingEvent ce = colObj.getCollectingEvent();
                     if (ce != null)
                     {

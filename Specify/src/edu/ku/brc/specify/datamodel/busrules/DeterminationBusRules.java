@@ -47,8 +47,8 @@ import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.GetSetValueIFace;
@@ -108,9 +108,9 @@ public class DeterminationBusRules extends BaseBusRules
             {
                 if (determination.getDeterminationId() == null)
                 {
-                    if (determination.getCollectionObject() != null) //It should never be non null, but, currently, it does happen.
+                    if (determination.getFragment() != null) //It should never be non null, but, currently, it does happen.
                     {
-                    	if (determination.getCollectionObject().getDeterminations().size() == 1)
+                    	if (determination.getFragment().getDeterminations().size() == 1)
                     	{
                     		if (currentComp instanceof ValCheckBox)
                     		{
@@ -264,11 +264,11 @@ public class DeterminationBusRules extends BaseBusRules
      * @param deter the determination for the CO
      * @return true is ok
      */
-    protected boolean checkDeterminationStatus(final CollectionObject colObj, final Determination deter)
+    protected boolean checkDeterminationStatus(final Fragment frag, final Determination deter) // mmk fragment
     {
         if (deter.isCurrentDet())
         {
-            for (Determination det : colObj.getDeterminations())
+            for (Determination det : frag.getDeterminations())
             {
                 if (det != deter && det.isCurrentDet())
                 {
@@ -291,7 +291,7 @@ public class DeterminationBusRules extends BaseBusRules
         
         if (status == STATUS.OK)
         {
-            if (!checkDeterminationStatus((CollectionObject)parentDataObj, (Determination)dataObj))
+            if (!checkDeterminationStatus((Fragment)parentDataObj, (Determination)dataObj)) // mmk fragment
             {
                 reasonList.add(UIRegistry.getResourceString("DT_ALREADY_DETERMINATION"));
                 status = STATUS.Error;

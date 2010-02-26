@@ -38,8 +38,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -91,6 +93,7 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
@@ -438,7 +441,14 @@ public class LoanReturnDlg extends JDialog
             CellConstraints cc      = new CellConstraints();
      
             String taxonName = "";
-            for (Determination deter : colObj.getDeterminations())
+            
+            Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+        	for (Fragment frag : colObj.getFragments())
+        	{
+        		determinations.addAll(frag.getDeterminations());
+        	}                                                                 // mmk fragment
+        	
+            for (Determination deter : determinations)
             {
                 if (deter.isCurrentDet())
                 {

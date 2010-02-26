@@ -78,6 +78,7 @@ import edu.ku.brc.services.mapping.LocalityMapper;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.extras.FishBaseInfoGetter;
@@ -234,7 +235,13 @@ public class LocalityMapperSubPane extends BaseSubPane implements LocalityMapper
         	Set<Object> taxonNames = new HashSet<Object>();
         	for (CollectionObject co : colObjs)
         	{
-        		for (Determination d : co.getDeterminations())
+        		Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+            	for (Fragment frag : co.getFragments())
+            	{
+            		determinations.addAll(frag.getDeterminations());
+            	}                                                                 // mmk fragment
+            	
+        		for (Determination d : determinations)
         		{
         			if (d.isCurrentDet())
         			{

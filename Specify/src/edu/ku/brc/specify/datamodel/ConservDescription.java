@@ -73,7 +73,7 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
     protected String             displayRecommendations;
     protected String             otherRecommendations;
     
-    protected CollectionObject   collectionObject;
+    protected Preparation        preparation;
     protected Division           division;
     
     protected Set<ConservEvent>  events;
@@ -112,7 +112,7 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
         lightRecommendations   = null;
         displayRecommendations = null;
         otherRecommendations   = null;
-        collectionObject     = null;
+        preparation          = null;
         division             = null;
         events               = new HashSet<ConservEvent>();
         conservDescriptionAttachments = new HashSet<ConservDescriptionAttachment>();
@@ -342,15 +342,15 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
      *
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = true, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject()
+    @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Preparation getPreparation()
     {
-        return this.collectionObject;
+        return this.preparation;
     }
 
-    public void setCollectionObject(final CollectionObject collectionObject)
+    public void setPreparation(final Preparation preparation)
     {
-        this.collectionObject = collectionObject;
+        this.preparation = preparation;
     }
 
     /**
@@ -408,9 +408,9 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
         {
             return Division.getClassTableId();
         }
-        if (collectionObject != null)
+        if (preparation != null)
         {
-            return CollectionObject.getClassTableId();
+            return Preparation.getClassTableId();
         }
         return null;
     }
@@ -426,9 +426,9 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
         {
             return division.getId();
         }
-        if (collectionObject != null)
+        if (preparation != null)
         {
-            return collectionObject.getId();
+            return preparation.getId();
         }
         return null;
     }

@@ -82,6 +82,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected String                        projectNumber;
     protected String                        text1;
     protected String                        text2;
+    protected String                        text3;
     protected Float                         number1;
     protected Float                         number2;
     protected Boolean                       yesNo1;
@@ -99,10 +100,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected String                        catalogedDateVerbatim;
     protected String                        guid;
     protected String                        altCatalogNumber;
-    protected Boolean                       deaccessioned;
     protected String                        catalogNumber;
-    protected Calendar                      inventoryDate;
-    protected String                        objectCondition;
     protected String                        availability;
     protected String                        restrictions;
     protected String                        notifications;
@@ -114,18 +112,13 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     
     // Relationships
     protected CollectingEvent               collectingEvent;
-    protected Set<CollectionObjectCitation> collectionObjectCitations;
-    protected Set<Preparation>              preparations;
-    protected Set<Determination>            determinations;
+    protected Set<Fragment>                 fragments;
     protected Set<Project>                  projects;
     // protected Set<DeaccessionPreparation> deaccessionPreparations;
     protected Set<OtherIdentifier>          otherIdentifiers;
     protected Collection                    collection;
     protected Accession                     accession;
     protected Agent                         cataloger;
-    protected Container                     container;        // The container it belongs to
-    protected Container                     containerOwner;   // The container it is a part of
-    protected Appraisal                     appraisal;
     protected CollectionObjectAttribute     collectionObjectAttribute; // Specify 5 Attributes table
     protected Set<CollectionObjectAttr>     collectionObjectAttrs;      // Generic Expandable Attributes
     protected Set<CollectionRelationship>   leftSideRels;
@@ -134,11 +127,9 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Set<DNASequence>              dnaSequences;
     protected FieldNotebookPage             fieldNotebookPage;
     
-    protected Set<ConservDescription>         conservDescriptions;
-    protected Set<TreatmentEvent>             treatmentEvents;
+    
     protected Set<CollectionObjectAttachment> collectionObjectAttachments;
 
-    protected Set<ExsiccataItem>              exsiccataItems;
     
     // Constructors
 
@@ -164,6 +155,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         description           = null;
         text1                 = null;
         text2                 = null;
+        text3                 = null;
         number1               = null;
         number2               = null;
         yesNo1                = null;
@@ -180,9 +172,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         catalogedDateVerbatim = null;
         guid                  = null;
         altCatalogNumber      = null;
-        deaccessioned         = null;
         catalogNumber         = null;
-        objectCondition       = null;
         availability          = null;
         restrictions          = null;
         notifications         = null;
@@ -191,19 +181,14 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         visibilitySetBy       = null; 
         
         collectingEvent       = null;
-        appraisal             = null;
-        collectionObjectCitations = new HashSet<CollectionObjectCitation>();
         collectionObjectAttrs = new HashSet<CollectionObjectAttr>();
-        preparations          = new HashSet<Preparation>();
-        determinations        = new HashSet<Determination>();
+        fragments             = new HashSet<Fragment>();
         projects              = new HashSet<Project>();
         //deaccessionPreparations = new HashSet<DeaccessionPreparation>();
         otherIdentifiers      = new HashSet<OtherIdentifier>();
         collection            = null;
         accession             = null;
         cataloger             = null;
-        container             = null;
-        containerOwner        = null;
         paleoContext          = null;
         dnaSequences          = new HashSet<DNASequence>();
         fieldNotebookPage     = null;
@@ -211,11 +196,8 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         leftSideRels          = new HashSet<CollectionRelationship>();
         rightSideRels         = new HashSet<CollectionRelationship>();
         
-        conservDescriptions         = new HashSet<ConservDescription>();
-        treatmentEvents             = new HashSet<TreatmentEvent>();
         collectionObjectAttachments = new HashSet<CollectionObjectAttachment>();
         
-        exsiccataItems              = new HashSet<ExsiccataItem>();
     }
     // End Initializer
     
@@ -318,6 +300,18 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         this.text2 = text2;
     }
 
+    /**
+     *      * User definable
+     */
+    @Column(name = "Text3", length=300, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText3() {
+        return this.text3;
+    }
+
+    public void setText3(String text3) {
+        this.text3 = text3;
+    }
+    
     /**
      *      * User definable
      */
@@ -537,18 +531,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *
      */
-    @Column(name = "Deaccessioned", unique = false, nullable = true, insertable = true, updatable = true)
-    public Boolean getDeaccessioned() {
-        return this.deaccessioned;
-    }
-
-    public void setDeaccessioned(Boolean deaccessioned) {
-        this.deaccessioned = deaccessioned;
-    }
-
-    /**
-     *
-     */
     @Column(name = "CatalogNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
     public String getCatalogNumber() {
         return this.catalogNumber;
@@ -573,41 +555,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     public void setCatalogedDatePrecision(Byte catalogedDatePrecision)
     {
         this.catalogedDatePrecision = catalogedDatePrecision;
-    }
-
-    /**
-     * @return the inventoryDate
-     */
-    @Temporal(TemporalType.DATE)
-    @Column(name = "InventoryDate", unique = false, nullable = true, insertable = true, updatable = true)
-    public Calendar getInventoryDate()
-    {
-        return inventoryDate;
-    }
-
-    /**
-     * @param inventoryDate the inventoryDate to set
-     */
-    public void setInventoryDate(Calendar inventoryDate)
-    {
-        this.inventoryDate = inventoryDate;
-    }
-
-    /**
-     * @return the condition
-     */
-    @Column(name = "ObjectCondition", unique = false, nullable = true, insertable = true, updatable = true, length=64)
-    public String getObjectCondition()
-    {
-        return objectCondition;
-    }
-
-    /**
-     * @param condition the condition to set
-     */
-    public void setObjectCondition(String objectCondition)
-    {
-        this.objectCondition = objectCondition;
     }
 
     /**
@@ -745,25 +692,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     * @return the appraisal
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    //@Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    @JoinColumn(name = "AppraisalID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Appraisal getAppraisal()
-    {
-        return appraisal;
-    }
-
-    /**
-     * @param appraisal the appraisal to set
-     */
-    public void setAppraisal(Appraisal appraisal)
-    {
-        this.appraisal = appraisal;
-    }
-
-    /**
      *
      */
     @ManyToOne(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY)
@@ -777,19 +705,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     public void setCollectionObjectAttribute(CollectionObjectAttribute colObjAttribute) 
     {
         this.collectionObjectAttribute = colObjAttribute;
-    }
-
-    /**
-     *
-     */
-    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "collectionObject")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<CollectionObjectCitation> getCollectionObjectCitations() {
-        return this.collectionObjectCitations;
-    }
-
-    public void setCollectionObjectCitations(Set<CollectionObjectCitation> collectionObjectCitations) {
-        this.collectionObjectCitations = collectionObjectCitations;
     }
 
     /**
@@ -837,27 +752,12 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
      */
     @OneToMany(mappedBy = "collectionObject")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<Preparation> getPreparations() {
-        return this.preparations;
+    public Set<Fragment> getFragments() {
+        return this.fragments;
     }
 
-    public void setPreparations(Set<Preparation> preparations) {
-        this.preparations = preparations;
-    }
-
-    /**
-     *
-     */
-    @OneToMany(mappedBy = "collectionObject")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<Determination> getDeterminations() 
-    {
-        return this.determinations;
-    }
-
-    public void setDeterminations(Set<Determination> determinations) 
-    {
-        this.determinations = determinations;
+    public void setFragments(Set<Fragment> fragments) {
+        this.fragments = fragments;
     }
 
     /**
@@ -940,24 +840,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     * @return the treatmentEvents
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "collectionObject")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<TreatmentEvent> getTreatmentEvents()
-    {
-        return treatmentEvents;
-    }
-
-    /**
-     * @param treatmentEvents the treatmentEvents to set
-     */
-    public void setTreatmentEvents(Set<TreatmentEvent> treatmentEvents)
-    {
-        this.treatmentEvents = treatmentEvents;
-    }
-
-    /**
      *
      */
     @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "collectionObject")
@@ -1010,32 +892,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     *      * Preparation, Container
-     */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Container getContainer() {
-        return this.container;
-    }
-
-    public void setContainer(Container container) {
-        this.container = container;
-    }
-    
-    /**
-     *      * Preparation, Container
-     */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ContainerOwnerID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Container getContainerOwner() {
-        return this.containerOwner;
-    }
-
-    public void setContainerOwner(Container containerOwner) {
-        this.containerOwner = containerOwner;
-    }
-
-    /**
      * 
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSide")
@@ -1064,22 +920,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     {
         this.rightSideRels = rightSideRels;
     }
-    
 
-    /**
-     *
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "collectionObject")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<ConservDescription> getConservDescriptions()
-    {
-        return this.conservDescriptions;
-    }
-
-    public void setConservDescriptions(final Set<ConservDescription> conservDescriptions)
-    {
-        this.conservDescriptions = conservDescriptions;
-    }
 
     @OneToMany(mappedBy = "collectionObject")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
@@ -1092,18 +933,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     public void setCollectionObjectAttachments(Set<CollectionObjectAttachment> collectionObjectAttachments)
     {
         this.collectionObjectAttachments = collectionObjectAttachments;
-    }
-
-    @OneToMany(mappedBy = "collectionObject")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<ExsiccataItem> getExsiccataItems()
-    {
-        return exsiccataItems;
-    }
-    
-    public void setExsiccataItems(Set<ExsiccataItem> exsiccataItems)
-    {
-        this.exsiccataItems = exsiccataItems;
     }
     
    //---------------------------------------------------------------------------
@@ -1178,8 +1007,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     @Override
     public void forceLoad()
     {
-        determinations.size();
-        preparations.size();
+        fragments.size();
         projects.size();
         if (collection != null)
         {

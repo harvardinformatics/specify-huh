@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 141 or 532
+    Last used ID is 142 or 532
     
     ... are available
     
@@ -192,6 +192,10 @@
         <table name="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment" abbrev="fnbpsat" id="128" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="FieldNotebookPageSetAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.Fragment" abbrev="frag" id="142" searchable="true">
+        	<display view="Fragment" newobjdlg="FragmentDisplay"/>
+        	<businessrule>edu.harvard.huh.specify.datamodel.busrules.FragmentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">

@@ -35,6 +35,7 @@ import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ExsiccataItem;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.PrepType;
@@ -146,7 +147,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             addOtherIdentifier(accession);
 
             // ExsiccataItem
-            ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
+            ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, null); // TODO fragment
             addExsiccataItem(exsiccataItem);
             
             return;
@@ -205,7 +206,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             seriesCollector = getSeriesCollector(specimenItem, collectingEvent, collectionId);
             
             // ExsiccataItem
-            ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
+            ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, null); // TODO fragment
             addExsiccataItem(exsiccataItem);
 
             // OtherIdentifiers
@@ -572,7 +573,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 
                 if (specimenItem.hasExsiccata())
                 {
-                    ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, collectionObject);
+                    ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, null); // TODO fragment
                     exsiccataItems.add(exsiccataItem);
                 }
 
@@ -940,8 +941,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         // CollectionObjectAttribute TODO: change to CollectionObjectAttr?
         collectionObject.setCollectionObjectAttribute(collObjAttr);
 
-        // Container (subcollection)
-        collectionObject.setContainer(container);
+        // Container (subcollection) TODO: put this on preparation
+        //collectionObject.setContainer(container);
 		
         // CreatedByAgent
         collectionObject.setCreatedByAgent(cataloger); 
@@ -1170,7 +1171,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return otherIdentifier;
 	}
 
-	private ExsiccataItem getExsiccataItem(SpecimenItem specimenItem, CollectionObject collectionObject) throws LocalException
+	private ExsiccataItem getExsiccataItem(SpecimenItem specimenItem, Fragment fragment) throws LocalException
 	{
 	    Integer subcollectionId = specimenItem.getSubcollectionId();
 
@@ -1179,7 +1180,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    ExsiccataItem exsiccataItem = new ExsiccataItem();
         
         // CollectionObject
-        exsiccataItem.setCollectionObject(collectionObject);
+        exsiccataItem.setFragment(fragment);
         
         // Exsiccata
         Exsiccata exsiccata = lookupExsiccata(subcollectionId);
@@ -1249,7 +1250,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[6]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId());
 		values[7]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId());
 		values[8]  = SqlUtils.sqlString( collectionObject.getCollectionObjectAttribute().getId());
-		values[9]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
+		//values[9]  = SqlUtils.sqlString( collectionObject.getContainer().getId()); TODO fragment
 		values[10] = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
 		values[11] = SqlUtils.sqlString( collectionObject.getDescription());
 		values[12] = SqlUtils.sqlString( collectionObject.getFieldNumber());
@@ -1330,11 +1331,11 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
     private String getInsertSql(ExsiccataItem exsiccataItem) throws LocalException
 	{
-		String fieldNames = "CollectionObjectID, ExsiccataID, TimestampCreated, Version";
+		String fieldNames = "FragmentID, ExsiccataID, TimestampCreated, Version";
 
 		String[] values = new String[4];
 
-		values[0] = SqlUtils.sqlString( exsiccataItem.getCollectionObject().getId());
+		values[0] = SqlUtils.sqlString( exsiccataItem.getFragment().getId());
 		values[1] = SqlUtils.sqlString( exsiccataItem.getExsiccata().getId());
 		values[2] = SqlUtils.now();
 		values[3] = SqlUtils.zero();

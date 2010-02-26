@@ -78,7 +78,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
      protected Boolean             yesNo2;
      protected Taxon               preferredTaxon; //= taxon.acceptedTaxon or taxon
      protected Taxon               taxon;
-     protected CollectionObject    collectionObject;
+     protected Fragment            fragment;
      protected Set<DeterminationCitation> determinationCitations;
      protected Agent               determiner;
      
@@ -127,7 +127,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
         yesNo2 = null;
         preferredTaxon = null;
         taxon = null;
-        collectionObject = null;
+        fragment = null;
         determinationCitations = new HashSet<DeterminationCitation>();
         determiner = null;
     }
@@ -505,15 +505,15 @@ public class Determination extends CollectionMember implements java.io.Serializa
      * 
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject() 
+    @JoinColumn(name = "FragmentID", unique = false, nullable = false, insertable = true, updatable = true)
+    public Fragment getFragment() 
     {
-        return this.collectionObject;
+        return this.fragment;
     }
     
-    public void setCollectionObject(CollectionObject collectionObject) 
+    public void setFragment(Fragment fragment) 
     {
-        this.collectionObject = collectionObject;
+        this.fragment = fragment;
     }
 
     /**
@@ -598,7 +598,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
     @Transient
     public Integer getParentId()
     {
-        return collectionObject != null ? collectionObject.getId() : null;
+        return fragment != null ? fragment.getId() : null;
     }
  
     /* (non-Javadoc)
@@ -629,7 +629,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
         obj = (Determination)super.clone();
         obj.init();
         obj.determinationId        = null;
-        obj.collectionObject       = null;
+        obj.fragment               = null;
         obj.determinationCitations = new HashSet<DeterminationCitation>();
         
         for (DeterminationCitation dc : determinationCitations)

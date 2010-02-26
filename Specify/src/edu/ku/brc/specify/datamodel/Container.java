@@ -60,8 +60,8 @@ public class Container extends CollectionMember implements java.io.Serializable
      protected String                name;
      protected String                description;
      protected Integer               number;
-     protected Set<CollectionObject> collectionObjects;
-     protected Set<CollectionObject> collectionObjectOwners;
+     protected Set<Fragment>         fragments;
+     protected Set<Preparation>      preparations;
      protected Storage               storage;
 
      // Tree
@@ -93,8 +93,8 @@ public class Container extends CollectionMember implements java.io.Serializable
         description            = null;
         number                 = null;
         parent                 = null;
-        collectionObjects      = new HashSet<CollectionObject>();
-        collectionObjectOwners = new HashSet<CollectionObject>();
+        fragments              = new HashSet<Fragment>();
+        preparations           = new HashSet<Preparation>();
         storage                = null;
         children               = new HashSet<Container>();
     }
@@ -200,27 +200,31 @@ public class Container extends CollectionMember implements java.io.Serializable
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "container")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionObject> getCollectionObjects() 
+    public Set<Fragment> getFragments() 
     {
-        return this.collectionObjects;
+        return this.fragments;
     }
 
-    public void setCollectionObjects(Set<CollectionObject> collectionObjects) 
+    public void setFragments(Set<Fragment> fragments) 
     {
-        this.collectionObjects = collectionObjects;
+        this.fragments = fragments;
     }
+    
+    /**
+    *
+    */
+   @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "container")
+   @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+   public Set<Preparation> getPreparations() 
+   {
+       return this.preparations;
+   }
 
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "containerOwner")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionObject> getCollectionObjectOwners() 
-    {
-        return this.collectionObjectOwners;
-    }
-
-    public void setCollectionObjectOwners(Set<CollectionObject> collectionObjectOwners) 
-    {
-        this.collectionObjectOwners = collectionObjectOwners;
-    }
+   public void setPreparations(Set<Preparation> preparations) 
+   {
+       this.preparations = preparations;
+   }
+   
 
     /**
      *

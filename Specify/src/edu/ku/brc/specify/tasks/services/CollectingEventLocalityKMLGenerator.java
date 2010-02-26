@@ -28,8 +28,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -48,6 +50,7 @@ import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -410,7 +413,14 @@ public class CollectingEventLocalityKMLGenerator
 		{
 			String genus = null;
 			String species = null;
-			for (Determination d: co.getDeterminations())
+			
+			Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+        	for (Fragment frag : co.getFragments())
+        	{
+        		determinations.addAll(frag.getDeterminations());
+        	}                                                                 // mmk fragment
+        	
+			for (Determination d: determinations)
 			{
 				if (d.isCurrentDet())
 				{
@@ -645,7 +655,14 @@ public class CollectingEventLocalityKMLGenerator
         String        taxonStr     = null;
         String        startDateStr = null;
         String        geoStr       = null;
-        for (Determination det : colObj.getDeterminations())
+        
+        Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+    	for (Fragment frag : colObj.getFragments())
+    	{
+    		determinations.addAll(frag.getDeterminations());
+    	}                                                                 // mmk fragment
+    	
+        for (Determination det : determinations)
         {
             if (det.getIsCurrent())
             {

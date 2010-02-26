@@ -67,8 +67,7 @@ import edu.ku.brc.dbsupport.DBConnection;
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
         @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"}),
-        @Index (name="SampleNumberIDX", columnNames={"SampleNumber"}),
-    })
+        @Index (name="SampleNumberIDX", columnNames={"SampleNumber"}) })
 public class Preparation extends CollectionMember implements AttachmentOwnerIFace<PreparationAttachment>, 
                                                              AttributeProviderIFace, 
                                                              java.io.Serializable, 
@@ -95,6 +94,17 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected Boolean                     yesNo1;
     protected Boolean                     yesNo2;
     protected Boolean                     yesNo3;
+    
+    // from CollectionObject
+    protected Appraisal                   appraisal;
+    protected Set<ConservDescription>     conservDescriptions;
+    protected Container                   container;
+	protected Calendar                    inventoryDate;
+	protected String                      objectCondition;
+    protected Set<TreatmentEvent>         treatmentEvents;
+    
+    // Fragment
+    protected Set<Fragment>               fragments;
     
     protected Set<GiftPreparation>        giftPreparations;
     protected Set<LoanPreparation>        loanPreparations;
@@ -154,6 +164,17 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         yesNo2       = null;
         yesNo3       = null;
         
+        // fragments
+        fragments = new HashSet<Fragment>();
+        
+        // from collection object
+        appraisal           = null;
+        container           = null;
+        conservDescriptions = new HashSet<ConservDescription>();
+        inventoryDate       = null;
+        objectCondition     = null;
+        treatmentEvents     = new HashSet<TreatmentEvent>();
+        
         giftPreparations = new HashSet<GiftPreparation>();
         loanPreparations = new HashSet<LoanPreparation>();
         prepType = null;
@@ -190,6 +211,123 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         return this.preparationId;
     }
 
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "fragment")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<Fragment> getFragments() {
+        return this.fragments;
+    }
+    
+    public void setFragments(Set<Fragment> fragments) {
+        this.fragments = fragments;
+    }
+
+    // from CollectionObject
+    
+    /**
+     * @return the appraisal
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    //@Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    @JoinColumn(name = "AppraisalID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Appraisal getAppraisal()
+    {
+        return appraisal;
+    }
+
+    /**
+     * @param appraisal the appraisal to set
+     */
+    public void setAppraisal(Appraisal appraisal)
+    {
+        this.appraisal = appraisal;
+    }
+    
+    /**
+     *      * Preparation, Container
+     */
+    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Container getContainer() {
+        return this.container;
+    }
+
+    public void setContainer(Container container) {
+        this.container = container;
+    }
+
+    /**
+     *
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<ConservDescription> getConservDescriptions()
+    {
+        return this.conservDescriptions;
+    }
+
+    public void setConservDescriptions(final Set<ConservDescription> conservDescriptions)
+    {
+        this.conservDescriptions = conservDescriptions;
+    }
+    
+    /**
+     * @return the inventoryDate
+     */
+    @Temporal(TemporalType.DATE)
+    @Column(name = "InventoryDate", unique = false, nullable = true, insertable = true, updatable = true)
+    public Calendar getInventoryDate()
+    {
+        return inventoryDate;
+    }
+
+    /**
+     * @param inventoryDate the inventoryDate to set
+     */
+    public void setInventoryDate(Calendar inventoryDate)
+    {
+        this.inventoryDate = inventoryDate;
+    }
+
+    /**
+     * @return the condition
+     */
+    @Column(name = "ObjectCondition", unique = false, nullable = true, insertable = true, updatable = true, length=64)
+    public String getObjectCondition()
+    {
+        return objectCondition;
+    }
+
+    /**
+     * @param condition the condition to set
+     */
+    public void setObjectCondition(String objectCondition)
+    {
+        this.objectCondition = objectCondition;
+    }
+    
+    /**
+     * @return the treatmentEvents
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<TreatmentEvent> getTreatmentEvents()
+    {
+        return treatmentEvents;
+    }
+
+    /**
+     * @param treatmentEvents the treatmentEvents to set
+     */
+    public void setTreatmentEvents(Set<TreatmentEvent> treatmentEvents)
+    {
+        this.treatmentEvents = treatmentEvents;
+    }
+    
+    // end methods from CollectionObject
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#getDataClass()
      */
@@ -543,7 +681,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     {
         this.yesNo3 = yesNo3;
     }
-
+    
     /**
      * 
      */

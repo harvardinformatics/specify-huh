@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
@@ -106,6 +107,7 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDef;
 import edu.ku.brc.specify.datamodel.Institution;
@@ -1365,7 +1367,7 @@ public class SpecifyExplorer extends HttpServlet
             {
                 if (det.isCurrentDet())
                 {
-                    list.add(det.getCollectionObject());
+                    list.add(det.getFragment().getCollectionObject()); // mmk fragment
                 }
             }
         }
@@ -1725,7 +1727,7 @@ public class SpecifyExplorer extends HttpServlet
                     if (det.isCurrentDet())
                     {
                         Locality locality = null;
-                        CollectionObject co = det.getCollectionObject();
+                        CollectionObject co = det.getFragment().getCollectionObject(); // mmk fragment
                         if (co != null)
                         {
                             CollectingEvent ce = co.getCollectingEvent();
@@ -2948,7 +2950,12 @@ public class SpecifyExplorer extends HttpServlet
                                         cep.getColObjs().add(co);
                                     }
                                 }
-                                for (Determination det : co.getDeterminations())
+                                Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+                                for (Fragment frag : co.getFragments())
+                                {
+                                	determinations.addAll(frag.getDeterminations());
+                                }                                                                // mmk fragment
+                                for (Determination det : determinations)
                                 {
                                     if (det.isCurrentDet())
                                     {
@@ -3434,7 +3441,13 @@ public class SpecifyExplorer extends HttpServlet
     
     protected Taxon getTaxonFromCollectionObject(final CollectionObject co)
     {
-        for (Determination det : co.getDeterminations())
+    	Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+    	for (Fragment frag : co.getFragments())
+    	{
+    		determinations.addAll(frag.getDeterminations());
+    	}                                                                 // mmk fragment
+    	
+        for (Determination det : determinations)
         {
             if (det.isCurrentDet())
             {
