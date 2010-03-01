@@ -16,8 +16,8 @@ public class SpecimenItem extends AuditedObject
 	public static String[] PrepMethodNames =  { "Pressed",  "Dried", "Wood", "Drawing", "Spirit medium", "Protologue", "Photograph", "Glycerine", "Fossil", "DNA sample", "Other" };
 
 	// this is for Specify data model Container type, associated with Preparation, associated with Fragment
-	public static enum CONTAINER_TYPE       { Sheet,   Packet,   Bag,   Box,   MicroscopeSlide,    Jar,   Slide35mm,     Other   };
-	public static String[] ContainerNames = { "Sheet", "Packet", "Bag", "Box", "Microscope slide", "Jar", "35 mm slide", "Other" };
+	public static enum CONTAINER_TYPE       { Sheet,   Packet,   Bag,   Box,   MicroscopeSlide,    Jar,   Slide35mm,     Other,   Logical   };
+	public static String[] ContainerNames = { "Sheet", "Packet", "Bag", "Box", "Microscope slide", "Jar", "35 mm slide", "Other", "Logical" };
 
 	public static REPRO_STATUS parseReproStatus(String string) throws AsaException
 	{
