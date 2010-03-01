@@ -251,7 +251,7 @@ public class ExchangeIn extends DataModelObjBase implements java.io.Serializable
     /**
      * 
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getDescriptionOfMaterial() {
         return this.descriptionOfMaterial;
     }
