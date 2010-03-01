@@ -183,7 +183,7 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     /**
      * Description of exchanged material (intended to be used for non-cataloged items, i.e. when PreparationID is null)
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
     public String getDescriptionOfMaterial() {
         return this.descriptionOfMaterial;
     }
