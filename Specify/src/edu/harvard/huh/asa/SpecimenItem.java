@@ -7,6 +7,18 @@ public class SpecimenItem extends AuditedObject
 	public static enum REPRO_STATUS           { Fruit,    Flower,   FlowerAndFruit,     Sterile,   Sporophyte,   NotDetermined   };
 	public static String[] ReproStatusNames = { "fruit", "flower", "flower and fruit", "sterile", "sporophyte", "not determined" };
 
+	// this is for Specify data model PrepType
+	public static enum FORMAT               { OnSheet,    InPacket,    InBox,    InBag,    InJar,    InSpiritMedium,     Wood,   Fossil,   OnMicroscopeSlide,     DNAsample,    Photograph,   Drawing,   ProtologOnSheet,     Other   };
+	public static String[] FormatNames =    { "on sheet", "in packet", "in box", "in bag", "in jar", "in spirit medium", "wood", "Fossil", "on microscope slide", "DNA sample", "photograph", "drawing", "protolog on sheet", "other" };
+
+	// this is for data model Fragment PrepType
+	public static enum PREP_METHOD            { Pressed,    Dried,   Wood,   Drawing,   SpiritMedium,    Protologue,   Photograph,   Glycerine,   Fossil,   DNAsample,    Other   };
+	public static String[] PrepMethodNames =  { "Pressed",  "Dried", "Wood", "Drawing", "Spirit medium", "Protologue", "Photograph", "Glycerine", "Fossil", "DNA sample", "Other" };
+
+	// this is for Specify data model Container type, associated with Preparation, associated with Fragment
+	public static enum CONTAINER_TYPE       { Sheet,   Packet,   Bag,   Box,   MicroscopeSlide,    Jar,   Slide35mm,     Other   };
+	public static String[] ContainerNames = { "Sheet", "Packet", "Bag", "Box", "Microscope slide", "Jar", "35 mm slide", "Other" };
+
 	public static REPRO_STATUS parseReproStatus(String string) throws AsaException
 	{
 	    if (string == null) return null;
@@ -18,44 +30,70 @@ public class SpecimenItem extends AuditedObject
 	    throw new AsaException("Invalid transaction type: " + string);
 	}
 	
+	public static FORMAT parseFormat(String string) throws AsaException
+    {
+        if (string == null) return null;
+        
+        for (FORMAT format : FORMAT.values())
+        {
+            if (FormatNames[format.ordinal()].equals(string)) return format;
+        }
+        throw new AsaException("Invalid transaction type: " + string);
+    }
+	
 	public static String toString(REPRO_STATUS reproStatus)
 	{
 		return reproStatus.name();
 	}
 	
-	private      Integer specimenId;
-	private      Integer barcode;
-	private      Integer collectorId;
-	private       String collectorNo;
-	private       String herbariumCode;
-	private      Integer siteId;
-	private      Integer seriesId;
-	private       String seriesName;
-	private       String seriesNo;
-	private       String seriesAbbrev;
-	private       String format;
-	private      Integer itemNo;
-	private       String remarks;        // specimen.remarks
-	private       String provenance;
-	private       String voucher;
-	private      Boolean isOversize;
-	private      Boolean isCultivated;
+	public static String toString(FORMAT format)
+    {
+        return format.name();
+    }
+	
+	public static String toString(CONTAINER_TYPE containerType)
+	{
+	    return ContainerNames[containerType.ordinal()];
+	}
+	
+	public static String toString(PREP_METHOD prepMethod)
+	{
+	    return PrepMethodNames[prepMethod.ordinal()];
+	}
+	
+	private Integer      specimenId;
+	private Integer      barcode;
+	private Integer      collectorId;
+	private String       collectorNo;
+	private String       herbariumCode;
+	private Integer      siteId;
+	private Integer      seriesId;
+	private String       seriesName;
+	private String       seriesNo;
+	private String       seriesAbbrev;
+	private FORMAT       format;
+	private Integer      itemNo;
+	private String       remarks;        // specimen.remarks
+	private String       provenance;
+	private String       voucher;
+	private Boolean      isOversize;
+	private Boolean      isCultivated;
 	private REPRO_STATUS reproStatus;
-	private       String sex;
-	private       String accessionNo;
-	private       String accessionStatus;
-	private       String note;           // specimen_item.note
-	private       String reference;
-	private       String description;
-	private       String habitat;
-	private       String substrate;
-	private       String container;
-	private      Integer subcollectionId;
-	private        BDate collDate;
-	private      Integer replicates;
-	private       String location;
-	private       String vernacularName;
-	private       String distribution;
+	private String       sex;
+	private String       accessionNo;
+	private String       accessionStatus;
+	private String       note;           // specimen_item.note
+	private String       reference;
+	private String       description;
+	private String       habitat;
+	private String       substrate;
+	private String       container;
+	private Integer      subcollectionId;
+	private BDate        collDate;
+	private Integer      replicates;
+	private String       location;
+	private String       vernacularName;
+	private String       distribution;
 	
 	private Boolean hasCollectingTrip;
 	
@@ -73,7 +111,7 @@ public class SpecimenItem extends AuditedObject
 	
 	public Integer getSiteId() { return this.siteId; }
 	
-	public String getFormat() { return this.format; }
+	public FORMAT getFormat() { return this.format; }
 	
 	public Integer getItemNo() { return this.itemNo; }
 	
@@ -158,7 +196,7 @@ public class SpecimenItem extends AuditedObject
 
 	public void setSiteId(Integer siteId) { this.siteId = siteId; }
 	
-	public void setFormat(String format) { this.format = format; }
+	public void setFormat(FORMAT format) { this.format = format; }
 	
 	public void setItemNo(Integer itemNo) { this.itemNo = itemNo; }
 	
