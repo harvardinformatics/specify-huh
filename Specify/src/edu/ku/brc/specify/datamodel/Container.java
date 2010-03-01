@@ -60,7 +60,7 @@ public class Container extends CollectionMember implements java.io.Serializable
      protected String                name;
      protected String                description;
      protected Integer               number;
-     protected Set<Fragment>         fragments;
+     protected Set<CollectionObject> collectionObjects;
      protected Set<Preparation>      preparations;
      protected Storage               storage;
 
@@ -93,7 +93,7 @@ public class Container extends CollectionMember implements java.io.Serializable
         description            = null;
         number                 = null;
         parent                 = null;
-        fragments              = new HashSet<Fragment>();
+        collectionObjects      = new HashSet<CollectionObject>();
         preparations           = new HashSet<Preparation>();
         storage                = null;
         children               = new HashSet<Container>();
@@ -200,14 +200,14 @@ public class Container extends CollectionMember implements java.io.Serializable
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "container")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<Fragment> getFragments() 
+    public Set<CollectionObject> getCollectionObjects() 
     {
-        return this.fragments;
+        return this.collectionObjects;
     }
 
-    public void setFragments(Set<Fragment> fragments) 
+    public void setCollectionObjects(Set<CollectionObject> collectionObjects) 
     {
-        this.fragments = fragments;
+        this.collectionObjects = collectionObjects;
     }
     
     /**
