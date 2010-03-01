@@ -1739,14 +1739,14 @@ public class DataBuilder
                                             final String name,
                                             final String description,
                                             final Integer number,
-                                            final Fragment fragment,
+                                            final CollectionObject collectionObject,
                                             final Storage storage)
     {
         Container container = new Container();
         container.initialize();
         container.setNumber(number);
         container.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        container.getFragments().add(fragment);
+        container.getCollectionObjects().add(collectionObject);
         container.setName(name);
         container.setStorage(storage);
         container.setDescription(description);
