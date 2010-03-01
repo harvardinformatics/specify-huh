@@ -195,7 +195,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     /**
      * 
      */
-    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
+    @Column(name = "DescriptionOfMaterial", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getDescriptionOfMaterial() 
     {
         return this.descriptionOfMaterial;
