@@ -15,17 +15,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Index;
 
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "fragment", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"CatalogNumber"} ) 
-        }
-)
+@Table(name = "fragment")
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
         @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
@@ -140,7 +136,7 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
     /**
      * @return the accessionNumber
      */
-    @Column(name = "AccessionNumber", unique = true, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "AccessionNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
     public String getAccessionNumber()
     {
         return accessionNumber;
@@ -157,7 +153,7 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
     /**
      * @return the catalogNumber
      */
-    @Column(name = "CatalogNumber", unique = true, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "CatalogNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
     public String getCatalogNumber()
     {
         return catalogNumber;
@@ -218,7 +214,7 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
     /**
      * A list of other herbaria that were given duplicates of this fragment
      */
-    @Column(name = "Distribution", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "Distribution", unique = false, nullable = true, insertable = true, updatable = true, length = 100)
     public String getDistribution() 
     {
         return this.distribution;
