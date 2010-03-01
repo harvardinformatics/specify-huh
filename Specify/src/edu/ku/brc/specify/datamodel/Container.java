@@ -50,9 +50,6 @@ import org.hibernate.annotations.Index;
     })
 public class Container extends CollectionMember implements java.io.Serializable 
 {
-    public static final Short LOGICAL  = 0;
-    public static final Short PHYSICAL = 1;
-    
      // Fields
 
      protected Integer               containerId;
@@ -170,7 +167,7 @@ public class Container extends CollectionMember implements java.io.Serializable
     /**
      *
      */
-    @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Description", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
     public String getDescription() 
     {
         return this.description;
