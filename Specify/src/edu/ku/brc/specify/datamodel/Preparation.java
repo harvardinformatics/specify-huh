@@ -109,7 +109,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected Set<GiftPreparation>        giftPreparations;
     protected Set<LoanPreparation>        loanPreparations;
     protected PrepType                    prepType;
-    protected CollectionObject            collectionObject;
     protected Agent                       preparedByAgent;
     protected Storage                     storage;
     protected Set<DeaccessionPreparation> deaccessionPreparations;
@@ -178,7 +177,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         giftPreparations = new HashSet<GiftPreparation>();
         loanPreparations = new HashSet<LoanPreparation>();
         prepType = null;
-        collectionObject = null;
         preparedByAgent = null;
         storage = null;
         deaccessionPreparations = new HashSet<DeaccessionPreparation>();
@@ -763,19 +761,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
      * 
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getCollectionObject() {
-        return this.collectionObject;
-    }
-    
-    public void setCollectionObject(CollectionObject collectionObject) {
-        this.collectionObject = collectionObject;
-    }
-
-    /**
-     * 
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PreparedByID", unique = false, nullable = true, insertable = true, updatable = true)
     public Agent getPreparedByAgent() {
         return this.preparedByAgent;
@@ -846,7 +831,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
    @Transient
    public Integer getParentTableId()
    {
-       return CollectionObject.getClassTableId();
+       return Container.getClassTableId();
    }
 
    /* (non-Javadoc)
@@ -856,7 +841,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
    @Transient
    public Integer getParentId()
    {
-       return collectionObject != null ? collectionObject.getId() : null;
+       return container != null ? container.getId() : null;
    }
    
     /* (non-Javadoc)
@@ -897,7 +882,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         
         obj.preparationId           = null;
         obj.loanPreparations        = new HashSet<LoanPreparation>();
-        obj.collectionObject        = null;
         obj.deaccessionPreparations = new HashSet<DeaccessionPreparation>();
         obj.preparationAttachments  = new HashSet<PreparationAttachment>();
        

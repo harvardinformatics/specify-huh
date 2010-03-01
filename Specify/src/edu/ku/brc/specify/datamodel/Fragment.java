@@ -55,7 +55,6 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
 	// Relations
 	
 	protected CollectionObject collectionObject;
-	protected Container        container;
 	protected Preparation      preparation;
 	
     protected Set<CollectionObjectCitation> collectionObjectCitations;
@@ -107,7 +106,6 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
         yesNo2           = null;
         
         collectionObject = null;
-        container        = null;
         preparation      = null;
         
         collectionObjectCitations = new HashSet<CollectionObjectCitation>();
@@ -423,19 +421,6 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
    public void setCollectionObjectCitations(Set<CollectionObjectCitation> collectionObjectCitations) {
        this.collectionObjectCitations = collectionObjectCitations;
    }
-    
-    /**
-     *      * Container
-     */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Container getContainer() {
-        return this.container;
-    }
-
-    public void setContainer(Container container) {
-        this.container = container;
-    }
     
     /**
      *      * Preparation

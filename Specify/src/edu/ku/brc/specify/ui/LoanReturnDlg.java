@@ -175,14 +175,19 @@ public class LoanReturnDlg extends JDialog
             Hashtable<CollectionObject, Vector<LoanPreparation>> colObjHash = new Hashtable<CollectionObject, Vector<LoanPreparation>>();
             for (LoanPreparation loanPrep : loan.getLoanPreparations())
             {
-                CollectionObject        colObj = loanPrep.getPreparation().getCollectionObject();
-                Vector<LoanPreparation> list   = colObjHash.get(colObj);
-                if (list == null)
+                Set<Fragment> fragments = loanPrep.getPreparation().getFragments();
+                for (Fragment fragment : fragments)
                 {
-                    list = new Vector<LoanPreparation>();
-                    colObjHash.put(colObj, list);
+                    CollectionObject colObj = fragment.getCollectionObject();
+                    
+                    Vector<LoanPreparation> list = colObjHash.get(colObj);
+                    if (list == null)
+                    {
+                        list = new Vector<LoanPreparation>();
+                        colObjHash.put(colObj, list);
+                    }
+                    list.add(loanPrep);
                 }
-                list.add(loanPrep);
             }
             int colObjCnt = colObjHash.size();
     

@@ -2143,7 +2143,6 @@ public class DataBuilder
                                                 final String storageLocation,
                                                 final Calendar preparedDate,
                                                 final PrepType prepType,
-                                                final CollectionObject collectionObject,
                                                 final Agent preparedByAgent,
                                                 final Storage storage)
     {
@@ -2154,7 +2153,6 @@ public class DataBuilder
         preparation.setStorageLocation(storageLocation);
         preparation.setPreparedDate(preparedDate);
         preparation.setPrepType(prepType);
-        preparation.setCollectionObject(collectionObject);
         preparation.setPreparedByAgent(preparedByAgent);
         preparation.setStorage(storage);
         persist(preparation);
