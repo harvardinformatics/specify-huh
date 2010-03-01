@@ -23,12 +23,12 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "fragment", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"Barcode"} ) 
+        @UniqueConstraint(columnNames={"CatalogNumber"} ) 
         }
 )
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
-        @Index (name="BarcodeIDX", columnNames={"Barcode"}) })
+        @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
 public class Fragment extends CollectionMember implements Serializable, Comparable<Fragment>, Cloneable
 {
 	// Fields 
@@ -318,7 +318,11 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
         this.sex = sex;
     }
    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
+     */
 	@Override
+	@Transient
 	public int getTableId()
 	{
 		return getClassTableId();
