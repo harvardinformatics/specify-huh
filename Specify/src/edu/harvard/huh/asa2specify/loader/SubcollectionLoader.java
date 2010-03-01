@@ -104,7 +104,7 @@ public class SubcollectionLoader extends TreeLoader
         Storage storage = new Storage();
 
         // Abbrev
-        storage.setAbbrev(name);
+        storage.setAbbrev(null); // set aside for barcode
         
         // FullName
         storage.setFullName(name);
