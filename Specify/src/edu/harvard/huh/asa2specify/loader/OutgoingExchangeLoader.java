@@ -93,7 +93,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         
         // DescriptionOfMaterial (description + [boxCount])
         String description = getDescriptionOfMaterial(outExchange);
-        if (description != null) description = truncate(description, 512, "description");
+        if (description != null) description = truncate(description, 255, "description");
         exchangeOut.setDescriptionOfMaterial(description);
         
         // DivisionID

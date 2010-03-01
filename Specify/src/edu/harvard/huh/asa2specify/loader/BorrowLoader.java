@@ -294,7 +294,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         
         // Description
         String descWithBoxCount = getDescriptionWithBoxCount(asaBorrow);
-        descWithBoxCount = truncate(descWithBoxCount, 512, "description");
+        descWithBoxCount = truncate(descWithBoxCount, 255, "description");
         borrowMaterial.setDescription(descWithBoxCount);
    
         // HigherTaxon

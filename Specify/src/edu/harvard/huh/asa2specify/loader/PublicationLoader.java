@@ -124,6 +124,7 @@ public class PublicationLoader extends AuditedObjectLoader
 		
 		// Text1 (title)
 		String title = publication.getTitle();
+		title = truncate(title, 255, "title");
 		referenceWork.setText1(title);
 
 		// Text2 (publ date)

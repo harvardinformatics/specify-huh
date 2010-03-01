@@ -119,7 +119,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
         // DescriptionOfMaterial (geoUnit)
         String geoUnit = outGeoBatch.getGeoUnit();
-        if (geoUnit != null) geoUnit = truncate(geoUnit, 255, "src geography");
+        if (geoUnit != null) geoUnit = truncate(geoUnit, 512, "src geography");
         giftPrep.setDescriptionOfMaterial(geoUnit);
         
         // Discipline
@@ -153,7 +153,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
         // DescriptionOfMaterial (geoUnit)
         String geoUnit = outGeoBatch.getGeoUnit();
-        if (geoUnit != null) geoUnit = truncate(geoUnit, 255, "src geography");
+        if (geoUnit != null) geoUnit = truncate(geoUnit, 512, "src geography");
         exchOutPrep.setDescriptionOfMaterial(geoUnit);
         
         // Discipline
