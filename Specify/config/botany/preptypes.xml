@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <vector>
-      <preptype name="On sheet"            isloanable="true"/>
-      <preptype name="In packet"           isloanable="true"/>
-      <preptype name="In bag"              isloanable="true"/>
-      <preptype name="Wood"                isloanable="true"/>
-      <preptype name="Drawing"             isloanable="true"/>
-      <preptype name="On microscope slide" isloanable="true"/>
-      <preptype name="In box"              isloanable="true"/>
-      <preptype name="In jar"              isloanable="true"/>
-      <preptype name="In spirit medium"    isloanable="true"/>
-      <preptype name="Protolog on sheet"   isloanable="true"/>
-      <preptype name="Photograph"          isloanable="true"/>
-      <preptype name="On 35 mm slide"      isloanable="true"/>
-      <preptype name="On glycerine slide"  isloanable="true"/>
-      <preptype name="Fossil"              isloanable="true"/>
-      <preptype name="DNA sample"          isloanable="true"/>
-      <preptype name="Other"               isloanable="true"/>
+      <preptype name="Dried"         isloanable="true"/>
+      <preptype name="Pressed"       isloanable="true"/>
+      <preptype name="Wood"          isloanable="true"/>
+      <preptype name="Drawing"       isloanable="true"/>
+      <preptype name="Spirit medium" isloanable="true"/>
+      <preptype name="Protolog"      isloanable="true"/>
+      <preptype name="Photograph"    isloanable="true"/>
+      <preptype name="Glycerine"     isloanable="true"/>
+      <preptype name="Fossil"        isloanable="true"/>
+      <preptype name="DNA sample"    isloanable="true"/>
+      <preptype name="Other"         isloanable="true"/>
 </vector>
