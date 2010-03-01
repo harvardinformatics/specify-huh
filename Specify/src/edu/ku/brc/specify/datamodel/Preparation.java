@@ -60,10 +60,7 @@ import edu.ku.brc.dbsupport.DBConnection;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "preparation", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"SampleNumber"} ) 
-        }
-)
+@Table(name = "preparation")
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
         @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"}),
