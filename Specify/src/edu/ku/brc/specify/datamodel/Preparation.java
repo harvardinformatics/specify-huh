@@ -564,7 +564,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     /**
      * @return the sampleNumber
      */
-    @Column(name = "SampleNumber", unique = true, nullable = true, insertable = true, updatable = true, length = 32)
+    @Column(name = "SampleNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
     public String getSampleNumber()
     {
         return sampleNumber;
