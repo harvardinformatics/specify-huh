@@ -83,6 +83,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected String                        text1;
     protected String                        text2;
     protected String                        text3;
+    protected String                        text4;
     protected Float                         number1;
     protected Float                         number2;
     protected Boolean                       yesNo1;
@@ -92,6 +93,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Boolean                       yesNo5;
     protected Boolean                       yesNo6;
     protected Integer                       countAmt;
+    protected String                        internalRemarks;
     protected String                        remarks;
     protected String                        name;
     protected String                        modifier;
@@ -157,6 +159,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         text1                 = null;
         text2                 = null;
         text3                 = null;
+        text4                 = null;
         number1               = null;
         number2               = null;
         yesNo1                = null;
@@ -166,6 +169,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         yesNo5                = null;
         yesNo6                = null;
         countAmt              = null;
+        internalRemarks       = null;
         remarks               = null;
         name                  = null;
         modifier              = null;
@@ -318,6 +322,18 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *      * User definable
      */
+    @Column(name = "Text4", length=50, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText4() {
+        return this.text4;
+    }
+
+    public void setText4(String text4) {
+        this.text4 = text4;
+    }
+    
+    /**
+     *      * User definable
+     */
     @Column(name = "Number1", unique = false, nullable = true, insertable = true, updatable = true, length = 24)
     public Float getNumber1() {
         return this.number1;
@@ -441,6 +457,19 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
 
     public void setCountAmt(Integer countAmt) {
         this.countAmt = countAmt;
+    }
+
+    /**
+     *
+     */
+    @Lob
+    @Column(name = "InternalRemarks", length = 4096)
+    public String getInternalRemarks() {
+        return this.internalRemarks;
+    }
+
+    public void setInternalRemarks(String internalRemarks) {
+        this.internalRemarks = internalRemarks;
     }
 
     /**
