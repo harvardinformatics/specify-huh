@@ -191,7 +191,7 @@ public class LogicalContainer extends CollectionMember implements java.io.Serial
     /**
      *
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "container")
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "logicalContainer")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     public Set<CollectionObject> getCollectionObjects() 
     {
