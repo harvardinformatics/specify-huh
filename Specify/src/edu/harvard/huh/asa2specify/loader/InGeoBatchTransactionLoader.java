@@ -47,7 +47,7 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
     {        
         int i = super.parse(columns, inGeoBatchTx);
         
-        if (columns.length < i + 6)
+        if (columns.length < i + 5)
         {
             throw new LocalException("Not enough columns");
         }

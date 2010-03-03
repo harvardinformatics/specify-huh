@@ -96,7 +96,7 @@ public abstract class TransactionLoader extends AuditedObjectLoader
 			throw new LocalException("Couldn't parse field", e);
 		}
 		
-		return 20; // index of next column
+		return 21; // index of next column
 	}
      
     protected Agent lookupAgent(Transaction transaction) throws LocalException
