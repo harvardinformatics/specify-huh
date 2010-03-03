@@ -709,43 +709,43 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to burt slide collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("farlow") && locationStr.contains("slide collection") && subcollectionId != null)
+	    else if (locationStr.contains("farlow") && locationStr.contains("slide collection") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.FARLOW_SLIDE_SUBCOLL);
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to farlow slide collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("general fungus herbarium type collection") && subcollectionId != null)
+	    else if (locationStr.contains("general fungus herbarium type collection") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.GEN_FUN_SUBCOLL);
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to general fungus herbarium type collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("fruit collection") && subcollectionId != null)
+	    else if (locationStr.contains("fruit collection") && subcollectionId == null)
 	    {
 	        storage = lookupStorage(SubcollectionLoader.FRUIT_SUBCOLL);
 	        preparation.setStorage(storage);
 	        getLogger().warn(rec() + "Moving to fruit collection based on location field: (" + location + ")");
 	    }
-	    else if ((locationStr.contains("glycerine") || locationStr.contains("in slide collection tray")) && subcollectionId != null)
+	    else if ((locationStr.contains("glycerine") || locationStr.contains("in slide collection tray")) && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.GLYCERINE_SUBCOLL);
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to glycerine collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("hymenomycete") && subcollectionId != null)
+	    else if (locationStr.contains("hymenomycete") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.HYMENO_SUBCOLL);
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to hymenomycete collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("trichomycete") && locationStr.contains("type") && subcollectionId != null)
+	    else if (locationStr.contains("trichomycete") && locationStr.contains("type") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.TRICHO_TYPE_SUBCOLL);
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to trichomycete type collection based on location field: (" + location + ")");
         }
-	    else if (locationStr.contains("trichomycete slide collection") && subcollectionId != null)
+	    else if (locationStr.contains("trichomycete slide collection") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.TRICHO_SUBCOLL);
             preparation.setStorage(storage);
