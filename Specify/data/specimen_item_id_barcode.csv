@@ -1,15 +1,15 @@
-492455	215215000
-465762	215620000
-521655	219828000
-401872	220113000
-632890	258539000
-565869	259223000
-580060	266123000
-580512	266173000
-580514	266174000
-638423	270920000
-648519	276303000
-581694	791980000
-581588	794110000
-479300	797490000
-713386	811950000
+492455	215215000	"apparent duplicate specimens with ids 266882, 249232; prefer id 249232?  refer to email w/ Gen."
+465762	215620000	"apparent duplicate specimens with ids 261068, 261069; prefer id 261069? refer to email w/ Gen."
+521655	219828000	"fruit prep apparently assigned to two different specimens with ids 271754, 273279; refer to email w/ Walter."
+401872	220113000	"apparent duplicate specimens with ids 244677, 244839; prefer 244677? refer to email w/ Gen."
+632890	258539000	"apparent duplicate specimens with ids 291405, 296360; prefer 291405? refer to notes and email w/ Gen."
+565869	259223000	"case iv; barcode should go on top collobj"
+580060	266123000	"apparent mis-assigned barcode given to different specimens with ids 285673, 285675; refer to email w/ Emily"
+580512	266173000	"apparent duplicate specimens with ids 285760, 285810; different collectors, distributed at “A, GH;” refer to email w/ Emily"
+580514	266174000	"apparent mis-assigned barcode given to different specimens with ids 285759, 285811; refer to email w/ Emily"
+638423	270920000	"apparent mis-assigned barcode given to different specimens with ids 297606, 297609; refer to email w/ Gen"
+648519	276303000	"apparent mis-assigned barcode given to different specimens with ids 299431, 299817; refer to email w/ Gen"
+581694	791980000	"apparent mis-assigned barcode given to different specimens with ids 286069, 286070; probably 286069 should have barcode 79199, making these each case i); refer to email w/ Michaela"
+581588	794110000	"case iii; mergeable"
+479300	797490000	"apparent duplicate specimens with ids 132914, 263953; prefer 132914? refer to email w/ Gen"
+713386	811950000	"case iii; mergeable"
