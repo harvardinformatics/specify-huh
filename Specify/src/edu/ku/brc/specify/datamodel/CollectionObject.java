@@ -111,7 +111,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected SpecifyUser                   visibilitySetBy;
     
     // Relationships
-    protected Container                     container;
+    protected LogicalContainer              logicalContainer;
     protected CollectingEvent               collectingEvent;
     protected Set<Fragment>                 fragments;
     protected Set<Project>                  projects;
@@ -181,7 +181,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         visibility            = null;
         visibilitySetBy       = null; 
         
-        container             = null;
+        logicalContainer      = null;
         collectingEvent       = null;
         collectionObjectAttrs = new HashSet<CollectionObjectAttr>();
         fragments             = new HashSet<Fragment>();
@@ -683,13 +683,13 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
      *      * Container
      */
     @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Container getContainer() {
-        return this.container;
+    @JoinColumn(name = "LogicalContainerID", unique = false, nullable = true, insertable = true, updatable = true)
+    public LogicalContainer getLogicalContainer() {
+        return this.logicalContainer;
     }
 
-    public void setContainer(Container container) {
-        this.container = container;
+    public void setLogicalContainer(LogicalContainer logicalContainer) {
+        this.logicalContainer = logicalContainer;
     }
     
     /**
