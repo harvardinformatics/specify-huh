@@ -26,7 +26,6 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -108,14 +107,6 @@ public class DeterminationLoader extends CsvToSqlLoader
     {
         Determination determination = new Determination();
         
-        // CollectionObject
-        Integer specimenId = asaDet.getSpecimenId();
-        checkNull(specimenId, "specimen id");
-        
-        CollectionObject collectionObject = lookupSpecimen(specimenId);
-        Fragment fragment = null; // TODO implement fragment determination load
-        determination.setFragment(fragment);
-
         // CollectionMemberID
         String collectionCode = asaDet.getCollectionCode();
         checkNull(collectionCode, "collection code");
@@ -155,6 +146,13 @@ public class DeterminationLoader extends CsvToSqlLoader
                     String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
         }
 
+        // Fragment
+        Integer specimenId = asaDet.getSpecimenId();
+        checkNull(specimenId, "specimen id");
+        
+        Fragment fragment = lookupSpecimen(specimenId);
+        determination.setFragment(fragment);
+        
         // IsCurrent
         Boolean isCurrent = asaDet.isCurrent();
         determination.setIsCurrent(isCurrent);
@@ -190,7 +188,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         return determination;
     }
     
-    private CollectionObject lookupSpecimen(Integer specimenId) throws LocalException
+    private Fragment lookupSpecimen(Integer specimenId) throws LocalException
     {
         return specimenLookup.getById(specimenId);
     }

@@ -30,7 +30,6 @@ import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.DeterminationCitation;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -222,8 +221,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer specimenId = typeSpecimen.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        CollectionObject collectionObject = getSpecimenLookup().getById(specimenId);
-        Fragment fragment = null;  // TODO implement fragment type determination load
+        Fragment fragment = getSpecimenLookup().getById(specimenId);
         determination.setFragment(fragment);
         
         // Confidence

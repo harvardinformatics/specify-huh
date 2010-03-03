@@ -22,6 +22,28 @@ import edu.ku.brc.specify.datamodel.StorageTreeDefItem;
 
 public class SubcollectionLoader extends TreeLoader
 {
+    public static Integer FRUIT_SUBCOLL    = 1001;
+    public static Integer BURT_SUBCOLL     = 3101;
+    public static Integer CURTIS_SUBCOLL   = 3142;
+    public static Integer DIATOM_SUBCOLL   = 3156;
+    public static Integer DODGE_SUBCOLL    = 3170;
+    public static Integer FLEISCH_SUBCOLL  = 3187;
+    public static Integer LABOUL_SUBCOLL   = 3314;
+    public static Integer PATOUIL_SUBCOLL  = 3521;
+    public static Integer SCHIFF_SUBCOLL   = 3563;
+    public static Integer SULLIV_SUBCOLL   = 3585;
+    public static Integer TAYLOR_SUBCOLL   = 3590;
+    public static Integer TRICHO_SUBCOLL   = 3671;
+    public static Integer TUCKER_SUBCOLL   = 3596;
+    
+    public static Integer BURT_SLIDE_SUBCOLL   = 9000; // burt slide collection"
+    public static Integer FARLOW_SLIDE_SUBCOLL = 9001; // farlow (microscope) slide collection"
+    public static Integer GEN_FUN_SUBCOLL      = 9002; // "general fungus herbarium type collection"
+    public static Integer GLYCERINE_SUBCOLL    = 9003; // "in glycerine collection"
+    public static Integer HYMENO_SUBCOLL       = 9004; // "hymenomycetes) boxed type(s)"
+    public static Integer THEISSEN_SUBCOLL     = 9005; // "theissen collection"
+    public static Integer TRICHO_TYPE_SUBCOLL  = 9006; // "trichomycete type slide collection"
+    
     private String getGuid(Integer subcollectionId)
 	{
 		return subcollectionId + " subcoll";
@@ -72,10 +94,30 @@ public class SubcollectionLoader extends TreeLoader
         Storage site = new Storage();
         site.setStorageId(1);
         
-        Storage building = createNode("HUH", site, buildingDefItem);
+        Storage building = createNode("HUH", null, site, buildingDefItem);
         
-        vascular = createNode("Vascular", building, collectionDefItem);
-        cryptogams = createNode("Cryptogams", building, collectionDefItem);
+        vascular = createNode("Vascular", null, building, collectionDefItem);
+        cryptogams = createNode("Cryptogams", null, building, collectionDefItem);
+    }
+
+    @Override
+    protected void postLoad() throws LocalException
+    {
+        String[] cryptoNames    = { "Burt Slide Collection", "Farlow Slide Collection", "General Fungus Herbarium Type Collection", "Hymenomycete Boxed Type Collection", "Theissen Collection", "Trichomycete Type Slide Collection" };
+        Integer[] cryptoNumbers = { BURT_SLIDE_SUBCOLL,      FARLOW_SLIDE_SUBCOLL,      GEN_FUN_SUBCOLL,                            HYMENO_SUBCOLL,                       THEISSEN_SUBCOLL,      TRICHO_TYPE_SUBCOLL                  };
+
+        for (int i = 0; i < cryptoNames.length; i++)
+        {
+            createNode(cryptoNames[i], cryptoNumbers[i], cryptogams, subcollDefItem);
+        }
+        
+        String[] vascNames    = { "Glycerine Collection" };
+        Integer[] vascNumbers = { GLYCERINE_SUBCOLL      };
+
+        for (int i = 0; i < vascNames.length; i++)
+        {
+            createNode(vascNames[i], vascNumbers[i], vascular, subcollDefItem);
+        }
     }
 
     private StorageTreeDef getStorageTreeDef() throws LocalException
@@ -99,7 +141,7 @@ public class SubcollectionLoader extends TreeLoader
         return treeDefItem;
     }
 
-    private Storage createNode(String name, Storage parent, StorageTreeDefItem defItem) throws LocalException
+    Storage createNode(String name, Integer number1, Storage parent, StorageTreeDefItem defItem) throws LocalException
     {
         Storage storage = new Storage();
 
@@ -114,6 +156,9 @@ public class SubcollectionLoader extends TreeLoader
 
         // Name
         storage.setName(name);
+        
+        // Number1
+        storage.setNumber1(number1);
         
         // Parent
         storage.setParent(parent);
@@ -136,7 +181,7 @@ public class SubcollectionLoader extends TreeLoader
         
         return storage;
     }
-
+    
     @Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
@@ -204,7 +249,7 @@ public class SubcollectionLoader extends TreeLoader
 
 	}
 
-	public void numberNodes() throws LocalException
+    public void numberNodes() throws LocalException
 	{
 	    numberNodes("storage", "StorageID");
 	}
@@ -523,7 +568,7 @@ public class SubcollectionLoader extends TreeLoader
     	return author;
     }
     
-    private String getInsertSql(Storage storage) throws LocalException
+    String getInsertSql(Storage storage) throws LocalException
     {
         String fieldNames = "Abbrev, CreatedByAgentID, FullName, IsAccepted, ModifiedByAgentID, Name, " +
         		            "Number1, Number2, ParentID, RankID, Remarks, StorageTreeDefID, " +
