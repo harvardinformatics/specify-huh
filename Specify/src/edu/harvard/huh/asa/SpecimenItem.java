@@ -12,12 +12,12 @@ public class SpecimenItem extends AuditedObject
 	public static String[] FormatNames =    { "on sheet", "in packet", "in box", "in bag", "in jar", "in spirit medium", "wood", "Fossil", "on microscope slide", "DNA sample", "photograph", "drawing", "protolog on sheet", "other" };
 
 	// this is for data model Fragment PrepType
-	public static enum PREP_METHOD            { Pressed,    Dried,   Wood,   Drawing,   SpiritMedium,    Protologue,   Photograph,   Glycerine,   Fossil,   DNAsample,    Other   };
-	public static String[] PrepMethodNames =  { "Pressed",  "Dried", "Wood", "Drawing", "Spirit medium", "Protologue", "Photograph", "Glycerine", "Fossil", "DNA sample", "Other" };
+	public static enum PREP_METHOD            { Pressed,    Dried,   Wood,   Drawing,   SpiritMedium,    Protolog,   Photograph,   Glycerine,   Fossil,   DNAsample,    Other   };
+	public static String[] PrepMethodNames =  { "Pressed",  "Dried", "Wood", "Drawing", "Spirit medium", "Protolog", "Photograph", "Glycerine", "Fossil", "DNA sample", "Other" };
 
 	// this is for Specify data model Container type, associated with Preparation, associated with Fragment
-	public static enum CONTAINER_TYPE       { Sheet,   Packet,   Bag,   Box,   MicroscopeSlide,    Jar,   Slide35mm,     Other,   Logical   };
-	public static String[] ContainerNames = { "Sheet", "Packet", "Bag", "Box", "Microscope slide", "Jar", "35 mm slide", "Other", "Logical" };
+	public static enum CONTAINER_TYPE       { Sheet,   Packet,   Bag,   Box,   MicroscopeSlide,    Jar,   Slide35mm,     Self,   Other,   Logical   };
+	public static String[] ContainerNames = { "Sheet", "Packet", "Bag", "Box", "Microscope slide", "Jar", "35 mm slide", "Self", "Other", "Logical" };
 
 	public static REPRO_STATUS parseReproStatus(String string) throws AsaException
 	{
