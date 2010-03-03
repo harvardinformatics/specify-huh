@@ -57,7 +57,6 @@ public class Container extends CollectionMember implements java.io.Serializable
      protected String                name;
      protected String                description;
      protected Integer               number;
-     protected Set<CollectionObject> collectionObjects;
      protected Set<Preparation>      preparations;
      protected Storage               storage;
 
@@ -90,7 +89,6 @@ public class Container extends CollectionMember implements java.io.Serializable
         description            = null;
         number                 = null;
         parent                 = null;
-        collectionObjects      = new HashSet<CollectionObject>();
         preparations           = new HashSet<Preparation>();
         storage                = null;
         children               = new HashSet<Container>();
@@ -192,21 +190,6 @@ public class Container extends CollectionMember implements java.io.Serializable
         this.number = number;
     }
 
-    /**
-     *
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "container")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionObject> getCollectionObjects() 
-    {
-        return this.collectionObjects;
-    }
-
-    public void setCollectionObjects(Set<CollectionObject> collectionObjects) 
-    {
-        this.collectionObjects = collectionObjects;
-    }
-    
     /**
     *
     */
