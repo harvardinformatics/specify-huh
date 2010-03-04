@@ -729,8 +729,8 @@
         </viewdef>
         
         <viewdef
-            name="AgentSpecialty Table"
             type="formtable"
+            name="AgentSpecialty Table"
             class="edu.ku.brc.specify.datamodel.AgentSpecialty"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -740,8 +740,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="AgentVariant"
+            type="form"
             class="edu.ku.brc.specify.datamodel.AgentVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -766,8 +766,8 @@
         </viewdef>
         
         <viewdef
-            type="formtable"
             name="AgentVariant Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.AgentVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1071,8 +1071,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="Organization"
+            type="form"
             class="edu.ku.brc.specify.datamodel.Agent"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1149,8 +1149,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="GroupPersons"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1173,8 +1173,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="GroupPerson"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1197,8 +1197,8 @@
         </viewdef>
 
         <viewdef
-            type="formtable"
             name="Address Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.Address"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1208,8 +1208,8 @@
          </viewdef>
         
          <viewdef
-            type="form"
             name="Address"
+            type="form"
             class="edu.ku.brc.specify.datamodel.Address"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1260,8 +1260,8 @@
         </viewdef>
           
         <viewdef
-            type="form"
             name="AutoNumberingScheme"
+            type="form"
             class="edu.ku.brc.specify.datamodel.AutoNumberingScheme"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1281,8 +1281,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="PrepType"
+            type="form"
             class="edu.ku.brc.specify.datamodel.PrepType"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1319,8 +1319,8 @@
         </viewdef>-->
         
         <viewdef
-            type="formtable"
             name="Authors Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.Author"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1330,8 +1330,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="Authors"
+            type="form"
             class="edu.ku.brc.specify.datamodel.Author"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1446,8 +1446,8 @@
         </viewdef> 
         
         <viewdef
-            type="form"
             name="Journal"
+            type="form"
             class="edu.ku.brc.specify.datamodel.Journal"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1717,8 +1717,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="WorkbenchTemplate"
+            type="form"
             class="edu.ku.brc.specify.datamodel.WorkbenchTemplate"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1738,8 +1738,8 @@
         </viewdef>
         
         <viewdef
-            type="form" 
             name="Workbench"
+            type="form" 
             class="edu.ku.brc.specify.datamodel.Workbench"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -1767,8 +1767,8 @@
         </viewdef>
 
 		<viewdef
-			type="form"
 			name="ReportProperties"
+			type="form"
 			class="java.util.prefs.Preferences"
 			gettable="edu.ku.brc.af.prefs.PrefsGettableImpl"
 			settable="edu.ku.brc.af.prefs.PrefsSettableImpl"
@@ -1797,8 +1797,8 @@
 		
 		       
         <viewdef
-            type="form" 
             name="Query"
+            type="form" 
             class="edu.ku.brc.specify.datamodel.SpQuery"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2362,8 +2362,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="StorageTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.StorageTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2405,8 +2405,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="RootStorageTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.StorageTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2432,8 +2432,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="LithoStratTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2475,8 +2475,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="RootLithoStratTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2502,8 +2502,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="GeographyTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GeographyTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2545,8 +2545,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="RootGeographyTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GeographyTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2572,8 +2572,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="GeologicTimePeriodTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2615,8 +2615,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="RootGeologicTimePeriodTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2642,8 +2642,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="TaxonTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.TaxonTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2685,8 +2685,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="RootTaxonTreeDefItem"
+            type="form"
             class="edu.ku.brc.specify.datamodel.TaxonTreeDefItem"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2712,8 +2712,8 @@
         </viewdef>
         
         <viewdef
-            type="form"
             name="NewTreeDefDataEntry"
+            type="form"
             class="edu.ku.brc.specify.datamodel.TreeDefinitionIface"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2741,8 +2741,8 @@
         </viewdef>
 
         <viewdef
-            type="formtable"
             name="ObjectAttachment Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.ObjectAttachmentIFace"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2752,8 +2752,8 @@
         </viewdef>
         
         <viewdef
-            type="iconview"
             name="ObjectAttachment IconView"
+            type="iconview"
             class="edu.ku.brc.specify.datamodel.ObjectAttachmentIFace"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2761,8 +2761,8 @@
         </viewdef>
 
         <viewdef
-            type="form"
             name="ObjectAttachment Form"
+            type="form"
             class="edu.ku.brc.specify.datamodel.ObjectAttachmentIFace"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
@@ -2826,8 +2826,8 @@
 		</viewdef>
 
         <viewdef
-            type="form"
             name="AttachmentMetadata"
+            type="form"
             class="edu.ku.brc.specify.datamodel.AttachmentMetadata"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -2847,8 +2847,8 @@
         </viewdef>
 		
         <viewdef
-            type="formtable"
             name="AttachmentMetadata Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.AttachmentMetadata"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
