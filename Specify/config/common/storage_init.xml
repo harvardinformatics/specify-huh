@@ -5,13 +5,16 @@
 		<level name="Building"   enforced="false"  infullname="false" rank="100"/>
         <level name="Collection" enforced="false" infullname="false" rank="150"/>
         <level name="Subcollection" enforced="false" infullname="false" rank="175"/>
-		<level name="Room"       enforced="false" infullname="false" rank="200" /> 
-        <level name="Aisle"      enforced="false" infullname="false" rank="250" />         
-        <level name="Cabinet"    enforced="false" infullname="false" rank="300" />         
-        <level name="Shelf"      enforced="false" infullname="false" rank="350" />         
-        <level name="Box"        enforced="false" infullname="false" rank="400" />         
-        <level name="Rack"       enforced="false" infullname="false" rank="450" />         
-        <level name="Vial"       enforced="false" infullname="false" rank="500" />         
+		<level name="Room"       enforced="false" infullname="false" rank="200"/>
+        <level name="Aisle"      enforced="false" infullname="false" rank="250"/>
+        <level name="Section"    enforced="false" infullname="true"  rank="275"/>
+        <level name="Cabinet"    enforced="false" infullname="false" rank="300"/>
+        <level name="Shelf"      enforced="false" infullname="false" rank="350"/>
+        <level name="Folder"     enforced="false" infullname="false" rank="360"/>
+        <level name="Sheet"      enforced="false" infullname="false" rank="370"/>
+        <level name="Box"        enforced="false" infullname="true"  rank="400"/>
+        <level name="Tray"       enforced="false" infullname="false" rank="450"/>
+        <level name="Vial"       enforced="false" infullname="false" rank="500"/>
     </treedef>
 	<nodes/>
 </tree>
