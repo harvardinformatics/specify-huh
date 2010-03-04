@@ -798,7 +798,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    
 	    // Phenology
 	    REPRO_STATUS reproStatus = specimenItem.getReproStatus();
-        fragment.setPhenology(SpecimenItem.toString(reproStatus));
+        if (reproStatus != null) fragment.setPhenology(SpecimenItem.toString(reproStatus));
         
         // Preparation
         fragment.setPreparation(preparation != null ? preparation : nullPreparation);
