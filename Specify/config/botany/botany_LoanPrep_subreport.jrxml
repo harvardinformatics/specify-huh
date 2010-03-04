@@ -26,24 +26,24 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[select
-       if (loanprep.PreparationID is null, loan.Text2, prepattr.Text3) as herbarium,
+       if (loanprep.PreparationID is null, loan.Text2, "HUH") as herbarium,
 
-       prep.SampleNumber as barcode,
+       "012345" as barcode,
 
-       if (loanprep.HigherTaxon is null, family.FullName, loanprep.HigherTaxon) as higherTaxon,
+       loanprep.HigherTaxon as higherTaxon,
 
        loanprep.SrcTaxonomy as taxon,
 
        if (loanprep.PreparationID is null,
            loanprep.Quantity - loanprep.TypeCount - loanprep.NonSpecimenCount,
-           if(types.CollectionObjectID is null, 1, 0)
+           if(types.FragmentID is null, 1, 0)
           ) as items,
 
        if(loanprep.NonSpecimenCount is null, 0, loanprep.NonSpecimenCount) as nonSpecimens,
 
        if (loanprep.PreparationID is null,
            loanprep.TypeCount,
-           if(types.CollectionObjectID is null, 0, 1)
+           if(types.FragmentID is null, 0, 1)
           ) as types,
 
        loanprep.DescriptionOfMaterial as description
@@ -51,10 +51,8 @@
      from loan
      left join loanpreparation loanprep on loan.LoanID=loanprep.LoanID
      left join preparation prep on loanprep.PreparationID=prep.PreparationID
-     left join preparationattribute prepattr on prep.PreparationAttributeID=prepattr.PreparationAttributeID
-     left join (select distinct CollectionObjectID from determination where TypeStatusName is not null) types on prep.CollectionObjectID=types.CollectionObjectID
-     left join (select distinct f.FullName, d.CollectionObjectID from taxon f, taxon t, determination d
-                where d.TaxonID=t.taxonID and f.RankID=140 and f.NodeNumber < t.NodeNumber and t.NodeNumber <= f.HighestChildNodeNumber) family on family.CollectionObjectID=prep.CollectionObjectID
+     left join fragment f on prep.PreparationID=f.PreparationID
+     left join (select distinct FragmentID from determination where TypeStatusName is not null) types on f.FragmentID=types.FragmentID
 
     where loan.LoanID = $P!{itemnum} order by higherTaxon, barcode]]>
 	</queryString>

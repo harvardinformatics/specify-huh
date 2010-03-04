@@ -26,21 +26,21 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[select
-       if (exchangeoutprep.PreparationID is null, exchangeout.Text2, prepattr.Text3) as herbarium,
+       if (exchangeoutprep.PreparationID is null, "HUH", "HUH") as herbarium,
 
-       prep.SampleNumber    as barcode,
-       family.FullName      as higherTaxon,
+       "012345"             as barcode,
+       "higherTaxon"        as higherTaxon,
 
        if (exchangeoutprep.PreparationID is null,
            exchangeoutprep.Quantity - exchangeoutprep.TypeCount - exchangeoutprep.NonSpecimenCount,
-           if(types.CollectionObjectID is null, 1, 0)
+           if(types.FragmentID is null, 1, 0)
           ) as items,
 
        if(exchangeoutprep.NonSpecimenCount is null, 0, exchangeoutprep.NonSpecimenCount) as nonSpecimens,
 
        if (exchangeoutprep.PreparationID is null,
            exchangeoutprep.TypeCount,
-           if(types.CollectionObjectID is null, 0, 1)
+           if(types.FragmentID is null, 0, 1)
           ) as types,
 
        exchangeoutprep.DescriptionOfMaterial as description
@@ -48,11 +48,9 @@
      from exchangeout
      left join exchangeoutpreparation exchangeoutprep on exchangeout.ExchangeOutID=exchangeoutprep.ExchangeOutID
      left join preparation prep on exchangeoutprep.PreparationID=prep.PreparationID
-     left join preparationattribute prepattr on prep.PreparationAttributeID=prepattr.PreparationAttributeID
-     left join (select distinct CollectionObjectID from determination where TypeStatusName is not null) types on prep.CollectionObjectID=types.CollectionObjectID
-     left join (select distinct f.FullName, d.CollectionObjectID from taxon f, taxon t, determination d
-                where d.TaxonID=t.taxonID and f.RankID=140 and f.NodeNumber < t.NodeNumber and t.NodeNumber <= f.HighestChildNodeNumber) family on family.CollectionObjectID=prep.CollectionObjectID
-
+     left join fragment f on prep.PreparationID=f.PreparationID
+     left join (select distinct FragmentID from determination where TypeStatusName is not null) types on f.FragmentID=types.FragmentID
+     
     where exchangeout.ExchangeOutID = $P!{itemnum} order by description, barcode]]>
 	</queryString>
 	<field name="barcode" class="java.lang.String"/>

@@ -26,21 +26,21 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[select
-       if (giftprep.PreparationID is null, gift.Text2, prepattr.Text3) as herbarium,
+       if (giftprep.PreparationID is null, gift.Text2, "HUH") as herbarium,
 
-       prep.SampleNumber    as barcode,
-       family.FullName      as higherTaxon,
+       "012345"             as barcode,
+       "higherTaxon"        as higherTaxon,
 
        if (giftprep.PreparationID is null,
            giftprep.Quantity - giftprep.TypeCount - giftprep.NonSpecimenCount,
-           if(types.CollectionObjectID is null, 1, 0)
+           if(types.FragmentID is null, 1, 0)
           ) as items,
 
        if(giftprep.NonSpecimenCount is null, 0, giftprep.NonSpecimenCount) as nonSpecimens,
 
        if (giftprep.PreparationID is null,
            giftprep.TypeCount,
-           if(types.CollectionObjectID is null, 0, 1)
+           if(types.FragmentID is null, 0, 1)
           ) as types,
 
        giftprep.DescriptionOfMaterial as description
@@ -48,11 +48,9 @@
      from gift
      left join giftpreparation giftprep on gift.GiftID=giftprep.GiftID
      left join preparation prep on giftprep.PreparationID=prep.PreparationID
-     left join preparationattribute prepattr on prep.PreparationAttributeID=prepattr.PreparationAttributeID
-     left join (select distinct CollectionObjectID from determination where TypeStatusName is not null) types on prep.CollectionObjectID=types.CollectionObjectID
-     left join (select distinct f.FullName, d.CollectionObjectID from taxon f, taxon t, determination d
-                where d.TaxonID=t.taxonID and f.RankID=140 and f.NodeNumber < t.NodeNumber and t.NodeNumber <= f.HighestChildNodeNumber) family on family.CollectionObjectID=prep.CollectionObjectID
-
+     left join fragment f on prep.PreparationID=f.PreparationID
+     left join (select distinct FragmentID from determination where TypeStatusName is not null) types on f.FragmentID=types.FragmentID
+     
     where gift.GiftID = $P!{itemnum} order by description, barcode]]>
 	</queryString>
 	<field name="barcode" class="java.lang.String"/>
