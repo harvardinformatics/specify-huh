@@ -27,6 +27,8 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import edu.ku.brc.af.prefs.AppPreferences;
+
 
 /**
  * Renders every other line a white and a shaded color depending on the platform.
@@ -59,13 +61,22 @@ public class BiColorTableCellRenderer extends DefaultTableCellRenderer
     /**
      * Constructor.
      */
-    public BiColorTableCellRenderer(final boolean isCellCentered)
+    public BiColorTableCellRenderer(final boolean isCellJustified)
     {
         super();
         setOpaque(true);
-        if (isCellCentered)
+        if (isCellJustified)
         {
-            setHorizontalAlignment(SwingConstants.CENTER);
+            String justPref = AppPreferences.getLocalPrefs().get("ui.formatting.resultsTableCellJustification", "none");
+            if (justPref.equals("none")) return;
+
+            int just;
+            
+            if (justPref.equals("left")) just = SwingConstants.LEFT;
+            else if (justPref.equals("right")) just = SwingConstants.RIGHT;
+            else just = SwingConstants.CENTER;
+
+            setHorizontalAlignment(just);
         }
     }
 
