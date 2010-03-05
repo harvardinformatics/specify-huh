@@ -352,6 +352,25 @@
       <picklistitem title="NA/Unknown" value="Unknown"/>
     </items>
   </picklist>
+  <picklist name="HUH Specialty Name" issystem="true" type="0" readonly="true" sizelimit="15">
+  	<items>
+  	  <picklistitem title="Algae" value="Algae"/>
+  	  <picklistitem title="Angiosperms" value="Angiosperms"/>
+  	  <picklistitem title="Bryophytes" value="Bryophytes"/>
+  	  <picklistitem title="Cryptogamic, unspecified" value="Cryptogamic"/>
+  	  <picklistitem title="Diatoms" value="Diatoms"/>
+  	  <picklistitem title="Fossils" value="Fossils"/>
+  	  <picklistitem title="Fungi" value="Fungi"/>
+  	  <picklistitem title="Fungi and Lichens" value="FungiAndLichens"/>
+  	  <picklistitem title="Hepatics" value="Hepatics"/>
+  	  <picklistitem title="Lichens" value="Lichens"/>
+  	  <picklistitem title="Mosses" value="Mosses"/>
+  	  <picklistitem title="Phanerogams" value="Phanerogams"/>
+  	  <picklistitem title="Pre-Linnean" value="PreLinnean"/>
+  	  <picklistitem title="Pteridophytes" value="Pteridophytes"/>
+  	  <picklistitem title="Spermatophytes" value="Spermatophytes"/>
+  	</items>
+  </picklist>
   <picklist name="HUH Taxon Group" type="0" issystem="true" readonly="true" sizelimit="7">
     <items>
       <picklistitem title="Fungi and Lichens" value="FungiLichens"/>
