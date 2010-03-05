@@ -1580,13 +1580,13 @@
         </names>
         <descs/>
       </item>
-      <item name="agentSpecialties" isRequired="false">
+      <item name="agentCitations" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Specialties</text>
+            <text>Citations</text>
           </str>
         </names>
         <descs/>
@@ -2254,7 +2254,7 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="citation" isUIFormatter="false" isRequired="false">
+      <item name="referenceWork" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -2623,7 +2623,7 @@
         </descs>
         <spExportSchemaItems/>
       </item>
-      <item name="specialtyName" isUIFormatter="false" isRequired="true">
+      <item name="specialtyName" isUIFormatter="false" isRequired="true" pickListName="HUH Specialty Name">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -3906,7 +3906,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Agent</text>
+            <text>Author</text>
           </str>
         </names>
         <descs/>
@@ -25466,7 +25466,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="referenceWorkIdentifiers" type="OneToMany">
+      <item name="identifiers" type="OneToMany">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -25854,7 +25854,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </str>
     </descs>
   </container>
-  <container name="referenceworkidentifier" type="">
+  <container name="referenceworkidentifier">
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
@@ -25932,7 +25932,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="type" type="java.lang.String">
+      <item name="type" type="java.lang.String" type="HUH Publication Number Type">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
@@ -26043,7 +26043,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Name</text>
+            <text>Title</text>
           </str>
         </names>
         <descs>
