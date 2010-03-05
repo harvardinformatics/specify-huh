@@ -706,18 +706,6 @@
             </altviews>
         </view>
         
-        <view name="PreparationAttr"
-              class="edu.ku.brc.specify.datamodel.PreparationAttr"
-              resourcelabels="false">
-            <desc><![CDATA[Subform within the Preparation form.]]></desc>
-            <altviews>
-                <altview name="PreparationAttr Table View" viewdef="PreparationAttr Table" mode="view"/>
-                <altview name="PreparationAttr Table Edit" viewdef="PreparationAttr Table" mode="edit"/>
-                <altview name="PreparationAttr View" viewdef="PreparationAttr" mode="view"/>
-                <altview name="PreparationAttr Edit" viewdef="PreparationAttr" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
         <view name="RepositoryAgreement"
             class="edu.ku.brc.specify.datamodel.RepositoryAgreement"
             isinternal="false"
@@ -1744,7 +1732,7 @@
                 </row>
                 <row> 
                     <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="item" uitype="querycbx" initialize="name=Fragment;editbtn=false;newbtn=false"/>
+                    <cell type="field" id="3" name="preparation" uitype="querycbx" initialize="name=Preparation;editbtn=false;newbtn=false"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="objLength" uitype="text"/>                   
                     <cell type="label" labelfor="4"/>
@@ -2671,7 +2659,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="reference"/>
-                    <cell type="field" id="reference" name="reference" uitype="text" colspan="10"/>
+                    <cell type="field" id="reference" name="text2" uitype="text" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="voucher"/>
@@ -3520,9 +3508,6 @@
                                       
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="fieldNumber" uitype="text"/>
-                    
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="determinations" uitype="text"/>
                     
                     <cell type="label" labelfor="6"/>
                     <cell type="field" id="6" name="collectingEvent.locality.localityName" uitype="text"/>
