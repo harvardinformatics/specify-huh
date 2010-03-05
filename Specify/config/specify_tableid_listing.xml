@@ -97,7 +97,7 @@
             <display view="CollectingTripForm" searchdlg="CollectingTripSearch" newobjdlg="CollectingTripDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObject" abbrev="co" id="1" workbench="true" searchable="true">
-            <display view="CollectionObject" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="CollectionObject"/>
+            <display view="Curation (Long)" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="Collection Object"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttachment" abbrev="coat" id="111" searchable="true">
@@ -325,9 +325,7 @@
         	<display view="ObjectAttachment" newobjdlg="PreparationAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.PreparationAttr" abbrev="ppa" id="64" searchable="true">
-			<display view="PreparationAttr" searchdlg="PreparationAttr" newobjdlg="PreparationAttr"/>
-        </table>
+        <table name="edu.ku.brc.specify.datamodel.PreparationAttr" abbrev="ppa" id="64" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttribute" abbrev="ppas" id="91" searchable="true"/>
         
         <table name="edu.ku.brc.specify.datamodel.PrepType" abbrev="ppt" id="65" searchable="true">
