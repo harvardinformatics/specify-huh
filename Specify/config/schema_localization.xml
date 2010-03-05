@@ -25932,7 +25932,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="type" type="java.lang.String" type="HUH Publication Number Type">
+      <item name="type" type="java.lang.String" pickListName="HUH Publication Number Type">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
