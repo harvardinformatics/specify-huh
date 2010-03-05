@@ -645,11 +645,11 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     */
    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "referenceWork")
    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-   public Set<ReferenceWorkIdentifier> getReferenceWorkIdentifiers() {
+   public Set<ReferenceWorkIdentifier> getIdentifiers() {
        return this.identifiers;
    }
 
-   public void setReferenceWorkIdentifiers(Set<ReferenceWorkIdentifier> identifiers) {
+   public void setIdentifiers(Set<ReferenceWorkIdentifier> identifiers) {
        this.identifiers = identifiers;
    }
    
