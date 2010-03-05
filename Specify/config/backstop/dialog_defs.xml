@@ -68,7 +68,9 @@
     <dialog type="display" view="Preparation"        name="PreparationDisplay"       class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="PreparationAttr"    name="PreparationAttr"          class="edu.ku.brc.specify.datamodel.PreparationAttr" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ProjectSub"         name="ProjectSubDisplay"        class="edu.ku.brc.specify.datamodel.Project" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="ReferenceWork"      name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Publication"        name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Reference Numbers"  name="ReferenceWorkIdentifierDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
+	<dialog type="display" view="Publication Variant Title" name="ReferenceWorkVariantDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="RefWorkTaxCitSub"   name="RefWorkTaxCitSub"         class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="RepositoryAgreement" name="RepositoryAgreementDisplay" class="edu.ku.brc.specify.datamodel.RepositoryAgreement" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Storage"            name="StorageDisplay"           class="edu.ku.brc.specify.datamodel.Storage" helpcontext="CBXQViewEdit"/>
