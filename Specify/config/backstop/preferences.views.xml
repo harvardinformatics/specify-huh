@@ -274,6 +274,10 @@
                     </cell>
                 </row>
                 <row>
+                	<cell type="label" labelfor="resTblCellJust" label="RES_TBL_CELL_JUST"/>
+                	<cell type="field" uitype="combobox" id="resTblCellJust" name="ui.formatting.resultsTableCellJustification" readonly="true" changesonly="true" colspan="3"/>
+                </row>
+                <row>
                     <cell type="separator" label="CO_ICON" colspan="7"/>
                 </row>
                 <row>

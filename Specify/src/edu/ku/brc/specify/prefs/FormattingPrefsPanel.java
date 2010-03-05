@@ -104,10 +104,12 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
     protected ValComboBox  dateFieldMonCBX;
     protected boolean      clearFontSettings = false;
     protected ValComboBox  bnrIconSizeCBX;
+    protected ValComboBox  resTblCellJustCBX;
     
     protected Hashtable<String, UIHelper.CONTROLSIZE> controlSizesHash = new Hashtable<String, UIHelper.CONTROLSIZE>();
     protected Hashtable<String, String> formTypeHash = new Hashtable<String, String>();
-    
+    protected Hashtable<String, String> justTypeHash = new Hashtable<String, String>();
+
     /**
      * Constructor.
      */
@@ -303,7 +305,46 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
         });
     }
 
+    /**
+     * 
+     */
+    protected void fillResTblCellJust()
+    {
 
+        String[] resTblCellJustType  = { "left", "right", "center", "none" };
+        String[] resTblCellJustName  = {
+                UIRegistry.getResourceString("LEFT"),
+                UIRegistry.getResourceString("RIGHT"),
+                UIRegistry.getResourceString("CENTER"),
+                UIRegistry.getResourceString("NONE")
+        };
+
+        String curJust = AppPreferences.getLocalPrefs().get("ui.formatting.resultsTableCellJustification", "none");
+        
+        int selectedInx = 0;
+        int inx        = 0;
+        DefaultComboBoxModel model = (DefaultComboBoxModel)resTblCellJustCBX.getModel();
+        for (String just : resTblCellJustType)
+        {
+            model.addElement(resTblCellJustName[inx]);
+            justTypeHash.put(resTblCellJustName[inx], just);
+            if (curJust != null && curJust.equals(just))
+            {
+                selectedInx = inx;
+            }
+            inx++;
+        }
+        resTblCellJustCBX.getComboBox().setSelectedIndex(selectedInx);
+        
+        resTblCellJustCBX.getComboBox().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                form.getValidator().dataChanged(null, null, null);
+            }
+        });
+    }
+    
     /**
      * Create the UI for the panel
      */
@@ -321,8 +362,10 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
         
         JLabel      controlSizesLabel = form.getLabelFor("controlSizes"); //$NON-NLS-1$
         ValComboBox controlSizesVCB   = form.getCompById("controlSizes"); //$NON-NLS-1$
-        
+
         formTypesCBX = form.getCompById("formtype"); //$NON-NLS-1$
+        
+        resTblCellJustCBX = form.getCompById("resTblCellJust"); // I18N
         
         fontNames    = fontNamesVCB.getComboBox();
         fontSizes    = fontSizesVCB.getComboBox();
@@ -491,6 +534,11 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
         // FormType
         //-----------------------------------
         fillFormTypes();
+        
+        //-----------------------------------
+        // Results Table Cell Justification
+        //-----------------------------------
+        fillResTblCellJust();
         
         //-----------------------------------
         // Do App Icon
@@ -806,6 +854,9 @@ public class FormattingPrefsPanel extends GenericPrefsPanel implements PrefsPane
             
             String fType =  formTypeHash.get(formTypesCBX.getComboBox().getSelectedItem()).toString();
             local.put("ui.formatting.formtype", fType);
+            
+            String just = justTypeHash.get(resTblCellJustCBX.getComboBox().getSelectedItem().toString());
+            local.put("ui.formatting.resultsTableCellJustification", just);
         }
     }
 
