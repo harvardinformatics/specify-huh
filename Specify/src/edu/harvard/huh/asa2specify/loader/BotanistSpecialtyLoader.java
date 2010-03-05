@@ -3,7 +3,9 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import edu.harvard.huh.asa.AsaException;
 import edu.harvard.huh.asa.BotanistRoleSpecialty;
+import edu.harvard.huh.asa.BotanistRoleSpecialty.SPECIALTY;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
@@ -57,15 +59,19 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
 		BotanistRoleSpecialty botanistRoleSpecialty = new BotanistRoleSpecialty();
 		try
 		{
-			botanistRoleSpecialty.setBotanistId( SqlUtils.parseInt( columns[0] ));
-			botanistRoleSpecialty.setRole(                          columns[1] );
-			botanistRoleSpecialty.setSpecialty(                     columns[2] );
-			botanistRoleSpecialty.setOrdinal(    SqlUtils.parseInt( columns[3] ));
+			botanistRoleSpecialty.setBotanistId(                   SqlUtils.parseInt( columns[0] ));
+			botanistRoleSpecialty.setRole(                                            columns[1] );
+			botanistRoleSpecialty.setSpecialty( BotanistRoleSpecialty.parseSpecialty( columns[2] ));
+			botanistRoleSpecialty.setOrdinal(                      SqlUtils.parseInt( columns[3] ));
 		}
 		catch (NumberFormatException e)
 		{
 			throw new LocalException("Couldn't parse numeric field", e);
 		}
+		catch (AsaException e)
+        {
+            throw new LocalException("Couldn't parse specialty", e);
+        }
 
 		return botanistRoleSpecialty;
 	}
@@ -101,9 +107,9 @@ public class BotanistSpecialtyLoader extends CsvToSqlLoader
         agentSpecialty.setRole(role);
         
         // SpecialtyName
-		String specialty = botanistRoleSpecialty.getSpecialty();
+		SPECIALTY specialty = botanistRoleSpecialty.getSpecialty();
 		checkNull(specialty, "specialty");
-		agentSpecialty.setSpecialtyName(specialty);
+		agentSpecialty.setSpecialtyName(BotanistRoleSpecialty.toString(specialty));
 		
 		return agentSpecialty;
 	}

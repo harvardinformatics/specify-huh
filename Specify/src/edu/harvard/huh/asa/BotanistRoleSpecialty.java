@@ -16,16 +16,33 @@ package edu.harvard.huh.asa;
 
 public class BotanistRoleSpecialty
 {
-    private Integer botanistId;
-    private  String role;
-    private  String specialty;
-    private Integer ordinal;
+    public static enum SPECIALTY             {  Algae,   Angiosperms,   Bryophytes,   Cryptogamic,                Diatoms,   Fossils,   Fungi,   FungiAndLichens,    Hepatics,   Lichens,  Mosses,   Phanerogams,   PreLinnean,    Pteridophytes,   Spermatophytes };
+    private static String[] SpecialtyNames = { "Algae", "Angiosperms", "Bryophytes", "Cryptogamic, unspecified", "Diatoms", "Fossils", "Fungi", "Fungi and Lichens", "Hepatics", "Lichens", "Mosses", "Phanerogams", "Pre-Linnean", "Pteridophytes", "Spermatophytes" };
+
+    public static SPECIALTY parseSpecialty(String string) throws AsaException
+    {
+        for (SPECIALTY specialty : SPECIALTY.values())
+        {
+            if (SpecialtyNames[specialty.ordinal()].equals(string)) return specialty;
+        }
+        throw new AsaException("Invalid specialty name: " + string);
+    }
+    
+    public static String toString(SPECIALTY specialty)
+    {
+        return SpecialtyNames[specialty.ordinal()];
+    }
+    
+    private Integer   botanistId;
+    private String    role;
+    private SPECIALTY specialty;
+    private Integer   ordinal;
     
     public Integer getBotanistId() { return botanistId; }
     
     public String getRole() { return role; }
     
-    public String getSpecialty() { return specialty; }
+    public SPECIALTY getSpecialty() { return specialty; }
     
     public Integer getOrdinal() { return ordinal; }
     
@@ -33,7 +50,7 @@ public class BotanistRoleSpecialty
     
     public void setRole(String role) { this.role = role; }
     
-    public void setSpecialty(String specialty) { this.specialty = specialty; }
+    public void setSpecialty(SPECIALTY specialty) { this.specialty = specialty; }
     
     public void setOrdinal(Integer ordinal) { this.ordinal = ordinal; }
     
