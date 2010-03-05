@@ -341,8 +341,12 @@
             <display view="Publication" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkBusRules</businessrule>          
         </table>
-        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" abbrev="rwi" id="140" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="141" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" abbrev="rwi" id="140" searchable="true">
+			<display view="Reference Numbers" newobjdlg="ReferenceWorkIdentifierDisplay" searchable="true"/>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="141" searchable="true">
+			<display view="Publication Variant Title" newobjdlg="ReferenceWorkVariantDisplay" searchable="true"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.RepositoryAgreement" abbrev="ra" id="70" searchable="true">
             <display view="RepositoryAgreement" searchdlg="RepositoryAgreementSearch" newobjdlg="RepositoryAgreementDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.RepositoryAgreementBusRules</businessrule>
