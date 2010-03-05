@@ -267,15 +267,15 @@
             </altviews>
         </view>
         
-        <view name="ReferenceWorkVariant"
+        <view name="Publication Variant Title"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             resourcelabels="false">
-            <desc><![CDATA[ReferenceWorkVariant subform within the Publication form.]]></desc>
+            <desc><![CDATA[Publication Variant Title subform within the Publication form.]]></desc>
             <altviews defaultmode="view">
-                <altview name="ReferenceWorkVariant View" title="ReferenceWorkVariant" viewdef="ReferenceWorkVariant" mode="view" validated="false"/>
-                <altview name="ReferenceWorkVariant Edit" title="ReferenceWorkVariant" viewdef="ReferenceWorkVariant" mode="edit" validated="true" default="true"/>
-                <altview name="ReferenceWorkVariant Table View" viewdef="ReferenceWorkVariant Table"    label="Table View" mode="view" />
-                <altview name="ReferenceWorkVariant Table Edit" viewdef="ReferenceWorkVariant Table"    label="Table Edit" mode="edit"/>
+                <altview name="Publication Variant Title View" title="Publication Variant Title" viewdef="Publication Variant Title" mode="view" validated="false"/>
+                <altview name="Publication Variant Title Edit" title="Publication Variant Title" viewdef="Publication Variant Title" mode="edit" validated="true" default="true"/>
+                <altview name="Publication Variant Title Table View" viewdef="Publication Variant Title Table"    label="Table View" mode="view" />
+                <altview name="Publication Variant Title Table Edit" viewdef="Publication Variant Title Table"    label="Table Edit" mode="edit"/>
             </altviews>
         </view>
         
@@ -630,10 +630,10 @@
             <desc><![CDATA[The AgentCitation form.]]></desc>
             <enableRules/>
             
-            <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px, p:g</columnDef>
-            <columnDef>         100px, 2px, 190px, 5px,  50px, 2px, 420px, p, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 150px, 5px,  80px, 2px, 420px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 420px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 190px, 5px, 100px, 2px, p:g</columnDef>
+            <columnDef>          80px, 2px, 190px, 5px,  70px, 2px, 420px, p, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 150px, 5px, 100px, 2px, 420px, p:g</columnDef>
+            <columnDef os="mac">120px, 2px, 150px, 5px, 100px, 2px, 420px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
@@ -723,7 +723,7 @@
                     <cell type="label" labelfor="role"/>
                     <cell type="field" id="role" name="role" uitype="text"/>
                     <cell type="label" labelfor="specialtyName"/>
-                    <cell type="field" id="specialtyName" uitype="text" name="specialtyName"/>
+                    <cell type="field" id="specialtyName" uitype="combobox" name="specialtyName" picklist="HUH Specialty Name"/>
                 </row>
             </rows>
         </viewdef>
@@ -1510,12 +1510,12 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="subview" viewname="ReferenceWorkVariant" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
+                	<cell type="subview" viewname="Publication Variant Title" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
                     <cell type="subview" viewname="Author" id="authors" name="authors" initialize="name=Author" defaulttype="table" rows="3" colspan="5"/>
-					<cell type="subview" viewname="Reference Numbers" id="identifiers" name="referenceWorkIdentifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
+					<cell type="subview" viewname="Reference Numbers" id="identifiers" name="identifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
@@ -1680,18 +1680,18 @@
         </viewdef>
         
         <viewdef
-            name="ReferenceWorkVariant"
+            name="Publication Variant Title"
             type="form"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            <desc><![CDATA[The ReferenceWorkVariant form.]]></desc>
+            <desc><![CDATA[The Publication Variant Title form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 190px,        5px,  50px, 2px, 478px, p, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 200px,        5px,  70px, 2px, 523px, p, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 150px,        5px,  80px, 2px, 663px, p:g</columnDef>
-            <columnDef os="exp">p,     2px, max(p;190px), 5px, 100px, 2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 478px, 2px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 523px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 663px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;190px), 2px, p:g</columnDef>
             
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
@@ -1706,14 +1706,14 @@
         </viewdef>
         
         <viewdef
-	        name="ReferenceWorkVariant Table"
+	        name="Publication Variant Title Table"
             type="formtable"            
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
-            <desc><![CDATA[ReferenceWorkVariant grid view.]]></desc>
-            <definition>ReferenceWorkVariant</definition>
+            <desc><![CDATA[Publication Variant Title grid view.]]></desc>
+            <definition>Publication Variant Title</definition>
         </viewdef>
         
         <viewdef
