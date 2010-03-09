@@ -15,6 +15,7 @@
         </view>
         
         <view name="AgentCitation"
+            objtitle="Botanist Citation"
             class="edu.ku.brc.specify.datamodel.AgentCitation"
             resourcelabels="false">
             <desc><![CDATA[AgentCitation subform within the Agent form.]]></desc>
@@ -27,6 +28,7 @@
         </view>
         
         <view name="AgentGeography"
+            objtitle="Botanist Country"
             class="edu.ku.brc.specify.datamodel.AgentGeography"
             resourcelabels="false">
             <desc><![CDATA[AgentGeography subform within the Agent form.]]></desc>
@@ -39,6 +41,7 @@
         </view>
         
         <view name="AgentSpecialty"
+            objtitle="Botanist Specialty"
             class="edu.ku.brc.specify.datamodel.AgentSpecialty"
             resourcelabels="false">
             <desc><![CDATA[AgentSpecialty subform within the Agent form.]]></desc>
@@ -51,6 +54,7 @@
         </view>
         
         <view name="AgentVariant"
+            objtitle="Botanist Name"
             class="edu.ku.brc.specify.datamodel.AgentVariant"
             resourcelabels="false">
             <desc><![CDATA[AgentVariant subform within the Agent form.]]></desc>
@@ -63,6 +67,7 @@
         </view>
 
 		<view name="Botanist"
+		    objtitle="Botanist"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
             isinternal="false"
@@ -75,6 +80,7 @@
         </view>
         
         <view name="Transaction Agent"
+            objtitle="Transaction Agent"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
             isinternal="false"
@@ -87,6 +93,7 @@
         </view>
         
         <view name="Organization"
+            objtitle="Organization"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
             isinternal="false"
@@ -99,6 +106,7 @@
         </view>
         
        <view name="GroupPersons"
+            objtitle="Botanist Team"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
             resourcelabels="false">
@@ -110,6 +118,7 @@
        </view>
         
         <view name="GroupPerson"
+            objtitle="Botanist Team Member"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
             resourcelabels="false">
@@ -145,6 +154,7 @@
         </view>
         
         <view name="PrepType"
+            objtitle="Prep Type"
             class="edu.ku.brc.specify.datamodel.PrepType"
             busrules="edu.ku.brc.specify.datamodel.busrules.PrepTypeBusRules"
             resourcelabels="false">
@@ -167,6 +177,7 @@
         </view>-->
         
         <view name="'In' Author(s)"
+            objtitle="'In' Author(s)"
             class="edu.ku.brc.specify.datamodel.Author"
             busrules="edu.ku.brc.specify.datamodel.busrules.AuthorBusRules"
             usedefbusrule="false"
@@ -204,6 +215,7 @@
         </view>
         
         <view name="JournalForm"
+            objtitle="Journal"
             class="edu.ku.brc.specify.datamodel.Journal"
             isinternal="false"
             resourcelabels="false">
@@ -225,6 +237,7 @@
         </view>
         
         <view name="Publication"
+            objtitle="Publication"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
             isinternal="false"
             resourcelabels="false">
@@ -246,6 +259,7 @@
         </view>
         
         <view name="RefWorkTaxCitSub"
+            objtitle="Taxon Citation"
         	class="edu.ku.brc.specify.datamodel.ReferenceWork"
        		resourcelabels="false">
             <desc><![CDATA[The ReferenceWork SubForm for TaxonCitation.]]></desc>
@@ -256,6 +270,7 @@
         </view>
         
         <view name="Reference Numbers"
+            objtitle="Reference Numbers"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
             resourcelabels="false">
             <desc><![CDATA[Reference Numbers subform within the Publication form.]]></desc>
@@ -268,6 +283,7 @@
         </view>
         
         <view name="Publication Variant Title"
+            objtitle="Publication Title"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             resourcelabels="false">
             <desc><![CDATA[Publication Variant Title subform within the Publication form.]]></desc>
@@ -301,6 +317,7 @@
 
   		<view
 			name="ReportProperties"
+			objtitle="Report Properties"
 			class="java.util.prefs.Preferences"
 			useresourcelabels="false">
 			<desc><![CDATA[Report Properties Form.]]></desc>
@@ -319,6 +336,7 @@
         </view>
         
         <view name="TaxonCitation"
+            objtitle="Taxon Citation"
             class="edu.ku.brc.specify.datamodel.TaxonCitation"
             resourcelabels="false">
             <desc><![CDATA[Taxon data entry form.]]></desc>
@@ -373,6 +391,7 @@
         </view>
         
         <view name="Storage"
+            objtitle="Subcollection"
             class="edu.ku.brc.specify.datamodel.Storage"
             busrules="edu.ku.brc.specify.datamodel.busrules.StorageBusRules"
             isinternal="false"
@@ -395,6 +414,7 @@
         </view>
         
         <view name="GeologicTimePeriod"
+            objtitle="Geologic Time Period"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriod"
             busrules="edu.ku.brc.specify.datamodel.busrules.GeologicTimePeriodBusRules"
             isinternal="false"
@@ -564,6 +584,7 @@
         </view>
         
 		<view name="ObjectAttachment"
+			objtitle="Attachment"
 			class="edu.ku.brc.specify.datamodel.ObjectAttachmentIFace"
 			resourcelabels="false">
 			<desc><![CDATA[The Object-Attachment View.]]></desc>
