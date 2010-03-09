@@ -64,30 +64,29 @@ public class Storage extends DataModelObjBase implements Serializable, Treeable<
      */
     protected static final Logger log = Logger.getLogger(Storage.class);
 
-    protected Integer           storageId;
-    protected String            name;
-    protected String            fullName;
-    protected String            remarks;
-    protected Integer           rankId;
-    protected Integer           nodeNumber;
-    protected Integer           highestChildNodeNumber;
-    protected String            abbrev;
-    protected String            text1;
-    protected String            text2;
-    protected Integer           number1;
-    protected Integer           number2;
-    protected Date              timestampVersion;
-    protected StorageTreeDef    definition;
-    protected StorageTreeDefItem definitionItem;
-    protected Storage            parent;
-    protected Set<Preparation>   preparations;
-    protected Set<Container>     containers;
-    protected Set<Storage>       children;
+    protected Integer                storageId;
+    protected String                 name;
+    protected String                 fullName;
+    protected String                 remarks;
+    protected Integer                rankId;
+    protected Integer                nodeNumber;
+    protected Integer                highestChildNodeNumber;
+    protected String                 abbrev;
+    protected String                 text1;
+    protected String                 text2;
+    protected Integer                number1;
+    protected Integer                number2;
+    protected Date                   timestampVersion;
+    protected StorageTreeDef         definition;
+    protected StorageTreeDefItem     definitionItem;
+    protected Storage                parent;
+    protected Set<Preparation>       preparations;
+    protected Set<Storage>           children;
 
     // for synonym support
-    protected Boolean            isAccepted;
-    protected Storage            acceptedStorage;
-    protected Set<Storage>       acceptedChildren;
+    protected Boolean      isAccepted;
+    protected Storage      acceptedStorage;
+    protected Set<Storage> acceptedChildren;
 
 
     /** default constructor */
@@ -123,7 +122,6 @@ public class Storage extends DataModelObjBase implements Serializable, Treeable<
         definitionItem = null;
         parent = null;
         preparations = new HashSet<Preparation>();
-        containers = new HashSet<Container>();
         children = new HashSet<Storage>();
         
         isAccepted       = true;
@@ -403,18 +401,6 @@ public class Storage extends DataModelObjBase implements Serializable, Treeable<
     public void setPreparations(Set<Preparation> preparations)
     {
         this.preparations = preparations;
-    }
-
-    @OneToMany(mappedBy = "storage")
-    @Cascade( {CascadeType.MERGE, CascadeType.LOCK} )
-    public Set<Container> getContainers()
-    {
-        return this.containers;
-    }
-
-    public void setContainers(Set<Container> containers)
-    {
-        this.containers = containers;
     }
 
     @OneToMany(mappedBy = "parent")

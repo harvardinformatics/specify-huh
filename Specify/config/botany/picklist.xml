@@ -54,21 +54,19 @@
       <picklistitem title="sporophyte" value="Sporophyte"/>
     </items>
   </picklist>
-  <picklist name="HUH Preparation Type"  type="0" readonly="true" sizelimit="12">
+  <picklist name="HUH Preparation Method"  type="0" readonly="true" sizelimit="121>
     <items>
-      <picklistitem title="on sheet" value="on sheet"/>
-      <picklistitem title="in packet" value="in packet"/>
-      <picklistitem title="in box" value="in box"/>
-      <picklistitem title="in bag" value="in bag"/>
-      <picklistitem title="in spirit medium" value="in spirit medium"/>
-      <picklistitem title="wood" value="wood"/>
-      <picklistitem title="fossil" value="fossil"/>
-      <picklistitem title="on microscope slide" value="on microscope slide"/>
-      <picklistitem title="DNA sample" value="DNA sample"/>
-      <picklistitem title="photograph" value="photograph"/>
-      <picklistitem title="drawing" value="drawing"/>
-      <picklistitem title="protolog on sheet" value="protolog on sheet"/>
-      <picklistitem title="other" value="other"/>
+      <picklistitem title="Pressed" value="Pressed"/>
+      <picklistitem title="Dried" value="Dried"/>
+      <picklistitem title="Wood" value="Wood"/>
+      <picklistitem title="Drawing" value="Drawing"/>
+      <picklistitem title="Spirit medium" value="SpiritMedium"/>
+      <picklistitem title="Protolog" value="Protolog"/>
+      <picklistitem title="Photograph" value="Photograph"/>
+      <picklistitem title="Glycerine" value="Glycerine"/>
+      <picklistitem title="Fossil" value="Fossil"/>
+      <picklistitem title="DNA sample" value="DNAsample"/>
+      <picklistitem title="Other" value="Other"/>
     </items>
   </picklist>
   <picklist name="HUH Type Status"  type="0" readonly="true" sizelimit="15">

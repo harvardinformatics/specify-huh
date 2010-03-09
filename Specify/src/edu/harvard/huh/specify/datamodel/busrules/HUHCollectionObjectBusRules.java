@@ -71,6 +71,13 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             }
         }
 
+        if (colObj.getFragments().size() == 0) // this set should have been initialized when the CollectionObject was created
+        {
+            Fragment fragment = new Fragment();
+            fragment.initialize();
+            fragment.addReference(colObj, "collectionObject");
+            colObj.getFragments().add(fragment);
+        }
     }
     
     /*

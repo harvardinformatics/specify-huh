@@ -34,6 +34,7 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
 	protected String  description;
 	protected String  distribution;
 	protected String  phenology;
+	protected String  prepMethod;
 	protected String  provenance;
 	protected String  remarks;
 	protected String  sex;
@@ -87,6 +88,7 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
         description      = null;
         distribution     = null;
         phenology        = null;
+        prepMethod       = null;
         provenance       = null;
         remarks          = null;
         sex              = null;
@@ -271,6 +273,20 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
     public void setPhenology(String phenology) 
     {
         this.phenology = phenology;
+    }
+    
+    /**
+     * PrepMethod
+     */
+    @Column(name = "PrepMethod", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getPrepMethod() 
+    {
+        return this.prepMethod;
+    }
+
+    public void setPrepMethod(String prepMethod) 
+    {
+        this.prepMethod = prepMethod;
     }
     
     /**

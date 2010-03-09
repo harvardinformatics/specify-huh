@@ -133,7 +133,6 @@
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityNameAlias"/>
-		<mapping class="edu.ku.brc.specify.datamodel.LogicalContainer"/>
 		<mapping class="edu.ku.brc.specify.datamodel.OtherIdentifier"/>
 		<mapping class="edu.ku.brc.specify.datamodel.PaleoContext"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Permit"/>

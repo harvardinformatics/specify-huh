@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 143 or 532
+    Last used ID is 142 or 532
     
     ... are available
     
@@ -195,7 +195,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.Fragment" abbrev="frag" id="142" searchable="true">
         	<display view="Fragment" newobjdlg="FragmentDisplay"/>
-        	<businessrule>edu.harvard.huh.specify.datamodel.busrules.FragmentBusRules</businessrule>
+        	<businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">
@@ -285,9 +285,6 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.LocalityCitation" abbrev="locc" id="57" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.LocalityNameAlias" abbrev="locna" id="120" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.LogicalContainer" abbrev="logcon" id="143" searchable="true">
-			<display view="LogicalContainer" dataobjformatter="" newobjdlg="LogicalContainerDisplay" searchdlg="LogicalContainerSearch"/>
-        </table>
         <table name="edu.ku.brc.specify.datamodel.Storage" abbrev="lcn" id="58" searchable="true">
             <display view="Storage" dataobjformatter="Storage" searchdlg="StorageSearch" newobjdlg="StorageDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            

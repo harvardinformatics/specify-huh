@@ -120,16 +120,6 @@ public class StorageTreeTask extends BaseTreeTask<Storage, StorageTreeDef, Stora
             duplicateHash.put(id, true);
         }
         
-        sql = "SELECT co.CollectionObjectID FROM storage as st INNER JOIN container as cn ON st.StorageID = cn.StorageID " +
-              "INNER JOIN collectionobject co ON co.ContainerID = cn.ContainerID " +
-              "WHERE st.StorageID = "+storage.getStorageId()+" AND co.CollectionMemberID = COLMEMID";
-        
-        fillListWithIds(sql, idList);
-        for (Integer id : idList)
-        {
-            duplicateHash.put(id, true);
-        }
-
         for(Integer id : duplicateHash.keySet())
         {
             recordSet.addItem(id);

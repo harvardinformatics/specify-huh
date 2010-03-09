@@ -15,11 +15,11 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.LogicalContainer;
+import edu.ku.brc.specify.datamodel.Container;
 
 public interface ContainerLookup
 {  
-    public LogicalContainer getByName(String name) throws LocalException;
+    public Container getByName(String name) throws LocalException;
     
-    public LogicalContainer queryByName(String name) throws LocalException;
+    public Container queryByName(String name) throws LocalException;
 }

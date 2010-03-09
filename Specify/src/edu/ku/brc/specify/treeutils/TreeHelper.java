@@ -332,7 +332,6 @@ public class TreeHelper
     
     public static void initializeRelatedObjects(Storage loc)
     {
-        loc.getContainers().size();
         loc.getPreparations().size();
     }
     

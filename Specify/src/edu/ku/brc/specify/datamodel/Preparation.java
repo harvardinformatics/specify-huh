@@ -36,6 +36,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -60,11 +61,13 @@ import edu.ku.brc.dbsupport.DBConnection;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "preparation")
+@Table(name = "preparation", uniqueConstraints = {
+        @UniqueConstraint(columnNames={"CatalogNumber"} )
+} )
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
         @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"}),
-        @Index (name="SampleNumberIDX", columnNames={"SampleNumber"}) })
+        @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
 public class Preparation extends CollectionMember implements AttachmentOwnerIFace<PreparationAttachment>, 
                                                              AttributeProviderIFace, 
                                                              java.io.Serializable, 
@@ -75,6 +78,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     // Fields    
 
     protected Integer                     preparationId;
+    protected String                      catalogNumber;
     protected String                      text1;
     protected String                      text2;
     protected Integer                     countAmt;
@@ -95,7 +99,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     // from CollectionObject
     protected Appraisal                   appraisal;
     protected Set<ConservDescription>     conservDescriptions;
-    protected Container                   container;
 	protected Calendar                    inventoryDate;
 	protected String                      objectCondition;
     protected Set<TreatmentEvent>         treatmentEvents;
@@ -113,6 +116,10 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected PreparationAttribute        preparationAttribute;    // Specify 5 Attributes table
     protected Set<PreparationAttr>        preparationAttrs;        // Generic Expandable Attributes
     protected Set<PreparationAttachment>  preparationAttachments;
+    
+    // Tree
+    protected Preparation                 parent;
+    protected Set<Preparation>            children;
     
     // Transient
     protected Boolean                     isOnLoan = null;
@@ -143,29 +150,29 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         super.init();
         
         preparationId = null;
-        text1        = null;
-        text2        = null;
-        countAmt     = null;
+        catalogNumber = null;
+        text1         = null;
+        text2         = null;
+        countAmt      = null;
         storageLocation = null;
-        remarks      = null;
-        preparedDate = null;
+        remarks       = null;
+        preparedDate  = null;
         preparedDatePrecision = null;
-        status       = null;
-        sampleNumber = null;
-        description  = null;
+        status        = null;
+        sampleNumber  = null;
+        description   = null;
         
-        number1      = null;
-        number2      = null;
-        yesNo1       = null;
-        yesNo2       = null;
-        yesNo3       = null;
+        number1       = null;
+        number2       = null;
+        yesNo1        = null;
+        yesNo2        = null;
+        yesNo3        = null;
         
         // fragments
         fragments = new HashSet<Fragment>();
         
         // from collection object
         appraisal           = null;
-        container           = null;
         conservDescriptions = new HashSet<ConservDescription>();
         inventoryDate       = null;
         objectCondition     = null;
@@ -181,6 +188,10 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         preparationAttribute   = null;
         preparationAttrs       = new HashSet<PreparationAttr>();
         preparationAttachments = new HashSet<PreparationAttachment>();
+        
+        // tree
+        parent   = null;
+        children = new HashSet<Preparation>();
     }
     // End Initializer
 
@@ -205,6 +216,18 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     {
         return this.preparationId;
     }
+    
+    /**
+    *
+    */
+   @Column(name = "CatalogNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+   public String getCatalogNumber() {
+       return this.catalogNumber;
+   }
+
+   public void setCatalogNumber(String catalogNumber) {
+       this.catalogNumber = catalogNumber;
+   }
 
     /**
      * 
@@ -241,16 +264,18 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     }
     
     /**
-     *      * Preparation, Container
+     * 
      */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
-    @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Container getContainer() {
-        return this.container;
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ParentID")
+    public Preparation getParent()
+    {
+        return this.parent;
     }
 
-    public void setContainer(Container container) {
-        this.container = container;
+    public void setParent(Preparation parent)
+    {
+        this.parent = parent;
     }
 
     /**
@@ -489,6 +514,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         this.isOnLoan = isOnLoan;
     }
 
+    
     /**
      * 
      */
@@ -828,7 +854,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
    @Transient
    public Integer getParentTableId()
    {
-       return Container.getClassTableId();
+       return Preparation.getClassTableId();
    }
 
    /* (non-Javadoc)
@@ -838,7 +864,19 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
    @Transient
    public Integer getParentId()
    {
-       return container != null ? container.getId() : null;
+       return parent != null ? parent.getId() : null;
+   }
+   
+   @OneToMany(mappedBy = "parent")
+   @Cascade( { CascadeType.ALL })
+   public Set<Preparation> getChildren()
+   {
+       return this.children;
+   }
+
+   public void setChildren(Set<Preparation> children)
+   {
+       this.children = children;
    }
    
     /* (non-Javadoc)
