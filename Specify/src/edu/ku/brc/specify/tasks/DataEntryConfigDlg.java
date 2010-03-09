@@ -113,7 +113,10 @@ public class DataEntryConfigDlg extends TaskConfigureDlg
                 if (!ti.isHidden() && !InteractionsTask.isInteractionTable(ti.getTableId()))
                 {
                     hash.put(view.getName(), view);
-                    String title = ti != null ? ti.getTitle() : view.getName();
+                    
+                    String title = view.getObjTitle();
+                    if (title == null) title = ti != null ? ti.getTitle() : view.getName();
+                    
                     if (newAvailViews.get(title) != null)
                     {
                         title = view.getName();
@@ -150,7 +153,9 @@ public class DataEntryConfigDlg extends TaskConfigureDlg
                 ViewIFace     view = newAvailViews.get(title);
                 DBTableInfo   ti   = DBTableIdMgr.getInstance().getByClassName(view.getClassName());
                 
-                DataEntryView dev  = new DataEntryView(ti != null ? ti.getTitle() : view.getName(),  // Title 
+                String devTitle = view.getObjTitle();
+                if (devTitle == null) devTitle = ti != null ? ti.getTitle() : view.getName();
+                DataEntryView dev  = new DataEntryView(devTitle,                                     // Title 
                                                        view.getName(),                               // Name
                                                        ti != null ? ti.getName() : null,             // Icon Name
                                                        view.getObjTitle(),                           // ToolTip

@@ -222,7 +222,7 @@ public class DataEntryView implements TaskConfigItemIFace, Comparable<TaskConfig
     @Override
     public String toString()
     {
-        return tableInfo != null ? tableInfo.getTitle() : title;
+        return title != null ? title : (tableInfo != null ? tableInfo.getTitle() : view);
     }
     
     /* (non-Javadoc)

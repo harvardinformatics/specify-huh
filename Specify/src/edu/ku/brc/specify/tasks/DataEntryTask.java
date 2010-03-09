@@ -705,7 +705,10 @@ public class DataEntryTask extends BaseTask
                                 task = this;
                             }
                             cmdAction.setProperty(NavBoxAction.ORGINATING_TASK, task);
-                            ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, tableInfo.getTitle(), true); // the Name gets Hashed
+                            
+                            String toolTip = view.getObjTitle();
+                            if (toolTip != null) toolTip = dev.getView();
+                            ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, toolTip, true); // the Name gets Hashed
                         }
                         
                         if (dev.isSideBar())
@@ -792,7 +795,11 @@ public class DataEntryTask extends BaseTask
                         task = this;
                     }
                     cmdAction.setProperty(NavBoxAction.ORGINATING_TASK, task);
-                    ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, tableInfo.getTitle(), true); // the Name gets Hashed
+
+                    String toolTip = view.getObjTitle();
+                    if (toolTip == null) toolTip = dev.getView();
+                    
+                    ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, toolTip, true); // the Name gets Hashed
                 }
 
             } else
@@ -1414,7 +1421,8 @@ public class DataEntryTask extends BaseTask
         } else if (cmdAction.isAction(EDIT_DATA))
         {
             Taskable task = (Taskable)cmdAction.getProperty(NavBoxAction.ORGINATING_TASK);
-            editData(task != null ? task : this, cmdAction.getData(), null, cmdAction.getProperty("readonly") != null);
+            String view = (String)cmdAction.getProperty("view");
+            editData(task != null ? task : this, cmdAction.getData(), view, cmdAction.getProperty("readonly") != null);
         }
         else if (cmdAction.isAction("ShowView"))
         {

@@ -252,7 +252,7 @@ public class InteractionsTask extends BaseTask
                         label = getResourceString(entry.getLabelKey());
                     } else
                     {
-                        label = tableInfo.getTitle();
+                        label = entry.getTitle() != null ? entry.getTitle() : tableInfo.getTitle();
                     }
                     
                     String tooltip = "";
@@ -507,7 +507,8 @@ public class InteractionsTask extends BaseTask
                     } else if (StringUtils.isNotEmpty(entry.getViewName()) && !entry.isSearchService())
                     {
                         CommandAction cmdAction = createCmdActionFromEntry(entry, tableInfo);
-                        ContextMgr.registerService(10, entry.getViewName(), tableInfo.getTableId(), cmdAction, this, "Data_Entry", tableInfo.getTitle(), true); // the Name gets Hashed
+                        
+                        ContextMgr.registerService(10, entry.getViewName(), tableInfo.getTableId(), cmdAction, this, "Data_Entry", entry.getTitle(), true); // the Name gets Hashed
                     }
                 }
             }
@@ -608,7 +609,7 @@ public class InteractionsTask extends BaseTask
         CommandAction cmdAction = createCmdActionFromEntry(entry, tableInfo);
         if (StringUtils.isNotEmpty(entry.getViewName()) && entry.isSearchService())
         {
-            ContextMgr.registerService(10, entry.getViewName(), tableInfo.getTableId(), cmdAction, this, "Data_Entry", tableInfo.getTitle(), true); // the Name gets Hashed
+            ContextMgr.registerService(10, entry.getViewName(), tableInfo.getTableId(), cmdAction, this, "Data_Entry", entry.getTitle(), true); // the Name gets Hashed
         }
         
         NavBoxButton roc = (NavBoxButton)makeDnDNavBtn(navBox, entry.getTitle(), entry.getIconName(), cmdAction, null, true, false);// true means make it draggable
