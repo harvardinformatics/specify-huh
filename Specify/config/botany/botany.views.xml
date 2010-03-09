@@ -3,6 +3,7 @@
     
     <views>
         <view name="CollectingEvent"
+            objtitle="Collecting Event"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules"
             isinternal="false"
@@ -15,6 +16,7 @@
         </view>
         
         <view name="CollectingEventBrief"
+            objtitle="Collecting Event (Short)"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules"
             isinternal="false"
@@ -38,6 +40,7 @@
         </view>    
         
         <view name="Curation (Long)"
+            objtitle="Curation (Long)"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
@@ -51,6 +54,7 @@
         </view>
         
         <view name="Curation (Brief)"
+            objtitle="Curation (Short)"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules"
             isinternal="false"
@@ -89,6 +93,7 @@
         </view>
         
         <view name="DeterminationBrief"
+            objtitle="Determination (Short)"
             class="edu.ku.brc.specify.datamodel.Determination"
             busrules="edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules" 
             isexternal="true"
@@ -147,6 +152,7 @@
         </view>
         
         <view name="LogicalContainer"
+            objtitle="Logical Container"
             class="edu.ku.brc.specify.datamodel.LogicalContainer"
             resourcelabels="false"
             >
@@ -158,6 +164,7 @@
         </view>
         
         <view name="OtherIdentifier"
+            objtitle="Series Identifier"
             class="edu.ku.brc.specify.datamodel.OtherIdentifier"
             isinternal="false"
             resourcelabels="false"
