@@ -50,6 +50,7 @@
         </view>
 
         <view name="AccessionItems"
+              objtitle="Accession Items"
               class="edu.ku.brc.specify.datamodel.CollectionObject"
               usedefbusrule="false"
               resourcelabels="false">
@@ -85,6 +86,7 @@
         </view>
                 
         <view name="AddressOfRecord"
+            objtitle="Address of Record"
             class="edu.ku.brc.specify.datamodel.AddressOfRecord"
             resourcelabels="false">
             <desc><![CDATA[AddressOfRecord subform within the Accession form.]]></desc>
@@ -142,6 +144,7 @@
         </view>
         
         <view name="BorrowMaterial"
+            objtitle="Borrow Material"
             class="edu.ku.brc.specify.datamodel.BorrowMaterial"
             resourcelabels="false">
             <desc><![CDATA[Borrow display form]]></desc>
@@ -154,6 +157,7 @@
         </view>
         
         <view name="BorrowReturnMaterial"
+            objtitle="Borrow Return Material"
             class="edu.ku.brc.specify.datamodel.BorrowReturnMaterial"
             resourcelabels="false">
             <desc><![CDATA[Borrow display form]]></desc>
@@ -166,6 +170,7 @@
         </view>
         
         <view name="CollectingEventSubform"
+            objtitle="Collecting Event"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules"
             resourcelabels="false">
@@ -178,6 +183,7 @@
         
         
         <view name="CollectingTrip"
+            objtitle="Collecting Trip"
             class="edu.ku.brc.specify.datamodel.CollectingTrip"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingTripBusRules"
             resourelabels="false">
@@ -189,6 +195,7 @@
         </view>
         
         <view name="CollectingTripForm"
+            objtitle="Collecting Trip"
             class="edu.ku.brc.specify.datamodel.CollectingTrip"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingTripBusRules"
             isinternal="false"
@@ -250,6 +257,7 @@
          </view>
         
         <view name="CommonNameTx"
+            objtitle="Taxon Common Name"
             class="edu.ku.brc.specify.datamodel.CommonNameTx"
             resourcelabels="false">
             <desc><![CDATA[The Common Name form.]]></desc>
@@ -260,6 +268,7 @@
         </view>
         
         <view name="ConservDescription"
+            objtitle="Conservation Description"
             class="edu.ku.brc.specify.datamodel.ConservDescription"
             busrules="edu.ku.brc.specify.datamodel.busrules.ConservDescriptionBusRules"
             isinternal="false"
@@ -272,6 +281,7 @@
         </view>
         
         <view name="ConservEvent"
+            objtitle="Conservation Event"
             class="edu.ku.brc.specify.datamodel.ConservEvent"
             busrules="edu.ku.brc.specify.datamodel.busrules.ConservEventBusRules"
             resourcelabels="false">
@@ -376,6 +386,7 @@
         </view>
         
         <view name="ExchangeIn"
+            objtitle="Incoming Exchange"
             class="edu.ku.brc.specify.datamodel.ExchangeIn"
             resourcelabels="false">
             <desc><![CDATA[Exchange In display form]]></desc>
@@ -386,6 +397,7 @@
         </view>
         
         <view name="ExchangeOut"
+            objtitle="Outgoing Exchange"
             class="edu.ku.brc.specify.datamodel.ExchangeOut"
             resourcelabels="false">
             <desc><![CDATA[Exchange Out display form]]></desc>
@@ -396,6 +408,7 @@
         </view>
         
         <view name="FieldNotebook"
+            objtitle="Field Notebook"
             class="edu.ku.brc.specify.datamodel.FieldNotebook"
             busrules="edu.ku.brc.specify.datamodel.busrules.FieldNotebookBusRules"
             isinternal="false"
@@ -408,6 +421,7 @@
         </view>
         
         <view name="FieldNotebookPage"
+            objtitle="Field Notebook Page"
             class="edu.ku.brc.specify.datamodel.FieldNotebookPage"
              busrules="edu.ku.brc.specify.datamodel.busrules.FieldNotebookPageBusRules"
             resourcelables="false">
@@ -421,6 +435,7 @@
         </view>
 
         <view name="FieldNotebookPageSet"
+            objtitle="Field Notebook Page Set"
             class="edu.ku.brc.specify.datamodel.FieldNotebookPageSet" 
             resourcelables="false">
             <desc><![CDATA[Field Notebook Page.]]></desc>
@@ -431,6 +446,7 @@
         </view>
         
         <view name="GeoCoordDetail"
+            objtitle="Geo Coordinates Detail"
             class="edu.ku.brc.specify.datamodel.GeoCoordDetail"
             isinternal="true"
             resourcelabels="false">
@@ -466,6 +482,7 @@
         </view>
         
         <view name="GiftItems"
+            objtitle="Gift Items"
             class="edu.ku.brc.specify.datamodel.GiftPreparation"
             busrules="edu.ku.brc.specify.datamodel.busrules.GiftPreparationBusRules"
             resourcelabels="false">
@@ -489,6 +506,7 @@
         </view>
          
         <view name="Item"
+            objtitle="Item/Fragment (Long)"
             class="edu.ku.brc.specify.datamodel.Fragment"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules" 
             isexternal="true"
@@ -503,6 +521,7 @@
         </view>
 
         <view name="Item Brief"
+              objtitle="Item/Fragment (Short)"
               class="edu.ku.brc.specify.datamodel.Fragment"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules"
                resourcelabels="false">
@@ -541,6 +560,7 @@
         </view>
         
         <view name="LoanItems"
+            objtitle="Loan Items"
             class="edu.ku.brc.specify.datamodel.LoanPreparation"
             busrules="edu.ku.brc.specify.datamodel.busrules.LoanPreparationBusRules"
             resourcelabels="false">
@@ -554,6 +574,7 @@
         </view>
         
         <view name="LoanReturnPreparation"
+            objtitle="Loan Return Prep"
             class="edu.ku.brc.specify.datamodel.LoanReturnPreparation"
             busrules="edu.ku.brc.specify.datamodel.busrules.LoanReturnPreparationBusRules"
             resourcelabels="false">
@@ -577,6 +598,7 @@
         </view>
         
         <view name="LocalityCitation"
+            objtitle="Locality Citation"
             class="edu.ku.brc.specify.datamodel.LocalityCitation"
             resourcelabels="false">
             <desc><![CDATA[Locality form.]]></desc>
@@ -587,6 +609,7 @@
         </view>
         
         <view name="LocalityDetail"
+            objtitle="Locality Detail"
             class="edu.ku.brc.specify.datamodel.LocalityDetail"
             resourcelabels="false">
             <desc><![CDATA[LocalityDetail form.]]></desc>
@@ -608,6 +631,7 @@
         </view>
         
         <view name="LocalityMapper"
+            objtitle="Locality Mapper"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules"
             resourcelabels="false">
@@ -629,6 +653,7 @@
         </view>
 
         <view name="PermitForAccessions"
+            objtitle="Accession Permit"
             class="edu.ku.brc.specify.datamodel.Permit"
             busrules="edu.ku.brc.specify.datamodel.busrules.PermitBusRules"
             resourcelabels="false">
@@ -660,6 +685,7 @@
         </view>
 
         <view name="InfoRequest"
+            objtitle="Info Request"
             class="edu.ku.brc.specify.datamodel.InfoRequest"
             resourcelabels="false">
             <desc><![CDATA[Subform within the InfoRequest form.]]></desc>
@@ -681,6 +707,7 @@
         </view>
         
         <view name="Preparation"
+              objtitle="Preparation (Long)"
               class="edu.ku.brc.specify.datamodel.Preparation"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
                resourcelabels="false">
@@ -694,6 +721,7 @@
         </view>
         
         <view name="Preparation Brief"
+              objtitle="Preparation (Short)"
               class="edu.ku.brc.specify.datamodel.Preparation"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
                resourcelabels="false">
@@ -707,6 +735,7 @@
         </view>
         
         <view name="RepositoryAgreement"
+            objtitle="Repository Agreement"
             class="edu.ku.brc.specify.datamodel.RepositoryAgreement"
             isinternal="false"
             resourcelabels="false">
@@ -740,6 +769,7 @@
         </view>
         
         <view name="TreatmentEvent"
+            objtitle="Treatment Event"
             class="edu.ku.brc.specify.datamodel.TreatmentEvent"
             isinternal="false"
             resourcelabels="false">
@@ -751,6 +781,7 @@
         </view>
         
         <view name="TreatmentEventForAccession"
+            objtitle="Accession Treatment Event"
             class="edu.ku.brc.specify.datamodel.TreatmentEvent"
             resourcelabels="false">
             <desc><![CDATA[Treatment Event form.]]></desc>
