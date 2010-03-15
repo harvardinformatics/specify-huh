@@ -50,6 +50,8 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
 
      protected Integer          collectionObjectCitationId;
      protected String           remarks;
+     protected String           text1;
+     protected String           text2;
      protected Boolean          isFigured;
      protected ReferenceWork    referenceWork;
      protected Fragment         fragment;
@@ -77,6 +79,8 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
         super.init();
         collectionObjectCitationId = null;
         remarks = null;
+        text1 = null;
+        text2 = null;
         referenceWork = null;
         fragment = null;
     }
@@ -111,6 +115,30 @@ public class CollectionObjectCitation extends CollectionMember implements java.i
         this.isFigured = isFigured;
     }
 
+    /**
+     *      * User definable
+     */
+    @Column(name = "Text1", length=300, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText1() {
+        return this.text1;
+    }
+    
+    public void setText1(String text1) {
+        this.text1 = text1;
+    }
+
+    /**
+     *      * User definable
+     */
+    @Column(name = "Text2", length=300, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText2() {
+        return this.text2;
+    }
+    
+    public void setText2(String text2) {
+        this.text2 = text2;
+    }
+    
     /**
      * Generic Getter for the ID Property.
      * @returns ID Property.
