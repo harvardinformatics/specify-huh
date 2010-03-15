@@ -432,16 +432,18 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     private String getInsertSql(DeterminationCitation determinationCitation)
     {
         String fieldNames = "CollectionMemberID, DeterminationID, ReferenceWorkID, Remarks, " +
-        		            "TimestampCreated, Version";
+        		            "Text1, Text2, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[8];
         
         values[0] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
         values[1] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
         values[2] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
         values[3] = SqlUtils.sqlString( determinationCitation.getRemarks());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[4] = SqlUtils.sqlString( determinationCitation.getText1());
+        values[5] = SqlUtils.sqlString( determinationCitation.getText2());
+        values[6] = SqlUtils.now();
+        values[7] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }
