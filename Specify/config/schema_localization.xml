@@ -7335,17 +7335,6 @@
         </names>
         <descs/>
       </item>
-      <item name="leftSideRels" type="OneToMany" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Left Side Rels</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="modifiedByAgent">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -7498,17 +7487,6 @@
           <str language="en">
             <version>0</version>
             <text>Restrictions</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="rightSideRels" type="OneToMany" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Right Side Rels</text>
           </str>
         </names>
         <descs/>
@@ -15474,6 +15452,17 @@
         </names>
         <descs/>
       </item>
+      <item name="leftSideRels" type="OneToMany" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Left Side Rels</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="number1" type="java.lang.Integer">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -15564,6 +15553,17 @@
         </names>
         <descs/>
       </item>
+      <item name="rightSideRels" type="OneToMany" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Right Side Rels</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="sex" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -15581,7 +15581,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Herbarium</text>
           </str>
         </names>
         <descs>
@@ -24060,7 +24060,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Sample Number</text>
+            <text>Item Number</text>
           </str>
         </names>
         <descs/>
