@@ -630,6 +630,27 @@
     </hashtable>
   </entry>
   <entry>
+    <string>fragmentattachment</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="fragmentattachment" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="fragmentattachment" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="fragmentattachment" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="fragmentattachment" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
     <string>geocoorddetail</string>
     <hashtable>
       <entry>
@@ -819,23 +840,23 @@
     </hashtable>
   </entry>
   <entry>
-    <string>collectionobjectcitation</string>
+    <string>fragmentcitation</string>
     <hashtable>
       <entry>
         <string>Manager</string>
-        <tp name="collectionobjectcitation" type="Manager" view="true" modify="true" del="true" add="true"/>
+        <tp name="fragmenttcitation" type="Manager" view="true" modify="true" del="true" add="true"/>
       </entry>
       <entry>
         <string>LimitedAccess</string>
-        <tp name="collectionobjectcitation" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+        <tp name="fragmentcitation" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
       </entry>
       <entry>
         <string>Guest</string>
-        <tp name="collectionobjectcitation" type="Guest" view="true" modify="false" del="false" add="false"/>
+        <tp name="fragmentcitation" type="Guest" view="true" modify="false" del="false" add="false"/>
       </entry>
       <entry>
         <string>FullAccess</string>
-        <tp name="collectionobjectcitation" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+        <tp name="fragmentcitation" type="FullAccess" view="true" modify="true" del="true" add="true"/>
       </entry>
     </hashtable>
   </entry>
@@ -1550,6 +1571,27 @@
       <entry>
         <string>FullAccess</string>
         <tp name="collectionobject" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>fragment</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="fragment" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="fragment" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="fragment" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="fragment" type="FullAccess" view="true" modify="true" del="true" add="true"/>
       </entry>
     </hashtable>
   </entry>
