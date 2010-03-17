@@ -315,8 +315,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 public Preparation getByBarcode(String barcode) throws LocalException
                 {                    
                     String sql = "select p.PreparationID from preparation p left join " +
-                                 "fragment f on p.PreparationID=f.PreparationID left join " +
-                                 "collectionobject co on f.CollectionObjectID=co.CollectionObjectID " +
+                                 "fragment f on p.PreparationID=f.PreparationID " +
                                  "where f.CatalogNumber=\"" + barcode + "\"";
                     
                     Integer preparationId = getInt(sql);
@@ -375,6 +374,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         getLogger().info("Creating alt catalog number index");
         String sql =  "create index altcatnum on collectionobject(AltCatalogNumber)";
         execute(sql);
+        
+        // create two fragment relationships
+        String hostRel = "insert into collectionreltype set TimestampCreated=now(), Version=0, Name='Host of'";
+        execute(hostRel);  
+        
+        String parasiteRel = "insert into collectionreltype set TimestampCreated=now(), Version=0, Name='Parasite of'";
+        execute(parasiteRel);
     }
     
     private Agent lookupSeries(Integer seriesId) throws LocalException
@@ -759,10 +765,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    }
 	    
 	    // CatalogNumber (barcode)
-	    Integer barcode = specimenItem.getBarcode();
-	    String catalogNumber = getPreparationLookup().formatCollObjBarcode(barcode);
+        String catalogNumber = null;
+        Integer barcode = specimenItem.getBarcode();
+
+	    if (barcode != null) getPreparationLookup().formatCollObjBarcode(barcode);
+	    else getLogger().warn(rec() + "Null barcode");
+
 	    fragment.setCatalogNumber(catalogNumber);
-	    if (barcode == null) getLogger().warn(rec() + "Null barcode");
 	    
 	    // CollectionMemberID
 	    fragment.setCollectionMemberId(collectionMemberId);
@@ -1364,14 +1373,30 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     {
         FORMAT format = specimenItem.getFormat();
         Integer collectionId = getCollection(specimenItem).getCollectionId();
+        String location = specimenItem.getLocation() != null ? specimenItem.getLocation().toLowerCase() : null;
         
-        String key = SpecimenItem.toString(format) + " " + String.valueOf(collectionId);
+        CONTAINER_TYPE container = null;
+        
+        if      (format.equals(FORMAT.OnSheet))           container = CONTAINER_TYPE.Sheet;
+        else if (format.equals(FORMAT.InPacket))          container = CONTAINER_TYPE.Packet;
+        else if (format.equals(FORMAT.InBox))             container = CONTAINER_TYPE.Box;
+        else if (format.equals(FORMAT.InBag))             container = CONTAINER_TYPE.Bag;
+        else if (format.equals(FORMAT.InJar))             container = CONTAINER_TYPE.Jar;
+        else if (format.equals(FORMAT.InSpiritMedium))    container = CONTAINER_TYPE.Jar;
+        else if (format.equals(FORMAT.Wood))              container = CONTAINER_TYPE.Self;
+        else if (format.equals(FORMAT.Fossil))            container = CONTAINER_TYPE.Self;
+        else if (format.equals(FORMAT.OnMicroscopeSlide)) container = CONTAINER_TYPE.MicroscopeSlide;
+        else                                              container = CONTAINER_TYPE.Other;
+
+        if (location != null && location.contains("35mm kodachrome slide")) container = CONTAINER_TYPE.Slide35mm;
+
+        String key = SpecimenItem.toString(container) + " " + String.valueOf(collectionId);
         
         PrepType prepType = prepTypesByFormatAndColl.get(key);
         
         if (prepType == null)
         {
-            String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + SqlUtils.sqlString(SpecimenItem.toString(format));
+            String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + SqlUtils.sqlString(SpecimenItem.toString(container));
             Integer prepTypeId = queryForInt(sql);
             if (prepTypeId == null) throw new LocalException("Couldn't find prep type for " + key);
             
