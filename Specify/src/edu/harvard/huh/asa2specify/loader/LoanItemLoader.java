@@ -76,7 +76,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 	
 	private String formatBarcode(Integer barcode) throws LocalException
 	{
-	    return prepLookup.formatPrepBarcode(barcode);
+	    return prepLookup.formatCollObjBarcode(barcode);
 	}
 
 	private Preparation lookupSpecimenItem(String barcode) throws LocalException
