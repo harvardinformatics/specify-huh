@@ -7223,28 +7223,6 @@
         </names>
         <descs/>
       </item>
-      <item name="collectionObjectCitations" type="OneToMany">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object Citations</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="conservDescriptions" type="OneToMany">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Conserv Descriptions</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="container" type="ManyToOne">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -7256,33 +7234,6 @@
         </names>
         <descs/>
       </item>
-      <item name="containerOwner" type="ManyToOne">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Container Owner</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="countAmt" type="java.lang.Integer" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Count Amount</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The number of objects (specimens, slides, pieces) prepared.</text>
-          </str>
-        </descs>
-      </item>
       <item name="createdByAgent">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -7293,22 +7244,6 @@
           </str>
         </names>
         <descs/>
-      </item>
-      <item name="deaccessioned" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Deaccessioned</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>True if the object has been deaccessioned.</text>
-          </str>
-        </descs>
       </item>
       <item name="description" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
@@ -7326,17 +7261,6 @@
           </str>
         </descs>
       </item>
-      <item name="determinations" type="OneToMany">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Determinations</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="dnaSequences" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -7347,20 +7271,6 @@
           </str>
         </names>
         <descs/>
-      </item>
-      <item name="exsiccataItems" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <isSystem>false</isSystem>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Exsiccata Items</text>
-            <itemDesc reference="../../.."/>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
       </item>
       <item name="fieldNotebookPage">
         <version>0</version>
@@ -7388,6 +7298,16 @@
             <text>A unique number a collector assigns to each specimen at the time of collection. For example, botanists often keep a running count of the individual specimens they have collected (LKK1023, LKK1024, etc.). </text>
           </str>
         </descs>
+      </item>
+      <item name="fragments">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Items</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="guid" type="java.lang.String">
         <version>0</version>
@@ -7475,7 +7395,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Replicates</text>
+            <text>Number1</text>
           </str>
         </names>
         <descs>
@@ -7529,17 +7449,6 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Paleo Context</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="preparations" type="OneToMany">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Preparations</text>
           </str>
         </names>
         <descs/>
@@ -7610,7 +7519,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Container</text>
+            <text>Host</text>
           </str>
         </names>
         <descs>
@@ -7627,6 +7536,38 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Substrate</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Vernacular Name</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="text4" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Frequency</text>
           </str>
         </names>
         <descs>
@@ -7675,17 +7616,6 @@
           <str language="en">
             <version>0</version>
             <text>Total Value</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="treatmentEvents">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Treatment Events</text>
           </str>
         </names>
         <descs/>
@@ -8898,147 +8828,6 @@
       </str>
     </descs>
   </container>
-  <container name="collectionobjectcitation" type="">
-    <version>0</version>
-    <isHidden>false</isHidden>
-    <items>
-      <item name="collectionMemberId">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Collection Member Id</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="collectionObject" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="createdByAgent">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Created By Agent</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="isFigured">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Is Figured</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="modifiedByAgent">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Modified By Agent</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="referenceWork" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Publication</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="remarks" type="text" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Remarks</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Additional Comments.</text>
-          </str>
-        </descs>
-      </item>
-      <item name="timestampCreated" type="java.sql.Timestamp">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Timestamp Created</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The timestamp the record was created.</text>
-          </str>
-        </descs>
-      </item>
-      <item name="timestampModified" type="java.sql.Timestamp">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Timestamp Modified</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The timestamp the record was last modified.</text>
-          </str>
-        </descs>
-      </item>
-      <item name="version">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Version</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-    </items>
-    <names>
-      <str language="en" country="" variant="">
-        <version>0</version>
-        <text>Collection Object Citation</text>
-      </str>
-    </names>
-    <descs>
-      <str language="en" country="" variant="">
-        <version>0</version>
-        <text>Refers to a citation for a Collection Object.</text>
-      </str>
-    </descs>
-  </container>
   <container name="collectionrelationship" type="">
     <version>0</version>
     <isHidden>false</isHidden>
@@ -9878,22 +9667,6 @@
           </str>
         </descs>
       </item>
-      <item name="collectionObject" type="ManyToOne">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The Collection Object that the description describes.</text>
-          </str>
-        </descs>
-      </item>
       <item name="composition" type="text">
         <version>0</version>
         <names>
@@ -10030,6 +9803,22 @@
           </str>
         </names>
         <descs/>
+      </item>
+      <item name="preparation" type="ManyToOne">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Preparation</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The Preparation that the description describes.</text>
+          </str>
+        </descs>
       </item>
       <item name="remarks" type="text">
         <version>0</version>
@@ -10703,16 +10492,6 @@
         </names>
         <descs/>
       </item>
-      <item name="collectionObjectOwners" type="OneToMany">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object Owners</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="collectionObjects" type="OneToMany">
         <version>0</version>
         <names>
@@ -10801,16 +10580,6 @@
         </names>
         <descs/>
         <spExportSchemaItems/>
-      </item>
-      <item name="storage" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Storage</text>
-          </str>
-        </names>
-        <descs/>
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
@@ -11567,16 +11336,6 @@
         </names>
         <descs/>
       </item>
-      <item name="collectionObject" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="confidence" type="java.lang.String" isUIFormatter="false" pickListName="HUH Type Confidence" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -11672,6 +11431,16 @@
             <text>Body part, or characteristic used as the basis of a determination.</text>
           </str>
         </descs>
+      </item>
+      <item name="fragment" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Item</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="isCurrent" isUIFormatter="false" isRequired="true">
         <version>0</version>
@@ -14556,18 +14325,6 @@
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
-      <item name="collectionObject" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
       <item name="createdByAgent" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -14612,6 +14369,18 @@
             <text>The fascicle number</text>
           </str>
         </descs>
+        <spExportSchemaItems/>
+      </item>
+      <item name="fragment" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Item</text>
+          </str>
+        </names>
+        <descs/>
         <spExportSchemaItems/>
       </item>
       <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
@@ -15552,6 +15321,537 @@
       <str language="en" country="" variant="">
         <version>0</version>
         <text>Refers to an attachment and provides order.</text>
+      </str>
+    </descs>
+  </container>
+  <container name="fragment" type="" format="Fragment">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="accessionNumber" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Accession Number</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Usually an integer or alphanumeric value that is assigned to material when it enters the collection. The format of accession numbers varies among collections, but all refer to the acquisition of specimens, observations, or other collection objects.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="catalogNumber" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Catalog Number</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The number that identifies an individual specimen, a lot of specimens, or an observation as a part of a museum collection. </text>
+          </str>
+        </descs>
+      </item>
+      <item name="collectionMemberId">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Collection Member Id</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="collectionObject" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Collection Object</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="countAmt" type="java.lang.Integer">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Count</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Number of items</text>
+          </str>
+        </descs>
+      </item>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="deaccessioned" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Deaccessioned</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>True if the object has been deaccessioned.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="description" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Description</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Image, Sound, Preparation, Container(Container Label?).</text>
+          </str>
+        </descs>
+      </item>
+      <item name="determinations" type="OneToMany">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Determinations</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="exsiccataItems" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <isSystem>false</isSystem>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Exsiccata Items</text>
+            <itemDesc reference="../../.."/>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="fragmentCitations" type="OneToMany">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Item Citations</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="number1" type="java.lang.Integer">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Replicates</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="number2" type="java.lang.Integer">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Number2</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="phenology" type="java.lang.String" isUIFormatter="false" pickListName="HUH Phenology">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Phenology</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="preparation" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Preparation</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="prepMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Preparation Method">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Preparation</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="provenance" type="java.lang.String">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Provenance</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="remarks" type="text">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Note</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="sex" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Sex</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="text1" type="java.lang.String" pickListName="HUH Collection Code" isrequired="true">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Text1</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="text2" type="java.lang.String">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Reference</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="voucher" type="java.lang.String">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Voucher</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable</text>
+          </str>
+        </descs>
+      </item>
+      <item name="yesNo1" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Is Cultivated</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="yesNo2" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Yes No2</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampCreated" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was created.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampModified" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was last modified.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Item</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>The collection item to which a determination is applied.
+</text>
+      </str>
+    </descs>
+    <aggregator>Fragment</aggregator>
+  </container>
+  <container name="fragmentcitation" type="">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="collectionMemberId">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Collection Member Id</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="fragment" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Item</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isFigured">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Figured</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="modifiedByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="referenceWork" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Publication</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="remarks" type="text" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Remarks</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Additional Comments.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampCreated" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was created.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampModified" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was last modified.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Item Citation</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Refers to a citation for a collection item.</text>
       </str>
     </descs>
   </container>
@@ -23528,16 +23828,6 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="collectionObject" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="countAmt" type="java.lang.Integer">
         <version>0</version>
         <names>
@@ -23552,6 +23842,17 @@ Preparation: A subdivision of a collection object that refers to the preparation
             <text>Number of items</text>
           </str>
         </descs>
+      </item>
+      <item name="conservDescriptions" type="OneToMany">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Conserv Descriptions</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="createdByAgent">
         <version>0</version>
@@ -23587,6 +23888,16 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
         <spExportSchemaItems/>
+      </item>
+      <item name="fragments">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Items</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="giftPreparations">
         <version>0</version>
@@ -23641,6 +23952,18 @@ Preparation: A subdivision of a collection object that refers to the preparation
           </str>
         </names>
         <descs/>
+      </item>
+      <item name="parent">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Parent</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
       </item>
       <item name="preparationAttachments" type="OneToMany">
         <version>0</version>
@@ -23737,7 +24060,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Barcode</text>
+            <text>Sample Number</text>
           </str>
         </names>
         <descs/>
@@ -23779,7 +24102,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Provenance</text>
+            <text>Text1</text>
           </str>
         </names>
         <descs>
@@ -23795,7 +24118,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Voucher</text>
+            <text>Text2</text>
           </str>
         </names>
         <descs>
@@ -23837,6 +24160,17 @@ Preparation: A subdivision of a collection object that refers to the preparation
           </str>
         </descs>
       </item>
+      <item name="treatmentEvents">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Treatment Events</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="version">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -23865,7 +24199,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Male</text>
+            <text>YesNo2</text>
           </str>
         </names>
         <descs/>
@@ -23876,7 +24210,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Female</text>
+            <text>YesNo3</text>
           </str>
         </names>
         <descs/>
@@ -25389,16 +25723,6 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="collectionObjectCitations" type="OneToMany">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Object Citations</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="containedReferenceWorks" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -25455,6 +25779,16 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
         <spExportSchemaItems/>
+      </item>
+      <item name="fragmentCitations" type="OneToMany">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Item Citations</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="guid" type="java.lang.String">
         <version>0</version>
