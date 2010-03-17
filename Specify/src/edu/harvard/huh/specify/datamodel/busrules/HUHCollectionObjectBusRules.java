@@ -21,7 +21,6 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import edu.ku.brc.af.core.AppContextMgr;
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
@@ -144,30 +143,35 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
     protected STATUS checkDeterminations(final Object dataObj)
     {
         // check that a current determination exists
-        if (((Fragment) dataObj).getDeterminations().size() > 0)
+        if (((CollectionObject) dataObj).getFragments().size() > 0)
         {
-            int currents = 0;
-            for (Determination det : ((Fragment) dataObj).getDeterminations())
+            for (Fragment fragment : ((CollectionObject) dataObj).getFragments())
             {
-                if (det.isCurrentDet())
+                if (fragment.getDeterminations().size() > 0)
                 {
-                    currents++;
+                    int currents = 0;
+                    for (Determination det : fragment.getDeterminations())
+                    {
+                        if (det.isCurrentDet())
+                        {
+                            currents++;
+                        }
+                    }
+                    if (currents != 1)
+                    {
+                        if (currents == 0)
+                        {
+                            reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
+                        }
+                        else
+                        {
+                            reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
+                        }
+                        return STATUS.Warning;
+                    }
                 }
-            }
-            if (currents != 1)
-            {
-                if (currents == 0)
-                {
-                    reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
-                }
-                else
-                {
-                    reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
-                }
-                return STATUS.Warning;
             }
         }
-        
         return STATUS.OK;
     }
 }
