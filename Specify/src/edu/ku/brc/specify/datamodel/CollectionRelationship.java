@@ -45,8 +45,8 @@ public class CollectionRelationship extends DataModelObjBase implements java.io.
 {
     protected Integer           collectionRelationshipId;
     protected CollectionRelType collectionRelType;
-    protected CollectionObject  leftSide;
-    protected CollectionObject  rightSide;
+    protected Fragment          leftSide;
+    protected Fragment          rightSide;
     protected String            text1;
     protected String            text2;
     
@@ -139,11 +139,11 @@ public class CollectionRelationship extends DataModelObjBase implements java.io.
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "LeftSideCollectionID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getLeftSide() {
+    public Fragment getLeftSide() {
         return this.leftSide;
     }
     
-    public void setLeftSide(CollectionObject leftSide) {
+    public void setLeftSide(Fragment leftSide) {
         this.leftSide = leftSide;
     }
 
@@ -152,11 +152,11 @@ public class CollectionRelationship extends DataModelObjBase implements java.io.
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "RightSideCollectionID", unique = false, nullable = false, insertable = true, updatable = true)
-    public CollectionObject getRightSide() {
+    public Fragment getRightSide() {
         return this.rightSide;
     }
     
-    public void setRightSide(CollectionObject rightSide) {
+    public void setRightSide(Fragment rightSide) {
         this.rightSide = rightSide;
     }
 

@@ -17,6 +17,8 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
 @Entity
@@ -62,6 +64,8 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     protected Set<FragmentCitation>   fragmentCitations;
 	protected Set<Determination>      determinations;
 	protected Set<ExsiccataItem>      exsiccataItems;
+    protected Set<CollectionRelationship>   leftSideRels;
+    protected Set<CollectionRelationship>   rightSideRels;
 
 	// Transient
 	
@@ -115,6 +119,8 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
         fragmentCitations   = new HashSet<FragmentCitation>();
         determinations      = new HashSet<Determination>();
         exsiccataItems      = new HashSet<ExsiccataItem>();
+        leftSideRels        = new HashSet<CollectionRelationship>();
+        rightSideRels       = new HashSet<CollectionRelationship>();
     }
     // End Initializer
     
@@ -503,10 +509,46 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
         this.exsiccataItems = exsiccataItems;
     }
     
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSide")
+    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    public Set<CollectionRelationship> getLeftSideRels() 
+    {
+        return this.leftSideRels;
+    }
+    
+    public void setLeftSideRels(Set<CollectionRelationship> leftSideRels) 
+    {
+        this.leftSideRels = leftSideRels;
+    }
+
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "rightSide")
+    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    public Set<CollectionRelationship> getRightSideRels() 
+    {
+        return this.rightSideRels;
+    }
+    
+    public void setRightSideRels(Set<CollectionRelationship> rightSideRels) 
+    {
+        this.rightSideRels = rightSideRels;
+    }
+    
 	@Override
-	public int compareTo(Fragment o) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int compareTo(Fragment o)
+	{
+	    // XXX TODO need to fix when Cat Nums change to Strings!
+        if (catalogNumber != null && o != null && o.catalogNumber != null)
+        {
+            return catalogNumber.compareTo(o.catalogNumber);
+        }
+        // else
+        return timestampCreated.compareTo(o.timestampCreated);
 	}
 
 }

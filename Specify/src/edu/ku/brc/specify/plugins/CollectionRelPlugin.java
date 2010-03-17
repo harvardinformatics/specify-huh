@@ -37,9 +37,9 @@ import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Collection;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionRelType;
 import edu.ku.brc.specify.datamodel.CollectionRelationship;
+import edu.ku.brc.specify.datamodel.Fragment;
 
 /**
  * @author rod
@@ -57,7 +57,7 @@ public class CollectionRelPlugin extends UIPluginBase
     protected Collection           rightSideCol = null;
     
     protected CollectionRelationship collectionRel = null;
-    protected CollectionObject       otherSide     = null;
+    protected Fragment       otherSide     = null;
     
     protected ValComboBoxFromQuery cbx;
     
@@ -84,7 +84,7 @@ public class CollectionRelPlugin extends UIPluginBase
         
         
         int btnOpts = ValComboBoxFromQuery.CREATE_EDIT_BTN | ValComboBoxFromQuery.CREATE_NEW_BTN | ValComboBoxFromQuery.CREATE_SEARCH_BTN;
-        cbx = new ValComboBoxFromQuery(DBTableIdMgr.getInstance().getInfoById(CollectionObject.getClassTableId()),
+        cbx = new ValComboBoxFromQuery(DBTableIdMgr.getInstance().getInfoById(Fragment.getClassTableId()),
                                 "catalogNumber",
                                 "catalogNumber",
                                 "catalogNumber",
@@ -120,8 +120,8 @@ public class CollectionRelPlugin extends UIPluginBase
      */
     protected void itemSelected()
     {
-        CollectionObject newColObj = (CollectionObject)cbx.getValue();
-        CollectionObject curColObj = (CollectionObject)dataObj;
+        Fragment newColObj = (Fragment)cbx.getValue();
+        Fragment curColObj = (Fragment)dataObj;
         
         DataProviderSessionIFace tmpSession = DataProviderFactory.getInstance().createSession();
         tmpSession.attach(newColObj);
@@ -190,11 +190,11 @@ public class CollectionRelPlugin extends UIPluginBase
     {
         super.setValue(value, defaultValue);
         
-        if (value instanceof CollectionObject)
+        if (value instanceof Fragment)
         {
             otherSide = null;
             
-            CollectionObject colObj = (CollectionObject)value;
+            Fragment colObj = (Fragment)value;
             
             Set<CollectionRelationship> rels = isLeftSide ? colObj.getLeftSideRels() : colObj.getRightSideRels();
 

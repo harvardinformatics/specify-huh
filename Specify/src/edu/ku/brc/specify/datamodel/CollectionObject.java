@@ -124,8 +124,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Agent                         cataloger;
     protected CollectionObjectAttribute     collectionObjectAttribute; // Specify 5 Attributes table
     protected Set<CollectionObjectAttr>     collectionObjectAttrs;      // Generic Expandable Attributes
-    protected Set<CollectionRelationship>   leftSideRels;
-    protected Set<CollectionRelationship>   rightSideRels;
     protected PaleoContext                  paleoContext;
     protected Set<DNASequence>              dnaSequences;
     protected FieldNotebookPage             fieldNotebookPage;
@@ -198,9 +196,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         paleoContext          = null;
         dnaSequences          = new HashSet<DNASequence>();
         fieldNotebookPage     = null;
-        
-        leftSideRels          = new HashSet<CollectionRelationship>();
-        rightSideRels         = new HashSet<CollectionRelationship>();
         
         collectionObjectAttachments = new HashSet<CollectionObjectAttachment>();
         
@@ -935,37 +930,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     public void setCataloger(Agent cataloger) {
         this.cataloger = cataloger;
     }
-
-    /**
-     * 
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSide")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionRelationship> getLeftSideRels() 
-    {
-        return this.leftSideRels;
-    }
-    
-    public void setLeftSideRels(Set<CollectionRelationship> leftSideRels) 
-    {
-        this.leftSideRels = leftSideRels;
-    }
-
-    /**
-     * 
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "rightSide")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
-    public Set<CollectionRelationship> getRightSideRels() 
-    {
-        return this.rightSideRels;
-    }
-    
-    public void setRightSideRels(Set<CollectionRelationship> rightSideRels) 
-    {
-        this.rightSideRels = rightSideRels;
-    }
-
 
     @OneToMany(mappedBy = "collectionObject")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
