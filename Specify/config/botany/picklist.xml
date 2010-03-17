@@ -54,7 +54,7 @@
       <picklistitem title="sporophyte" value="Sporophyte"/>
     </items>
   </picklist>
-  <picklist name="HUH Preparation Method"  type="0" readonly="true" sizelimit="121>
+  <picklist name="HUH Preparation Method"  type="0" readonly="true" sizelimit="12">
     <items>
       <picklistitem title="Pressed" value="Pressed"/>
       <picklistitem title="Dried" value="Dried"/>
