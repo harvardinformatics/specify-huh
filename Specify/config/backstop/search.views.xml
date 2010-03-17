@@ -136,6 +136,17 @@
         </view>
         
         <view 
+            name="FragmentSearch"
+            class="edu.ku.brc.specify.datamodel.Fragment"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Fragment Search Form]]></desc>
+            <altviews>
+                <altview name="FragmentSearch" viewdef="FragmentSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view 
             name="JournalSearch"
             class="edu.ku.brc.specify.datamodel.Journal"
             usedefbusrule="false"
@@ -566,6 +577,29 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>                
             </rows>
         </viewdef> 
+        
+        <viewdef type="form"
+            name="FragmentSearch"
+            class="edu.ku.brc.specify.datamodel.Fragment"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Fragment Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Item" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="1" />
+                    <cell type="field" id="1" name="CatalogNumber" uitype="formattedtext" formatter="CatalogNumber" initialize="ispartial=true"/>
+                </row>
+            </rows>
+        </viewdef>
         
         <viewdef type="form"
             name="JournalSearch"

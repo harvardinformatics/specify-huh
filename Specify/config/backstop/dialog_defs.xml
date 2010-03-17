@@ -14,6 +14,7 @@
     <dialog type="search" viewset="Search" view="DivisionSearch"           name="DivisionSearch"           class="edu.ku.brc.specify.datamodel.Division"       idfield="divisionId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DeterminationSearch"      name="DeterminationSearch"      class="edu.ku.brc.specify.datamodel.Determination"  idfield="determinationId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ExsiccataSearch"          name="ExsiccataSearch"          class="edu.ku.brc.specify.datamodel.Exsiccata"      idfield="exsiccataId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="FragmentSearch"           name="FragmentSearch"           class="edu.ku.brc.specify.datamodel.Fragment"       idfield="FragmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeographySearch"          name="GeographySearch"          class="edu.ku.brc.specify.datamodel.Geography"      idfield="geographyId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ChronosStratSearch"       name="ChronosStratSearch"       class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="JournalSearch"            name="JournalSearch"            class="edu.ku.brc.specify.datamodel.Journal"        idfield="journalId" helpcontext="CBXQSearch"/>
@@ -54,6 +55,7 @@
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Exsiccata"          name="ExsiccataDisplay"         class="edu.ku.brc.specify.datamodel.Exsiccata" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="FieldNotebookPage"  name="FieldNotebookPageDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPage" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Fragment"           name="Fragment"                 class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ChronosStrat"       name="ChronosStratDisplay"      class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Geography"          name="GeographyDisplay"         class="edu.ku.brc.specify.datamodel.Geography" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="GiftAgent"          name="GiftAgentDisplay"         class="edu.ku.brc.specify.datamodel.GiftAgent" helpcontext="CBXQViewEdit"/>
@@ -87,6 +89,7 @@
     <dialog type="display" view="ObjectAttachment" name="FieldNotebookAttachmentDisplay"        class="edu.ku.brc.specify.datamodel.FieldNotebookAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="FieldNotebookPageAttachmentDisplay"    class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="FieldNotebookPageSetAttachmentDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPageSetAttachment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ObjectAttachment" name="FragmentAttachmentDisplay"             class="edu.ku.brc.specify.datamodel.FragmentAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="LoanAttachmentDisplay"                 class="edu.ku.brc.specify.datamodel.LoanAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="LocalityAttachmentDisplay"             class="edu.ku.brc.specify.datamodel.LocalityAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="PermitAttachmentDisplay"               class="edu.ku.brc.specify.datamodel.PermitAttachment" helpcontext="CBXQViewEdit"/>

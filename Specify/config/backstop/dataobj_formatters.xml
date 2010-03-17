@@ -298,6 +298,19 @@
         </switch>
     </format>
 
+	<format
+        name="Fragment"
+        title="Fragment"
+        class="edu.ku.brc.specify.datamodel.Fragment"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field uifieldformatter="CatalogNumber">catalogNumber</field>
+            </fields>
+        </switch>
+    </format>
+    
     <format
         name="Geography"
         title="Geography"
@@ -530,7 +543,7 @@
         <switch single="true">
             <fields>
                 <field formatter="PrepType">prepType</field>
-                <field type="int" format="%d" sep=" - ">countAmt</field>
+                <field sep=" - ">catalogNumber</field>
             </fields>
         </switch>
     </format>
@@ -832,6 +845,28 @@
                 orderfieldname="ordinal"
                />
 
+    <aggregator name="Fragment"
+                title="Fragment"
+                class="edu.ku.brc.specify.datamodel.Fragment"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="Fragment"
+                orderfieldname=""
+               />
+
+    <aggregator name="FragmentAttachment"
+                title="FragmentAttachment"
+                class="edu.ku.brc.specify.datamodel.FragmentAttachment"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="identity"
+                orderfieldname="ordinal"
+               />
+               
     <aggregator name="LoanAgent"
                 title="LoanAgent"
                 class="edu.ku.brc.specify.datamodel.LoanAgent"
