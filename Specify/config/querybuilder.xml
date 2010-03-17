@@ -91,21 +91,16 @@
         <table name="CollectionObjectAttachment" field="collectionObjectAttachments">
             <alias name="Attachment"/>
         </table>
-    	<table name="CollectionObjectCitation" field="collectionObjectCitations">
-    		<alias name="ReferenceWork"/>
-    	</table>
     	
     	<alias name="CollectingEvent"/>
     	
-        <alias name="Determination" field="determinations"/>
-        
         <table name="PaleoContext" field="paleoContext">
     		<table name="GeologicTimePeriod" field="bioStrat"/>
     		<table name="GeologicTimePeriod" field="chronosStrat"/>
     		<table name="LithoStrat"/>
     	</table>
     	
-        <alias name="Preparation" field="preparations"/>
+        <alias name="Fragment" field="fragments"/>
       	<alias name="Appraisal" field="appraisal" />
       	<alias name="Agent" field="cataloger" />
     	<table name="Collection" field="collection" >
@@ -127,7 +122,6 @@
       			</table>
       		</table>	
       	</table>
-      	<alias name="ConservDescription" field="conservDescriptions" /> 
       	<!-- table name="Container" field="container" /-->
       	<alias name="Agent" field="createdByAgent" />
       	<table name="DNASequence" field="dnaSequences">
@@ -152,7 +146,7 @@
     <table name="ConservDescription" >
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
-    	<alias name="CollectionObject" />
+    	<alias name="Preparation" />
         <table name="ConservDescriptionAttachment" field="conservDescriptionAttachments">
         	<alias name="Attachment"/>
         </table>
@@ -239,6 +233,18 @@
       	<alias name="Agent" field="sourceAgent" />    	      	
 	</table>
 	    
+	<table name="Fragment">
+	    <table name="FragmentAttachment" field="accessionAttachments">
+            <alias name="Attachment"/>
+        </table>
+    	<table name="FragmentCitation" field="fragmentCitations">
+    		<alias name="ReferenceWork"/>
+    	</table>
+    	<alias name="Agent" field="preparedByAgent" />
+      	<alias name="Agent" field="createdByAgent" />
+      	<alias name="Agent" field="modifiedByAgent" />
+	</table>
+
     <table name="Geography">
       	<alias name="Agent" field="createdByAgent" />
       	<!-- alias name="Geography" field="acceptedChildren" /-->
@@ -340,8 +346,8 @@
         <table name="PreparationAttachment" field="preparationAttachments">
             <table name="Attachment"/>
         </table>
+        <alias name="ConservDescription" field="conservDescriptions" /> 
         <table name="PreparationAttribute"/>
-        <alias name="CollectionObject"/>
         <alias name="LoanPreparation" field="loanPreparations"/>
         <alias name="Storage"/>
         <alias name="Agent" field="preparedByAgent" />
@@ -366,8 +372,8 @@
         <table name="LocalityCitation" field="localityCitations">
             <alias name="Locality"/>
         </table>
-        <table name="CollectionObjectCitation" field="collectionObjectCitations">
-            <alias name="CollectionObject"/>
+        <table name="FragmentCitation" field="fragmentCitations">
+            <alias name="Fragment"/>
         </table>
         <table name="TaxonCitation" field="taxonCitations">
             <alias name="Taxon"/>
@@ -422,7 +428,7 @@
         	</table>
         </table>
         <table name="Determination" field="determinations" title="Determinations">
-            <alias name="CollectionObject"/>
+            <alias name="Fragment"/>
             <table name="DeterminationCitation" field="determinationCitations">
                 <alias name="ReferenceWork"/>
             </table>

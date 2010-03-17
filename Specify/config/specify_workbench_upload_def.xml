@@ -122,7 +122,7 @@
     <field table="CollectionObject" name="catalogerLastName" relationshipname="cataloger" relatedfieldname="lastName"/>
     <field table="CollectionObject" name="catalogerMiddle" relationshipname="cataloger" relatedfieldname="middleInitial"/>
     <field table="CollectionObject" name="catalogerTitle" relationshipname="cataloger" relatedfieldname="title"/>
-    <field table="CollectionObject" name="collectionObjectCitation" onetomanysequence="0" actualtable="CollectionObjectCitation" relationshipname="referenceWork" relatedfieldname="title"/>
+    <field table="Fragment" name="fragmenttCitation" onetomanysequence="0" actualtable="FragmentCitation" relationshipname="referenceWork" relatedfieldname="title"/>
 
 	<!-- collectionobjectattribute -->
     <field table="CollectionObjectAttribute" name="colObjAttributeRemarks" actualname="Remarks"/>

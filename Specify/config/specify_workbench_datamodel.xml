@@ -151,7 +151,6 @@
     <field column="Remarks (CollectionObject)" name="collectionObjectRemarks" type="text" length="4096"/>
     <field column="Modifier" name="modifier" type="java.lang.String" length="50"/>
     <field column="GUID" name="guid" type="java.lang.String" length="128"/>
-    <field column="Citation (CollectionObject)" name="collectionObjectCitation" type="java.lang.String" length="64"/>
     <field column="Text 1 (CollectionObject)" name="collectionObjectText1" type="text" length="300"/>
     <field column="Text 2 (CollectionObject)" name="collectionObjectText2" type="text" length="300"/>
     <field column="Number 1 (CollectionObject)" name="collectionObjectNumber1" type="java.lang.Float" length="24"/>

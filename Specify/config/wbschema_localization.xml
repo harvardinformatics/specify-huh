@@ -889,17 +889,6 @@
         </names>
         <descs/>
       </item>
-      <item name="collectionObjectCitation">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Collection Object Citation</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="collectionObjectRemarks">
         <version>0</version>
         <isHidden>false</isHidden>

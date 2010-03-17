@@ -63,7 +63,6 @@
 		<mapping class="edu.ku.brc.specify.datamodel.CollectingEventAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.CollectingEventAttr"/>
 		<mapping class="edu.ku.brc.specify.datamodel.CollectingTrip"/>
-		<mapping class="edu.ku.brc.specify.datamodel.CollectionObjectCitation"/>
 		<mapping class="edu.ku.brc.specify.datamodel.CollectionObject"/>
 		<mapping class="edu.ku.brc.specify.datamodel.CollectionObjectAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.CollectionObjectAttr"/>
@@ -104,6 +103,8 @@
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Fragment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.FragmentAttachment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.FragmentCitation"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeoCoordDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Geography"/>
 		<mapping class="edu.ku.brc.specify.datamodel.GeographyTreeDef"/>

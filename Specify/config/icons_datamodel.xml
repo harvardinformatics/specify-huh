@@ -28,7 +28,6 @@
     <icon name="collectionreltype"    file="collection_rel_type.png" sizes="all"/>
     <icon name="collector"            file="collector.png" sizes="all"/>
     <icon name="collectionobject"     file="collection_object.png" sizes="all"/>
-    <icon name="collectionobjectcitation" file="citation.png" sizes="all"/>
     <icon name="commonnametx"         file="common_name.png" sizes="all"/>
     <icon name="commonnametxcitation" file="common_name_taxon_citation.png" sizes="all" />
     <icon name="container"            file="container.png" sizes="all"/>
@@ -48,6 +47,8 @@
     <icon name="fieldnotebook"        file="field_notebook.png" sizes="all"/>
     <icon name="fieldnotebookpage"    file="field_notebook_page.png" sizes="all"/>
     <icon name="fieldnotebookpageset" file="field_notebook_page_set.png" sizes="all"/>
+    <icon name="fragment"             file="collection_object.png" sizes="all"/>
+    <icon name="fragmentcitation"     file="citation.png" sizes="all"/>
     <icon name="geocoorddetail"       file="geo_coord_detail.png" sizes="all"/>
     <icon name="geography"            file="geography.png" sizes="all"/>
     <icon name="gift"                 file="gift.png" sizes="all"/>
@@ -86,6 +87,7 @@
 	<icon name="FieldNotebookAttachment"         file="field_notebook_attachment.png" sizes="NonStd"/>
 	<icon name="FieldNotebookPageAttachment"     file="field_notebook_page_attachment.png" sizes="NonStd"/>
 	<icon name="FieldNotebookPageSetAttachment"  file="field_notebook_page_set_attachment.png" sizes="NonStd"/>
+	<icon name="FragmentAttachment"              file="collection_object_attachment.png" sizes="NonStd"/>
 	<icon name="LoanAttachment"                  file="loan_attachment.png" sizes="NonStd"/>
 	<icon name="LocalityAttachment"              file="locality_attachment.png" sizes="NonStd"/>
 	<icon name="PermitAttachment"                file="permit_attachment.png" sizes="NonStd"/>
@@ -137,6 +139,7 @@
 	<icon name="fieldnotebookattachment"        alias="FieldNotebookAttachment"/>
 	<icon name="fieldnotebookpageattachment"    alias="FieldNotebookPageAttachment"/>
 	<icon name="fieldnotebookpagesetattachment" alias="FieldNotebookPageSetAttachment"/>
+	<icon name="fragmentattachment"             alias="CollectionObjectAttachment"/>
 	<icon name="loanattachment"                 alias="LoanAttachment"/>
 	<icon name="localityattachment"             alias="LocalityAttachment"/>
 	<icon name="permitattachment"               alias="PermitAttachment"/>
@@ -211,7 +214,6 @@
     <icon name="BorrowMaterial"         alias="borrowmaterial"/>
     <icon name="BorrowReturnMaterial"   alias="borrowreturnmaterial"/>
     <icon name="ColObjAttributes"       alias="attribute"/>
-    <icon name="CollectionObjectCitation" alias="citation"/>
     <icon name="CollectingEvent"        alias="collectingevent"/>
     <icon name="CollectingTrip"         alias="collectingtrip"/>
     <icon name="Collection"             alias="collection"/>
@@ -239,6 +241,8 @@
     <icon name="FieldNotebookPage"      alias="fieldnotebookpage"/>
     <icon name="FieldNotebookPageSet"   alias="fieldnotebookpageset"/>
     <icon name="FieldNotebook"          alias="fieldnotebook"/>
+    <icon name="Fragment"               alias="fragment"/>
+    <icon name="FragmentCitation"       alias="citation"/>
     <icon name="GeoCoordDetail"         alias="geocoorddetail"/>
     <icon name="Geography"              alias="geography"/>
     <icon name="GeologicTimePeriod"     alias="geologictimeperiod"/>
