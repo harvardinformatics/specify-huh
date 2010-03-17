@@ -73,7 +73,7 @@ import edu.ku.brc.specify.datamodel.CollectingTrip;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionObjectAttr;
-import edu.ku.brc.specify.datamodel.CollectionObjectCitation;
+import edu.ku.brc.specify.datamodel.FragmentCitation;
 import edu.ku.brc.specify.datamodel.CollectionRelType;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Container;
@@ -1709,16 +1709,16 @@ public class DataBuilder
         return collectionobjectattr;
     }
 
-    public static CollectionObjectCitation createCollectionObjectCitation(final ReferenceWork referenceWork,
-                                                                          final Fragment fragment)
+    public static FragmentCitation createFragmentCitation(final ReferenceWork referenceWork,
+                                                          final Fragment fragment)
     {
-        CollectionObjectCitation collectionobjectcitation = new CollectionObjectCitation();
-        collectionobjectcitation.initialize();
-        collectionobjectcitation.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        collectionobjectcitation.setFragment(fragment);
-        collectionobjectcitation.setReferenceWork(referenceWork);
-        persist(collectionobjectcitation);
-        return collectionobjectcitation;
+        FragmentCitation fragmentcitation = new FragmentCitation();
+        fragmentcitation.initialize();
+        fragmentcitation.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
+        fragmentcitation.setFragment(fragment);
+        fragmentcitation.setReferenceWork(referenceWork);
+        persist(fragmentcitation);
+        return fragmentcitation;
     }
 
     public static Collector createCollector(final Integer orderNumber,

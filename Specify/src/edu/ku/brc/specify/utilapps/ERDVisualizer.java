@@ -248,7 +248,7 @@ public class ERDVisualizer extends JFrame
                 tblTracker.addNodeInfo("PaleoContext",           false, false, true,  false, null);
                 tblTracker.addNodeInfo("LithoStrat",             false, false, true,  false, null);
                 tblTracker.addNodeInfo("GeologicTimePeriod",     false, false, true,  false, null);
-                tblTracker.addNodeInfo("CollectionObjectCitation", false, false, true,  false, null);
+                tblTracker.addNodeInfo("FragmentCitation",       false, false, true,  false, null);
                 tblTracker.addNodeInfo("Accession",              false, false, true,  false, null);
                 tblTracker.addNodeInfo("AccessionAuthorization", false, false, true,  false, null);
                 tblTracker.addNodeInfo("AccessionAgent",         false, false, true,  false, null);
@@ -279,7 +279,7 @@ public class ERDVisualizer extends JFrame
                 ni.addKid(tblTracker.getTable("FieldNotebook"));
                 ni.addKid(tblTracker.getTable("CollectionObject"));
                 
-                ni = tblTracker.getNodeInfo("CollectionObjectCitation");
+                ni = tblTracker.getNodeInfo("FragmentCitation");
                 ni.addKid(tblTracker.getTable("ReferenceWork"));
                 
                 ni = tblTracker.getNodeInfo("TaxonCitation");
@@ -405,7 +405,7 @@ public class ERDVisualizer extends JFrame
                     ni = tblTracker.getNodeInfo("Taxon");
                     ni.addKid(tblTracker.getTable("TaxonCitation"));
                     
-                    ni = tblTracker.getNodeInfo("CollectionObjectCitation");
+                    ni = tblTracker.getNodeInfo("FragmentCitation");
                     ni.addKid(tblTracker.getTable("ReferenceWork"));
                     
                     ni = tblTracker.getNodeInfo("TaxonCitation");

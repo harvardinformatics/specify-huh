@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -25,7 +26,10 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
         @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
-public class Fragment extends CollectionMember implements Serializable, Comparable<Fragment>, Cloneable
+public class Fragment extends CollectionMember implements AttachmentOwnerIFace<FragmentAttachment>,
+                                                          Serializable,
+                                                          Comparable<Fragment>,
+                                                          Cloneable
 {
 	// Fields 
 	protected Integer fragmentId;
@@ -54,10 +58,11 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
 	protected CollectionObject collectionObject;
 	protected Preparation      preparation;
 	
-    protected Set<CollectionObjectCitation> collectionObjectCitations;
-	protected Set<Determination>            determinations;
-	protected Set<ExsiccataItem>            exsiccataItems;
-	
+    protected Set<FragmentAttachment> fragmentAttachments;
+    protected Set<FragmentCitation>   fragmentCitations;
+	protected Set<Determination>      determinations;
+	protected Set<ExsiccataItem>      exsiccataItems;
+
 	// Transient
 	
 	// Constructors
@@ -106,9 +111,10 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
         collectionObject = null;
         preparation      = null;
         
-        collectionObjectCitations = new HashSet<CollectionObjectCitation>();
-        determinations            = new HashSet<Determination>();
-        exsiccataItems            = new HashSet<ExsiccataItem>();
+        fragmentAttachments = new HashSet<FragmentAttachment>();
+        fragmentCitations   = new HashSet<FragmentCitation>();
+        determinations      = new HashSet<Determination>();
+        exsiccataItems      = new HashSet<ExsiccataItem>();
     }
     // End Initializer
     
@@ -425,17 +431,36 @@ public class Fragment extends CollectionMember implements Serializable, Comparab
         this.collectionObject = collectionObject;
     }
     
+    @OneToMany(mappedBy = "fragment")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    @OrderBy("ordinal ASC")
+    public Set<FragmentAttachment> getFragmentAttachments()
+    {
+        return fragmentAttachments;
+    }
+
+    public void setFragmentAttachments(Set<FragmentAttachment> fragmentAttachments)
+    {
+        this.fragmentAttachments = fragmentAttachments;
+    }
+    
+    @Transient
+    public Set<FragmentAttachment> getAttachmentReferences()
+    {
+        return fragmentAttachments;
+    }
+    
     /**
     *
     */
    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "fragment")
    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-   public Set<CollectionObjectCitation> getCollectionObjectCitations() {
-       return this.collectionObjectCitations;
+   public Set<FragmentCitation> getFragmentCitations() {
+       return this.fragmentCitations;
    }
 
-   public void setCollectionObjectCitations(Set<CollectionObjectCitation> collectionObjectCitations) {
-       this.collectionObjectCitations = collectionObjectCitations;
+   public void setFragmentCitations(Set<FragmentCitation> fragmentCitations) {
+       this.fragmentCitations = fragmentCitations;
    }
     
     /**

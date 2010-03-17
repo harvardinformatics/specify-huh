@@ -98,7 +98,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     protected String                        guid;
     protected Set<AgentCitation>            agentCitations;
     protected Set<LocalityCitation>         localityCitations;
-    protected Set<CollectionObjectCitation> collectionObjectCitations;
+    protected Set<FragmentCitation>         fragmentCitations;
     protected Set<TaxonCitation>            taxonCitations;
     protected Set<DeterminationCitation>    determinationCitations;
     protected Journal                       journal;
@@ -150,7 +150,7 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         guid   = null;
         agentCitations = new HashSet<AgentCitation>();
         localityCitations = new HashSet<LocalityCitation>();
-        collectionObjectCitations = new HashSet<CollectionObjectCitation>();
+        fragmentCitations = new HashSet<FragmentCitation>();
         taxonCitations = new HashSet<TaxonCitation>();
         determinationCitations = new HashSet<DeterminationCitation>();
         journal = null;
@@ -549,12 +549,12 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "referenceWork")
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
-    public Set<CollectionObjectCitation> getCollectionObjectCitations() {
-        return this.collectionObjectCitations;
+    public Set<FragmentCitation> getFragmentCitations() {
+        return this.fragmentCitations;
     }
     
-    public void setCollectionObjectCitations(Set<CollectionObjectCitation> collectionObjectCitations) {
-        this.collectionObjectCitations = collectionObjectCitations;
+    public void setFragmentCitations(Set<FragmentCitation> fragmentCitations) {
+        this.fragmentCitations = fragmentCitations;
     }
 
     /**
@@ -667,10 +667,10 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         localityCitation.setReferenceWork(this);
     }
 
-    public void addCollectionObjectCitations(final CollectionObjectCitation collectionObjectCitation)
+    public void addFragmentCitations(final FragmentCitation fragmentCitation)
     {
-        this.collectionObjectCitations.add(collectionObjectCitation);
-        collectionObjectCitation.setReferenceWork(this);
+        this.fragmentCitations.add(fragmentCitation);
+        fragmentCitation.setReferenceWork(this);
     }
 
     public void addTaxonCitations(final TaxonCitation taxonCitation)
@@ -712,10 +712,10 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         localityCitation.setReferenceWork(null);
     }
 
-    public void removeCollectionObjectCitations(final CollectionObjectCitation collectionObjectCitation)
+    public void removeFragmentCitations(final FragmentCitation fragmentCitation)
     {
-        this.collectionObjectCitations.remove(collectionObjectCitation);
-        collectionObjectCitation.setReferenceWork(null);
+        this.fragmentCitations.remove(fragmentCitation);
+        fragmentCitation.setReferenceWork(null);
     }
 
     public void removeTaxonCitations(final TaxonCitation taxonCitation)

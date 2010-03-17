@@ -480,8 +480,8 @@
                     CollectionObject</a>, 
                     <a href="#EntCollectionObjectCatalog">
                     CollectionObjectCatalog</a>, 
-                    <a href="#EntCollectionObjectCitation">
-                    CollectionObjectCitation</a>, 
+                    <a href="#EntFragmentCitation">
+                    FragmentCitation</a>, 
                     <a href="#EntCollectionObjectType">
                     CollectionObjectType</a>, 
                     <a href="#EntCollectionTaxonomyTypes">
@@ -8231,7 +8231,7 @@
                           <font face="Symbol">?</font>
                           <a href="#AttCollObjectCitation_BiologicalObjectID"
                           style="text-decoration:none;color:#000000;background:transparent;">
-                          CollectionObjectCitation.BiologicalObjectID</a>
+                          FragmentCitation.BiologicalObjectID</a>
                         </td>
                       </tr>
                       <tr valign="top" bgcolor="#F5F5F5">
@@ -8849,18 +8849,18 @@
                       </tr>
                     </table>
                     <h2>
-                      <a name="EntCollectionObjectCitation">
-                      CollectionObjectCitation</a>
+                      <a name="EntFragmentCitation">
+                      FragmentCitation</a>
                     </h2>
                     <p>Associates publications with
                     BiologicalObjects.</p>
                     <table width="100%" border="1" cellspacing="0"
                     cellpadding="3" frame="hsides" rules="groups"
-                    summary="Attributes and indices of the entity 'CollectionObjectCitation'">
+                    summary="Attributes and indices of the entity 'FragmentCitation'">
 
                       <caption>
                         <strong>Attributes and indices of the
-                        entity 'CollectionObjectCitation'</strong>
+                        entity 'FragmentCitation'</strong>
                       </caption>
                       <colgroup>
                         <col width="120" />
@@ -8893,7 +8893,7 @@
                           <a name="AttCollOectCitation_CollObjectCitationID">
 
                             <strong>
-                              <u>CollectionObjectCitationID</u>
+                              <u>FragmentCitationID</u>
                             </strong>
                           </a>
                         </td>
@@ -8910,7 +8910,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#EEEEEE">
                         <td>
-                          <a name="AttCollectionObjectCitation_RefWorkID">
+                          <a name="AttFragmentCitation_RefWorkID">
 
                             <strong>ReferenceWorkID</strong>
                           </a>
@@ -8930,7 +8930,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#FFFFFF">
                         <td>
-                          <a name="AttCollObjectCitation_BiologicalObjectID">
+                          <a name="AttFragmentCitation_BiologicalObjectID">
 
                             <strong>BiologicalObjectID</strong>
                           </a>
@@ -8952,7 +8952,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#EEEEEE">
                         <td>
-                          <a name="AttCollectionObjectCitation_Remarks">
+                          <a name="AttFragmentCitation_Remarks">
 
                             <strong>Remarks</strong>
                           </a>
@@ -8968,7 +8968,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#FFFFFF">
                         <td>
-                          <a name="AttCollObjectCitation_TimestampModified">
+                          <a name="AttFragmentCitation_TimestampModified">
 
                             <strong>TimestampModified</strong>
                           </a>
@@ -8982,7 +8982,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#EEEEEE">
                         <td>
-                          <a name="AttCollObjectCitation_TimestampCreated">
+                          <a name="AttFragmentCitation_TimestampCreated">
 
                             <strong>TimestampCreated</strong>
                           </a>
@@ -8996,7 +8996,7 @@
                       </tr>
                       <tr valign="top" bgcolor="#FFFFFF">
                         <td>
-                          <a name="AttCollectionObjectCitation_LastEditedBy">
+                          <a name="AttFragmentCitation_LastEditedBy">
 
                             <strong>LastEditedBy</strong>
                           </a>
@@ -9046,8 +9046,8 @@
                       <tr valign="top" bgcolor="#F5F5F5">
                         <td align="right" colspan="2">
                         <strong>
-                        CollectionObjectCitationID:</strong>&#160;</td>
-                        <td colspan="3">CollectionObjectCitationID
+                        FragmentCitationID:</strong>&#160;</td>
+                        <td colspan="3">FragmentCitationID
                         <em>(Primary key; Unique values)</em></td>
                       </tr>
                       <tr valign="top" bgcolor="#F5F5F5">
@@ -9075,7 +9075,7 @@
                           <font face="Symbol">?</font>
                           <a href="#AttCollObjectCitation_BiologicalObjectID"
                           style="text-decoration:none;color:#000000;background:transparent;">
-                          CollectionObjectCitation.BiologicalObjectID</a>
+                          FragmentCitation.BiologicalObjectID</a>
                         </td>
                       </tr>
                       <tr valign="top" bgcolor="#F5F5F5">
@@ -9086,9 +9086,9 @@
                           style="text-decoration:none;color:#000000;background:transparent;">
                           ReferenceWork.ReferenceWorkID</a>
                           <font face="Symbol">?</font>
-                          <a href="#AttCollectionObjectCitation_RefWorkID"
+                          <a href="#AttFragmentCitation_RefWorkID"
                           style="text-decoration:none;color:#000000;background:transparent;">
-                          CollectionObjectCitation.ReferenceWorkID</a>
+                          FragmentCitation.ReferenceWorkID</a>
                         </td>
                       </tr>
                     </table>
@@ -21144,9 +21144,9 @@
                           style="text-decoration:none;color:#000000;background:transparent;">
                           ReferenceWork.ReferenceWorkID</a>
                           <font face="Symbol">?</font>
-                          <a href="#AttCollectionObjectCitation_RefWorkID"
+                          <a href="#AttFragmentCitation_RefWorkID"
                           style="text-decoration:none;color:#000000;background:transparent;">
-                          CollectionObjectCitation.ReferenceWorkID</a>
+                          FragmentCitation.ReferenceWorkID</a>
                         </td>
                       </tr>
                       <tr valign="top" bgcolor="#F5F5F5">
