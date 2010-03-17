@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 142 or 532
+    Last used ID is 143 or 532
     
     ... are available
     
@@ -106,7 +106,6 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttr" abbrev="coa" id="28" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttribute" abbrev="coas" id="93" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.CollectionObjectCitation" abbrev="coc" id="29" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionRelType" abbrev="crt" id="98"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionRelationship" abbrev="cr" id="99"/>
         <table name="edu.ku.brc.specify.datamodel.Collector" abbrev="ctr" id="30" searchable="true">
@@ -197,6 +196,11 @@
         	<display view="Fragment" newobjdlg="FragmentDisplay"/>
         	<businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules</businessrule>
         </table>
+        <table name="edu.ku.brc.specify.datamodel.FragmentAttachment" abbrev="fat" id="143" searchable="true">
+        	<display view="ObjectAttachment" newobjdlg="FragmentAttachmentDisplay"/>
+        	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.FragmentCitation" abbrev="fc" id="29" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">
             <display view="Geography" dataobjformatter="Geography" searchdlg="GeographySearch" newobjdlg="GeographyDisplay"/>
