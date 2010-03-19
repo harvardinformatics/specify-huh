@@ -533,7 +533,6 @@
                 <altview name="Item Brief Edit" viewdef="Item Brief" mode="edit" default="true"/>
             </altviews>
         </view>
->>>>>>> .r1498
         
         <view name="Loan"
             class="edu.ku.brc.specify.datamodel.Loan"
@@ -665,6 +664,32 @@
             </altviews>
         </view>
         
+        <view name="Preparation"
+              class="edu.ku.brc.specify.datamodel.Preparation"
+              busrules="edu.ku.brc.specify.datamodel.busrules.PreparationBusRules"
+               resourcelabels="false">
+            <desc><![CDATA[Subform within the Preparation form.]]></desc>
+            <altviews>
+                <altview name="Preparation Table View" viewdef="Preparation Table" mode="view"/>
+                <altview name="Preparation Table Edit" viewdef="Preparation Table" mode="edit"/>
+                <altview name="Preparation View" viewdef="Preparation" mode="view"/>
+                <altview name="Preparation Edit" viewdef="Preparation" mode="edit" default="true"/>
+            </altviews>
+        </view>
+        
+        <view name="PrepCollectors"
+            class="edu.ku.brc.specify.datamodel.Collector"
+            busrules="edu.ku.brc.specify.datamodel.busrules.CollectorBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[The Collectors Subform for the Preparation form.]]></desc>
+            <altviews>
+                <!-- <altview name="Collectors Icon View"  viewdef="CollectorsIconView" mode="view"/>
+                <altview name="Collectors Icon Edit"  viewdef="CollectorsIconView" mode="edit"/>  -->
+                <altview name="PrepCollectors Table View" viewdef="PrepCollectors Table"   mode="view"/>
+                <altview name="PrepCollectors Table Edit" viewdef="PrepCollectors Table"   mode="edit" default="true"/>
+            </altviews>
+        </view>
+        
         <view name="Project"
             class="edu.ku.brc.specify.datamodel.Project"
             isinternal="false"
@@ -704,34 +729,6 @@
             <altviews>
                 <altview name="InfoRequestColObj View" viewdef="InfoRequestColObj" mode="view"/>
                 <altview name="InfoRequestColObj Edit" viewdef="InfoRequestColObj" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
-        <view name="Preparation"
-              objtitle="Preparation (Long)"
-              class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
-               resourcelabels="false">
-            <desc><![CDATA[Subform within the Preparation form.]]></desc>
-            <altviews>
-                <altview name="Preparation Table View" viewdef="Preparation Table" mode="view"/>
-                <altview name="Preparation Table Edit" viewdef="Preparation Table" mode="edit"/>
-                <altview name="Preparation View" viewdef="Preparation" mode="view"/>
-                <altview name="Preparation Edit" viewdef="Preparation" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
-        <view name="Preparation Brief"
-              objtitle="Preparation (Short)"
-              class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
-               resourcelabels="false">
-            <desc><![CDATA[Subform within the Curation (Brief) form.]]></desc>
-            <altviews>
-                <altview name="Preparation Brief Table View" viewdef="Preparation Brief Table" mode="view"/>
-                <altview name="Preparation Brief Table Edit" viewdef="Preparation Brief Table" mode="edit"/>
-                <altview name="Preparation Brief View" viewdef="Preparation Brief" mode="view"/>
-                <altview name="Preparation Brief Edit" viewdef="Preparation Brief" mode="edit" default="true"/>
             </altviews>
         </view>
         
@@ -1596,6 +1593,53 @@
             </rows>
         </viewdef>
 
+		<viewdef
+            name="PrepCollectors"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Collector"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+
+            <desc><![CDATA[The Collectors subform for the Preparation form.]]></desc>
+            <enableRules/>
+
+            <columnDef>50px,50px,50px,50px</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                	<cell type="label" labelfor="collectorLastName"/>
+                	<cell type="field" id="collectorLastName" name="agent.lastName" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="collectorFirstName"/>
+                	<cell type="field" id="collectorFirstName" name="agent.firstName" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="datesType"/>
+                	<cell type="field" id="datesType" name="agent.initials" uitype="combobox" picklist="HUH Agent Dates Type"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="startDate"/>
+                	<cell type="field" id="startDate" name="agent.dateOfBirth" uitype="text" uifieldformatter="PartialDateYear"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="endDate"/>
+                	<cell type="field" id="endDate" name="agent.dateOfDeath" uitype="text" uifieldformatter="PartialDateYear"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="PrepCollectors Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Collector"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Collectors grid view for CollectingEvent form.]]></desc>
+            <definition>PrepCollectors</definition>
+        </viewdef>
+        
         <viewdef
             name="Collection Object Search"
             type="form"
@@ -3271,6 +3315,54 @@
             </rows>
         </viewdef>
 
+		<viewdef
+            type="formtable"
+            name="Preparation Table"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Preparation subform table for Collection Object form.]]></desc>
+            <definition>Preparation</definition>
+        </viewdef>
+                
+        <viewdef
+            type="form"
+            name="Preparation"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="true">
+            <desc><![CDATA[Preparation for Collection Object form.]]></desc>
+            <enableRules/>
+
+            <columnDef>100px,2px,120px,5px,95px,2px,223px,5px,65px,2px,126px,2px,70px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,150px,5px,120px,2px,223px,5px,90px,2px,126px,2px,75px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,180px,5px,130px,2px,255px,5px,100px,2px,174px,2px,70px,p:g</columnDef>
+            <columnDef os="exp">p,2px,max(p;150px),5px:g,p,2px,p,5px:g,p,2px,151px,10px,p,p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="7"/>
+                    <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" />
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" uitype="plugin" name="this" initialize="name=PartialDateUI;df=preparedDate;tp=preparedDateDatePrecision" uifieldformatter="Date"/>
+                   <cell type="label" label="  "/>
+                   <cell type="field" id="isOnLoan" name="isOnLoan" uitype="checkbox" label="ISONLOAN" readonly="true"/>
+                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="countAmt" uitype="text" />
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="preparedByAgent" uitype="querycbx" initialize="name=Agent"/>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="storage" uitype="querycbx" initialize="name=Storage" cols="20" colspan="3"/>
+                </row>
+            </rows>
+        </viewdef>
+
         <viewdef 
             name="Project" 
             type="form" 
@@ -3446,30 +3538,30 @@
         </viewdef>
                  
         <viewdef
-            name="Preparation Table"
+            name="FragmentPreparation Table"
             type="formtable"
             class="edu.ku.brc.specify.datamodel.Preparation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
-            <desc><![CDATA[Preparation subform table for Collection Object form.]]></desc>
+            <desc><![CDATA[Preparation subform table for Fragment form.]]></desc>
             <definition>Preparation</definition>
         </viewdef>
                 
         <viewdef
-            name="Preparation"
+            name="FragmentPreparation"
             type="form"
             class="edu.ku.brc.specify.datamodel.Preparation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
             useresourcelabels="true">
-            <desc><![CDATA[Preparation for Collection Object form.]]></desc>
+            <desc><![CDATA[Preparation for Fragment form.]]></desc>
             <enableRules/>
 
             <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 110px, 5px,    65px, 2px, 126px,  2px, 110px, p:g</columnDef>
             <columnDef os="lnx">100px, 2px, 145px,        5px,    75px, 2px, 110px, 5px,    65px, 2px, 126px,  2px, 110px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,   100px, 2px, 174px,  2px, 110px, p:g</columnDef>
-            <columnDef os="exp">   p,  2px, max(p;150px), 5px:g,    p,  2px,    p,  5px:g,    p,  2px, 151px, 10px,     p,  p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px, 10px,     p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -3503,42 +3595,6 @@
                 </row>
                 <row>
                  <cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="Preparation Brief Table"
-            type="formtable"
-            class="edu.ku.brc.specify.datamodel.Preparation"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[Preparation subform table for Preparation Brief form.]]></desc>
-            <definition>Preparation Brief</definition>
-        </viewdef>
-        
-        <viewdef
-            name="Preparation Brief"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Preparation"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[The Preparation Brief form.]]></desc>
-            <enableRules/>
-            
-            <columnDef>          80px, 2px, 160px, 5px,  80px, 2px, 180px,   5px,   100px, 2px, 200px, 5px, p:g</columnDef>
-            <columnDef os="lnx"> 75px, 2px, 160px, 5px,  75px, 2px, 180px,   5px,   100px, 2px, 200px, 5px, p:g</columnDef>
-            <columnDef os="mac"> 80px, 2px, 160px, 5px,  80px, 2px, 180px,   5px,   100px, 2px, 225px, 5px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 200px, 5px,     p, 2px, 200px,   5px:g,     p, 2px, 200px, 5px, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-            	<row>
-            		<cell type="label" labelfor="itemNo"/>
-                    <cell type="field" id="itemNo" name="sampleNumber" uitype="text" isrequired="true" initialize="editoncreate=true"/>
-                    <cell type="label" labelfor="prepType"/>
-                    <cell type="field" id="prepType" name="prepType" uitype="combobox" picklist="PrepType" default="1"/>
                 </row>
             </rows>
         </viewdef>
