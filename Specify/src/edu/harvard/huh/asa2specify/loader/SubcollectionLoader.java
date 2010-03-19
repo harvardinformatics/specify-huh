@@ -413,11 +413,11 @@ public class SubcollectionLoader extends TreeLoader
         String remarks = getExsiccataDescription(subcollection);
         referenceWork.setRemarks(remarks);
         
-        // Title
+        // Text1 (the "Title" field is reserved for title abbreviations)
         String title = subcollection.getName();
         checkNull(title, "title");
         title = truncate(title, 255, "title");
-        referenceWork.setTitle(title);
+        referenceWork.setText1(title);
         
         return referenceWork;
     }
@@ -600,15 +600,15 @@ public class SubcollectionLoader extends TreeLoader
     
     private String getInsertSql(ReferenceWork referenceWork) throws LocalException
 	{
-		String fieldNames = "GUID, ReferenceWorkType, Remarks, TimestampCreated, Title, Version";
+		String fieldNames = "GUID, ReferenceWorkType, Remarks, Text1, TimestampCreated, Version";
 
 		String[] values = new String[6];
 
 		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
 		values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
 		values[2] = SqlUtils.sqlString( referenceWork.getRemarks());
-		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.sqlString( referenceWork.getTitle());
+        values[3] = SqlUtils.sqlString( referenceWork.getText1());
+		values[4] = SqlUtils.now();
 		values[5] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
