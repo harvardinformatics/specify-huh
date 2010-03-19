@@ -683,8 +683,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         Storage storage = nullStorage;
         if (subcollectionId != null)
         {
-            storage = lookupStorage(subcollectionId);           
+            storage = lookupStorage(subcollectionId);
         }
+        preparation.setStorage(storage);
         
         if (locationStr.contains("burt slide collection") && subcollectionId != null)
         {
@@ -1255,21 +1256,22 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CountAmt, PrepTypeID, Remarks, " +
-				            "SampleNumber, StorageLocation, Text1, TimestampCreated, " +
-				            "Version, YesNo1";
+				            "SampleNumber, StorageID, StorageLocation, Text1, " +
+				            "TimestampCreated, Version, YesNo1";
 
-		String[] values = new String[10];
+		String[] values = new String[11];
 		
 		values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
 		values[1]  = SqlUtils.sqlString( preparation.getCountAmt());
         values[2]  = SqlUtils.sqlString( preparation.getPrepType().getId());
 		values[3]  = SqlUtils.sqlString( preparation.getRemarks());
 		values[4]  = SqlUtils.sqlString( preparation.getSampleNumber());
-		values[5]  = SqlUtils.sqlString( preparation.getStorageLocation());
-		values[6]  = SqlUtils.sqlString( preparation.getText1());
-        values[7]  = SqlUtils.now();
-        values[8]  = SqlUtils.zero();
-		values[9]  = SqlUtils.sqlString( preparation.getYesNo1());
+		values[5]  = SqlUtils.sqlString( preparation.getStorage().getId());
+		values[6]  = SqlUtils.sqlString( preparation.getStorageLocation());
+		values[7]  = SqlUtils.sqlString( preparation.getText1());
+        values[8]  = SqlUtils.now();
+        values[9]  = SqlUtils.zero();
+		values[10] = SqlUtils.sqlString( preparation.getYesNo1());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
