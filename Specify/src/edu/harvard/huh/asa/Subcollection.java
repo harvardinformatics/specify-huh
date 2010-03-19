@@ -11,7 +11,7 @@ public class Subcollection extends AuditedObject
 	private  String cabinet;
 	private  String remarks;
 	
-	private static final int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539 };
+	private static final int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539, 3672 };
 	
 	public String getGuid() { return getId() + " subcollection"; }
 
