@@ -1848,7 +1848,7 @@
 
             <columnDef>          70px, 2px, 145px, 5px, 100px, 2px, 65px, 5px, 140px, 5px, p:g</columnDef>
             <columnDef os="lnx"> 85px, 2px, 190px, 5px, 115px, 2px, 65px, 5px, 210px, 5px, p:g</columnDef>
-            <columnDef os="mac">100px, 2px, 221px, 5px, 130px, 2px, 65px, 5px, 246px, 5px, p:g</columnDef>
+            <columnDef os="mac">100px, 2px, 200px, 5px, 130px, 2px, 65px, 5px, 246px, 5px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px,     p, 2px, p,    20px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="3dlu"/>246
             <rows>
@@ -1890,7 +1890,7 @@
             <!--                label  buf  text1  buf  'ex'    buf  text2  buf  lbl    buf  chkbx buf  label  buf  lbl   buf   margin -->
             <columnDef os="exp">p,     2px, 285px, 5px, 20px:g, 5px, 105px, 2px, p,     2px, p,    2px, p,     2px, 10px, 10px, 10px:g</columnDef>
             <columnDef>         100px, 2px, 270px, 5px, 20px,   5px, 105px, 2px, 153px, 2px, 15px, 2px, 100px, 2px, 10px, 10px, 10px:g</columnDef>
-            <columnDef os="mac">130px, 2px, 287px, 5px, 20px,   5px, 145px, 2px, 161px, 2px, 15px, 2px, 110px, 2px, 5px,  15px, 10px:g</columnDef>
+            <columnDef os="mac">130px, 2px, 287px, 5px, 20px,   5px, 125px, 2px, 155px, 2px, 15px, 2px, 110px, 2px, 40px, 15px, 10px:g</columnDef>
             <rowDef auto="true" cell="p" sep="3dlu"/>
             
             <rows>
@@ -1959,8 +1959,7 @@
                 	<cell type="label" label=" "/>
                 </row>
 				<row>
-					<cell type="label" label=" "/>
-                    <cell type="subview" viewname="TaxonCitation" id="taxonCitations" name="taxonCitations" colspan="14"/>
+                    <cell type="subview" viewname="TaxonCitation" id="taxonCitations" name="taxonCitations" colspan="16"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
