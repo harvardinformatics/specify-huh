@@ -20,10 +20,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
-import edu.ku.brc.af.core.AppContextMgr;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
-import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -48,93 +45,6 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         super();
     }
 
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.busrules.BaseBusRules#addChildrenToNewDataObjects(java.lang.Object)
-     */
-    @Override
-    public void addChildrenToNewDataObjects(final Object newDataObj)
-    {
-        super.addChildrenToNewDataObjects(newDataObj);
-
-        CollectionObject colObj = (CollectionObject)newDataObj;
-
-        if (colObj.getCollectingEvent() != null)
-        {
-            CollectingEvent ce = colObj.getCollectingEvent();
-
-            if (ce.getLocality() == null)
-            {
-                Locality loc = new Locality();
-                loc.initialize();
-                ce.addReference(loc, "locality");
-            }
-        }
-
-        if (colObj.getFragments().size() == 0) // this set should have been initialized when the CollectionObject was created
-        {
-            Fragment fragment = new Fragment();
-            fragment.initialize();
-            fragment.addReference(colObj, "collectionObject");
-            colObj.getFragments().add(fragment);
-        }
-    }
-    
-    /*
-     * (non-Javadoc)
-     * 
-     * @see edu.ku.brc.ui.forms.BaseBusRules#beforeMerge(java.lang.Object,
-     *      edu.ku.brc.dbsupport.DataProviderSessionIFace)
-     */
-    @Override
-    public void beforeMerge(final Object dataObj, 
-                            final DataProviderSessionIFace session)
-    {
-        super.beforeMerge(dataObj, session);
-
-        CollectionObject colObj = (CollectionObject)dataObj;
-        if (AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent())
-        {
-            CollectingEvent ce = colObj.getCollectingEvent();
-            if (ce != null)
-            {
-                try
-                {
-                    if (ce != null)
-                    {
-                        Locality loc = ce.getLocality();
-                        if (loc != null)
-                        {
-                            if (loc.getId() != null)
-                            {
-                                Locality mergedLoc = session.merge(colObj.getCollectingEvent().getLocality());
-                                colObj.getCollectingEvent().setLocality(mergedLoc);
-                            }
-                            else
-                            {
-                                session.save(colObj.getCollectingEvent().getLocality());
-                            }
-                        }
-
-                        if (ce.getId() != null)
-                        {
-                            CollectingEvent mergedCE = session.merge(colObj.getCollectingEvent());
-                            colObj.setCollectingEvent(mergedCE);
-                        } else
-                        {
-                            session.save(colObj.getCollectingEvent());
-                        }
-                    }
-
-                } catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
-                }
-            }
-        }
-    }
-    
     /*
      * (non-Javadoc)
      * 
