@@ -872,9 +872,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         Byte catalogedDatePrecision = DateUtils.getFullDatePrecision();
         collectionObject.setCatalogedDatePrecision(catalogedDatePrecision);
 
-        // CatalogNumber        
-        String catalogNumber = getPreparationLookup().formatCollObjBarcode(nextCatalogNumber());
-        collectionObject.setCatalogNumber(catalogNumber);
+        // CatalogNumber
+        //String catalogNumber = getPreparationLookup().formatCollObjBarcode(nextCatalogNumber());
+        //collectionObject.setCatalogNumber(catalogNumber);
         
         // CollectionMemberID
         Integer collectionId = collection.getId();
