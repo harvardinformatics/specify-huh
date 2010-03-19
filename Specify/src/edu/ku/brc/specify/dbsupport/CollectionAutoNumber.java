@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Query;
 import org.hibernate.Session;
 
 import edu.ku.brc.af.core.AppContextMgr;
@@ -91,16 +92,18 @@ public class CollectionAutoNumber extends AutoNumberGeneric
         
         if (doDebug) System.out.println("CatNumScheme: "+catNumScheme.getSchemeName());
         
-        StringBuilder sb = new StringBuilder(" From CollectionObject c Join c.collection col Join col.numberingSchemes cns WHERE cns.autoNumberingSchemeId = ");
-        sb.append(catNumScheme.getAutoNumberingSchemeId());
-        
-        sb.append(" AND c.collectionMemberId = COLMEMID ORDER BY CatalogNumber DESC");
+        StringBuilder sb = new StringBuilder(" from CollectionObject co, AutoNumberingScheme ans where ans.id = :ansid and co.collection.id = COLMEMID and co.collection in elements(ans.collections) order by co.catalogNumber desc");
+
         try
         {
             String sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
             
+            Query q = session.createQuery(sql);
+            q.setParameter("ansid", catNumScheme.getAutoNumberingSchemeId());
+            List<?> list = q.setMaxResults(1).list();
+            
             //System.out.println(sql);
-            List<?> list = session.createQuery(sql).setMaxResults(1).list();
+
             if (list.size() == 1)
             {
                 Object[] objArray = (Object[]) list.get(0);
