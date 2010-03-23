@@ -41,7 +41,9 @@
     <typesearch tableid="31"  name="Container"              searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="46"  name="ChronosStrat"           searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
     <typesearch tableid="97"  name="AutoNumberingScheme"    searchfield="schemeName"      displaycols="schemeName"         format="%s"     dataobjformatter=""/>
-    <typesearch tableid="1"   name="CollectionObject"       searchfield="catalogNumber"   displaycols="catalogNumber"      uifieldformatter="CatalogNumber" dataobjformatter="CollectionObject"/>
+    <typesearch tableid="1"   name="CollectionObject"       searchfield="av.name"         displaycols="av.name,co.fieldNumber" format="%s %s" dataobjformatter="CollectionObject">
+        SELECT %s1 FROM CollectionObject co, Collector ctr, AgentVariant av WHERE av.varType=4 AND av.agent=ctr.agent and ctr in elements(co.collectingEvent.collectors) AND %s2 ORDER BY av.name, co.fieldNumber
+	</typesearch>
     <typesearch tableid="10"  name="CollectingEvent"        searchfield="stationFieldNumber" displaycols="stationFieldNumber,startDate,loc.localityName,geo.fullName" format="%s; %s; %s; %s" dataobjformatter="">
         SELECT %s1 FROM CollectingEvent ce LEFT JOIN ce.locality loc LEFT JOIN loc.geography geo JOIN ce.discipline as dsp WHERE dsp.disciplineId = DSPLNID AND %s2 ORDER BY stationFieldNumber
     </typesearch>
@@ -49,7 +51,7 @@
     <typesearch tableid="26"  name="Discipline"             searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="96"  name="Division"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
 	<typesearch tableid="89"  name="Exsiccata"              searchfield="title"           displaycols="title"              format="%s"     dataobjformatter=""/> 
-    <typesearch tableid="142" name="Fragment"               searchfield="catalogNumber"   displaycols="catalogNumber"      format="%s"     dataobjformatter=""/>     
+    <typesearch tableid="142" name="Fragment"               searchfield="identifier"      displaycols="identifier"         format="%s"     dataobjformatter=""/>     
     <typesearch tableid="3"   name="Geography"              searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter="Geography"/>
     <typesearch tableid="46"  name="GeologicTimePeriod"     searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
     <typesearch tableid="51"  name="Journal"                searchfield="journalName"     displaycols="journalName"        format="%s"     dataobjformatter=""/>
@@ -60,6 +62,9 @@
     <typesearch tableid="143" name="LogicalContainer"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="5"   name="OrgByAcronym"           searchfield="ag.abbreviation" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="Agent">
            SELECT %s1 FROM Agent ag WHERE %s2 ORDER BY ag.abbreviation, ag.lastName
+    </typesearch>
+    <typesearch tableid="63"  name="Preparation"            searchfield="pp.identifier"   displaycols="pp.identifier"         format="%s"     dataobjformatter="">
+		SELECT %s1 FROM Preparation pp WHERE %s2 ORDER BY pp.Identifier
     </typesearch>
     <typesearch tableid="69"  name="ReferenceWork"          searchfield="title,text1"     displaycols="title,text1"        format="%s (%s)" dataobjformatter="ReferenceWork"/>
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter="ReferenceWork"/>
