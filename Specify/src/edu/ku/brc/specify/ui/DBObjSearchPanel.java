@@ -431,6 +431,7 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
             for (ERTICaptionInfo captionInfo : esTableInfo.getVisibleCaptionInfo())
             {
                 String colName = null;
+                String abbrev = captionInfo.getFieldInfo().getTableInfo().getAbbrev();
                 
                 Object value = null;
                 if (captionInfo.getColName() == null)
@@ -470,7 +471,7 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
                                     
                                     if (cnt > 0)
                                     {
-                                        strBuf.append(" OR ");
+                                        strBuf.append(" AND ");
                                     }
                                     
                                     String clause = null;
@@ -503,7 +504,7 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
                                     
                                     if (clause == null)
                                     {
-                                        clause = ESTermParser.getInstance().createWhereClause(firstTerm, null, colName);
+                                        clause = ESTermParser.getInstance().createWhereClause(firstTerm, abbrev, colName);
                                     }
                                     strBuf.append(clause);
                                     cnt++;
