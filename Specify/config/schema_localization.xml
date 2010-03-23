@@ -15302,7 +15302,7 @@
       </str>
     </descs>
   </container>
-  <container name="fragment" type="" format="Fragment">
+  <container name="fragment" format="Fragment">
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
@@ -15319,22 +15319,6 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Usually an integer or alphanumeric value that is assigned to material when it enters the collection. The format of accession numbers varies among collections, but all refer to the acquisition of specimens, observations, or other collection objects.</text>
-          </str>
-        </descs>
-      </item>
-      <item name="catalogNumber" type="java.lang.String" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Catalog Number</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The number that identifies an individual specimen, a lot of specimens, or an observation as a part of a museum collection. </text>
           </str>
         </descs>
       </item>
@@ -15452,6 +15436,22 @@
         </names>
         <descs/>
       </item>
+      <item name="identifier" type="java.lang.String" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Barcode</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The number that identifies an individual specimen, a lot of specimens, or an observation as a part of a museum collection. </text>
+          </str>
+        </descs>
+      </item>
       <item name="leftSideRels" type="OneToMany" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -15522,7 +15522,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Preparation</text>
+            <text>Preparation\n   Method</text>
           </str>
         </names>
         <descs/>
@@ -15548,7 +15548,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Note</text>
+            <text>Internal Remarks</text>
           </str>
         </names>
         <descs/>
@@ -15657,7 +15657,7 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
@@ -15673,7 +15673,7 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
@@ -23909,6 +23909,22 @@ Preparation: A subdivision of a collection object that refers to the preparation
           </str>
         </names>
         <descs/>
+      </item>
+      <item name="identifier" type="java.lang.String" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Barcode</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The number that identifies an individual specimen, a lot of specimens, or an observation as a part of a museum collection. </text>
+          </str>
+        </descs>
       </item>
       <item name="loanPreparations" type="OneToMany">
         <version>0</version>
