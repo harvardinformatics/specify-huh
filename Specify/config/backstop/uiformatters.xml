@@ -45,7 +45,7 @@
     <field type="numeric" size="6" inc="true"/>
   </format>
 
-  <format system="true" name="CatalogNumberFragment" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="catalogNumber" default="false">
+  <format system="true" name="FragmentIdentifier" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="identifier" default="false">
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
   </format>
 
@@ -54,7 +54,7 @@
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
   </format>
   
-  <format system="true" name="CatalogNumberPrep" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="catalogNumber" default="false">
+  <format system="true" name="PreparationIdentifier" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="identifier" default="false">
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
   </format>
   
