@@ -764,16 +764,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    {
 	        fragment.setAccessionNumber(accessionNumber);
 	    }
-	    
-	    // CatalogNumber (barcode)
-        String catalogNumber = null;
-        Integer barcode = specimenItem.getBarcode();
-
-	    if (barcode != null) getPreparationLookup().formatCollObjBarcode(barcode);
-	    else getLogger().warn(rec() + "Null barcode");
-
-	    fragment.setCatalogNumber(catalogNumber);
-	    
+	    	    
 	    // CollectionMemberID
 	    fragment.setCollectionMemberId(collectionMemberId);
 
@@ -787,6 +778,15 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    distribution = truncate(distribution, 100, "distribution");
 	    fragment.setDistribution(distribution);
 	    
+	    // Identifier (barcode)
+        String catalogNumber = null;
+        Integer barcode = specimenItem.getBarcode();
+
+        if (barcode != null) getPreparationLookup().formatCollObjBarcode(barcode);
+        else getLogger().warn(rec() + "Null barcode");
+
+        fragment.setIdentifier(catalogNumber);
+        
 	    // Number1 (replicates)
 	    Integer replicates = specimenItem.getReplicates();
 	    fragment.setNumber1(replicates);
@@ -1227,17 +1227,17 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     
     private String getInsertSql(Fragment fragment) throws LocalException
     {
-        String fieldNames = "AccessionNumber, CatalogNumber, CollectionMemberID, CollectionObjectID, " +
-                            "Distribution, Number1, Phenology, PreparationID, PrepMethod, Provenance, " +
+        String fieldNames = "AccessionNumber, CollectionMemberID, CollectionObjectID, Distribution, " +
+                            "Identifier, Number1, Phenology, PreparationID, PrepMethod, Provenance, " +
                             "Sex, Remarks, Text1, Text2, TimestampCreated, Version";
         
         String[] values = new String[16];
         
         values[0]  = SqlUtils.sqlString( fragment.getAccessionNumber());
-        values[1]  = SqlUtils.sqlString( fragment.getCatalogNumber());
-        values[2]  = SqlUtils.sqlString( fragment.getCollectionMemberId());
-        values[3]  = SqlUtils.sqlString( fragment.getCollectionObject().getId());
-        values[4]  = SqlUtils.sqlString( fragment.getDistribution());
+        values[1]  = SqlUtils.sqlString( fragment.getCollectionMemberId());
+        values[2]  = SqlUtils.sqlString( fragment.getCollectionObject().getId());
+        values[3]  = SqlUtils.sqlString( fragment.getDistribution());
+        values[4]  = SqlUtils.sqlString( fragment.getIdentifier());
         values[5]  = SqlUtils.sqlString( fragment.getNumber1());
         values[6]  = SqlUtils.sqlString( fragment.getPhenology());
         values[7]  = SqlUtils.sqlString( fragment.getPreparation().getId());

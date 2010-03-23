@@ -62,12 +62,12 @@ import edu.ku.brc.dbsupport.DBConnection;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "preparation", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"CatalogNumber"} )
+        @UniqueConstraint(columnNames={"Identifier"} )
 } )
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
         @Index (name="PrepColMemIDX", columnNames={"CollectionMemberID"}),
-        @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
+        @Index (name="IdentifierIDX", columnNames={"Identifier"}) })
 public class Preparation extends CollectionMember implements AttachmentOwnerIFace<PreparationAttachment>, 
                                                              AttributeProviderIFace, 
                                                              java.io.Serializable, 
@@ -78,7 +78,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     // Fields    
 
     protected Integer                     preparationId;
-    protected String                      catalogNumber;
+    protected String                      identifier;
     protected String                      text1;
     protected String                      text2;
     protected Integer                     countAmt;
@@ -150,7 +150,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         super.init();
         
         preparationId = null;
-        catalogNumber = null;
+        identifier = null;
         text1         = null;
         text2         = null;
         countAmt      = null;
@@ -220,13 +220,13 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     /**
     *
     */
-   @Column(name = "CatalogNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
-   public String getCatalogNumber() {
-       return this.catalogNumber;
+   @Column(name = "Identifier", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+   public String getIdentifier() {
+       return this.identifier;
    }
 
-   public void setCatalogNumber(String catalogNumber) {
-       this.catalogNumber = catalogNumber;
+   public void setIdentifier(String identifier) {
+       this.identifier = identifier;
    }
 
     /**

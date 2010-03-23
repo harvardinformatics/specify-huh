@@ -9323,7 +9323,7 @@ public class BuildSampleDatabase
     	Fragment fragment = new Fragment();
 
     	fragment.initialize();
-    	fragment.setCatalogNumber(parent.getCatalogNumber());
+    	fragment.setIdentifier(parent.getCatalogNumber());
     	fragment.setCollectionMemberId(parent.getCollectionMemberId());
     	fragment.setCollectionObject(parent);
     	

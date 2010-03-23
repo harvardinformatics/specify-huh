@@ -27,7 +27,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "fragment")
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
-        @Index (name="CatalogNumberIDX", columnNames={"CatalogNumber"}) })
+        @Index (name="IdentifierIDX", columnNames={"Identifier"}) })
 public class Fragment extends CollectionMember implements AttachmentOwnerIFace<FragmentAttachment>,
                                                           Serializable,
                                                           Comparable<Fragment>,
@@ -36,7 +36,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 	// Fields 
 	protected Integer fragmentId;
 	protected String  accessionNumber;
-	protected String  catalogNumber;
+	protected String  identifier;
 	protected String  description;
 	protected String  distribution;
 	protected String  phenology;
@@ -91,11 +91,11 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     {
         super.init();
         
-        fragmentId       = null;
         accessionNumber  = null;
-        catalogNumber    = null;
         description      = null;
         distribution     = null;
+        fragmentId       = null;
+        identifier       = null;
         phenology        = null;
         prepMethod       = null;
         provenance       = null;
@@ -126,27 +126,6 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     
     // Property accessors
     
-    @Id
-    @GeneratedValue
-    @Column(name = "FragmentID", unique = false, nullable = false, insertable = true, updatable = true)
-    public Integer getFragmentId() {
-        return this.fragmentId;
-    }
-
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
-     */
-    @Override
-    @Transient
-	public Integer getId()
-    {
-		return this.fragmentId;
-	}
-
-    public void setFragmentId(Integer fragmentId) {
-        this.fragmentId = fragmentId;
-    }
-    
     /**
      * @return the accessionNumber
      */
@@ -162,23 +141,6 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     public void setAccessionNumber(String accessionNumber)
     {
         this.accessionNumber = accessionNumber;
-    }
-    
-    /**
-     * @return the catalogNumber
-     */
-    @Column(name = "CatalogNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
-    public String getCatalogNumber()
-    {
-        return catalogNumber;
-    }
-
-    /**
-     * @param catalogNumber
-     */
-    public void setCatalogNumber(String catalogNumber)
-    {
-        this.catalogNumber = catalogNumber;
     }
     
     /* (non-Javadoc)
@@ -237,6 +199,44 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     public void setDistribution(String distribution) 
     {
         this.description = distribution;
+    }
+
+    @Id
+    @GeneratedValue
+    @Column(name = "FragmentID", unique = false, nullable = false, insertable = true, updatable = true)
+    public Integer getFragmentId() {
+        return this.fragmentId;
+    }
+
+    public void setFragmentId(Integer fragmentId) {
+        this.fragmentId = fragmentId;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getId()
+     */
+    @Override
+    @Transient
+    public Integer getId()
+    {
+        return this.fragmentId;
+    }
+    
+    /**
+     * @return the identifier
+     */
+    @Column(name = "Identifier", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier
+     */
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
     }
     
     /**
@@ -543,9 +543,9 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 	public int compareTo(Fragment o)
 	{
 	    // XXX TODO need to fix when Cat Nums change to Strings!
-        if (catalogNumber != null && o != null && o.catalogNumber != null)
+        if (identifier != null && o != null && o.identifier != null)
         {
-            return catalogNumber.compareTo(o.catalogNumber);
+            return identifier.compareTo(o.identifier);
         }
         // else
         return timestampCreated.compareTo(o.timestampCreated);
