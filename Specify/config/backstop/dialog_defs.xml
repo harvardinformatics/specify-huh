@@ -24,6 +24,7 @@
     <dialog type="search" viewset="Search" view="StorageSearch"            name="StorageSearch"            class="edu.ku.brc.specify.datamodel.Storage"        idfield="storageId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="PaleoContextSearch"       name="PaleoContextSearch"       class="edu.ku.brc.specify.datamodel.PaleoContext"   idfield="paleoContextId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="PermitSearch"             name="PermitSearch"             class="edu.ku.brc.specify.datamodel.Permit"         idfield="permitId" helpcontext="CBXQSearch"/>
+	<dialog type="search" viewset="Search" view="PreparationSearch"        name="PreparationSearch"        class="edu.ku.brc.specify.datamodel.Preparation"    idfield="preparationId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="PrepTypeSearch"           name="PrepTypeSearch"           class="edu.ku.brc.specify.datamodel.PrepType"       idfield="prepTypeId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ProjectSearch"            name="ProjectSearch"            class="edu.ku.brc.specify.datamodel.Project"        idfield="projectId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ReferenceWorkSearch"      name="ReferenceWorkSearch"      class="edu.ku.brc.specify.datamodel.ReferenceWork"  idfield="referenceWorkId" helpcontext="CBXQSearch"/>
