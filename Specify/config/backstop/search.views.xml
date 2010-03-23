@@ -180,6 +180,17 @@
         </view>
         
         <view 
+            name="PreparationSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Preparation Search Form]]></desc>
+            <altviews>
+                <altview name="PreparationSearch" viewdef="PreparationSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view 
             name="PrepTypeSearch"
             class="edu.ku.brc.specify.datamodel.PrepType"
             usedefbusrule="false"
@@ -440,16 +451,24 @@ Good: <cell type="field" name="FieldNum" ...>
             <desc><![CDATA[The CollectionObject Search Form]]></desc>
             <enableRules/>
             
-            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p</rowDef>
             
             <rows>
                 <row>
-                    <cell type="separator" label="Collection Object" colspan="7"/>
+                    <cell type="separator" label="Collection Object"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1" />
-                    <cell type="field" id="1" name="CatalogNumber" uitype="formattedtext" formatter="CatalogNumber" initialize="ispartial=true"/>
+                    <cell type="label" label="Collector:" initialize="align=right"/>
+                    <cell type="field" id="1" name="Name" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2" />
+                    <cell type="field" id="2" name="FieldNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="collectingEvent.StartDate" uitype="formattedtext" uifieldformatter="SearchDate" initialize="ispartial=true;"/>
                 </row>
             </rows>
         </viewdef>        
@@ -596,7 +615,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="1" />
-                    <cell type="field" id="1" name="CatalogNumber" uitype="formattedtext" formatter="CatalogNumber" initialize="ispartial=true"/>
+                    <cell type="field" id="1" name="Identifier" uitype="formattedtext" formatter="FragmentIdentifier" initialize="ispartial=true"/>
                 </row>
             </rows>
         </viewdef>
@@ -719,6 +738,29 @@ Good: <cell type="field" name="FieldNum" ...>
                
             </rows>
         </viewdef>
+        
+        <viewdef type="form"
+            name="PreparationSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Preparation Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Preparation" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="1" />
+                    <cell type="field" id="1" name="Identifier" uitype="formattedtext" formatter="PreparationIdentifier" initialize="ispartial=true"/>
+                </row>
+            </rows>
+        </viewdef>  
         
         <viewdef type="form"
             name="ProjectSearch"
