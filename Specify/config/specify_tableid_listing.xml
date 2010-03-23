@@ -97,7 +97,7 @@
             <display view="CollectingTripForm" searchdlg="CollectingTripSearch" newobjdlg="CollectingTripDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObject" abbrev="co" id="1" workbench="true" searchable="true">
-            <display view="Curation (Long)" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="Collection Object"/>
+            <display view="CollectionObject" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="CollectionObject"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttachment" abbrev="coat" id="111" searchable="true">
@@ -320,7 +320,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.Preparation" abbrev="pp" id="63" workbench="true" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.PreparationBusRules</businessrule>
-            <display view="Preparation" newobjdlg="PreparationDisplay"/>
+            <display view="Preparation" searchdlg="PreparationSearch" newobjdlg="PreparationDisplay"/>
 		</table>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttachment" abbrev="ppat" id="117" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="PreparationAttachmentDisplay"/>
