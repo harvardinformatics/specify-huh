@@ -38,16 +38,16 @@ from
              concat(
                decode(t.par_author_id, null, '',
                        '(' ||
-                           concat((select name from botanist_name where botanist_id=t.par_author_id and type_id=110105),
-                                  (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.par_ex_author_id and type_id=110105)
+                           concat((select name from botanist_name where botanist_id=t.par_author_id and type_id=110102),
+                                  (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.par_ex_author_id and type_id=110102)
                                   )
                         || ') '
                       ),
-               concat((select name from botanist_name where botanist_id=t.std_author_id and type_id=110105),
-                      (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.std_ex_author_id and type_id=110105)
+               concat((select name from botanist_name where botanist_id=t.std_author_id and type_id=110102),
+                      (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.std_ex_author_id and type_id=110102)
                       )
                ),
-             (select decode(name, null, '', '') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105) /* hook for cit in author*/
+             (select decode(name, null, '', '') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110102) /* hook for cit in author*/
            ),
            '[[:space:]]+',
            ' '
