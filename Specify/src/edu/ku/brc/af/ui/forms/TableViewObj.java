@@ -2369,9 +2369,13 @@ public class TableViewObj implements Viewable,
             if (formCell instanceof FormCellField)
             {
                 FormCellField fcf = (FormCellField)formCell;
-                if (fcf.getDspUIType().equals("querycbx") || fcf.getDspUIType().equals("textfieldinfo"))
+                if (fcf.getDspUIType().equals(FormCellField.FieldType.querycbx) || fcf.getDspUIType().equals(FormCellField.FieldType.textfieldinfo))
                 {
-                    dataObjFormatName = fcf.getProperty("name");
+                    String formatName = fcf.getFormatName();
+                    if (formatName == null) formatName = fcf.getProperty("name");
+                    
+                    dataObjFormatName = formatName;
+                    
                 }
             }
         }
@@ -2604,6 +2608,7 @@ public class TableViewObj implements Viewable,
                 }
                 
                 Object dataVal           = dataValues[0];
+
                 String dataObjFormatName = colInfo.getDataObjFormatName();
                 if (StringUtils.isNotEmpty(dataObjFormatName))
                 {
