@@ -597,9 +597,7 @@
                 </row>
 				<row>
 					<cell type="label" labelfor="collectionObject"/>
-					<cell type="field" id="collectionObject" name="collectionObject" uitype="querycbx" initialize="name=CollectionObject"/>
-					<cell type="label" labelfor="fieldNumber"/>
-					<cell type="field" id="fieldNumber" name="collectionObject.fieldNumber" uitype="dsptextfield"/>
+					<cell type="field" id="collectionObject" name="collectionObject" uitype="querycbx" formatname="CollectionObjectDetail" initialize="name=CollectionObject" colspan="3"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="accessionNumber"/>

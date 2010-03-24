@@ -1472,7 +1472,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=AgentByAgentVar;title=Collector" uifieldformatter="Agent" colspan="2"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1527,14 +1527,14 @@
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="agent.email" uitype="text" cols="32"/>
                     <cell type="field" id="mailto" name="agent" uitype="plugin" initialize="name=WebLinkButton;url=mailto:$email$;label=Send Mail;watch=7"/>
-                </row> -->
+                </row>
                 <row>
                 	<cell type="label" labelfor="collectorLastName"/>
                 	<cell type="field" id="collectorLastName" name="agent.lastName" uitype="text"/>
-                </row>
+                </row> -->
                 <row>
                 	<cell type="label" labelfor="collectorFirstName"/>
-                	<cell type="field" id="collectorFirstName" name="agent.firstName" uitype="text"/>
+                	<cell type="field" id="collectorFirstName" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector" formatname="CollectorVarAgent"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="datesType"/>

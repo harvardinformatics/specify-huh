@@ -106,6 +106,58 @@
 	</format>
     
     <format
+        name="AuthorAbbrevVarAuthor"
+        title="AuthorAbbrevVarAuthor"
+        class="edu.ku.brc.specify.datamodel.Author"
+        default="false"
+        >
+        <switch single="true">
+            <external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">3</param>
+            </external>
+        </switch>
+    </format>
+    
+    <format
+        name="AuthorVarAuthor"
+        title="AuthorVarAuthor"
+        class="edu.ku.brc.specify.datamodel.Author"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">2</param>
+			 </external>
+        </switch>
+    </format>
+    
+    <format
+        name="AuthorAbbrevVarAgent"
+        title="AuthorAbbrevVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+            <external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">3</param>
+            </external>
+        </switch>
+    </format>
+    
+    <format
+        name="AuthorVarAgent"
+        title="AuthorVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">2</param>
+			 </external>
+        </switch>
+    </format>
+    
+    <format
         name="AutoNumberingScheme"
         title="AutoNumberingScheme"
         class="edu.ku.brc.specify.datamodel.AutoNumberingScheme"
@@ -211,8 +263,18 @@
         >
         <switch single="true">
             <fields>
-                <field uifieldformatter="CatalogNumber">catalogNumber</field>
+                <field>catalogNumber</field>
             </fields>
+        </switch>
+    </format>
+    
+    <format
+        name="CollectionObjectDetail"
+        title="CollectionObjectDetail"
+        class="edu.ku.brc.specify.datamodel.CollectionObject"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.CollectionObjectDataObjFmt"/>
         </switch>
     </format>
 
@@ -229,6 +291,32 @@
         </switch>
     </format>
 
+	<format
+        name="CollectorVarAgent"
+        title="CollectorVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">4</param>
+            </external>
+        </switch>
+    </format>
+    
+	<format
+        name="CollectorVarCollector"
+        title="CollectorVarCollector"
+        class="edu.ku.brc.specify.datamodel.Collector"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">4</param>
+            </external>
+        </switch>
+    </format>
+    
     <format
         name="DataType"
         title="DataType"
