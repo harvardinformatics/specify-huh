@@ -846,6 +846,25 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
     }
 
     /**
+     * Get the appropriate DateWrapper object from AppPrefsCache for the partial date type
+     * as represented by CollectingEvent.startDatePrecision, e.g.
+     */
+    public static DateWrapper getDateWrapper(int partialType)
+    {
+        String prefPostFix = "";
+
+        if (partialType == UIFieldFormatter.PartialDateEnum.Month.ordinal())
+        {
+            prefPostFix = "mon";
+        } else if (partialType == UIFieldFormatter.PartialDateEnum.Year.ordinal())
+        {
+            prefPostFix = "year";
+        }
+        
+        return AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat"+prefPostFix);
+    }
+
+    /**
      * Constructs a the fields for a date formatter if the user didn't specify
      * them; it gets the fields for the date from the dat preference
      * 
@@ -855,19 +874,10 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
     protected void addFieldsForDate(final UIFieldFormatter formatter)
     {
         formatter.getFields().clear();
-        
-        String prefPostFix = "";
-        
+
         UIFieldFormatter.PartialDateEnum partialType = formatter.getPartialDateType();
-        if (partialType == UIFieldFormatter.PartialDateEnum.Month)
-        {
-            prefPostFix = "mon";
-        } else if (partialType == UIFieldFormatter.PartialDateEnum.Year)
-        {
-            prefPostFix = "year";
-        }
         
-        DateWrapper dateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat"+prefPostFix);
+        DateWrapper dateFormat = getDateWrapper(partialType.ordinal());
         
         if (partialType == UIFieldFormatter.PartialDateEnum.Search)
         {
