@@ -70,7 +70,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
             return STATUS.Error;
         }
         
-        STATUS duplicateNumberStatus = isCheckDuplicateNumberOK("sampleNumber", 
+        STATUS duplicateNumberStatus = isCheckDuplicateNumberOK("identifier", 
                                                                 (FormDataObjIFace)dataObj, 
                                                                 Preparation.class, 
                                                                 "preparationId");
