@@ -749,15 +749,27 @@ Good: <cell type="field" name="FieldNum" ...>
             <enableRules/>
             
             <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
             
             <rows>
                 <row>
                     <cell type="separator" label="Preparation" colspan="7"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1" />
-                    <cell type="field" id="1" name="Identifier" uitype="formattedtext" formatter="PreparationIdentifier" initialize="ispartial=true"/>
+                    <cell type="label" label="Prep Barcode: "/>
+                    <cell type="field" id="1" name="preparation.Identifier" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Prep Type:" />
+                    <cell type="field" id="2" name="prepType.Name" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Item Number:" />
+                    <cell type="field" id="3" name="preparation.SampleNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Item Barcode:" />
+                    <cell type="field" id="4" name="fragment.Identifier" uitype="text"/>
                 </row>
             </rows>
         </viewdef>  

@@ -2119,13 +2119,20 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="129" tableid="63" name="PreparationSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[select pp.Identifier, ppt.Name, pp.SampleNumber from preparation pp JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID where pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier]]>
+                    <![CDATA[SELECT pp.PreparationID,
+                                    pp.Identifier as PrepIdentifier,
+                                    ppt.Name,
+                                    pp.SampleNumber,
+                                    frag.Identifier as FragIdentifier
+                               FROM preparation pp JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID LEFT JOIN fragment frag on pp.PreparationID=frag.PreparationID
+                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="63" col="PreparationID" visible="false"/>
-                    <caption tableid="63" col="Identifier"/>
-                    <caption tableid="65" col="Name"/>
-                    <caption tableid="63" col="SampleNumber"/>
+                    <caption tableid="63" name="Identifier" col="preparation.Identifier"/>
+                    <caption tableid="65" name="Name" col="prepType.Name"/>
+                    <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
+                    <caption tableid="142" name="Identifier" col="fragment.Identifier"/>
                 </captions>
             </detailView>
         </table>
