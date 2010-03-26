@@ -20,6 +20,22 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
+import java.util.Calendar;
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -43,6 +59,22 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         super();
     }
 
+    @Override
+    public void addChildrenToNewDataObjects(Object newDataObj)
+    {
+        super.addChildrenToNewDataObjects(newDataObj);
+
+        CollectionObject collectionObject = (CollectionObject) newDataObj;
+
+        if (collectionObject != null)
+        {
+            Agent agent = Agent.getUserAgent();
+            collectionObject.setCataloger(agent);
+            collectionObject.setCatalogedDate(Calendar.getInstance());
+            collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+        }
+    }
+    
     /*
      * (non-Javadoc)
      * 
@@ -80,6 +112,22 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 }
             }
         }
+        return STATUS.OK;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object, java.lang.Object, boolean)
+     */
+    @Override
+    public STATUS processBusinessRules(final Object parentDataObj, final Object dataObj, final boolean isEdit)
+    {
+        reasonList.clear();
+        
+        if (!(dataObj instanceof CollectionObject))
+        {
+            return STATUS.Error;
+        }
+        
         return STATUS.OK;
     }
 }

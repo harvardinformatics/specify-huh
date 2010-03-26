@@ -1,15 +1,26 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.DraggableRecordIdentifier;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
@@ -19,7 +30,8 @@ import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIFace
 {
-
+    private static final Logger  log   = Logger.getLogger(HUHFragmentBusRules.class);
+    
 	@Override
 	public void aboutToShutdown()
 	{
@@ -30,7 +42,6 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	@Override
 	public void addChildrenToNewDataObjects(Object newDataObj)
 	{
-	    // TODO Auto-generated method stub
 	    super.addChildrenToNewDataObjects(newDataObj);
 	}
 
@@ -92,8 +103,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	@Override
 	public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
 	{
-	    // move this to a method called after form is filled so that required cataloger
-	    // field doesn't have to be entered by user
+
 		Fragment fragment = (Fragment) dataObj;
 		
 		if (fragment != null)
@@ -107,15 +117,8 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 		            Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
 		            collObj.setCollection(catSeries); 
 		        }
-
-		        Agent agent = Agent.getUserAgent();
-		        if (agent != null)
-		        {
-		            collObj.setCataloger(agent);
-		        }
 		        saveObject(collObj, session);
 		    }
-
 		}
 	}
 
@@ -190,7 +193,90 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 		super.initialize(viewable);
 	}
 
-	@Override
+    /** Either the Fragment or its Preparation must have a barcode, and the barcode
+     *  must be unique across the union of all Fragment and Preparation objects .
+     * @param dataObj the Fragment to check
+     * @return whether the Fragment or its Preparation has a unique barcode
+     */
+    protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
+    {
+        Class<?> dataClass = Fragment.class;
+        
+        String fieldName = "identifier";
+        String fragmentBarcode = (String)FormHelper.getValue(dataObj, fieldName);
+        String prepBarcode = (String)FormHelper.getValue(((Fragment)dataObj).getPreparation(), "identifier");
+        
+        if (StringUtils.isEmpty(fragmentBarcode) && StringUtils.isEmpty(prepBarcode))
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", dataClass, fieldName, ""));
+
+            return STATUS.Error;
+        }
+
+        // Let's check for duplicates 
+        Integer fragmentCount = getCountSql(dataClass, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
+        if (fragmentCount == null) fragmentCount = 0;
+
+        Integer prepCount = getCountSql(Preparation.class, "preparationId", fieldName, fragmentBarcode, null);
+        if (prepCount == null) prepCount = 0;
+
+        if (fragmentCount + prepCount == 0)
+        {
+            return STATUS.OK;
+        }
+        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
+        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
+
+        if (fieldInfo != null && fieldInfo.getFormatter() != null)
+        {
+            Object fmtObj = fieldInfo.getFormatter().formatToUI(fragmentBarcode);
+            if (fmtObj != null)
+            {
+                fragmentBarcode = fmtObj.toString();
+            }
+        }
+        reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", dataClass, fieldName, fragmentBarcode));
+        return STATUS.Error;
+    }
+    
+    private int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Integer id)
+    {
+        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
+        DBFieldInfo primaryFieldInfo = tableInfo.getFieldByName(primaryFieldName);
+        
+        String  countColumnName = null;
+        if (primaryFieldInfo != null)
+        {
+           countColumnName = primaryFieldInfo.getColumn(); 
+        } else
+        {
+            if (tableInfo.getIdFieldName().equals(primaryFieldName))
+            {
+                countColumnName = tableInfo.getIdColumnName();
+            }
+        }
+        
+        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
+        String quote = fieldInfo.getDataClass() == String.class || fieldInfo.getDataClass() == Date.class ? "'" : "";
+        
+        String tableName = tableInfo.getName();
+        String compareColumName = fieldInfo.getColumn();
+        String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s", countColumnName, tableName, compareColumName, quote + fieldValue + quote);
+
+        if (id != null)
+        {
+            sql += " AND " + countColumnName + " <> " + id;
+        }
+
+        String special = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, false);
+        sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
+        
+        log.debug(sql);
+        
+        return BasicSQLUtils.getCount(sql);
+    }
+
+    @Override
 	public boolean isOkToAssociateSearchObject(Object newParentDataObj, Object dataObjectFromSearch)
 	{
 		// TODO Auto-generated method stub
@@ -221,8 +307,11 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	@Override
 	public STATUS processBusinessRules(Object dataObj)
 	{
-		// TODO Auto-generated method stub
-		return super.processBusinessRules(dataObj);
+		STATUS status = super.processBusinessRules(dataObj);
+		
+		if (!STATUS.OK.equals(status)) return status;
+		
+		return isBarcodeOK((FormDataObjIFace) dataObj);
 	}
 
 	@Override

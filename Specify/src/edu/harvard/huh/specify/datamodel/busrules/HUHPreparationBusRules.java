@@ -19,7 +19,18 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
@@ -42,39 +53,88 @@ public class HUHPreparationBusRules extends PreparationBusRules
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
      */
     @Override
-    public STATUS processBusinessRules(final Object dataObj)
+    public STATUS processBusinessRules(Object dataObj)
     {
-        Preparation preparation = (Preparation) dataObj;
-        if (preparation.getCountAmt() == null) preparation.setCountAmt(1);
+        STATUS status = super.processBusinessRules(dataObj);
         
-        reasonList.clear();
-        STATUS status =  super.processBusinessRules(dataObj);
-
-        if (status == STATUS.OK)
-        {
-            status = processBusinessRules(null, dataObj, true);
-        }
-        return status;
+        if (!STATUS.OK.equals(status)) return status;
+        
+        return isBarcodeOK((FormDataObjIFace) dataObj);
     }
     
-    /* (non-Javadoc)
-     * @see edu.ku.brc.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object, java.lang.Object, boolean)
+    /** Either the Fragment or its Preparation must have a barcode, and the barcode
+     *  must be unique across the union of all Fragment and Preparation objects .
+     * @param dataObj the Fragment to check
+     * @return whether the Fragment or its Preparation has a unique barcode
      */
-    @Override
-    public STATUS processBusinessRules(final Object parentDataObj, final Object dataObj, final boolean isEdit)
+    protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
     {
-        reasonList.clear();
+        Class<?> dataClass = Preparation.class;
         
-        if (!(dataObj instanceof Preparation))
+        String fieldName = "identifier";
+        String fragmentBarcode = (String)FormHelper.getValue(dataObj, fieldName);
+
+        // Let's check for duplicates 
+        Integer fragmentCount = getCountSql(Fragment.class, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
+        if (fragmentCount == null) fragmentCount = 0;
+
+        Integer prepCount = getCountSql(dataClass, "preparationId", fieldName, fragmentBarcode, null);
+        if (prepCount == null) prepCount = 0;
+
+        if (fragmentCount + prepCount == 0)
         {
-            return STATUS.Error;
+            return STATUS.OK;
+        }
+        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
+        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
+
+        if (fieldInfo != null && fieldInfo.getFormatter() != null)
+        {
+            Object fmtObj = fieldInfo.getFormatter().formatToUI(fragmentBarcode);
+            if (fmtObj != null)
+            {
+                fragmentBarcode = fmtObj.toString();
+            }
+        }
+        reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", dataClass, fieldName, fragmentBarcode));
+        return STATUS.Error;
+    }
+    
+    // TODO: combine this with HUHFragmentBusRules
+    private int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Integer id)
+    {
+        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
+        DBFieldInfo primaryFieldInfo = tableInfo.getFieldByName(primaryFieldName);
+        
+        String  countColumnName = null;
+        if (primaryFieldInfo != null)
+        {
+           countColumnName = primaryFieldInfo.getColumn(); 
+        } else
+        {
+            if (tableInfo.getIdFieldName().equals(primaryFieldName))
+            {
+                countColumnName = tableInfo.getIdColumnName();
+            }
         }
         
-        STATUS duplicateNumberStatus = isCheckDuplicateNumberOK("identifier", 
-                                                                (FormDataObjIFace)dataObj, 
-                                                                Preparation.class, 
-                                                                "preparationId");
+        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
+        String quote = fieldInfo.getDataClass() == String.class || fieldInfo.getDataClass() == Date.class ? "'" : "";
         
-        return duplicateNumberStatus;
+        String tableName = tableInfo.getName();
+        String compareColumName = fieldInfo.getColumn();
+        String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s", countColumnName, tableName, compareColumName, quote + fieldValue + quote);
+
+        if (id != null)
+        {
+            sql += " AND " + countColumnName + " <> " + id;
+        }
+
+        String special = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, false);
+        sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
+        
+        log.debug(sql);
+        
+        return BasicSQLUtils.getCount(sql);
     }
 }
