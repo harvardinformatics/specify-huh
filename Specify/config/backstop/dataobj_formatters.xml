@@ -632,6 +632,7 @@
             <fields>
                 <field formatter="PrepType">prepType</field>
                 <field sep=" - ">identifier</field>
+                <field sep=" ">text1</field>
             </fields>
         </switch>
     </format>
