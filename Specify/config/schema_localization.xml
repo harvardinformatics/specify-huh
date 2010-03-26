@@ -319,7 +319,7 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp" isUIFormatter="false" isRequired="true">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
@@ -335,7 +335,7 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
@@ -13941,6 +13941,22 @@
           </str>
         </descs>
       </item>
+      <item name="exchangeNumber">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Exchange Number</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Identifier for the exchange.</text>
+          </str>
+        </descs>
+      </item>
       <item name="modifiedByAgent">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -13958,7 +13974,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Number1</text>
+            <text>Asa ID</text>
           </str>
         </names>
         <descs>
@@ -23813,7 +23829,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
     </names>
     <descs/>
   </container>
-  <container name="preparation" type="" format="Preparation">
+  <container name="preparation" format="Preparation">
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
@@ -24118,7 +24134,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Text1</text>
+            <text>Tag</text>
           </str>
         </names>
         <descs>
