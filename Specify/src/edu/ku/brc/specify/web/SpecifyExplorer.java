@@ -2393,7 +2393,7 @@ public class SpecifyExplorer extends HttpServlet
                         //System.out.println("FMT "+fields.get(0));
                         if (fields.get(0).getType() == UIFieldFormatterField.FieldType.year)
                         {
-                            numLetters = 4;
+                            numLetters = 4; // TODO: 2-char years?
                         }
                         //System.out.println("Found numLetters "+numLetters);
                     }
