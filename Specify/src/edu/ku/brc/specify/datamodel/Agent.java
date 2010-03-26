@@ -1172,8 +1172,8 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
 
         for (AgentVariant variant : getVariants())
         {
-            if (variant.getVarType().equals(AgentVariant.AUTHOR_ABBREV)) return variant.getName();
-            if (variant.getVarType().equals(AgentVariant.AUTHOR)) backupName = variant.getName();
+            if (variant.getVarType().equals(AgentVariant.AUTHOR)) return variant.getName();
+            if (variant.getVarType().equals(AgentVariant.AUTHOR_ABBREV)) backupName = variant.getName();
         }
         
         return backupName;
