@@ -59,7 +59,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
                 {
                     ExchangeOut exchangeOut = new ExchangeOut();
                     
-                    Integer exchangeOutId = getInt("exchangeout", "ExchangeOutID", "Number1", transactionId);
+                    Integer exchangeOutId = getId("exchangeout", "ExchangeOutID", "ExchangeNumber", String.valueOf(transactionId));
                     
                     exchangeOut.setExchangeOutId(exchangeOutId);
                     
@@ -156,7 +156,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
                             "SentToOrganizationID, Text1, Text2, TimestampCreated, TimestampModified, " +
                             "Version, YesNo1, YesNo2";
 
-        String[] values = new String[18];
+        String[] values = new String[17];
 
         values[0]  = SqlUtils.sqlString( exchangeOut.getAgentCatalogedBy().getId());
         values[1]  = SqlUtils.sqlString( exchangeOut.getCreatedByAgent().getId());
@@ -165,17 +165,16 @@ public class OutgoingExchangeLoader extends TransactionLoader
         values[4]  = SqlUtils.sqlString( exchangeOut.getExchangeDate());
         values[5]  = SqlUtils.sqlString( exchangeOut.getExchangeNumber());
         values[6]  = SqlUtils.sqlString( exchangeOut.getModifiedByAgent().getId());
-        values[7]  = SqlUtils.sqlString( exchangeOut.getNumber1());
-        values[8]  = SqlUtils.sqlString( exchangeOut.getRemarks());
-        values[9]  = SqlUtils.sqlString( exchangeOut.getRestrictions());
-        values[10] = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
-        values[11] = SqlUtils.sqlString( exchangeOut.getText1());
-        values[12] = SqlUtils.sqlString( exchangeOut.getText2());
-        values[13] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
-        values[14] = SqlUtils.sqlString( exchangeOut.getTimestampModified());
-        values[15] = SqlUtils.zero();
-        values[16] = SqlUtils.sqlString( exchangeOut.getYesNo1());
-        values[17] = SqlUtils.sqlString( exchangeOut.getYesNo2());
+        values[7]  = SqlUtils.sqlString( exchangeOut.getRemarks());
+        values[8]  = SqlUtils.sqlString( exchangeOut.getRestrictions());
+        values[9]  = SqlUtils.sqlString( exchangeOut.getAgentSentTo().getId());
+        values[10] = SqlUtils.sqlString( exchangeOut.getText1());
+        values[11] = SqlUtils.sqlString( exchangeOut.getText2());
+        values[12] = SqlUtils.sqlString( exchangeOut.getTimestampCreated());
+        values[13] = SqlUtils.sqlString( exchangeOut.getTimestampModified());
+        values[14] = SqlUtils.zero();
+        values[15] = SqlUtils.sqlString( exchangeOut.getYesNo1());
+        values[16] = SqlUtils.sqlString( exchangeOut.getYesNo2());
         
         return SqlUtils.getInsertSql("exchangeout", fieldNames, values);
     }
