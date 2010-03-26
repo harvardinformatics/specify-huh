@@ -13,7 +13,7 @@
 <tableIdMapping>
     <database>
         <table name="edu.ku.brc.specify.datamodel.Accession" abbrev="ac" id="7" workbench="true" searchable="true">
-            <display view="Accession" dataobjformatter="" uiformatter="AccessionNumber" searchdlg="AccessionSearch" newobjdlg="AccessionDisplay"/>
+            <display view="Accession" dataobjformatter="" uiformatter="HUHAccessionNumber" searchdlg="AccessionSearch" newobjdlg="AccessionDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionBusRules</businessrule>        
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionAgent" abbrev="aa" id="12" searchable="true">
@@ -98,7 +98,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObject" abbrev="co" id="1" workbench="true" searchable="true">
             <display view="CollectionObject" dataobjformatter="CollectionObject" searchdlg="CollectionObjectSearch" newobjdlg="CollectionObject"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules</businessrule>          
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHCollectionObjectBusRules</businessrule>         
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttachment" abbrev="coat" id="111" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="CollectionObjectAttachmentDisplay"/>
@@ -161,7 +161,7 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ExchangeInBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOut" abbrev="exo" id="40" searchable="true">
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.ExchangeOutBusRules</businessrule>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" abbrev="eop" id="138" searchable="true">
             <display view="ExchangeOutItems" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>  
@@ -262,7 +262,7 @@
         <table name="edu.ku.brc.specify.datamodel.LithoStratTreeDef" abbrev="lstd" id="101"/>
         <table name="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem" abbrev="lstdi" id="102"/>
         <table name="edu.ku.brc.specify.datamodel.Loan" abbrev="ln" id="52" searchable="true">
-        	<display view="Loan"/>
+        	<display view="Loan" uiformatter="HUHLoanNumber"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanAgent" abbrev="lna" id="53" searchable="true">
@@ -289,17 +289,6 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.LocalityCitation" abbrev="locc" id="57" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.LocalityNameAlias" abbrev="locna" id="120" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.Storage" abbrev="lcn" id="58" searchable="true">
-            <display view="Storage" dataobjformatter="Storage" searchdlg="StorageSearch" newobjdlg="StorageDisplay"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
-            <fieldaliases>
-                <field vname="acceptedParent" aname="acceptedStorage"/>
-            </fieldaliases>                                            
-        </table>
-        <table name="edu.ku.brc.specify.datamodel.StorageTreeDef" abbrev="lntd" id="59"/>
-        <table name="edu.ku.brc.specify.datamodel.StorageTreeDefItem" abbrev="lntdi" id="60">
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
-		</table>
         <table name="edu.ku.brc.specify.datamodel.OtherIdentifier" abbrev="oi" id="61" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.PaleoContext" abbrev="pc" id="32" searchable="true">
             <display view="PaleoContext" dataobjformatter="PaleoContext"  searchdlg="PaleoContextSearch" newobjdlg=""/>            
@@ -319,7 +308,7 @@
             <display view="PickListItem"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Preparation" abbrev="pp" id="63" workbench="true" searchable="true">
-        	<businessrule>edu.ku.brc.specify.datamodel.busrules.PreparationBusRules</businessrule>
+        	<businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules</businessrule>
             <display view="Preparation" searchdlg="PreparationSearch" newobjdlg="PreparationDisplay"/>
 		</table>
         <table name="edu.ku.brc.specify.datamodel.PreparationAttachment" abbrev="ppat" id="117" searchable="true">
@@ -401,9 +390,20 @@
 		
         <!--  Done Internal Specify Tables -->
         
+        <table name="edu.ku.brc.specify.datamodel.Storage" abbrev="lcn" id="58" searchable="true">
+            <display view="Storage" dataobjformatter="Storage" searchdlg="StorageSearch" newobjdlg="StorageDisplay"/>
+            <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
+            <fieldaliases>
+                <field vname="acceptedParent" aname="acceptedStorage"/>
+            </fieldaliases>                                            
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.StorageTreeDef" abbrev="lntd" id="59"/>
+        <table name="edu.ku.brc.specify.datamodel.StorageTreeDefItem" abbrev="lntdi" id="60">
+            <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
+		</table>
         <table name="edu.ku.brc.specify.datamodel.Taxon" abbrev="tx" id="4" workbench="true" searchable="true">
             <display view="Taxon" dataobjformatter="Taxon" searchdlg="TaxonSearch" newobjdlg="TaxonDisplay"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.TaxonBusRules</businessrule>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHTaxonBusRules</businessrule>
             <fieldaliases>
                 <field vname="acceptedParent" aname="acceptedTaxon"/>
             </fieldaliases>                                            

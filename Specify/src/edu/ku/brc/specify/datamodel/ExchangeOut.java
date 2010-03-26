@@ -50,6 +50,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "exchangeout")
 @org.hibernate.annotations.Table(appliesTo="exchangeout", indexes =
     {   @Index (name="ExchangeOutdateIDX", columnNames={"ExchangeDate"}),
+        @Index (name="ExchangeNumberIDX", columnNames={"ExchangeNumber"}),
 		@Index (name="DescriptionOfMaterialIDX", columnNames={"DescriptionOfMaterial"})
 		
     })
@@ -60,6 +61,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     protected Integer         exchangeOutId;
     protected Calendar        exchangeDate;
     protected Short           quantityExchanged;
+    protected String          exchangeNumber;
     protected String          descriptionOfMaterial;
     
     protected String          restrictions;
@@ -104,6 +106,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         
         exchangeOutId    = null;
         exchangeDate     = null;
+        exchangeNumber   = null;
         quantityExchanged = null;
         descriptionOfMaterial = null;
         restrictions     = null;
@@ -192,6 +195,23 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         this.quantityExchanged = quantityExchanged;
     }
 
+    /**
+     * @return the exchange number
+     */
+    @Column(name = "ExchangeNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 16)
+    public String getExchangeNumber()
+    {
+        return exchangeNumber;
+    }
+
+    /**
+     * @param srcGeography the restrictions to set
+     */
+    public void setExchangeNumber(String exchangeNumber)
+    {
+        this.exchangeNumber = exchangeNumber;
+    }
+    
     /**
      * 
      */
