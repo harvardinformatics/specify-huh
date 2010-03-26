@@ -612,7 +612,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                {
                    StringBuilder sb = new StringBuilder(pattern);
                    Calendar cal = Calendar.getInstance();
-                   sb.replace(pos.first, pos.second, Integer.toString(cal.get(Calendar.YEAR)));
+                   sb.replace(pos.first, pos.second, Integer.toString(cal.get(Calendar.YEAR)).substring(4-(pos.second - pos.first), 4));
                    return sb.toString();
                }
            }
@@ -805,7 +805,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                 day    = field;
                 dayInx = inx;
                 
-            } else if (year == null && field.getValue().equals("YYYY"))
+            } else if (year == null && (field.getValue().equals("YYYY") || field.getValue().equals("YY")))
             {
                 year    = field;
                 yearInx = inx;
@@ -818,6 +818,15 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         {
             String val     = text.substring(yearInx, yearInx+year.getSize());
             yearVal = Integer.parseInt(val);
+            
+            if (year.getSize() == 2)
+            {
+                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+                int currentCentury = currentYear - (currentYear % 100);
+                
+                yearVal += currentCentury;
+            }
+
             if (yearVal == 0 || yearVal > 2500)
             {
                 return false;

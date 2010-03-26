@@ -668,8 +668,8 @@ public class UIFormatterEditorDlg extends CustomDialog
                 break;
                 
             case year :
-                currentField.setValue("YEAR");
-                currentField.setSize(4);
+                currentField.setValue(getValueStr(size, 'Y'));
+                currentField.setSize(size);
                 break;
         }
        

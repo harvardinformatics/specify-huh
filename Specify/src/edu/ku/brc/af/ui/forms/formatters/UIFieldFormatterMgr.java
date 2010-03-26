@@ -592,7 +592,6 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
 
             if (type == UIFieldFormatterField.FieldType.year)
             {
-                size = 4;
                 byYear = XMLHelper.getAttr(fldElement, "byyear", false);
             }
 
