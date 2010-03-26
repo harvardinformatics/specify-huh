@@ -2123,6 +2123,7 @@ repositoryagreement.RepositoryAgreementNumber,
                                     pp.Identifier as PrepIdentifier,
                                     ppt.Name,
                                     pp.SampleNumber,
+                                    pp.Text1,
                                     frag.Identifier as FragIdentifier
                                FROM preparation pp JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID LEFT JOIN fragment frag on pp.PreparationID=frag.PreparationID
                               WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier]]>
@@ -2132,6 +2133,7 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="63" name="Identifier" col="preparation.Identifier"/>
                     <caption tableid="65" name="Name" col="prepType.Name"/>
                     <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
+                    <caption tableid="63" name="Text1" col="preparation.Text1"/>
                     <caption tableid="142" name="Identifier" col="fragment.Identifier"/>
                 </captions>
             </detailView>

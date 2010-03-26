@@ -749,7 +749,7 @@ Good: <cell type="field" name="FieldNum" ...>
             <enableRules/>
             
             <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
             
             <rows>
                 <row>
@@ -768,8 +768,12 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="field" id="3" name="preparation.SampleNumber" uitype="text"/>
                 </row>
                 <row>
+                    <cell type="label" label="Tag:" />
+                    <cell type="field" id="4" name="preparation.Text1" uitype="text"/>
+                </row>
+                <row>
                     <cell type="label" label="Item Barcode:" />
-                    <cell type="field" id="4" name="fragment.Identifier" uitype="text"/>
+                    <cell type="field" id="5" name="fragment.Identifier" uitype="text"/>
                 </row>
             </rows>
         </viewdef>  
