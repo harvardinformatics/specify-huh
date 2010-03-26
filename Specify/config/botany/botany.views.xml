@@ -586,7 +586,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="identifier"/>
-                    <cell type="field" id="identifier" name="identifier" uitype="formattedtext" uifieldformatter="FragmentIdentifier" isrequired="false"/>
+                    <cell type="field" id="identifier" name="identifier" uitype="formattedtext" isrequired="false"/>
                     <cell type="label" labelfor="herbarium"/>
                 	<cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
 					<cell type="label" label=" "/>
@@ -634,11 +634,11 @@
                 </row>
                 <row>
 					<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" isrequired="true"/>                    
-					<cell type="label" labelfor="prepMethod"/>
-                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" isrequired="true" colspan="3"/>
                 </row>
                 <row>
+	                <cell type="label" labelfor="prepMethod"/>
+                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method"/>
                 	<cell type="label" labelfor="phenology"/>
                     <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
                     <cell type="label" labelfor="sex"/>
@@ -724,7 +724,7 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="identifier"/>
-                	<cell type="field" id="identifier" uitype="text" name="identifier"/>
+                	<cell type="field" id="identifier" uitype="formattedtext" name="identifier"/>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
                     <cell type="label" label=" "/>
@@ -735,8 +735,13 @@
                 	<cell type="field" id="itemNo" name="sampleNumber" uitype="text" default="1"/>
                 	<cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="countAmt" uitype="text" default="1"/>
+					<cell type="label" labelfor="tag"/>
+                	<cell type="field" id="tag" name="text1" uitype="text" colspan="3"/>
                 </row>
-
+				<row>
+					<cell type="label" labelfor="parent"/>
+					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation" isrequired="false" colspan="5"/>
+				</row>
                 <row>
                 	<cell type="label" labelfor="storage"/>
                 	<cell type="field" id="storage" uitype="querycbx" initialize="name=Storage" colspan="8"/>
