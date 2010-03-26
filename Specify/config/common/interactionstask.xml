@@ -88,7 +88,7 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="exchangein" table="exchangein" view="ExchangeIn" type="Interactions" action="OpenNewView" icon="ExchangeIn" isonleft="true" 
+  <entry name="exchangein" table="exchangein" view="ExchangeIn" type="Interactions" action="OpenNewView" icon="ExchangeIn" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="true" tooltip="">
     <draggableFlavors/>
     <droppableFlavors>
