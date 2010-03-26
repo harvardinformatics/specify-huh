@@ -280,7 +280,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 {
                     if (barcode == null)
                     {
-                        throw new LocalException("Null barcode");
+                        return null;
                     }
                     
                     try
@@ -297,7 +297,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 {
                     if (barcode == null)
                     {
-                        throw new LocalException("Null barcode");
+                        return null;
                     }
                     
                     try
@@ -316,7 +316,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 {                    
                     String sql = "select p.PreparationID from preparation p left join " +
                                  "fragment f on p.PreparationID=f.PreparationID " +
-                                 "where f.CatalogNumber=\"" + barcode + "\"";
+                                 "where f.Identifier=\"" + barcode + "\"";
                     
                     Integer preparationId = getInt(sql);
                     
@@ -779,13 +779,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    fragment.setDistribution(distribution);
 	    
 	    // Identifier (barcode)
-        String catalogNumber = null;
         Integer barcode = specimenItem.getBarcode();
+        String identifier = getPreparationLookup().formatCollObjBarcode(barcode);
+        
+        if (identifier == null) getLogger().warn(rec() + "Null barcode");
 
-        if (barcode != null) getPreparationLookup().formatCollObjBarcode(barcode);
-        else getLogger().warn(rec() + "Null barcode");
-
-        fragment.setIdentifier(catalogNumber);
+        fragment.setIdentifier(identifier);
         
 	    // Number1 (replicates)
 	    Integer replicates = specimenItem.getReplicates();
@@ -1342,6 +1341,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getPrepMethod(SpecimenItem specimenItem) throws LocalException
 	{
         FORMAT format = specimenItem.getFormat();
+        if (format == null) return null;
+        
         String location = specimenItem.getLocation() != null ? specimenItem.getLocation().toLowerCase() : null;
         
         PREP_METHOD prepMethod = null;
