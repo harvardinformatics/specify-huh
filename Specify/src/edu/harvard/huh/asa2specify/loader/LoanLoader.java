@@ -49,7 +49,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private final static Pattern YY_DASH_NUMBER_20XX     = Pattern.compile("^(0\\d)-(\\d\\d\\d\\d\\d?)$");
     private final static Pattern NUMBER                  = Pattern.compile("^(\\d+)$");
     
-    private final static String LOAN_NO_FMT = "000000";
+    private final static String LOAN_NO_FMT = "00000";
     
     private AsaStringMapper nameToBotanistMapper;
     private BotanistLookup botanistLookup;
