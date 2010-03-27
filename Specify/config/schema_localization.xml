@@ -20324,7 +20324,7 @@
         </names>
         <descs/>
       </item>
-      <item name="purposeOfLoan">
+      <item name="purposeOfLoan" type="java.lang.String" pickListName="HUH Transaction Purpose">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -20612,7 +20612,7 @@
           </str>
         </descs>
       </item>
-      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="LoanAgentRole" isRequired="true">
+      <item name="role" type="java.lang.String" isUIFormatter="false" pickListName="HUH Transaction Role" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
