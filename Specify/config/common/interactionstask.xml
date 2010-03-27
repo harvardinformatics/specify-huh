@@ -10,7 +10,7 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="permit" table="permit" view="Permit" type="Interactions" action="OpenNewView" icon="Permit" isonleft="true" 
+  <entry name="permit" table="permit" view="Permit" type="Interactions" action="OpenNewView" icon="Permit" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="true" tooltip="">
     <draggableFlavors/>
     <droppableFlavors>
@@ -21,7 +21,7 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="loan" table="loan" view="Loan" type="Interactions" action="NEW_LOAN" icon="Loan" isonleft="true" 
+  <entry name="loan" table="loan" view="Loan" type="Interactions" action="LN_NO_PRP" icon="Loan" isonleft="true" 
          issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.NEW_LN">
     <draggableFlavors/>
     <droppableFlavors>
@@ -52,7 +52,7 @@
       </flavor>
     </droppableFlavors>
   </entry>  
-  <entry name="loan" table="loan" view="Loan" label="LOAN_NO_PRP" type="Interactions" action="LN_NO_PRP" icon="Loan" isonleft="true" 
+  <entry name="loan" table="loan" view="Loan" label="LOAN_NO_PRP" type="Interactions" action="LN_NO_PRP" icon="Loan" isonleft="false" 
          issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.LN_NO_PREP">
     <draggableFlavors/>
     <droppableFlavors/>
@@ -121,7 +121,7 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="inforequest" table="inforequest" type="Interactions" action="Specify Info Request" icon="InfoRequest" isonleft="true" 
+  <entry name="inforequest" table="inforequest" type="Interactions" action="Specify Info Request" icon="InfoRequest" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="true" tooltip="InteractionsTask.CRE_IR">
     <draggableFlavors/>
     <droppableFlavors>
@@ -141,7 +141,7 @@
     </droppableFlavors>
   </entry>
   <entry name="repositoryagreement" table="repositoryagreement" view="RepositoryAgreement" type="Interactions" action="OpenNewView" icon="RepositoryAgreement" 
-         issrchsrv="true" isonleft="true" order="0" enabled="true" visible="true" tooltip="">
+         issrchsrv="true" isonleft="false" order="0" enabled="true" visible="true" tooltip="">
     <draggableFlavors/>
     <droppableFlavors>
       <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">

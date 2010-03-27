@@ -96,7 +96,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                 if (newBtn != null)
                 {
                     // Remove all ActionListeners, there should only be one
-                    for (ActionListener al : newBtn.getActionListeners())
+                    /*for (ActionListener al : newBtn.getActionListeners())
                     {
                         newBtn.removeActionListener(al);
                     }
@@ -123,7 +123,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                                 CommandDispatcher.dispatch(new CommandAction(LoanBusRules.CMDTYPE, LoanBusRules.ADD_TO_LOAN, loanMV.getCurrentViewAsFormViewObj().getCurrentDataObj()));
                             }
                         }
-                    });
+                    });*/
                 }
             }
             
@@ -188,7 +188,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
             if (newBtn != null)
             {
                 // Remove all ActionListeners, there should only be one
-                for (ActionListener al : newBtn.getActionListeners())
+                /*for (ActionListener al : newBtn.getActionListeners())
                 {
                     newBtn.removeActionListener(al);
                 }
@@ -203,7 +203,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                             CommandDispatcher.dispatch(new CommandAction(LoanBusRules.CMDTYPE, LoanBusRules.ADD_TO_LOAN, loanMV.getCurrentViewAsFormViewObj().getCurrentDataObj()));
                         }
                     }
-                });
+                });*/
             }
         }
     }
