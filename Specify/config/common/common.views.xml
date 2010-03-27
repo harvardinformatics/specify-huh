@@ -2683,7 +2683,7 @@
                     <cell type="subview" viewname="Shipment" id="11" name="shipments" colspan="15"/>
                 </row>
                 <row>
-                     <cell type="subview" viewname="LoanItems" id="10" name="loanPreparations" defaulttype="table" colspan="15" rows="4"/>
+                     <cell type="subview" viewname="LoanItems" id="10" name="loanPreparations" colspan="15" rows="4"/>
                 </row>
                 <!-- <row>
                     <cell type="panel" id="17" name="srcPanel" coldef="130px,2px,p:g,5px,130px,2px,p:g" rowdef="p" colspan="14">
@@ -2734,10 +2734,10 @@
             <desc><![CDATA[The loan form.]]></desc>
             <enableRules/>
 
-            <columnDef>105px,2px,200px,5px,103px,2px,150px,p:g</columnDef>
-            <columnDef os="lnx">115px,2px,230px,5px,73px,2px,155px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,215px,5px,80px,2px,165px,433px,p:g</columnDef>
-            <columnDef os="exp">p,2px,p,5px,100px,2px,max(p;150px),p:g</columnDef>
+            <columnDef>         105px, 2px, 200px, 5px, 103px, 2px, 150px,   p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 300px, 5px,  73px, 2px, 155px,   p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px, 433px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px, 100px, 2px, max(p;150px), p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
             <rows>
@@ -2746,7 +2746,7 @@
                     <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Agent"/>
 
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="role" uitype="combobox" />
+                    <cell type="field" id="2" name="role" uitype="combobox" picklist="HUH Transaction Role"/>
                 </row>
             </rows>
         </viewdef>
@@ -2770,24 +2770,26 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Loan viewing form.]]></desc>
             
-            <columnDef>         105px, 2px, 152px, 5px, 130px, 2px, 105px, 5px, 105px, 2px, 115px, 15px, 115px, 2px, 100px, 2px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 184px, 5px, 115px, 2px, 137px, 5px, 115px, 2px, 147px, 15px, 125px, 2px, 117px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 130px, 2px, 155px, 15px, 140px, 2px, 125px, 2px, p:g</columnDef>
-            <columnDef os="exp">p,     2px, 152px, 5px:g,   p, 2px,     p, 5px:g,   p, 2px, 115px, 15px,    p,  2px,     p, 2px, p:g</columnDef>
+            <columnDef>         105px, 2px, 152px, 5px, 130px, 2px, 105px, 25px, 105px, 2px, 115px, 2px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 200px, 5px, 115px, 2px, 137px, 25px, 130px, 2px, 147px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 25px, 130px, 2px, 155px, 2px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, 152px, 5px:g,   p, 2px,     p, 25px:g,   p, 2px, 115px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
                 <row>
-                	<cell type="label" label=" "/>
-                	<!-- <cell type="subview" id="loanFragments" viewname="PreparationItem" name="preparation.fragments"/>  -->
+                	<cell type="label" labelfor="preparation"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation"/>
                     <cell type="label" labelfor="2" label="Preparation Type"/>
                     <cell type="field" id="2" name="preparation.prepType.name" uitype="dsptextfield" readonly="true"/>
-                    <cell type="label" labelfor="5" />
-                    <cell type="field" id="5" name="preparation.countAmt" uitype="dsptextfield"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="srcTaxonomy"/>
-                    <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text" readonly="true"/>
+                	<cell type="label" labelfor="higherTaxon"/>
+                    <cell type="field" id="higherTaxon" name="higherTaxon" uitype="text"/>
+					<cell type="label" labelfor="srcTaxonomy"/>
+                    <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=5000" />
                     <cell type="label" labelfor="typeCount"/>
@@ -2801,14 +2803,12 @@
                     <cell type="field" id="7" name="quantityReturned" uitype="dsptextfield"/>
                     <cell type="label" labelfor="10"/>
                     <cell type="field" id="10" name="quantityResolved" uitype="dsptextfield"/>
-                    <cell type="label" label=" "/>
-					<cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation"/>
-					<cell type="label" label=" "/>
-					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
+                    <cell type="field" id="8" name="isResolved" uitype="checkbox"/>
+					<cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation"/>					
                 </row>
                 <row>
                     <cell type="label" labelfor="3" />
-                    <cell type="field" id="3" name="descriptionOfMaterial" uitype="text" colspan="13"/>
+                    <cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="11"/>
                 </row>
             </rows>
         </viewdef>
