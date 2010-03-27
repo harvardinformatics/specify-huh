@@ -56,6 +56,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "loan")
 @org.hibernate.annotations.Table(appliesTo="loan", indexes =
     {   @Index (name="LoanNumberIDX", columnNames={"LoanNumber"}),
+        @Index (name="SrcGeographyIDX", columnNames={"SrcGeography"}),
         @Index (name="LoanDateIDX", columnNames={"LoanDate"}),
         @Index (name="CurrentDueDateIDX", columnNames={"CurrentDueDate"})
     })
