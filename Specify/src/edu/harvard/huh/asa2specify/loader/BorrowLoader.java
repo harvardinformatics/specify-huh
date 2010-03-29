@@ -224,7 +224,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         
         // Text2 (local unit)
         String localUnit = asaBorrow.getLocalUnit();
-        borrow.setText1(localUnit);
+        borrow.setText2(localUnit);
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaBorrow.isAcknowledged();
