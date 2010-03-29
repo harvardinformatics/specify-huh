@@ -96,7 +96,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                 if (newBtn != null)
                 {
                     // Remove all ActionListeners, there should only be one
-                    /*for (ActionListener al : newBtn.getActionListeners())
+                    for (ActionListener al : newBtn.getActionListeners())
                     {
                         newBtn.removeActionListener(al);
                     }
@@ -123,7 +123,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                                 CommandDispatcher.dispatch(new CommandAction(LoanBusRules.CMDTYPE, LoanBusRules.ADD_TO_LOAN, loanMV.getCurrentViewAsFormViewObj().getCurrentDataObj()));
                             }
                         }
-                    });*/
+                    });
                 }
             }
             
@@ -188,7 +188,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
             if (newBtn != null)
             {
                 // Remove all ActionListeners, there should only be one
-                /*for (ActionListener al : newBtn.getActionListeners())
+                for (ActionListener al : newBtn.getActionListeners())
                 {
                     newBtn.removeActionListener(al);
                 }
@@ -203,7 +203,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                             CommandDispatcher.dispatch(new CommandAction(LoanBusRules.CMDTYPE, LoanBusRules.ADD_TO_LOAN, loanMV.getCurrentViewAsFormViewObj().getCurrentDataObj()));
                         }
                     }
-                });*/
+                });
             }
         }
     }
@@ -212,7 +212,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
      * @param obj data val object (might be null)
      * @return the value or zero for null
      */
-    private int getInt(final Object obj)
+    protected int getInt(final Object obj)
     {
         if (obj instanceof Integer)
         {
@@ -331,10 +331,10 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
      * @param qtyResolved
      * @param resolvedChkBx
      */
-    private void quantitiesChanged(final ValSpinner  quantity, 
-                                   final int         quantityReturned,
-                                   final ValSpinner  qtyResolved,
-                                   final ValCheckBox resolvedChkBx)
+    protected void quantitiesChanged(final ValSpinner  quantity, 
+                                     final int         quantityReturned,
+                                     final ValSpinner  qtyResolved,
+                                     final ValCheckBox resolvedChkBx)
     {
         int qty    = (Integer)quantity.getValue();
         int qtyRes = (Integer)qtyResolved.getValue();
