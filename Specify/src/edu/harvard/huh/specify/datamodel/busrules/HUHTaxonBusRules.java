@@ -64,9 +64,9 @@ public class HUHTaxonBusRules extends TaxonBusRules
     protected final static String NAME = "name";
 
     // There are separate FormViewObj objects for view mode and edit mode.
-    // The parent class sets the global var formViewObj to the oneused during bus rules initialization.
+    // The parent class sets the global var formViewObj to the one used during bus rules initialization.
     // However, the "current" form view changes when the mode changes. This makes label lookup by component
-    // problematic because different form views may have createddifferent components out of the same form
+    // problematic because different form views may have created different components out of the same form
     // cell def.  So if you call this.formViewObj.getLabelFor(comp),you might be asking that formViewObj
     // about a component it knows nothing about.
     private FormViewObj editViewObj;
