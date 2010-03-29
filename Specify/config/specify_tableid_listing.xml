@@ -232,7 +232,8 @@
             <display view="GiftAgent" newobjdlg="GiftAgentDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GiftPreparation" abbrev="gfa" id="132" searchable="true">
-            <display view="GiftItems" dataobjformatter="GiftPreparation" newobjdlg="GiftItemsDisplay"/>  
+            <display view="GiftItems" dataobjformatter="GiftPreparation" newobjdlg="GiftItemsDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHGiftPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GroupPerson" abbrev="gp" id="49" searchable="true">
         	<display view="GroupPerson" dataobjformatter="GroupPerson" newobjdlg="GroupPersonDisplay"/>
@@ -274,6 +275,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanPreparation" abbrev="lpo" id="54" searchable="true">
             <display view="LoanItems" dataobjformatter="LoanPreparation" newobjdlg="LoanItemsDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHLoanPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanReturnPreparation" abbrev="lrpo" id="55" searchable="true">
             <!-- <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanReturnPreparationBusRules</businessrule>    -->        

@@ -485,7 +485,7 @@
         <view name="GiftItems"
             objtitle="Gift Items"
             class="edu.ku.brc.specify.datamodel.GiftPreparation"
-            busrules="edu.ku.brc.specify.datamodel.busrules.GiftPreparationBusRules"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHGiftPreparationBusRules"
             resourcelabels="false">
             <desc><![CDATA[Gift display form]]></desc>
             <altviews>
@@ -534,7 +534,7 @@
         <view name="LoanItems"
             objtitle="Loan Items"
             class="edu.ku.brc.specify.datamodel.LoanPreparation"
-            busrules="edu.ku.brc.specify.datamodel.busrules.LoanPreparationBusRules"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHLoanPreparationBusRules"
             resourcelabels="false">
             <desc><![CDATA[Loan display form]]></desc>
             <altviews>
@@ -2734,9 +2734,9 @@
             <desc><![CDATA[The loan form.]]></desc>
             <enableRules/>
 
-            <columnDef>         105px, 2px, 200px, 5px, 103px, 2px, 150px,   p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 300px, 5px,  73px, 2px, 155px,   p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px, 433px, p:g</columnDef>
+            <columnDef>         105px, 2px, 200px, 5px, 103px, 2px, 150px, 5px, 103px, 2px, 150px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 300px, 5px,  73px, 2px, 155px, 5px,  73px, 2px, 155px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px, 5px,  80px, 2ps, 165px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px, 100px, 2px, max(p;150px), p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
@@ -2744,7 +2744,8 @@
                 <row>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Agent"/>
-
+					<cell type="label" labelfor="acronym"/>
+					<cell type="field" id="acronym" name="agent.abbreviation" uitype="dsptextfield"/>
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="role" uitype="combobox" picklist="HUH Transaction Role"/>
                 </row>
@@ -2779,15 +2780,13 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation"/>
-                    <cell type="label" labelfor="2" label="Preparation Type"/>
-                    <cell type="field" id="2" name="preparation.prepType.name" uitype="dsptextfield" readonly="true"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation"  colspan="3"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="higherTaxon"/>
                     <cell type="field" id="higherTaxon" name="higherTaxon" uitype="text"/>
 					<cell type="label" labelfor="srcTaxonomy"/>
-                    <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text"/>
+                    <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text" colspan="6"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -2821,10 +2820,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[LoanReturnPreparation viewing form.]]></desc>
-            <columnDef>102px,2px,80px,5px,120px,2px,80px,0px:g,f:p:g</columnDef>
-            <columnDef os="lnx">115px,2px,80px,5px,120px,2px,80px,0px:g,f:p:g</columnDef>
-            <columnDef os="mac">130px,2px,100px,5px,150px,2px,100px,0px:g,f:p:g</columnDef>
-            <columnDef os="exp">p,2px,100px,5px,p,2px,100px,0px:g,f:p:g</columnDef>
+            <columnDef>         102px, 2px,  80px, 5px, 120px, 2px,  80px, 0px:g, f:p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 100px, 5px, 120px, 2px,  80px, 0px:g, f:p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 100px, 5px, 150px, 2px, 100px, 0px:g, f:p:g</columnDef>
+            <columnDef os="exp">p,     2px, 100px, 5px,     p, 2px, 100px, 0px:g, f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             <rows>
                 <row>
