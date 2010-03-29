@@ -113,7 +113,6 @@ import edu.ku.brc.specify.datamodel.RepositoryAgreement;
 import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.SpAppResource;
 import edu.ku.brc.specify.datamodel.SpReport;
-import edu.ku.brc.specify.datamodel.busrules.GiftBusRules;
 import edu.ku.brc.specify.datamodel.busrules.LoanBusRules;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
 import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader;
@@ -1922,46 +1921,6 @@ public class InteractionsTask extends BaseTask
         }
     }
     
-    /**
-     * 
-     */
-    protected void createGiftNoPreps(final Viewable srcViewable)
-    {
-        Gift gift = new Gift();
-        gift.initialize();
-                
-        Shipment shipment = new Shipment();
-        shipment.initialize();
-        
-        gift.addReference(shipment, "shipments");
-        
-        if (srcViewable != null)
-        {
-            srcViewable.setNewObject(gift);
-            
-        } else
-        {
-            DataEntryTask dataEntryTask = (DataEntryTask)TaskMgr.getTask(DataEntryTask.DATA_ENTRY);
-            if (dataEntryTask != null)
-            {
-                DBTableInfo loanTableInfo = DBTableIdMgr.getInstance().getInfoById(gift.getTableId());
-                FormPane formPane = dataEntryTask.openView(this, null, loanTableInfo.getDefaultFormName(), "edit", gift, true);
-                if (formPane != null)
-                {
-                    MultiView mv = formPane.getMultiView();
-                    if (mv != null)
-                    {
-                        FormViewObj fvo = mv.getCurrentViewAsFormViewObj();
-                        if (fvo != null && fvo.getBusinessRules() != null && fvo.getBusinessRules() instanceof LoanBusRules)
-                        {
-                           // ((GiftBusRules)fvo.getBusinessRules()).setDoCreateLoanNoPreps(true);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#subPaneRemoved(edu.ku.brc.af.core.SubPaneIFace)
      */
@@ -2193,8 +2152,7 @@ public class InteractionsTask extends BaseTask
                         
                     } else
                     {
-                        //giftProcessor.createOrAdd();
-                        createGiftNoPreps(null);
+                        giftProcessor.createOrAdd();
                     }
                 }
                 
