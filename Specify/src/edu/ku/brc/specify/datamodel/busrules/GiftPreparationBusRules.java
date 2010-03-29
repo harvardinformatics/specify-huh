@@ -71,7 +71,7 @@ public class GiftPreparationBusRules extends BaseBusRules implements CommandList
         if (newBtn != null)
         {
             // Remove all ActionListeners, there should only be one
-            /*for (ActionListener al : newBtn.getActionListeners())
+            for (ActionListener al : newBtn.getActionListeners())
             {
                 newBtn.removeActionListener(al);
             }
@@ -101,7 +101,7 @@ public class GiftPreparationBusRules extends BaseBusRules implements CommandList
                         CommandDispatcher.dispatch(new CommandAction(GiftBusRules.CMDTYPE, "AddToGift", giftMV.getCurrentViewAsFormViewObj().getCurrentDataObj()));
                     }
                 }
-            });*/
+            });
         }
     }
     
