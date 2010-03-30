@@ -26,7 +26,7 @@ public abstract class InGeoBatchTransactionLoader extends CountableTransactionLo
 {
     private final static Pattern NUMBER  = Pattern.compile("^(A|FH|GH)-(\\d+)$");
     
-    private final static String ACC_NO_FMT = "000000";
+    private final static String ACC_NO_FMT = "00000";
 
     public InGeoBatchTransactionLoader(File csvFile,
                                        Statement sqlStatement,
