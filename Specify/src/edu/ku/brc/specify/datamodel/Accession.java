@@ -55,6 +55,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "accession")
 @org.hibernate.annotations.Table(appliesTo="accession", indexes =
     {   @Index (name="AccessionNumberIDX", columnNames={"AccessionNumber"}),
+        @Index (name="AltAccessionNumberIDX", columnNames={"AltAccessionNumber"}),
         @Index (name="AccessionDateIDX", columnNames={"DateAccessioned"})
     })
 public class Accession extends DataModelObjBase implements java.io.Serializable, AttachmentOwnerIFace<AccessionAttachment> {
