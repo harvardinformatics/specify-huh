@@ -194,10 +194,11 @@ public class OutgoingGiftLoader extends TransactionLoader
     private String getInsertSql(Gift gift)
     {
         String fieldNames = "CreatedByAgentID, DisciplineID, GiftDate, GiftNumber, " +
-        		            "ModifiedByAgentID, Number1, PurposeOfGift, Remarks, Text1, " +
-        		            "Text2, TimestampCreated, TimestampModified, Version, YesNo1";
+        		            "ModifiedByAgentID, Number1, PurposeOfGift, Remarks, " +
+        		            "SpecialConditions, Text1, Text2, TimestampCreated, " +
+        		            "TimestampModified, Version, YesNo1";
 
-        String[] values = new String[14];
+        String[] values = new String[15];
 
         values[0]  = SqlUtils.sqlString( gift.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( gift.getDiscipline().getId());
@@ -207,12 +208,13 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[5]  = SqlUtils.sqlString( gift.getNumber1());
         values[6]  = SqlUtils.sqlString( gift.getPurposeOfGift());
         values[7]  = SqlUtils.sqlString( gift.getRemarks());
-        values[8]  = SqlUtils.sqlString( gift.getText1());
-        values[9]  = SqlUtils.sqlString( gift.getText2());
-        values[10] = SqlUtils.sqlString( gift.getTimestampCreated());
-        values[11] = SqlUtils.sqlString( gift.getTimestampModified());
-        values[12] = SqlUtils.zero();
-        values[13] = SqlUtils.sqlString( gift.getYesNo1());
+        values[8]  = SqlUtils.sqlString( gift.getSpecialConditions());
+        values[9]  = SqlUtils.sqlString( gift.getText1());
+        values[10] = SqlUtils.sqlString( gift.getText2());
+        values[11] = SqlUtils.sqlString( gift.getTimestampCreated());
+        values[12] = SqlUtils.sqlString( gift.getTimestampModified());
+        values[13] = SqlUtils.zero();
+        values[14] = SqlUtils.sqlString( gift.getYesNo1());
         
         return SqlUtils.getInsertSql("gift", fieldNames, values);
     }
