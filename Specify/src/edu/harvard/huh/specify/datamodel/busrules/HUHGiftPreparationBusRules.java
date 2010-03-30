@@ -21,6 +21,7 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.specify.datamodel.GiftPreparation;
 import edu.ku.brc.specify.datamodel.busrules.GiftPreparationBusRules;
 import edu.ku.brc.ui.CommandListener;
 
@@ -53,6 +54,18 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
         if (viewable instanceof FormViewObj)
         {
             formViewObj = (FormViewObj)viewable;
+        }
+    }
+    
+    @Override
+    public void afterFillForm(Object dataObj)
+    {
+        if (dataObj != null && dataObj instanceof GiftPreparation)
+        {
+            GiftPreparation giftPrep = (GiftPreparation) dataObj;
+            
+            if (giftPrep.getTypeCount() == null) giftPrep.setTypeCount(0);
+            if (giftPrep.getNonSpecimenCount() == null) giftPrep.setNonSpecimenCount(0);
         }
     }
 }
