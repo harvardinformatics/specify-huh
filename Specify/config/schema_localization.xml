@@ -13957,6 +13957,17 @@
           </str>
         </descs>
       </item>
+      <item name="exchangeOutPreparations">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Exchange Out Preparations</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="modifiedByAgent">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -14193,6 +14204,175 @@
       <str language="en" country="" variant="">
         <version>0</version>
         <text>Describes an outgoing Exchanged Specimen to a different institution.</text>
+      </str>
+    </descs>
+  </container>
+  <container name="exchangeoutpreparation">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Geography</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="discipline" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <isSystem>false</isSystem>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Discipline</text>
+            <itemName reference="../../.."/>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="exchangeOut">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Exchange Out</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="inComments">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>In Comments</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="modifiedByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="outComments">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Out Comments</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="preparation">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Preparation</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="quantity" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Quantity</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Number of preparations included in the exchange.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="receivedComments">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Received Comments</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="timestampCreated">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="timestampModified">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en">
+        <version>0</version>
+        <text>Exchange Out Preparation</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Points an exchange out to a preparation.</text>
       </str>
     </descs>
   </container>
