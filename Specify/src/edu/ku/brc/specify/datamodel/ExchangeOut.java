@@ -79,6 +79,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
     protected AddressOfRecord addressOfRecord;
     protected Agent           agentSentTo;
     protected Agent           agentCatalogedBy;
+    protected Set<ExchangeOutPreparation> exchangeOutPreparations;
     protected Set<Shipment>   shipments;
     protected Division        division;
 
@@ -122,6 +123,7 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         addressOfRecord  = null;
         agentSentTo      = null;
         agentCatalogedBy = null;
+        exchangeOutPreparations = new HashSet<ExchangeOutPreparation>();
         shipments        = new HashSet<Shipment>();
         division         = null;
     }
@@ -406,6 +408,19 @@ public class ExchangeOut extends DataModelObjBase implements java.io.Serializabl
         this.agentCatalogedBy = agentCatalogedBy;
     }
 
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "exchangeOut")
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
+    public Set<ExchangeOutPreparation> getExchangeOutPreparations() {
+        return this.exchangeOutPreparations;
+    }
+    
+    public void setExchangeOutPreparations(Set<ExchangeOutPreparation> exchangeOutPreparations) {
+        this.exchangeOutPreparations = exchangeOutPreparations;
+    }
+    
     /**
      *      * Shipment information for the exchange
      */
