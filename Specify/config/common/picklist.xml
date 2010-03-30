@@ -201,8 +201,9 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
-  <picklist name="HUH Accession Type" issystem="true" type="0" readonly="true" sizelimit="5">
+  <picklist name="HUH Accession Type" issystem="true" type="0" readonly="true" sizelimit="6">
     <items>
+      <picklistitem title="Incoming Exchange" value="Exchange"/>
       <picklistitem title="Gift" value="Gift"/>
       <picklistitem title="Collection" value="Collection"/>
       <picklistitem title="Field Work" value="FieldWork"/>
@@ -412,10 +413,11 @@
       <picklistitem title="for exhibition" value="ForExhibition"/>
     </items>
   </picklist>
-    <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="13">
+    <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="14">
     <items>
       <picklistitem title="Borrower" value="Borrower"/>
       <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Collector" value="Collector"/>
       <picklistitem title="Contact" value="Contact"/>
       <picklistitem title="Contributor" value="Contributor"/>
       <picklistitem title="Donor" value="Donor"/>
@@ -423,7 +425,7 @@
       <picklistitem title="Lender" value="Lender"/>
       <picklistitem title="Other" value="Other"/>
       <picklistitem title="Preparer" value="Preparer"/>
-      <picklistitem title="Receiver" value="Receiver"/>
+      <picklistitem title="Recipient" value="Receiver"/>
       <picklistitem title="Sponsor" value="Sponsor"/>
       <picklistitem title="Staff" value="Staff"/>
       <picklistitem title="Student" value="Student"/>
