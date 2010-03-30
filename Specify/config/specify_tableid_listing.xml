@@ -164,7 +164,8 @@
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" abbrev="eop" id="138" searchable="true">
-            <display view="ExchangeOutItems" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>  
+            <display view="ExchangeOutItems" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutPreparationBusRules</businessrule> 
         </table>
         <table name="edu.ku.brc.specify.datamodel.Exsiccata" abbrev="exsic" id="89" searchable="true">
         	<display view="Exsiccata" dataobjformatter="" searchdlg="ExsiccataSearch" newobjdlg="ExsiccataDisplay"/>
