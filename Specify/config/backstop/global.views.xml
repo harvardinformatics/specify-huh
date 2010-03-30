@@ -66,6 +66,18 @@
             </altviews>
         </view>
 
+		<view name="AffiliateAgent"
+            objtitle="Affiliate"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Form for agent data entry related to curators.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="AffiliateAgent View" title="AffiliateAgent" viewdef="AffiliateAgent" mode="view" validated="false"/>
+                <altview name="AffiliateAgent Edit" title="AffiliateAgent" viewdef="AffiliateAgent" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
 		<view name="Botanist"
 		    objtitle="Botanist"
             class="edu.ku.brc.specify.datamodel.Agent"
@@ -750,8 +762,8 @@
         </viewdef>
         
         <viewdef
-            type="formtable"
             name="AgentSpecialty Table"
+            type="formtable"
             class="edu.ku.brc.specify.datamodel.AgentSpecialty"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
@@ -942,6 +954,39 @@
         </viewdef>
         
         <viewdef
+            name="AffiliateAgent"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Form for data entry of curators.]]></desc>
+
+            <columnDef>          80px, 2px, 150px,        5px,   80px, 5px,  80px, p:g</columnDef>
+            <columnDef os="lnx"> 80px, 2px, 160px,        5px,   80px, 5px,  95px, p:g</columnDef>
+            <columnDef os="mac"> 80px, 2px, 190px,        5px,   80px, 5px, 100px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, max(p;160px), 5px:g, 80px, 5px,     p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles"/>
+                </row>
+                <row>
+	                <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="firstName" uitype="text"/>
+                	<cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="lastName" uitype="text"/>
+                </row>
+                <!-- "Job Title:" -->
+                <row>
+                	<cell type="label" labelfor="14" />
+                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="5" />
+                </row>
+	    	</rows>
+        </viewdef>
+        
+        <viewdef
             name="Botanist"
             type="form"
             class="edu.ku.brc.specify.datamodel.Agent"
@@ -1033,21 +1078,23 @@
                 <row>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles" colspan="3"/>
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
                     <cell type="label" labelfor="0"/>
                     <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
                 </row>
                 <row>
+	                <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
                 	<cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
-                    <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
                 </row>
                 <!-- "Job Title:" -->
                 <row>
                 	<cell type="label" labelfor="14" />
-                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="9" />
+                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="3" />
+                	<cell type="label" labelfor="organization"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
                 </row>
                 <!-- "URL:" -->
                 <row>
@@ -1058,12 +1105,6 @@
                 	<cell type="label" labelfor="7"/>
                 	<cell type="field" id="7" name="email" uitype="text" colspan="9" cols="32"/>
                     <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=7"/>
-                </row>
-                
-                <!-- Parent Organization -->
-                <row>
-                	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
                 </row>
 
 				<!-- Interests -->
@@ -1184,7 +1225,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=Agent;title=Agent" />
+                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=Botanist"/>
                 </row>              
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1208,7 +1249,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=Agent;title=Agent" />
+                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=Botanist" />
                 </row>              
                 <row>
                     <cell type="label" labelfor="3"/>
@@ -1244,10 +1285,16 @@
             
             <rows>
                 <row>
+	                <cell type="label" label=" "/>
+                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="1" name="isPrimary" uitype="checkbox"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="isShipping" name="isShipping" uitype="checkbox"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="positionHeld"/>
+                    <cell type="field" id="positionHeld" name="positionHeld" uitype="text" colspan="6" />
                 </row>
                 <row>
                     <cell type="label" labelfor="2"/>
@@ -1276,6 +1323,10 @@
                     <cell type="field" id="9" name="phone2" uitype="text" cols="15"/>
                     <cell type="label" labelfor="10"/>
                     <cell type="field" id="10" name="fax" uitype="text" cols="15"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="4" cols="50" colspan="14"/>
                 </row>
             </rows>
         </viewdef>
@@ -1660,7 +1711,7 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="Authors" id="10" name="authors" initialize="name=Agent" rows="1" colspan="8"/>
+                    <cell type="subview" viewname="Authors" id="10" name="authors" initialize="name=Agent;displaydlg=Botanist" rows="1" colspan="8"/>
                 </row>
             </rows>
         </viewdef> 
