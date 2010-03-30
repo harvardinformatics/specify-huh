@@ -143,6 +143,11 @@ public class SqlUtils
         if (string == null) return null;
         return sqlEscape(string, '"');
     }
+    
+    public static String addressOrdinal(Integer agentId)
+    {
+        return "(select count(ad.AddressID)+1 from address ad where ad.AgentID=" + String.valueOf(agentId) + ")";
+    }
 
     public static String now() {
         return "now()";

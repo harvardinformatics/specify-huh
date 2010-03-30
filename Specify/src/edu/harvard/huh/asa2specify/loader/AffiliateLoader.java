@@ -256,15 +256,16 @@ public class AffiliateLoader extends AuditedObjectLoader
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "Address, AgentID,  Phone1, TimestampCreated, Version";
+        String fieldNames = "Address, AgentID, Ordinal, Phone1, TimestampCreated, Version";
         
-        String[] values = new String[5];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
         values[1] = SqlUtils.sqlString( address.getAgent().getId());
-        values[2] = SqlUtils.sqlString( address.getPhone1());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[2] = SqlUtils.addressOrdinal( address.getAgent().getAgentId());
+        values[3] = SqlUtils.sqlString( address.getPhone1());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

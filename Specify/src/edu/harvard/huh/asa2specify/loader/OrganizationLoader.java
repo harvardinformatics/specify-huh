@@ -266,16 +266,17 @@ public class OrganizationLoader extends AuditedObjectLoader
 
 	private String getInsertSql(Address address) throws LocalException
     {
-    	String fieldNames = "AgentID, City, State, Country, TimestampCreated, Version";
+    	String fieldNames = "AgentID, City, State, Country, Ordinal, TimestampCreated, Version";
     	
-    	String[] values = new String[6];
+    	String[] values = new String[7];
     	
     	values[0] = SqlUtils.sqlString( address.getAgent().getAgentId());
     	values[1] = SqlUtils.sqlString( address.getCity());
     	values[2] = SqlUtils.sqlString( address.getState());
     	values[3] = SqlUtils.sqlString( address.getCountry());
-    	values[4] = SqlUtils.now();
-    	values[5] = SqlUtils.zero();
+    	values[4] = SqlUtils.addressOrdinal( address.getAgent().getAgentId());
+    	values[5] = SqlUtils.now();
+    	values[6] = SqlUtils.zero();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }
