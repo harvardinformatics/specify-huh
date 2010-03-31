@@ -11,10 +11,9 @@
     <!-- ************************************** -->
     <express>
     
-        <table id="1" tableid="4" indexed="false" name="CollObjToDeterminer" priority="1" color="30, 144, 144">
+        <table id="1" tableid="4" indexed="false" name="ItemToDeterminer" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
                 <join tableid="142">fragment.FragmentID</join>
                 <join tableid="9">determination.DeterminerID</join>
                 <!--<join tableid="9">determination.DeterminationStatusID</join>-->
@@ -31,7 +30,7 @@
  agent.AgentType, 
  %s 
  FROM 
- collectionobject 
+ fragment
  INNER JOIN determination ON determination.FragmentID = fragment.FragmentID 
  INNER JOIN agent ON determination.DeterminerID = agent.AgentID 
  INNER JOIN taxon ON determination.TaxonID = taxon.TaxonID 
@@ -51,7 +50,7 @@
             </detailView>
         </table>
     
-        <table id="2" tableid="10" indexed="false" name="CollObToLocality" priority="1" color="30, 144, 144">
+        <table id="2" tableid="10" indexed="false" name="ItemToLocality" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
                 <join tableid="2">locality.LocalityID</join>
@@ -86,34 +85,27 @@
             </detailView>
         </table>
             
-        <table id="3" tableid="1" indexed="false" name="CollObject" priority="1" color="30, 144, 144">
+        <table id="3" tableid="142" indexed="false" name="Item" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT DISTINCT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
- CatalogedDate, 
- CatalogedDatePrecision, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  taxon.FullName, 
  %s 
- From collectionobject 
- Inner Join fragment ON fragment.CollectionObjectID = fragment.CollectionObjectID 
+ From fragment 
  Inner Join determination ON determination.FragmentID = fragment.FragmentID 
  Inner Join taxon ON taxon.TaxonID = determination.TaxonID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s order by collectionobject.CatalogNumber asc]]>
+ WHERE f.CollectionMemberID = COLMEMID AND %s order by f.Identifier asc]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>
             </detailView>
@@ -193,18 +185,18 @@
             </detailView>
         </table>
 
-        <table id="5" tableid="1" indexed="false" name="ColObjCollectors" priority="1" color="30, 144, 144">
+        <table id="5" tableid="142" indexed="false" name="ItemCollectors" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="10">collectingevent.CollectingEventID</join>
                 <join tableid="5">agent.AgentID</join>
             </joins>
-            <detailView icon="ColectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  CatalogedDate, 
  CatalogedDatePrecision, 
  StartDate, 
@@ -214,7 +206,7 @@
  agent.AgentType, 
  collector.OrderNumber,  
  %s 
- FROM collectionobject 
+ FROM fragment INNER JOIN collectionobject ON fragment.CollectionObjectID=collectionobject.CollectionObjectID
  INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID 
  INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID 
  INNER JOIN agent ON collector.AgentID = agent.AgentID 
@@ -225,11 +217,11 @@
  INNER JOIN agent ON collector.AgentID = agent.AgentID 
  WHERE collectionobject.CollectionMemberID = COLMEMID AND %s 
  ORDER BY collectionobject.CollectionObjectID, collector.OrderNumber) ORDER BY 
- collectionobject.CollectionObjectID, collector.OrderNumber]]>
+ fragment.FragmentID, collector.OrderNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="1"  col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1"  col="collectionobject.CatalogNumber"   formatter="CatalogNumber"/>
+                    <caption tableid="142"  col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142"  col="fragment.Identifier"   formatter="FragmentIdentifier"/>
                     <caption tableid="1" formatter="PartialDate">
                         <col name="CatalogedDate"          field="catalogedDate"/>
                         <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
@@ -266,25 +258,25 @@
             </detailView>
         </table>
         
-        <table id="7" tableid="1" indexed="false" name="SynonymCollObjs" priority="1" color="30, 144, 144">
+        <table id="7" tableid="142" indexed="false" name="SynonymItems" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">co.CollectionObjectID</join>
-                <join tableid="9">d.FragmentID</join>
+                <join tableid="142" primary="true">f.FragmentID</join>
+                <join tableid="9">d.DeterminationID</join>
                 <join tableid="4">t.TaxonID</join>
                 <join tableid="4">t2.TaxonID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
-                    <![CDATA[SELECT DISTINCT co.CollectionObjectID, co.CatalogNumber, t.FullName, t2.FullName, %s FROM 
- collectionobject co INNER JOIN fragment f on co.CollectionObjectID = f.CollectionObjectID 
+                    <![CDATA[SELECT DISTINCT f.FragmentID, f.Identifier, t.FullName, t2.FullName, %s FROM 
+ fragment f 
  INNER JOIN determination d ON d.FragmentID = f.FragmentID 
  INNER JOIN taxon t ON d.TaxonID = t.TaxonID 
  INNER JOIN taxon t2 ON t2.TaxonID = d.PreferredTaxonID 
- WHERE d.TaxonId <> d.PreferredTaxonId AND t.TaxonTreeDefID = TAXTREEDEFID AND co.CollectionMemberID = COLMEMID AND %s]]>
+ WHERE d.TaxonId <> d.PreferredTaxonId AND t.TaxonTreeDefID = TAXTREEDEFID AND f.CollectionMemberID = COLMEMID AND %s]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="co.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="f.FragmentID" visible="false"/>
+                    <caption tableid="142" col="f.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="4" col="t.FullName"   key="DeterminationName"/>
                     <caption tableid="4" col="t2.FullName"  key="AcceptedTaxonName"/>
                 </captions>
@@ -317,68 +309,60 @@
             </detailView>
         </table>-->
         
-        <table id="9" tableid="1" indexed="false" name="OtherSynsCollObjs" priority="40" color="30, 144, 144">
+        <table id="9" tableid="142" indexed="false" name="OtherSynsItems" priority="40" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">co.CollectionObjectID</join>
-                <join tableid="9">d.FragmentID</join>
+                <join tableid="142" primary="true">f.FragmentID</join>
+                <join tableid="9">d.DeterminationID</join>
                 <join tableid="4">deterTax.TaxonID</join>
                 <join tableid="4">acceptTax.TaxonID</join>
                 <join tableid="4">oldTax.TaxonID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
-                    <![CDATA[SELECT DISTINCT co.CollectionObjectID, co.CatalogNumber, deterTax.FullName, acceptTax.FullName, oldTax.FullName, %s 
- FROM collectionobject co 
- INNER JOIN fragment f on co.FragmentID = f.FragmentID 
+                    <![CDATA[SELECT DISTINCT f.FragmentID, f.Identifier, deterTax.FullName, acceptTax.FullName, oldTax.FullName, %s 
+ FROM fragment f 
  INNER JOIN determination d ON d.FragmentID = f.FragmentID 
  INNER JOIN taxon deterTax ON d.TaxonID = deterTax.TaxonID 
  INNER JOIN taxon acceptTax ON d.PreferredTaxonID = acceptTax.TaxonID 
  INNER JOIN taxon oldTax ON oldTax.AcceptedID = acceptTax.TaxonID AND oldTax.TaxonID != d.TaxonID 
- WHERE co.CollectionMemberID = COLMEMID AND %s]]>
+ WHERE f.CollectionMemberID = COLMEMID AND %s]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="co.CatalogNumber"      formatter="CatalogNumber"/>
-                    <caption tableid="4" col="deterTax.FullName"     key="OldTaxonOnDeter"/>
-                    <caption tableid="4" col="acceptTax.FullName"    key="AcceptedTaxonName"/>
-                    <caption tableid="4" col="oldTax.FullName"       key="OtherOldTaxonName"/>
+                    <caption tableid="142" col="f.FragmentID" visible="false"/>
+                    <caption tableid="142" col="f.Identifier"      formatter="FragmentIdentifier"/>
+                    <caption tableid="4" col="deterTax.FullName"    key="OldTaxonOnDeter"/>
+                    <caption tableid="4" col="acceptTax.FullName"   key="AcceptedTaxonName"/>
+                    <caption tableid="4" col="oldTax.FullName"      key="OtherOldTaxonName"/>
                 </captions>
             </detailView>
         </table>
 
 
-        <table id="10" tableid="1" indexed="false" name="CurrCollObject" priority="1" color="30, 144, 144">
+        <table id="10" tableid="142" indexed="false" name="CurrItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT distinct 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
- CatalogedDate, 
- CatalogedDatePrecision, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  FullName, 
  %s 
- From collectionobject 
- Inner Join fragment ON collectionobject.CollectionObjectID = fragment.CollectionObjectID 
- Inner Join determination AS DT ON DT.FragmentID = fragment.CollectionObjectID
+ From fragment 
+ Inner Join determination AS DT ON DT.FragmentID = fragment.FragmentID
  Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
  WHERE DT.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
+ fragment.CollectionMemberID = COLMEMID AND 
  taxon.TaxonTreeDefID = TAXTREEDEFID AND 
  DT.IsCurrent = true AND
- %s order by collectionobject.CatalogNumber asc]]>
+ %s order by fragment.Identifier asc]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>
             </detailView>
@@ -436,16 +420,16 @@
             </detailView>
         </table>
         
-        <table id="13" tableid="1" indexed="false" name="CEToCO" priority="1" color="30, 144, 144">
+        <table id="13" tableid="142" indexed="false" name="CEToItem" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
+                <join tableid="142">fragment.FragmentID</join>
             </joins>
             <detailView icon="ColEvent">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  collectingevent.StartDate, 
  collectingevent.StartDatePrecision, 
  collectingevent.EndDate, 
@@ -454,11 +438,12 @@
  From 
  collectingevent 
  Inner Join collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
+ Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
  WHERE collectingevent.DisciplineID = DSPLNID AND %s order by StartDate]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
@@ -471,17 +456,17 @@
             </detailView>
         </table>
         
-        <table id="29" tableid="1" indexed="false" name="LocToCO" priority="1" color="30, 144, 144">
+        <table id="29" tableid="142" indexed="false" name="LocToItem" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="2" primary="true">locality.LocalityID</join>
                 <join tableid="10">collectingevent.CollectingEventID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
+                <join tableid="142">fragment.FragmentID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  collectingevent.StartDate, 
  collectingevent.StartDatePrecision, 
  locality.LocalityName, 
@@ -492,12 +477,13 @@
  locality 
  INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID 
  INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
+ INNER JOIN fragment ON collectionbject.CollectionObjectID = fragment.CollectionObjectID 
  WHERE locality.DisciplineID = DSPLNID AND collectionobject.collectionmemberid = COLMEMID 
  AND %s ORDER BY StartDate]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="CatalogNumber"/>
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
@@ -810,16 +796,16 @@
             </detailView>
         </table>
 
-        <table id="41" tableid="1" indexed="false" name="GeographyCO" priority="1" color="30, 144, 144">
+        <table id="41" tableid="142" indexed="false" name="GeographyItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="3">geography.GeographyID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT DISTINCT 
- collectionobject.CollectionObjectID,    
- collectionobject.CatalogNumber, 
+ fragment.FragmentID,    
+ fragment.Identifier, 
  geography.FullName, 
  %s 
  FROM 
@@ -827,11 +813,12 @@
   INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
   INNER JOIN collectingevent on collectingevent.LocalityID = locality.lLocalityID 
   INNER JOIN collectionobject on collectionobject.CollectingEventID = collectingevent.CollectingEventID 
+  INNER JOIN fragment on fragment.CollectionObjectID = collectionobject.CollectionObjectID
  WHERE %s AND collectionobject.CollectionMemberID = COLMEMID ORDER BY FullName,collectionobject.CatalogNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="3" col="FullName" />
                  </captions>
             </detailView>
@@ -899,17 +886,16 @@
             </detailView>
         </table>
 
-        <table id="44" tableid="1" indexed="false" name="LoanCO" priority="1" color="30, 144, 144">
+        <table id="44" tableid="142" indexed="false" name="LoanItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="142">fragment</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="52">loan.LoanID</join>
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  preptype.Name, 
  loan.LoanNumber, 
      %s 
@@ -919,12 +905,11 @@
   INNER JOIN preparation on preparation.PreparationID = loanpreparation.PreparationID 
   INNER JOIN preptype on preptype.PrepTypeID = preparation.PrepTypeID 
   INNER JOIN fragment on fragment.PreparationID = preparation.PreparationID 
-  INNER JOIN collectionobject on collectionobject.CollectionObjectID = fragment.CollectionObjectID 
- WHERE %s ORDER BY LoanNumber,collectionobject.CatalogNumber,Name]]>
+ WHERE %s ORDER BY LoanNumber,fragment.Identifier,preparation.Identifier,Name]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="65" col="Name" />
                     <caption tableid="52" col="LoanNumber" />
                  </captions>
@@ -989,16 +974,16 @@
         </table>
 
 
-        <table id="47" tableid="1" indexed="false" name="PermitToCO" priority="1" color="30, 144, 144">
+        <table id="47" tableid="142" indexed="false" name="PermitToItem" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="6">permit.PermitID</join>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  permit.PermitNumber, 
   %s 
  FROM 
@@ -1006,11 +991,12 @@
   INNER JOIN accessionauthorization ON accessionauthorization.PermitID = permit.PermitID 
   INNER JOIN accession ON accession.AccessionID = accessionauthorization.AccessionID 
   INNER JOIN collectionobject ON collectionobject.CollectionObjectID = accession.CollectionObjectID  
+  INNER JOIN fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
  WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY PermitNumber, collectionobject.CatalogNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber" />
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier" />
                     <caption tableid="6" col="PermitNumber" />
                  </captions>
             </detailView>
@@ -1073,28 +1059,29 @@
         </table>
 
 
-        <table id="50" tableid="1" indexed="false" name="ProjectCO" priority="1" color="30, 144, 144">
+        <table id="50" tableid="142" indexed="false" name="ProjectItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="66">project.ProjectID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  project.ProjectName, 
  project.ProjectNumber, 
   %s 
  FROM 
  project 
-  INNER JOIN project_colobj ON project_colobj.projectid = project.projectid 
-  INNER JOIN collectionobject ON collectionobject.collectionobjectid = project_colobj.collectionobjectid 
- WHERE collectionobject.CollectionmemberID = COLMEMID AND %s ORDER BY ProjectName, ProjectNumber, collectionobject.CatalogNumber]]>
+  INNER JOIN project_colobj ON project_colobj.ProjectID = project.ProjectID 
+  INNER JOIN collectionobject ON collectionobject.CollectionObjectID = project_colobj.CollectionObjectID 
+  INNER JOIN fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
+ WHERE collectionobject.CollectionmemberID = COLMEMID AND %s ORDER BY ProjectName, ProjectNumber, fragment.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="66" col="ProjectName" />
                     <caption tableid="66" col="ProjectNumber" />
                  </captions>
@@ -1159,65 +1146,57 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-        <table id="53" tableid="1" indexed="false" name="StorageCO" priority="1" color="30, 144, 144">
+        <table id="53" tableid="142" indexed="false" name="StorageItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="58">storage.StorageID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT DISTINCT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
+ fragment.FragmentID,
+ fragment.Identifier, 
  storage.FullName, 
   %s 
  FROM 
  storage 
   INNER JOIN preparation ON preparation.StorageID = storage.StorageID
   INNER JOIN fragment ON fragment.PreparationID = preparation.PreparationID 
-  INNER JOIN collectionobject ON collectionobject.CollectionObjectID = fragment.CollectionObjectID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, collectionobject.CatalogNumber]]>
+ WHERE fragment.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, fragment.Identifier, preparation.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber" />
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier" />
                     <caption tableid="58" col="FullName" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="54" tableid="1" indexed="false" name="TaxCollObject" priority="1" color="30, 144, 144">
+        <table id="54" tableid="142" indexed="false" name="TaxItem" priority="1" color="30, 144, 144">
             <joins>
                 <!-- <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>-->
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT distinct 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
- CatalogedDate, 
- CatalogedDatePrecision, 
+ fragment.FragmentID, 
+ fragment.Identifier, 
  IsCurrent, 
  FullName, 
  %s 
- From collectionobject 
- Inner Join fragment ON collectionobject.CollectionObjectID = fragment.CollectionObjectID 
+ From fragment
  Inner Join determination AS DT ON DT.FragmentID = collectionobject.FragmentID 
  Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
  WHERE DT.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
+ f.CollectionMemberID = COLMEMID AND 
  taxon.TaxonTreeDefID = TAXTREEDEFID AND 
- %s order by FullName, CatalogNumber]]>
+ %s order by FullName, fragment.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
                     <caption tableid="9" col="IsCurrent"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>

@@ -57,41 +57,19 @@
       <wsFields/>
     </searchtable>
     <searchtable>
-      <tableName>CollectionObject</tableName>
+      <tableName>Fragment</tableName>
       <displayOrder>2</displayOrder>
       <searchFields>
         <searchfield>
-          <fieldName>catalogNumber</fieldName>
+          <fieldName>identifier</fieldName>
           <isSortable>false</isSortable>
           <isAscending>true</isAscending>
           <order>0</order>
         </searchfield>
-        <searchfield>
-          <fieldName>catalogedDate</fieldName>
-          <isSortable>false</isSortable>
-          <isAscending>true</isAscending>
-          <order>1</order>
-        </searchfield>
-        <searchfield>
-          <fieldName>fieldNumber</fieldName>
-          <isSortable>false</isSortable>
-          <isAscending>true</isAscending>
-          <order>2</order>
-        </searchfield>
       </searchFields>
       <displayFields>
         <displayfield>
-          <fieldName>catalogNumber</fieldName>
-          <formatter></formatter>
-          <order>2147483647</order>
-        </displayfield>
-        <displayfield>
-          <fieldName>catalogedDate</fieldName>
-          <formatter></formatter>
-          <order>2147483647</order>
-        </displayfield>
-        <displayfield>
-          <fieldName>fieldNumber</fieldName>
+          <fieldName>identifier</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
         </displayfield>
@@ -308,7 +286,7 @@
       <searchtable reference="../../../tables/searchtable[6]"/>
     </entry>
     <entry>
-      <string>1</string>
+      <string>142</string>
       <searchtable reference="../../../tables/searchtable[3]"/>
     </entry>
     <entry>
@@ -330,7 +308,7 @@
       <searchtable reference="../../../tables/searchtable[4]"/>
     </entry>
     <entry>
-      <string>CollectionObject</string>
+      <string>Fragment</string>
       <searchtable reference="../../../tables/searchtable[3]"/>
     </entry>
     <entry>
