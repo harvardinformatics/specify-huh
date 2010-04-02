@@ -205,7 +205,7 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
         } else
         {
             SQLExecutionProcessor sqlProc = new SQLExecutionProcessor(this, results.getSQL(results.getSearchTerm(), ids));
-            if (true)
+            if (true) // mmk: was "if(doSequentially), but this causes problems with the ui components being accessed in unexpected ways
             {
                 sqlProc.execute();
                 
