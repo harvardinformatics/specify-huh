@@ -1359,6 +1359,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                     if (e.getSource() == allMenuItem)
                     {
                         scService.setSearchContext(null);
+                        doQuery(); // mmk added this to mimic Asa behavior
                         
                     } else if (e.getSource() == configMenuItem)
                     {
@@ -1375,6 +1376,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                             if (stc.getTitle().equals(miTitle))
                             {
                                 scService.setSearchContext(stc);
+                                doQuery(); // mmk added this to mimic Asa behavior
                             }
                         }
                     }
