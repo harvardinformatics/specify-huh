@@ -860,7 +860,12 @@ public class ValFormattedTextFieldSingle extends JTextField implements UIValidat
                 
                 return  UIValidatable.ErrorType.Valid;
     
-            } else
+            }
+            else if (formatter != null)
+            {
+                return formatter.isValid(value) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error;
+            }
+            else
             {
                 throw new RuntimeException("Missing case for numeric class ["+cls.getName()+"]");        
             }
