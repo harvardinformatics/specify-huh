@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+
 /**
  * This class keeps track of tables that are configured to participate in the ExpressSearch. Both for searching
  * and display. 
@@ -105,6 +107,7 @@ public class SearchConfig
         xstream.alias("searchfield",  SearchFieldConfig.class); //$NON-NLS-1$
         xstream.alias("displayfield", DisplayFieldConfig.class); //$NON-NLS-1$
         xstream.alias("relatedquery", RelatedQuery.class); //$NON-NLS-1$
+        xstream.alias("formatter",    String.class); //$NON-NLS-1$
         
         xstream.aliasAttribute(RelatedQuery.class, "isActive", "isactive"); //$NON-NLS-1$ //$NON-NLS-2$
         
