@@ -545,8 +545,11 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
                 try
                 {
                     formatter = Class.forName(externalClassName).asSubclass(UIFieldFormatterIFace.class).newInstance();
+                    
+                    boolean isSingleField = formatter.getFields() != null && formatter.getFields().size() == 1;
+                    
                     formatter.setName(name);
-                    formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, formatter.getFields().size() == 1));
+                    formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, isSingleField));
                     formatter.setDefault(isDefault);
                     
                     hash.put(name, formatter);
@@ -666,7 +669,8 @@ public class UIFieldFormatterMgr implements AppPrefsChangeListener
             }
         }
 
-        formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, formatter.getFields().size() == 1));
+        boolean isSingleField = formatter.getFields() != null && formatter.getFields().size() == 1;
+        formatter.setAutoNumber(createAutoNum(formatElement, name, dataClassName, fieldName, isSingleField));
 
         return formatter;
     }
