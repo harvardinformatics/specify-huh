@@ -45,18 +45,18 @@
     <field type="numeric" size="6" inc="true"/>
   </format>
 
-  <format system="true" name="FragmentIdentifier" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="identifier" default="false">
+  <!-- <format system="true" name="FragmentIdentifier" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="identifier" default="false">
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
-  </format>
+  </format> -->
 
   <format system="true" name="CatalogNumberNumeric" class="edu.ku.brc.specify.datamodel.CollectionObject" fieldname="catalogNumber" default="false">
     <autonumber>edu.ku.brc.specify.dbsupport.CollectionAutoNumber</autonumber>
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
   </format>
   
-  <format system="true" name="PreparationIdentifier" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="identifier" default="false">
+  <!-- <format system="true" name="PreparationIdentifier" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="identifier" default="false">
     <external>edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter</external>
-  </format>
+  </format> -->
   
   <format system="true" name="CatalogNumberString" class="edu.ku.brc.specify.datamodel.CollectionObject" fieldname="catalogNumber" default="false">
     <external>edu.ku.brc.specify.ui.CatalogNumberStringUIFieldFormatter</external>
@@ -94,12 +94,12 @@
     <field type="numeric" size="5" inc="true"/>
   </format>
   
-  <format system="true" name="HUHFragmentBarcode" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="identifier" default="true">
-    <field type="numeric" size="9"/>
+  <format system="true" name="HUHFragmentBarcode" class="edu.ku.brc.specify.datamodel.Fragment" fieldname="identifier" type="numeric" default="true">
+    <external>edu.harvard.huh.specify.dbsupport.FragmentIdentifierUIFieldFormatter</external>
   </format>
   
-  <format system="true" name="HUHPreparationBarcode" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="identifier" default="true">
-    <field type="numeric" size="9"/>
+  <format system="true" name="HUHPreparationBarcode" class="edu.ku.brc.specify.datamodel.Preparation" fieldname="identifier" type="numeric" default="true">
+    <external>edu.harvard.huh.specify.dbsupport.PreparationIdentifierUIFieldFormatter</external>
   </format>
   
   <format system="true" name="HUHLoanNumber" class="edu.ku.brc.specify.datamodel.Loan" fieldname="loanNumber" default="true">

@@ -15632,7 +15632,7 @@
         </names>
         <descs/>
       </item>
-      <item name="identifier" type="java.lang.String" isRequired="false">
+      <item name="identifier" type="java.lang.String" format="HUHFragmentBarcode" isUIFormatter="true" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -24106,7 +24106,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
-      <item name="identifier" type="java.lang.String" isRequired="false">
+      <item name="identifier" type="java.lang.String" format="HUHPreparationBarcode" isUIFormatter="true" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
