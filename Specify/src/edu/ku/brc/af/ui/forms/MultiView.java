@@ -337,7 +337,7 @@ public class MultiView extends JPanel
         {
             setLayout(new BorderLayout());
             
-            String title = view.getName();
+            String title = view.getObjTitle() != null ? view.getObjTitle() : view.getName();
             if (mvParent != null && StringUtils.isNotEmpty(cellName))
             {
                 DBTableInfo parentTblInfo = DBTableIdMgr.getInstance().getByClassName(mvParent.getView().getClassName());
