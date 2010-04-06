@@ -1494,7 +1494,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector" colspan="2"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector;displaydlg=Botanist" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="3"/>
