@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <views>
 	<std>
-	    <view sidebar="true"  title="Fragment"           view="Fragment"           iconname="Plants"             tooltip="Item" mnemonic="I"/>
+	    <view sidebar="true"  title="Item"               view="Fragment"           iconname="Plants"             tooltip="Item" mnemonic="I"/>
 	    <view sidebar="false" title="Collecting Event"   view="CollectingEvent"    iconname="CollectingEvent"    tooltip="" mnemonic="E"/>    
 	    <view sidebar="true"  title="Taxon"              view="Taxon"              iconname="Taxon"              tooltip="" mnemonic="X"/> 
 	    <view sidebar="true"  title="Botanist"           view="Botanist"           iconname="Agent"              tooltip="Author/Collector" mnemonic="B"/>
