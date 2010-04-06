@@ -150,11 +150,12 @@
             type="form"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="true">
             <desc><![CDATA[Collecting Event subform for the Collection Object form.]]></desc>
             
             <columnDef>         100px, 2px, 120px, 5px,  80px, 2px, 215px,   2px, 281px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 215px, 5px, 100px, 2px, 215px,   2px, 251px, 0px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 215px, 5px, 120px, 2px, 235px,   2px, 211px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 200px, 5px, 100px, 2px,     p,   2px, 293px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
             
@@ -179,9 +180,14 @@
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="9" rows="3"/>
                 </row>
                 <row>
+                    <cell type="label" labelfor="geography"/>
+                	<cell type="field" id="geography" name="locality.geography" uitype="dsptextfield" colspan="3"/>
+                	<cell type="label" label="HIGHERGEO" initialize="align=right"/>
+                	<cell type="field" id="parentGeo" name="locality.geography.parent" uitype="dsptextfield"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="locality" uitype="querycbx" initialize="name=Locality;title=Locality" colspan="5"/>
-                    <cell type="field" id="geography" name="locality.geography" uitype="dsptextfield"/>
+                    <cell type="field" id="4" name="locality" uitype="querycbx" initialize="name=Locality;title=Locality;searchbtn=false" colspan="9"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="6"/>
