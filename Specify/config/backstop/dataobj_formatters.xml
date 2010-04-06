@@ -394,7 +394,7 @@
         >
         <switch single="true">
             <fields>
-                <field uifieldformatter="FragmentIdentifier">identifier</field>
+                <field uifieldformatter="HUHFragmentBarcode">identifier</field>
             </fields>
         </switch>
     </format>
