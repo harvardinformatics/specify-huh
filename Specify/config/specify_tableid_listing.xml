@@ -292,7 +292,9 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.LocalityCitation" abbrev="locc" id="57" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.LocalityNameAlias" abbrev="locna" id="120" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.OtherIdentifier" abbrev="oi" id="61" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.OtherIdentifier" abbrev="oi" id="61" searchable="true">
+			<display view="OtherIdentifier" newobjdlg="OtherIdentifierDisplay" searchable="true"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.PaleoContext" abbrev="pc" id="32" searchable="true">
             <display view="PaleoContext" dataobjformatter="PaleoContext"  searchdlg="PaleoContextSearch" newobjdlg=""/>            
         </table>
