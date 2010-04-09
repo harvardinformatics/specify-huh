@@ -76,6 +76,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
      protected Float               number2;
      protected Boolean             yesNo1;
      protected Boolean             yesNo2;
+     protected Boolean             yesNo3;
      protected Taxon               preferredTaxon; //= taxon.acceptedTaxon or taxon
      protected Taxon               taxon;
      protected Fragment            fragment;
@@ -125,6 +126,7 @@ public class Determination extends CollectionMember implements java.io.Serializa
         number2 = null;
         yesNo1 = null;
         yesNo2 = null;
+        yesNo3 = null;
         preferredTaxon = null;
         taxon = null;
         fragment = null;
@@ -453,6 +455,20 @@ public class Determination extends CollectionMember implements java.io.Serializa
         this.yesNo2 = yesNo2;
     }
 
+    /**
+     *      * User definable
+     */
+    @Column(name="YesNo3",unique=false,nullable=true,updatable=true,insertable=true)
+    public Boolean getYesNo3() 
+    {
+        return this.yesNo3;
+    }
+    
+    public void setYesNo3(Boolean yesNo3) 
+    {
+        this.yesNo3 = yesNo3;
+    }
+    
     /**
      * @return the taxon.
      */

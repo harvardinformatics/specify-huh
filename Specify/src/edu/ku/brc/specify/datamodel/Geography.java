@@ -364,7 +364,7 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
 	/**
 	 *
 	 */
-    @Column(name = "Text2", length = 32)
+    @Column(name = "Text2", length = 255)
 	public String getText2()
 	{
 		return this.text2;
