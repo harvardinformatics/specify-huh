@@ -35,6 +35,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Index;
 
 /**
  * @author mkelly
@@ -51,6 +52,9 @@ import org.hibernate.annotations.CascadeType;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "exsiccata")
+@org.hibernate.annotations.Table(appliesTo="exsiccata", indexes =
+    {   @Index (name="ExsiccataIDX", columnNames={"Title"})
+    })
 public class Exsiccata extends DataModelObjBase implements java.io.Serializable 
 {
 
