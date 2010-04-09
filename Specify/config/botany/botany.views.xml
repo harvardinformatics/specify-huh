@@ -24,11 +24,26 @@
             >
             <desc><![CDATA[The Collection Object form.]]></desc>
             <altviews>
-                <altview name="Collection Object View" viewdef="Collection Object" mode="view"/>
-                <altview name="Collection Object Edit" viewdef="Collection Object" mode="edit" default="true"/>
+                <altview name="Collection Object View" viewdef="CollectionObject" mode="view"/>
+                <altview name="Collection Object Edit" viewdef="CollectionObject" mode="edit" default="true"/>
             </altviews>
         </view>
 
+		<view name="CollectionRelationship"
+			objtitle="Item Relationship"
+            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
+            isinternal="false"
+            resourcelabels="false"
+            >
+            <desc><![CDATA[The CollectionRelationship form.]]></desc>
+            <altviews>
+                <altview name="CollectionRelationship View" viewdef="CollectionRelationship" mode="view"/>
+                <altview name="CollectionRelationship Edit" viewdef="CollectionRelationship" mode="edit" default="true"/>
+                <altview name="CollectionRelationship Table View" viewdef="CollectionRelationship Table" mode="view"/>
+                <altview name="CollectionRelationship Table Edit" viewdef="CollectionRelationship Table" mode="edit"/>
+            </altviews>
+        </view>
+        
         <view name="Container"
             class="edu.ku.brc.specify.datamodel.Container"
             resourcelabels="false"
@@ -78,7 +93,8 @@
 
         <view name="Exsiccata"
         	class="edu.ku.brc.specify.datamodel.Exsiccata"
-        	resourcelabels="false">
+        	resourcelabels="false"
+        	isinternal="false">
         	<desc><![CDATA[Exsiccata data entry form.]]></desc>
         	<altviews>
         		<altview name="Exsiccata View" viewdef="Exsiccata" mode="view"/>
@@ -155,7 +171,7 @@
             <desc><![CDATA[Collecting Event subform for the Collection Object form.]]></desc>
             
             <columnDef>         100px, 2px, 120px, 5px,  80px, 2px, 215px,   2px, 281px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 215px, 5px, 120px, 2px, 235px,   2px, 211px, 0px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 235px, 5px, 100px, 2px, 235px,   2px, 211px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 200px, 5px, 100px, 2px,     p,   2px, 293px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
             
@@ -201,7 +217,7 @@
         </viewdef>
  
         <viewdef
-            name="Collection Object"
+            name="CollectionObject"
             type="form"
             class="edu.ku.brc.specify.datamodel.CollectionObject"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -211,7 +227,7 @@
             <enableRules/>
             
             <columnDef>         100px, 2px, 195px,   5px,  96px, 2px, 210px, 5px,  94px, 2px, 101px,  0px, 15px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 195px,   5px, 125px, 2px, 210px, 5px, 125px, 2px, 131px,  0px, 15px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 195px,   5px, 120px, 2px, 255px, 5px, 130px, 2px, 131px,  0px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 255px, 5px, 138px, 2px, 155px, 15px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 255px, 5px:g,   p, 2px, 200px,    p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
@@ -365,6 +381,42 @@
                 </row>
             </rows>
         </viewdef>
+             
+         <viewdef
+            name="CollectionRelationship"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[CollectionRelationship]]></desc>
+            
+            <columnDef>         120px, 2px, 200px, 5px, 120px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
+            <columnDef os="lnx">120px, 2px, 200px, 5px, 120px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
+            <columnDef os="mac">120px, 2px, 200px, 5px, 120px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 200px, 5px:g,   p, 2px, 200px, 5px:g,    p, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="collectionRelType"/>
+                	<cell type="field" id="collectionRelType" name="collectionRelType" uitype="combobox" picklist="HUH Item Relationship Type" isrequired="true"/>
+                	<cell type="label" labelfor="rightSide"/>
+                	<cell type="field" id="rightSide" name="rightSide" uitype="querycbx" initialize="name=Fragment"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="CollectionRelationship Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[CollectionRelationship subform table for Fragment form.]]></desc>
+            <definition>CollectionRelationship</definition>
+        </viewdef>
+        
              
         <viewdef
             name="Container"
@@ -645,7 +697,7 @@
                 </row>
                 <row>
 	                <cell type="label" labelfor="prepMethod"/>
-                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method"/>
+                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method" isrequired="true"/>
                 	<cell type="label" labelfor="phenology"/>
                     <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
                     <cell type="label" labelfor="sex"/>
@@ -657,11 +709,17 @@
                 <row>
 					<cell type="subview" id="determinations" name="determinations" viewname="Determination" colspan="12"/>
 				</row>
-                <row>
-                    <cell type="separator" label="Attachments" colspan="12"/>
-                </row>
+				<row>
+					<cell type="subview" id="exsiccatae" name="exsiccataItems" viewname="Exsiccatae" colspan="12"/>
+				</row>
+				<row>
+					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" colspan="12"/>
+				</row>
                 <row>
                     <cell type="subview" id="fragattachments" viewname="ObjectAttachment" name="fragmentAttachments" colspan="12" initialize="btn=true;icon=FragmentAttachment"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="12"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="modifiedByAgent"/>
