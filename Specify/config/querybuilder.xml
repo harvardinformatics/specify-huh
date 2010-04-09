@@ -12,7 +12,6 @@
         <table name="AccessionAuthorization" field="accessionAuthorizations">
             <alias name="Permit"/>
         </table>
-        <alias name="AddressOfRecord" field="addressOfRecord"/>
         <alias name="Appraisal" field="appraisals" />
         <alias name="Agent" field="createdByAgent" />
         <alias name="CollectionObject" field="collectionObjects"/>
@@ -39,6 +38,10 @@
             <alias name="Attachment"/>
         </table>
         <table name="AgentVariant" field="variants"/>
+        <table name="AgentSpecialty" field="agentSpecialties"/>
+        <table name="AgentGeography" field="agentGeographies">
+			<alias name="Geography"/>
+        </table>
     </table>
 
 	<table name="Appraisal">
@@ -134,14 +137,8 @@
       	<alias name="Agent" field="modifiedByAgent" />
       	<table name="OtherIdentifier" field="otherIdentifiers" />
       	<alias name="Project" field="projects" />
-      	<table name="CollectionRelationship" field="rightSideRels" />
       	<table name="TreatmentEvent" field="treatmentEvents" />
     </table>
-    
-    <!-- 
-    <table name="CollectionRelType">
-    </table>
-     -->
     
     <table name="ConservDescription" >
       	<alias name="Agent" field="createdByAgent" />
@@ -198,8 +195,15 @@
     	<alias name="Agent" field="agentCatalogedBy"/>
      	<alias name="Agent" field="agentSentTo"/>
       	<alias name="Agent" field="createdByAgent" />
-      	<alias name="Agent" field="modifiedByAgent" />    	
-     	<alias name="Shipment" field="shipments" />    	
+      	<alias name="Agent" field="modifiedByAgent" />
+     	<alias name="Shipment" field="shipments" />
+    </table>
+    
+    <table name="Exsiccata">
+    	<alias name="ReferenceWork" field="referenceWork"/>
+    	<table name="ExsiccataItem">
+			<alias name="Fragment" field="fragment"/>
+    	</table>
     </table>
     
     <table name="FieldNotebook" >
@@ -233,6 +237,14 @@
       	<alias name="Agent" field="sourceAgent" />    	      	
 	</table>
 	    
+	    
+	<table name="CollectionRelationship">
+    	<table name="CollectionRelType" field="collectionRelType"/>
+    	<alias name="Fragment" field="rightSideCollection"/>
+	 </table>
+		   
+	<table name="CollectionRelType"/>
+	 
 	<table name="Fragment">
 	    <table name="FragmentAttachment" field="accessionAttachments">
             <alias name="Attachment"/>
@@ -240,11 +252,27 @@
     	<table name="FragmentCitation" field="fragmentCitations">
     		<alias name="ReferenceWork"/>
     	</table>
-    	<alias name="Agent" field="preparedByAgent" />
-      	<alias name="Agent" field="createdByAgent" />
-      	<alias name="Agent" field="modifiedByAgent" />
-	</table>
-
+    	<table name="CollectionObject" field="collectionObject">
+    		<alias name="CollectionObject"/>
+    	</table>
+    	<table name="Determination" field="determinations">
+			<table name="Taxon" field="taxon">
+				<table name="TaxonCitation" field="taxonCitations"/>
+			</table>
+    	</table>
+    	<table name="Preparation" field="preparation">
+    		<alias name="Preparation"/>
+    	</table>
+    	<table name="ExsiccataItem" field="exsiccataItems">
+			<alias name="ExsiccataItem"/>
+    	</table>
+    	<table name="CollectionRelationship" field="leftSideRels">
+			<alias name="CollectionRelationship"/>
+    	</table>
+      	<alias name="Agent" field="createdByAgent"/>
+      	<alias name="Agent" field="modifiedByAgent"/>
+	</table>		    
+		    
     <table name="Geography">
       	<alias name="Agent" field="createdByAgent" />
       	<!-- alias name="Geography" field="acceptedChildren" /-->
@@ -381,6 +409,8 @@
         <table name="DeterminationCitation" field="determinationCitations">
             <alias name="Determination"/>
         </table>
+        <table name="ReferenceWorkIdentifier"/>
+        <table name="ReferenceWorkVariant"/>
     </table>
     
     <table name="RepositoryAgreement">

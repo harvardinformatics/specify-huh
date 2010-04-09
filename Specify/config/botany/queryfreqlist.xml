@@ -1,8 +1,7 @@
 <vector>
   <string>Agent</string>
-  <string>CollectingEvent</string>
   <string>CollectionObject</string>
-  <string>Loan</string>
-  <string>Locality</string>
+  <string>Geography</string>
+  <string>Fragment</string>
   <string>Taxon</string>
 </vector>
