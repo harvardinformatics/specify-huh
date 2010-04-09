@@ -5,7 +5,7 @@
 	    <view sidebar="true"  title="Taxon"              view="Taxon"              iconname="Taxon"              tooltip="" mnemonic="X"/> 
 	    <view sidebar="true"  title="Botanist"           view="Botanist"           iconname="Agent"              tooltip="AUTHORCOLLECTOR" mnemonic="B"/>
 	    <view sidebar="true"  title="Geography"          view="Geography"          iconname="Geography"          tooltip="" mnemonic="G"/> 
-		<!-- <view sidebar="true"  title="Locality"           view="Locality"           iconname="Locality"           tooltip="" mnemonic="L"/> -->
+		<view sidebar="true"  title="Publication"        view="ReferenceWork"      iconname="ReferenceWork"      tooltip="" mnemonic="P"/>
 	</std>
 	
 	<misc>
