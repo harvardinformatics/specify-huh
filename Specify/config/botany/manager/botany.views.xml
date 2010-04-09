@@ -508,7 +508,9 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="text2"/>
-                	<cell type="field" id="text2" uitype="text" colspan="10"/>
+                	<cell type="field" id="text2" uitype="textareabrief" rows="2" colspan="5"/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="yesNo3" name="yesNo3" uitype="checkbox"/> 
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
