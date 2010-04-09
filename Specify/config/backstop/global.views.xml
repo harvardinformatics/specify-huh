@@ -248,15 +248,15 @@
             </altviews>
         </view>
         
-        <view name="Publication"
+        <view name="ReferenceWork"
             objtitle="Publication"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[The ReferenceWork Form.]]></desc>
             <altviews>
-                <altview name="Publication View" viewdef="Publication" mode="view" validated="false" default="true"/>                
-                <altview name="Publication Edit" viewdef="Publication" mode="edit" validated="true"/>                
+                <altview name="ReferenceWork View" viewdef="ReferenceWork" mode="view" validated="false" default="true"/>                
+                <altview name="ReferenceWork Edit" viewdef="ReferenceWork" mode="edit" validated="true"/>                
             </altviews>
         </view>
         
@@ -281,29 +281,29 @@
             </altviews>
         </view>
         
-        <view name="Reference Numbers"
+        <view name="ReferenceWorkIdentifier"
             objtitle="Reference Numbers"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
             resourcelabels="false">
             <desc><![CDATA[Reference Numbers subform within the Publication form.]]></desc>
             <altviews defaultmode="view">
-                <altview name="Reference Numbers View" title="Reference Numbers" viewdef="Reference Numbers" mode="view" validated="false"/>
-                <altview name="Reference Numbers Edit" title="Reference Numbers" viewdef="Reference Numbers" mode="edit" validated="true" default="true"/>
-                <altview name="Reference Numbers Table View" viewdef="Reference Numbers Table"    label="Table View" mode="view" />
-                <altview name="Reference Numbers Table Edit" viewdef="Reference Numbers Table"    label="Table Edit" mode="edit"/>
+                <altview name="ReferenceWorkIdentifier View" title="Reference Numbers" viewdef="ReferenceWorkIdentifier" mode="view" validated="false"/>
+                <altview name="ReferenceWorkIdentifier Edit" title="Reference Numbers" viewdef="ReferenceWorkIdentifier" mode="edit" validated="true" default="true"/>
+                <altview name="ReferenceWorkIdentifier Table View" viewdef="ReferenceWorkIdentifier Table"    label="Table View" mode="view" />
+                <altview name="ReferenceWorkIdentifier Table Edit" viewdef="ReferenceWorkIdentifier Table"    label="Table Edit" mode="edit"/>
             </altviews>
         </view>
         
-        <view name="Publication Variant Title"
+        <view name="ReferenceWorkVariant"
             objtitle="Publication Title"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             resourcelabels="false">
             <desc><![CDATA[Publication Variant Title subform within the Publication form.]]></desc>
             <altviews defaultmode="view">
-                <altview name="Publication Variant Title View" title="Publication Variant Title" viewdef="Publication Variant Title" mode="view" validated="false"/>
-                <altview name="Publication Variant Title Edit" title="Publication Variant Title" viewdef="Publication Variant Title" mode="edit" validated="true" default="true"/>
-                <altview name="Publication Variant Title Table View" viewdef="Publication Variant Title Table"    label="Table View" mode="view" />
-                <altview name="Publication Variant Title Table Edit" viewdef="Publication Variant Title Table"    label="Table Edit" mode="edit"/>
+                <altview name="ReferenceWorkVariant View" title="Publication Variant Title" viewdef="ReferenceWorkVariant" mode="view" validated="false"/>
+                <altview name="ReferenceWorkVariant Edit" title="Publication Variant Title" viewdef="ReferenceWorkVariant" mode="edit" validated="true" default="true"/>
+                <altview name="ReferenceWorkVariant Table View" viewdef="ReferenceWorkVariant Table" label="Table View" mode="view" />
+                <altview name="ReferenceWorkVariant Title Table Edit" viewdef="ReferenceWorkVariant Table" label="Table Edit" mode="edit"/>
             </altviews>
         </view>
         
@@ -1548,7 +1548,7 @@
         </viewdef>
         
         <viewdef
-            name="Publication"
+            name="ReferenceWork"
             type="form"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -1582,12 +1582,12 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="subview" viewname="Publication Variant Title" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
+                	<cell type="subview" viewname="ReferenceWorkVariant" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
                     <cell type="subview" viewname="Author" id="authors" name="authors" initialize="name=Author" defaulttype="table" rows="3" colspan="5"/>
-					<cell type="subview" viewname="Reference Numbers" id="identifiers" name="identifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
+					<cell type="subview" viewname="ReferenceWorkIdentifier" id="identifiers" name="identifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
@@ -1717,7 +1717,7 @@
         </viewdef> 
         
         <viewdef
-            name="Reference Numbers"
+            name="ReferenceWorkIdentifier"
             type="form"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -1741,18 +1741,18 @@
         </viewdef>
         
         <viewdef
-	        name="Reference Numbers Table"
+	        name="ReferenceWorkIdentifier Table"
             type="formtable"            
             class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Reference Numbers grid view.]]></desc>
-            <definition>Reference Numbers</definition>
+            <definition>ReferenceWorkIdentifier</definition>
         </viewdef>
         
         <viewdef
-            name="Publication Variant Title"
+            name="ReferenceWorkVariant"
             type="form"
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
@@ -1778,14 +1778,14 @@
         </viewdef>
         
         <viewdef
-	        name="Publication Variant Title Table"
+	        name="ReferenceWorkVariant Table"
             type="formtable"            
             class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Publication Variant Title grid view.]]></desc>
-            <definition>Publication Variant Title</definition>
+            <definition>ReferenceWorkVariant</definition>
         </viewdef>
         
         <viewdef
@@ -1994,17 +1994,21 @@
                 </row>
                 <row>
                 	<cell type="label" label="                    ("/>
-                	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Author" formatname="AuthorAbbrevVarAgent"/>
+                	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Author" formatname="AuthorVarAgent"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Ex Author" colspan="8" formatname="AuthorAbbrevVarAgent"/>
+                	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Ex Author" colspan="8" formatname="AuthorVarAgent"/>
                 	<cell type="label" label=")"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author" formatname="AuthorAbbrevVarAgent"/>
+                	<cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author" formatname="AuthorVarAgent"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Ex Author" colspan="8" formatname="AuthorAbbrevVarAgent"/>
+                	<cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Ex Author" colspan="8" formatname="AuthorVarAgent"/>
                 	<cell type="label" label=" "/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="sanctAuthor"/>
+                	<cell type="field" id="sanctAuthor" uitype="querycbx" name="sanctAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author" formatname="AuthorVarAgent"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>

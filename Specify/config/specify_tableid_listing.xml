@@ -170,7 +170,9 @@
         <table name="edu.ku.brc.specify.datamodel.Exsiccata" abbrev="exsic" id="89" searchable="true">
         	<display view="Exsiccata" dataobjformatter="" searchdlg="ExsiccataSearch" newobjdlg="ExsiccataDisplay"/>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.ExsiccataItem" abbrev="exsicit" id="104" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.ExsiccataItem" abbrev="exsicit" id="104" searchable="true">
+			<businessrule>edu.ku.brc.specify.datamodel.busrules.ExsiccataItemBusRules</businessrule>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.FieldNotebook" abbrev="fnb" id="83" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.FieldNotebookBusRules</businessrule>
         </table>
@@ -194,7 +196,7 @@
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Fragment" abbrev="frag" id="142" searchable="true">
-        	<display view="Fragment" newobjdlg="FragmentDisplay"/>
+        	<display view="Fragment" newobjdlg="FragmentDisplay" searchdlg="FragmentSearch"/>
         	<businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.FragmentAttachment" abbrev="fat" id="143" searchable="true">
@@ -333,14 +335,14 @@
         <table name="edu.ku.brc.specify.datamodel.RecordSet" abbrev="rs" id="68"/>
         <table name="edu.ku.brc.specify.datamodel.RecordSetItem" abbrev="rsi" id="502"/>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWork" abbrev="rw" id="69" searchable="true">
-            <display view="Publication" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
+            <display view="ReferenceWork" searchdlg="ReferenceWorkSearch" newobjdlg="ReferenceWorkDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" abbrev="rwi" id="140" searchable="true">
-			<display view="Reference Numbers" newobjdlg="ReferenceWorkIdentifierDisplay" searchable="true"/>
+			<display view="ReferenceworkIdentifier" newobjdlg="ReferenceWorkIdentifierDisplay" searchable="true"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="141" searchable="true">
-			<display view="Publication Variant Title" newobjdlg="ReferenceWorkVariantDisplay" searchable="true"/>
+			<display view="ReferenceWorkVariant" newobjdlg="ReferenceWorkVariantDisplay" searchable="true"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.RepositoryAgreement" abbrev="ra" id="70" searchable="true">
             <display view="RepositoryAgreement" searchdlg="RepositoryAgreementSearch" newobjdlg="RepositoryAgreementDisplay"/>

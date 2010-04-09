@@ -14,7 +14,7 @@
     <dialog type="search" viewset="Search" view="DivisionSearch"           name="DivisionSearch"           class="edu.ku.brc.specify.datamodel.Division"       idfield="divisionId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DeterminationSearch"      name="DeterminationSearch"      class="edu.ku.brc.specify.datamodel.Determination"  idfield="determinationId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ExsiccataSearch"          name="ExsiccataSearch"          class="edu.ku.brc.specify.datamodel.Exsiccata"      idfield="exsiccataId" helpcontext="CBXQSearch"/>
-    <dialog type="search" viewset="Search" view="FragmentSearch"           name="FragmentSearch"           class="edu.ku.brc.specify.datamodel.Fragment"       idfield="FragmentId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="FragmentSearch"           name="FragmentSearch"           class="edu.ku.brc.specify.datamodel.Fragment"       idfield="fragmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeographySearch"          name="GeographySearch"          class="edu.ku.brc.specify.datamodel.Geography"      idfield="geographyId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ChronosStratSearch"       name="ChronosStratSearch"       class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="JournalSearch"            name="JournalSearch"            class="edu.ku.brc.specify.datamodel.Journal"        idfield="journalId" helpcontext="CBXQSearch"/>
@@ -59,7 +59,7 @@
     <dialog type="display" view="Exsiccata"          name="ExsiccataDisplay"         class="edu.ku.brc.specify.datamodel.Exsiccata" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ExchangeOutItems"   name="ExchangeOutItemsDisplay"  class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="FieldNotebookPage"  name="FieldNotebookPageDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPage" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="Fragment"           name="Fragment"                 class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Fragment"           name="FragmentDisplay"          class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ChronosStrat"       name="ChronosStratDisplay"      class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Geography"          name="GeographyDisplay"         class="edu.ku.brc.specify.datamodel.Geography" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="GiftAgent"          name="GiftAgentDisplay"         class="edu.ku.brc.specify.datamodel.GiftAgent" helpcontext="CBXQViewEdit"/>
@@ -75,9 +75,9 @@
     <dialog type="display" view="Preparation"        name="PreparationDisplay"       class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="PreparationAttr"    name="PreparationAttr"          class="edu.ku.brc.specify.datamodel.PreparationAttr" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ProjectSub"         name="ProjectSubDisplay"        class="edu.ku.brc.specify.datamodel.Project" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="Publication"        name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="Reference Numbers"  name="ReferenceWorkIdentifierDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
-	<dialog type="display" view="Publication Variant Title" name="ReferenceWorkVariantDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ReferenceWork"      name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ReferenceWorkIdentifier" name="ReferenceWorkIdentifierDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
+	<dialog type="display" view="ReferenceWorkVariant" name="ReferenceWorkVariantDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="RefWorkTaxCitSub"   name="RefWorkTaxCitSub"         class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="RepositoryAgreement" name="RepositoryAgreementDisplay" class="edu.ku.brc.specify.datamodel.RepositoryAgreement" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Storage"            name="StorageDisplay"           class="edu.ku.brc.specify.datamodel.Storage" helpcontext="CBXQViewEdit"/>

@@ -201,6 +201,13 @@ public class HUHTaxonBusRules extends TaxonBusRules
                    stdAuthorName = "(" + parAuthorName + ") " + stdAuthorName;
                }
 
+               String sanctAuthorName = null;
+               if (taxon.getSanctAuthor() != null)
+               {
+                   sanctAuthorName = taxon.getSanctAuthor().getAuthorName();
+                   stdAuthorName = stdAuthorName + ": " + sanctAuthorName;
+               }
+
                // set its author
                taxon.setAuthor(stdAuthorName);
            }

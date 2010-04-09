@@ -8815,7 +8815,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Collection Rel Type</text>
+            <text>Relationship</text>
           </str>
         </names>
         <descs/>
@@ -8857,7 +8857,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Right Side</text>
+            <text>Item</text>
           </str>
         </names>
         <descs/>
@@ -15615,7 +15615,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Exsiccata Items</text>
+            <text>Exsiccatae</text>
             <itemDesc reference="../../.."/>
           </str>
         </names>
@@ -15654,7 +15654,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Left Side Rels</text>
+            <text>Relationships</text>
           </str>
         </names>
         <descs/>
@@ -32546,6 +32546,17 @@ Specify provides an extensive array of utilities for curatorial management of sp
             <text>Additional Comments</text>
           </str>
         </descs>
+      </item>
+      <item name="sanctAuthor">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Sanctioned by</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="source" type="java.lang.String">
         <version>0</version>
