@@ -292,6 +292,9 @@
 		<picklistitem title="Miscellaneous" value="Miscellaneous"/>
 	</items>
   </picklist>
+  <picklist name="HUH Item Relationship Type" issystem="true" type="1" tablename="collectionreltype" formatter="CollectionRelType" readonly="true" sizelimit="-1">
+    <items/>
+  </picklist>
   <picklist name="HUH Lat-Long Method" type="0" issystem="true" readonly="true" sizelimit="4">
     <items>
       <picklistitem title="GPS" value="GPS"/>
