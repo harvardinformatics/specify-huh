@@ -1307,7 +1307,7 @@ public final class UIHelper
             String mnemonic = getResourceString(mnemonicKey);
             if (btn != null && isNotEmpty(mnemonic))
             {
-                btn.setMnemonic(getResourceString(mnemonic).charAt(0));
+                btn.setMnemonic(mnemonic.charAt(0));
             }
         }
     }
