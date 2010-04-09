@@ -18,7 +18,6 @@ import edu.ku.brc.af.ui.forms.DraggableRecordIdentifier;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Collection;
