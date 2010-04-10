@@ -2334,8 +2334,6 @@
                 <row>
                     <cell type="label" labelfor="fullName"/>
                     <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/> 
-                    <cell type="label" labelfor="commonName"/>
-                    <cell type="field" id="commonName" uitype="text" name="commonName"/>
                 </row>
             </rows>
         </viewdef>
