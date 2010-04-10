@@ -1994,21 +1994,21 @@
                 </row>
                 <row>
                 	<cell type="label" label="                    ("/>
-                	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Author" formatname="AuthorVarAgent"/>
+                	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Author;displaydlg=Botanist" formatname="AuthorVarAgent"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Ex Author" colspan="8" formatname="AuthorVarAgent"/>
+                	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Ex Author;displaydlg=Botanist" colspan="8" formatname="AuthorVarAgent"/>
                 	<cell type="label" label=")"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                	<cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author" formatname="AuthorVarAgent"/>
+                	<cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author;displaydlg=Botanist" formatname="AuthorVarAgent"/>
                 	<cell type="label" label="ex"/>
-                	<cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Ex Author" colspan="8" formatname="AuthorVarAgent"/>
+                	<cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Ex Author;displaydlg=Botanist" colspan="8" formatname="AuthorVarAgent"/>
                 	<cell type="label" label=" "/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="sanctAuthor"/>
-                	<cell type="field" id="sanctAuthor" uitype="querycbx" name="sanctAuthor" initialize="name=AuthorAgentByAgentVar;title=Std Author" formatname="AuthorVarAgent"/>
+                	<cell type="field" id="sanctAuthor" uitype="querycbx" name="sanctAuthor" initialize="name=AuthorAgentByAgentVar;title=Sanctioning Author;displaydlg=Botanist" formatname="AuthorVarAgent"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
