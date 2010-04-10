@@ -639,7 +639,7 @@
             <desc><![CDATA[The Fragment form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 195px,   5px, 110px, 2px, 195px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 195px,   5px, 125px, 2px, 195px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px,   5px, 140px, 2px, 215px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
