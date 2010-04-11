@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 
-  Last Id for ExpressSearch 54
-  Last Id for Other Search  125
+  Last Id for ExpressSearch 56
+  Last Id for Other Search  129
 
  -->
 <searches>
@@ -11,13 +11,11 @@
     <!-- ************************************** -->
     <express>
     
-        <table id="1" tableid="4" indexed="false" name="ItemToDeterminer" priority="1" color="30, 144, 144">
+        <table id="1" tableid="4" indexed="false" name="TaxonToDeterminer" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
+                <join tableid="5">agent.AgentID</join>
                 <join tableid="142">fragment.FragmentID</join>
-                <join tableid="9">determination.DeterminerID</join>
-                <!--<join tableid="9">determination.DeterminationStatusID</join>-->
-                <join tableid="4">taxon.TaxonID</join>
+                <join tableid="4" primary="true">taxon.TaxonID</join>
             </joins>
             <detailView icon="Agent">
                 <sql>
@@ -27,8 +25,8 @@
  taxon.CommonName, 
  agent.LastName, 
  agent.FirstName, 
- agent.AgentType, 
- %s 
+ agent.AgentType,
+ %s
  FROM 
  fragment
  INNER JOIN determination ON determination.FragmentID = fragment.FragmentID 
@@ -50,7 +48,7 @@
             </detailView>
         </table>
     
-        <table id="2" tableid="10" indexed="false" name="ItemToLocality" priority="1" color="30, 144, 144">
+        <table id="2" tableid="10" indexed="false" name="CollectingEventToLocality" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
                 <join tableid="2">locality.LocalityID</join>
@@ -89,6 +87,8 @@
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="4">taxon.TaxonID</join>
+                <join tableid="1">collectionobject.CollectionObjectID</join>
+                <join tableid="63">preparation.PreparationID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
@@ -99,65 +99,21 @@
  taxon.FullName, 
  %s 
  From fragment 
- Inner Join determination ON determination.FragmentID = fragment.FragmentID 
+ Left Join determination ON determination.FragmentID = fragment.FragmentID 
  Inner Join taxon ON taxon.TaxonID = determination.TaxonID 
- WHERE f.CollectionMemberID = COLMEMID AND %s order by f.Identifier asc]]>
+ Inner Join collectionobject ON collectionobject.CollectionObjectID = fragment.CollectionObjectID
+ Inner Join preparation ON preparation.PreparationID = fragment.PreparationID
+ WHERE fragment.CollectionMemberID = COLMEMID AND %s order by fragment.Identifier asc]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>
             </detailView>
         </table>
-        
-        <!--<table id="4" tableid="4" indexed="false" name="GeoToTaxon" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="4" primary="true">taxon.TaxonID</join>
-                <join tableid="2">locality.LocalityID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
-                <join tableid="3">geography.GeographyID</join>
-            </joins>
-            <detailView icon="Taxon">
-                <sql>
-                    <![CDATA[SELECT DISTINCT
- taxon.TaxonID, 
- geography.FullName, 
- locality.LocalityName, 
- collectionobject.CatalogNumber, 
- CatalogedDate, 
- CatalogedDatePrecision, 
- StartDate, 
- StartDatePrecision, 
- taxon.FullName, 
- %s 
- FROM geography   INNER JOIN locality ON locality.geographyid = geography.geographyid 
- INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID 
- INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
- INNER JOIN fragment ON collectionobject.CollectionObjectID = fragment.CollectionObjectID 
- INNER JOIN determination ON fragment.FragmentID = determination.FragmentID 
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="4" col="taxon.TaxonID"         visible="false"/>
-                    <caption tableid="3" col="geography.FullName"    key="Geography"/>
-                    <caption tableid="2" col="locality.LocalityName"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                    <caption tableid="4" col="taxon.FullName"        key="TaxonName"/>
-                </captions>
-            </detailView>
-        </table>-->
 
-        <table id="4" tableid="4" indexed="false" name="GeoToTaxon" priority="1" color="30, 144, 144">
+        <table id="4" tableid="4" indexed="false" name="TaxonToGeography" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="4" primary="true">taxon.TaxonID</join>
                 <join tableid="3">geography.GeographyID</join>
@@ -185,10 +141,9 @@
             </detailView>
         </table>
 
-        <table id="5" tableid="142" indexed="false" name="ItemCollectors" priority="1" color="30, 144, 144">
+        <table id="5" tableid="142" indexed="false" name="ItemToCollector" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="10">collectingevent.CollectingEventID</join>
                 <join tableid="5">agent.AgentID</join>
             </joins>
             <detailView icon="Fragment">
@@ -206,22 +161,17 @@
  agent.AgentType, 
  collector.OrderNumber,  
  %s 
- FROM fragment INNER JOIN collectionobject ON fragment.CollectionObjectID=collectionobject.CollectionObjectID
- INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID 
- INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID 
- INNER JOIN agent ON collector.AgentID = agent.AgentID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND collectionobject.CollectionObjectID 
- in (SELECT collectionobject.CollectionObjectID FROM collectionobject 
+ FROM fragment
+ INNER JOIN collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
  INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID 
  INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID 
  INNER JOIN agent ON collector.AgentID = agent.AgentID 
  WHERE collectionobject.CollectionMemberID = COLMEMID AND %s 
- ORDER BY collectionobject.CollectionObjectID, collector.OrderNumber) ORDER BY 
- fragment.FragmentID, collector.OrderNumber]]>
+ ORDER BY fragment.FragmentID, collector.OrderNumber]]>
                 </sql>
                 <captions>
                     <caption tableid="142"  col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142"  col="fragment.Identifier"   formatter="FragmentIdentifier"/>
+                    <caption tableid="142"  col="fragment.Identifier"   formatter="HUHFragmentBarcode"/>
                     <caption tableid="1" formatter="PartialDate">
                         <col name="CatalogedDate"          field="catalogedDate"/>
                         <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
@@ -258,10 +208,9 @@
             </detailView>
         </table>
         
-        <table id="7" tableid="142" indexed="false" name="SynonymItems" priority="1" color="30, 144, 144">
+        <table id="7" tableid="142" indexed="false" name="ItemToSynonym" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">f.FragmentID</join>
-                <join tableid="9">d.DeterminationID</join>
                 <join tableid="4">t.TaxonID</join>
                 <join tableid="4">t2.TaxonID</join>
             </joins>
@@ -276,7 +225,7 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="f.FragmentID" visible="false"/>
-                    <caption tableid="142" col="f.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="f.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="4" col="t.FullName"   key="DeterminationName"/>
                     <caption tableid="4" col="t2.FullName"  key="AcceptedTaxonName"/>
                 </captions>
@@ -309,10 +258,9 @@
             </detailView>
         </table>-->
         
-        <table id="9" tableid="142" indexed="false" name="OtherSynsItems" priority="40" color="30, 144, 144">
+        <table id="9" tableid="142" indexed="false" name="ItemToOtherSynonym" priority="40" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">f.FragmentID</join>
-                <join tableid="9">d.DeterminationID</join>
                 <join tableid="4">deterTax.TaxonID</join>
                 <join tableid="4">acceptTax.TaxonID</join>
                 <join tableid="4">oldTax.TaxonID</join>
@@ -329,7 +277,7 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="f.FragmentID" visible="false"/>
-                    <caption tableid="142" col="f.Identifier"      formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="f.Identifier"      formatter="HUHFragmentBarcode"/>
                     <caption tableid="4" col="deterTax.FullName"    key="OldTaxonOnDeter"/>
                     <caption tableid="4" col="acceptTax.FullName"   key="AcceptedTaxonName"/>
                     <caption tableid="4" col="oldTax.FullName"      key="OtherOldTaxonName"/>
@@ -338,7 +286,7 @@
         </table>
 
 
-        <table id="10" tableid="142" indexed="false" name="CurrItem" priority="1" color="30, 144, 144">
+        <table id="10" tableid="142" indexed="false" name="ItemToCurrentDetermination" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="4">taxon.TaxonID</join>
@@ -362,16 +310,16 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>
             </detailView>
         </table>
         
-        <table id="11" tableid="5" indexed="false" name="AgentFromAgentVariant" priority="1" color="30, 144, 144">
+        <table id="11" tableid="5" indexed="false" name="AgentToAgentVariant" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="107">agentvariant.AgentVariantID</join>
-                <join tableid="5">agent.AgentID</join>
+                <join tableid="5" primary="true">agent.AgentID</join>
             </joins>
             <detailView icon="Agent">
                 <sql>
@@ -398,34 +346,12 @@
             </detailView>
         </table>
         
-        <table id="12" tableid="2" indexed="false" name="LocalityAlias" priority="1" color="30, 144, 144">
+        <table id="13" tableid="142" indexed="false" name="ItemToCollectingEvent" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="120">localitynamealias.LocalityID</join>
-                <join tableid="2">locality.LocalityID</join>
+                <join tableid="10">collectingevent.CollectingEventID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
             </joins>
-            <detailView icon="Locality">
-                <sql>
-                    <![CDATA[SELECT locality.LocalityID, 
- locality.LocalityName, 
- localitynamealias.Name, 
- %s 
- FROM locality INNER JOIN localitynamealias ON locality.LocalityID = localitynamealias.LocalityID 
- WHERE locality.DisciplineID = DSPLNID AND %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="2" col="locality.LocalityID" visible="false"/>
-                    <caption tableid="2" col="locality.LocalityName"/>
-                    <caption tableid="120" col="localitynamealias.Name"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="13" tableid="142" indexed="false" name="CEToItem" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
-                <join tableid="142">fragment.FragmentID</join>
-            </joins>
-            <detailView icon="ColEvent">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT 
  fragment.FragmentID, 
@@ -443,7 +369,7 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
@@ -456,11 +382,10 @@
             </detailView>
         </table>
         
-        <table id="29" tableid="142" indexed="false" name="LocToItem" priority="1" color="30, 144, 144">
+        <table id="29" tableid="142" indexed="false" name="ItemToLocality" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="2" primary="true">locality.LocalityID</join>
-                <join tableid="10">collectingevent.CollectingEventID</join>
-                <join tableid="142">fragment.FragmentID</join>
+                <join tableid="2">locality.LocalityID</join>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
@@ -483,7 +408,7 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="CatalogNumber"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
                         <col name="StartDatePrecision" field="startDatePrecision"/>
@@ -495,7 +420,7 @@
             </detailView>
         </table>
         
-        <table id="31" tableid="1" indexed="false" name="AccessionToCO" priority="1" color="30, 144, 144">
+        <table id="31" tableid="1" indexed="false" name="CollectionObjectToAccession" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="7">accession.AccessionID</join>
                 <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
@@ -525,10 +450,10 @@
             </detailView>
         </table>
         
-        <table id="32" tableid="5" indexed="false" name="AccessionToAgent" priority="1" color="30, 144, 144">
+        <table id="32" tableid="5" indexed="false" name="AgentToAccession" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="7">accession.AccessionID</join>
-                <join tableid="5"  primary="true">agent.AgentID</join>
+                <join tableid="5" primary="true">agent.AgentID</join>
             </joins>
             <detailView icon="Agent">
                 <sql>
@@ -556,7 +481,7 @@
             </detailView>
         </table>
 
-        <table id="33" tableid="5" indexed="false" name="BorrowToAgent" priority="1" color="30, 144, 144">
+        <table id="33" tableid="5" indexed="false" name="AgentToBorrow" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="18">borrow.BorrowID</join>
                 <join tableid="5" primary="true">agent.AgentID</join>
@@ -587,10 +512,10 @@
             </detailView>
         </table>
         
-        <table id="34" tableid="5" indexed="false" name="AppraisalToAgent" priority="1" color="30, 144, 144">
+        <table id="34" tableid="5" indexed="false" name="AgentToAppraisal" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="67">appraisal.AppriasalID</join>
-                <join tableid="5"  primary="true">agent.AgentID</join>
+                <join tableid="5" primary="true">agent.AgentID</join>
             </joins>
             <detailView icon="Agent">
                 <sql>
@@ -616,7 +541,7 @@
         </table>
         
         
-        <table id="35" tableid="1" indexed="false" name="GeoTimePeriodToCO" priority="1" color="30, 144, 144">
+        <table id="35" tableid="1" indexed="false" name="CollectionObjectToGeoTimePeriod" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="46">geologictimeperiod.GeologicTimePeriodID</join>
                 <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
@@ -642,7 +567,7 @@
             </detailView>
         </table>
         
-        <table id="36" tableid="5" indexed="false" name="CollEventToCollectors" priority="1" color="30, 144, 144">
+        <table id="36" tableid="5" indexed="false" name="AgentToCollectingEvent" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="10">collectingevent.CollectingEventID</join>
@@ -679,12 +604,12 @@
         </table>
         
         
-        <table id="37" tableid="10" indexed="false" name="CollTripCollEvent" priority="1" color="30, 144, 144">
+        <table id="37" tableid="10" indexed="false" name="CollectingEventToCollectingTrip" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="87">collectingtrip.CollectingTripID</join>
                 <join tableid="10"  primary="true">collectingevent.CollectingEventID</join>
             </joins>
-            <detailView icon="CollectingTrip">
+            <detailView icon="CollectingEvent">
                 <sql>
                     <![CDATA[SELECT 
  collectingevent.CollectingEventID, 
@@ -710,7 +635,7 @@
             </detailView>
         </table>
         
-        <table id="38" tableid="39" indexed="false" name="AgentExchangeIn" priority="1" color="30, 144, 144">
+        <table id="38" tableid="39" indexed="false" name="ExchangeInToAgent" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="39" primary="true">exchangein.ExchangeInID</join>
                 <join tableid="5">agent.AgentID</join>
@@ -737,7 +662,7 @@
             </detailView>
         </table>
         
-        <table id="39" tableid="40" indexed="false" name="AgentExchangeOut" priority="1" color="30, 144, 144">
+        <table id="39" tableid="40" indexed="false" name="ExchangeOutToAgent" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="40" primary="true">exchangeout.ExchangeOutID</join>
                 <join tableid="5">agent.AgentID</join>
@@ -764,7 +689,7 @@
             </detailView>
         </table>
 
-        <table id="40" tableid="10" indexed="false" name="GeographyCE" priority="1" color="30, 144, 144">
+        <table id="40" tableid="10" indexed="false" name="CollectingEventToGeography" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
                 <join tableid="3">geography.GeographyID</join>
@@ -796,7 +721,7 @@
             </detailView>
         </table>
 
-        <table id="41" tableid="142" indexed="false" name="GeographyItem" priority="1" color="30, 144, 144">
+        <table id="41" tableid="142" indexed="false" name="ItemToGeography" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="3">geography.GeographyID</join>
@@ -818,13 +743,13 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="3" col="FullName" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="42" tableid="1" indexed="false" name="GiftCO" priority="1" color="30, 144, 144">
+        <table id="42" tableid="1" indexed="false" name="CollectionObjectToGift" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
                 <join tableid="142">fragment.FragmentID</join>
@@ -856,7 +781,7 @@
             </detailView>
         </table>
 
-        <table id="43" tableid="5" indexed="false" name="GiftAgent" priority="1" color="30, 144, 144">
+        <table id="43" tableid="5" indexed="false" name="AgentToGift" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="131">gift.GiftID</join>
@@ -886,12 +811,12 @@
             </detailView>
         </table>
 
-        <table id="44" tableid="142" indexed="false" name="LoanItem" priority="1" color="30, 144, 144">
+        <table id="44" tableid="142" indexed="false" name="ItemToLoan" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="52">loan.LoanID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[SELECT 
  fragment.FragmentID, 
@@ -909,14 +834,14 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="65" col="Name" />
                     <caption tableid="52" col="LoanNumber" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="45" tableid="5" indexed="false" name="LoanAgent" priority="1" color="30, 144, 144">
+        <table id="45" tableid="5" indexed="false" name="AgentToLoan" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="52">loan.loanID</join>
@@ -947,7 +872,7 @@
         </table>
 
 
-        <table id="46" tableid="1" indexed="false" name="LithoStratToCO" priority="1" color="30, 144, 144">
+        <table id="46" tableid="1" indexed="false" name="CollectionObjectToLithoStrat" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
                 <join tableid="100">lithostrat.LithoStratID</join>
@@ -974,16 +899,15 @@
         </table>
 
 
-        <table id="47" tableid="142" indexed="false" name="PermitToItem" priority="1" color="30, 144, 144">
+        <table id="47" tableid="1" indexed="false" name="CollectionObjectToPermit" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="6">permit.PermitID</join>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
             </joins>
-            <detailView icon="Fragment">
+            <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
+ collectionobject.CollectionObjectID, 
  permit.PermitNumber, 
   %s 
  FROM 
@@ -995,14 +919,13 @@
  WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY PermitNumber, collectionobject.CatalogNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier" />
+                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
                     <caption tableid="6" col="PermitNumber" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="48" tableid="5" indexed="false" name="PermitIssuedToAgent" priority="1" color="30, 144, 144">
+        <table id="48" tableid="5" indexed="false" name="IssuedToAgentToPermit" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="6">permit.PermitID</join>
                 <join tableid="5" primary="true">agent.AgentID</join>
@@ -1030,7 +953,7 @@
             </detailView>
         </table>
 
-        <table id="49" tableid="5" indexed="false" name="PermitIssuedByAgent" priority="1" color="30, 144, 144">
+        <table id="49" tableid="5" indexed="false" name="IssuedByAgentToPermit" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="6">permit.PermitID</join>
                 <join tableid="5" primary="true">agent.AgentID</join>
@@ -1059,16 +982,15 @@
         </table>
 
 
-        <table id="50" tableid="142" indexed="false" name="ProjectItem" priority="1" color="30, 144, 144">
+        <table id="50" tableid="1" indexed="false" name="CollectionObjectToProject" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
                 <join tableid="66">project.ProjectID</join>
             </joins>
-            <detailView icon="Fragment">
+            <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
+ collectionobject.CollectionObjectID, 
  project.ProjectName, 
  project.ProjectNumber, 
   %s 
@@ -1080,15 +1002,14 @@
  WHERE collectionobject.CollectionmemberID = COLMEMID AND %s ORDER BY ProjectName, ProjectNumber, fragment.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
                     <caption tableid="66" col="ProjectName" />
                     <caption tableid="66" col="ProjectNumber" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="51" tableid="5" indexed="false" name="ProjectAgent" priority="1" color="30, 144, 144">
+        <table id="51" tableid="5" indexed="false" name="AgentToProject" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="66">project.ProjectID</join>
@@ -1118,7 +1039,7 @@
             </detailView>
         </table>
 
-        <table id="52" tableid="5" indexed="false" name="RepoAgreeAgent" priority="1" color="30, 144, 144">
+        <table id="52" tableid="5" indexed="false" name="AgentToRepositoryAgreement" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="5" primary="true">agent.AgentID</join>
                 <join tableid="70">repositoryagreement.RepositoryAgreementID</join>
@@ -1146,7 +1067,7 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-        <table id="53" tableid="142" indexed="false" name="StorageItem" priority="1" color="30, 144, 144">
+        <table id="53" tableid="142" indexed="false" name="ItemToStorage" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="58">storage.StorageID</join>
@@ -1166,15 +1087,15 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier" />
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode" />
                     <caption tableid="58" col="FullName" />
                  </captions>
             </detailView>
         </table>
 
-        <table id="54" tableid="142" indexed="false" name="TaxItem" priority="1" color="30, 144, 144">
+        <table id="54" tableid="142" indexed="false" name="ItemToTaxon" priority="1" color="30, 144, 144">
             <joins>
-                <!-- <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>-->
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
             <detailView icon="Fragment">
@@ -1196,36 +1117,40 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="FragmentIdentifier"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="9" col="IsCurrent"/>
                     <caption tableid="4" col="FullName" key="TaxonName"/>
                 </captions>
             </detailView>
         </table>
 
-		<table id="55" tableid="1" indexed="false" name="PrepCollObject" priority="1" color="30, 144, 144">
+		<table id="55" tableid="142" indexed="false" name="ItemToPreparation" priority="1" color="30, 144, 144">
             <joins>
-                <!-- <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>-->
+                <join tableid="142" primary="true">fragment.FragmentID</join>
                 <join tableid="63">preparation.PreparationID</join>
             </joins>
-            <detailView icon="CollectionObject">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT distinct 
- collectionobject.CollectionObjectID, 
- SampleNumber, 
- CatalogedDate, 
- CatalogedDatePrecision, 
+ fragment.FragmentID, 
+ fragment.Identifier,
+ preparation.Identifier,
+ preparation.SampleNumber, 
+ collectionobject.CatalogedDate, 
+ collectionobject.CatalogedDatePrecision, 
  %s 
  From collectionobject 
  Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join preparation ON preparation.FragmentID = fragment.FragmentID 
+ Inner Join preparation ON preparation.PreparationID = fragment.PreparationID 
  WHERE preparation.CollectionMemberID = COLMEMID AND 
  collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier, preparation.SampleNumber]]>
+ %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
                     <caption tableid="63" col="SampleNumber"/>
                     <caption tableid="1" formatter="PartialDate">
                         <col name="CatalogedDate"          field="catalogedDate"/>
@@ -1235,10 +1160,10 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-		<table id="56" tableid="69" indexed="false" name="ReferenceWorkFromReferenceWorkVariant" priority="1" color="30, 144, 144">
+		<table id="56" tableid="69" indexed="false" name="RefWorkToRefWorkVariant" priority="1" color="30, 144, 144">
             <joins>
                 <join tableid="141">referenceworkvariant.ReferenceWorkVariantID</join>
-                <join tableid="69">referencework.ReferenceWorkID</join>
+                <join tableid="69" primary="true">referencework.ReferenceWorkID</join>
             </joins>
             <detailView icon="ReferenceWork">
                 <sql>
@@ -1642,6 +1567,29 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="4" col="TaxonomicSerialNumber"/>                  
                     <caption tableid="41" col="Title"/>
                     <caption tableid="41" col="OrigFilename"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="30" tableid="142" indexed="false" name="Frag2ATT" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="142" primary="true">fragment.FragmentID</join>
+                <join tableid="143">attachment.AttachmentID</join>
+            </joins>
+            <detailView icon="Fragment">
+                <sql>
+                    <![CDATA[SELECT 
+  fragment.FragmentID, 
+  fragment.Identifier, 
+  attachment.Title, 
+  %s 
+  FROM fragment INNER JOIN fragmentattachment ON fragment.FragmentID = fragmentattachment.FragmentID 
+  INNER JOIN attachment ON fragmentattachment.AttachmentID = attachment.AttachmentID WHERE %s]]>
+                </sql>
+                <captions>
+                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="41" col="Title"/>
                 </captions>
             </detailView>
         </table>
@@ -2109,11 +2057,11 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="63" col="PreparationID" visible="false"/>
-                    <caption tableid="63" name="Identifier" col="preparation.Identifier"/>
+                    <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
                     <caption tableid="65" name="Name" col="prepType.Name"/>
                     <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
                     <caption tableid="63" name="Text1" col="preparation.Text1"/>
-                    <caption tableid="142" name="Identifier" col="fragment.Identifier"/>
+                    <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                 </captions>
             </detailView>
         </table>
