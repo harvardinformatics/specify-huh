@@ -413,7 +413,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                             Component component = (Component) ae.getSource();
                             
                             JPopupMenu popupMenu = new JPopupMenu();
-                            JMenuItem editItem = new JMenuItem("Edit");
+                            JMenuItem editItem = new JMenuItem(getResourceString("EDIT"));
                             editItem.addActionListener(new ActionListener() {
 
                                 @Override
@@ -424,7 +424,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                                 
                             });
                             popupMenu.add(editItem);
-                            JMenuItem viewItem = new JMenuItem("View");
+                            JMenuItem viewItem = new JMenuItem(getResourceString("VIEW"));
                             viewItem.addActionListener(new ActionListener() {
 
                                 @Override
@@ -436,7 +436,10 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                             });
                             popupMenu.add(viewItem);
                             popupMenu.show(component, component.getX(), component.getY());
-
+                        }
+                        else
+                        {
+                            openTreeViewerInBGThread(titleArg, isEditMode);
                         }
                         
                     } else
