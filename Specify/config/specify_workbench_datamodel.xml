@@ -49,7 +49,7 @@
     <field column="Start Time" name="startTime" type="java.lang.Short"/>
     <field column="End Time" name="endTime" type="java.lang.Short"/>
     <field column="Verbatim Locality" name="verbatimLocality" type="text" length="2048"/>
-    <field column="Remarks (Collecting Event)" name="collectingEventRemarks" type="text" length="4096"/>
+    <field column="Habitat Notes" name="collectingEventRemarks" type="text" length="4096"/>
     <field column="Collector First Name 1" name="collectorFirstName1" type="java.lang.String" length="50"/>
     <field column="Collector Last Name 1"  name="collectorLastName1" type="java.lang.String" length="50"/>
     <field column="Collector Middle Initials 1" name="collectorMiddle1" type="java.lang.String" length="50"/>
@@ -151,11 +151,13 @@
     <field column="Remarks (CollectionObject)" name="collectionObjectRemarks" type="text" length="4096"/>
     <field column="Modifier" name="modifier" type="java.lang.String" length="50"/>
     <field column="GUID" name="guid" type="java.lang.String" length="128"/>
-    <field column="Text 1 (CollectionObject)" name="collectionObjectText1" type="text" length="300"/>
-    <field column="Text 2 (CollectionObject)" name="collectionObjectText2" type="text" length="300"/>
+    <field column="Host" name="collectionObjectText1" type="text" length="300"/>
+    <field column="Substrate" name="collectionObjectText2" type="text" length="300"/>
+    <field column="Vernacular Name" name="collectionObjectText3" type="text" length="300"/>
+    <field column="Frequency" name="collectionObjectText4" type="text" length="50"/>
     <field column="Number 1 (CollectionObject)" name="collectionObjectNumber1" type="java.lang.Float" length="24"/>
     <field column="Number 2 (CollectionObject)" name="collectionObjectNumber2" type="java.lang.Float" length="24"/>
-    <field column="YesNo 1 (CollectionObject)" name="collectionObjectYesNo1" type="boolean"/>
+    <field column="Is Cultivated" name="collectionObjectYesNo1" type="boolean"/>
     <field column="YesNo 2 (CollectionObject)" name="collectionObjectYesNo2" type="boolean"/>
     <field column="Cataloger First Name" name="catalogerFirstName" type="java.lang.String" length="50"/>
     <field column="Cataloger Last Name" name="catalogerLastName" type="java.lang.String" length="50"/>
@@ -233,9 +235,15 @@
     <field column="Determined Date 1"       	name="determinedDate1" type="calendar_date"/>
     <field column="Determiner Last Name 1"  	name="determinerLastName1" type="java.lang.String" length="50"/>
     <field column="Determiner First Name 1" 	name="determinerFirstName1" type="java.lang.String" length="50"/>
-    <field column="Determiner Middle Initials 1"  	name="determinerMiddle1" type="java.lang.String" length="50"/>
-    <field column="Determiner Title 1" 	name="determinerTitle1" type="java.lang.String" length="50"/>
-    <field column="Is Current (Yes/No) 1"       name="isCurrent1" type="boolean"/>
+    <field column="Determiner Middle Initials 1" name="determinerMiddle1" type="java.lang.String" length="50"/>
+    <field column="Determiner Title 1"      	name="determinerTitle1" type="java.lang.String" length="50"/>
+    <field column="Is Current 1"       name="isCurrent1" type="boolean"/>
+    <field column="Is Label 1"         name="isLabel1" type="boolean"/>
+    <field column="Is Fragment 1"      name="isFragment1" type="boolean"/>
+    <field column="Is Filed Under 1"   name="isFiledUnder1" type="boolean"/>
+    <field column="Determiner Text 1"    name="determinerText1" type="java.lang.String" length="300"/>
+    <field column="Annotation Text 1"    name="annotation1" type="java.lang.String" length="300"/>
+    
     <!-- removing upper ranks from determination until documentation and validation are completed #7247-->
     <field column="Phylum 1"                 	name="phylum1" type="java.lang.String" length="64"/>
     <field column="Subphylum 1"                 name="subphylum1" type="java.lang.String" length="64"/>
@@ -281,9 +289,15 @@
     <field column="Determined Date 2"       	name="determinedDate2" type="calendar_date"/>
     <field column="Determiner Last Name 2"  	name="determinerLastName2" type="java.lang.String" length="50"/>
     <field column="Determiner First Name 2" 	name="determinerFirstName2" type="java.lang.String" length="50"/>
-    <field column="Determiner Middle Initials 2"  	name="determinerMiddle2" type="java.lang.String" length="50"/>
-    <field column="Determiner Title 2" 	name="determinerTitle2" type="java.lang.String" length="50"/>
-    <field column="Is Current (Yes/No) 2"       name="isCurrent2" type="boolean"/>
+    <field column="Determiner Middle Initials 2" name="determinerMiddle2" type="java.lang.String" length="50"/>
+    <field column="Determiner Title 2" 	        name="determinerTitle2" type="java.lang.String" length="50"/>
+    <field column="Is Current 2"       name="isCurrent2" type="boolean"/>
+    <field column="Is Label 2"         name="isLabel2" type="boolean"/>
+    <field column="Is Fragment 2"      name="isFragment2" type="boolean"/>
+    <field column="Is Filed Under 2"   name="isFiledUnder2" type="boolean"/>
+    <field column="Determiner Text 2"    name="determinerText2" type="java.lang.String" length="300"/>
+    <field column="Annotation Text 2"    name="annotation2" type="java.lang.String" length="300"/>
+    
     <!-- removing upper ranks from determination until documentation and validation are completed #7247-->
     <field column="Phylum 2"                 	name="phylum2" type="java.lang.String" length="64"/>
     <field column="Subphylum 2"                 name="subphylum2" type="java.lang.String" length="64"/>
@@ -329,9 +343,12 @@
   
   <table classname="edu.ku.brc.specify.datamodel.Geography" table="geography" tableid="3" lazy="true">
     <field column="Continent" name="continent" type="java.lang.String" length="64"/>
+    <field column="Region" name="region" type="java.lang.String" length="64"/>
     <field column="Country" name="country" type="java.lang.String" length="64"/>
     <field column="State" name="state" type="java.lang.String" length="64"/>
     <field column="County" name="county" type="java.lang.String" length="64"/>
+    <field column="Source" name="text1" type="java.lang.String" length="32"/>
+    <field column="Description" name="text2" type="java.lang.String" length="255"/>
   </table>
   
   <!-- table classname="edu.ku.brc.specify.datamodel.GeologicTimePeriod" table="geologictimeperiod" tableid="46" lazy="true">

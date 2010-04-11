@@ -591,7 +591,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Collecting Event Remarks</text>
+            <text>Habitat Notes</text>
           </str>
         </names>
         <descs/>
@@ -774,7 +774,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Collection Object Yes No1</text>
+            <text>Is Cultivated 1</text>
           </str>
         </names>
         <descs/>
@@ -818,7 +818,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Collection Object Text2</text>
+            <text>Substrate</text>
           </str>
         </names>
         <descs/>
@@ -829,7 +829,7 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Field Number</text>
+            <text>Collector Number</text>
           </str>
         </names>
         <descs/>
@@ -851,7 +851,40 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Collection Object Text1</text>
+            <text>Host 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="collectionObjectText2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Substrate 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="collectionObjectText1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Vernacular Name 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="collectionObjectText1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Frequency 1</text>
           </str>
         </names>
         <descs/>
@@ -1424,7 +1457,62 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Is Current1</text>
+            <text>Is Current 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isLabel1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Label 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isFragment1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Fragment 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isFiledUnder1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Filed Under 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="determinerText1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Determiner Text 1</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="annotation1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Annotation Text 1</text>
           </str>
         </names>
         <descs/>
@@ -1474,7 +1562,62 @@
         <names>
           <str language="en">
             <version>0</version>
-            <text>Is Current2</text>
+            <text>Is Current 2</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isLabel2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Label 2</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isFragment2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Fragment 2</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="isFiledUnder2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Is Filed Under 2</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="determinerText2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Determiner Text 2</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="annotation2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Annotation Text 2</text>
           </str>
         </names>
         <descs/>
@@ -2166,6 +2309,39 @@
           <str language="en">
             <version>0</version>
             <text>Continent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="region">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Region</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="text1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Source</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="text2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Description</text>
           </str>
         </names>
         <descs/>
