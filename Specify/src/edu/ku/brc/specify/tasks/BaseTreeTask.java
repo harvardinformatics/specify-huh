@@ -21,8 +21,10 @@ package edu.ku.brc.specify.tasks;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.Component;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +34,8 @@ import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
@@ -298,7 +302,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     	if (!isOpeningTree) // as oppose to opening the TreeDef
     	{
             PermissionSettings perms = DBTableIdMgr.getInstance().getByShortClassName(treeClass.getSimpleName()).getPermissions();
-            final boolean isViewOnly = true;//perms != null && perms.isViewOnly();
+            final boolean isViewOnly = ((perms != null && perms.isViewOnly()) || !isEditModeArg);
             final boolean isViewable = perms == null || perms.canView();
             final boolean isEditable = perms == null || perms.canModify();
             
@@ -404,7 +408,37 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
                 {
                     if (visibleSubPane == null || visibleSubPane instanceof TreeTableViewer<?,?,?>)
                     {
-                        openTreeViewerInBGThread(titleArg, isEditMode);
+                        if (ae.getSource() instanceof Component)
+                        {                            
+                            Component component = (Component) ae.getSource();
+                            
+                            JPopupMenu popupMenu = new JPopupMenu();
+                            JMenuItem editItem = new JMenuItem("Edit");
+                            editItem.addActionListener(new ActionListener() {
+
+                                @Override
+                                public void actionPerformed(ActionEvent e)
+                                {
+                                    openTreeViewerInBGThread(titleArg, isEditMode);
+                                }
+                                
+                            });
+                            popupMenu.add(editItem);
+                            JMenuItem viewItem = new JMenuItem("View");
+                            viewItem.addActionListener(new ActionListener() {
+
+                                @Override
+                                public void actionPerformed(ActionEvent e)
+                                {
+                                    openTreeViewerInBGThread(titleArg, false);
+                                }
+                                
+                            });
+                            popupMenu.add(viewItem);
+                            popupMenu.show(component, component.getX(), component.getY());
+
+                        }
+                        
                     } else
                     {
                         switchViewType(isEditMode, true);
