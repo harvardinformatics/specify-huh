@@ -649,8 +649,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         if (specimenItem.getId() == null) return null;
         
         Integer specimenItemId = specimenItem.getId();
-        Integer barcode = lookupBarcode(specimenItemId);
-        if (barcode == null) barcode = specimenItem.getBarcode();
+        Integer barcode = specimenItem.getBarcode();
         if (barcode == null)
         {
             getLogger().warn(rec() + "Null barcode");
