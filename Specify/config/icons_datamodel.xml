@@ -47,7 +47,7 @@
     <icon name="fieldnotebook"        file="field_notebook.png" sizes="all"/>
     <icon name="fieldnotebookpage"    file="field_notebook_page.png" sizes="all"/>
     <icon name="fieldnotebookpageset" file="field_notebook_page_set.png" sizes="all"/>
-    <icon name="fragment"             file="collection_object.png" sizes="all"/>
+    <icon name="fragment"             file="flower.png" sizes="all"/>
     <icon name="fragmentcitation"     file="citation.png" sizes="all"/>
     <icon name="geocoorddetail"       file="geo_coord_detail.png" sizes="all"/>
     <icon name="geography"            file="geography.png" sizes="all"/>
@@ -70,6 +70,8 @@
     <icon name="picklist"             file="pick_list.png" sizes="all"/>
     <icon name="project"              file="project.png" sizes="all"/>
     <icon name="referencework"        file="reference_work.png" sizes="all"/>
+    <icon name="referenceworkidentifier" file="reference_work.png" sizes="all"/>
+    <icon name="referenceworkvariant" file="reference_work.png" sizes="all"/>
     <icon name="repositoryagreement"  file="repository_agreement.png" sizes="all"/>
     <icon name="shipment"             file="shipment.png" sizes="all"/>
     <icon name="storage"              file="storage.png" sizes="all"/>
@@ -147,15 +149,18 @@
 	<icon name="repositoryagreementattachment"  alias="RepositoryAgreementAttachment"/>
 	<icon name="taxonattachment"                alias="TaxonAttachment"/>
 
+    <icon name="exchangeoutpreparation" alias="preparation"/>
+    <icon name="ExchangeOutPreparation" alias="preparation"/>
     <icon name="loanpreparation"        alias="preparation"/>
     <icon name="LoanPreparation"        alias="preparation"/>
     <icon name="giftpreparation"        alias="preparation"/>
     <icon name="GiftPreparation"        alias="preparation"/>
     <icon name="deaccessionpreparation" alias="preparation"/>
-    <icon name="DeaccessionPreparation"  alias="preparation"/>
+    <icon name="DeaccessionPreparation" alias="preparation"/>
     
     
 	<icon name="citation"               file="citation.png" sizes="all"/>
+	<icon name="agentcitation"          alias="citation"/>
     <icon name="determinationcitation"  alias="citation"/>
     <icon name="localitycitation"       alias="citation"/>
     <icon name="taxoncitation"          alias="citation"/>
@@ -264,6 +269,8 @@
     <icon name="PrepType"               alias="preptype"/>
     <icon name="Project"                alias="project"/>
     <icon name="ReferenceWork"          alias="referencework"/>
+    <icon name="ReferenceWorkIdentifier" alias="agentvariant"/>
+    <icon name="ReferenceWorkVariant"   alias="agentvariant"/>
     <icon name="Shipment"               alias="shipment"/>
     <icon name="Storage"                alias="storage"/>
     <icon name="Taxon"                  alias="taxon"/>
