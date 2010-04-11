@@ -55,6 +55,7 @@
     <dialog type="display" view="CollectingTrip"     name="CollectingTripDisplay"    class="edu.ku.brc.specify.datamodel.CollectingTrip" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Container"          name="ContainerDisplay"         class="edu.ku.brc.specify.datamodel.Container" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Determination"      name="DeterminationDisplay"     class="edu.ku.brc.specify.datamodel.Determination" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="DeterminationCitation" name="DeterminationCitationDisplay" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Exsiccata"          name="ExsiccataDisplay"         class="edu.ku.brc.specify.datamodel.Exsiccata" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ExchangeOutItems"   name="ExchangeOutItemsDisplay"  class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" helpcontext="CBXQViewEdit"/>
