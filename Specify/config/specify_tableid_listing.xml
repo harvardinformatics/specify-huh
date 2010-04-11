@@ -140,7 +140,9 @@
         <table name="edu.ku.brc.specify.datamodel.Determination" abbrev="det" id="9" workbench="true" searchable="true">
             <display view="Determination" dataobjformatter="Determination"  searchdlg="DeterminationSearch" newobjdlg="DeterminationDisplay"/>            
         </table>
-        <table name="edu.ku.brc.specify.datamodel.DeterminationCitation" abbrev="detc" id="38" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.DeterminationCitation" abbrev="detc" id="38" searchable="true">
+			<display view="DeterminationCitation" newobjdlg="DeterminationCitationDisplay"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.Discipline" abbrev="dsp" id="26">
             <display view="Discipline" dataobjformatter="Discipline" uiformatter="" searchdlg="DisciplineSearch" newobjdlg="Discipline"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.DisciplineBusRules</businessrule>                    
