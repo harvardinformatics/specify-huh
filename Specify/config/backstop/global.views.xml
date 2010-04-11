@@ -1905,7 +1905,7 @@
             <rows>
             	<row>
                 	<cell type="label" labelfor="citInAuthor"/>
-                	<cell type="field" id="citInAuthor" name="taxon.citInAuthor" uitype="querycbx" initialize="name=AuthorAgentByAgentVar;title=Cit In Author" colspan="7"/>
+                	<cell type="field" id="citInAuthor" name="taxon.citInAuthor" uitype="querycbx" initialize="name=AuthorAgentByAgentVar;title=Cit In Author;displaydlg=Botanis" colspan="7"/>
                 </row>
             	<row>
             		<cell type="label" labelfor="publication"/>
