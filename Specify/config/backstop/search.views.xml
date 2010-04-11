@@ -655,7 +655,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="1" />
-                    <cell type="field" id="1" name="Identifier" uitype="formattedtext" formatter="FragmentIdentifier" initialize="ispartial=true"/>
+                    <cell type="field" id="1" name="Identifier" uitype="formattedtext" initialize="ispartial=true"/>
                 </row>
             </rows>
         </viewdef>
