@@ -138,7 +138,7 @@ public class UIRegistry
     protected static Rectangle        frameRect        = null;
     protected static GhostGlassPane   oldGlassPane     = null;    
     protected static boolean          showingGlassPane = false;
-    protected static boolean          isRelease        = false;
+    protected static boolean          isRelease        = true;
     protected static boolean          isTesting        = false;
     protected static int              STD_WAIT_TIME    = 1000; // 1 Second mmk: reduced from 2 seconds
     public    static int              STD_FONT_SIZE    = 20;   // 20 point size
