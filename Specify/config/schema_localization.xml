@@ -15932,7 +15932,7 @@
     </descs>
     <aggregator>Fragment</aggregator>
   </container>
-  <container name="fragmentcitation" type="">
+  <container name="fragmentcitation">
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
