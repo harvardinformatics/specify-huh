@@ -269,9 +269,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
     private boolean              isWorkbenchOnly     = false;
     
-    private String               appName             = "Specify"; //$NON-NLS-1$
+    private String               appName             = "Specify-HUH"; //$NON-NLS-1$
     private String               appVersion          = "6.0"; //$NON-NLS-1$
-    private String               appBuildVersion     = "(Unknown)"; //$NON-NLS-1$
+    private String               appBuildVersion     = "0"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
 
@@ -1382,7 +1382,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             }
         });
         
-        ttle = "Specify.AUTO_REG";//$NON-NLS-1$ 
+        /*ttle = "Specify.AUTO_REG";//$NON-NLS-1$ 
         mneu = "Specify.AUTO_REG_MNEU";//$NON-NLS-1$ 
         desc = "Specify.AUTO_REG_DESC";//$NON-NLS-1$      
         mi = UIHelper.createLocalizedMenuItem(helpMenu, ttle , mneu, desc,  true, null);
@@ -1420,7 +1420,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                 FeedBackDlg feedBackDlg = new FeedBackDlg();
                 feedBackDlg.sendFeedback();
             }
-        });
+        });*/
         helpMenu.addSeparator();
         
                 
@@ -2164,10 +2164,10 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             if (okToShutdown && doAppExit)
             {
                 Boolean canSendStats = false;
-                if (AppContextMgr.getInstance().hasContext())
+/*                if (AppContextMgr.getInstance().hasContext())
                 {
                     canSendStats = AppPreferences.getRemote().getBoolean(sendStatsPrefName, true); //$NON-NLS-1$
-                }
+                }*/
                 
                 if (canSendStats)
                 {
@@ -2345,7 +2345,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
         if (!firstTime)
         {
-            checkAndSendStats();
+            //checkAndSendStats();
         }
         
         try
