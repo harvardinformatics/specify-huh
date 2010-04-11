@@ -2,7 +2,7 @@
 <!-- 
 
   Last Id for ExpressSearch 56
-  Last Id for Other Search  129
+  Last Id for Other Search  130
 
  -->
 <searches>
@@ -2062,6 +2062,26 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
                     <caption tableid="63" name="Text1" col="preparation.Text1"/>
                     <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="130" tableid="5" name="BotanistSearch" priority="1" color="30, 144, 255">
+            <detailView icon="">
+                <sql>
+                    <![CDATA[SELECT ag.AgentID, 
+ ag.FirstName, 
+ ag.LastName, 
+ av.Name
+ FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID 
+ LEFT JOIN agentvariant av ON ag.AgentID = av.AgentID 
+ WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ag.LastName, ag.FirstName, av.Name]]>
+                </sql>
+                <captions>
+                    <caption tableid="5" col="AgentID" visible="false"/>
+                    <caption tableid="5" col="FirstName"/>
+                    <caption tableid="5" col="LastName"/>
+                    <caption tableid="107" col="Name"/>
                 </captions>
             </detailView>
         </table>

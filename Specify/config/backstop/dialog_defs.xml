@@ -6,6 +6,7 @@
     <dialog type="search" viewset="Search" view="AttachmentSearch"         name="AttachmentSearch"         class="edu.ku.brc.specify.datamodel.Attachment"     idfield="attachmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AutoNumberingSchemeSearch" name="AutoNumberingSchemeSearch" class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" idfield="autoNumberingSchemeId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="BioStratSearch"           name="BioStratSearch"           class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
+    <dialog type="search" viewset="Search" view="BotanistSearch"           name="BotanistSearch"           class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="CollectionObjectSearch"   name="CollectionObjectSearch"   class="edu.ku.brc.specify.datamodel.CollectionObject" idfield="collectionObjectId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="CollectingEventSearch"    name="CollectingEventSearch"    class="edu.ku.brc.specify.datamodel.CollectingEvent" idfield="collectingEventId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="CollectingTripSearch"     name="CollectingTripSearch"     class="edu.ku.brc.specify.datamodel.CollectingTrip" idfield="collectingTripId" helpcontext="CBXQSearch"/>
