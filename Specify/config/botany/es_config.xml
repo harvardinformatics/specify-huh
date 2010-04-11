@@ -62,6 +62,7 @@
       <searchFields>
         <searchfield>
           <fieldName>identifier</fieldName>
+          <formatter></formatter>
           <isSortable>false</isSortable>
           <isAscending>true</isAscending>
           <order>0</order>
@@ -70,7 +71,7 @@
       <displayFields>
         <displayfield>
           <fieldName>identifier</fieldName>
-          <formatter></formatter>
+          <formatter>HUHFragmentBarcode</formatter>
           <order>2147483647</order>
         </displayfield>
       </displayFields>
