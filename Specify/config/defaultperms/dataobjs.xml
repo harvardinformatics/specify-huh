@@ -1,5 +1,26 @@
 <hashtable>
   <entry>
+    <string>agentcitation</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="agentcitation" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="agentcitation" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="agentcitation" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="agentcitation" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
     <string>agentgeography</string>
     <hashtable>
       <entry>
@@ -798,6 +819,27 @@
     </hashtable>
   </entry>
   <entry>
+    <string>exchangeoutpreparation</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="exchangeoutpreparation" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="exchangeoutpreparation" type="LimitedAccess" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="exchangeoutpreparation" type="Guest" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="exchangeoutpreparation" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
     <string>spqueryfield</string>
     <hashtable>
       <entry>
@@ -844,7 +886,7 @@
     <hashtable>
       <entry>
         <string>Manager</string>
-        <tp name="fragmenttcitation" type="Manager" view="true" modify="true" del="true" add="true"/>
+        <tp name="fragmentcitation" type="Manager" view="true" modify="true" del="true" add="true"/>
       </entry>
       <entry>
         <string>LimitedAccess</string>
@@ -2810,6 +2852,48 @@
       <entry>
         <string>FullAccess</string>
         <tp name="referencework" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>referenceworkidentifier</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="referenceworkidentifier" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="referenceworkidentifier" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="referenceworkidentifier" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="referenceworkidentifier" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>referenceworkvariant</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="referenceworkvariant" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="referenceworkvariant" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="referenceworkvariant" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="referenceworkvariant" type="FullAccess" view="true" modify="true" del="true" add="true"/>
       </entry>
     </hashtable>
   </entry>
