@@ -1223,7 +1223,7 @@ public class SpecifyAppContextMgr extends AppContextMgr
             
             AppPreferences.startup();
             
-            RegisterSpecify.register(false);
+            //RegisterSpecify.register(false);
             
             //--------------------------------------------------------------------------------
             // Check for locks set on uploader, tree update, ...
