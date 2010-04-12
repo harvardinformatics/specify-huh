@@ -67,41 +67,20 @@ public class TreeFactory
 	@SuppressWarnings("unchecked")
 	public static <T extends Treeable<T,?,?>> T createNewTreeable( Class<? extends T> implementingClass, String name )
 	{
-		T t = null;
-		// big switch statement on implementingClass
-		if( implementingClass.equals(Geography.class) )
-		{
-			t = (T)new Geography();
-			((Geography)t).initialize();
-		}
-		else if( implementingClass.equals(GeologicTimePeriod.class) )
-		{
-			t = (T)new GeologicTimePeriod();
-			((GeologicTimePeriod)t).initialize();
-		}
-		else if( implementingClass.equals(Storage.class) )
-		{
-			t = (T)new Storage();			
-			((Storage)t).initialize();
-		}
-        else if( implementingClass.equals(Taxon.class) )
+	    T t = null;
+        try
         {
-            t = (T)new Taxon();
-            ((Taxon)t).initialize();
+            t = implementingClass.getConstructor().newInstance();
         }
-        else if( implementingClass.equals(LithoStrat.class) )
+        catch (Exception e)
         {
-            t = (T)new LithoStrat();
-            ((LithoStrat)t).initialize();
+            throw new IllegalArgumentException("Problem instantiating class.  Provided class must be one of Geography, GeologicTimePeriod, Storage, LithoStrat or Taxon");
         }
-		else
-		{
-			throw new IllegalArgumentException("Provided class must be one of Geography, GeologicTimePeriod, Storage, LithoStrat or Taxon");
-		}
 
-		t.setName(name);
+        t.initialize();
+        t.setName(name);
 
-		return t;
+        return t;
 	}
     
     /**
@@ -115,27 +94,7 @@ public class TreeFactory
     @SuppressWarnings("unchecked")
     public static <T extends Treeable<T,?,?>> T createNewTreeable( T nodeOfSameClass, String name )
     {
-        if (nodeOfSameClass instanceof Taxon)
-        {
-            return (T)createNewTreeable(Taxon.class,name);
-        }
-        if (nodeOfSameClass instanceof Geography)
-        {
-            return (T)createNewTreeable(Geography.class,name);
-        }
-        if (nodeOfSameClass instanceof GeologicTimePeriod)
-        {
-            return (T)createNewTreeable(GeologicTimePeriod.class,name);
-        }
-        if (nodeOfSameClass instanceof LithoStrat)
-        {
-            return (T)createNewTreeable(LithoStrat.class,name);
-        }
-        if (nodeOfSameClass instanceof Storage)
-        {
-            return (T)createNewTreeable(Storage.class,name);
-        }
-        throw new IllegalArgumentException("Provided node must be instance of Geography, GeologicTimePeriod, Storage, LithoStrat or Taxon");
+        return (T)createNewTreeable(nodeOfSameClass.getClass(), name);
     }
 		
 	/**
@@ -150,44 +109,30 @@ public class TreeFactory
 	@SuppressWarnings("unchecked")
 	public static <I extends TreeDefItemIface<?, ?, I>> I createNewTreeDefItem( Class<? extends I> implementingClass, I parent, String name )
 	{
-		I t = null;
-		
-		// big switch statement on implementingClass
-		if( implementingClass.equals(GeographyTreeDefItem.class) )
-		{
-			t = (I)new GeographyTreeDefItem();
-		}
-		else if( implementingClass.equals(GeologicTimePeriodTreeDefItem.class) )
-		{
-			t = (I)new GeologicTimePeriodTreeDefItem();
-		}
-		else if( implementingClass.equals(StorageTreeDefItem.class) )
-		{
-			t = (I)new StorageTreeDefItem();			
-		}
-        else if( implementingClass.equals(TaxonTreeDefItem.class) )
+	    I t = null;
+
+        try
         {
-            t = (I)new TaxonTreeDefItem();
+            t = implementingClass.getConstructor().newInstance();
         }
-        else if( implementingClass.equals(LithoStratTreeDefItem.class) )
+        catch (Exception e)
         {
-            t = (I)new LithoStratTreeDefItem();
+            throw new IllegalArgumentException("Problem instantiating class.  Provided class must be one of Geography, GeologicTimePeriod, Storage, LithoStrat or Taxon");
         }
-		else
-		{
-			return null;
-		}
-		t.initialize();
-		
-		if( parent != null )
-		{
-			t.setParent(parent);
-		}
-		if( name != null )
-		{
-			t.setName(name);
-		}
-		return t;
+
+        t.initialize();
+        t.setName(name);
+
+        if( parent != null )
+        {
+            t.setParent(parent);
+        }
+        if( name != null )
+        {
+            t.setName(name);
+        }
+        
+        return t;
 	}
     
     /**
@@ -197,27 +142,27 @@ public class TreeFactory
      */
     public static <T extends Treeable<T,?,?>> String getChildQueryString(final T parent)
     {
-        if (parent instanceof Taxon)
+        if (Taxon.class.isInstance(parent))
         {
             return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Taxon n LEFT OUTER JOIN n.acceptedTaxon n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
-        if (parent instanceof Geography)
+        if (Geography.class.isInstance(parent))
         {
             return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Geography n LEFT OUTER JOIN n.acceptedGeography n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
-        if (parent instanceof GeologicTimePeriod)
+        if (GeologicTimePeriod.class.isInstance(parent))
         {
             return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM GeologicTimePeriod n LEFT OUTER JOIN n.acceptedGeologicTimePeriod n2 WHERE n.parent=:PARENT ORDER BY n.startPeriod, n.endPeriod, n.name";
         }
         
-        if (parent instanceof Storage)
+        if (Storage.class.isInstance(parent))
         {
             return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM Storage n LEFT OUTER JOIN n.acceptedStorage n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }
         
-        if (parent instanceof LithoStrat)
+        if (LithoStrat.class.isInstance(parent))
         {
             return "SELECT n.id, n.name, n.fullName, n.nodeNumber, n.highestChildNodeNumber, n.rankId, n2.id, n2.fullName FROM LithoStrat n LEFT OUTER JOIN n.acceptedLithoStrat n2 WHERE n.parent=:PARENT ORDER BY n.rankId, n.name";
         }

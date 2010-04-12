@@ -30,6 +30,7 @@ import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.LithoStrat;
 import edu.ku.brc.specify.datamodel.LithoStratTreeDef;
 import edu.ku.brc.specify.datamodel.LithoStratTreeDefItem;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.busrules.LithoStratBusRules;
 
 /**
@@ -65,9 +66,9 @@ public class LithoStratTreeTask extends BaseTreeTask<LithoStrat,LithoStratTreeDe
      */
     @Transient
     @Override
-    protected LithoStratTreeDef getCurrentTreeDef()
+    protected TreeDefIface<?, ?, ?> getCurrentTreeDef()
     {
-        return (LithoStratTreeDef )((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(LithoStrat.class);
+        return ((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(LithoStrat.class);
     }
     
 

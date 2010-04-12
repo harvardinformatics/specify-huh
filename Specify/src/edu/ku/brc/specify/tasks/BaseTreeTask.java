@@ -107,7 +107,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
     protected Class<D> treeDefClass;
     protected Class<T> treeClass;
     
-    protected D currentDef;
+    protected TreeDefIface<?, ?, ?> currentDef;
     
     protected boolean currentDefInUse;
     protected boolean isOpeningTree        = false;
@@ -290,7 +290,7 @@ public abstract class BaseTreeTask <T extends Treeable<T,D,I>,
         return treeClass;
     }
 
-    protected abstract D getCurrentTreeDef();
+    protected abstract TreeDefIface<?, ?, ?> getCurrentTreeDef();
     
     /**
      * Opens a TreeViewer in a BG Thread.

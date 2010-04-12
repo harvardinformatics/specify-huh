@@ -3336,12 +3336,11 @@ public class SpecifyExplorer extends HttpServlet
         json.accumulate("uiProvider", "col");
                
         JSONArray childrenArray = new JSONArray();
-        Set<Treeable<?,?,?>> children = (Set<Treeable<?,?,?>>)treeable.getChildren();
-        json.accumulate("leaf", children.size() == 0);
+        json.accumulate("leaf", treeable.getChildren().size() == 0);
         
         //json.accumulate("count", children.size());
         
-        for (Treeable<?,?,?> kid : children)
+        for (Treeable kid : treeable.getChildren())
         {
             childrenArray.add(createNode(kid));
         }

@@ -38,6 +38,7 @@ import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.Storage;
 import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.StorageTreeDefItem;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.busrules.StorageBusRules;
 import edu.ku.brc.specify.ui.treetables.TreeNodePopupMenu;
 import edu.ku.brc.specify.ui.treetables.TreeTableViewer;
@@ -77,9 +78,9 @@ public class StorageTreeTask extends BaseTreeTask<Storage, StorageTreeDef, Stora
      */
     @Transient
     @Override
-    protected StorageTreeDef getCurrentTreeDef()
+    protected TreeDefIface<?,?,?> getCurrentTreeDef()
     {
-        return (StorageTreeDef )((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Storage.class);
+        return ((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Storage.class);
     }
     
     /**

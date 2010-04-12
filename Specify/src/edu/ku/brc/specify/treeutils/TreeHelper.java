@@ -171,39 +171,15 @@ public class TreeHelper
                    I extends TreeDefItemIface<T,D,I>>
                          void fixFullnameForNodeAndDescendants(T treeNode)
     {
-        // generics made it difficult to make this generic (that sounds weird)
-        // so I settled for this type of implementation which has to be updated if we
-        // ever add another tree class, which is unlikely
-        
-        if (treeNode instanceof Geography)
+        String generated = generateFullname(treeNode);
+        treeNode.setFullName(generated);
+
+        for (T child : treeNode.getChildren())
         {
-            fixFullnameForNodeAndDescendants((Geography)treeNode);
-            return;
+            fixFullnameForNodeAndDescendants((Treeable)child);
         }
         
-        if (treeNode instanceof GeologicTimePeriod)
-        {
-            fixFullnameForNodeAndDescendants((GeologicTimePeriod)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof Storage)
-        {
-            fixFullnameForNodeAndDescendants((Storage)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof LithoStrat)
-        {
-            fixFullnameForNodeAndDescendants((LithoStrat)treeNode);
-            return;
-        }
-        
-        if (treeNode instanceof Taxon)
-        {
-            fixFullnameForNodeAndDescendants((Taxon)treeNode);
-            return;
-        }
+        return;
     }
     
     /**
@@ -294,36 +270,34 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode any tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
-                        void initializeRelatedObjects(T treeNode)
+    @SuppressWarnings("unchecked")
+    public static void initializeRelatedObjects(Treeable treeNode)
     {
-        if (treeNode instanceof Geography)
+        if (Geography.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Geography)treeNode);
             return;
         }
         
-        if (treeNode instanceof GeologicTimePeriod)
+        if (GeologicTimePeriod.class.isInstance(treeNode))
         {
             initializeRelatedObjects((GeologicTimePeriod)treeNode);
             return;
         }
         
-        if (treeNode instanceof Storage)
+        if (Storage.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Storage)treeNode);
             return;
         }
         
-        if (treeNode instanceof Taxon)
+        if (Taxon.class.isInstance(treeNode))
         {
             initializeRelatedObjects((Taxon)treeNode);
             return;
         }
         
-        if (treeNode instanceof LithoStrat)
+        if (LithoStrat.class.isInstance(treeNode))
         {
             initializeRelatedObjects((LithoStrat)treeNode);
             return;

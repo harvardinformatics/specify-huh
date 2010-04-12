@@ -746,9 +746,10 @@ public class BasicSQLUtils
      * @param sql
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static <T> T querySingleObj(final String sql)
     {
-        return querySingleObj(null, sql);
+        return (T)querySingleObj(null, sql);
     }
 
     /**

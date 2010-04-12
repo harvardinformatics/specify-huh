@@ -40,6 +40,7 @@ import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.GeographyTreeDefItem;
 import edu.ku.brc.specify.datamodel.RecordSet;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.busrules.GeographyBusRules;
 import edu.ku.brc.specify.ui.treetables.TreeNodePopupMenu;
 import edu.ku.brc.specify.ui.treetables.TreeTableViewer;
@@ -76,9 +77,9 @@ public class GeographyTreeTask extends BaseTreeTask<Geography,GeographyTreeDef,G
     
     @Transient
     @Override
-    protected GeographyTreeDef getCurrentTreeDef()
+    protected TreeDefIface<?, ?, ?> getCurrentTreeDef()
     {
-        return (GeographyTreeDef )((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Geography.class);
+        return ((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Geography.class);
     }
     
     /**

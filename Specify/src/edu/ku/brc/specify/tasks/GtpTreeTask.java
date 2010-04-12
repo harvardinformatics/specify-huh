@@ -30,6 +30,7 @@ import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.GeologicTimePeriod;
 import edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDef;
 import edu.ku.brc.specify.datamodel.GeologicTimePeriodTreeDefItem;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.busrules.GeologicTimePeriodBusRules;
 
 /**
@@ -64,9 +65,9 @@ public class GtpTreeTask extends BaseTreeTask<GeologicTimePeriod,GeologicTimePer
      */
     @Transient
     @Override
-    protected GeologicTimePeriodTreeDef getCurrentTreeDef()
+    protected TreeDefIface<?, ?, ?> getCurrentTreeDef()
     {
-        return (GeologicTimePeriodTreeDef )((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(GeologicTimePeriod.class);
+        return ((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(GeologicTimePeriod.class);
     }
     
     /* (non-Javadoc)

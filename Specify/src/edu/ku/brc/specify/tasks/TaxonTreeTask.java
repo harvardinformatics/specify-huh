@@ -36,6 +36,7 @@ import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.ui.treetables.TreeNodePopupMenu;
 import edu.ku.brc.specify.ui.treetables.TreeTableViewer;
 import edu.ku.brc.ui.CommandAction;
@@ -69,9 +70,9 @@ public class TaxonTreeTask extends BaseTreeTask<Taxon,TaxonTreeDef,TaxonTreeDefI
 	
     @Transient
     @Override
-    protected TaxonTreeDef getCurrentTreeDef()
+    protected TreeDefIface<?,?,?> getCurrentTreeDef()
     {
-        return (TaxonTreeDef )((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Taxon.class);
+        return ((SpecifyAppContextMgr )AppContextMgr.getInstance()).getTreeDefForClass(Taxon.class);
     }
     
     /**
