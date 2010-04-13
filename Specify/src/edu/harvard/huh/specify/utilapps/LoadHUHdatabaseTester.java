@@ -1,4 +1,4 @@
-package edu.ku.brc.specify.utilapps;
+package edu.harvard.huh.specify.utilapps;
 
 import java.io.File;
 import java.sql.Connection;

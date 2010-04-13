@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-package edu.ku.brc.specify.config.init;
+package edu.harvard.huh.specify.config.init;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
@@ -62,6 +62,7 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
+import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;

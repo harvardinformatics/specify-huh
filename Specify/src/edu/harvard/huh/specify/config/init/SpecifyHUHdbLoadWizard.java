@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-package edu.ku.brc.specify.config.init;
+package edu.harvard.huh.specify.config.init;
 
 import static edu.ku.brc.ui.UIHelper.createButton;
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
@@ -51,6 +51,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.harvard.huh.specify.utilapps.LoadHUHdatabase;
 import edu.ku.brc.af.auth.UserAndMasterPasswordMgr;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
@@ -60,9 +61,12 @@ import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.SpecifyUserTypes;
+import edu.ku.brc.specify.config.init.BaseSetupPanel;
+import edu.ku.brc.specify.config.init.DatabasePanel;
+import edu.ku.brc.specify.config.init.GenericFormPanel;
+import edu.ku.brc.specify.config.init.SetupPanelIFace;
 import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.specify.utilapps.BuildSampleDatabase;
-import edu.ku.brc.specify.utilapps.LoadHUHdatabase;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ProgressFrame;
 import edu.ku.brc.ui.UIHelper;
