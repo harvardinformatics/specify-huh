@@ -139,7 +139,7 @@
 	<!-- Compile the java source of the project Windows, Mac and Linux -->
 	<target name="dist-compile" depends="dist-prepare" description="Compiles all java classes in compile directories">
 		
-		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on">
+		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on" fork="true" memoryInitialSize="256m" memoryMaximumSize="512m">
 			<classpath refid="project.class.path" />
 		</javac>
 		
@@ -224,13 +224,26 @@
 	<target name="installer-mac" depends="installer-base" description="Calls installer-base; you must build on Mac">
 	    <antcall target="build-help-fulltext-mac"/>
 	    
-	    <copy file="${mac-icons.dir}/specify.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/spwizard.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/images/backuprestore.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/images/spireports.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/images/spbuilder.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/images/statistics.icns" todir="${installer.dir}/images" />
-		<copy file="${mac-icons.dir}/images/data_split.icns" todir="${installer.dir}/images" />
+	    <copy file="${source.root}/${rel.images.path}/specify16.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/specify32.png" todir="${installer.dir}/images"/>
+		
+		<copy file="${source.root}/${rel.images.path}/spireport32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/spireport16.png" todir="${installer.dir}/images" />
+
+		<copy file="${source.root}/${rel.images.path}/spbackup32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/spbackup16.png" todir="${installer.dir}/images"/>
+
+		<copy file="${source.root}/${rel.images.path}/spwizard32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/spwizard16.png" todir="${installer.dir}/images"/>
+
+		<copy file="${source.root}/${rel.images.path}/spbuilder32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/spbuilder16.png" todir="${installer.dir}/images"/>
+
+		<copy file="${source.root}/${rel.images.path}/spstatistics32x32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/spstatistics16x16.png" todir="${installer.dir}/images"/>	
+		
+		<copy file="${source.root}/${rel.images.path}/data_split32.png" todir="${installer.dir}/images"/>
+		<copy file="${source.root}/${rel.images.path}/data_split16.png" todir="${installer.dir}/images"/>
     </target>
 	
 	<target name="installer-base" depends="dist-jar" description="Creates installer dir, copies files to installer dir">
