@@ -78,7 +78,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
         Integer fragmentCount = getCountSql(Fragment.class, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
         if (fragmentCount == null) fragmentCount = 0;
 
-        Integer prepCount = getCountSql(dataClass, "preparationId", fieldName, fragmentBarcode, null);
+        Integer prepCount = getCountSql(dataClass, "preparationId", fieldName, fragmentBarcode, dataObj.getId());
         if (prepCount == null) prepCount = 0;
 
         if (fragmentCount + prepCount == 0)
