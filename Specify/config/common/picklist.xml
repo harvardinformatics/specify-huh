@@ -30,7 +30,6 @@
       <picklistitem title="Contributor" value="contributor"/>
       <picklistitem title="Donor" value="donor"/>
       <picklistitem title="Guest" value="guest"/>
-      <picklistitem title="For Use By" value="forUseBy"/>
       <picklistitem title="Other" value="other"/>
       <picklistitem title="Preparer" value="preparer"/>
       <picklistitem title="Receiver" value="receiver"/>
@@ -303,10 +302,11 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
-  <picklist name="HUH Plant Sexuality" type="0" issystem="true" readonly="true" sizelimit="2">
+  <picklist name="HUH Plant Sexuality" type="0" issystem="true" readonly="true" sizelimit="3">
 	<items>
 		<picklistitem title="Female" value="Female"/>
 		<picklistitem title="Male" value="Male"/>
+		<picklistitem title="Male and Female" value="MaleFemale"/>
 	</items>
   </picklist>
   <picklist name="HUH Publication Number Type" type="0" issystem="true" readonly="true" sizelimit="6">
@@ -319,7 +319,7 @@
 		<picklistitem title="TL2" value="TL2"/>
 	</items>
   </picklist>
-  <picklist name="HUH Publication Title Type" type="0" issystem="true" readonly="false" sizelimit="1">
+  <picklist name="HUH Publication Title Type" type="0" issystem="true" readonly="true" sizelimit="1">
 	<items>
 		<picklistitem title="Variant" value="0"/>
 	</items>
@@ -424,6 +424,7 @@
       <picklistitem title="Contact" value="Contact"/>
       <picklistitem title="Contributor" value="Contributor"/>
       <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="For Use By" value="ForUseBy"/>
       <picklistitem title="Guest" value="Guest"/>
       <picklistitem title="Lender" value="Lender"/>
       <picklistitem title="Other" value="Other"/>
@@ -434,7 +435,7 @@
       <picklistitem title="Student" value="Student"/>
     </items>
   </picklist>
-  <picklist name="HUH Type Confidence" type="0" issystem="true" readonly="false" sizelimit="2">
+  <picklist name="HUH Type Confidence" type="0" issystem="true" readonly="true" sizelimit="2">
     <items>
       <picklistitem title="possible" value="Possible"/>
       <picklistitem title="probable" value="Probable"/>

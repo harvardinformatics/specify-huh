@@ -57,7 +57,6 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
      protected Integer borrowMaterialId;
      protected String  materialNumber;
      protected String  description;
-     protected String  higherTaxon;
      protected String  srcTaxonomy;
      protected Short   nonSpecimenCount;
      protected Short   quantity;
@@ -67,8 +66,8 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
      protected Short   quantityResolved;
      protected Short   quantityReturned;
      protected Set<BorrowReturnMaterial> borrowReturnMaterials;
-     protected Borrow borrow;
-
+     protected Borrow  borrow;
+     protected Taxon   taxon;
 
     // Constructors
 
@@ -94,7 +93,6 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
         materialNumber = null;
         description = null;
         srcTaxonomy = null;
-        higherTaxon = null;
         nonSpecimenCount = null;
         quantity = null;
         typeCount = null;
@@ -104,6 +102,7 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
         quantityReturned = null;
         borrowReturnMaterials = new HashSet<BorrowReturnMaterial>();
         borrow = null;
+        taxon = null;
     }
     // End Initializer
 
@@ -169,15 +168,6 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     }
     
     /**
-     * @return the family or other higher taxon group
-     */
-    @Column(name = "HigherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
-    public String getHigherTaxon()
-    {
-        return higherTaxon;
-    }
-
-    /**
      * @return the genera involved in the borrow
      */
     @Column(name = "SrcTaxonomy", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
@@ -192,14 +182,6 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     public void setSrcTaxonomy(String srcTaxonomy)
     {
         this.srcTaxonomy = srcTaxonomy;
-    }
-
-    /**
-     * @param higher taxon to set
-     */
-    public void setHigherTaxon(String higherTaxon)
-    {
-        this.higherTaxon = higherTaxon;
     }
     
     /**
@@ -315,7 +297,23 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
         this.borrow = borrow;
     }
 
+    /**
+     * @return the family or other higher taxon group
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "TaxonID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Taxon getTaxon()
+    {
+        return taxon;
+    }
 
+    /**
+     * @param higher taxon to set
+     */
+    public void setTaxon(Taxon taxon)
+    {
+        this.taxon = taxon;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()

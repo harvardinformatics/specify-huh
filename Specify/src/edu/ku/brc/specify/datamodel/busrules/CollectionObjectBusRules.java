@@ -487,22 +487,7 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
     @Override
     public boolean isOkToAssociateSearchObject(Object parentdataObj, Object dataObjectFromSearch)
     {
-        if (parentdataObj instanceof Accession)
-        {
-            reasonList.clear();
-            
-            Accession        acc    = (Accession)parentdataObj;
-            CollectionObject colObj = (CollectionObject)dataObjectFromSearch;
-            
-            for (CollectionObject co : acc.getCollectionObjects())
-            {
-                if (co.getId().equals(colObj.getId()))
-                {
-                    reasonList.add(getLocalizedMessage("CO_DUP", colObj.getIdentityTitle()));
-                    return false;
-                }
-            }
-        } else if (parentdataObj instanceof Project)
+        if (parentdataObj instanceof Project)
         {
             reasonList.clear();
             

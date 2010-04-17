@@ -5,7 +5,7 @@
         <view name="CollectingEvent"
             objtitle="Collecting Event"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
-            busrules="edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectingEventBusRules"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[CollectingEvent Form]]></desc>

@@ -98,16 +98,6 @@
         </names>
         <descs/>
       </item>
-      <item name="collectionObjects" type="OneToMany">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Collection Objects</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="createdByAgent">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -227,6 +217,16 @@
           </str>
         </descs>
       </item>
+      <item name="preparations" type="OneToMany">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Preparations</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="remarks" type="text" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -301,13 +301,13 @@
           </str>
         </descs>
       </item>
-      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
+      <item name="text3">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Geography</text>
+            <text>Text3</text>
           </str>
         </names>
         <descs>
@@ -872,6 +872,209 @@
       </str>
     </descs>
     <aggregator>AccessionAuthorization</aggregator>
+  </container>
+  <container name="accessionpreparation" type="" format="AccessionPreparation">
+    <version>0</version>
+    <isHidden>false</isHidden>
+    <items>
+      <item name="accession" type="ManyToOne" isUIFormatter="false" isRequired="true">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Accession</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Accession containing the Preparation.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="createdByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Created By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="descriptionOfMaterial" type="java.lang.String" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Description</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Description of loaned material (intended to be used for non-cataloged items, i.e. when PreparationID is null)</text>
+          </str>
+        </descs>
+      </item>
+      <item name="discipline" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <isSystem>false</isSystem>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Discipline</text>
+            <itemName reference="../../.."/>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
+      <item name="geography" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Geography</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="itemCount" type="java.lang.Integer" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Items</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The total number of specimens loaned (necessary for lots).</text>
+          </str>
+        </descs>
+      </item>
+      <item name="modifiedByAgent">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By Agent</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="outComments" type="text" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Out Comments</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Comments on item when loaned.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="preparation" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Preparation</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="receivedComments">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Received Comments</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="taxon" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Taxon</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="timestampCreated" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Created</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was created.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="timestampModified" type="java.sql.Timestamp">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Timestamp Modified</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The timestamp the record was last modified.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="version">
+        <version>0</version>
+        <isHidden>true</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Version</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+    </items>
+    <names>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>Accession Preparation</text>
+      </str>
+    </names>
+    <descs>
+      <str language="en" country="" variant="">
+        <version>0</version>
+        <text>A join table between the Accession and the Preparation. It contains comments and quantity fields.</text>
+      </str>
+    </descs>
+    <aggregator>AccessionPrep</aggregator>
   </container>
   <container name="address" type="" format="Address">
     <version>0</version>
@@ -4918,6 +5121,16 @@
           </str>
         </descs>
       </item>
+      <item name="taxon" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Higher Taxon</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -7035,17 +7248,6 @@
     <version>0</version>
     <isHidden>false</isHidden>
     <items>
-      <item name="accession" type="ManyToOne">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Accession</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="altCatalogNumber" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -8532,13 +8734,13 @@
         </names>
         <descs/>
       </item>
-      <item name="text1" isUIFormatter="false" isRequired="false">
+      <item name="text1">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Vernacular Name</text>
+            <text>Text1</text>
           </str>
         </names>
         <descs/>
@@ -8598,35 +8800,35 @@
         </names>
         <descs/>
       </item>
-      <item name="text2" isUIFormatter="false" isRequired="false">
+      <item name="text2">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Host</text>
+            <text>Text2</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text3" isUIFormatter="false" isRequired="false">
+      <item name="text3">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Distribution</text>
+            <text>Text3</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text4" isUIFormatter="false" isRequired="false">
+      <item name="text4">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Frequency/Abundance</text>
+            <text>Text4</text>
           </str>
         </names>
         <descs/>
@@ -14086,13 +14288,13 @@
         </names>
         <descs/>
       </item>
-      <item name="srcGeography" pickListName="HUH Geographic Region">
+      <item name="srcGeography">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Geography</text>
+            <text>Src Geography</text>
           </str>
         </names>
         <descs/>
@@ -14244,13 +14446,13 @@
         </names>
         <descs/>
       </item>
-      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
+      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Geography</text>
+            <text>Description of Material</text>
           </str>
         </names>
         <descs/>
@@ -14276,6 +14478,16 @@
           <str language="en">
             <version>0</version>
             <text>Exchange Out</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="geography" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Geography</text>
           </str>
         </names>
         <descs/>
@@ -17995,7 +18207,7 @@
       </item>
       <item name="srcGeography">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -18262,13 +18474,13 @@
         </names>
         <descs/>
       </item>
-      <item name="descriptionOfMaterial" isUIFormatter="false" isRequired="false" pickListName="HUH Geographic Region">
+      <item name="descriptionOfMaterial">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Geography</text>
+            <text>Description</text>
           </str>
         </names>
         <descs/>
@@ -18286,6 +18498,16 @@
         </names>
         <descs/>
         <spExportSchemaItems/>
+      </item>
+      <item name="geography" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Geography</text>
+          </str>
+        </names>
+        <descs/>
       </item>
       <item name="gift">
         <version>0</version>
@@ -20595,7 +20817,7 @@
       </item>
       <item name="srcGeography">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -21199,6 +21421,27 @@
           <str language="en">
             <version>0</version>
             <text>Received Comments</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="srcTaxonomy">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Taxon</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="taxon" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Higher Taxon</text>
           </str>
         </names>
         <descs/>
@@ -24902,7 +25145,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en">
             <version>0</version>
-            <text>Reference</text>
+            <text>Text1</text>
           </str>
         </names>
         <descs/>
@@ -25105,35 +25348,35 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="text3" type="java.lang.String" isUIFormatter="false" pickListName="HUH Collection Code" isrequired="true">
+      <item name="text3">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Herbarium</text>
+            <text>Text3</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text4" type="java.lang.String" isUIFormatter="false" pickListName="HUH Plant Sexuality">
+      <item name="text4">
         <version>0</version>
         <isHidden>true</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Sex</text>
+            <text>Text4</text>
           </str>
         </names>
         <descs/>
       </item>
-      <item name="text5" type="java.lang.String" isUIFormatter="false" pickListName="HUH Phenology">
+      <item name="text5">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Phenology</text>
+            <text>Text5</text>
           </str>
         </names>
         <descs/>

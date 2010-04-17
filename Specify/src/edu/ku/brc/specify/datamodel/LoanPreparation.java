@@ -59,7 +59,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     protected String                        outComments;          // Shipped Comments
     protected String                        inComments;           // Returned Comments
     protected String                        receivedComments;     // Received Comments
-    protected String                        higherTaxon;
     protected String                        srcTaxonomy;
     protected Integer                       nonSpecimenCount;
     protected Integer                       quantityResolved;
@@ -69,7 +68,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     protected Preparation                   preparation;
     protected Loan                          loan;
     protected Set<LoanReturnPreparation>    loanReturnPreparations;
-
+    protected Taxon                         taxon;
 
     // Constructors
 
@@ -96,7 +95,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
         outComments = null;
         inComments = null;
         receivedComments = null;
-        higherTaxon = null;
         srcTaxonomy = null;
         nonSpecimenCount = null;
         quantityResolved = null;
@@ -106,6 +104,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
         preparation = null;
         loan = null;
         loanReturnPreparations = new HashSet<LoanReturnPreparation>();
+        taxon = null;
     }
     // End Initializer
 
@@ -234,23 +233,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     }
     
     /**
-     * @return the family or other higher taxon group
-     */
-    @Column(name = "HigherTaxon", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
-    public String getHigherTaxon()
-    {
-        return higherTaxon;
-    }
-
-    /**
-     * @param higher taxon to set
-     */
-    public void setHigherTaxon(String higherTaxon)
-    {
-        this.higherTaxon = higherTaxon;
-    }
-    
-    /**
      * @return the srcTaxonomy
      */
     @Column(name = "SrcTaxonomy", unique = false, nullable = true, insertable = true, updatable = true, length = 512)
@@ -359,6 +341,24 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
         this.loan = loan;
     }
 
+    /**
+     * @return the family or other higher taxon group
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "TaxonID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Taxon getTaxon()
+    {
+        return taxon;
+    }
+
+    /**
+     * @param higher taxon to set
+     */
+    public void setTaxon(Taxon taxon)
+    {
+        this.taxon = taxon;
+    }
+    
     /**
      * 
      */

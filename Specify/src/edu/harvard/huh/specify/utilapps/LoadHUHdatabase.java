@@ -406,7 +406,8 @@ public class LoadHUHdatabase
                                                          botanistLookup,
                                                          affiliateLookup,
                                                          agentLookup,
-                                                         orgLookup);
+                                                         orgLookup,
+                                                         taxonLookup);
             borrowLoader.setFrame(frame);
             int borrowRecords = borrowLoader.loadRecords();
             log.info("Loaded " + borrowRecords + " borrow records");
@@ -438,6 +439,7 @@ public class LoadHUHdatabase
                                                    affiliateLookup,
                                                    agentLookup,
                                                    orgLookup,
+                                                   taxonLookup,
                                                    new File(dir, "loan_botanist.csv"));
             loanLoader.setFrame(frame);
             int loanLoaderRecords = loanLoader.loadRecords();
@@ -475,7 +477,8 @@ public class LoadHUHdatabase
                 new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
                                       statement,
                                       outExchangeLookup,
-                                      outGiftLookup);
+                                      outGiftLookup,
+                                      geoLookup);
             
             outGeoBatchLoader.setFrame(frame);
             int outGeoBatchRecords = outGeoBatchLoader.loadRecords();

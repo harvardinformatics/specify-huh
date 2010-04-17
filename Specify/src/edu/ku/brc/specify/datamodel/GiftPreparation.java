@@ -58,7 +58,8 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
     protected String                        receivedComments;     // Received Comments
     protected Preparation                   preparation;
     protected Gift                          gift;
-
+    protected Geography                     geography;
+    
     // Constructors
 
     /** default constructor */
@@ -91,7 +92,7 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
         receivedComments = null;
         preparation = null;
         gift = null;
-        gift = null;
+        geography = null;
     }
     // End Initializer
 
@@ -270,6 +271,20 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
     public void setGift(Gift gift) 
     {
         this.gift = gift;
+    }
+    
+    /**
+     * Geography
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "GeographyID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Geography getGeography() {
+        return this.geography;
+    }
+    
+    public void setGeography(Geography geography) 
+    {
+        this.geography = geography;
     }
     
     /* (non-Javadoc)

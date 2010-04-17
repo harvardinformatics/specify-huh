@@ -10,18 +10,26 @@ import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
+import edu.ku.brc.specify.datamodel.Taxon;
 
 // Run this class after AffiliateLoader, AgentLoader, and OrganizationLoader
 public abstract class TaxonBatchTransactionLoader extends CountableTransactionLoader
 {
+    private TaxonLookup taxonLookup;
+    protected static final Taxon NullTaxon = new Taxon();
+    
     public TaxonBatchTransactionLoader(File csvFile,
                              Statement sqlStatement,
                              BotanistLookup botanistLookup,
                              AffiliateLookup affiliateLookup,
                              AgentLookup agentLookup,
-                             OrganizationLookup organizationLookup) throws LocalException
+                             OrganizationLookup organizationLookup,
+                             TaxonLookup taxonLookup) throws LocalException
     {
         super(csvFile, sqlStatement, botanistLookup, affiliateLookup, agentLookup, organizationLookup);
+        
+        this.taxonLookup = taxonLookup;
     }
         
     protected int parse(String[] columns, TaxonBatchTransaction tbTx) throws LocalException
@@ -34,31 +42,14 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
             throw new LocalException("Not enough columns");
         }
         
-        tbTx.setOriginalDueDate( SqlUtils.parseDate(      columns[i + 0] ));
-        tbTx.setCurrentDueDate(  SqlUtils.parseDate(      columns[i + 1] ));           
-        tbTx.setHigherTaxon(                              columns[i + 2] );
+        tbTx.setOriginalDueDate(      SqlUtils.parseDate( columns[i + 0] ));
+        tbTx.setCurrentDueDate(       SqlUtils.parseDate( columns[i + 1] ));           
+        tbTx.setHigherTaxonId(         SqlUtils.parseInt( columns[i + 2] ));
         tbTx.setTaxon(                                    columns[i + 3] );
         tbTx.setTransferredFrom(                          columns[i + 4] );
         tbTx.setBatchQuantityReturned( SqlUtils.parseInt( columns[i + 5] ));
         
         return i + 6;
-    }
-    
-    protected String getTaxonDescription(TaxonBatchTransaction tbTx)
-    {
-        String description = null;
-        
-        String higherTaxon = tbTx.getHigherTaxon();
-        String taxon       = tbTx.getTaxon();
-
-        if (higherTaxon != null || taxon != null)
-        {   
-            if (higherTaxon == null) description = taxon;
-            else if (taxon == null) description = higherTaxon;
-            else description = higherTaxon + "; " + taxon;
-        }
-        
-        return description;
     }
     
     protected String getDescriptionWithBoxCount(TaxonBatchTransaction tbTx)
@@ -90,5 +81,10 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         }
         
         return descAndBoxCount;
+    }
+    
+    protected Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
+    {
+        return taxonLookup.getById(asaTaxonId);
     }
 }

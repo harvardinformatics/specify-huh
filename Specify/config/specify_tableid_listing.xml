@@ -2,7 +2,7 @@
 
 <!-- 
 
-    Last used ID is 143 or 532
+    Last used ID is 144 or 532
     
     ... are available
     
@@ -27,6 +27,9 @@
         <table name="edu.ku.brc.specify.datamodel.AccessionAuthorization" abbrev="aca" id="13" searchable="true">
             <display dataobjformatter="AccessionAuthorization"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionAuthorizationBusRules</businessrule>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.AccessionPreparation" abbrev="ap" id="144" searchable="true">
+            <display view="AccessionPreparations" dataobjformatter="" newobjdlg="AccessionPreparationsDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Address" abbrev="ad" id="8" workbench="false" searchable="true">
             <display view="Address" newobjdlg="AddressDisplay"/>
@@ -85,7 +88,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectingEvent" abbrev="ce" id="10" workbench="true" searchable="true">
             <display view="CollectingEvent" dataobjformatter="CollectingEvent" searchdlg="CollectingEventSearch" newobjdlg="CollectingEvent"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules</businessrule>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHCollectingEventBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.CollectingEventAttachment" abbrev="ceat" id="110" searchable="true">
         	<display view="ObjectAttachment" newobjdlg="CollectingEventAttachmentDisplay"/>

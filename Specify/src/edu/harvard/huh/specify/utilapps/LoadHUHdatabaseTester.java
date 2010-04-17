@@ -23,6 +23,7 @@ import edu.harvard.huh.asa2specify.loader.BotanistSpecialtyLoader;
 import edu.harvard.huh.asa2specify.loader.BotanistTeamLoader;
 import edu.harvard.huh.asa2specify.loader.DeterminationLoader;
 import edu.harvard.huh.asa2specify.loader.GeoUnitLoader;
+import edu.harvard.huh.asa2specify.loader.InGeoBatchLoader;
 import edu.harvard.huh.asa2specify.loader.InReturnBatchLoader;
 import edu.harvard.huh.asa2specify.loader.IncomingExchangeLoader;
 import edu.harvard.huh.asa2specify.loader.IncomingGiftLoader;
@@ -49,6 +50,7 @@ import edu.harvard.huh.asa2specify.loader.StaffCollectionLoader;
 import edu.harvard.huh.asa2specify.loader.SubcollectionLoader;
 import edu.harvard.huh.asa2specify.loader.TaxonLoader;
 import edu.harvard.huh.asa2specify.loader.TypeSpecimenLoader;
+import edu.harvard.huh.asa2specify.lookup.AccessionLookup;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
@@ -168,11 +170,12 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doOutGeoBatch = false; // 31
         boolean doPurch       = false; // 32
         boolean doStaffColl   = false; // 33
-        boolean doShip        = false; // 34
-        boolean doInRetBatch  = false; // 35
-        boolean doLoanIt      = false; // 36
-        boolean doOutRetBatch = false; // 37
-        boolean doOutMisc     = false; // 38
+        boolean doInGeoBatch  = false; // 34
+        boolean doShip        = false; // 35
+        boolean doInRetBatch  = false; // 36
+        boolean doLoanIt      = false; // 37
+        boolean doOutRetBatch = false; // 38
+        boolean doOutMisc     = false; // 39
         
         try
         {
@@ -444,7 +447,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                          botanistLookup,
                                                          affiliateLookup,
                                                          agentLookup,
-                                                         orgLookup);
+                                                         orgLookup,
+                                                         taxonLookup);
             if (doBorrow)
             {
                 int borrowRecords = borrowLoader.loadRecords();
@@ -478,6 +482,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                    affiliateLookup,
                                                    agentLookup,
                                                    orgLookup,
+                                                   taxonLookup,
                                                    new File(dir, "loan_botanist.csv"));
             
             if (doLoan)
@@ -518,7 +523,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 new OutGeoBatchLoader(new File(dir, "out_geo_batch.csv"),
                                       statement,
                                       outExchangeLookup,
-                                      outGiftLookup);
+                                      outGiftLookup,
+                                      geoLookup);
             
             if (doOutGeoBatch)
             {
@@ -542,6 +548,19 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int staffCollRecords = staffCollLoader.loadRecords();
                 log.info("Processed " + staffCollRecords + " staff collection records");
+            }
+            
+            AccessionLookup accessionLookup = staffCollLoader.getAccessionLookup();
+            
+            
+            InGeoBatchLoader inGeoBatchLoader = new InGeoBatchLoader(new File (dir, "in_geo_batch.csv"),
+                                                                     statement,
+                                                                     accessionLookup,
+                                                                     geoLookup);
+            if (doInGeoBatch)
+            {
+                int inGeoBatchRecords = inGeoBatchLoader.loadRecords();
+                log.info("Processed " + inGeoBatchRecords + " in geo batch records");
             }
             
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
@@ -596,7 +615,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             {
                 int outMiscRecords = outMiscLoader.loadRecords();
                 log.info("Processed " + outMiscRecords + " outgoing misc records");
-            }
+            }                                                                   
 
         }
         catch (LocalException e)

@@ -30,10 +30,12 @@ import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Borrow;
 import edu.ku.brc.specify.datamodel.BorrowAgent;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
+import edu.ku.brc.specify.datamodel.Taxon;
 
 public class BorrowLoader extends TaxonBatchTransactionLoader
 {
@@ -47,14 +49,16 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
                         BotanistLookup botanistLookup,
                         AffiliateLookup affiliateLookup,
                         AgentLookup agentLookup,
-                        OrganizationLookup organizationLookup) throws LocalException
+                        OrganizationLookup organizationLookup,
+                        TaxonLookup taxonLookup) throws LocalException
    {
         super(csvFile,
               sqlStatement,
               botanistLookup,
               affiliateLookup,
               agentLookup,
-              organizationLookup);
+              organizationLookup,
+              taxonLookup);
    }
 
     // Loads records from asa tables herb_transaction (type='borrow') and taxon_batch.
@@ -296,12 +300,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String descWithBoxCount = getDescriptionWithBoxCount(asaBorrow);
         descWithBoxCount = truncate(descWithBoxCount, 255, "description");
         borrowMaterial.setDescription(descWithBoxCount);
-   
-        // HigherTaxon
-        String higherTaxon = asaBorrow.getHigherTaxon();
-        higherTaxon = truncate(higherTaxon, 32, "higher taxon");
-        borrowMaterial.setHigherTaxon(higherTaxon);
-        
+           
         // InComments
         
         // MaterialNumber (transaction no)
@@ -333,6 +332,13 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String taxon = asaBorrow.getTaxon();
         taxon = truncate(taxon, 512, "taxon");
         borrowMaterial.setSrcTaxonomy(taxon);
+        
+        // Taxon
+        Integer taxonId = asaBorrow.getHigherTaxonId();
+        Taxon higherTaxon = NullTaxon;
+        
+        if (taxonId != null) higherTaxon = lookupTaxon(taxonId);
+        borrowMaterial.setTaxon(higherTaxon);
         
         // TypeCount
         int typeCount = asaBorrow.getTypeCount();
@@ -392,20 +398,19 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
-        String fields = "BorrowID, CollectionMemberID, Description, HigherTaxon, " +
-        		        "MaterialNumber, NonSpecimenCount, SrcTaxonomy, Quantity, " +
-        		        "QuantityResolved, QuantityReturned, TimestampCreated, " +
-        		        "TypeCount, Version";
+        String fields = "BorrowID, CollectionMemberID, Description, MaterialNumber, " +
+        		        "NonSpecimenCount, SrcTaxonomy, Quantity, QuantityResolved, " +
+        		        "QuantityReturned, TaxonID, TimestampCreated, TypeCount, Version";
             
         String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
         values[1]  = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
         values[2]  = SqlUtils.sqlString( borrowMaterial.getDescription());
-        values[3]  = SqlUtils.sqlString( borrowMaterial.getHigherTaxon());
-        values[4]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
-        values[5]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
-        values[6]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
+        values[3]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
+        values[4]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
+        values[5]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
+        values[6]  = SqlUtils.sqlString( borrowMaterial.getTaxon().getId());
         values[7]  = SqlUtils.sqlString( borrowMaterial.getQuantity());
         values[8]  = SqlUtils.sqlString( borrowMaterial.getQuantityResolved());
         values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());

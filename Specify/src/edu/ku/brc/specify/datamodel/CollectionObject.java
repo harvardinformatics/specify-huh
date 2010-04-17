@@ -120,7 +120,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     // protected Set<DeaccessionPreparation> deaccessionPreparations;
     protected Set<OtherIdentifier>          otherIdentifiers;
     protected Collection                    collection;
-    protected Accession                     accession;
     protected Agent                         cataloger;
     protected CollectionObjectAttribute     collectionObjectAttribute; // Specify 5 Attributes table
     protected Set<CollectionObjectAttr>     collectionObjectAttrs;      // Generic Expandable Attributes
@@ -191,7 +190,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
         //deaccessionPreparations = new HashSet<DeaccessionPreparation>();
         otherIdentifiers      = new HashSet<OtherIdentifier>();
         collection            = null;
-        accession             = null;
         cataloger             = null;
         paleoContext          = null;
         dnaSequences          = new HashSet<DNASequence>();
@@ -206,9 +204,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     {
         collection = new Collection();
         collection.initialize();
-        
-        accession = new Accession();
-        accession.initialize();
         
         cataloger  = new Agent();
         cataloger.initialize();
@@ -903,19 +898,6 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
 
     public void setCollection(Collection collection) {
         this.collection = collection;
-    }
-
-    /**
-     *
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "AccessionID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Accession getAccession() {
-        return this.accession;
-    }
-
-    public void setAccession(Accession accession) {
-        this.accession = accession;
     }
 
     /**

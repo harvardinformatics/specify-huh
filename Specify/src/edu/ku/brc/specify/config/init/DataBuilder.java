@@ -1685,7 +1685,6 @@ public class DataBuilder
         collectionobject.setCatalogNumber(catalogNumber);
         collectionobject.setCollectingEvent(collectingEvent);
         collectionobject.setCollection(collection);
-        collectionobject.setAccession(accession);
         collectionobject.setCataloger(cataloger);
         collectionobject.setName(name);
         collectionobject.setDescription(description);

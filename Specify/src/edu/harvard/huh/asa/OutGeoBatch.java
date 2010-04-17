@@ -7,19 +7,19 @@ public class OutGeoBatch extends CountableBatch
 {	
     private TYPE   type;
     private REQUEST_TYPE requestType;
-	private String geoUnit;
+	private Integer geoUnitId;
 	
 	public TYPE getType() { return type; }
 	
 	public REQUEST_TYPE getRequestType() { return requestType; }
 	
-	public String getGeoUnit() { return geoUnit; }
+	public Integer getGeoUnitId() { return geoUnitId; }
 		
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setRequestType(REQUEST_TYPE requestType) { this.requestType = requestType; }
 	
-	public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
+	public void setGeoUnitId(Integer geoUnitId) { this.geoUnitId = geoUnitId; }
 	
     /**
      * "Quantity includes [itemCount] general collections, [nonSpecimenCount] non-specimens,

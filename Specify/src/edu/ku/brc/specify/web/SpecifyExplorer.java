@@ -1347,14 +1347,7 @@ public class SpecifyExplorer extends HttpServlet
     {
         Vector<CollectionObject> list = new Vector<CollectionObject>();
         
-        if (dataObj instanceof Accession)
-        {
-            for (CollectionObject co : ((Accession)dataObj).getCollectionObjects())
-            {
-                list.add(co);
-            }
-            
-        } else if (dataObj instanceof Set<?>)
+        if (dataObj instanceof Set<?>)
         {
             for (CollectionObject co : (Set<CollectionObject>)dataObj)
             {
@@ -1753,42 +1746,6 @@ public class SpecifyExplorer extends HttpServlet
                     }
                 }
                 
-            }
-        } else if (clsObj == Accession.class)
-        {
-            for (Object obj : list)
-            {
-                Accession accesion = (Accession)obj;
-                if (accesion != null)
-                {
-                    Vector<CollectionObject> colObjs = new Vector<CollectionObject>();
-                    for (CollectionObject co : accesion.getCollectionObjects())
-                    {
-                        if (co != null)
-                        {
-                            Locality locality = null;
-                            CollectingEvent ce = co.getCollectingEvent();
-                            if (ce != null)
-                            {
-                                locality = ce.getLocality();
-                            }
-                            
-                            if (locality != null)
-                            {
-                                colObjs = locHash.get(locality);
-                                if (colObjs == null)
-                                {
-                                    colObjs    = new Vector<CollectionObject>();
-                                    locHash.put(locality, colObjs);
-                                }
-                                if (colObjs != null)
-                                {
-                                    colObjs.add(co);
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
         

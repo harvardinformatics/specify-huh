@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Loan;
+import edu.ku.brc.specify.datamodel.Accession;
 
-public interface LoanLookup
+public interface AccessionLookup
 {
-    public Loan getById(Integer transactionId) throws LocalException;
+    public Accession getById(Integer transactionId) throws LocalException;
 }
