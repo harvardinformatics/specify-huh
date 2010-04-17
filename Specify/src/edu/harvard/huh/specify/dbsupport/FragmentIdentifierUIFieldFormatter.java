@@ -51,7 +51,7 @@ public class FragmentIdentifierUIFieldFormatter extends BaseUIFieldFormatter imp
         this.name          = "HUHFragmentBarcode"; //$NON-NLS-1$
         this.title         = UIRegistry.getResourceString("FragmentIdentifierUIFieldFormatter.NumericFormatter"); //$NON-NLS-1$;
         this.isIncrementer = false;
-        this.length        = 9;
+        this.length        = 8;
         this.uiLength      = length;
         this.isNumericCatalogNumber = false;
         this.autoNumber    = null;
@@ -108,7 +108,7 @@ public class FragmentIdentifierUIFieldFormatter extends BaseUIFieldFormatter imp
     @Override
     public Number getMaxValue()
     {
-        return 999999999;
+        return 99999999;
     }
 
     /* (non-Javadoc)
@@ -126,7 +126,7 @@ public class FragmentIdentifierUIFieldFormatter extends BaseUIFieldFormatter imp
     @Override
     public String getSample()
     {
-        return "012345678"; //$NON-NLS-1$
+        return "01234567"; //$NON-NLS-1$
     }
     
     /* (non-Javadoc)

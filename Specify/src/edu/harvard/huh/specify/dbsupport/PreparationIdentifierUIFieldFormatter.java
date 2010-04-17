@@ -51,7 +51,7 @@ public class PreparationIdentifierUIFieldFormatter extends BaseUIFieldFormatter 
         this.name          = "PreparationIdentifierFormatter"; //$NON-NLS-1$
         this.title         = UIRegistry.getResourceString("PreparationIdentifierUIFieldFormatter.NumericFormatter"); //$NON-NLS-1$;
         this.isIncrementer = false;
-        this.length        = 9;
+        this.length        = 8;
         this.uiLength      = length;
         this.isNumericCatalogNumber = false;
         this.autoNumber    = null;
@@ -108,7 +108,7 @@ public class PreparationIdentifierUIFieldFormatter extends BaseUIFieldFormatter 
     @Override
     public Number getMaxValue()
     {
-        return 999999999;
+        return 99999999;
     }
 
     /* (non-Javadoc)
@@ -126,7 +126,7 @@ public class PreparationIdentifierUIFieldFormatter extends BaseUIFieldFormatter 
     @Override
     public String getSample()
     {
-        return "012345678"; //$NON-NLS-1$
+        return "01234567"; //$NON-NLS-1$
     }
     
     /* (non-Javadoc)
