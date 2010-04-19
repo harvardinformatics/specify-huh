@@ -9,4 +9,5 @@
       <preptype name="35mm slide"       isloanable="true"/>
       <preptype name="Self"             isloanable="true"/>
       <preptype name="Other"            isloanable="true"/>
+      <preptype name="Lot"              isloanable="true"/>
 </vector>

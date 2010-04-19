@@ -873,7 +873,7 @@
     </descs>
     <aggregator>AccessionAuthorization</aggregator>
   </container>
-  <container name="accessionpreparation" type="" format="AccessionPreparation">
+  <container name="accessionpreparation">
     <version>0</version>
     <isHidden>false</isHidden>
     <items>

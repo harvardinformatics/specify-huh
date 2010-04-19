@@ -17,7 +17,9 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa.InGeoBatch;
+import edu.harvard.huh.asa.SpecimenItem;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AccessionLookup;
@@ -25,11 +27,15 @@ import edu.harvard.huh.asa2specify.lookup.GeoUnitLookup;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionPreparation;
 import edu.ku.brc.specify.datamodel.Geography;
+import edu.ku.brc.specify.datamodel.PrepType;
+import edu.ku.brc.specify.datamodel.Preparation;
 
 public class InGeoBatchLoader extends CsvToSqlLoader
 {
     private AccessionLookup accessionLookup;
     private GeoUnitLookup   geographyLookup;
+    
+    private final PrepType prepType;
     
     public InGeoBatchLoader(File csvFile,
                             Statement sqlStatement,
@@ -40,6 +46,16 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         
         this.accessionLookup = accessionLookup;
         this.geographyLookup   = geographyLookup;
+        
+        Integer collectionId = getCollectionId(null);
+        String container = SpecimenItem.toString(SpecimenItem.CONTAINER_TYPE.Lot);
+
+        String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + container;
+        Integer prepTypeId = queryForInt(sql);
+        if (prepTypeId == null) throw new LocalException("Couldn't find prep type for " + container);
+
+        prepType = new PrepType();
+        prepType.setPrepTypeId(prepTypeId);
     }
 
     @Override
@@ -47,16 +63,21 @@ public class InGeoBatchLoader extends CsvToSqlLoader
     {
         InGeoBatch inGeoBatch = parse(columns);
         
-        Integer outGeoBatchId = inGeoBatch.getId();
-        setCurrentRecordId(outGeoBatchId);
+        Integer inGeoBatchId = inGeoBatch.getId();
+        setCurrentRecordId(inGeoBatchId);
 
         // ExchangeOut/Gift/Loan (Loan, OutExchange, OutGift, OutSpecialExch)
         Integer transactionId = inGeoBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
 
-        AccessionPreparation accessionPrep = getAccessionPreparation(inGeoBatch);
+        Preparation prep = getPreparation();
+        String sql = getInsertSql(prep);
+        Integer preparationId = insert(sql);
+        prep.setPreparationId(preparationId);
+        
+        AccessionPreparation accessionPrep = getAccessionPreparation(inGeoBatch, prep);
 
-        String sql = getInsertSql(accessionPrep);
+        sql = getInsertSql(accessionPrep);
         insert(sql);
     }
 
@@ -90,7 +111,18 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         return inGeoBatch;
     }
 
-    private AccessionPreparation getAccessionPreparation(InGeoBatch inGeoBatch) throws LocalException
+    private Preparation getPreparation()
+    {
+        Preparation preparation = new Preparation();
+        
+        // CollectionMemberID
+        
+        // PrepType
+        
+        return preparation;
+    }
+
+    private AccessionPreparation getAccessionPreparation(InGeoBatch inGeoBatch, Preparation preparation) throws LocalException
     {
         AccessionPreparation accessionPrep = new AccessionPreparation();
         
@@ -100,6 +132,13 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         
         Accession accession = lookupAccession(transactionId);
         accessionPrep.setAccession(accession);
+        
+        // DescriptionOfMaterial
+        Integer geoUnitId = inGeoBatch.getGeoUnitId();
+        checkNull(geoUnitId, "geo unit id");
+        
+        if (geoUnitId == GeoUnit.CultRegionId) accessionPrep.setDescriptionOfMaterial(GeoUnit.Cultivated);
+        else if (geoUnitId == GeoUnit.MiscRegionId) accessionPrep.setDescriptionOfMaterial(GeoUnit.Miscellaneous);
         
         // Discipline
         accessionPrep.setDiscipline(getBotanyDiscipline());
@@ -113,10 +152,8 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         accessionPrep.setDistributeCount((short) distributeCount);
         
         // Geography
-        Integer geoUnitId = inGeoBatch.getGeoUnitId();
-        checkNull(geoUnitId, "geo unit id");
-
-        Geography geography = lookupGeography(geoUnitId);
+        Geography geography = GeoUnit.NullGeography;
+        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
         accessionPrep.setGeography(geography);
         
         // ItemCount
@@ -127,6 +164,9 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         int nonSpecimenCount = inGeoBatch.getNonSpecimenCount();
         accessionPrep.setNonSpecimenCount((short) nonSpecimenCount);
         
+        // Preparation
+        accessionPrep.setPreparation(preparation);
+
         // ReturnCount
         int returns = inGeoBatch.getReturnCount();
         accessionPrep.setReturnCount((short) returns);
@@ -148,25 +188,41 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         return geographyLookup.getById(transactionId);
     }
     
+    private String getInsertSql(Preparation preparation) throws LocalException
+    {
+        String fieldNames = "CollectionMemberID, PrepTypeID, TimestampCreated, Version";
+
+        String[] values = new String[4];
+        
+        values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
+        values[1]  = SqlUtils.sqlString( preparation.getPrepType().getId());
+        values[2]  = SqlUtils.now();
+        values[3]  = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("preparation", fieldNames, values);
+    }
+
     private String getInsertSql(AccessionPreparation accessionPrep)
     {
-        String fieldNames = "AccessionID, DiscardCount, DisciplineID, DistributeCount, " +
-                            "GeographyID, ItemCount, NonSpecimenCount, ReturnCount, TimestampCreated, " +
-                            "TypeCount, Version";
+        String fieldNames = "AccessionID, DescriptionOfMaterial, DiscardCount, DisciplineID, " +
+                            "DistributeCount, GeographyID, ItemCount, NonSpecimenCount, PreparationID, " +
+                            "ReturnCount, TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[11];
+        String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( accessionPrep.getAccession().getId());
-        values[1]  = SqlUtils.sqlString( accessionPrep.getDiscardCount());
-        values[2]  = SqlUtils.sqlString( accessionPrep.getDiscipline().getId());
-        values[3]  = SqlUtils.sqlString( accessionPrep.getDistributeCount());
-        values[4]  = SqlUtils.sqlString( accessionPrep.getGeography().getId());
-        values[5]  = SqlUtils.sqlString( accessionPrep.getItemCount());
-        values[6]  = SqlUtils.sqlString( accessionPrep.getNonSpecimenCount());
-        values[7]  = SqlUtils.sqlString( accessionPrep.getReturnCount());
-        values[8]  = SqlUtils.now();
-        values[9]  = SqlUtils.sqlString( accessionPrep.getTypeCount());
-        values[10] = SqlUtils.zero();
+        values[1]  = SqlUtils.sqlString( accessionPrep.getDescriptionOfMaterial());
+        values[2]  = SqlUtils.sqlString( accessionPrep.getDiscardCount());
+        values[3]  = SqlUtils.sqlString( accessionPrep.getDiscipline().getId());
+        values[4]  = SqlUtils.sqlString( accessionPrep.getDistributeCount());
+        values[5]  = SqlUtils.sqlString( accessionPrep.getGeography().getId());
+        values[6]  = SqlUtils.sqlString( accessionPrep.getItemCount());
+        values[7]  = SqlUtils.sqlString( accessionPrep.getNonSpecimenCount());
+        values[8]  = SqlUtils.sqlString( accessionPrep.getPreparation().getId());
+        values[9]  = SqlUtils.sqlString( accessionPrep.getReturnCount());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.sqlString( accessionPrep.getTypeCount());
+        values[12] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("accessionpreparation", fieldNames, values);
     }

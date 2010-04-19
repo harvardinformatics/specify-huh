@@ -97,7 +97,7 @@ public abstract class CsvToSqlLoader
             }
             catch (LocalException e) {
                 errors++;
-                getLogger().error(rec() + e.getMessage());
+                getLogger().error(rec() + " " + e.getMessage());
                 continue;
             }
             

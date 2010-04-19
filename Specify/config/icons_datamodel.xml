@@ -149,6 +149,8 @@
 	<icon name="repositoryagreementattachment"  alias="RepositoryAgreementAttachment"/>
 	<icon name="taxonattachment"                alias="TaxonAttachment"/>
 
+	<icon name="accessionpreparation"   alias="preparation"/>
+	<icon name="Accessionpreparation"   alias="preparation"/>
     <icon name="exchangeoutpreparation" alias="preparation"/>
     <icon name="ExchangeOutPreparation" alias="preparation"/>
     <icon name="loanpreparation"        alias="preparation"/>

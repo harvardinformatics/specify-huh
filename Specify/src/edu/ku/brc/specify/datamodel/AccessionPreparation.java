@@ -29,6 +29,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Index;
 
@@ -38,7 +39,9 @@ import org.hibernate.annotations.Index;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "accessionpreparation")
+@Table(name = "accessionpreparation", uniqueConstraints = {
+        @UniqueConstraint(columnNames={"accessionID", "geographyID", "taxonID"} ) 
+})
 @org.hibernate.annotations.Table(appliesTo="accessionpreparation", indexes =
     {   @Index (name="AccPrepDspMemIDX", columnNames={"DisciplineID"})
     })

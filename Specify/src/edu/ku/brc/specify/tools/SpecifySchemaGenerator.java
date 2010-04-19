@@ -156,7 +156,13 @@ public class SpecifySchemaGenerator
             }
             return true;
             
-        } finally
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            throw new SQLException(e.getMessage());
+        }
+        finally
         {
             if (dbConn != null)
             {

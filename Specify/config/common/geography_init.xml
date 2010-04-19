@@ -19,7 +19,7 @@
 		<level name="coast"                  enforced="false" infullname="false" rank="330"/>
 		<level name="other"                  enforced="false" infullname="false" rank="360"/>
 		<level name="state subregion"        enforced="false" infullname="false" rank="380"/>
-		<level name="county"                 enforced="false" infullname="false" rank="400"/>
+		<level name="county"                 enforced="false" infullname="true"  rank="400"/>
 		<level name="mountain(s)"            enforced="false" infullname="false" rank="410"/>
 		<level name="river"                  enforced="false" infullname="false" rank="420"/>
 		<level name="forest"                 enforced="false" infullname="false" rank="430"/>

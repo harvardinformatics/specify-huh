@@ -27,7 +27,7 @@ select t.id,
        to_char((select min(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as original_due_date,
        to_char((select max(date_due) from due_date where loan_id=t.id), 'YYYY-MM-DD HH24:MI:SS') as current_due_date,
 
-       (select name from taxon where id=tb.higher_taxon_id) as higher_taxon,
+       tb.higher_taxon_id,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
        regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from,
 

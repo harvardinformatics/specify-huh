@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.AsaException;
+import edu.harvard.huh.asa.GeoUnit;
 import edu.harvard.huh.asa.OutGeoBatch;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.TYPE;
@@ -37,8 +38,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     private OutgoingExchangeLookup outExchangeLookup;
     private OutgoingGiftLookup outGiftLookup;
     private GeoUnitLookup geoUnitLookup;
-    
-    private static final Geography NullGeography = new Geography();
     
     public OutGeoBatchLoader(File csvFile,
                              Statement sqlStatement,
@@ -124,14 +123,18 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     {
         GiftPreparation giftPrep = new GiftPreparation();
 
+        // DescriptionOfMaterial
+        Integer geoUnitId = outGeoBatch.getGeoUnitId();
+        if (geoUnitId == GeoUnit.CultRegionId) giftPrep.setDescriptionOfMaterial(GeoUnit.Cultivated);
+        else if (geoUnitId == GeoUnit.MiscRegionId) giftPrep.setDescriptionOfMaterial(GeoUnit.Miscellaneous);
+        
         // Discipline
         giftPrep.setDiscipline(getBotanyDiscipline());
         
         // Geography
-        Integer geoUnitId = outGeoBatch.getGeoUnitId();
-        Geography geography = NullGeography;
+        Geography geography = GeoUnit.NullGeography;
         
-        if (geoUnitId != null) geography = lookupGeography(geoUnitId);
+        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
         giftPrep.setGeography(geography);
         
         // Gift
@@ -160,14 +163,17 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     {
         ExchangeOutPreparation exchOutPrep = new ExchangeOutPreparation();
 
+        Integer geoUnitId = outGeoBatch.getGeoUnitId();
+        if (geoUnitId == GeoUnit.CultRegionId) exchOutPrep.setDescriptionOfMaterial(GeoUnit.Cultivated);
+        else if (geoUnitId == GeoUnit.MiscRegionId) exchOutPrep.setDescriptionOfMaterial(GeoUnit.Miscellaneous);
+        
         // Discipline
         exchOutPrep.setDiscipline(getBotanyDiscipline());
         
         // Geography
-        Integer geoUnitId = outGeoBatch.getGeoUnitId();
-        Geography geography = NullGeography;
+        Geography geography = GeoUnit.NullGeography;
         
-        if (geoUnitId != null) geography = lookupGeography(geoUnitId);
+        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
         exchOutPrep.setGeography(geography);
         
         // Gift
@@ -209,15 +215,14 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
     private String getInsertSql(GiftPreparation giftPrep)
     {
-        String fieldNames = "DisciplineID, GeographyID, GiftID, " +
-                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, " +
-                            "Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, GeographyID, GiftID, " +
+                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[8];
+        String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( giftPrep.getDescriptionOfMaterial());
-        values[1] = SqlUtils.sqlString( giftPrep.getGeography().getId());
-        values[2] = SqlUtils.sqlString( giftPrep.getDiscipline().getId());
+        values[1] = SqlUtils.sqlString( giftPrep.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( giftPrep.getGeography().getId());
         values[3] = SqlUtils.sqlString( giftPrep.getGift().getId());
         values[4] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
         values[5] = SqlUtils.sqlString( giftPrep.getQuantity());
@@ -230,20 +235,20 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     
     private String getInsertSql(ExchangeOutPreparation exchOutPrep)
     {
-        String fieldNames = "DisciplineID, ExchangeOutID, GeographyID, " +
-                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, " +
-                            "Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, ExchangeOutID, GeographyID, " +
+                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[8];
+        String[] values = new String[9];
         
-        values[0] = SqlUtils.sqlString( exchOutPrep.getDiscipline().getId());
-        values[1] = SqlUtils.sqlString( exchOutPrep.getExchangeOut().getId());
-        values[2] = SqlUtils.sqlString( exchOutPrep.getGeography().getId());
-        values[3] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
-        values[4] = SqlUtils.sqlString( exchOutPrep.getQuantity());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.sqlString( exchOutPrep.getTypeCount());
-        values[7] = SqlUtils.zero();
+        values[0] = SqlUtils.sqlString( exchOutPrep.getDescriptionOfMaterial());
+        values[1] = SqlUtils.sqlString( exchOutPrep.getDiscipline().getId());
+        values[2] = SqlUtils.sqlString( exchOutPrep.getExchangeOut().getId());
+        values[3] = SqlUtils.sqlString( exchOutPrep.getGeography().getId());
+        values[4] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
+        values[5] = SqlUtils.sqlString( exchOutPrep.getQuantity());
+        values[6] = SqlUtils.now();
+        values[7] = SqlUtils.sqlString( exchOutPrep.getTypeCount());
+        values[8] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("exchangeoutpreparation", fieldNames, values);
     }

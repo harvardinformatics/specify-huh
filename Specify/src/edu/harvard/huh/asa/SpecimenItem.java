@@ -12,8 +12,8 @@ public class SpecimenItem extends AuditedObject
 	public static String[] FormatNames =    { "on sheet", "in packet", "in box", "in bag", "in jar", "in spirit medium", "wood", "Fossil", "on microscope slide", "DNA sample", "photograph", "drawing", "protolog on sheet", "other" };
 
     // this is for Specify data model PrepType
-    public static enum CONTAINER_TYPE       { Sheet,   Packet,   Box,  Bag,   Jar,   MicroscopeSlide,     Slide35mm,     Self,   Other,   Logical   };
-    public static String[] ContainerNames = { "Sheet", "Packet", "Box","Bag", "Jar", "Microscope slide",  "35 mm slide", "Self", "Other", "Logical" };
+    public static enum CONTAINER_TYPE       { Sheet,   Packet,   Box,  Bag,   Jar,   MicroscopeSlide,     Slide35mm,     Self,   Other,   Logical,   Lot   };
+    public static String[] ContainerNames = { "Sheet", "Packet", "Box","Bag", "Jar", "Microscope slide",  "35 mm slide", "Self", "Other", "Logical", "Lot" };
 
 	// this is for data model Fragment PrepMethod
 	public static enum PREP_METHOD            { Pressed,    Dried,   Wood,   Drawing,   SpiritMedium,    Protolog,   Photograph,   Glycerine,   Fossil,   DNAsample,    Other   };

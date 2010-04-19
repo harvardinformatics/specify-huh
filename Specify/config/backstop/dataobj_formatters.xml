@@ -39,6 +39,19 @@
             </fields>
         </switch>
     </format>
+    
+    <format
+        name="AccessionPreparation"
+        title="AccessionPreparation"
+        class="edu.ku.brc.specify.datamodel.AccessionPreparation"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>accession.accessionNumber</field>
+            </fields>
+        </switch>
+    </format>
 
     <format
         name="Address"

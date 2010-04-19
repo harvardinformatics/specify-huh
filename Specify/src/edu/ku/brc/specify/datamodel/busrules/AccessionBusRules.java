@@ -226,7 +226,7 @@ public class AccessionBusRules extends AttachmentOwnerBaseBusRules
                     try
                     {
                         Statement stmt = DBConnection.getInstance().getConnection().createStatement();
-                        ResultSet rs   = stmt.executeQuery("select count(*) from collectionobject where AccessionID = "+accession.getAccessionId());
+                        ResultSet rs   = stmt.executeQuery("select count(*) from accessionpreparation where AccessionID = "+accession.getAccessionId());
                         if (rs.next())
                         {
                             return rs.getInt(1) == 0;

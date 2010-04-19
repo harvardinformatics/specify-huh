@@ -399,8 +399,8 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
         String fields = "BorrowID, CollectionMemberID, Description, MaterialNumber, " +
-        		        "NonSpecimenCount, SrcTaxonomy, Quantity, QuantityResolved, " +
-        		        "QuantityReturned, TaxonID, TimestampCreated, TypeCount, Version";
+        		        "NonSpecimenCount, SrcTaxonomy, TaxonID, Quantity, QuantityResolved, " +
+        		        "QuantityReturned, TimestampCreated, TypeCount, Version";
             
         String[] values = new String[13];
         

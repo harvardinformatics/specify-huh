@@ -37,20 +37,6 @@
                 <altview name="AccessionAuthorization Edit" viewdef="AccessionAuthorization" mode="edit"/>
             </altviews>
         </view>
-
-        <view name="AccessionItems"
-              objtitle="Accession Items"
-              class="edu.ku.brc.specify.datamodel.CollectionObject"
-              usedefbusrule="false"
-              resourcelabels="false">
-            <desc><![CDATA[The Collection Object Subform for Accessions.]]></desc>
-            <altviews>
-                <altview name="COS View"       viewdef="AccessionItems" mode="view"/>
-                <altview name="COS Edit"       viewdef="AccessionItems" mode="edit" default="true"/>
-                <altview name="COS Table Edit" viewdef="AccessionItems Table" mode="edit"/>
-                <altview name="COS Table View" viewdef="AccessionItems Table" mode="view"/>
-            </altviews>      
-        </view>
          
         <view name="AccessionPreparation"
             objtitle="Accession Preparation"

@@ -18,24 +18,12 @@ select t.id,
        regexp_replace(t.for_use_by, '[[:space:]]+', ' ') as for_use_by,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
-       regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks,
-
-       igb.item_count,
-       igb.type_count,
-       igb.non_specimen_count,
-
-       (select name from geo_name where type_id=110701 and geo_unit_id=igb.geo_region_id) as geo_unit,
-       igb.discard_count,
-       igb.distribute_count,
-       igb.return_count,
-       igb.cost
+       regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks
 
 from herb_transaction t,
-     agent a,
-     in_geo_batch igb
+     agent a
 
-where t.id=igb.herb_transaction_id(+) and
-      (select name from st_lookup where id=t.type_id) = 'staff collection' and
-      t.agent_id=a.id(+)
+where t.agent_id=a.id(+) and
+      (select name from st_lookup where id=t.type_id) = 'staff collection'
 
 order by t.id

@@ -14,7 +14,7 @@
         </table>
         <alias name="Appraisal" field="appraisals" />
         <alias name="Agent" field="createdByAgent" />
-        <alias name="CollectionObject" field="collectionObjects"/>
+        <alias name="Preparation" field="preparations"/>
         <alias name="Deaccession" field="deaccessions" />
         <alias name="Agent" field="modifiedByAgent" />
         <alias name="RepositoryAgreement" field="repositoryAgreement" />
@@ -88,8 +88,7 @@
         <alias name="Agent" field="modifiedByAgent" />
     </table>
     
-    <table name="CollectionObject">
-		<alias name="Accession"/>    	
+    <table name="CollectionObject">   	
     	<table name="CollectionObjectAttribute"/>
         <table name="CollectionObjectAttachment" field="collectionObjectAttachments">
             <alias name="Attachment"/>
@@ -164,6 +163,13 @@
       	<alias name="Agent" field="modifiedByAgent" />
     </table>
 
+	<table name="AccessionPreparation">
+      	<alias name="Preparation"/>
+		<alias name="Accession"/>
+      	<alias name="Agent" field="createdByAgent" />
+      	<alias name="Agent" field="modifiedByAgent" />
+	</table>
+	
 	<table name="DeaccessionPreparation">
       	<alias name="Preparation"/>
 		<alias name="Deaccession"/>
@@ -370,6 +376,7 @@
     </table>
 
     <table name="Preparation">
+    	<alias name="Accession" field="accession"/> 
         <table name="PrepType"/>
         <table name="PreparationAttachment" field="preparationAttachments">
             <table name="Attachment"/>
