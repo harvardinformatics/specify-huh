@@ -285,7 +285,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                     
                     try
                     {
-                        return (new DecimalFormat( "000000000" ) ).format( barcode );
+                        return (new DecimalFormat( "00000000" ) ).format( barcode );
                     }
                     catch (IllegalArgumentException e)
                     {
