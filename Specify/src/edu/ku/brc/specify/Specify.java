@@ -271,7 +271,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     
     private String               appName             = "Specify-HUH"; //$NON-NLS-1$
     private String               appVersion          = "6.0"; //$NON-NLS-1$
-    private String               appBuildVersion     = "12"; //$NON-NLS-1$
+    private String               appBuildVersion     = "14"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
 
@@ -2993,7 +2993,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                                  
                              }
                           };
-                          ApplicationLauncher.launchApplication("100", null, true, callback);
+                          ApplicationLauncher.launchApplication("1321", null, true, callback);
                           
                       } catch (Exception ex)
                       {
