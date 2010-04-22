@@ -1863,7 +1863,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
-					<caption tableid="107" col="Name"/>
+					<caption tableid="107" col="av.Name"/>
 					<caption tableid="1" col="FieldNumber"/>
                     <caption tableid="10" formatter="PartialDate">
                         <col name="StartDate"          field="startDate"/>
