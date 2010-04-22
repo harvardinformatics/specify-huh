@@ -199,43 +199,83 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
      */
     protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
     {
-        Class<?> dataClass = Fragment.class;
-        
         String fieldName = "identifier";
-        String fragmentBarcode = (String)FormHelper.getValue(dataObj, fieldName);
-        String prepBarcode = (String)FormHelper.getValue(((Fragment)dataObj).getPreparation(), "identifier");
         
+        Class<?> fragmentClass = Fragment.class;
+        Fragment fragment = (Fragment) dataObj;
+        
+        DBTableInfo fragmentTableInfo = DBTableIdMgr.getInstance().getByClassName(fragmentClass.getName());
+        DBFieldInfo fragmentFieldInfo = fragmentTableInfo.getFieldByName(fieldName);
+        
+        String fragmentBarcode = (String)FormHelper.getValue(fragment, fieldName);
+        String formattedFragmentBarcode = "";
+        if (fragmentFieldInfo != null && fragmentFieldInfo.getFormatter() != null && fragmentBarcode != null)
+        {
+            Object fmtObj = fragmentFieldInfo.getFormatter().formatToUI(fragmentBarcode);
+            if (fmtObj != null)
+            {
+                formattedFragmentBarcode = fmtObj.toString();
+            }
+        }
+        
+        Class<?> prepClass = Preparation.class;
+        Preparation prep  = fragment.getPreparation();
+        
+        DBTableInfo prepTableInfo = DBTableIdMgr.getInstance().getByClassName(prepClass.getName());
+        DBFieldInfo prepFieldInfo = prepTableInfo.getFieldByName(fieldName);
+
+        String prepBarcode = (String)FormHelper.getValue(prep, fieldName);
+        String formattedPrepBarcode = "";
+        if (prepFieldInfo != null && prepFieldInfo.getFormatter() != null && prepBarcode != null)
+        {
+            Object fmtObj = prepFieldInfo.getFormatter().formatToUI(prepBarcode);
+            if (fmtObj != null)
+            {
+                formattedPrepBarcode = fmtObj.toString();
+            }
+        }
+
         if (StringUtils.isEmpty(fragmentBarcode) && StringUtils.isEmpty(prepBarcode))
         {
-            reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", dataClass, fieldName, ""));
+            reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", fragmentClass, fieldName, formattedFragmentBarcode));
+
+            return STATUS.Error;
+        }
+        
+        if (!StringUtils.isEmpty(fragmentBarcode) && fragmentBarcode.equals(prepBarcode))
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", fragmentClass, fieldName, formattedFragmentBarcode));
 
             return STATUS.Error;
         }
 
-        // Let's check for duplicates 
-        Integer fragmentCount = getCountSql(dataClass, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
+        // Let's check for duplicates of the fragment identifier
+        Integer fragmentCount = getCountSql(fragmentClass, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
         if (fragmentCount == null) fragmentCount = 0;
 
         Integer prepCount = getCountSql(Preparation.class, "preparationId", fieldName, fragmentBarcode, null);
         if (prepCount == null) prepCount = 0;
 
+        if (fragmentCount + prepCount != 0)
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", fragmentClass, fieldName, formattedFragmentBarcode));
+
+            return STATUS.Error;
+        }
+        
+        // Check for duplicates of the preparation identifier
+        fragmentCount = getCountSql(fragmentClass, "fragmentId", fieldName, prepBarcode, null);
+        if (fragmentCount == null) fragmentCount = 0;
+        
+        prepCount = getCountSql(Preparation.class, "preparationId", fieldName, fragmentBarcode, prep.getId());
+        if (prepCount == null) prepCount = 0;
+        
         if (fragmentCount + prepCount == 0)
         {
-            return STATUS.OK;
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", fragmentClass, fieldName, formattedPrepBarcode));
         }
-        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
-        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
-
-        if (fieldInfo != null && fieldInfo.getFormatter() != null)
-        {
-            Object fmtObj = fieldInfo.getFormatter().formatToUI(fragmentBarcode);
-            if (fmtObj != null)
-            {
-                fragmentBarcode = fmtObj.toString();
-            }
-        }
-        reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", dataClass, fieldName, fragmentBarcode));
-        return STATUS.Error;
+        
+        return STATUS.OK;
     }
     
     private int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Integer id)

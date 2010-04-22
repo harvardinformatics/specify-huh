@@ -75,7 +75,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
         String fragmentBarcode = (String)FormHelper.getValue(dataObj, fieldName);
 
         // Let's check for duplicates 
-        Integer fragmentCount = getCountSql(Fragment.class, "fragmentId", fieldName, fragmentBarcode, dataObj.getId());
+        Integer fragmentCount = getCountSql(Fragment.class, "fragmentId", fieldName, fragmentBarcode, null);
         if (fragmentCount == null) fragmentCount = 0;
 
         Integer prepCount = getCountSql(dataClass, "preparationId", fieldName, fragmentBarcode, dataObj.getId());
