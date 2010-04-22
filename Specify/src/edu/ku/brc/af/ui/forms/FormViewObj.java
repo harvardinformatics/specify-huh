@@ -2010,7 +2010,7 @@ public class FormViewObj implements Viewable,
             
         } else
         {
-            FormHelper.addToParent(parentDataObj, obj);
+            if (parentDataObj != null) FormHelper.addToParent(parentDataObj, obj);
         }
 
         boolean didCarryForward = false;
