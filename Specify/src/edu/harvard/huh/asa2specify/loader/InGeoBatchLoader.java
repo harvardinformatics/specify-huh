@@ -50,7 +50,7 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         Integer collectionId = getCollectionId(null);
         String container = SpecimenItem.toString(SpecimenItem.CONTAINER_TYPE.Lot);
 
-        String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + container;
+        String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + SqlUtils.sqlString(container);
         Integer prepTypeId = queryForInt(sql);
         if (prepTypeId == null) throw new LocalException("Couldn't find prep type for " + container);
 
