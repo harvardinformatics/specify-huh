@@ -111,13 +111,16 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         return inGeoBatch;
     }
 
-    private Preparation getPreparation()
+    private Preparation getPreparation() throws LocalException
     {
         Preparation preparation = new Preparation();
         
         // CollectionMemberID
-        
+        Integer collectionMemberId = this.getCollectionId(null);
+        preparation.setCollectionMemberId(collectionMemberId);
+
         // PrepType
+        preparation.setPrepType(prepType);
         
         return preparation;
     }
