@@ -415,7 +415,7 @@
       <picklistitem title="for exhibition" value="ForExhibition"/>
     </items>
   </picklist>
-    <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="14">
+  <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="14">
     <items>
       <picklistitem title="Borrower" value="Borrower"/>
       <picklistitem title="Benefactor" value="Benefactor"/>
@@ -432,6 +432,12 @@
       <picklistitem title="Sponsor" value="Sponsor"/>
       <picklistitem title="Staff" value="Staff"/>
       <picklistitem title="Student" value="Student"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Transaction User Type" issystem="true" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="staff" value="staff"/>
+      <picklistitem title="student" value="student"/>
     </items>
   </picklist>
   <picklist name="HUH Type Confidence" type="0" issystem="true" readonly="true" sizelimit="2">

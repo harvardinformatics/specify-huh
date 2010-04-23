@@ -4690,6 +4690,22 @@
           </str>
         </descs>
       </item>
+      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction User Type">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User Type</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -4756,6 +4772,22 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Their Request?</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="yesNo3" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Visitor?</text>
           </str>
         </names>
         <descs>
@@ -20869,6 +20901,22 @@
           </str>
         </descs>
       </item>
+      <item name="text3" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Transaction User Type">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User Type</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -20935,6 +20983,22 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Their request?</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>User definable.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="yesNo3" type="java.lang.Boolean" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Visitor?</text>
           </str>
         </names>
         <descs>

@@ -26,6 +26,7 @@ import edu.harvard.huh.asa.AsaLoan;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa.Transaction.ROLE;
+import edu.harvard.huh.asa.Transaction.USER_TYPE;
 import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -93,28 +94,11 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         Loan loan = getLoan(asaLoan);
         
-        String forUseBy = asaLoan.getForUseBy();
-        Agent forUseByAgent = null;
         Agent borrowerAgent = null;
         Agent contactAgent = null;
-        
-        if (forUseBy != null)
-        {
-            contactAgent = lookupAgent(asaLoan);
-            
-            Integer botanistId = getBotanistId(forUseBy);
-            
-            if (botanistId != null)
-            { 
-                forUseByAgent = lookup(botanistId);
-            }
-        }
-        else
-        {
-            forUseByAgent = lookupAgent(asaLoan);
-        }
 
         borrowerAgent = lookupOrganization(asaLoan);
+        contactAgent = lookupAgent(asaLoan);
         
         String sql = getInsertSql(loan);
         Integer loanId = insert(sql);
@@ -137,16 +121,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             if (borrower != null)
             {
                 sql = getInsertSql(borrower);
-                insert(sql);
-            }
-        }
-
-        if (forUseByAgent != null)
-        {
-            LoanAgent user = getLoanAgent(loan, forUseByAgent, ROLE.ForUseBy, Transaction.toString(asaLoan.getUserType()));
-            if (user != null)
-            {
-                sql = getInsertSql(user);
                 insert(sql);
             }
         }
@@ -204,11 +178,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             };
         }
         return loanPrepLookup;
-    }
-
-    private Integer getBotanistId(String name)
-    {
-        return nameToBotanistMapper.map(name);
     }
     
     private Agent lookup(Integer botanistId) throws LocalException
@@ -298,6 +267,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         String localUnit = asaLoan.getLocalUnit();
         loan.setText2(localUnit);
         
+        // Text3 (user type: staff/student/visitor/unknown)
+        USER_TYPE userType = asaLoan.getUserType();
+        if (userType.equals(USER_TYPE.Staff) || userType.equals(USER_TYPE.Student))
+        {
+            loan.setText3(Transaction.toString(userType));
+        }
+        
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaLoan.isAcknowledged();
         loan.setYesNo1(isAcknowledged);
@@ -305,6 +281,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // YesNo2 (requestType = "theirs")
         Boolean isTheirs = isTheirs(asaLoan.getRequestType());
         loan.setYesNo2(isTheirs);
+        
+        // YesNo3 (visitor?)
+        if (asaLoan.getUserType().equals(Transaction.USER_TYPE.Visitor)) loan.setYesNo3(true);
         
         setAuditFields(asaLoan, loan);
         
@@ -522,9 +501,10 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         String fieldNames = "CreatedByAgentID, CurrentDueDate, DateClosed, DisciplineId, " +
                             "IsClosed, LoanDate, LoanNumber, ModifiedByAgentID, Number1, " +
                             "OriginalDueDate, PurposeOfLoan, Remarks, SrcGeography, Text1, " +
-                            "Text2, TimestampCreated, TimestampModified, Version, YesNo1, YesNo2";
+                            "Text2, Text3, TimestampCreated, TimestampModified, Version, " +
+                            "YesNo1, YesNo2, YesNo3";
         
-        String[] values = new String[20];
+        String[] values = new String[22];
         
         values[0]  = SqlUtils.sqlString( loan.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( loan.getCurrentDueDate());
@@ -541,11 +521,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[12] = SqlUtils.sqlString( loan.getSrcGeography());
         values[13] = SqlUtils.sqlString( loan.getText1());
         values[14] = SqlUtils.sqlString( loan.getText2());
-        values[15] = SqlUtils.sqlString( loan.getTimestampCreated());
-        values[16] = SqlUtils.sqlString( loan.getTimestampModified());
-        values[17] = SqlUtils.zero();
-        values[18] = SqlUtils.sqlString( loan.getYesNo1());
-        values[19] = SqlUtils.sqlString( loan.getYesNo2());
+        values[15] = SqlUtils.sqlString( loan.getText3());
+        values[16] = SqlUtils.sqlString( loan.getTimestampCreated());
+        values[17] = SqlUtils.sqlString( loan.getTimestampModified());
+        values[18] = SqlUtils.zero();
+        values[19] = SqlUtils.sqlString( loan.getYesNo1());
+        values[20] = SqlUtils.sqlString( loan.getYesNo2());
+        values[21] = SqlUtils.sqlString( loan.getYesNo3());
         
         return SqlUtils.getInsertSql("loan", fieldNames, values);
     }
