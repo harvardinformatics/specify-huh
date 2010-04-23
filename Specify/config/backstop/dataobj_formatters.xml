@@ -183,6 +183,16 @@
         </switch>
     </format>
 
+	<format
+        name="BatchPrepDetail"
+        title="BatchPrepDetail"
+        class="edu.ku.brc.specify.datamodel.Preparation"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.PreparationDataObjFmt"/>
+        </switch>
+    </format>
+	
     <format
         name="Borrow"
         title="Borrow"

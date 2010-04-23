@@ -26,6 +26,17 @@
         </view>
 
 		<view 
+            name="BatchPrepSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Batch Preparation Search Form]]></desc>
+            <altviews>
+                <altview name="BatchPrepSearch" viewdef="BatchPrepSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+		<view 
             name="BotanistSearch"
             class="edu.ku.brc.specify.datamodel.Agent"
             usedefbusrule="false"
@@ -439,6 +450,37 @@ Good: <cell type="field" name="FieldNum" ...>
             </rows>
         </viewdef> 
 
+		<viewdef type="form"
+            name="BatchPrepSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Batch Preparation Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Preparation" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" label="Prep Barcode: "/>
+                    <cell type="field" id="1" name="pp.Identifier" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Accession Number:" />
+                    <cell type="field" id="2" name="ac.AccessionNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Loan Number:" />
+                    <cell type="field" id="3" name="ln.LoanNumber" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
 		<viewdef type="form"
             name="BotanistSearch"
             class="edu.ku.brc.specify.datamodel.Agent"
@@ -854,7 +896,7 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="field" id="4" name="preparation.Text1" uitype="text"/>
                 </row>
             </rows>
-        </viewdef>  
+        </viewdef>
         
         <viewdef type="form"
             name="ProjectSearch"

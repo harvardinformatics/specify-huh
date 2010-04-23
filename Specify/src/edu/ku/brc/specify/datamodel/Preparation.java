@@ -106,6 +106,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     // Fragment
     protected Set<Fragment>               fragments;
     
+    protected Set<AccessionPreparation>   accessionPreparations;
     protected Set<GiftPreparation>        giftPreparations;
     protected Set<LoanPreparation>        loanPreparations;
     protected PrepType                    prepType;
@@ -178,6 +179,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         objectCondition     = null;
         treatmentEvents     = new HashSet<TreatmentEvent>();
         
+        accessionPreparations = new HashSet<AccessionPreparation>();
         giftPreparations = new HashSet<GiftPreparation>();
         loanPreparations = new HashSet<LoanPreparation>();
         prepType = null;
@@ -708,6 +710,19 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<AccessionPreparation> getAccessionPreparations() {
+        return this.accessionPreparations;
+    }
+    
+    public void setAccessionPreparations(Set<AccessionPreparation> accessionPreparations) {
+        this.accessionPreparations = accessionPreparations;
+    }
+    
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<LoanPreparation> getLoanPreparations() {
         return this.loanPreparations;
     }
@@ -917,10 +932,17 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         
         obj.preparationId           = null;
         obj.loanPreparations        = new HashSet<LoanPreparation>();
+        obj.accessionPreparations   = new HashSet<AccessionPreparation>();
         obj.deaccessionPreparations = new HashSet<DeaccessionPreparation>();
+        obj.giftPreparations        = new HashSet<GiftPreparation>();
         obj.preparationAttachments  = new HashSet<PreparationAttachment>();
-       
+        obj.conservDescriptions     = new HashSet<ConservDescription>();
+        obj.treatmentEvents         = new HashSet<TreatmentEvent>();
+        obj.fragments               = new HashSet<Fragment>();
+        obj.children                = new HashSet<Preparation>();
+        
         // Clone Attributes
+        obj.parent = this.parent;
         obj.preparationAttribute    = preparationAttribute != null ? (PreparationAttribute)preparationAttribute.clone() : null;
         obj.preparationAttrs        = new HashSet<PreparationAttr>();
         for (PreparationAttr pa : preparationAttrs)

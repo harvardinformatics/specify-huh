@@ -445,7 +445,7 @@
                     <caption tableid="63" col="preparation.PreparationID" visible="false"/>
                     <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
                     <caption tableid="4" col="FullName"/>
-                    <caption tableid="7" col="AccessionNumber" formatter="AccessionNumber"/>
+                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessionNumber"/>
                 </captions>
             </detailView>
         </table>
@@ -476,7 +476,7 @@
                     <caption tableid="5" col="LastName" />
                     <caption tableid="5" col="FirstName" />
                     <caption tableid="12" col="Role" />
-                    <caption tableid="7" col="AccessionNumber" formatter="AccessionNumber" />
+                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessionNumber" />
                 </captions>
             </detailView>
         </table>
@@ -1219,7 +1219,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="7" col="AccessionID" visible="false"/>
-                    <caption tableid="7" col="AccessionNumber"/>
+                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessioNumber"/>
                     <caption tableid="41" col="Title"/>
                 </captions>
             </detailView>
@@ -1664,7 +1664,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="7" col="AccessionID" visible="false"/>
-                    <caption tableid="7" col="AccessionNumber"/>
+                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessionNumber"/>
                     <caption tableid="7" col="Status"/>
                     <caption tableid="7" col="Type"/>
                     <caption tableid="7" col="DateAccessioned"/>
@@ -2102,6 +2102,37 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="84" col="fnps.EndDate"/>
                     <caption tableid="83" col="fn.Name"/>
                     <caption tableid="83" col="fn.StartDate"/>
+                </captions>
+            </detailView>
+        </table>
+        
+        <table id="132" tableid="63" indexed="false" name="BatchPrepSearch" priority="1" color="30, 144, 144">
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[SELECT pp.PreparationID,
+                                    pp.Identifier as PrepIdentifier,
+                                    ac.AccessionNumber,
+                                    t1.FullName,
+                                    geo.FullName,
+                                    ln.LoanNumber,
+                                    t2.FullName
+                               FROM preparation pp LEFT JOIN accessionpreparation ap ON pp.PreparationID=ap.PreparationID
+                                                   LEFT JOIN loanpreparation lpo ON pp.PreparationID=lpo.PreparationID
+                                                   LEFT JOIN accession ac ON ap.AccessionID=ac.AccessionID
+                                                   LEFT JOIN loan ln ON lpo.LoanID=ln.LoanID
+                                                   LEFT JOIN taxon t1 ON lpo.TaxonID=t1.TaxonID
+                                                   LEFT JOIN taxon t2 ON ap.TaxonID=t2.TaxonID
+                                                   LEFT JOIN geography geo ON ap.GeographyID=geo.GeographyID
+                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY ac.AccessionNumber, ln.LoanNumber, t1.FullName, t2.FullName, geo.FullName]]>
+                </sql>
+                <captions>
+                    <caption tableid="63" col="pp.PreparationID" visible="false"/>
+                    <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="7" col="ac.AccessionNumber" formatter="HUHAccessionNumber"/>
+                    <caption tableid="4" col="t1.FullName"/>
+                    <caption tableid="3" col="geo.FullName"/>
+                    <caption tableid="52" col="ln.LoanNumber"/>
+                    <caption tableid="4" col="t2.FullName"/>
                 </captions>
             </detailView>
         </table>

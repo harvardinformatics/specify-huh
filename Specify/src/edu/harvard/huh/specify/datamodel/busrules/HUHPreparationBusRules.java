@@ -137,4 +137,11 @@ public class HUHPreparationBusRules extends PreparationBusRules
         
         return BasicSQLUtils.getCount(sql);
     }
+    
+    @Override
+    public boolean shouldCloneField(String fieldName)
+    {
+        // TODO Auto-generated method stub
+        return super.shouldCloneField(fieldName);
+    }
 }

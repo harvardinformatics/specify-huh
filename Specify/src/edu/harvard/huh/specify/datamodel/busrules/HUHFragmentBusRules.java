@@ -42,6 +42,17 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	public void addChildrenToNewDataObjects(Object newDataObj)
 	{
 	    super.addChildrenToNewDataObjects(newDataObj);
+	       Fragment fragment = (Fragment) newDataObj;
+	        
+	        if (fragment != null)
+	        {
+	            if (fragment.getPreparation() == null)
+	            {
+	                Preparation prep = new Preparation();
+	                prep.initialize();
+	                fragment.addReference(prep, "preparation");
+	            }
+	        }
 	}
 
 	@Override
@@ -54,14 +65,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	@Override
 	public void afterFillForm(Object dataObj)
 	{
-		Fragment fragment = (Fragment) dataObj;
-		
-		if (fragment != null && fragment.getPreparation() == null)
-		{
-		    Preparation prep = new Preparation();
-		    prep.initialize();
-		    fragment.addReference(prep, "preparation");
-		}
+
 	}
 
 	@Override
@@ -108,16 +112,33 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 		if (fragment != null)
 		{
 		    CollectionObject collObj = fragment.getCollectionObject();
-
-		    if (collObj != null)
+		    boolean newColObj = false;
+		    
+		    if (collObj == null)
 		    {
-		        if (collObj.getCollection() == null)
-		        {
-		            Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
-		            collObj.setCollection(catSeries); 
-		        }
-		        saveObject(collObj, session);
+		        collObj = new CollectionObject();
+		        collObj.initialize();
+		        newColObj = true;
 		    }
+            if (collObj.getCollection() == null)
+            {
+                Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
+                collObj.setCollection(catSeries); 
+            }
+            saveObject(collObj, session);
+            if (newColObj) fragment.addReference(collObj, "collectionObject");
+            
+            Preparation prep = fragment.getPreparation();
+            boolean newPrep = false;
+            
+            if (prep == null)
+            {
+                prep = new Preparation();
+                prep.initialize();
+                newPrep = true;
+            }
+            saveObject(prep, session);
+            if (newPrep) fragment.addReference(prep, "preparation");
 		}
 	}
 
@@ -377,7 +398,8 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
 	@Override
 	public boolean shouldCloneField(String fieldName)
 	{
-		// TODO Auto-generated method stub
+		if ("preparation".equals(fieldName)) return true;
+		
 		return super.shouldCloneField(fieldName);
 	}
 
@@ -407,7 +429,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
             {
                 ex.printStackTrace();
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHFragmentBusRules.class, ex);
             }
         }
     }
