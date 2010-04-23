@@ -88,11 +88,13 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
     protected String                  remarks;
     protected String                  text1;
     protected String                  text2;
+    protected String                  text3;
     protected Float                   number1;
     protected Float                   number2;
     protected Boolean                 isClosed; // Loan Only
     protected Boolean                 yesNo1;
     protected Boolean                 yesNo2;
+    protected Boolean                 yesNo3;
     
     protected AddressOfRecord         addressOfRecord;
     protected Set<LoanAgent>          loanAgents;
@@ -142,12 +144,14 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
         remarks         = null;
         text1           = null;
         text2           = null;
+        text3           = null;
         number1         = null;
         number2         = null;
 
         isClosed        = OPEN;
         yesNo1          = null;
         yesNo2          = null;
+        yesNo3          = null;
         loanAgents      = new HashSet<LoanAgent>();
 
         loanPreparations = new HashSet<LoanPreparation>();
@@ -358,6 +362,20 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
     public void setText2(String text2) {
         this.text2 = text2;
     }
+    
+    /**
+     * * User definable
+     */
+    @Column(name = "Text3", length = 32, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText3()
+    {
+        return this.text3;
+    }
+
+    public void setText3(String text3)
+    {
+        this.text3 = text3;
+    }
 
     /**
      *      * User definable
@@ -419,6 +437,20 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
         this.yesNo2 = yesNo2;
     }
 
+    /**
+     * * User definable
+     */
+    @Column(name = "YesNo3", unique = false, nullable = true, updatable = true, insertable = true)
+    public Boolean getYesNo3()
+    {
+        return this.yesNo3;
+    }
+
+    public void setYesNo3(Boolean yesNo3)
+    {
+        this.yesNo3 = yesNo3;
+    }
+    
     /**
      * @return the receivedComments
      */

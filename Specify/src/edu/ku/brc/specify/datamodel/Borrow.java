@@ -65,11 +65,13 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
     protected String              remarks;
     protected String              text1;
     protected String              text2;
+    protected String              text3;
     protected Float               number1;
     protected Float               number2;
     protected Boolean             isClosed;
     protected Boolean             yesNo1;
     protected Boolean             yesNo2;
+    protected Boolean             yesNo3;
     protected Calendar            currentDueDate;
     protected Boolean             isFinancialResponsibility;
     
@@ -106,11 +108,13 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
         remarks = null;
         text1 = null;
         text2 = null;
+        text3 = null;
         number1 = null;
         number2 = null;
         isClosed = null;
         yesNo1 = null;
         yesNo2 = null;
+        yesNo3 = null;
         currentDueDate = null;
         addressOfRecord = null;
         shipments = new HashSet<Shipment>();
@@ -293,6 +297,20 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
     /**
      * * User definable
      */
+    @Column(name = "Text3", length = 32, unique = false, nullable = true, insertable = true, updatable = true)
+    public String getText3()
+    {
+        return this.text3;
+    }
+
+    public void setText3(String text3)
+    {
+        this.text3 = text3;
+    }
+    
+    /**
+     * * User definable
+     */
     @Column(name = "Number1", unique = false, nullable = true, insertable = true, updatable = true, length = 24)
     public Float getNumber1()
     {
@@ -360,6 +378,20 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
         this.yesNo2 = yesNo2;
     }
 
+    /**
+     * * User definable
+     */
+    @Column(name = "YesNo3", unique = false, nullable = true, updatable = true, insertable = true)
+    public Boolean getYesNo3()
+    {
+        return this.yesNo3;
+    }
+
+    public void setYesNo3(Boolean yesNo3)
+    {
+        this.yesNo3 = yesNo3;
+    }
+    
     /**
      * 
      */
