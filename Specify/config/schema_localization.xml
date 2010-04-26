@@ -4514,7 +4514,7 @@
           </str>
         </descs>
       </item>
-      <item name="invoiceNumber" type="java.lang.String" isUIFormatter="false" isRequired="true">
+      <item name="invoiceNumber" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
