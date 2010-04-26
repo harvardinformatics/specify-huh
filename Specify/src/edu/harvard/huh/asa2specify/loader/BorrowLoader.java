@@ -16,6 +16,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import edu.harvard.huh.asa.AsaBorrow;
@@ -41,6 +42,8 @@ import edu.ku.brc.specify.datamodel.Taxon;
 public class BorrowLoader extends TaxonBatchTransactionLoader
 {
     private static final String DEFAULT_BORROW_NUMBER = "none";
+    
+    private final static String BORROW_MAT_FMT = "00000";
     
     private BorrowLookup         borrowLookup;
     private BorrowMaterialLookup borrowMaterialLookup;
@@ -160,6 +163,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         super.parse(columns, asaBorrow);
         
         return asaBorrow;
+    }
+    
+    private String getBorrowMaterialNumber(Integer id)
+    {
+        return (new DecimalFormat( BORROW_MAT_FMT ) ).format( id );
     }
     
     private Borrow getBorrow(AsaBorrow asaBorrow, Integer collectionMemberId) throws LocalException
@@ -315,14 +323,8 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // InComments
         
         // MaterialNumber (transaction no)
-        String transactionNo = asaBorrow.getTransactionNo();
-        if ( transactionNo == null)
-        {
-            transactionNo = DEFAULT_BORROW_NUMBER;
-        }
-        transactionNo = truncate(transactionNo, 50, "material number");
-        
-        borrowMaterial.setMaterialNumber(transactionNo);
+        Integer borrowId = asaBorrow.getId();
+        borrowMaterial.setMaterialNumber(getBorrowMaterialNumber(borrowId));
         
         // NonSpecimenCount
         int nonSpecimenCount = asaBorrow.getNonSpecimenCount();

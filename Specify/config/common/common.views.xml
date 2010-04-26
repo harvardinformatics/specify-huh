@@ -1368,7 +1368,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="9" />
-                    <cell type="field" id="9" name="materialNumber" uitype="text"/>
+                    <cell type="field" id="9" name="materialNumber" uitype="formattedtext" isrequired="true"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=2000"/>
                     <cell type="label" labelfor="typeCount"/>
