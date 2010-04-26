@@ -2319,26 +2319,22 @@
 				<row>
 					<cell type="label" labelfor="exchangeNumber"/>
                     <cell type="field" id="exchangeNumber" name="exchangeNumber" uitype="formattedtext" isrequired="true"/>
-					<cell type="label" labelfor="srcTaxonomy"/>
-                	<cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text"/>
                 	<cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization"/>
-                	
+                    <cell type="field" id="3" name="agentSentTo" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="3"/>
+                	<cell type="field" id="acronym" name="agentSentTo.abbreviation" uitype="dsptextfield" readonly="true"/>
 				</row>
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="quantityExchanged" uitype="spinner" initialize="max=2000"/>
-                    <cell type="label" labelfor="srcGeography"/>
-                	<cell type="field" id="srcGeography" name="srcGeography" uitype="combobox" picklist="HUH Geographic Region"/>
+                    <cell type="label" labelfor="restrictions"/>
+                    <cell type="field" id="restrictions" name="restrictions" uitype="combobox" picklist="HUH Transaction Purpose"/>
                     <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox"/>
                     <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/>
-                    
                 </row>
                 <row>
                 	<cell type="label" labelfor="forUseBy"/>
                 	<cell type="field" id="forUseBy" name="text1" uitype="text" colspan="5"/>
-                	<cell type="label" labelfor="restrictions"/>
-                    <cell type="field" id="restrictions" name="restrictions" uitype="combobox" picklist="HUH Transaction Purpose"/>
+                	
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
@@ -2376,9 +2372,9 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[ExchangeOut viewing form.]]></desc>
             
-            <columnDef>         105px, 2px, 115px,        5px,  50px, 2px,  70px, 5px, 130px, 2px, 130px, 5px,  94px, 2px,  80px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, max(p;150px), 5px, 100px, 2px,  80px, 5px, 100px, 2px,  80px, 5px, 130px, 2px,  80px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, p,            5px,  56px, 2px,  90px, 5px, 130px, 2px, 170px, 5px, 140px, 2px, 123px, 0px, p:g</columnDef>
+            <columnDef>         135px, 2px, 115px,        5px,  50px, 2px,  70px, 5px, 130px, 2px, 130px, 5px,  94px, 2px,  80px, 0px, p:g</columnDef>
+            <columnDef os="lnx">145px, 2px, max(p;180px), 5px,  70px, 2px,  80px, 5px, 100px, 2px,  80px, 5px, 130px, 2px,  80px, 0px, p:g</columnDef>
+            <columnDef os="mac">140px, 2px, p,            5px,  56px, 2px,  90px, 5px, 130px, 2px, 170px, 5px, 140px, 2px, 123px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px,  70px, 5px:g, p,     2px, 150px, 5px:g, p,  2px,  80px, 0px:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
@@ -2389,7 +2385,7 @@
             	</row>
                 <row>
                 	<cell type="label" labelfor="descriptionOfMaterial"/>
-                	<cell type="field" id="descriptionOfMaterial" name="descriptionOfMaterial" uitype="text"/>
+                	<cell type="field" id="descriptionOfMaterial" name="descriptionOfMaterial" uitype="text" colspan="14"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="geography"/>
@@ -2588,7 +2584,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="localUnit"/>
-                    <cell type="field" id="localUnit" name="text2" uitype="combobox" picklist="HUH Collection Code"/>
+                    <cell type="field" id="localUnit" name="text2" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
                     <cell type="label" labelfor="forUseBy"/>
                     <cell type="field" id="forUseBy" name="text1" uitype="text" colspan="5"/>
                     <cell type="field" id="requestType" name="yesNo2" uitype="checkbox"/>
