@@ -2318,7 +2318,7 @@
                 </row>
 				<row>
 					<cell type="label" labelfor="exchangeNumber"/>
-                    <cell type="field" id="exchangeNumber" name="exchangeNumber" uitype="formattedtext"/>
+                    <cell type="field" id="exchangeNumber" name="exchangeNumber" uitype="formattedtext" isrequired="true"/>
 					<cell type="label" labelfor="srcTaxonomy"/>
                 	<cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text"/>
                 	<cell type="label" labelfor="3"/>

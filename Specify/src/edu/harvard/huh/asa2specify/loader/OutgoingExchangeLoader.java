@@ -16,6 +16,7 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import edu.harvard.huh.asa.OutgoingExchange;
@@ -29,6 +30,8 @@ import edu.ku.brc.specify.datamodel.ExchangeOut;
 public class OutgoingExchangeLoader extends TransactionLoader
 {
     private OutgoingExchangeLookup outExchangeLookup;
+    
+    private final static String EXCH_NO_FMT = "00000";
     
     public OutgoingExchangeLoader(File csvFile,  Statement sqlStatement) throws LocalException
     {
@@ -59,7 +62,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
                 {
                     ExchangeOut exchangeOut = new ExchangeOut();
                     
-                    Integer exchangeOutId = getId("exchangeout", "ExchangeOutID", "ExchangeNumber", String.valueOf(transactionId));
+                    Integer exchangeOutId = getId("exchangeout", "ExchangeOutID", "ExchangeNumber", getExchangeNumber(transactionId));
                     
                     exchangeOut.setExchangeOutId(exchangeOutId);
                     
@@ -68,6 +71,11 @@ public class OutgoingExchangeLoader extends TransactionLoader
             };
         }
         return outExchangeLookup;
+    }
+
+    private String getExchangeNumber(Integer id)
+    {
+        return (new DecimalFormat( EXCH_NO_FMT ) ).format( id );
     }
 
     private OutgoingExchange parse(String[] columns) throws LocalException
@@ -112,7 +120,7 @@ public class OutgoingExchangeLoader extends TransactionLoader
         {
             throw new LocalException("No transaction id");
         }
-        exchangeOut.setExchangeNumber(String.valueOf(transactionId));
+        exchangeOut.setExchangeNumber(getExchangeNumber(transactionId));
         
         // QuantityExchanged
         
