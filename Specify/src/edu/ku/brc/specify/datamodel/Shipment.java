@@ -63,6 +63,7 @@ public class Shipment extends DisciplineMember implements java.io.Serializable
     protected String           text2;
     protected Float            number1;
     protected Float            number2;
+    protected Float            number3;
     protected Boolean          yesNo1;
     protected Boolean          yesNo2;
     protected Agent            shipper;
@@ -108,6 +109,7 @@ public class Shipment extends DisciplineMember implements java.io.Serializable
         text2     = null;
         number1   = null;
         number2   = null;
+        number3   = null;
         yesNo1    = null;
         yesNo2    = null;
         shipper   = null;
@@ -290,6 +292,18 @@ public class Shipment extends DisciplineMember implements java.io.Serializable
     
     public void setNumber2(Float number2) {
         this.number2 = number2;
+    }
+    
+    /**
+     *      * User definable
+     */
+    @Column(name = "Number3", unique = false, nullable = true, insertable = true, updatable = true, length = 24)
+    public Float getNumber3() {
+        return this.number3;
+    }
+    
+    public void setNumber3(Float number3) {
+        this.number3 = number3;
     }
 
     /**

@@ -27584,13 +27584,29 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Cost</text>
+            <text>lb.</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>User definable</text>
+            <text>Weight in pounds</text>
+          </str>
+        </descs>
+      </item>
+      <item name="number3" type="java.lang.Float">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>oz.</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Weight in ounces</text>
           </str>
         </descs>
       </item>

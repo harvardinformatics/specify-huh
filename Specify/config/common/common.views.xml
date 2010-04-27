@@ -4115,7 +4115,7 @@
             <desc><![CDATA[Shipment form.]]></desc>
             
             <columnDef>         105px, 2px, 125px, 5px,   133px, 2px, 115px,        5px,   113px, 2px, 200px, 0px, p:g</columnDef> 
-            <columnDef os="lnx">131px, 2px, 142px, 5px,   128px, 2px, 150px,        5px,   146px, 2px, 210px, 0px, p:g</columnDef> 
+            <columnDef os="lnx">131px, 2px, 142px, 5px,   128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,   146px, 2px, 210px, 0px, p:g</columnDef> 
             <columnDef os="mac">130px, 2px, 160px, 5px,   146px, 2px, 160px,        5px,   170px, 2px, 250px, 0px, p:g</columnDef>
             <columnDef os="exp">p,     2px, 140px, 5px:g, p,     2px, max(p;140px), 5px:g, p,     2px, p,     p:g</columnDef> 
             <rowDef auto="true" cell="p" sep="2dlu"/>
@@ -4124,7 +4124,7 @@
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="shipmentNumber" uitype="text"/>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="shipmentDate" uitype="formattedtext" uifieldformatter="Date"  default="today"/>
+                    <cell type="field" id="1" name="shipmentDate" uitype="formattedtext" uifieldformatter="Date"  default="today" colspan="7"/>
                     <cell type="label" labelfor="8"/>
                     <cell type="field" id="8" name="shippedTo" uitype="querycbx" initialize="name=Agent;displaydlg=TransactionAgent"/>
                 </row>
@@ -4132,7 +4132,7 @@
                     <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="numberOfPackages" uitype="text"   default="1"/>
                     <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="shipmentMethod"  uitype="combobox" picklist="HUH Shipment Method"/>
+                    <cell type="field" id="3" name="shipmentMethod"  uitype="combobox" picklist="HUH Shipment Method" colspan="7"/>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="shippedBy" uitype="querycbx" initialize="name=Agent;displaydlg=AffiliateAgent"/>
                 </row>
@@ -4140,23 +4140,30 @@
                     <cell type="label" label=" "/>
                     <cell type="field" id="isCostEstimated" name="yesNo2" uitype="checkbox"/>
                     <cell type="label" labelfor="insuredForAmount"/>
-                    <cell type="field" id="insuredForAmount" name="insuredForAmount" uitype="text"/>
+                    <cell type="field" id="insuredForAmount" name="insuredForAmount" uitype="text" colspan="7"/>
                     <cell type="label" labelfor="shipper"/>
                     <cell type="field" id="shipper" name="shipper" uitype="querycbx" initialize="name=Agent;displaydlg=TransactionAgent"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
                 	<cell type="field" id="isAcknowledged" name="yesNo1" uitype="checkbox"/>
-                	<cell type="label" labelfor="weight"/>
-                	<cell type="field" id="weight" name="weight" uitype="text"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="cost"/>
+                	<cell type="field" id="cost" name="number1" uitype="text" uifieldformatter="NumericFloat"/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="lb" name="number2" uitype="text" uifieldformatter="NumericFloat"/>
+                	<cell type="label" label="lb."/>
+                	<cell type="field" id="oz" name="number3" uitype="text" uifieldformatter="NumericFloat"/>
+                	<cell type="label" label="oz."/>
                 	<cell type="label" labelfor="asaTransactionId"/>
                 	<cell type="field" id="asaTransactionId" name="text2" uitype="dsptextfield"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="cost"/>
-                	<cell type="field" id="cost" name="number1" uitype="text" uifieldformatter="NumericInteger"/>
                 	<cell type="label" labelfor="customsNo"/>
-                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="5"/>
+                	<cell type="field" id="customsNo" name="text1" uitype="text" colspan="3"/>
+                	<cell type="label" label=" " colspan="7"/>
+                	
                 </row>
                 <!--<row>
                     <cell type="label" labelfor="5"/>
@@ -4166,7 +4173,7 @@
                 </row>-->
                 <row>
                     <cell type="label" labelfor="9"/>
-                    <cell type="field" id="9" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
+                    <cell type="field" id="9" name="remarks" uitype="textareabrief" rows="2" colspan="17"/>
                 </row>
             </rows>
         </viewdef>

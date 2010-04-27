@@ -226,13 +226,6 @@ public class ShipmentLoader extends CsvToSqlLoader
         Float cost = asaShipment.getCost();
         shipment.setNumber1(cost);
         
-        // Number2 (ordinal)
-    	Integer ordinal = asaShipment.getOrdinal();
-    	if (ordinal != null)
-    	{
-    		shipment.setNumber2((float) ordinal);
-    	}
-    	
     	// Remarks (description)
     	String description = asaShipment.getDescription();
     	shipment.setRemarks(description);
