@@ -2019,7 +2019,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="128" tableid="5" name="OrganizationSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT agent.AgentID, 
+                    <![CDATA[SELECT ag.AgentID, 
  ag.LastName, 
  ag.Abbreviation, 
  ad.Address, 
