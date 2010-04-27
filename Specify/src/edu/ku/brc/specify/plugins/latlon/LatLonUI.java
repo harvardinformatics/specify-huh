@@ -93,8 +93,8 @@ public class LatLonUI extends UIPluginBase implements UIValidatable, ChangeListe
 {
     private static final Logger log = Logger.getLogger(UIPluginBase.class);
     
-    protected final static String[] formatClass             = new String[] {"DDDDPanel", "DDMMMMPanel", "DDMMSSPanel"};
-    protected final static String[] formats                 = new String[] {"DDD.DDD", "DD_MM.MM", "DD_MM_SS"};
+    protected final static String[] formatClass             = new String[] {"DDMMSSPanel", "DDMMMMPanel", "DDDDPanel" };
+    protected final static String[] formats                 = new String[] {"DD_MM_SS",    "DD_MM.MM",    "DDD.DDD"   };
 
     protected final static String[] pointNames              = {"LatLonPoint", "LatLonLineLeft", "LatLonLineRight", "LatLonRectTopLeft", "LatLonRectBottomRight"};
     protected final static String[] typeNames               = {"LatLonPoint", "LatLonLine", "LatLonRect"};
