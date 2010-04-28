@@ -66,7 +66,7 @@
 		<plugin name="ColRelTypePlugin"     class="edu.ku.brc.specify.plugins.CollectionRelPlugin"/>
         <plugin name="PasswordStrengthUI"   class="edu.ku.brc.af.ui.PasswordStrengthUI"/>
         <plugin name="IllustrativeBarCodeUI" class="edu.ku.brc.af.ui.IllustrativeBarCodeUI"/>
-		
+		<plugin name="FeetToMeters"         class="edu.harvard.huh.specify.plugins.FeetToMeters"/>
 	</uiplugins>
 	
 	<external>

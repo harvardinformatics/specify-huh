@@ -18,5 +18,5 @@
     <icon name="SearchTriangle"    file="SearchTriangle.gif" sizes="NonStd"/>
     
     <icon name="DiGIR"             file="DigirShovel.png"/>
-    
+    <icon name="FeetToMeters"      file="specify32White.png" sizes="16"/>
 </icons>
