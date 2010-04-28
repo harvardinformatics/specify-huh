@@ -50,7 +50,7 @@ import edu.ku.brc.ui.UIRegistry;
 @SuppressWarnings("serial") //$NON-NLS-1$
 public class ViewBasedDisplayFrame extends CustomFrame implements ViewBasedDisplayIFace, ActionListener
 {
-    protected ViewBasedDisplayPanel         viewBasedPanel = null;
+    protected ViewBasedDisplayScrollPane    viewBasedPanel = null;
     protected ViewBasedDisplayActionAdapter vbdaa          = null;
     protected Object                        parentDataObj  = null;
 
@@ -77,7 +77,7 @@ public class ViewBasedDisplayFrame extends CustomFrame implements ViewBasedDispl
     {
         super(title, isEdit ? CustomDialog.OKCANCEL : CustomDialog.OK_BTN, null);
         
-        viewBasedPanel = new ViewBasedDisplayPanel(this, 
+        viewBasedPanel = new ViewBasedDisplayScrollPane(this, 
                 viewSetName, 
                 viewName, 
                 displayName, 

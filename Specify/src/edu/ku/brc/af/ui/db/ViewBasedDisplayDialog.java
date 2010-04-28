@@ -46,7 +46,7 @@ import edu.ku.brc.ui.UIRegistry;
 @SuppressWarnings("serial") //$NON-NLS-1$
 public class ViewBasedDisplayDialog extends CustomDialog implements ViewBasedDisplayIFace
 {
-    protected ViewBasedDisplayPanel         viewBasedPanel = null;
+    protected ViewBasedDisplayScrollPane         viewBasedPanel = null;
     protected ViewBasedDisplayActionAdapter vbdaa          = null;
     protected Object                        parentDataObj  = null;
     
@@ -122,7 +122,7 @@ public class ViewBasedDisplayDialog extends CustomDialog implements ViewBasedDis
     {
         super(parentFrame, title, true, dlgBtnOptions, null);
         
-        viewBasedPanel = new ViewBasedDisplayPanel(this, 
+        viewBasedPanel = new ViewBasedDisplayScrollPane(this, 
                 viewSetName, 
                 viewName, 
                 displayName, 
@@ -195,7 +195,7 @@ public class ViewBasedDisplayDialog extends CustomDialog implements ViewBasedDis
     {
         super(parentDialog, title, true, (isEdit ? CustomDialog.OKCANCEL : CustomDialog.OK_BTN) | CustomDialog.HELP_BTN, null);
         
-        viewBasedPanel = new ViewBasedDisplayPanel(this, 
+        viewBasedPanel = new ViewBasedDisplayScrollPane(this, 
                 viewSetName, 
                 viewName, 
                 displayName, 
