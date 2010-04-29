@@ -19,9 +19,13 @@
 */
 package edu.ku.brc.af.ui.db;
 
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Frame;
+
+import javax.swing.JOptionPane;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -338,9 +342,19 @@ public class ViewBasedDisplayDialog extends CustomDialog implements ViewBasedDis
                 if (br != null && fvo.getDataObj() != null)
                 {
                     boolean isNewObj = MultiView.isOptionOn(fvo.getMVParent().getOptions(), MultiView.IS_NEW_OBJECT);
-                    if (BusinessRulesIFace.STATUS.OK != br.processBusinessRules(parentDataObj, 
-                                                                                fvo.getDataObj(), 
-                                                                                isNewObj))
+                    
+                    BusinessRulesIFace.STATUS status = br.processBusinessRules(parentDataObj, fvo.getDataObj(), isNewObj);
+                    
+                    if (status.equals(BusinessRulesIFace.STATUS.Warning))
+                    {
+                        boolean isOKtoContinue =
+                            UIRegistry.displayConfirmLocalized(getResourceString("WARNING"),
+                                    br.getMessagesAsString(), getResourceString("IGNORE"),
+                                        getResourceString("CANCEL"), JOptionPane.WARNING_MESSAGE);
+
+                        if (!isOKtoContinue) return;
+                    }
+                    else if (!status.equals(BusinessRulesIFace.STATUS.OK))
                     {
                         UIRegistry.showError(br.getMessagesAsString());
                         return;

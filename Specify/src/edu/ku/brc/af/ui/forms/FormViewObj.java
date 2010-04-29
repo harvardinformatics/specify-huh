@@ -2522,16 +2522,16 @@ public class FormViewObj implements Viewable,
                 BusinessRulesIFace        busRule = busRuleAndStatus.first;
                 BusinessRulesIFace.STATUS status  = busRuleAndStatus.second;
                 
-                if (status.equals(BusinessRulesIFace.STATUS.Error))
-                {
-                    UIRegistry.showError(busRule.getMessagesAsString());
-                    return null;
-                }
-                else if (status.equals(BusinessRulesIFace.STATUS.Warning))
+                if (status.equals(BusinessRulesIFace.STATUS.Warning))
                 {
                     boolean isOKtoContinue = UIRegistry.displayConfirmLocalized(getResourceString("WARNING"), busRule.getMessagesAsString(), getResourceString("IGNORE"), getResourceString("CANCEL"), JOptionPane.WARNING_MESSAGE);
 
                     if (!isOKtoContinue) return null;
+                }
+                else if (!status.equals(BusinessRulesIFace.STATUS.OK))
+                {
+                    UIRegistry.showError(busRule.getMessagesAsString());
+                    return null;
                 }
                 
                 // Now update the auto number fields and re-get all the data
