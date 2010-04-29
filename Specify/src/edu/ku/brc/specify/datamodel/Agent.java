@@ -919,7 +919,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     /**
      * @return the variants
      */
-    @OneToMany(mappedBy = "agent")
+    @OneToMany(mappedBy = "agent", fetch = FetchType.EAGER)
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Set<AgentVariant> getVariants()
     {
