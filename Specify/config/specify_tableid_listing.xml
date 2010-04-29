@@ -358,7 +358,7 @@
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Shipment" abbrev="sh" id="71" searchable="true">
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.ShipmentBusRules</businessrule>                                    
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHShipmentBusRules</businessrule>                                    
         </table>
         
         <!--  Internal Specify Tables -->
