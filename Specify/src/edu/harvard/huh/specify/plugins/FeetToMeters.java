@@ -18,6 +18,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static edu.ku.brc.ui.UIRegistry.loadAndPushResourceBundle;
 import static edu.ku.brc.ui.UIRegistry.popResourceBundle;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
@@ -25,6 +26,7 @@ import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
 
 import edu.ku.brc.af.ui.forms.FormViewObj;
@@ -72,48 +74,44 @@ public class FeetToMeters extends JButton implements UIPluginable, GetSetValueIF
      */
     protected void doButtonAction()
     {
-        if (minElev != null || maxElev != null)
-        {
-            if (minElev != null)
-            {
-                ValFormattedTextFieldSingle txt = parent.getCompById(minElev);
-                if (txt != null)
-                {
-                    String feet = (String)txt.getValue();
-                    if (feet != null)
-                    {
-                        String meters = feetToMeters(feet);
-                        txt.setValue(meters, null);
-                    }
-                }
-            }
-            if (maxElev != null)
-            {
-                ValFormattedTextFieldSingle txt = parent.getCompById(maxElev);
-                if (txt != null)
-                {
-                    String feet = (String)txt.getValue();
-                    if (feet != null)
-                    {
-                        String meters = feetToMeters(feet);
-                        txt.setValue(meters, null);
-                    }
-                }
-            }
-        }
+        if (minElev != null) updateComponent(minElev);
+        if (maxElev != null) updateComponent(maxElev);
     }
 
+    private void updateComponent(String componentId)
+    {
+        Object obj = parent.getCompById(componentId);
+        if (obj instanceof ValFormattedTextFieldSingle)
+        {
+            ValFormattedTextFieldSingle txt = (ValFormattedTextFieldSingle) obj;
+            String feet = (String)txt.getValue();
+
+            String meters = feetToMeters(feet);
+            txt.setValue(meters, null);
+
+        }
+        else if (obj instanceof JTextField)
+        {
+            JTextField txt = (JTextField) obj;
+            String feet = txt.getText();
+            
+            String meters = feetToMeters(feet);
+            txt.setText(meters);
+        }
+    }
+    
     private String feetToMeters(String feet)
     {
+        if (feet == null) return null;
+        
         try
         {
-            Float f = Float.parseFloat(feet);
-            
-            return String.valueOf(f * C);
+            double d = Float.parseFloat(feet) * C;
+            return String.format("%f", d);
         }
         catch (NumberFormatException e)
         {
-            return "";
+            return null;
         }
     }
 
