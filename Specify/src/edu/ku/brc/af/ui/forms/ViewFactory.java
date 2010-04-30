@@ -2462,6 +2462,10 @@ public class ViewFactory
             {
                 formViewObj.setFormComp(formViewObj.getPanel());
             }
+            // TODO: add focus listener to each comp in formViewObj.getControllMapping()
+            // for scrolling viewport to follow focus?  At this point, formView.formComp
+            // has been set, and it is either a JScrollPane or JPanel.  (See
+            // validatedPanel.addPanel(formViewObj.getPanel()); above)
 
             return formViewObj;
 
