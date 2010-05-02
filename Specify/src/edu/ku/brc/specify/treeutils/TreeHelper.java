@@ -166,19 +166,67 @@ public class TreeHelper
      * @param <I> an implementation class of {@link TreeDefItemIface}
      * @param treeNode a tree node
      */
-    public static <T extends Treeable<T,D,I>,
-                   D extends TreeDefIface<T,D,I>,
-                   I extends TreeDefItemIface<T,D,I>>
-                         void fixFullnameForNodeAndDescendants(T treeNode)
+    public static void fixFullnameForNodeAndDescendants(Treeable treeNode)
     {
-        String generated = generateFullname(treeNode);
-        treeNode.setFullName(generated);
-
-        for (T child : treeNode.getChildren())
-        {
-            fixFullnameForNodeAndDescendants((Treeable)child);
-        }
-        
+    	if (Geography.class.isInstance(treeNode))
+    	{
+    		Geography g = (Geography) treeNode;
+            String generated = generateFullname(g);
+            treeNode.setFullName(generated);
+            
+            for (Geography child : g.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (GeologicTimePeriod.class.isInstance(treeNode))
+    	{
+    		GeologicTimePeriod g = (GeologicTimePeriod) treeNode;
+            String generated = generateFullname(g);
+            treeNode.setFullName(generated);
+            
+            for (GeologicTimePeriod child : g.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (LithoStrat.class.isInstance(treeNode))
+    	{
+    		LithoStrat li = (LithoStrat) treeNode;
+            String generated = generateFullname(li);
+            treeNode.setFullName(generated);
+            
+            for (LithoStrat child : li.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (Storage.class.isInstance(treeNode))
+    	{
+    		Storage s = (Storage) treeNode;
+            String generated = generateFullname(s);
+            treeNode.setFullName(generated);
+            
+            for (Storage child : s.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else if (Taxon.class.isInstance(treeNode))
+    	{
+    		Taxon t = (Taxon) treeNode;
+            String generated = generateFullname(t);
+            treeNode.setFullName(generated);
+            
+            for (Taxon child : t.getChildren())
+            {
+            	fixFullnameForNodeAndDescendants(child);
+            }
+    	}
+    	else
+    	{
+    		throw new IllegalArgumentException("Unimplemented class: " + treeNode.getClass().getSimpleName());
+    	}
         return;
     }
     
