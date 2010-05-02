@@ -37,7 +37,7 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         
         int i = super.parse(columns, tbTx);
         
-        if (columns.length < i + 6)
+        if (columns.length < i + 5)
         {
             throw new LocalException("Not enough columns");
         }
@@ -47,7 +47,6 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         tbTx.setHigherTaxonId(         SqlUtils.parseInt( columns[i + 2] ));
         tbTx.setTaxon(                                    columns[i + 3] );
         tbTx.setTransferredFrom(                          columns[i + 4] );
-        tbTx.setBatchQuantityReturned( SqlUtils.parseInt( columns[i + 5] ));
         
         return i + 6;
     }

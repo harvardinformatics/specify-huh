@@ -1549,7 +1549,7 @@ public class DataBuilder
         BorrowMaterial borrowmaterial = new BorrowMaterial();
         borrowmaterial.initialize();
         borrowmaterial.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        borrowmaterial.setQuantity(quantity);
+        borrowmaterial.setItemCount(quantity);
         borrowmaterial.setBorrow(borrow);
         borrowmaterial.setMaterialNumber(materialNumber);
         borrowmaterial.setOutComments(outComments);
@@ -1571,7 +1571,7 @@ public class DataBuilder
         borrowreturnmaterial.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
         borrowreturnmaterial.setAgent(agent);
         borrowreturnmaterial.setReturnedDate(returnedDate);
-        borrowreturnmaterial.setQuantity(quantity);
+        borrowreturnmaterial.setItemCount(quantity);
         borrowreturnmaterial.setBorrowMaterial(borrowMaterial);
         persist(borrowreturnmaterial);
         return borrowreturnmaterial;
@@ -1983,7 +1983,7 @@ public class DataBuilder
         loanpreparation.initialize();
         loanpreparation.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
         loanpreparation.setDescriptionOfMaterial(descriptionOfMaterial);
-        loanpreparation.setQuantity(quantity);
+        loanpreparation.setItemCount(quantity);
         loanpreparation.setLoan(loan);
         loanpreparation.setPreparation(preparation);
         loanpreparation.setOutComments(outComments);
@@ -2277,7 +2277,7 @@ public class DataBuilder
         shipment.setShipmentNumber(shipmentNumber);
         shipment.setShipmentMethod(shipmentMethod);
         shipment.setNumberOfPackages(numberOfPackages);
-        shipment.setWeight(weight);
+        //shipment.setWeight(weight);
         shipment.setInsuredForAmount(insuredForAmount);
         shipment.setShipper(shipper);
         shipment.setShippedTo(shippedTo);

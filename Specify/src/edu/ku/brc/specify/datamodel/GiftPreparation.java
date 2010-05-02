@@ -48,7 +48,6 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
     // Fields    
 
     protected Integer                       giftPreparationId;
-    protected Integer                       quantity;
     protected Integer                       itemCount;
     protected Integer                       nonSpecimenCount;
     protected Integer                       typeCount;
@@ -82,7 +81,6 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
     {
         super.init();
         giftPreparationId = null;
-        quantity = null;
         itemCount = null;
         nonSpecimenCount = null;
         typeCount = null;
@@ -129,20 +127,6 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
     
     public void setGiftPreparationId(Integer giftPreparationId) {
         this.giftPreparationId = giftPreparationId;
-    }
-
-    /**
-     * The total number of specimens  gifted (necessary for lots)
-     */
-    @Column(name = "Quantity", unique = false, nullable = true, insertable = true, updatable = true)
-    public Integer getQuantity() 
-    {
-        return this.quantity == null ? 0 : this.quantity;
-    }
-    
-    public void setQuantity(Integer quantity) 
-    {
-        this.quantity = quantity;
     }
 
     /**

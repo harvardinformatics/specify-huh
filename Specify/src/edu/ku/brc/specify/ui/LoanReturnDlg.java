@@ -622,7 +622,7 @@ public class LoanReturnDlg extends JDialog
             
             if (prep.getCountAmt() !=  null)
             {
-                quantityLoaned    = lpo.getQuantity();
+                quantityLoaned    = lpo.getItemCount();
                 quantityReturned  = lpo.getQuantityReturned();
                 quantityResolved  = lpo.getQuantityResolved();
                 

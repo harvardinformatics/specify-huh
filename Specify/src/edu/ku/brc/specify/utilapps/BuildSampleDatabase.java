@@ -1737,7 +1737,7 @@ public class BuildSampleDatabase
         {
             LoanPreparation lpo = loanPreps.get(i);
         
-            int    quantityLoaned   = lpo.getQuantity();
+            int    quantityLoaned   = lpo.getItemCount();
             int    quantityReturned = (i == (loanPreps.size() - 1)) ? quantityLoaned : (short)rand.nextInt(quantityLoaned);
             
             Calendar returnedDate     = Calendar.getInstance();

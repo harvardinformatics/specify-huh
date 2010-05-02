@@ -14642,261 +14642,6 @@
       </str>
     </descs>
   </container>
-  <container name="exsiccata">
-    <version>0</version>
-    <isHidden>false</isHidden>
-    <items>
-      <item name="createdByAgent" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Created By Agent</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="exsiccataItems" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Exsiccata Items</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Modified By Agent</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="referenceWork" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Publication</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The monograph or journal in which the exsiccata is listed</text>
-          </str>
-        </descs>
-        <spExportSchemaItems/>
-      </item>
-      <item name="timestampCreated" isUIFormatter="false" isRequired="true">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Timestamp Created</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="timestampModified" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Timestamp Modified</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="title" isUIFormatter="false" isRequired="true">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Title</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The title of the exsiccata</text>
-          </str>
-        </descs>
-        <spExportSchemaItems/>
-      </item>
-      <item name="version" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Version</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-    </items>
-    <names>
-      <str language="en">
-        <version>0</version>
-        <text>Exsiccata</text>
-      </str>
-    </names>
-    <descs/>
-  </container>
-  <container name="exsiccataitem">
-    <version>0</version>
-    <isHidden>false</isHidden>
-    <items>
-      <item name="createdByAgent" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Created By Agent</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="exsiccata" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Exsiccata</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The exsiccata to which the collection object belongs</text>
-          </str>
-        </descs>
-        <spExportSchemaItems/>
-      </item>
-      <item name="fascicle" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Fascicle</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The fascicle number</text>
-          </str>
-        </descs>
-        <spExportSchemaItems/>
-      </item>
-      <item name="fragment" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Item</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Modified By Agent</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="number" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Number</text>
-          </str>
-        </names>
-        <descs>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>The list number of the collection object within the exsiccata</text>
-          </str>
-        </descs>
-        <spExportSchemaItems/>
-      </item>
-      <item name="timestampCreated" isUIFormatter="false" isRequired="true">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Timestamp Created</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="timestampModified" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Timestamp Modified</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-      <item name="version" isUIFormatter="false" isRequired="false">
-        <version>0</version>
-        <isHidden>true</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Version</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
-    </items>
-    <names>
-      <str language="en">
-        <version>0</version>
-        <text>Exsiccata Item</text>
-      </str>
-    </names>
-    <descs/>
-  </container>
   <container name="fieldnotebook">
     <version>0</version>
     <isHidden>false</isHidden>
@@ -15874,20 +15619,6 @@
         </names>
         <descs/>
       </item>
-      <item name="exsiccataItems" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <isSystem>false</isSystem>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Exsiccatae</text>
-            <itemDesc reference="../../.."/>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
       <item name="fragmentCitations" type="OneToMany">
         <version>0</version>
         <names>
@@ -16170,8 +15901,7 @@
     <descs>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>The collection item to which a determination is applied.
-</text>
+        <text>The collection item to which a determination is applied.</text>
       </str>
     </descs>
     <aggregator>Fragment</aggregator>
@@ -16257,6 +15987,38 @@
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Additional Comments.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="text1">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Fascicle</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The fascicle number.</text>
+          </str>
+        </descs>
+      </item>
+      <item name="text2">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Number</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>The list number of the collection object within the exsiccata.</text>
           </str>
         </descs>
       </item>

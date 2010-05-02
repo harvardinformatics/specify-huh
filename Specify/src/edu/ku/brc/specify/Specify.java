@@ -645,6 +645,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         }
      }
 
+    public MainPanel getMainPanel()
+    {
+        return this.mainPanel;
+    }
+
     /**
      * Determines if this is an applet or application
      */

@@ -38,7 +38,7 @@ import org.hibernate.annotations.Index;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "fragmentctcitation")
+@Table(name = "fragmentcitation")
 @org.hibernate.annotations.Table(appliesTo="fragmenttcitation", indexes =
     {   
         @Index (name="COCITColMemIDX", columnNames={"CollectionMemberID"})

@@ -33,13 +33,13 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.Discipline;
-import edu.ku.brc.specify.datamodel.Exsiccata;
-import edu.ku.brc.specify.datamodel.ExsiccataItem;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.FragmentCitation;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Storage;
 
 public class SpecimenItemLoader extends AuditedObjectLoader
@@ -155,14 +155,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		    }
 
 		    // ExsiccataItem
-		    ExsiccataItem exsiccataItem = getExsiccataItem(specimenItem, fragment);
+		    FragmentCitation exsiccataItem = getExsiccataItem(specimenItem, fragment);
 		    if (exsiccataItem != null)
 		    {
 		        if (exsiccataItem.getId() == null)
 		        {
 		            String sql = getInsertSql(exsiccataItem);
 		            Integer exsiccataItemId = insert(sql);
-		            exsiccataItem.setExsiccataItemId(exsiccataItemId);
+		            exsiccataItem.setFragmentCitationId(exsiccataItemId);
 		        }
 		    }
 
@@ -470,9 +470,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    return botanistLookup.getById(botanistId);
 	}
 	   
-	private Exsiccata lookupExsiccata(Integer subCollectionId) throws LocalException
+	private ReferenceWork lookupExsiccata(Integer subCollectionId) throws LocalException
 	{
-	    return subcollLookup.getExsiccataById(subCollectionId);
+	    return subcollLookup.queryExsiccataById(subCollectionId);
 	}
 
 	private CollectingTrip lookupCollectingTrip(String name) throws LocalException
@@ -1129,20 +1129,20 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return series;
 	}
 
-	private ExsiccataItem getExsiccataItem(SpecimenItem specimenItem, Fragment fragment) throws LocalException
+	private FragmentCitation getExsiccataItem(SpecimenItem specimenItem, Fragment fragment) throws LocalException
 	{
 	    Integer subcollectionId = specimenItem.getSubcollectionId();
 
-	    if (subcollectionId == null || !specimenItem.hasExsiccata()) return null;
+	    ReferenceWork exsiccata = lookupExsiccata(subcollectionId);
+	    if (exsiccata == null) return null;
 
-	    ExsiccataItem exsiccataItem = new ExsiccataItem();
+	    FragmentCitation exsiccataItem = new FragmentCitation();
         
         // Fragment
         exsiccataItem.setFragment(fragment);
         
         // Exsiccata
-        Exsiccata exsiccata = lookupExsiccata(subcollectionId);
-        exsiccataItem.setExsiccata(exsiccata);
+        exsiccataItem.setReferenceWork(exsiccata);
 
 	    return exsiccataItem;
 	}
@@ -1274,18 +1274,18 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
 	}
     
-    private String getInsertSql(ExsiccataItem exsiccataItem) throws LocalException
+    private String getInsertSql(FragmentCitation exsiccataItem) throws LocalException
 	{
-		String fieldNames = "FragmentID, ExsiccataID, TimestampCreated, Version";
+		String fieldNames = "FragmentID, ReferenceWorkID, TimestampCreated, Version";
 
 		String[] values = new String[4];
 
 		values[0] = SqlUtils.sqlString( exsiccataItem.getFragment().getId());
-		values[1] = SqlUtils.sqlString( exsiccataItem.getExsiccata().getId());
+		values[1] = SqlUtils.sqlString( exsiccataItem.getReferenceWork().getId());
 		values[2] = SqlUtils.now();
 		values[3] = SqlUtils.zero();
 		
-		return SqlUtils.getInsertSql("exsiccataitem", fieldNames, values);
+		return SqlUtils.getInsertSql("fragmentcitation", fieldNames, values);
 	}
     
     private String getInsertSql(OtherIdentifier otherIdentifier)

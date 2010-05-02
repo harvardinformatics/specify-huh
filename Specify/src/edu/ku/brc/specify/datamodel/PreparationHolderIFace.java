@@ -37,7 +37,7 @@ public interface PreparationHolderIFace
     
     public abstract Integer getId();
     
-    public abstract Integer getQuantity();
+    public abstract Integer getItemCount();
     
     public abstract Integer getQuantityReturned();
     

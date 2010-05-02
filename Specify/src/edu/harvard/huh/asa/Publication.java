@@ -16,20 +16,15 @@ package edu.harvard.huh.asa;
 
 public class Publication extends AuditedObject
 {
-    private String  isbn;
+
     private String  pubPlace;
     private String  pubDate;
     private String  publisher;
     private String  url;
     private String  title;
-    private Boolean isJournal;
-    private String  issn;
-    private String  bph;
     private String  abbreviation;
     private String  remarks;
-    
-    public String getIsbn() { return this.isbn; }
-    
+ 
     public String getPubPlace() { return this.pubPlace; }
     
     public String getPubDate() { return this.pubDate; }
@@ -40,17 +35,9 @@ public class Publication extends AuditedObject
     
     public String getTitle() { return this.title; }
     
-    public Boolean isJournal() { return this.isJournal; }
-    
-    public String getIssn() { return this.issn; }
-    
-    public String getBph() { return this.bph; }
-    
     public String getAbbreviation() { return this.abbreviation; }
     
     public String getRemarks() { return this.remarks; }
-    
-    public void setIsbn(String isbn) { this.isbn = isbn; }
     
     public void setPubPlace(String pubPlace) { this.pubPlace = pubPlace; }
     
@@ -62,13 +49,7 @@ public class Publication extends AuditedObject
     
     public void setTitle(String title) { this.title = title; }
     
-    public void setIsJournal(Boolean isJournal) { this.isJournal = isJournal; }
-    
-    public void setBph(String bph) { this.bph = bph; }
-    
     public void setAbbreviation(String abbreviation) { this.abbreviation = abbreviation; }
-    
-    public void setIssn(String issn) { this.issn = issn; }
     
     public void setRemarks(String remarks) { this.remarks = remarks; }
 }

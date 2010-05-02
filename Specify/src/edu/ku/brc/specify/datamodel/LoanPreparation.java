@@ -54,7 +54,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     // Fields    
 
     protected Integer                       loanPreparationId;
-    protected Integer                       quantity;
+    protected Integer                       itemCount;
     protected String                        descriptionOfMaterial;
     protected String                        outComments;          // Shipped Comments
     protected String                        inComments;           // Returned Comments
@@ -90,7 +90,7 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     {
         super.init();
         loanPreparationId = null;
-        quantity = null;
+        itemCount = null;
         descriptionOfMaterial = null;
         outComments = null;
         inComments = null;
@@ -160,17 +160,17 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     }
 
     /**
-     *      * The total number of specimens  loaned (necessary for lots)
+     *      * The total number of non-type specimens  loaned (necessary for lots)
      */
-    @Column(name = "Quantity", unique = false, nullable = true, insertable = true, updatable = true)
-    public Integer getQuantity() 
+    @Column(name = "ItemCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getItemCount() 
     {
-        return this.quantity == null ? 0 : this.quantity;
+        return this.itemCount == null ? 0 : this.itemCount;
     }
     
-    public void setQuantity(Integer quantity) 
+    public void setItemCount(Integer itemCount) 
     {
-        this.quantity = quantity;
+        this.itemCount = itemCount;
     }
 
     /**

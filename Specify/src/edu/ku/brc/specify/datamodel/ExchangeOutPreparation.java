@@ -42,13 +42,12 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="exchangeoutpreparation", indexes =
     {   @Index (name="ExchOutPrepDspMemIDX", columnNames={"DisciplineID"})
     })
-public class ExchangeOutPreparation extends DisciplineMember implements java.io.Serializable, PreparationHolderIFace, Comparable<ExchangeOutPreparation>
+public class ExchangeOutPreparation extends DisciplineMember implements java.io.Serializable, Comparable<ExchangeOutPreparation>
 {
 
     // Fields    
 
     protected Integer                       exchangeOutPreparationId;
-    protected Integer                       quantity;
     protected Integer                       itemCount;
     protected Integer                       nonSpecimenCount;
     protected Integer                       typeCount;
@@ -81,7 +80,6 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     {
         super.init();
         exchangeOutPreparationId = null;
-        quantity = null;
         itemCount = null;
         nonSpecimenCount = null;
         typeCount = null;
@@ -128,20 +126,6 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     
     public void setExchangeOutPreparationId(Integer exchangeOutPreparationId) {
         this.exchangeOutPreparationId = exchangeOutPreparationId;
-    }
-
-    /**
-     * The total number of specimens  exchanged (necessary for lots)
-     */
-    @Column(name = "Quantity", unique = false, nullable = true, insertable = true, updatable = true)
-    public Integer getQuantity() 
-    {
-        return this.quantity == null ? 0 : this.quantity;
-    }
-    
-    public void setQuantity(Integer quantity) 
-    {
-        this.quantity = quantity;
     }
 
     /**
@@ -234,15 +218,6 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     public void setReceivedComments(String receivedComments)
     {
         this.receivedComments = receivedComments;
-    }
-
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.PreparationHolderIFace#getQuantityReturned()
-     */
-    @Transient
-    public Integer getQuantityReturned() 
-    {
-        return 0;
     }
     
     /**

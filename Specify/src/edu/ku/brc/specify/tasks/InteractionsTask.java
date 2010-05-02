@@ -955,9 +955,9 @@ public class InteractionsTask extends BaseTask
                     LoanPreparation lp = prepToLoanPrepHash.get(prep.getId());
                     if (lp != null)
                     {
-                        int lpCnt = lp.getQuantity();
+                        int lpCnt = lp.getItemCount();
                         lpCnt += count;
-                        lp.setQuantity(lpCnt);
+                        lp.setItemCount(lpCnt);
                         continue;
                     }
                 }
@@ -965,7 +965,7 @@ public class InteractionsTask extends BaseTask
                 LoanPreparation lpo = new LoanPreparation();
                 lpo.initialize();
                 lpo.setPreparation(prep);
-                lpo.setQuantity(count);
+                lpo.setItemCount(count);
                 lpo.setLoan(loan);
                 loan.getLoanPreparations().add(lpo);
             }
@@ -1080,9 +1080,9 @@ public class InteractionsTask extends BaseTask
                     GiftPreparation gp = prepToGiftPrepHash.get(prep.getId());
                     if (gp != null)
                     {
-                        int lpCnt = gp.getQuantity();
-                        lpCnt += count;
-                        gp.setQuantity(lpCnt);
+                        //int lpCnt = gp.getQuantity();
+                        //lpCnt += count;
+                        //gp.setQuantity(lpCnt);
                         //System.err.println("Adding "+count+"  to "+lp.hashCode());
                         continue;
                     }
@@ -1091,7 +1091,7 @@ public class InteractionsTask extends BaseTask
                 GiftPreparation gpo = new GiftPreparation();
                 gpo.initialize();
                 gpo.setPreparation(prep);
-                gpo.setQuantity(count);
+                //gpo.setQuantity(count);
                 gpo.setGift(gift);
                 gift.getGiftPreparations().add(gpo);
             }
@@ -1773,7 +1773,7 @@ public class InteractionsTask extends BaseTask
                     boolean isClosed = true;
                     for (LoanPreparation lp : loan.getLoanPreparations())
                     {
-                        if (lp.getQuantityResolved().equals(lp.getQuantity()))
+                        if (lp.getQuantityResolved().equals(lp.getItemCount()))
                         {
                             if (!lp.getIsResolved())
                             {

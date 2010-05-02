@@ -53,9 +53,11 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
 
     protected Integer                loanReturnPreparationId;
     protected Calendar               returnedDate;
+    protected Integer                itemCount;
     protected Integer                nonSpecimenCount;
     protected Integer                quantityResolved;
     protected Integer                quantityReturned;
+    protected Integer                typeCount;
     protected String                 remarks;
     protected Boolean                yesNo1;
     protected LoanPreparation        loanPreparation;
@@ -83,9 +85,11 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
         super.init();
         loanReturnPreparationId = null;
         returnedDate            = null;
+        itemCount               = null;
         nonSpecimenCount        = null;
         quantityResolved        = null;
         quantityReturned        = null;
+        typeCount               = null;
         remarks                 = null;
         yesNo1                  = null;
         loanPreparation         = null;
@@ -145,6 +149,20 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
     }
 
     /**
+     *      * The total number of non-type specimens  loaned (necessary for lots)
+     */
+    @Column(name = "ItemCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getItemCount() 
+    {
+        return this.itemCount == null ? 0 : this.itemCount;
+    }
+    
+    public void setItemCount(Integer itemCount) 
+    {
+        this.itemCount = itemCount;
+    }
+    
+    /**
      *      * Number of nonspecimen items received
      */
     @Column(name = "NonSpecimenCount", unique = false, nullable = true, insertable = true, updatable = true)
@@ -184,6 +202,18 @@ public class LoanReturnPreparation extends DisciplineMember implements java.io.S
         this.quantityReturned = quantityReturned;
     }
 
+    /**
+     *      * Number of types sent
+     */
+    @Column(name = "TypeCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Integer getTypeCount() {
+        return this.typeCount;
+    }
+    
+    public void setTypeCount(Integer typeCount) {
+        this.typeCount = typeCount;
+    }
+    
     /**
      * 
      */

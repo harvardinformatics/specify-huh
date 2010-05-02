@@ -2,16 +2,15 @@ package edu.harvard.huh.asa;
 
 public class Subcollection extends AuditedObject
 {
-	private  String collectionCode;
-	private  String taxonGroup;
-	private  String name;
-	private  String author;
-	private  String specimenCount;
-	private  String location;
-	private  String cabinet;
-	private  String remarks;
-	
-	private static final int[] exsiccataeIds = { 3091, 3093, 3260, 3274, 3414, 3454, 3456, 3461, 3507, 3517, 3534, 3539, 3566 };
+	private  String  collectionCode;
+	private  String  taxonGroup;
+	private  String  name;
+	private  String  author;
+	private  String  specimenCount;
+	private  String  location;
+	private  String  cabinet;
+	private  String  remarks;
+	private  boolean isExsiccata;
 	
 	public String getGuid() { return getId() + " subcollection"; }
 
@@ -31,23 +30,7 @@ public class Subcollection extends AuditedObject
 	
 	public String getRemarks() { return remarks; }
 	
-	public boolean isExsiccata()
-	{
-	    for (int i = 0; i < exsiccataeIds.length; i++)
-	    {
-	        if (getId() == exsiccataeIds[i]) return true;
-	    }
-	    return false;
-	}
-
-	public static boolean IsExsiccata(int subcollectionId)
-	{
-	       for (int i = 0; i < exsiccataeIds.length; i++)
-	        {
-	            if (subcollectionId == exsiccataeIds[i]) return true;
-	        }
-	        return false;
-	}
+	public boolean isExsiccata() { return isExsiccata; }
 
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
 
@@ -64,4 +47,6 @@ public class Subcollection extends AuditedObject
 	public void setCabinet(String cabinet) { this.cabinet = cabinet; }
 	
 	public void setRemarks(String remarks) { this.remarks = remarks; }
+	
+	public void setExsiccata(boolean isExsiccata) { this.isExsiccata = isExsiccata; }
 }

@@ -6,12 +6,13 @@ public class LoanItem
 {
 	private Integer id;
 	private Integer loanId;
-	private    Date returnDate;
+	private Date    returnDate;
 	private Integer barcode;
-	private  String transferredFrom;
-	private  String transferredTo;
-	private  String collection;
-	private  String localUnit;
+	private String  transferredFrom;
+	private String  transferredTo;
+	private String  collection;
+	private String  localUnit;
+	private Boolean isType;
 	
 	public int getId() { return id; }
 	
@@ -29,6 +30,8 @@ public class LoanItem
 	
 	public String getLocalUnit() { return localUnit; }
 	
+	public Boolean isType() { return isType; }
+	
 	public void setId(Integer id) { this.id = id; }
 	
 	public void setLoanId(Integer loanId) { this.loanId = loanId; }
@@ -44,6 +47,8 @@ public class LoanItem
 	public void setCollection(String collection) { this.collection = collection; }
 	
 	public void setLocalUnit(String localUnit) { this.localUnit = localUnit; }
+	
+	public void setType(Boolean isType) { this.isType = isType; }
 	
     public String getReceivedComments()
     {

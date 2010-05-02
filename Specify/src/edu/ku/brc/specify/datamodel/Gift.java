@@ -499,7 +499,6 @@ public class Gift extends DisciplineMember implements java.io.Serializable, Prep
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.PreparationsProviderIFace#getPreparations()
      */
-    @Override
     @Transient
     public Set<PreparationHolderIFace> getPreparations()
     {

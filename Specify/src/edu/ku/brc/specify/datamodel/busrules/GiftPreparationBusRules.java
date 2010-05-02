@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.datamodel.busrules;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -30,7 +29,6 @@ import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.TableViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.validation.ValSpinner;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftPreparation;
 import edu.ku.brc.ui.CommandAction;
@@ -103,32 +101,6 @@ public class GiftPreparationBusRules extends BaseBusRules implements CommandList
                 }
             });
         }
-    }
-    
-    @Override
-    public void afterFillForm(Object dataObj)
-    {
-        Component comp = formViewObj.getControlByName("quantity");
-        if (comp instanceof ValSpinner && dataObj != null)
-        {
-            GiftPreparation  giftPrep   = (GiftPreparation)dataObj;
-            
-            //boolean    isNewObj         = giftPrep.getId() == null;
-            ValSpinner quantity         = (ValSpinner)comp;
-            
-            // TODO I think this would be better if the Max Range 
-            // was set to the available number of items.
-            if (quantity != null)
-            {
-                quantity.setRange(0, giftPrep.getQuantity(), giftPrep.getQuantity());
-            }
-            
-            //quantityReturned.setEnabled(!isNewObj);
-            //int max = Math.max(loanPrep.getQuantity(), loanPrep.getQuantityReturned());
-            //quantityReturned.setRange(0, max, loanPrep.getQuantityReturned());
-            //formViewObj.getLabelFor(quantityReturned).setEnabled(!isNewObj);
-        }
-
     }
 
     /* (non-Javadoc)

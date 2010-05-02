@@ -144,13 +144,13 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         Gift gift = lookupGift(transactionId);
         giftPrep.setGift(gift);
         
+        // ItemCount
+        int itemCount = outGeoBatch.getItemCount();
+        giftPrep.setItemCount(itemCount);
+        
         // NonSpecimenCount
         int nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
         giftPrep.setNonSpecimenCount(nonSpecimenCount);
-
-        // Quantity (itemCount + typeCount + nonSpecimenCount)
-        int quantity = outGeoBatch.getBatchQuantity();
-        giftPrep.setQuantity(quantity);
         
         // TypeCount
         int typeCount = outGeoBatch.getTypeCount();
@@ -183,13 +183,13 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         ExchangeOut exchangeOut = lookupExchange(transactionId);
         exchOutPrep.setExchangeOut(exchangeOut);
         
+        // ItemCount
+        int itemCount = outGeoBatch.getItemCount();
+        exchOutPrep.setItemCount(itemCount);
+
         // NonSpecimenCount
         int nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
         exchOutPrep.setNonSpecimenCount(nonSpecimenCount);
-
-        // Quantity (itemCount + typeCount + nonSpecimenCount)
-        int quantity = outGeoBatch.getBatchQuantity();
-        exchOutPrep.setQuantity(quantity);
         
         // TypeCount
         int typeCount = outGeoBatch.getTypeCount();
@@ -216,7 +216,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     private String getInsertSql(GiftPreparation giftPrep)
     {
         String fieldNames = "DescriptionOfMaterial, DisciplineID, GeographyID, GiftID, " +
-                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, Version";
+                            "ItemCount, NonSpecimenCount, TimestampCreated, TypeCount, Version";
         
         String[] values = new String[9];
         
@@ -224,8 +224,8 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( giftPrep.getDiscipline().getId());
         values[2] = SqlUtils.sqlString( giftPrep.getGeography().getId());
         values[3] = SqlUtils.sqlString( giftPrep.getGift().getId());
-        values[4] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
-        values[5] = SqlUtils.sqlString( giftPrep.getQuantity());
+        values[4] = SqlUtils.sqlString( giftPrep.getItemCount());
+        values[5] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( giftPrep.getTypeCount());
         values[8] = SqlUtils.zero();
@@ -236,7 +236,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     private String getInsertSql(ExchangeOutPreparation exchOutPrep)
     {
         String fieldNames = "DescriptionOfMaterial, DisciplineID, ExchangeOutID, GeographyID, " +
-                            "NonSpecimenCount, Quantity, TimestampCreated, TypeCount, Version";
+                            "ItemCount, NonSpecimenCount, TimestampCreated, TypeCount, Version";
         
         String[] values = new String[9];
         
@@ -244,8 +244,8 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( exchOutPrep.getDiscipline().getId());
         values[2] = SqlUtils.sqlString( exchOutPrep.getExchangeOut().getId());
         values[3] = SqlUtils.sqlString( exchOutPrep.getGeography().getId());
-        values[4] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
-        values[5] = SqlUtils.sqlString( exchOutPrep.getQuantity());
+        values[4] = SqlUtils.sqlString( exchOutPrep.getItemCount());
+        values[5] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( exchOutPrep.getTypeCount());
         values[8] = SqlUtils.zero();

@@ -172,12 +172,6 @@
             <display view="ExchangeOutItems" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutPreparationBusRules</businessrule> 
         </table>
-        <table name="edu.ku.brc.specify.datamodel.Exsiccata" abbrev="exsic" id="89" searchable="true">
-        	<display view="Exsiccata" dataobjformatter="" searchdlg="ExsiccataSearch" newobjdlg="ExsiccataDisplay"/>
-        </table>
-        <table name="edu.ku.brc.specify.datamodel.ExsiccataItem" abbrev="exsicit" id="104" searchable="true">
-			<businessrule>edu.ku.brc.specify.datamodel.busrules.ExsiccataItemBusRules</businessrule>
-        </table>
         <table name="edu.ku.brc.specify.datamodel.FieldNotebook" abbrev="fnb" id="83" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.FieldNotebookBusRules</businessrule>
         </table>

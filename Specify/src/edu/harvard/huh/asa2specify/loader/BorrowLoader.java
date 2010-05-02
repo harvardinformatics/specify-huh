@@ -66,7 +66,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
    }
 
     // Loads records from asa tables herb_transaction (type='borrow') and taxon_batch.
-    // The complimentary direction of these transactions are out_return batch records.
+    // The complementary direction of these transactions are out_return batch records.
     // There are no associated shipment records.
     public void loadRecord(String[] columns) throws LocalException
     {
@@ -322,6 +322,10 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
            
         // InComments
         
+        // ItemCount
+        int itemCount = asaBorrow.getItemCount();
+        borrowMaterial.setItemCount((short) itemCount);
+        
         // MaterialNumber (transaction no)
         Integer borrowId = asaBorrow.getId();
         borrowMaterial.setMaterialNumber(getBorrowMaterialNumber(borrowId));
@@ -329,18 +333,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // NonSpecimenCount
         int nonSpecimenCount = asaBorrow.getNonSpecimenCount();
         borrowMaterial.setNonSpecimenCount((short) nonSpecimenCount);
-        
-        // Quantity (itemCount + typeCount + nonSpecimenCount)
-        int quantity = asaBorrow.getBatchQuantity();
-        borrowMaterial.setQuantity((short) quantity);
-        
-        // QuantityResolved (quantity returned)
-        int quantityReturned = asaBorrow.getBatchQuantityReturned() == null ? 0 : asaBorrow.getBatchQuantityReturned();
-        borrowMaterial.setQuantityResolved((short) quantityReturned);
-        
-        // QuantityReturned
-        borrowMaterial.setQuantityReturned((short) quantityReturned);
-        
+
         // SrcTaxonomy
         String taxon = asaBorrow.getTaxon();
         taxon = truncate(taxon, 512, "taxon");
@@ -413,25 +406,22 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
-        String fields = "BorrowID, CollectionMemberID, Description, MaterialNumber, " +
-        		        "NonSpecimenCount, SrcTaxonomy, TaxonID, Quantity, QuantityResolved, " +
-        		        "QuantityReturned, TimestampCreated, TypeCount, Version";
+        String fields = "BorrowID, CollectionMemberID, Description, ItemCount, MaterialNumber, " +
+        		        "NonSpecimenCount, SrcTaxonomy, TaxonID, TimestampCreated, TypeCount, Version";
             
-        String[] values = new String[13];
+        String[] values = new String[11];
         
         values[0]  = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
         values[1]  = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
         values[2]  = SqlUtils.sqlString( borrowMaterial.getDescription());
-        values[3]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
-        values[4]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
-        values[5]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
-        values[6]  = SqlUtils.sqlString( borrowMaterial.getTaxon().getId());
-        values[7]  = SqlUtils.sqlString( borrowMaterial.getQuantity());
-        values[8]  = SqlUtils.sqlString( borrowMaterial.getQuantityResolved());
-        values[9]  = SqlUtils.sqlString( borrowMaterial.getQuantityReturned());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.sqlString( borrowMaterial.getTypeCount());
-        values[12] = SqlUtils.zero();
+        values[3]  = SqlUtils.sqlString( borrowMaterial.getItemCount());
+        values[4]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
+        values[5]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
+        values[6]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
+        values[7]  = SqlUtils.sqlString( borrowMaterial.getTaxon().getId());
+        values[8]  = SqlUtils.now();
+        values[9]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
+        values[10] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }

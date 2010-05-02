@@ -63,7 +63,6 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     protected Set<FragmentAttachment> fragmentAttachments;
     protected Set<FragmentCitation>   fragmentCitations;
 	protected Set<Determination>      determinations;
-	protected Set<ExsiccataItem>      exsiccataItems;
     protected Set<CollectionRelationship>   leftSideRels;
     protected Set<CollectionRelationship>   rightSideRels;
 
@@ -118,7 +117,6 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
         fragmentAttachments = new HashSet<FragmentAttachment>();
         fragmentCitations   = new HashSet<FragmentCitation>();
         determinations      = new HashSet<Determination>();
-        exsiccataItems      = new HashSet<ExsiccataItem>();
         leftSideRels        = new HashSet<CollectionRelationship>();
         rightSideRels       = new HashSet<CollectionRelationship>();
     }
@@ -496,18 +494,6 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
    {
        this.determinations = determinations;
    }
-   
-    @OneToMany(mappedBy = "fragment")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
-    public Set<ExsiccataItem> getExsiccataItems()
-    {
-        return exsiccataItems;
-    }
-    
-    public void setExsiccataItems(Set<ExsiccataItem> exsiccataItems)
-    {
-        this.exsiccataItems = exsiccataItems;
-    }
     
     /**
      * 

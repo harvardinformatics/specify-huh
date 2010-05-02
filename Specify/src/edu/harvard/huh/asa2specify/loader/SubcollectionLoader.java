@@ -12,7 +12,6 @@ import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Author;
-import edu.ku.brc.specify.datamodel.Exsiccata;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Storage;
 import edu.ku.brc.specify.datamodel.StorageTreeDef;
@@ -201,12 +200,6 @@ public class SubcollectionLoader extends TreeLoader
             Integer referenceWorkId = insert(sql);
             referenceWork.setReferenceWorkId(referenceWorkId);
 
-            // get an Exsiccata object
-            Exsiccata exsiccata = getExsiccata(subcollection, referenceWork);
-            sql = getInsertSql(exsiccata);
-            Integer exsiccataId = insert(sql);
-            exsiccata.setExsiccataId(exsiccataId);
-
             // find matching agent for author or create one
             Agent agent = null;
 
@@ -260,17 +253,21 @@ public class SubcollectionLoader extends TreeLoader
         {
             subcollLookup = new SubcollectionLookup() {
                 
-                public Exsiccata getExsiccataById(Integer subcollectionId) throws LocalException
+                public ReferenceWork queryExsiccataById(Integer subcollectionId) throws LocalException
                 {
-                    Exsiccata exsiccata = new Exsiccata();
+                    if (subcollectionId == null) return null;
+                    
+                    ReferenceWork exsiccata = new ReferenceWork();
                     
                     String guid = getGuid(subcollectionId);
 
-                    String sql = "select ExsiccataID from exsiccata where ReferenceWorkID=(select ReferenceWorkID from referencework where GUID=\"" +  guid + "\")";
+                    String sql = "select ReferenceWorkID from referencework where GUID=\"" +  guid + "\"";
                     
-                    Integer exsiccataId = getInt(sql);
+                    Integer exsiccataId = queryForInt(sql);
+                    
+                    if (exsiccataId == null) return null;
 
-                    exsiccata.setExsiccataId(exsiccataId);
+                    exsiccata.setReferenceWorkId(exsiccataId);
                     
                     return exsiccata;
                 }
@@ -320,7 +317,8 @@ public class SubcollectionLoader extends TreeLoader
     	    subcollection.setSpecimenCount(                   columns[i + 4]  );
     	    subcollection.setLocation(                        columns[i + 5]  );
     	    subcollection.setCabinet(                         columns[i + 6]  );        
-    		subcollection.setRemarks(                         columns[i + 7] );
+    		subcollection.setRemarks(                         columns[i + 7]  );
+    		subcollection.setExsiccata( Boolean.parseBoolean( columns[i + 8] ));
     	}
     	catch (NumberFormatException e)
     	{
@@ -502,22 +500,6 @@ public class SubcollectionLoader extends TreeLoader
         return null;
     }
     
-    private Exsiccata getExsiccata(Subcollection subcollection, ReferenceWork referenceWork) throws LocalException
-    {	
-        Exsiccata exsiccata = new Exsiccata();
-        
-        // ReferenceWork
-        exsiccata.setReferenceWork(referenceWork);
-        
-        // Title
-        String title = subcollection.getName();
-        checkNull(title, "title");
-        title = truncate(title, 255, "title");
-        exsiccata.setTitle(title);
-        
-        return exsiccata;
-    }
-    
     private Agent getAgent(Subcollection subcollection) throws LocalException
     {
     	Agent agent = new Agent();
@@ -629,20 +611,6 @@ public class SubcollectionLoader extends TreeLoader
         values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
-    }
-
-    private String getInsertSql(Exsiccata exsiccata) throws LocalException
-    {
-    	String fieldNames = "ReferenceWorkID, TimestampCreated, Title, Version";
- 
-    	String[] values = new String[4];
-    	
-    	values[0] = SqlUtils.sqlString( exsiccata.getReferenceWork().getReferenceWorkId());
-    	values[1] = SqlUtils.now();
-    	values[2] = SqlUtils.sqlString( exsiccata.getTitle());
-    	values[3] = SqlUtils.zero();
-    	
-    	return SqlUtils.getInsertSql("exsiccata", fieldNames, values);
     }
     
     private String getInsertSql(Author author)

@@ -114,14 +114,14 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		
 		Integer collectionMemberId = getCollectionId(collectionCode);
 		borrowReturnMaterial.setCollectionMemberId(collectionMemberId);
+        
+        // ItemCount
+        int itemCount = outReturnBatch.getItemCount();
+        borrowReturnMaterial.setItemCount((short) itemCount);
 		
 		// NonSpecimenCount
 		int nonSpecimenCount = outReturnBatch.getNonSpecimenCount();
 		borrowReturnMaterial.setNonSpecimenCount((short) nonSpecimenCount);
-		
-		// Quantity (itemCount + typeCount + nonSpecimenCount)
-		short quantity = outReturnBatch.getBatchQuantity();
-		borrowReturnMaterial.setQuantity(quantity);
 		
 		// Remarks
 		String note = outReturnBatch.getNote();
@@ -138,6 +138,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		// TypeCount
 		int typeCount = outReturnBatch.getTypeCount();
 		borrowReturnMaterial.setTypeCount((short) typeCount);
+		
 		return borrowReturnMaterial;
 	}
 	
@@ -254,15 +255,15 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
-		String fields = "BorrowMaterialID, CollectionMemberID, NonSpecimenCount, Quantity, " +
+		String fields = "BorrowMaterialID, CollectionMemberID, ItemCount, NonSpecimenCount, " +
 				        "Remarks, ReturnedDate, TimestampCreated, TypeCount, Version";
 		
 		String[] values = new String[9];
 		
 		values[0] = SqlUtils.sqlString( borrowReturnMaterial.getBorrowMaterial().getId());
 		values[1] = SqlUtils.sqlString( borrowReturnMaterial.getCollectionMemberId());
-		values[2] = SqlUtils.sqlString( borrowReturnMaterial.getNonSpecimenCount());
-		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getQuantity());
+		values[2] = SqlUtils.sqlString( borrowReturnMaterial.getItemCount());
+		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getNonSpecimenCount());
 		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
 		values[5] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
 		values[6] = SqlUtils.now();

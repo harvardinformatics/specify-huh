@@ -103,7 +103,6 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     protected Set<DeterminationCitation>    determinationCitations;
     protected Journal                       journal;
     protected Set<Author>                   authors;
-    protected Set<Exsiccata>                exsiccatae;
     
     protected ReferenceWork                 precedingWork;
     protected ReferenceWork                 succeedingWork;
@@ -155,7 +154,6 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         determinationCitations = new HashSet<DeterminationCitation>();
         journal = null;
         authors = new HashSet<Author>();
-        exsiccatae = new HashSet<Exsiccata>();
         
         precedingWork           = null;
         succeedingWork          = null;
@@ -610,19 +608,6 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     }
 
     /**
-     * 
-     */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "referenceWork")
-    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
-    public Set<Exsiccata> getExsiccatae() {
-        return this.exsiccatae;
-    }
-    
-    public void setExsiccatae(Set<Exsiccata> exsiccatae) {
-        this.exsiccatae = exsiccatae;
-    }
-
-    /**
      * @return the variants
      */
     @OneToMany(mappedBy = "referenceWork")
@@ -690,12 +675,6 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
         this.authors.add(author);
         author.setReferenceWork(this);
     }
-    
-    public void addExsiccata(final Exsiccata exsiccata)
-    {
-        this.exsiccatae.add(exsiccata);
-        exsiccata.setReferenceWork(this);
-    }
 
     // Done Add Methods
 
@@ -734,12 +713,6 @@ public class ReferenceWork extends DataModelObjBase implements java.io.Serializa
     {
         this.authors.remove(author);
         author.setReferenceWork(null);
-    }
-
-    public void removeExsiccata(final Exsiccata exsiccata)
-    {
-        this.exsiccatae.remove(exsiccata);
-        exsiccata.setReferenceWork(null);
     }
     
     /* (non-Javadoc)

@@ -170,7 +170,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doOutGeoBatch = false; // 31
         boolean doPurch       = false; // 32
         boolean doStaffColl   = false; // 33
-        boolean doInGeoBatch  = false; // 34
+        boolean doInGeoBatch  = false; // 34  error here on one record
         boolean doShip        = false; // 35
         boolean doInRetBatch  = false; // 36
         boolean doLoanIt      = false; // 37
@@ -388,7 +388,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                 log.info("Processed " + basionymRecords + " basionym records");
             }
 
-            SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "subcollection.csv"),
+            // get this file from maureen; it is a compilation from michaela ("new_subcollection.csv")
+            SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "new_subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
                                                                               botanistLookup);

@@ -790,7 +790,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="SHIPPEDBY" label="SHIPPEDBY"/>
-                    <cell type="field" id="SHIPPEDBY" name="SHIPPEDBY" uitype="querycbx" ignore="true" initialize="name=Agent" colspan="3"/>
+                    <cell type="field" id="SHIPPEDBY" name="SHIPPEDBY" uitype="querycbx" ignore="true" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="3"/>
                 </row>
             </rows>
         </viewdef>

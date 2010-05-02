@@ -303,33 +303,18 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // IsResolved
         boolean isClosed = asaLoan.getCloseDate() != null;
+        loanPreparation.setIsResolved(isClosed);
+
+        // ItemCount
+        int itemCount = asaLoan.getItemCount();
+        loanPreparation.setItemCount(itemCount);
         
-        int quantity = asaLoan.getBatchQuantity();
-        int quantityReturned = asaLoan.getBatchQuantityReturned() == null ? 0 : asaLoan.getBatchQuantityReturned();
-
-        // yes, that's a >=. grumble, grumble.
-        loanPreparation.setIsResolved(quantityReturned >= quantity && isClosed);
-
-        if (quantityReturned > quantity)
-        {
-            getLogger().warn(rec() + "More items returned than sent.");
-        }
-
         // Loan
         loanPreparation.setLoan(loan);
         
         // NonSpecimenCount
         int nonSpecimenCount = asaLoan.getNonSpecimenCount();
         loanPreparation.setNonSpecimenCount(nonSpecimenCount);
-                
-        // Quantity (itemCount + typeCount + nonSpecimenCount)
-        loanPreparation.setQuantity(quantity);
-        
-        // QuantityResolved (quantity returned)
-        loanPreparation.setQuantityResolved(quantityReturned);
-        
-        // QuantityReturned
-        loanPreparation.setQuantityReturned(quantityReturned);
 
         // ReceivedComments (transferred from)
         String transferredFrom = asaLoan.getReceivedComments();
@@ -551,26 +536,24 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(LoanPreparation loanPreparation)
     {
-        String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, LoanID, NonSpecimenCount, " +
-        		            "ReceivedComments, Quantity, QuantityResolved, QuantityReturned, SrcTaxonomy, " +
-        		            "TaxonID, TimestampCreated, TypeCount, Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, ItemCount, " +
+        		            "LoanID, NonSpecimenCount, ReceivedComments, SrcTaxonomy, TaxonID, " +
+        		            "TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[14];
+        String[] values = new String[12];
         
         values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
         values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
         values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
-        values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-        values[4]  = SqlUtils.sqlString( loanPreparation.getNonSpecimenCount());
-        values[5]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
-        values[6]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-        values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-        values[8]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-        values[9]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
-        values[10] = SqlUtils.sqlString( loanPreparation.getTaxon().getId());
-        values[11] = SqlUtils.now();
-        values[12] = SqlUtils.sqlString( loanPreparation.getTypeCount());
-        values[13] = SqlUtils.zero();
+        values[3]  = SqlUtils.sqlString( loanPreparation.getItemCount());
+        values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+        values[5]  = SqlUtils.sqlString( loanPreparation.getNonSpecimenCount());
+        values[6]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+        values[7]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
+        values[8]  = SqlUtils.sqlString( loanPreparation.getTaxon().getId());
+        values[9]  = SqlUtils.now();
+        values[10] = SqlUtils.sqlString( loanPreparation.getTypeCount());
+        values[11] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }

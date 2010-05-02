@@ -59,7 +59,7 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
      protected String  description;
      protected String  srcTaxonomy;
      protected Short   nonSpecimenCount;
-     protected Short   quantity;
+     protected Short   itemCount;
      protected Short   typeCount;
      protected String  outComments;
      protected String  inComments;
@@ -94,7 +94,7 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
         description = null;
         srcTaxonomy = null;
         nonSpecimenCount = null;
-        quantity = null;
+        itemCount = null;
         typeCount = null;
         outComments = null;
         inComments = null;
@@ -197,15 +197,15 @@ public class BorrowMaterial extends CollectionMember implements java.io.Serializ
     }
     
     /**
-     *      * Total number of specimens (for lots)
+     *      * Total number of non-type specimens (for lots)
      */
-    @Column(name = "Quantity", unique = false, nullable = true, insertable = true, updatable = true)
-    public Short getQuantity() {
-        return this.quantity;
+    @Column(name = "ItemCount", unique = false, nullable = true, insertable = true, updatable = true)
+    public Short getItemCount() {
+        return this.itemCount;
     }
     
-    public void setQuantity(Short quantity) {
-        this.quantity = quantity;
+    public void setItemCount(Short itemCount) {
+        this.itemCount = itemCount;
     }
     
     /**

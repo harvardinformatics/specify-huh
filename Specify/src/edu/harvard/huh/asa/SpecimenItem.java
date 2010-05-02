@@ -156,15 +156,6 @@ public class SpecimenItem extends AuditedObject
 	
 	public Integer getSubcollectionId() { return this.subcollectionId; }
 	
-	public Boolean hasExsiccata()
-	{
-	    if (subcollectionId != null)
-	    {
-	        return Subcollection.IsExsiccata(subcollectionId);
-	    }
-	    return false;
-	}
-	
 	public Integer getReplicates() { return this.replicates; }
 	
 	public String getLocation() { return this.location; }

@@ -43,7 +43,7 @@ import edu.ku.brc.ui.UIRegistry;
 
 /**
  * This is just the JFrame portion of a Frame used to display the fields in a data object. Instances of this class are created
- * by the implementation of ViewBasedDialogFactoryIFace interface. This class is consideraed to be a reference implementation.
+ * by the implementation of ViewBasedDialogFactoryIFace interface. This class is considered to be a reference implementation.
  *
  * @code_status Complete
  *

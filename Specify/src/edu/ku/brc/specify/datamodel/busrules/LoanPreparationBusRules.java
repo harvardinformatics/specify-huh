@@ -148,7 +148,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                                 Integer qty = quantity.getIntValue();
                                 if (qty != null && qty >= quantity.getMinValue() && qty <= quantity.getMaxValue())
                                 {
-                                    loanPrep.setQuantity(qty);
+                                    loanPrep.setItemCount(qty);
                                 } else
                                 {
                                     UIRegistry.showLocalizedError(LOAN_QTY_RANGE_ERR, qty, quantity.getMinValue(), quantity.getMaxValue());
@@ -309,11 +309,11 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                 // may want to add a popup error msg
                 if (availableQnt == 0)
                 {
-                    quantity.setRange(0, loanPrep.getQuantity(), loanPrep.getQuantity());
+                    quantity.setRange(0, loanPrep.getItemCount(), loanPrep.getItemCount());
                     quantity.setEnabled(false);
                 } else
                 {
-                    quantity.setRange(0, loanPrep.getQuantity()+availableQnt, loanPrep.getQuantity());
+                    quantity.setRange(0, loanPrep.getItemCount()+availableQnt, loanPrep.getItemCount());
                     quantity.setEnabled(true);
                 }
                 
@@ -500,7 +500,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
     {
         reasonList.clear();
         LoanPreparation loanPrep = (LoanPreparation)dataObj;
-        if (loanPrep.getQuantityResolved() > loanPrep.getQuantity())
+        if (loanPrep.getQuantityResolved() > loanPrep.getItemCount())
         {
             reasonList.add(UIRegistry.getResourceString("LOAN_RET_LWR_QNT"));
             return STATUS.Error;

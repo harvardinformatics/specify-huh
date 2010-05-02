@@ -157,7 +157,7 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
             Component comp = formViewObj.getControlByName("quantityReturned");
             if (comp instanceof ValSpinner && loanPrep != null &&  loanPrep.getLoanPreparationId() != null)
             {
-                int qQnt    = getInt(loanPrep.getQuantity());
+                int qQnt    = getInt(loanPrep.getItemCount());
                 
                 int qQntRes = getInt(loanPrep.getQuantityResolved());
                 int qQntRet = getInt(loanPrep.getQuantityReturned());
@@ -267,7 +267,7 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
                 
                 // We need to do a 'doClick' so the form thinks the user clicked it.
                 ValCheckBox isResolved = (ValCheckBox)loanPrepFVO.getControlByName("isResolved");
-                if (qtyRes == loanPrep.getQuantity() != isResolved.isSelected())
+                if (qtyRes == loanPrep.getItemCount() != isResolved.isSelected())
                 {
                     isResolved.doClick();
                 }
@@ -289,7 +289,7 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
                 int qQntRes = 0;
                 for (LoanPreparation lp : loan.getLoanPreparations())
                 {
-                    qQnt    += getInt(lp.getQuantity());
+                    qQnt    += getInt(lp.getItemCount());
                     qQntRes += getInt(lp.getQuantityResolved());
                 }
                 
@@ -301,7 +301,7 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
                 
                 for (LoanPreparation lp : loan.getLoanPreparations())
                 {
-                    qQnt   += getInt(lp.getQuantity());
+                    qQnt   += getInt(lp.getItemCount());
                     qtyRes += getInt(lp.getQuantityResolved());
                 }
                 

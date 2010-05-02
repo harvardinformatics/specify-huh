@@ -96,7 +96,7 @@ public class LoanItemLoader extends CsvToSqlLoader
 	
 	private LoanItem parse(String[] columns) throws LocalException
 	{
-    	if (columns.length < 8)
+    	if (columns.length < 9)
     	{
     		throw new LocalException("Not enough columns");
     	}
@@ -112,6 +112,7 @@ public class LoanItemLoader extends CsvToSqlLoader
     		loanItem.setTransferredTo(                  columns[5] );
     		loanItem.setCollection(                     columns[6] );
     		loanItem.setLocalUnit(                      columns[7] );
+    		loanItem.setType(     Boolean.parseBoolean( columns[8] ));
     	}
     	catch (NumberFormatException e)
     	{
@@ -132,6 +133,9 @@ public class LoanItemLoader extends CsvToSqlLoader
 		boolean isResolved = loanItem.getReturnDate() != null;
 		loanPreparation.setIsResolved(isResolved);
 		
+		// ItemCount
+        loanPreparation.setItemCount(loanItem.isType() ? 0 : 1);
+        
 		// LoanID
 		Integer transactionId = loanItem.getLoanId();
 		Loan loan = lookupLoan(transactionId);
@@ -164,20 +168,14 @@ public class LoanItemLoader extends CsvToSqlLoader
 		}
 		
 		loanPreparation.setPreparation(preparation);
-		
-		// Quantity
-		loanPreparation.setQuantity(1);
-		
-		// QuantityResolved (quantity returned)
-		loanPreparation.setQuantityResolved(isResolved ? 1 : 0);
-		
-		// QuantityReturned
-		loanPreparation.setQuantityReturned(isResolved ? 1 : 0);
 
         // ReceivedComments (transferred from, transferred to)
 		String receivedComments = loanItem.getReceivedComments();
 		loanPreparation.setReceivedComments(receivedComments);
 
+		// TypeCount
+		loanPreparation.setTypeCount(loanItem.isType() ? 1 : 0);
+		
 		return loanPreparation;
 	}
 	
@@ -190,58 +188,56 @@ public class LoanItemLoader extends CsvToSqlLoader
 		// DisciplineID
 		loanReturnPreparation.setDiscipline(getBotanyDiscipline());
 		
+		// ItemCount
+        loanReturnPreparation.setItemCount(loanItem.isType() ? 0 : 1);
+        
 		// LoanPreparation
 		loanReturnPreparation.setLoanPreparation(loanPreparation);
-		
-		// QuantityResolved (quantity returned)
-        loanReturnPreparation.setQuantityResolved(1);
-        
-		// QuantityReturned
-		loanReturnPreparation.setQuantityReturned(1);
 		
 		// ReturnedDate
 		Date returnDate = loanItem.getReturnDate();
 		loanReturnPreparation.setReturnedDate(DateUtils.toCalendar(returnDate));
 		
+		// TypeCount
+        loanReturnPreparation.setTypeCount(loanItem.isType() ? 1 : 0);
+        
 		return loanReturnPreparation;
 	}
 
 	private String getInsertSql(LoanPreparation loanPreparation)
 	{
-		String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, LoanID, " +
-				            "PreparationID, Quantity, QuantityResolved, QuantityReturned, " +
-				            "ReceivedComments, TimestampCreated, Version";
+		String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, ItemCount, LoanID, " +
+				            "PreparationID, ReceivedComments, TimestampCreated, TypeCount, Version";
 		
-		String[] values = new String[11];
+		String[] values = new String[10];
 		
-		values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
-		values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
-		values[2]  = SqlUtils.sqlString( loanPreparation.getIsResolved());
-		values[3]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
-		values[4]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-		values[5]  = SqlUtils.sqlString( loanPreparation.getQuantity());
-		values[6]  = SqlUtils.sqlString( loanPreparation.getQuantityResolved());
-		values[7]  = SqlUtils.sqlString( loanPreparation.getQuantityReturned());
-		values[8]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.zero();
+		values[0] = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
+		values[1] = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
+		values[2] = SqlUtils.sqlString( loanPreparation.getIsResolved());
+	    values[3] = SqlUtils.sqlString( loanPreparation.getItemCount());
+		values[4] = SqlUtils.sqlString( loanPreparation.getLoan().getId());
+		values[5] = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+		values[6] = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+		values[7] = SqlUtils.now();
+		values[8] = SqlUtils.sqlString( loanPreparation.getTypeCount());
+		values[9] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
 	}
 	
 	private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
 	{
-		String fieldNames = "DisciplineID, LoanPreparationID, QuantityResolved, " +
-				            "QuantityReturned, ReturnedDate, TimestampCreated, Version";
+		String fieldNames = "DisciplineID, ItemCount, LoanPreparationID, " +
+				            "ReturnedDate, TimestampCreated, TypeCount, Version";
 		
 		String[] values = new String[7];
 		
 		values[0] = SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId());
-		values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-		values[2] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
-		values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-		values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-		values[5] = SqlUtils.now();
+		values[1] = SqlUtils.sqlString( loanReturnPreparation.getItemCount());
+		values[2] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
+		values[3] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+		values[4] = SqlUtils.now();
+		values[5] = SqlUtils.sqlString( loanReturnPreparation.getTypeCount());
 		values[6] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);

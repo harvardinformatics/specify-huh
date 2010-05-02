@@ -178,7 +178,7 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
     /**
      * * Lender's loan number
      */
-    @Column(name = "InvoiceNumber", unique = false, nullable = false, insertable = true, updatable = true, length = 50)
+    @Column(name = "InvoiceNumber", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
     public String getInvoiceNumber()
     {
         return this.invoiceNumber;

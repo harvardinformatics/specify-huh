@@ -123,7 +123,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                                 Integer qty = quantity.getIntValue();
                                 if (qty != null && qty >= quantity.getMinValue() && qty <= quantity.getMaxValue())
                                 {
-                                    loanPrep.setQuantity(qty);
+                                    loanPrep.setItemCount(qty);
                                 } else
                                 {
                                     UIRegistry.showLocalizedError(LOAN_QTY_RANGE_ERR, qty, quantity.getMinValue(), quantity.getMaxValue());

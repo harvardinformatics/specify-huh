@@ -95,8 +95,6 @@
 		<mapping class="edu.ku.brc.specify.datamodel.ExchangeIn"/>
 		<mapping class="edu.ku.brc.specify.datamodel.ExchangeOut"/>
 		<mapping class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation"/>
-		<mapping class="edu.ku.brc.specify.datamodel.Exsiccata"/>
-		<mapping class="edu.ku.brc.specify.datamodel.ExsiccataItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebook"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebookPageSet"/>

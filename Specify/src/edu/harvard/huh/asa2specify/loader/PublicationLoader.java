@@ -62,23 +62,19 @@ public class PublicationLoader extends AuditedObjectLoader
         
         int i = super.parse(columns, publication);
         
-		if (columns.length < i + 11)
+		if (columns.length < i + 7)
 		{
 			throw new LocalException("Not enough columns");
 		}
 		try
 		{
-			publication.setIsbn(                            columns[i + 0]  );
-			publication.setPubPlace(                        columns[i + 1]  );
-			publication.setPublisher(                       columns[i + 2]  );
-			publication.setUrl(                             columns[i + 3]  );
-			publication.setTitle(                           columns[i + 4]  );
-			publication.setPubDate(                         columns[i + 5]  );
-			publication.setIsJournal( Boolean.parseBoolean( columns[i + 6]  ));
-			publication.setIssn(                            columns[i + 7]  );
-			publication.setBph(                             columns[i + 8]  );
-			publication.setAbbreviation(                    columns[i + 9]  );
-			publication.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 10] ));
+			publication.setPubPlace(                        columns[i + 0]  );
+			publication.setPublisher(                       columns[i + 1]  );
+			publication.setUrl(                             columns[i + 2]  );
+			publication.setTitle(                           columns[i + 3]  );
+			publication.setPubDate(                         columns[i + 4]  );
+			publication.setAbbreviation(                    columns[i + 5]  );
+			publication.setRemarks( SqlUtils.iso8859toUtf8( columns[i + 6] ));
 		}
 		catch (NumberFormatException e)
 		{
