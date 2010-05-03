@@ -158,17 +158,6 @@
         </view>
         
         <view 
-            name="ExsiccataSearch"
-            class="edu.ku.brc.specify.datamodel.Exsiccata"
-            usedefbusrule="false"
-            resourcelabels="false">
-            <desc><![CDATA[The Exsiccata Search Form]]></desc>
-            <altviews>
-                <altview name="ExsiccataSearch" viewdef="ExsiccataSearch" mode="edit" validated="true" default="true"/>
-            </altviews>
-        </view>
-        
-        <view 
             name="FragmentSearch"
             class="edu.ku.brc.specify.datamodel.Fragment"
             usedefbusrule="false"
@@ -667,29 +656,6 @@ Good: <cell type="field" name="FieldNum" ...>
             </rows>
         </viewdef> 
 
-       <viewdef type="form"
-            name="ExsiccataSearch"
-            class="edu.ku.brc.specify.datamodel.Exsiccata"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
-            
-            <desc><![CDATA[The Exsiccata Search Form]]></desc>
-            <enableRules/>
-            
-            <columnDef>p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p,2dlu,p</rowDef>
-            
-            <rows>
-                <row>
-                    <cell type="separator" label="Exsiccata" colspan="3"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="Title" uitype="text"/>
-                </row>                
-            </rows>
-        </viewdef> 
-        
         <viewdef type="form"
             name="FieldNotebookPageSearch"
             class="edu.ku.brc.specify.datamodel.FieldNotebookPage"

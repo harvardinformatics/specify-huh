@@ -205,13 +205,6 @@
      	<alias name="Shipment" field="shipments" />
     </table>
     
-    <table name="Exsiccata">
-    	<alias name="ReferenceWork" field="referenceWork"/>
-    	<table name="ExsiccataItem">
-			<alias name="Fragment" field="fragment"/>
-    	</table>
-    </table>
-    
     <table name="FieldNotebook" >
     	<table name="FieldNotebookAttachment" field="attachments" >	
       		<alias name="Attachment"/>
@@ -268,9 +261,6 @@
     	</table>
     	<table name="Preparation" field="preparation">
     		<alias name="Preparation"/>
-    	</table>
-    	<table name="ExsiccataItem" field="exsiccataItems">
-			<alias name="ExsiccataItem"/>
     	</table>
     	<table name="CollectionRelationship" field="leftSideRels">
 			<alias name="CollectionRelationship"/>

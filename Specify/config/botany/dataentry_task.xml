@@ -9,7 +9,6 @@
 	</std>
 	
 	<misc>
-		<view sidebar="true"  title="Exsiccata"          view="Exsiccata"          iconname="Exsiccata"         tooltip=""                mnemonic="E"/>
 		<view sidebar="true"  title="Subcollection"      view="Storage"            iconname="Storage"           tooltip=""                mnemonic="U"/>
         <view sidebar="true"  title="Transaction Agent"  view="Transaction Agent"  iconname="Agent"             tooltip="AGENTAFFILIATE" mnemonic="T"/>		
 	</misc>

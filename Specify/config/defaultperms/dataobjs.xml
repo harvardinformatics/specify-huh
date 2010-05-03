@@ -1827,27 +1827,6 @@
     </hashtable>
   </entry>
   <entry>
-    <string>exsiccataitem</string>
-    <hashtable>
-      <entry>
-        <string>Manager</string>
-        <tp name="exsiccataitem" type="Manager" view="true" modify="true" del="true" add="true"/>
-      </entry>
-      <entry>
-        <string>LimitedAccess</string>
-        <tp name="exsiccataitem" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
-      </entry>
-      <entry>
-        <string>Guest</string>
-        <tp name="exsiccataitem" type="Guest" view="true" modify="false" del="false" add="false"/>
-      </entry>
-      <entry>
-        <string>FullAccess</string>
-        <tp name="exsiccataitem" type="FullAccess" view="true" modify="true" del="true" add="true"/>
-      </entry>
-    </hashtable>
-  </entry>
-  <entry>
     <string>division</string>
     <hashtable>
       <entry>
@@ -2117,27 +2096,6 @@
       <entry>
         <string>FullAccess</string>
         <tp name="spreport" type="FullAccess" view="true" modify="true" del="true" add="true"/>
-      </entry>
-    </hashtable>
-  </entry>
-  <entry>
-    <string>exsiccata</string>
-    <hashtable>
-      <entry>
-        <string>Manager</string>
-        <tp name="exsiccata" type="Manager" view="true" modify="true" del="true" add="true"/>
-      </entry>
-      <entry>
-        <string>LimitedAccess</string>
-        <tp name="exsiccata" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
-      </entry>
-      <entry>
-        <string>Guest</string>
-        <tp name="exsiccata" type="Guest" view="true" modify="false" del="false" add="false"/>
-      </entry>
-      <entry>
-        <string>FullAccess</string>
-        <tp name="exsiccata" type="FullAccess" view="true" modify="true" del="true" add="true"/>
       </entry>
     </hashtable>
   </entry>

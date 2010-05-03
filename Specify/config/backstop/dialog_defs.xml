@@ -15,7 +15,6 @@
     <dialog type="search" viewset="Search" view="DisciplineSearch"         name="DisciplineSearch"         class="edu.ku.brc.specify.datamodel.Discipline"     idfield="disciplineId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DivisionSearch"           name="DivisionSearch"           class="edu.ku.brc.specify.datamodel.Division"       idfield="divisionId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="DeterminationSearch"      name="DeterminationSearch"      class="edu.ku.brc.specify.datamodel.Determination"  idfield="determinationId" helpcontext="CBXQSearch"/>
-    <dialog type="search" viewset="Search" view="ExsiccataSearch"          name="ExsiccataSearch"          class="edu.ku.brc.specify.datamodel.Exsiccata"      idfield="exsiccataId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="FieldNotebookPageSearch"  name="FieldNotebookPageSearch"  class="edu.ku.brc.specify.datamodel.FieldNotebookPage" idfield="fieldNotebookPageId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="FragmentSearch"           name="FragmentSearch"           class="edu.ku.brc.specify.datamodel.Fragment"       idfield="fragmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="GeographySearch"          name="GeographySearch"          class="edu.ku.brc.specify.datamodel.Geography"      idfield="geographyId" helpcontext="CBXQSearch"/>
@@ -61,7 +60,6 @@
     <dialog type="display" view="Determination"      name="DeterminationDisplay"     class="edu.ku.brc.specify.datamodel.Determination" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="DeterminationCitation" name="DeterminationCitationDisplay" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="Exsiccata"          name="ExsiccataDisplay"         class="edu.ku.brc.specify.datamodel.Exsiccata" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ExchangeOutItems"   name="ExchangeOutItemsDisplay"  class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="FieldNotebookPage"  name="FieldNotebookPageDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPage" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Fragment"           name="FragmentDisplay"          class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>

@@ -26074,18 +26074,6 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="exsiccatae" isRequired="false">
-        <version>0</version>
-        <isHidden>false</isHidden>
-        <names>
-          <str language="en">
-            <version>0</version>
-            <text>Exsiccatae</text>
-          </str>
-        </names>
-        <descs/>
-        <spExportSchemaItems/>
-      </item>
       <item name="fragmentCitations" type="OneToMany">
         <version>0</version>
         <names>
