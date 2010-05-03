@@ -155,7 +155,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		    }
 
 		    // ExsiccataItem
-		    FragmentCitation exsiccataItem = getExsiccataItem(specimenItem, fragment);
+		    FragmentCitation exsiccataItem = getExsiccataItem(specimenItem, fragment, collectionId);
 		    if (exsiccataItem != null)
 		    {
 		        if (exsiccataItem.getId() == null)
@@ -1129,7 +1129,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return series;
 	}
 
-	private FragmentCitation getExsiccataItem(SpecimenItem specimenItem, Fragment fragment) throws LocalException
+	private FragmentCitation getExsiccataItem(SpecimenItem specimenItem, Fragment fragment, Integer collectionId) throws LocalException
 	{
 	    Integer subcollectionId = specimenItem.getSubcollectionId();
 
@@ -1138,7 +1138,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 
 	    FragmentCitation exsiccataItem = new FragmentCitation();
         
-        // Fragment
+	    // CollectionMemberID
+	    exsiccataItem.setCollectionMemberId(collectionId);
+
+	    // Fragment
         exsiccataItem.setFragment(fragment);
         
         // Exsiccata
@@ -1276,14 +1279,15 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     
     private String getInsertSql(FragmentCitation exsiccataItem) throws LocalException
 	{
-		String fieldNames = "FragmentID, ReferenceWorkID, TimestampCreated, Version";
+		String fieldNames = "CollectionMemberID, FragmentID, ReferenceWorkID, TimestampCreated, Version";
 
-		String[] values = new String[4];
+		String[] values = new String[5];
 
-		values[0] = SqlUtils.sqlString( exsiccataItem.getFragment().getId());
-		values[1] = SqlUtils.sqlString( exsiccataItem.getReferenceWork().getId());
-		values[2] = SqlUtils.now();
-		values[3] = SqlUtils.zero();
+		values[0] = SqlUtils.sqlString( exsiccataItem.getCollectionMemberId());
+		values[1] = SqlUtils.sqlString( exsiccataItem.getFragment().getId());
+		values[2] = SqlUtils.sqlString( exsiccataItem.getReferenceWork().getId());
+		values[3] = SqlUtils.now();
+		values[4] = SqlUtils.zero();
 		
 		return SqlUtils.getInsertSql("fragmentcitation", fieldNames, values);
 	}
