@@ -599,7 +599,7 @@
         >
         <switch single="true">
             <fields>
-                <field type="int" format="%d">quantityResolved</field>
+                <field type="int" format="%d">itemCount</field>
             </fields>
         </switch>
     </format>

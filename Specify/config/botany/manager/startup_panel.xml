@@ -22,7 +22,7 @@
 			        <id>52</id>
 			      </tables>            
                   <statement><![CDATA[SELECT count(loanpreparationid) AS ItemsOnLoanCount FROM loanpreparation AS lpo 
-                INNER JOIN loan ON loan.loanid = lpo.loanid where quantityresolved < quantity AND 
+                INNER JOIN loan ON loan.loanid = lpo.loanid where  
                 loan.DisciplineID = DSPLNID AND (IsClosed = 0 or IsClosed is null)]]></statement></sql>
                 <link>ListOnLoan</link>
             </item>
