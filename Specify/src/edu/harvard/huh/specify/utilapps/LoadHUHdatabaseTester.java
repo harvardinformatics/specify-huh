@@ -170,7 +170,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         boolean doOutGeoBatch = false; // 31
         boolean doPurch       = false; // 32
         boolean doStaffColl   = false; // 33
-        boolean doInGeoBatch  = false; // 34  error here on one record
+        boolean doInGeoBatch  = false; // 34  
         boolean doShip        = false; // 35
         boolean doInRetBatch  = false; // 36
         boolean doLoanIt      = false; // 37

@@ -148,7 +148,7 @@ public class SubcollectionLoader extends TreeLoader
         storage.setAbbrev(null); // set aside for barcode
         
         // FullName
-        storage.setFullName(name);
+        storage.setFullName(truncate(name, 255, "full name"));
 
         // IsAccepted
         storage.setIsAccepted(true);
@@ -334,7 +334,7 @@ public class SubcollectionLoader extends TreeLoader
 
         // FullName
         String fullName = subcollection.getName();
-        if (fullName.length() > 255) truncate(fullName, 255, "full name");
+        if (fullName.length() > 255) fullName = truncate(fullName, 255, "full name");
         storage.setFullName(fullName);
 
         // IsAccepted
