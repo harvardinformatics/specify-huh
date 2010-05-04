@@ -12,9 +12,8 @@ select tx.*,
                               'specific', (select decode(hybrid_flag, 1, unistr('\00d7'), '') || name from taxon where id=parent.id) || ' ' ||
                                             decode(tx.is_hybrid, 'true', unistr('\00d7'), '') || tx.name,
 
-                              'generic', decode(tx.rank, 'genus',
-                                                          decode(tx.is_hybrid, 'true', unistr('\00d7') || tx.name, tx.name),
-                                                          (select name from taxon where id=parent.id) || ' ' ||
+                              'generic', decode(tx.rank, 'genus', decode(tx.is_hybrid, 'true', unistr('\00d7') || tx.name, tx.name),
+                                                  (select name from taxon where id=parent.id) || ' ' ||
                                                             decode(tx.is_hybrid, 'true', 'notho', '') || tx.rank_abbrev || ' ' || tx.name),
                               tx.name),
               '[[:space:]]+', ' ') as fullname
@@ -47,7 +46,7 @@ from
                       (select decode(name, null, '', ' ex ' || name) from botanist_name where botanist_id=t.std_ex_author_id and type_id=110105)
                       )
                ),
-             (select decode(name, null, '', '') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105) /* hook for cit in author*/
+             (select decode(name, null, '', '') from botanist_name where botanist_id=t.cit_in_author_id and type_id=110105)
            ),
            '[[:space:]]+',
            ' '

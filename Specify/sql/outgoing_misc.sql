@@ -31,12 +31,10 @@ select t.id,
        regexp_replace(s.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count
 
-from herb_transaction t,
-     agent a,
-     shipment s
+from herb_transaction t left join
+     agent a on t.agent_id=a.id left join
+     shipment s on t.id=s.herb_transaction_id
 
-where t.id=s.herb_transaction_id(+) and
-      (select name from st_lookup where id=t.type_id) = 'outgoing miscellaneous' and
-      t.agent_id=a.id(+)
+where (select name from st_lookup where id=t.type_id) = 'outgoing miscellaneous'
 
 order by t.id

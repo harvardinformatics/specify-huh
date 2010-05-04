@@ -11,4 +11,4 @@ select igb.id,
 
 from in_geo_batch igb
 
-order by igb.herb_transaction_id, igb.id
+order by igb.id

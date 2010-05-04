@@ -12,8 +12,6 @@ select d.id,
        regexp_replace(d.label_text, '[[:space:]]+', ' ') as label_text,
        d.ordinal,
        regexp_replace(d.remarks, '[[:space:]]+', ' ') as remarks
-from
-       determination d,
-       specimen s
-where
-       d.specimen_id=s.id
+
+from determination d left join specimen s on d.specimen_id=s.id
+order by d.id

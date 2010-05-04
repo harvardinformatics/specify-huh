@@ -3,7 +3,7 @@ select ts.id,
        (select acronym from organization where id=s.herbarium_id) as collection_code,
        ts.taxon_id,
        regexp_replace(t.fullname, '[[:space:]]+', ' ') as taxon,
-       (select decode(name, '[Neosyntype]', 'Neosyntype', name) from st_lookup where id=ts.type_status_id) as type_status,
+       (select name from st_lookup where id=ts.type_status_id) as type_status,
        (select name from st_lookup where id=ts.conditionality_id) as conditionality,
        decode(ts.fragment_flag, 1, 'true', '') as is_fragment,
        decode(ts.verified_year, 0, null, ts.verified_year) as verified_year,
@@ -21,6 +21,6 @@ select ts.id,
        regexp_replace(ts.remarks, '[[:space:]]+', ' ') as remarks,
        ts.ordinal as ordinal
 
-from type_specimen ts, specimen s
+from type_specimen ts left join specimen s on ts.specimen_id=s.id left join taxon t on ts.taxon_id=t.id
 
-where ts.specimen_id=s.id
+order by ts.id

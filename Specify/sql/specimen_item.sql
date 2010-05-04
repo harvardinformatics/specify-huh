@@ -41,19 +41,14 @@ select si.id,
        regexp_replace(si.container, '[[:space:]]+', ' ') as container,
        si.subcollection_id,
        si.replicates,
-       si.location || decode(si.temp_location, '', null, '; temporarily held: ' || si.temp_location) as location,
-       s.vernacular_name,
-       s.distribution
+       regexp_replace(si.location || decode(si.temp_location, '', null, '; temporarily held: ' || si.temp_location), '[[:space:]]+', ' ') as location,
+       regexp_replace(s.vernacular_name, '[[:space:]]+', ' ') as vernacular_name,
+       regexp_replace(s.distribution, '[[:space:]]+', ' ') as distribution
 from
-       specimen_item si,
-       specimen s,
-       botanist b,
-       bdate d
-
-where
-       s.id=si.specimen_id(+) and
-       s.collector_id=b.id(+) and
-       s.date_id=d.id
+       specimen s
+       left join specimen_item si on s.id=si.specimen_id
+       left join botanist b on s.collector_id=b.id
+       left join bdate d on s.date_id=d.id
 
 order by s.id, si.id
 

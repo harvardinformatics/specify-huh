@@ -20,10 +20,8 @@ select t.id,
        regexp_replace(t.description, '[[:space:]]+', ' ') as description,
        regexp_replace(t.remarks, '[[:space:]]+', ' ') as remarks
 
-from herb_transaction t,
-     agent a,
+from herb_transaction t left join agent a on t.agent_id=a.id
 
-where (select name from st_lookup where id=t.type_id) = 'purchase' and
-      t.agent_id=a.id(+)
+where (select name from st_lookup where id=t.type_id) = 'purchase'
 
 order by t.id

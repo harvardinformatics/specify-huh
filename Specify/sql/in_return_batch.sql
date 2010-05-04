@@ -9,7 +9,7 @@ select irb.id,
        to_char(irb.action_date, 'YYYY-MM-DD HH24:MI:SS') as action_date,
        regexp_replace(irb.transferred_to, '[[:space:]]+', ' ') as transferred_to
 
-from in_return_batch irb,
-     herb_transaction t
+from in_return_batch irb left join
+     herb_transaction t on irb.herb_transaction_id=t.id
 
-where irb.herb_transaction_id=t.id
+order by irb.id

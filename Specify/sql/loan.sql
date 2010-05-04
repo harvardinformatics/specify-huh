@@ -29,25 +29,10 @@ select t.id,
 
        tb.higher_taxon_id,
        regexp_replace(tb.taxon, '[[:space:]]+', ' ') as taxon,
-       regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from,
+       regexp_replace(tb.transferred_from, '[[:space:]]+', ' ') as transferred_from
 
-       return_items.quantity as quantity_returned
+from herb_transaction t left join agent a on t.agent_id=a.id left join taxon_batch tb on t.id=tb.herb_transaction_id
 
-from herb_transaction t,
-     agent a,
-     taxon_batch tb,
-
-     (select ht.id as loan_id,
-             sum(b.item_count + b.type_count + b.non_specimen_count) as quantity
-      from herb_transaction ht,
-           (select id, herb_transaction_id as loan_id, item_count, 0 as type_count, non_specimen_count from in_return_batch) b
-      where ht.id=b.loan_id
-      group by ht.id
-     ) return_items
-
-where (select name from st_lookup where id=t.type_id) = 'loan' and
-      t.id=tb.herb_transaction_id and
-      t.agent_id=a.id(+) and
-      t.id=return_items.loan_id(+)
+where (select name from st_lookup where id=t.type_id) = 'loan'
 
 order by t.id

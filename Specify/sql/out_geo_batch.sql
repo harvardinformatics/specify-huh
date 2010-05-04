@@ -8,10 +8,8 @@ select ogb.id,
        ogb.non_specimen_count,
        ogb.geo_region_id
        
-from out_geo_batch ogb,
-     herb_transaction t
+from out_geo_batch ogb left join herb_transaction t on ogb.herb_transaction_id=t.id
 
-where ogb.herb_transaction_id=t.id and
-      (select name from st_lookup where id=t.type_id) in ('outgoing gift','outgoing exchange','outgoing special exch')
+where (select name from st_lookup where id=t.type_id) in ('outgoing gift','outgoing exchange','outgoing special exch')
 
-order by t.id
+order by ogb.id

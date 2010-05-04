@@ -6,11 +6,7 @@ select b.id as botanist_id,
        brc.alt_source,
        brc.ordinal as order_number
 from
-       botanist b,
-       botanist_role br,
-       botanist_role_citation brc
-where
-       b.id=br.botanist_id and
-       br.id=brc.botanist_role_id
+       botanist b join botanist_role br on b.id=br.botanist_id join botanist_role_citation brc on br.id=brc.botanist_role_id
+
 order by
        b.id, role, brc.ordinal, brc.id

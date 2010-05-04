@@ -3,14 +3,11 @@ select b.id as botanist_id,
        s.name as specialty,
        brs.ordinal as order_number
 from
-       botanist b,
-       botanist_role br,
-       botanist_role_specialty brs,
-       specialty s
-where
-       b.id=br.botanist_id and
-       br.id=brs.botanist_role_id and
-       brs.specialty_id=s.id
+       botanist b
+       join botanist_role br on b.id=br.botanist_id
+       join botanist_role_specialty brs on br.id=brs.botanist_role_id
+       join specialty s on brs.specialty_id=s.id
+
 order by
        b.id, role, brs.id
 

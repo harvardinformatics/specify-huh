@@ -13,7 +13,7 @@ select orb.id,
        decode(orb.cost_estimated_flag, 1,'true', '') as is_estimated_cost,
        regexp_replace(orb.note, '[[:space:]]+', ' ') as note
 
-from out_return_batch orb,
-     herb_transaction t
+from out_return_batch orb left join
+     herb_transaction t on orb.herb_transaction_id=t.id
 
-where orb.herb_transaction_id=t.id
+order by orb.id

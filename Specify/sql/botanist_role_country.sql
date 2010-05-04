@@ -3,14 +3,11 @@ select b.id as botanist_id,
        g.id as geo_unit_id,
        brc.ordinal as order_number
 from
-       botanist b,
-       botanist_role br,
-       botanist_role_country brc,
-       geo_unit g
-where
-       b.id=br.botanist_id and
-       br.id=brc.botanist_role_id and
-       brc.country_id=g.id
+       botanist b
+       join botanist_role br on b.id=br.botanist_id
+       join botanist_role_country brc on br.id=brc.botanist_role_id
+       join geo_unit g on brc.country_id=g.id
+
 order by
        b.id, role, order_number, brc.id
 /* 

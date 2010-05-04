@@ -13,8 +13,9 @@ select s.id,
        regexp_replace(t.box_count, '[[:space:]]+', ' ') as box_count,
        (select acronym from organization where id=t.local_unit_id) as collection_code
 
-from shipment s,
-     herb_transaction t
+from shipment s left join
+     herb_transaction t on s.herb_transaction_id=t.id
 
-where s.herb_transaction_id=t.id and
-      (select name from st_lookup where id=t.type_id) != 'outgoing miscellaneous'
+where (select name from st_lookup where id=t.type_id) != 'outgoing miscellaneous'
+
+order by s.id
