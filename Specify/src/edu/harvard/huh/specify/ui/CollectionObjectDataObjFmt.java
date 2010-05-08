@@ -94,7 +94,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
         try
         {
             session = DataProviderFactory.getInstance().createSession();
-            co = session.merge(co);
+            if (co.getId() != null) co = session.merge(co);
 
             if (co.getCollectingEvent() != null)
             {
