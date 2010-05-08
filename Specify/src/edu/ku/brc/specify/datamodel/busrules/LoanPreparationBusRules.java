@@ -283,7 +283,7 @@ public class LoanPreparationBusRules extends BaseBusRules implements CommandList
                 {
                     // Get all the LoanReturn Quantities so we can figure out
                     // how many are still available
-                    sql = "SELECT lp.Quantity, lp.QuantityResolved, lrp.QuantityReturned " +
+                    sql = "SELECT lp.ItemCount, lp.QuantityResolved, lrp.QuantityReturned " +
                                  "FROM  loanpreparation AS lp " +
                                  "LEFT JOIN loanreturnpreparation AS lrp ON lrp.LoanPreparationID = lp.LoanPreparationID " +
                                  "INNER JOIN preparation AS p ON lp.PreparationID = p.PreparationID " +
