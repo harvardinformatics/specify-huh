@@ -309,7 +309,7 @@ public class DataEntryTask extends BaseTask
         if (view != null)
         {
             tmpFP = new FormPane(view.getName(), task, view, mode, dataObj, 
-                                 isNewForm ? (MultiView.IS_NEW_OBJECT | MultiView.RESULTSET_CONTROLLER) : 0);
+                                 (isNewForm ? (MultiView.IS_NEW_OBJECT | MultiView.RESULTSET_CONTROLLER) : 0) | MultiView.NO_MORE_BTN_FOR_SEP);
         } else
         {
             UIRegistry.showError("Couldn't find default form for ["+viewName+"]");
