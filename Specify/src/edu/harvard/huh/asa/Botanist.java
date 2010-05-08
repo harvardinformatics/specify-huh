@@ -9,8 +9,8 @@ public class Botanist extends AuditedObject
     // TODO: date precision: doing nothing with this at the moment: ?, circa; null means default, exact
 
 	private Integer id;	
-	private Boolean isTeam;
-	private Boolean isCorporate;
+	private Boolean isTeam = false;
+	private Boolean isCorporate = false;
 	private  String name;
 	private  String datesType;
 	private Integer startYear;
@@ -57,7 +57,12 @@ public class Botanist extends AuditedObject
 	    
 	public void setIsCorporate(Boolean isCorporate) { this.isCorporate = isCorporate; }
 	
-	public void setName(String name) { this.name = name; }
+	public void setName(String name)
+	{
+	    this.name = name;
+	    this.isCorporate = this.isCorporate || this.isOrganization();
+	    this.isTeam = this.isTeam || this.isGroup();
+	}
 	
 	public void setDatesType(String datesType) { this.datesType = datesType; }
 	
