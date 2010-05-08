@@ -696,7 +696,7 @@
         >
         <switch single="true">
             <fields>
-                <field>title</field>
+                <field>text1</field>
             </fields>
         </switch>
     </format>
