@@ -61,7 +61,9 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="TaxonNameIDX", columnNames={"Name"}),
         @Index (name="TaxonFullNameIDX", columnNames={"FullName"}),
         @Index (name="TaxonAuthorIDX", columnNames={"Author"}),
-        @Index (name="EnvironmentalProtectionStatusIDX", columnNames={"EnvironmentalProtectionStatus"})
+        @Index (name="EnvironmentalProtectionStatusIDX", columnNames={"EnvironmentalProtectionStatus"}),
+        @Index (name="TaxonNodeNumberIDX", columnNames={"NodeNumber"}),
+        @Index (name="TaxonHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
 public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<TaxonAttachment>, 
                                                        Serializable, 
