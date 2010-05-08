@@ -1187,7 +1187,41 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
-         
+         <table id="57" tableid="63" indexed="false" name="PreparationToItem" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="63" primary="true">preparation.PreparationID</join>
+                <join tableid="142">fragment.FragmentID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ preparation.PreparationID, 
+ preparation.Identifier,
+ preparation.SampleNumber, 
+ fragment.Identifier,
+ collectionobject.CatalogedDate, 
+ collectionobject.CatalogedDatePrecision, 
+ %s 
+ From preparation 
+ Inner Join fragment ON fragment.PreparationID = preparation.PreparationID
+ Inner Join collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
+ WHERE preparation.CollectionMemberID = COLMEMID AND 
+ collectionobject.CollectionMemberID = COLMEMID AND 
+ %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
+                </sql>
+                <captions>
+                	<caption tableid="63" col="preparation.PreparationID" visible="false"/>
+                	<caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                	<caption tableid="63" col="SampleNumber"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="1" formatter="PartialDate">
+                        <col name="CatalogedDate"          field="catalogedDate"/>
+                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
+                    </caption>
+                </captions>
+            </detailView>
+        </table>
         
         
 
