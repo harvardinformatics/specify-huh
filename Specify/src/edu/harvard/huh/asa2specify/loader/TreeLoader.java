@@ -79,10 +79,31 @@ public abstract class TreeLoader extends AuditedObjectLoader
             String dropTempTable = "drop table " + tempTableName;
             getStatement().execute(dropTempTable);
             
+            enableKeys(tableName);
+            
         }
         catch (SQLException e)
         {
             throw new LocalException("Problem numbering nodes", e);
         }
+    }
+    
+    
+    protected void disableKeys(String tableName) throws LocalException
+    {
+        // disable keys
+        getLogger().info("Disabling keys");
+        
+        String sql = "alter table " + tableName + " disable keys";
+        execute(sql);
+    }
+
+    protected void enableKeys(String tableName) throws LocalException
+    {        
+        // enable keys
+        getLogger().info("Enabling keys");
+        
+        String sql = "alter table " + tableName + " enable keys";
+        execute(sql);
     }
 }

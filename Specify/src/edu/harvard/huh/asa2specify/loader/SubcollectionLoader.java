@@ -4,13 +4,16 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Botanist;
+import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.Subcollection;
+import edu.harvard.huh.asa.BotanistName.TYPE;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.Author;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Storage;
@@ -81,6 +84,8 @@ public class SubcollectionLoader extends TreeLoader
     @Override
     protected void preLoad() throws LocalException
     {
+        disableKeys("storage");
+        
         StorageTreeDefItem buildingDefItem = getDefItem("Building");
         buildingDefItem.setRankId(buildingRankId);
 
@@ -117,6 +122,7 @@ public class SubcollectionLoader extends TreeLoader
         {
             createNode(vascNames[i], vascNumbers[i], vascular, subcollDefItem);
         }
+        
     }
 
     private StorageTreeDef getStorageTreeDef() throws LocalException
@@ -220,6 +226,12 @@ public class SubcollectionLoader extends TreeLoader
                     sql = getInsertSql(agent);
                     Integer authorAgentId = insert(sql);
                     agent.setAgentId(authorAgentId);
+                    
+                    // create an author name agent variant
+                    AgentVariant agentVariant = getAgentVariant(subcollection, agent);
+
+                    sql = getInsertSql(agentVariant);
+                    insert(sql);
                 }
             }
 
@@ -509,8 +521,6 @@ public class SubcollectionLoader extends TreeLoader
         
         Botanist botanist = new Botanist();
         botanist.setName(author);
-        botanist.setIsCorporate(false); // TODO: can we assume all subcoll authors are not corporate?
-        botanist.setIsTeam(false);      // TODO: this is possibly not going to work for all
         
         // AgentType
         if (botanist.isOrganization() ) agent.setAgentType( Agent.ORG );
@@ -548,6 +558,26 @@ public class SubcollectionLoader extends TreeLoader
         author.setReferenceWork(referenceWork);
         
     	return author;
+    }
+    
+    private AgentVariant getAgentVariant(Subcollection subcollection, Agent agent) throws LocalException
+    {
+        AgentVariant agentVariant = new AgentVariant();
+        
+        // Agent
+        agentVariant.setAgent(agent);
+
+        // Name
+        String name = subcollection.getAuthor();
+        checkNull(name, "name");
+
+        name = truncate(name, 255, "name");
+        agentVariant.setName(name);
+        
+        // Type
+        agentVariant.setVarType(AgentVariant.AUTHOR);
+        
+        return agentVariant;
     }
     
     String getInsertSql(Storage storage) throws LocalException
@@ -611,6 +641,21 @@ public class SubcollectionLoader extends TreeLoader
         values[5] = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
+    }
+    
+    private String getInsertSql(AgentVariant agentVariant)
+    {
+        String fieldNames = "AgentID, Name, VarType, TimestampCreated, Version";
+        
+        String[] values = new String[5];
+        
+        values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
+        values[1] = SqlUtils.sqlString( agentVariant.getName());
+        values[2] = SqlUtils.sqlString( agentVariant.getVarType());
+        values[3] = SqlUtils.now();
+        values[4] = SqlUtils.zero();
+        
+        return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }
     
     private String getInsertSql(Author author)

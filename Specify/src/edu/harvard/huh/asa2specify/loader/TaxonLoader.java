@@ -98,6 +98,12 @@ public class TaxonLoader extends TreeLoader
 	}
 
 	@Override
+	protected void preLoad() throws LocalException
+	{
+	    disableKeys("taxon");
+	}
+	
+	@Override
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		AsaTaxon asaTaxon = parse(columns);

@@ -277,8 +277,14 @@ public class GeoUnitLoader extends TreeLoader
     }
 
     @Override
-    protected void postLoad() throws LocalException
+    protected void preLoad() throws LocalException
     {
+        disableKeys("geography");
+    }
+
+    @Override
+    protected void postLoad() throws LocalException
+    {        
         // TODO: probably drop this index after import
         getLogger().info("Creating guid index");
         String sql =  "create index guid on geography(GUID)";
