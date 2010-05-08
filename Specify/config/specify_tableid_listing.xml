@@ -342,6 +342,7 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" abbrev="rwv" id="141" searchable="true">
 			<display view="ReferenceWorkVariant" newobjdlg="ReferenceWorkVariantDisplay" searchable="true"/>
+			<businessrule>edu.ku.brc.specify.datamodel.busrules.ReferenceWorkVariantBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.RepositoryAgreement" abbrev="ra" id="70" searchable="true">
             <display view="RepositoryAgreement" searchdlg="RepositoryAgreementSearch" newobjdlg="RepositoryAgreementDisplay"/>
