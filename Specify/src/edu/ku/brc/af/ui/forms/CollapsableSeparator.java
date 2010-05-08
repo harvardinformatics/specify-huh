@@ -64,6 +64,7 @@ public class CollapsableSeparator extends JPanel
     protected CardLayout   cardLayout       = new CardLayout();
     protected PanelBuilder panelBldr;
     protected boolean      includeMore;
+    private   boolean      beginCollapsed = false;
     
     protected Hashtable<String, Component> compsHash = new Hashtable<String, Component>();
 
@@ -97,6 +98,41 @@ public class CollapsableSeparator extends JPanel
     public CollapsableSeparator(final String title, final boolean includeMore)
     {
         this.includeMore = includeMore;
+        init();
+        
+        panelBldr = new PanelBuilder(new FormLayout((includeMore ? "p," : "") +"p,p,f:p:g", "c:p"), this);
+        CellConstraints cc        = new CellConstraints();
+        
+        subPanel = new JPanel(cardLayout);
+        subPanel.setBorder(null);
+        subPanel.setOpaque(false);
+
+        int x = 1;
+        if (includeMore)
+        {
+            panelBldr.add(moreBtn, cc.xy(x,1));
+            x++;
+        }
+        
+        JLabel titleLbl = UIHelper.createLabel(title);
+        if (!UIHelper.isMacOS())
+        {
+            titleLbl.setFont(UIManager.getFont("TitledBorder.font"));
+            titleLbl.setForeground(UIManager.getColor("TitledBorder.titleColor"));
+        }
+        panelBldr.add(titleLbl, cc.xy(x, 1));
+        x += 2;
+        panelBldr.addSeparator(" ",                cc.xy(x, 1));
+    }
+    
+    /**
+     * @param title
+     */
+    public CollapsableSeparator(final String title, final boolean includeMore, final boolean collapsed)
+    {
+        this.includeMore = includeMore;
+        this.beginCollapsed = collapsed;
+        
         init();
         
         panelBldr = new PanelBuilder(new FormLayout((includeMore ? "p," : "") +"p,p,f:p:g", "c:p"), this);
@@ -189,21 +225,31 @@ public class CollapsableSeparator extends JPanel
                 moreBtn.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e)
                     {
-                        if (innerComp.isVisible())
-                        {
-                            innerComp.setVisible(false);
-                            moreBtn.setIcon(forwardImgIcon);
-                        } else
-                        {
-                            innerComp.setVisible(true);
-                            moreBtn.setIcon(downImgIcon);
-                        }
-                        invalidate();
-                        doLayout();
-                        repaint();
+                        toggleView();
                     }
                  });
+                
+                if (this.beginCollapsed && innerComp.isVisible()) toggleView();
             }
         }
-    }    
+    }
+    
+    private void toggleView()
+    {
+        if (innerComp != null)
+        {
+            if (innerComp.isVisible())
+            {
+                innerComp.setVisible(false);
+                moreBtn.setIcon(forwardImgIcon);
+            } else
+            {
+                innerComp.setVisible(true);
+                moreBtn.setIcon(downImgIcon);
+            }
+            invalidate();
+            validate();
+            repaint();
+        }
+    }
 }

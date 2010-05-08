@@ -87,7 +87,8 @@ public class MultiView extends JPanel
     public static final int USE_ONLY_CREATION_MODE =  512; // Create only the AltViews that have the same creation mode
     public static final int DONT_USE_EMBEDDED_SEP  = 1024; // use the internal embedded separator
     public static final int NO_MORE_BTN_FOR_SEP    = 2048; // doesn't include the separator's 'more' btn
-
+    public static final int HIDE                   = 4096; // hide the component (only works for CollapsableSeparator)
+    
     // Statics
     private static final Logger log = Logger.getLogger(MultiView.class);
 
@@ -351,7 +352,7 @@ public class MultiView extends JPanel
                 }
             }
             this.cardPanel = new JPanel(cardLayout);
-            this.separator = new CollapsableSeparator(title, !isOptionOn(options, NO_MORE_BTN_FOR_SEP));
+            this.separator = new CollapsableSeparator(title, !isOptionOn(options, NO_MORE_BTN_FOR_SEP), isOptionOn(options, HIDE));
             this.separator.setInnerComp(this.cardPanel);
             this.cardPanel.setOpaque(false);
             

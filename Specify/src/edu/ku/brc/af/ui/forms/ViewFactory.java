@@ -1857,6 +1857,11 @@ public class ViewFactory
                                 options |= MultiView.ADD_SEARCH_BTN;
                             }
                             
+                            if (UIHelper.getProperty(props, "hide", false))
+                            {
+                                options |= MultiView.HIDE;
+                            }
+
                             //MultiView.printCreateOptions("SUBVIEW", options);
                             MultiView multiView = new MultiView(parent, 
                                                                 cellSubView.getName(),
