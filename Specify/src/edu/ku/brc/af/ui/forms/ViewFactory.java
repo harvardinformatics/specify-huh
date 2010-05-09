@@ -1801,7 +1801,8 @@ public class ViewFactory
                         
                         options |= cellSubView.getPropertyAsBoolean("nosep", false) ? MultiView.DONT_USE_EMBEDDED_SEP : 0;
                         options |= cellSubView.getPropertyAsBoolean("nosepmorebtn", false) ? MultiView.NO_MORE_BTN_FOR_SEP : 0;
-                        
+                        options |= cellSubView.getPropertyAsBoolean("noaltview", false) ? MultiView.DONT_ADD_ALL_ALTVIEWS : 0;
+
                         if (!(isACollection && !isSingle))
                         {
                             options &= ~MultiView.ADD_SEARCH_BTN;
