@@ -464,7 +464,7 @@ public class TableViewObj implements Viewable,
                     
                     updateUI(false);
                     
-                    if (switcherUI != null)
+                    if (switcherUI != null && !MultiView.isOptionOn(options, MultiView.DONT_ADD_ALL_ALTVIEWS))
                     {
                         comps.add(switcherUI);
                     }
