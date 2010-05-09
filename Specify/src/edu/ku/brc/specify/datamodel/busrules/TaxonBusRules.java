@@ -92,32 +92,34 @@ public class TaxonBusRules extends BaseTreeBusRules<Taxon, TaxonTreeDef, TaxonTr
     {
         super.initialize(viewableArg);
         
-        Component fishBaseWL = formViewObj.getControlById("WebLink");
-        if (fishBaseWL != null && !Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.fish))
+        if (formViewObj != null)  // it may be if this is a table view object
         {
-            fishBaseWL.setVisible(false);
-        }
-        
-        // TODO: the form system MUST require the hybridParent1 and hybridParent2 widgets to be present if the isHybrid checkbox is present
-        final JCheckBox        hybridCheckBox = (JCheckBox)formViewObj.getControlByName(IS_HYBRID);
-        final GetSetValueIFace hybrid1Widget  = (GetSetValueIFace)formViewObj.getControlByName(HYBRIDPARENT1);
-        final GetSetValueIFace hybrid2Widget  = (GetSetValueIFace)formViewObj.getControlByName(HYBRIDPARENT2);
-        
-        if (hybridCheckBox != null)
-        {
-            hybridCheckBox.addItemListener(new ItemListener()
+            Component fishBaseWL = formViewObj.getControlById("WebLink");
+            if (fishBaseWL != null && !Discipline.isCurrentDiscipline(DisciplineType.STD_DISCIPLINES.fish))
             {
-                public void itemStateChanged(ItemEvent e)
+                fishBaseWL.setVisible(false);
+            }
+
+            // TODO: the form system MUST require the hybridParent1 and hybridParent2 widgets to be present if the isHybrid checkbox is present
+            final JCheckBox        hybridCheckBox = (JCheckBox)formViewObj.getControlByName(IS_HYBRID);
+            final GetSetValueIFace hybrid1Widget  = (GetSetValueIFace)formViewObj.getControlByName(HYBRIDPARENT1);
+            final GetSetValueIFace hybrid2Widget  = (GetSetValueIFace)formViewObj.getControlByName(HYBRIDPARENT2);
+
+            if (hybridCheckBox != null)
+            {
+                hybridCheckBox.addItemListener(new ItemListener()
                 {
-                    if (!hybridCheckBox.isSelected())
+                    public void itemStateChanged(ItemEvent e)
                     {
-                        hybrid1Widget.setValue(null, null);
-                        hybrid2Widget.setValue(null, null);
+                        if (!hybridCheckBox.isSelected())
+                        {
+                            hybrid1Widget.setValue(null, null);
+                            hybrid2Widget.setValue(null, null);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
-        
         TreeTaskMgr.checkLocks();
     }
 
