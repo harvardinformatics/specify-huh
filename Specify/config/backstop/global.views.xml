@@ -1595,8 +1595,8 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="Author" id="authors" name="authors" initialize="name=Author" defaulttype="table" rows="3" colspan="5"/>
-					<cell type="subview" viewname="ReferenceWorkIdentifier" id="identifiers" name="identifiers" initialize="name=ReferenceWorkIdentifier" defaulttype="table" rows="3" colspan="4"/>
+                    <cell type="subview" viewname="Author" id="authors" name="authors" initialize="name=Author;noaltview=true" defaulttype="table" rows="3" colspan="5"/>
+					<cell type="subview" viewname="ReferenceWorkIdentifier" id="identifiers" name="identifiers" initialize="name=ReferenceWorkIdentifier;noaltview=true" defaulttype="table" rows="3" colspan="4"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
