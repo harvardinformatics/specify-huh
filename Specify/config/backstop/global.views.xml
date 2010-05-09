@@ -377,6 +377,7 @@
             <desc><![CDATA[Taxon data entry form.]]></desc>
             <altviews>
                 <altview name="Taxon Children View" viewdef="TaxonSubform" mode="view"/>
+                <altview name="Taxon Children Table View" viewdef="TaxonSubformTable" mode="view" default="true"/>
             </altviews>
         </view>
         
@@ -399,6 +400,7 @@
             <desc><![CDATA[Geography data entry form.]]></desc>
             <altviews>
                 <altview name="Geography Children View" viewdef="GeographySubform" mode="view"/>
+                <altview name="Geography Children Table View" viewdef="GeographySubformTable" mode="view" default="true"/>
             </altviews>
         </view>
         
@@ -2047,7 +2049,7 @@
                     <!-- Put in remote prefs: URL_Prefix.GBIF_Canada = http://www.cbif.gc.ca/pls/itisca/taxastep -->
                 <!-- </row> -->
                 <row>
-                    <cell type="subview" viewname="TaxonSubform" id="children" name="children" colspan="16"/>
+                    <cell type="subview" viewname="TaxonSubform" id="children" name="children" defaulttype="table" colspan="16"/>
                 </row>
                 <row>
 			        <cell type="separator" label="ATTACHMENTS" colspan="16"/>
@@ -2118,7 +2120,7 @@
                 	<cell type="field" id="centroidLon" uitype="text" name="centroidLon" uifieldformatter="NumericFloat" colspan="3"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GeographySubform" id="children" name="children" colspan="11"/>
+                    <cell type="subview" viewname="GeographySubform" id="children" defaulttype="table" name="children" colspan="11"/>
                 </row>
             </rows>
         </viewdef>
@@ -2341,8 +2343,21 @@
                 <row>
                     <cell type="label" labelfor="fullName"/>
                     <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/> 
+                    <cell type="label" labelfor="author"/>
+                    <cell type="field" id="author" name="author" uitype="text"/>
                 </row>
             </rows>
+        </viewdef>
+        
+        <viewdef
+            name="TaxonSubformTable"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Taxon grid view.]]></desc>
+            <definition>TaxonSubform</definition>
         </viewdef>
         
         <viewdef
@@ -2355,18 +2370,31 @@
             <enableRules>
             </enableRules>
             
-            <columnDef>100px,2px,725px,p:g</columnDef>
-            <columnDef os="lnx">115px,2px,800px,p:g</columnDef>
-            <columnDef os="mac">130px,2px,900px,p:g</columnDef>
-            <columnDef os="exp">p,2px,p:g</columnDef>
+            <columnDef>100px,2px,425px,5px,100px,2px,100px,p:g</columnDef>
+            <columnDef os="lnx">115px,2px,400px,5px,115px,2px,120px,p:g</columnDef>
+            <columnDef os="mac">130px,2px,400px,5px,130px,2px,130px,p:g</columnDef>
+            <columnDef os="exp">p,2px,p,5px,p,2px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
                 <row>
                     <cell type="label" labelfor="fullName"/>
-                    <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/> 
+                    <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/>
+                    <cell type="label" labelfor="definitionItem"/>
+                    <cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem"/>
                 </row>
             </rows>
+        </viewdef>
+        
+        <viewdef
+            name="GeographySubformTable"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Geography grid view.]]></desc>
+            <definition>GeographySubform</definition>
         </viewdef>
         
         <viewdef
