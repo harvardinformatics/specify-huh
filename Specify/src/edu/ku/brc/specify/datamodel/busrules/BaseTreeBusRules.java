@@ -113,61 +113,64 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
     {
         super.initialize(viewableArg);
         
-        GetSetValueIFace  parentField  = (GetSetValueIFace)formViewObj.getControlByName("parent");
-        Component comp = formViewObj.getControlByName("definitionItem");
-        if (comp instanceof ValComboBox)
-        {
-            final ValComboBox rankComboBox = (ValComboBox)comp;
-    
-            final JCheckBox            acceptedCheckBox     = (JCheckBox)formViewObj.getControlByName("isAccepted");
-            Component apComp = formViewObj.getControlByName("acceptedParent");
-            final ValComboBoxFromQuery acceptedParentWidget = apComp instanceof ValComboBoxFromQuery ?
-            		(ValComboBoxFromQuery )apComp : null;
-            
-            
-            if (parentField instanceof ValComboBoxFromQuery)
+        if (formViewObj != null) // it may be if this is a table view object
+        { 
+            GetSetValueIFace  parentField  = (GetSetValueIFace)formViewObj.getControlByName("parent");
+            Component comp = formViewObj.getControlByName("definitionItem");
+            if (comp instanceof ValComboBox)
             {
-                final ValComboBoxFromQuery parentCBX = (ValComboBoxFromQuery)parentField;
-                if (parentCBX != null && rankComboBox != null)
-                {
-                    parentCBX.addListSelectionListener(new ListSelectionListener() {
-                        public void valueChanged(ListSelectionEvent e)
+                final ValComboBox rankComboBox = (ValComboBox)comp;
+
+
+                final JCheckBox            acceptedCheckBox     = (JCheckBox)formViewObj.getControlByName("isAccepted");
+                Component apComp = formViewObj.getControlByName("acceptedParent");
+                final ValComboBoxFromQuery acceptedParentWidget = apComp instanceof ValComboBoxFromQuery ?
+                        (ValComboBoxFromQuery )apComp : null;
+
+
+                        if (parentField instanceof ValComboBoxFromQuery)
                         {
-                            if (e == null || !e.getValueIsAdjusting())
+                            final ValComboBoxFromQuery parentCBX = (ValComboBoxFromQuery)parentField;
+                            if (parentCBX != null && rankComboBox != null)
                             {
-                                parentChanged(formViewObj, parentCBX, rankComboBox, acceptedCheckBox, acceptedParentWidget);
+                                parentCBX.addListSelectionListener(new ListSelectionListener() {
+                                    public void valueChanged(ListSelectionEvent e)
+                                    {
+                                        if (e == null || !e.getValueIsAdjusting())
+                                        {
+                                            parentChanged(formViewObj, parentCBX, rankComboBox, acceptedCheckBox, acceptedParentWidget);
+                                        }
+                                    }
+                                });
+                                rankComboBox.getComboBox().addActionListener(new ActionListener(){
+                                    @Override
+                                    public void actionPerformed(ActionEvent e)
+                                    {
+                                        rankChanged(formViewObj, parentCBX, rankComboBox, acceptedCheckBox, acceptedParentWidget);
+                                    }
+                                });
                             }
                         }
-                    });
-                    rankComboBox.getComboBox().addActionListener(new ActionListener(){
-                    	@Override
-                    	public void actionPerformed(ActionEvent e)
-                    	{
-                    		rankChanged(formViewObj, parentCBX, rankComboBox, acceptedCheckBox, acceptedParentWidget);
-                    	}
-                    });
-                }
-            }
-    
-            
-            if (acceptedCheckBox != null && acceptedParentWidget != null)
-            {
-                acceptedCheckBox.addItemListener(new ItemListener()
-                {
-                    public void itemStateChanged(ItemEvent e)
-                    {
-                        if (acceptedCheckBox.isSelected())
+
+                        if (acceptedCheckBox != null && acceptedParentWidget != null)
                         {
-                            acceptedParentWidget.setValue(null, null);
-                            acceptedParentWidget.setChanged(true); // This should be done automatically
-                            acceptedParentWidget.setEnabled(false);
+                            acceptedCheckBox.addItemListener(new ItemListener()
+                            {
+                                public void itemStateChanged(ItemEvent e)
+                                {
+                                    if (acceptedCheckBox.isSelected())
+                                    {
+                                        acceptedParentWidget.setValue(null, null);
+                                        acceptedParentWidget.setChanged(true); // This should be done automatically
+                                        acceptedParentWidget.setEnabled(false);
+                                    }
+                                    else
+                                    {
+                                        acceptedParentWidget.setEnabled(true);
+                                    }
+                                }
+                            });
                         }
-                        else
-                        {
-                            acceptedParentWidget.setEnabled(true);
-                        }
-                    }
-                });
             }
         }
     }
