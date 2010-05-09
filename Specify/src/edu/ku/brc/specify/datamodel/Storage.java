@@ -57,7 +57,7 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="StorNodeNumberIDX", columnNames={"NodeNumber"}),
         @Index (name="StorHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
-public class Storage extends DataModelObjBase implements Serializable, Treeable<Storage,StorageTreeDef, StorageTreeDefItem>
+public class Storage extends DataModelObjBase implements Serializable, Comparable<Storage>, Treeable<Storage,StorageTreeDef, StorageTreeDefItem>
 {
 
     /**
@@ -702,6 +702,14 @@ public class Storage extends DataModelObjBase implements Serializable, Treeable<
     public static int getClassTableId()
     {
         return 58;
+    }
+
+    @Override
+    public int compareTo(Storage o)
+    {
+        int r = 0;
+        if (rankId != null && o.rankId != null) r = rankId.compareTo(o.rankId);
+        return r != 0 ? r : fullName != null ? fullName.compareTo(o.fullName) : o.fullName != null ? o.fullName.compareTo(fullName) : 0;
     }
 
 }

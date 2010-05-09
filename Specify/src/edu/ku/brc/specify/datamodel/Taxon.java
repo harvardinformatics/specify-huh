@@ -66,7 +66,8 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="TaxonHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
 public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<TaxonAttachment>, 
-                                                       Serializable, 
+                                                       Serializable,
+                                                       Comparable<Taxon>,
                                                        Treeable<Taxon,TaxonTreeDef,TaxonTreeDefItem>
 {
     /**
@@ -1647,6 +1648,14 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
             return super.getWebLinkData(dataName);
         }
         return null;
+    }
+
+    @Override
+    public int compareTo(Taxon o)
+    {
+        int r = 0;
+        if (rankId != null && o.rankId != null) r = rankId.compareTo(o.rankId);
+        return r != 0 ? r : fullName != null ? fullName.compareTo(o.fullName) : o.fullName != null ? o.fullName.compareTo(fullName) : 0;
     }
     
 }

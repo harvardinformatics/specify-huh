@@ -57,7 +57,7 @@ import edu.ku.brc.specify.treeutils.TreeOrderSiblingComparator;
         @Index (name="GeoNodeNumberIDX", columnNames={"NodeNumber"}),
         @Index (name="GeoHighChildIDX", columnNames={"HighestChildNodeNumber"})
     })
-public class Geography extends DataModelObjBase implements java.io.Serializable, Treeable<Geography,GeographyTreeDef,GeographyTreeDefItem>
+public class Geography extends DataModelObjBase implements java.io.Serializable, Comparable<Geography>, Treeable<Geography,GeographyTreeDef,GeographyTreeDefItem>
 {
 
     /**
@@ -872,6 +872,14 @@ public class Geography extends DataModelObjBase implements java.io.Serializable,
     public static int getClassTableId()
     {
         return 3;
+    }
+
+    @Override
+    public int compareTo(Geography o)
+    {
+        int r = 0;
+        if (rankId != null && o.rankId != null) r = rankId.compareTo(o.rankId);
+        return r != 0 ? r : fullName != null ? fullName.compareTo(o.fullName) : o.fullName != null ? o.fullName.compareTo(fullName) : 0;
     }
 
 }
