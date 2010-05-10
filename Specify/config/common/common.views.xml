@@ -3485,7 +3485,7 @@
                             </row>
                         </rows>
                     </cell>
-                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="localityAttachments" initialize="btn=true;icon=LocalityAttachment"/>
+                    <!-- <cell type="subview" id="attachments" viewname="ObjectAttachment" name="localityAttachments" initialize="btn=true;icon=LocalityAttachment"/> -->
                 </row>
                 <row>
                     <cell type="subview" id="7" name="geoCoordDetails" viewname="GeoCoordDetail" initialize="hide=true" colspan="12"/> 
