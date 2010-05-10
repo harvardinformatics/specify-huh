@@ -2159,5 +2159,27 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
         
+        <table id="133" tableid="142" name="FragmentSearch" priority="1" color="30, 144, 255">
+            <detailView icon="">
+                <sql>
+                    <![CDATA[SELECT frag.FragmentID,
+                                    frag.Identifier as FragIdentifier,
+                                    ppt.Name,
+                                    pp.SampleNumber,
+                                    pp.Text1,
+                                    pp.Identifier as PrepIdentifier
+                               FROM fragment frag LEFT JOIN preparation pp ON frag.PreparationID=pp.PreparationID LEFT JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID
+                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="142" col="FragmentID" visible="false"/>
+                    <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="65" name="Name" col="prepType.Name"/>
+                    <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
+                    <caption tableid="63" name="Text1" col="preparation.Text1"/>
+                    <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                </captions>
+            </detailView>
+        </table>
     </generic>
 </searches>
