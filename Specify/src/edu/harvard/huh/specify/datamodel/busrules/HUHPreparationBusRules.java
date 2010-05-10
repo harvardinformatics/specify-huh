@@ -19,17 +19,11 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import java.util.Date;
-
 import org.apache.commons.lang.StringUtils;
 
-import edu.ku.brc.af.core.db.DBFieldInfo;
-import edu.ku.brc.af.core.db.DBTableIdMgr;
-import edu.ku.brc.af.core.db.DBTableInfo;
-import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
-import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
@@ -47,6 +41,23 @@ public class HUHPreparationBusRules extends PreparationBusRules
     public HUHPreparationBusRules()
     {
         super();
+    }
+
+    @Override
+    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj != null)
+        {
+            if (dataObj instanceof Preparation)
+            {
+                Preparation prep = (Preparation) dataObj;
+                
+                if (prep.getCountAmt() == null || prep.getCountAmt() == 0)
+                {
+                    prep.setCountAmt(1);
+                }
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -69,79 +80,38 @@ public class HUHPreparationBusRules extends PreparationBusRules
      */
     protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
     {
-        Class<?> dataClass = Preparation.class;
-        
-        String fieldName = "identifier";
-        String fragmentBarcode = (String)FormHelper.getValue(dataObj, fieldName);
-
-        // Let's check for duplicates 
-        Integer fragmentCount = getCountSql(Fragment.class, "fragmentId", fieldName, fragmentBarcode, null);
-        if (fragmentCount == null) fragmentCount = 0;
-
-        Integer prepCount = getCountSql(dataClass, "preparationId", fieldName, fragmentBarcode, dataObj.getId());
-        if (prepCount == null) prepCount = 0;
-
-        if (fragmentCount + prepCount == 0)
+        if (dataObj instanceof Preparation)
         {
-            return STATUS.OK;
-        }
-        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
-        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
+            Preparation preparation = (Preparation) dataObj;
 
-        if (fieldInfo != null && fieldInfo.getFormatter() != null)
-        {
-            Object fmtObj = fieldInfo.getFormatter().formatToUI(fragmentBarcode);
-            if (fmtObj != null)
+            String fieldName = "identifier";
+            String barcode = (String) FormHelper.getValue(dataObj, fieldName);
+
+            Integer prepCount = 0;
+            Integer fragmentCount = 0;
+            if (!StringUtils.isEmpty(barcode))
             {
-                fragmentBarcode = fmtObj.toString();
+                // count preparations with this barcode
+                prepCount =
+                    HUHFragmentBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, preparation.getId());
+                
+                // count fragment records with this barcode
+                fragmentCount =
+                    HUHFragmentBusRules.getCountSql(Fragment.class, "fragmentId", fieldName, barcode, null);
             }
-        }
-        reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", dataClass, fieldName, fragmentBarcode));
-        return STATUS.Error;
-    }
-    
-    // TODO: combine this with HUHFragmentBusRules
-    private int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Integer id)
-    {
-        DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
-        DBFieldInfo primaryFieldInfo = tableInfo.getFieldByName(primaryFieldName);
-        
-        String  countColumnName = null;
-        if (primaryFieldInfo != null)
-        {
-           countColumnName = primaryFieldInfo.getColumn(); 
-        } else
-        {
-            if (tableInfo.getIdFieldName().equals(primaryFieldName))
+
+            if (fragmentCount + prepCount == 0)
             {
-                countColumnName = tableInfo.getIdColumnName();
+                // prep has the barcode
+                return STATUS.OK;
+            }
+            else
+            {
+                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Preparation.class, fieldName, barcode));
+                return STATUS.Error;
             }
         }
         
-        DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
-        String quote = fieldInfo.getDataClass() == String.class || fieldInfo.getDataClass() == Date.class ? "'" : "";
-        
-        String tableName = tableInfo.getName();
-        String compareColumName = fieldInfo.getColumn();
-        String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s", countColumnName, tableName, compareColumName, quote + fieldValue + quote);
-
-        if (id != null)
-        {
-            sql += " AND " + countColumnName + " <> " + id;
-        }
-
-        String special = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, false);
-        sql += StringUtils.isNotEmpty(special) ? (" AND "+special) : "";
-        
-        log.debug(sql);
-        
-        return BasicSQLUtils.getCount(sql);
-    }
-    
-    @Override
-    public boolean shouldCloneField(String fieldName)
-    {
-        // TODO Auto-generated method stub
-        return super.shouldCloneField(fieldName);
-    }
+        throw new IllegalArgumentException();
+    }    
 }
