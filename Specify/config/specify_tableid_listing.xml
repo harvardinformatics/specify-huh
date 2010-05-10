@@ -141,7 +141,8 @@
         <table name="edu.ku.brc.specify.datamodel.DeaccessionAgent" abbrev="daa" id="35" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.DeaccessionPreparation" abbrev="dap" id="36" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.Determination" abbrev="det" id="9" workbench="true" searchable="true">
-            <display view="Determination" dataobjformatter="Determination"  searchdlg="DeterminationSearch" newobjdlg="DeterminationDisplay"/>            
+            <display view="Determination" dataobjformatter="Determination"  searchdlg="DeterminationSearch" newobjdlg="DeterminationDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHDeterminationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.DeterminationCitation" abbrev="detc" id="38" searchable="true">
 			<display view="DeterminationCitation" newobjdlg="DeterminationCitationDisplay"/>
