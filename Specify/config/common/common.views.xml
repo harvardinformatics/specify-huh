@@ -2538,7 +2538,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Sub Collecting Event]]></desc>
             
-            <columnDef>         100px ,2px, 200px, 5px, 190px, 2px, 116px, 5px, 115px, 2px,  90px, p:g</columnDef>
+            <columnDef>          85px, 2px, 180px, 5px,  90px, 2px,  80px, 5px,  90px, 2px,  80px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 200px, 5px, 115px, 2px, 140px, 5px, 115px, 2px, 140px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 220px, 5px, 281px, 2px, 120px, 5px, 137px, 2px, 128px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px:g,   p, 2px, 116px, 5px:g,   p, 2px,  90px, p:g</columnDef>
@@ -3540,10 +3540,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[LocalityDetail subform for Locality]]></desc>
             
-            <columnDef>          80px, 2px,  85px, 5px,   80px, 2px,  85px, 2px,   32px, 2px, 80px, 2px, 85px, 2px,   34px, 2px, 80px, 2px,  85px, p:g</columnDef>
+            <columnDef>          80px, 2px,  85px, 5px,   60px, 2px,  75px, 2px,   32px, 2px,  60px, 2px,  90px, 2px,   50px, 2px,  70px, 0px, p:g</columnDef>
             <columnDef os="lnx">100px, 2px, 115px, 5px,  100px, 2px, 115px, 2px,   32px, 2px,  99px, 2px, 105px, 2px,   34px, 2px, 120px, 0px, p:g</columnDef>
-            <columnDef os="mac">100px, 2px, 116px, 5px,   86px, 2px, 116px, 2px,   58px, 2px, 127px, 2px, 106px, 2px,   58px, 2px, 136px, 2px, 116px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px,  92px, 5px:g,    p, 2px,  92px, 2px:g, 32px, 2px,     p, 2px,  83px, 2px:g, 34px, 2px,     p, 2px,  92px, p:g</columnDef>
+            <columnDef os="mac">100px, 2px, 116px, 5px,   86px, 2px, 116px, 2px,   58px, 2px, 127px, 2px, 106px, 2px,   58px, 2px, 136px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,  92px, 5px:g,    p, 2px,  92px, 2px:g, 32px, 2px,     p, 2px,  83px, 2px:g, 34px, 2px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
