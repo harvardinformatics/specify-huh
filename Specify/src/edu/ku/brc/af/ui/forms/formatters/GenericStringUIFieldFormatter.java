@@ -61,7 +61,7 @@ public class GenericStringUIFieldFormatter extends BaseUIFieldFormatter
         this.title     = localizedTitle;
         
         DBTableInfo ti = DBTableIdMgr.getInstance().getByShortClassName(tableClass.getSimpleName());
-        DBFieldInfo fi = ti.getFieldByName(fieldName);
+        DBFieldInfo fi = ti.getFieldByName(fieldName.contains(".") ? fieldName.substring(fieldName.lastIndexOf(".")+1) : fieldName);
         
         this.dataClass              = tableClass;
         this.length                 = fi.getLength();
