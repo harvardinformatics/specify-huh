@@ -714,7 +714,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *      * BiologicalObject (Bird, Fish, etc)
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     //@Cascade( { CascadeType.MERGE, CascadeType.LOCK })
     @Cascade( { CascadeType.LOCK })
     @JoinColumn(name = "CollectingEventID", unique = false, nullable = true, insertable = true, updatable = true)
@@ -877,7 +877,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *
      */
-    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY, mappedBy = "collectionObject")
+    @OneToMany(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.EAGER, mappedBy = "collectionObject")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<OtherIdentifier> getOtherIdentifiers() {
         return this.otherIdentifiers;
