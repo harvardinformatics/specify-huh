@@ -766,7 +766,7 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     /**
      * @return the localityDetail
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "locality")
+    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "locality")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<LocalityDetail> getLocalityDetails()
     {
@@ -784,7 +784,7 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     /**
      * @return the geoCoordDetail
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "locality")
+    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "locality")
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<GeoCoordDetail> getGeoCoordDetails()
     {
