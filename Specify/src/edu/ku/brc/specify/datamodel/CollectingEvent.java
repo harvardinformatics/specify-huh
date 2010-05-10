@@ -378,7 +378,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     /**
      * 
      */
-    @OneToMany(mappedBy = "collectingEvent")
+    @OneToMany(mappedBy = "collectingEvent", fetch = FetchType.EAGER)
     @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     public Set<CollectionObject> getCollectionObjects() {
         return this.collectionObjects;
@@ -391,7 +391,7 @@ public class CollectingEvent extends DisciplineMember implements AttachmentOwner
     /**
      * 
      */
-    @OneToMany(mappedBy = "collectingEvent")
+    @OneToMany(mappedBy = "collectingEvent", fetch = FetchType.EAGER)
     @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
     @OrderBy("orderNumber ASC")
     public Set<Collector> getCollectors() 
