@@ -2014,7 +2014,7 @@ public class ViewFactory
                 String            cellName  = cell.getName();
                 if (tableInfo != null && StringUtils.isNotEmpty(cellName))
                 {
-                    childInfo = tableInfo.getItemByName(cellName);
+                    childInfo = tableInfo.getItemByName(cellName.contains(".") ? cellName.substring(cellName.lastIndexOf(".")+1) : cellName);
                 }
                 
                 boolean isEditOnCreateOnly = false;
