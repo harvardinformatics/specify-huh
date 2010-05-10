@@ -25,22 +25,24 @@ import java.util.Calendar;
 
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
- * @author rods
+ * @author mkelly
  *
- * @code_status Beta
+ * @code_status Alpha
  *
- * Created Date: Jan 24, 2007
+ * Created Date: Mar 0, 2010
  *
  */
 public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
 {
-    /**
+    /**:
      * Constructor.
      */
     public HUHCollectionObjectBusRules()
@@ -50,17 +52,48 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
 
     @Override
     public void addChildrenToNewDataObjects(Object newDataObj)
-    {
-        super.addChildrenToNewDataObjects(newDataObj);
-
+    { 
         CollectionObject collectionObject = (CollectionObject) newDataObj;
 
         if (collectionObject != null)
         {
-            Agent agent = Agent.getUserAgent();
-            collectionObject.setCataloger(agent);
-            collectionObject.setCatalogedDate(Calendar.getInstance());
-            collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+            if (collectionObject.getCataloger() == null)
+            {
+                Agent agent = Agent.getUserAgent();
+                collectionObject.setCataloger(agent);
+                collectionObject.setCatalogedDate(Calendar.getInstance());
+                collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+            }
+            
+            CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
+            if (collectingEvent == null)
+            {
+                collectingEvent = new CollectingEvent();
+                collectingEvent.initialize();
+                collectionObject.setCollectingEvent(collectingEvent);
+            }
+
+            Locality locality = collectingEvent.getLocality();
+            if (locality == null)
+            {
+                locality = new Locality();
+                locality.initialize();
+                collectingEvent.setLocality(locality);
+            }
+            collectionObject.getOtherIdentifiers().size();
+        }
+    }
+    
+    @Override
+    public void beforeFormFill()
+    {
+        if (formViewObj != null)
+        {
+            if (formViewObj.getDataObj() instanceof CollectionObject)
+            {
+                CollectionObject collectionObject = (CollectionObject) formViewObj.getDataObj();
+                collectionObject.getOtherIdentifiers().size();
+            }
         }
     }
     
