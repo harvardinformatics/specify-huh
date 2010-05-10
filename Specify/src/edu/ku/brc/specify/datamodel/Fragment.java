@@ -470,7 +470,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     /**
      *      * Preparation
      */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = { }, fetch = FetchType.LAZY)
     @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
     public Preparation getPreparation() {
         return this.preparation;
@@ -483,7 +483,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     /**
     *
     */
-   @OneToMany(mappedBy = "fragment")
+   @OneToMany(mappedBy = "fragment", fetch = FetchType.EAGER)
    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
    public Set<Determination> getDeterminations() 
    {
@@ -537,4 +537,17 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
         return timestampCreated.compareTo(o.timestampCreated);
 	}
 
+    // Add Methods
+    public void addDeterminations(final Determination determination)
+    {
+        this.determinations.add(determination);
+        determination.setFragment(this);
+    }
+
+    // Delete Methods
+    public void removeDeterminations(final Determination determination)
+    {
+        this.determinations.remove(determination);
+        determination.setFragment(null);
+    }
 }
