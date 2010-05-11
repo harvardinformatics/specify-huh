@@ -1044,6 +1044,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
                 // Remarks
                 collectingTrip.setRemarks(container);
             }
+            return collectingTrip;
         }
         
         return null;
