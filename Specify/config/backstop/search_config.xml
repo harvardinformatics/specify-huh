@@ -1223,8 +1223,81 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
         
-        
+        <table id="58" tableid="63" indexed="false" name="PreparationToCollObj" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="63" primary="true">preparation.PreparationID</join>
+                <join tableid="1">collectionobject.CollectionObjectID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ preparation.PreparationID, 
+ preparation.Identifier,
+ preparation.SampleNumber, 
+ fragment.Identifier,
+ collectionobject.FieldNumber,
+ collectionobject.CatalogedDate, 
+ collectionobject.CatalogedDatePrecision, 
+ %s 
+ From preparation 
+ Inner Join fragment ON fragment.PreparationID = preparation.PreparationID
+ Inner Join collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
+ WHERE preparation.CollectionMemberID = COLMEMID AND 
+ collectionobject.CollectionMemberID = COLMEMID AND 
+ %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
+                </sql>
+                <captions>
+                	<caption tableid="63" col="preparation.PreparationID" visible="false"/>
+                	<caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                	<caption tableid="63" col="SampleNumber"/>
+                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="1" col="FieldNumber"/>
+                    <caption tableid="1" formatter="PartialDate">
+                        <col name="CatalogedDate"          field="catalogedDate"/>
+                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
+                    </caption>
+                </captions>
+            </detailView>
+        </table>
 
+        <table id="59" tableid="1" indexed="false" name="CollObjToPreparation" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142">fragment.FragmentID</join>
+                <join tableid="63">preparation.PreparationID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ collectionobject.FieldNumber,
+ collectionobject.CatalogedDate, 
+ collectionobject.CatalogedDatePrecision, 
+ fragment.Identifier,
+ preparation.PreparationID, 
+ preparation.Identifier,
+ preparation.SampleNumber,
+ %s 
+ From collectionobject 
+ Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
+ Inner Join preparation ON fragment.PreparationID = preparation.PreparationID 
+ WHERE preparation.CollectionMemberID = COLMEMID AND 
+ collectionobject.CollectionMemberID = COLMEMID AND 
+ %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
+                </sql>
+                <captions>
+                	<caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
+	                <caption tableid="1" col="FieldNumber"/>
+                    <caption tableid="1" formatter="PartialDate">
+                        <col name="CatalogedDate"          field="catalogedDate"/>
+                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
+                    </caption>
+                	<caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                </captions>
+            </detailView>
+        </table>
         
         
 
