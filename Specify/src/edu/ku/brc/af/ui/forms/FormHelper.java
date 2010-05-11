@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.StringTokenizer;
 
 import javax.swing.JComponent;
 
@@ -42,6 +43,7 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.ViewBasedDialogFactoryIFace.FRAME_TYPE;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -495,7 +497,43 @@ public final class FormHelper
             DataObjectGettable getter = DataObjectGettableFactory.get(dataObj.getDataClass().getName(), FormHelper.DATA_OBJ_GETTER);
             if (getter != null)
             {
-                return getter.getFieldValue(dataObj, fieldName);
+                
+                Object dataValue;
+                if (getter.usesDotNotation())
+                {
+                    int inx = fieldName.indexOf(".");
+                    if (inx > -1)
+                    {
+                        StringTokenizer st = new StringTokenizer(fieldName, ".");
+                        Object data       = dataObj;
+                        Object parentData = null;
+                        String fieldNamePart  = null;
+                        while (data != null && st.hasMoreTokens())
+                        {
+                            parentData = data;
+                            fieldNamePart  = st.nextToken();
+                            data = getter.getFieldValue(parentData, fieldNamePart);
+                        }
+                        
+                        dataValue = data;
+                        if (parentData instanceof FormDataObjIFace && dataValue != null)
+                        {
+                            FormDataObjIFace parentObj = (FormDataObjIFace)parentData;
+                            UIFieldFormatterIFace fmtr = DBTableIdMgr.getFieldFormatterFor(parentObj.getDataClass(), fieldNamePart);
+                            if (fmtr != null)
+                            {
+                                dataValue = fmtr.formatToUI(dataValue);
+                            }
+                        }
+                    } else
+                    {
+                        dataValue = getter.getFieldValue(dataObj, fieldName);
+                    }
+                } else
+                {
+                    dataValue = getter.getFieldValue(dataObj, fieldName);
+                }
+                return dataValue;
             }
             throw new RuntimeException("Could get a getter for FormDataObjIFace ["+dataObj.getDataClass().getName()+"]");
         }
