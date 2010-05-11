@@ -89,7 +89,7 @@ public class HUHMinCaptureBusRules extends BaseBusRules implements BusinessRules
 	    Preparation prep = fragment.getPreparation();
 	    
 	    prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
-	    fragment.setPreparation(prep);
+	    //fragment.setPreparation(prep);
 	}
 
 	/** Either the Fragment or its Preparation must have a barcode, and the barcode
@@ -102,10 +102,13 @@ public class HUHMinCaptureBusRules extends BaseBusRules implements BusinessRules
         if (dataObj instanceof Fragment)
         {
             Fragment fragment = (Fragment) dataObj;
-            
-            String fieldName = "identifier";
+            Preparation prep  = fragment.getPreparation();
+
+            String fieldName = "preparation.identifier";
             String barcode = (String)FormHelper.getValue(fragment, fieldName);
-            String formattedBarcode = formatToUI(Fragment.class, fieldName, barcode);
+            
+            fieldName = "identifier";  // drop the "preparation" bit for the remainder of this method
+            String formattedBarcode = formatToUI(Preparation.class, fieldName, barcode);
             
             Integer prepCount = 0;
             Integer fragmentCount = 0;
@@ -113,7 +116,7 @@ public class HUHMinCaptureBusRules extends BaseBusRules implements BusinessRules
             {
                 // count preparations with this barcode
                 prepCount =
-                    HUHMinCaptureBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, null);
+                    HUHMinCaptureBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, prep.getId());
                 
                 // count fragment records with this barcode
                 fragmentCount =
@@ -124,15 +127,14 @@ public class HUHMinCaptureBusRules extends BaseBusRules implements BusinessRules
             {
                 if (!StringUtils.isEmpty(barcode))
                 {
-                    // fragment has the barcode
+                    // preparation has the barcode
                     return STATUS.OK;
                 }
                 else
                 {
-                    if (fragment.getPreparation() != null &&
-                            fragment.getPreparation().getIdentifier() != null)
+                    if (fragment.getIdentifier() != null)
                     {
-                        // preparation has the barcode
+                        // fragment has the barcode
                         return STATUS.OK;
                     }
                     reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", Fragment.class, fieldName, ""));
