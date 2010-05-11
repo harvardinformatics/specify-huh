@@ -119,7 +119,7 @@
         <view name="FragmentShort"
         	objtitle="Item (Minimal Capture)"
         	class="edu.ku.brc.specify.datamodel.Fragment"
-        	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules2" 
+        	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHMinCaptureBusRules" 
         	useresourcelabels="true"
         	isinternal="false">
         	<desc><![CDATA[The Fragment form.]]></desc>
