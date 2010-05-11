@@ -445,7 +445,9 @@
         >
         <switch single="true">
             <fields>
-                <field uifieldformatter="HUHFragmentBarcode">identifier</field>
+                <field>identifier</field>
+                <field sep=" ">text1</field>
+                <field sep=" ">preparation.identifier</field>
             </fields>
         </switch>
     </format>
