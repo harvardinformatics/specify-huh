@@ -47,6 +47,7 @@ public class HUHMixedCollBusRules extends HUHPreparationBusRules
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {
         Preparation prep = (Preparation) dataObj;
+        prep.setCountAmt(1);
         
         for (Fragment fragment : prep.getFragments())
         {

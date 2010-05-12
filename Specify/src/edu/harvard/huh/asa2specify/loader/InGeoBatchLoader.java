@@ -119,6 +119,9 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         Integer collectionMemberId = this.getCollectionId(null);
         preparation.setCollectionMemberId(collectionMemberId);
 
+        // CountAmt
+        preparation.setCountAmt(1);
+        
         // PrepType
         preparation.setPrepType(prepType);
         
@@ -193,14 +196,15 @@ public class InGeoBatchLoader extends CsvToSqlLoader
     
     private String getInsertSql(Preparation preparation) throws LocalException
     {
-        String fieldNames = "CollectionMemberID, PrepTypeID, TimestampCreated, Version";
+        String fieldNames = "CollectionMemberID, CountAmt, PrepTypeID, TimestampCreated, Version";
 
-        String[] values = new String[4];
+        String[] values = new String[5];
         
         values[0]  = SqlUtils.sqlString( preparation.getCollectionMemberId());
-        values[1]  = SqlUtils.sqlString( preparation.getPrepType().getId());
-        values[2]  = SqlUtils.now();
-        values[3]  = SqlUtils.zero();
+        values[1]  = SqlUtils.sqlString( preparation.getCountAmt());
+        values[2]  = SqlUtils.sqlString( preparation.getPrepType().getId());
+        values[3]  = SqlUtils.now();
+        values[4]  = SqlUtils.zero();
         
         return SqlUtils.getInsertSql("preparation", fieldNames, values);
     }

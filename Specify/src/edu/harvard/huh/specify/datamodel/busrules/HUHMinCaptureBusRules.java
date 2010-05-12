@@ -87,6 +87,7 @@ public class HUHMinCaptureBusRules extends BaseBusRules implements BusinessRules
 	    fragment.setCollectionObject(collObj);
 	    
 	    Preparation prep = fragment.getPreparation();
+	    prep.setCountAmt(1);
 	    
 	    prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
 	    //fragment.setPreparation(prep);

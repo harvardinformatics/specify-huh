@@ -93,6 +93,7 @@ public class HUHMixedPrepBusRules extends HUHCollectionObjectBusRules
                 Preparation prep = fragment.getPreparation();
                 if (prep != null)
                 {
+                    prep.setCountAmt(1);
                     prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
                     fragment.setPreparation(prep);
                 }
