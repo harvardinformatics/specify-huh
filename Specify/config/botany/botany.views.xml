@@ -881,7 +881,7 @@
 
             <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,  40px, 2px, 100px, 160px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 145px,        5px,   115px, 2px, 200px, 5px,  40px, 2px, 100px, 160px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,  40px, 2px, 100px, 160px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 190px,        5px,   115px, 2px, 225px, 5px,  40px, 2px, 100px, 160px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,   p, 2px, 151px, 160px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
