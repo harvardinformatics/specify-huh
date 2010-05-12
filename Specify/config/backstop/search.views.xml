@@ -494,7 +494,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="4" label="Variant Name"/>
-                    <cell type="field" id="4" name="VariantName" uitype="text" cols="20"/>
+                    <cell type="field" id="4" name="Name" uitype="text" cols="20"/>
                 </row>
             </rows>
         </viewdef>
@@ -700,8 +700,12 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="separator" label="Item" colspan="7"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1" />
+                    <cell type="label" labelfor="1" label="Item Barcode"/>
                     <cell type="field" id="1" name="fragment.Identifier" uitype="formattedtext" uifieldformatter="HUHFragmentBarcode" initialize="ispartial=true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2" label="Preparation Barcode"/>
+                    <cell type="field" id="2" name="preparation.Identifier" uitype="formattedtext" uifieldformatter="HUHPreparationBarcode" initialize="ispartial=true"/>
                 </row>
             </rows>
         </viewdef>
@@ -1017,16 +1021,40 @@ Good: <cell type="field" name="FieldNum" ...>
             gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
             settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
             
-            <desc><![CDATA[The Taxon Search Form]]></desc>
+            <desc><![CDATA[The Publication Search Form]]></desc>
             <enableRules/>
             
             <columnDef>p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
             
             <rows>
                 <row>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="Title" isrequired="false" uitype="text"/>
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="ReferenceWorkType" isrequired="true" uitype="combobox" picklist="HUH Reference Work Type"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="1" label="Author (Last Name)"/>
+                	<cell type="field" id="1" name="LastName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="Title" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3" label="Variant Name"/>
+                    <cell type="field" id="3" name="Name" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="WorkDate" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="6" label="Reference Number"/>
+                    <cell type="field" id="6" name="Identifier" isrequired="false" uitype="text"/>
                 </row>
             </rows>
         </viewdef>
@@ -1073,8 +1101,8 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="field" id="FullName" name="taxon.FullName" isrequired="false" uitype="text"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="CommonName" label="Common Name"/>
-                    <cell type="field" id="CommonName" name="taxon.CommonName" isrequired="false" uitype="text"/>
+                    <cell type="label" labelfor="Author" label="Author"/>
+                    <cell type="field" id="Author" name="taxon.Author" isrequired="false" uitype="text"/>
                 </row>
             </rows>
         </viewdef>
@@ -1094,7 +1122,7 @@ Good: <cell type="field" name="FieldNum" ...>
             <rows>
                 <row>
                     <cell type="label" labelfor="FullName" label="Full Name"/>
-                    <cell type="field" id="FullName" name="geography.FullName" isrequired="true" uitype="text"/>
+                    <cell type="field" id="FullName" name="FullName" isrequired="true" uitype="text"/>
                 </row>
             </rows>
         </viewdef>

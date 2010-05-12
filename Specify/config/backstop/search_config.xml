@@ -1788,7 +1788,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 <captions>
                     <caption tableid="3" col="geo.GeographyID" visible="false"/>
                     <caption tableid="3" col="geo.Name"/>
-                    <caption tableid="3" col="geo.FullName"/>
+                    <caption tableid="3" col="FullName" name="FullName"/>
                     <caption tableid="3" col="gtdi.Name" key="GeoCategory"/>                    
                 </captions>
             </detailView>
@@ -1836,13 +1836,13 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="107" tableid="4" name="TaxonSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT tx.TaxonID, tx.RankID, tx.FullName, tx.CommonName FROM taxon tx WHERE tx.TaxonTreeDefID = TAXTREEDEFID AND (%s) ORDER BY tx.RankID, tx.Name]]>
+                    <![CDATA[SELECT tx.TaxonID, tx.RankID, tx.FullName, tx.Author FROM taxon tx WHERE tx.TaxonTreeDefID = TAXTREEDEFID AND (%s) ORDER BY tx.RankID, tx.Name]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID" visible="false"/>
                     <caption tableid="4" col="taxon.RankID" visible="false"/>
                     <caption tableid="4" col="taxon.FullName"/>
-                    <caption tableid="4" col="taxon.CommonName"/>
+                    <caption tableid="4" col="taxon.Author"/>
                 </captions>
             </detailView>
         </table>
@@ -2039,11 +2039,20 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="121" tableid="69" name="ReferenceWorkSearch" priority="1" color="30, 144, 255">
             <detailView icon="ReferenceWork">
                 <sql>
-                    <![CDATA[SELECT rw.ReferenceWorkID, rw.Title FROM referencework rw WHERE (%s) ORDER BY rw.Title]]>
+                    <![CDATA[SELECT rw.ReferenceWorkID, rw.ReferenceWorkType, rw.Text1, ag.LastName, rw.WorkDate, rwv.Name, rwi.Identifier
+                               FROM referencework rw LEFT JOIN referenceworkvariant rwv on rwv.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    referenceworkidentifier rwi on rwi.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    author au on au.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    agent ag on ag.AgentID=au.AgentID WHERE (%s) ORDER BY rw.Text1]]>
                 </sql>
                 <captions>
                     <caption tableid="69" col="ReferenceWorkID" visible="false"/>
-                    <caption tableid="69" col="Title"/>
+                    <caption tableid="69" col="ReferenceWorkType"/>
+                    <caption tableid="69" col="Text1"/>
+                    <caption tableid="5" col="LastName"/>
+                    <caption tableid="69" col="WorkDate"/>
+                    <caption tableid="141" col="Name"/>
+                    <caption tableid="140" col="Identifier"/>
                 </captions>
             </detailView>
         </table>
@@ -2248,8 +2257,6 @@ repositoryagreement.RepositoryAgreementNumber,
                     <caption tableid="142" col="FragmentID" visible="false"/>
                     <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="65" name="Name" col="prepType.Name"/>
-                    <caption tableid="63" name="SampleNumber" col="preparation.SampleNumber"/>
-                    <caption tableid="63" name="Text1" col="preparation.Text1"/>
                     <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
                 </captions>
             </detailView>
