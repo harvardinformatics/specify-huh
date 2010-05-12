@@ -960,7 +960,7 @@
                 </row> -->
 				<row>
 					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation" isrequired="false" colspan="5"/>
+					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" colspan="5"/>
 				</row>
                 <row>
                 	<cell type="label" labelfor="storage"/>
@@ -1260,7 +1260,7 @@
                 </row>
 				<row>
 					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="preparation.parent" uitype="querycbx" initialize="name=Preparation" isrequired="false" colspan="5"/>
+					<cell type="field" id="parent" name="preparation.parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" colspan="5"/>
 				</row>
                 <row>
                 	<cell type="label" labelfor="storage"/>
