@@ -378,7 +378,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[13] = SqlUtils.sqlString( borrow.getText3());
         values[14] = SqlUtils.sqlString( borrow.getTimestampCreated());
         values[15] = SqlUtils.sqlString( borrow.getTimestampModified());
-        values[16] = SqlUtils.zero();
+        values[16] = SqlUtils.one();
         values[17] = SqlUtils.sqlString( borrow.getYesNo1());
         values[18] = SqlUtils.sqlString( borrow.getYesNo2());
         values[19] = SqlUtils.sqlString( borrow.getYesNo3());
@@ -399,7 +399,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[3] = SqlUtils.sqlString( borrowAgent.getRemarks());
         values[4] = SqlUtils.sqlString( borrowAgent.getRole());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
     }
@@ -421,7 +421,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         values[7]  = SqlUtils.sqlString( borrowMaterial.getTaxon().getId());
         values[8]  = SqlUtils.now();
         values[9]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
-        values[10] = SqlUtils.zero();
+        values[10] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }

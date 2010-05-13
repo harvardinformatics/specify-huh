@@ -153,8 +153,8 @@ public class SqlUtils
         return "now()";
     }
 
-    public static String zero() {
-        return "0";
+    public static String one() {
+        return "1";
     }
 
     public static String sqlString(String s) {

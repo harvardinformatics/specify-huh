@@ -110,7 +110,7 @@ public class PublicationNumberLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( refWorkIdentifier.getReferenceWork().getId());
         values[2] = SqlUtils.now();
         values[3] = SqlUtils.sqlString( refWorkIdentifier.getType());
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("referenceworkidentifier", fieldNames, values);
     }

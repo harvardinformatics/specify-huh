@@ -204,7 +204,7 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         values[1]  = SqlUtils.sqlString( preparation.getCountAmt());
         values[2]  = SqlUtils.sqlString( preparation.getPrepType().getId());
         values[3]  = SqlUtils.now();
-        values[4]  = SqlUtils.zero();
+        values[4]  = SqlUtils.one();
         
         return SqlUtils.getInsertSql("preparation", fieldNames, values);
     }
@@ -229,7 +229,7 @@ public class InGeoBatchLoader extends CsvToSqlLoader
         values[9]  = SqlUtils.sqlString( accessionPrep.getReturnCount());
         values[10] = SqlUtils.now();
         values[11] = SqlUtils.sqlString( accessionPrep.getTypeCount());
-        values[12] = SqlUtils.zero();
+        values[12] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("accessionpreparation", fieldNames, values);
     }

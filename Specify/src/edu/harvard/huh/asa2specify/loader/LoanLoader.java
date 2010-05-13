@@ -509,7 +509,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[15] = SqlUtils.sqlString( loan.getText3());
         values[16] = SqlUtils.sqlString( loan.getTimestampCreated());
         values[17] = SqlUtils.sqlString( loan.getTimestampModified());
-        values[18] = SqlUtils.zero();
+        values[18] = SqlUtils.one();
         values[19] = SqlUtils.sqlString( loan.getYesNo1());
         values[20] = SqlUtils.sqlString( loan.getYesNo2());
         values[21] = SqlUtils.sqlString( loan.getYesNo3());
@@ -529,7 +529,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[3] = SqlUtils.sqlString( loanAgent.getRemarks());
         values[4] = SqlUtils.sqlString( loanAgent.getRole());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
     }
@@ -553,7 +553,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[8]  = SqlUtils.sqlString( loanPreparation.getTaxon().getId());
         values[9]  = SqlUtils.now();
         values[10] = SqlUtils.sqlString( loanPreparation.getTypeCount());
-        values[11] = SqlUtils.zero();
+        values[11] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }

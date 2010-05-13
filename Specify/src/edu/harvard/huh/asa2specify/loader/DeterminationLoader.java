@@ -219,7 +219,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         values[10] = SqlUtils.sqlString( determination.getQualifier());
         values[11] = SqlUtils.sqlString( determination.getRemarks());
         values[12] = SqlUtils.now();
-        values[13] = SqlUtils.zero();
+        values[13] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }

@@ -250,7 +250,7 @@ public class BotanistLoader extends AuditedObjectLoader
 		values[12] = SqlUtils.sqlString( agent.getTimestampCreated());
 		values[13] = SqlUtils.sqlString( agent.getTimestampModified());
 		values[14] = SqlUtils.sqlString( agent.getUrl());
-		values[15] = SqlUtils.zero();
+		values[15] = SqlUtils.one();
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

@@ -256,7 +256,7 @@ public class OutgoingMiscLoader extends TransactionLoader
         values[14] = SqlUtils.sqlString( shipment.getText2());
         values[15] = SqlUtils.sqlString( shipment.getTimestampCreated());
         values[16] = SqlUtils.sqlString( shipment.getTimestampModified());
-        values[17] = SqlUtils.zero();
+        values[17] = SqlUtils.one();
         values[18] = SqlUtils.sqlString( shipment.getYesNo1());
         values[19] = SqlUtils.sqlString( shipment.getYesNo1());
         

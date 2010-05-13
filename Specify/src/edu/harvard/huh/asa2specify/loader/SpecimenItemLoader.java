@@ -1171,7 +1171,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[9]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
         values[10] = SqlUtils.now();
         values[11] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
-        values[12] = SqlUtils.zero();
+        values[12] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }
@@ -1189,7 +1189,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( collector.getIsPrimary());
         values[4] = SqlUtils.sqlString( collector.getOrderNumber());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("collector", fieldNames, values);
     }
@@ -1221,7 +1221,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[15] = SqlUtils.sqlString( collectionObject.getText3());
 		values[16] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
 		values[17] = SqlUtils.sqlString( collectionObject.getTimestampModified());
-        values[18] = SqlUtils.zero();
+        values[18] = SqlUtils.one();
 		values[19] = SqlUtils.sqlString( collectionObject.getYesNo1());		
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
@@ -1250,7 +1250,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[12] = SqlUtils.sqlString( fragment.getText1());
         values[13] = SqlUtils.sqlString( fragment.getText2());
         values[14] = SqlUtils.now();
-        values[15] = SqlUtils.zero();
+        values[15] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("fragment", fieldNames, values);
     }
@@ -1272,7 +1272,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[6]  = SqlUtils.sqlString( preparation.getStorageLocation());
 		values[7]  = SqlUtils.sqlString( preparation.getText1());
         values[8]  = SqlUtils.now();
-        values[9]  = SqlUtils.zero();
+        values[9]  = SqlUtils.one();
 		values[10] = SqlUtils.sqlString( preparation.getYesNo1());
         
 		return SqlUtils.getInsertSql("preparation", fieldNames, values);
@@ -1288,7 +1288,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[1] = SqlUtils.sqlString( exsiccataItem.getFragment().getId());
 		values[2] = SqlUtils.sqlString( exsiccataItem.getReferenceWork().getId());
 		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.zero();
+		values[4] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("fragmentcitation", fieldNames, values);
 	}
@@ -1306,7 +1306,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[3] = SqlUtils.sqlString( otherIdentifier.getInstitution());
         values[4] = SqlUtils.sqlString( otherIdentifier.getRemarks());
         values[5] = SqlUtils.now();
-        values[6] = SqlUtils.zero();
+        values[6] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("otheridentifier", fieldNames, values);
     }
@@ -1322,7 +1322,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[2] = SqlUtils.sqlString( container.getNumber());
         values[3] = SqlUtils.now();
         values[4] = SqlUtils.sqlString( container.getType());
-        values[5] = SqlUtils.zero();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("container", fieldNames, values);
     }
@@ -1337,7 +1337,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[1] = SqlUtils.sqlString( collectingTrip.getDiscipline().getId());
         values[2] = SqlUtils.sqlString( collectingTrip.getRemarks());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("collectingtrip", fieldNames, values);
     }

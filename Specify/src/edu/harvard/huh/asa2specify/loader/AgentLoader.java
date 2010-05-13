@@ -345,7 +345,7 @@ public class AgentLoader extends CsvToSqlLoader
 		values[9]  = SqlUtils.now();
 		values[10] = SqlUtils.sqlString( agent.getTitle());
 		values[11] = SqlUtils.sqlString( agent.getUrl());
-		values[12] = SqlUtils.zero();
+		values[12] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -388,7 +388,7 @@ public class AgentLoader extends CsvToSqlLoader
         values[10]  = SqlUtils.sqlString( address.getRemarks());
         values[11] = SqlUtils.sqlString( address.getState());
         values[12] = SqlUtils.now();
-        values[13] = SqlUtils.zero();
+        values[13] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

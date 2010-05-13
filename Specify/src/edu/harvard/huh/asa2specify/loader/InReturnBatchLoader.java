@@ -126,7 +126,7 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         values[4] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
         values[5] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
         values[6] = SqlUtils.now();
-        values[7] = SqlUtils.zero();
+        values[7] = SqlUtils.one();
         values[8] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);

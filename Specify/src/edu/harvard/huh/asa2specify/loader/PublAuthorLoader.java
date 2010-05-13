@@ -128,7 +128,7 @@ public class PublAuthorLoader extends CsvToSqlLoader
 		values[1] = SqlUtils.sqlString( author.getReferenceWork().getId());
 		values[2] = SqlUtils.sqlString( author.getOrderNumber());
 		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.zero();
+		values[4] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

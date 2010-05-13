@@ -104,7 +104,7 @@ public class PublicationTitleLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( refWorkVariant.getReferenceWork().getId());
         values[2] = SqlUtils.now();
         values[3] = SqlUtils.sqlString( refWorkVariant.getVarType());
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("referenceworkvariant", fieldNames, values);
     }

@@ -268,7 +268,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		values[5] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
 		values[6] = SqlUtils.now();
 		values[7] = SqlUtils.sqlString( borrowReturnMaterial.getTypeCount());
-		values[8] = SqlUtils.zero();
+		values[8] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("borrowreturnmaterial", fields, values);
 	}
@@ -291,7 +291,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
 		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
 		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.zero();
+		values[10] = SqlUtils.one();
 		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
 		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
 		

@@ -143,7 +143,7 @@ public class BotanistCitationLoader extends CsvToSqlLoader
 		values[4] = SqlUtils.sqlString( agentCitation.getText1());
 		values[5] = SqlUtils.sqlString( agentCitation.getText2());
 		values[6] = SqlUtils.now();
-		values[7] = SqlUtils.zero();
+		values[7] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agentcitation", fieldNames, values);
 	}

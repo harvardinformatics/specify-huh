@@ -174,7 +174,7 @@ public class PublicationLoader extends AuditedObjectLoader
         values[10] = SqlUtils.sqlString( referenceWork.getTimestampModified());
         values[11] = SqlUtils.sqlString( referenceWork.getTitle());
 		values[12] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[13] = SqlUtils.zero();
+		values[13] = SqlUtils.one();
 		values[14] = SqlUtils.sqlString( referenceWork.getWorkDate());
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    

@@ -356,7 +356,7 @@ public class ShipmentLoader extends CsvToSqlLoader
 		values[12] = SqlUtils.sqlString( shipment.getText1());
 		values[13] = SqlUtils.sqlString( shipment.getText2());
 		values[14] = SqlUtils.now();
-		values[15] = SqlUtils.zero();
+		values[15] = SqlUtils.one();
 		values[16] = SqlUtils.sqlString( shipment.getYesNo2());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
@@ -372,7 +372,7 @@ public class ShipmentLoader extends CsvToSqlLoader
     	values[1] = SqlUtils.sqlString( agent.getGuid());
     	values[2] = SqlUtils.sqlString( agent.getLastName());
     	values[3] = SqlUtils.now();
-    	values[4] = SqlUtils.zero();
+    	values[4] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("agent", fieldNames, values);
     }

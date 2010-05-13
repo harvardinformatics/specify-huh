@@ -393,7 +393,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[9]  = SqlUtils.sqlString( determination.getText2());
         values[10] = SqlUtils.now();
         values[11] = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[12] = SqlUtils.zero();
+        values[12] = SqlUtils.one();
         values[13] = SqlUtils.sqlString( determination.getYesNo2());
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
@@ -409,7 +409,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[0] = SqlUtils.sqlString( referenceWork.getContainedRFParent().getId());
         values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
         values[2] = SqlUtils.now();
-        values[3] = SqlUtils.zero();
+        values[3] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("referencework", fieldNames, values);
     }
@@ -424,7 +424,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[1] = SqlUtils.sqlString( author.getOrderNumber());
         values[2] = SqlUtils.sqlString( author.getReferenceWork().getId());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("author", fieldNames, values);
     }
@@ -443,7 +443,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         values[4] = SqlUtils.sqlString( determinationCitation.getText1());
         values[5] = SqlUtils.sqlString( determinationCitation.getText2());
         values[6] = SqlUtils.now();
-        values[7] = SqlUtils.zero();
+        values[7] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }

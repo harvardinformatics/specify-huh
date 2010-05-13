@@ -605,7 +605,7 @@ public class SubcollectionLoader extends TreeLoader
         values[14] = SqlUtils.sqlString( storage.getText2());
         values[15] = SqlUtils.sqlString( storage.getTimestampCreated());
         values[16] = SqlUtils.sqlString( storage.getTimestampModified());
-        values[17] = SqlUtils.zero();
+        values[17] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("storage", fieldNames, values);
     }
@@ -621,7 +621,7 @@ public class SubcollectionLoader extends TreeLoader
 		values[2] = SqlUtils.sqlString( referenceWork.getRemarks());
         values[3] = SqlUtils.sqlString( referenceWork.getText1());
 		values[4] = SqlUtils.now();
-		values[5] = SqlUtils.zero();
+		values[5] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
@@ -638,7 +638,7 @@ public class SubcollectionLoader extends TreeLoader
         values[2] = SqlUtils.sqlString( agent.getGuid());
         values[3] = SqlUtils.sqlString( agent.getLastName());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
@@ -653,7 +653,7 @@ public class SubcollectionLoader extends TreeLoader
         values[1] = SqlUtils.sqlString( agentVariant.getName());
         values[2] = SqlUtils.sqlString( agentVariant.getVarType());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }
@@ -668,7 +668,7 @@ public class SubcollectionLoader extends TreeLoader
 		values[1] = String.valueOf( author.getReferenceWork().getId());
 		values[2] = String.valueOf( author.getOrderNumber());
 		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.zero();
+		values[4] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

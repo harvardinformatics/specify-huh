@@ -145,7 +145,7 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		values[3] = SqlUtils.sqlString( agentGeography.getRemarks()); 
 		values[4] = SqlUtils.sqlString( agentGeography.getRole());
 		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.zero();
+		values[6] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}

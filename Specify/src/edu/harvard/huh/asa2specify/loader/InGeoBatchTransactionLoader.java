@@ -191,7 +191,7 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
         values[11] = SqlUtils.sqlString( accession.getType());
         values[12] = SqlUtils.sqlString( accession.getTimestampCreated());
         values[13] = SqlUtils.sqlString( accession.getTimestampModified());
-        values[14] = SqlUtils.zero();
+        values[14] = SqlUtils.one();
         values[15] = SqlUtils.sqlString( accession.getYesNo1());
         values[16] = SqlUtils.sqlString( accession.getYesNo1());
         
@@ -208,7 +208,7 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
         values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
         values[2] = SqlUtils.sqlString( accessionAgent.getRole());
         values[3] = SqlUtils.now();
-        values[4] = SqlUtils.zero();
+        values[4] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }

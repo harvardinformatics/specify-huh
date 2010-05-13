@@ -228,7 +228,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         values[5] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( giftPrep.getTypeCount());
-        values[8] = SqlUtils.zero();
+        values[8] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("giftpreparation", fieldNames, values);
     }
@@ -248,7 +248,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         values[5] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( exchOutPrep.getTypeCount());
-        values[8] = SqlUtils.zero();
+        values[8] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("exchangeoutpreparation", fieldNames, values);
     }

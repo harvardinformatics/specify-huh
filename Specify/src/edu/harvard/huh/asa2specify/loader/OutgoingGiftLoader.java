@@ -213,7 +213,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[10] = SqlUtils.sqlString( gift.getText2());
         values[11] = SqlUtils.sqlString( gift.getTimestampCreated());
         values[12] = SqlUtils.sqlString( gift.getTimestampModified());
-        values[13] = SqlUtils.zero();
+        values[13] = SqlUtils.one();
         values[14] = SqlUtils.sqlString( gift.getYesNo1());
         
         return SqlUtils.getInsertSql("gift", fieldNames, values);
@@ -230,7 +230,7 @@ public class OutgoingGiftLoader extends TransactionLoader
         values[2] = SqlUtils.sqlString( giftAgent.getGift().getId());
         values[3] = SqlUtils.sqlString( giftAgent.getRole());
         values[4] = SqlUtils.now();
-        values[5] = SqlUtils.zero();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("giftagent", fieldNames, values);
     } 
