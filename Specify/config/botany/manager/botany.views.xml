@@ -426,10 +426,6 @@
                     <cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox"/> 
                 </row>
                 <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="alternateName" uitype="text" colspan="8"/>           
-                </row>
-                <row>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent" colspan="8"/>
                 </row>
@@ -569,26 +565,22 @@
                     <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="alternateName" uitype="text" colspan="5"/>
+                    <cell type="label" labelfor="text1"/>
+                	<cell type="field" id="text1" uitype="text" colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="yesNo1" name="yesNo1" uitype="checkbox"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="text1"/>
-                	<cell type="field" id="text1" uitype="text" colspan="5"/>
+                	<cell type="label" labelfor="text2"/>
+                	<cell type="field" id="text2" uitype="textareabrief" rows="3" colspan="5"/>
                 	<cell type="label" label=" "/>
                 	<cell type="field" id="yesNo2" name="yesNo2" uitype="checkbox"/> 
                 </row>
                 <row>
-                	<cell type="label" labelfor="text2"/>
-                	<cell type="field" id="text2" uitype="textareabrief" rows="2" colspan="5"/>
+                	<cell type="label" labelfor="remarks"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="3" colspan="5"/>
                 	<cell type="label" label=" "/>
                 	<cell type="field" id="yesNo3" name="yesNo3" uitype="checkbox"/> 
-                </row>
-                <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
