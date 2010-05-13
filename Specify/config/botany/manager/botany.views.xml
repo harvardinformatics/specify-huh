@@ -879,8 +879,8 @@
 
             <rows>
                 <row>
-                	<cell type="label" labelfor="prepBarcode"/>
-                	<cell type="field" id="prepBarcode" uitype="formattedtext" name="preparation.identifier" uifieldformatter="HUHPreparationBarcode" isrequired="true"/>
+                	<cell type="label" labelfor="itemBarcode"/>
+                	<cell type="field" id="itemBarcode" uitype="formattedtext" name="identifier" uifieldformatter="HUHFragmentBarcode" isrequired="true"/>
                     <cell type="label" labelfor="prepType"/>
                     <cell type="field" id="prepType" name="preparation.prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
 				</row>
