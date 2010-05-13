@@ -15598,7 +15598,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Description</text>
+            <text>Item Description</text>
           </str>
         </names>
         <descs>
@@ -15635,7 +15635,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Barcode</text>
+            <text>Item Barcode</text>
           </str>
         </names>
         <descs>
@@ -24172,7 +24172,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en">
             <version>0</version>
-            <text>Description</text>
+            <text>Prep Description</text>
             <itemDesc reference="../../.."/>
           </str>
         </names>
@@ -24206,7 +24206,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Barcode</text>
+            <text>Prep Barcode</text>
           </str>
         </names>
         <descs>
@@ -24350,7 +24350,7 @@ Preparation: A subdivision of a collection object that refers to the preparation
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Note</text>
+            <text>Prep Note</text>
           </str>
         </names>
         <descs>
@@ -24698,7 +24698,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
-      <item name="definition" type="ManyToOne" pickListName="HUH Reference Work Type">
+      <item name="definition" type="ManyToOne">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
