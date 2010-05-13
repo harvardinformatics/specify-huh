@@ -4,7 +4,6 @@
 	    <view sidebar="true"  title="Minimal Capture"    view="FragmentShort"      iconname="Plants"             tooltip=""/>
         <view sidebar="true"  title="Mixed Collection"   view="MixedColl"          iconname="Preparation"        tooltip=""/>
         <view sidebar="true"  title="Multiple Preparation" view="MixedPrep"        iconname="CollectionObject"   tooltip=""/>
-	    <view sidebar="true"  title="Item"               view="Fragment"           iconname="Plants"             tooltip="Item" mnemonic="I"/>
 	    <view sidebar="true"  title="Taxon"              view="Taxon"              iconname="Taxon"              tooltip="" mnemonic="X"/> 
 	    <view sidebar="true"  title="Botanist"           view="Botanist"           iconname="Agent"              tooltip="AUTHORCOLLECTOR" mnemonic="B"/>
 	    <view sidebar="true"  title="Geography"          view="Geography"          iconname="Geography"          tooltip="" mnemonic="G"/> 
@@ -12,6 +11,7 @@
 	</std>
 	
 	<misc>
+		<view sidebar="false" title="Mixed Collection"   view="Fragment"           iconname="Plants"             tooltip="Item" mnemonic="I"/>
 		<view sidebar="true"  title="Subcollection"      view="Storage"            iconname="Storage"           tooltip=""                mnemonic="U"/>
         <view sidebar="true"  title="Transaction Agent"  view="Transaction Agent"  iconname="Agent"             tooltip="AGENTAFFILIATE" mnemonic="T"/>		
 	</misc>

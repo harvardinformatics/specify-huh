@@ -118,7 +118,7 @@
         </view>
         
         <view name="Fragment"
-        	objtitle="Item"
+        	objtitle="Mixed Collection"
         	class="edu.ku.brc.specify.datamodel.Fragment"
         	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules" 
         	useresourcelabels="true"
@@ -144,7 +144,7 @@
         </view>
         
         <view name="MixedColl"
-              objtitle="Mixed Collection"
+              objtitle="Single/Multiple Collection"
               class="edu.ku.brc.specify.datamodel.Preparation"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHMixedCollBusRules"
               resourcelabels="false"
