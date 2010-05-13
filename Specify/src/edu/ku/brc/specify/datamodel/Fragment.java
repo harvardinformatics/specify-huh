@@ -27,6 +27,7 @@ import org.hibernate.annotations.Index;
 @Table(name = "fragment")
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
+        @Index (name="FragGuidIDX", columnNames={"GUID"}),
         @Index (name="IdentifierIDX", columnNames={"Identifier"}) })
 public class Fragment extends CollectionMember implements AttachmentOwnerIFace<FragmentAttachment>,
                                                           Serializable,
@@ -36,9 +37,11 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 	// Fields 
 	protected Integer fragmentId;
 	protected String  accessionNumber;
+	
 	protected String  identifier;
 	protected String  description;
 	protected String  distribution;
+	protected String  guid; 
 	protected String  phenology;
 	protected String  prepMethod;
 	protected String  provenance;
@@ -94,6 +97,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
         description      = null;
         distribution     = null;
         fragmentId       = null;
+        guid             = null;
         identifier       = null;
         phenology        = null;
         prepMethod       = null;
@@ -208,6 +212,17 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 
     public void setFragmentId(Integer fragmentId) {
         this.fragmentId = fragmentId;
+    }
+    
+    @Column(name = "GUID", length = 128)
+    public String getGuid()
+    {
+        return this.guid;
+    }
+
+    public void setGuid(String guid)
+    {
+        this.guid = guid;
     }
     
     /* (non-Javadoc)

@@ -15629,6 +15629,16 @@
         </names>
         <descs/>
       </item>
+      <item name="guid" type="java.lang.String">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>GUID</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="identifier" type="java.lang.String" format="HUHFragmentBarcode" isUIFormatter="true" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
