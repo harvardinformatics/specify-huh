@@ -19,13 +19,17 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
+
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.Project;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
 /**
@@ -59,7 +63,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
             }
         }
     }
-
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
      */
@@ -67,6 +71,10 @@ public class HUHPreparationBusRules extends PreparationBusRules
     public STATUS processBusinessRules(Object dataObj)
     {
         STATUS status = super.processBusinessRules(dataObj);
+        
+        if (!STATUS.OK.equals(status)) return status;
+        
+        status = isParentOK((FormDataObjIFace) dataObj);
         
         if (!STATUS.OK.equals(status)) return status;
         
@@ -113,5 +121,25 @@ public class HUHPreparationBusRules extends PreparationBusRules
         }
         
         throw new IllegalArgumentException();
-    }    
+    }
+    
+    protected STATUS isParentOK(final FormDataObjIFace dataObj)
+    {
+        if (dataObj instanceof Preparation)
+        {
+            Preparation formPrep = (Preparation) dataObj;
+            Preparation parentPrep = formPrep.getParent();
+            
+            while (parentPrep != null)
+            {
+                if (parentPrep.getPreparationId().equals(formPrep.getPreparationId()))
+                {
+                    reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
+                    return STATUS.Error;
+                }
+                parentPrep = parentPrep.getParent();
+            }
+        }
+        return STATUS.OK;
+    }
 }
