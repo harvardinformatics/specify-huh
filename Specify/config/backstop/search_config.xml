@@ -1234,7 +1234,6 @@ repositoryagreement.RepositoryAgreementNumber,
  SELECT distinct 
  preparation.PreparationID, 
  preparation.Identifier,
- preparation.SampleNumber, 
  fragment.Identifier,
  collectionobject.FieldNumber,
  collectionobject.CatalogedDate, 
@@ -1250,7 +1249,6 @@ repositoryagreement.RepositoryAgreementNumber,
                 <captions>
                 	<caption tableid="63" col="preparation.PreparationID" visible="false"/>
                 	<caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                	<caption tableid="63" col="SampleNumber"/>
                     <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="1" col="FieldNumber"/>
                     <caption tableid="1" formatter="PartialDate">
@@ -1271,13 +1269,13 @@ repositoryagreement.RepositoryAgreementNumber,
                 <sql>
                     <![CDATA[
  SELECT distinct 
+ collectionobject.CollectionObjectID,
  collectionobject.FieldNumber,
  collectionobject.CatalogedDate, 
  collectionobject.CatalogedDatePrecision, 
  fragment.Identifier,
  preparation.PreparationID, 
  preparation.Identifier,
- preparation.SampleNumber,
  %s 
  From collectionobject 
  Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
@@ -1299,7 +1297,37 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
         
-        
+        <table id="60" tableid="1" indexed="false" name="CollObjToItem" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
+                <join tableid="142">fragment.FragmentID</join>
+            </joins>
+            <detailView icon="Fragment">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ collectionobject.CollectionObjectID,
+ collectionobject.FieldNumber,
+ collectionobject.CatalogedDate, 
+ collectionobject.CatalogedDatePrecision, 
+ fragment.Identifier,
+ %s 
+ From collectionobject 
+ Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
+ WHERE collectionobject.CollectionMemberID = COLMEMID AND 
+ %s order by fragment.Identifier]]>
+                </sql>
+                <captions>
+                	<caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
+	                <caption tableid="1" col="FieldNumber"/>
+                    <caption tableid="1" formatter="PartialDate">
+                        <col name="CatalogedDate"          field="catalogedDate"/>
+                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
+                    </caption>
+                	<caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                </captions>
+            </detailView>
+        </table>
 
         
         
