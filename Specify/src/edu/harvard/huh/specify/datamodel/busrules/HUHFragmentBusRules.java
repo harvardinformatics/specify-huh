@@ -1,9 +1,6 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -16,11 +13,8 @@ import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
@@ -36,46 +30,17 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
     {
         super();
     }
-
+    
     @Override
-    public void addChildrenToNewDataObjects(Object newDataObj)
+    public void afterDeleteCommit(final Object dataObj)
     {
-        super.addChildrenToNewDataObjects(newDataObj);
+        Fragment fragment = (Fragment) dataObj;
         
-       /* Fragment fragment = (Fragment) newDataObj;
+        Preparation prep = fragment.getPreparation();
+        if (prep != null) prep.getFragments().remove(fragment);
         
-        CollectionObject collectionObject = fragment.getCollectionObject();
-
-        if (collectionObject == null)
-        {
-            collectionObject = new CollectionObject();
-            collectionObject.initialize();
-            fragment.setCollectionObject(collectionObject);
-        }
-        
-        if (collectionObject.getCataloger() == null)
-        {
-            Agent agent = Agent.getUserAgent();
-            collectionObject.setCataloger(agent);
-            collectionObject.setCatalogedDate(Calendar.getInstance());
-            collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-        }
-
-        CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
-        if (collectingEvent == null)
-        {
-            collectingEvent = new CollectingEvent();
-            collectingEvent.initialize();
-            collectionObject.setCollectingEvent(collectingEvent);
-        }
-
-        Locality locality = collectingEvent.getLocality();
-        if (locality == null)
-        {
-            locality = new Locality();
-            locality.initialize();
-            collectingEvent.setLocality(locality);
-        }*/
+        CollectionObject collObj = fragment.getCollectionObject();
+        if (collObj != null) collObj.getFragments().remove(collObj);
     }
     
     @Override

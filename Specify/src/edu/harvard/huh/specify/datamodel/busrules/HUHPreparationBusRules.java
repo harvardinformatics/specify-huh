@@ -21,15 +21,22 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Permit;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Project;
+import edu.ku.brc.specify.datamodel.busrules.AccessionBusRules;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
 /**
@@ -62,6 +69,25 @@ public class HUHPreparationBusRules extends PreparationBusRules
                 }
             }
         }
+    }
+    
+    @Override
+    public boolean okToEnableDelete(Object dataObj)
+    {
+        if (dataObj != null)
+        {
+            if (dataObj instanceof Preparation)
+            {
+                reasonList.clear();
+
+                Preparation prep = (Preparation) dataObj;
+                if (prep.getFragments().size() > 0)
+                {
+                    return false;
+                }
+            }
+        }
+        return super.okToEnableDelete(dataObj);
     }
     
     /* (non-Javadoc)

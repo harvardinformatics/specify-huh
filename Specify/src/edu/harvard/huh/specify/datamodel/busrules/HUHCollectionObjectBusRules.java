@@ -31,6 +31,7 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
@@ -157,6 +158,24 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             }
         }
         return STATUS.OK;
+    }
+    
+    public boolean okToEnableDelete(Object dataObj)
+    {
+        if (dataObj != null)
+        {
+            if (dataObj instanceof CollectionObject)
+            {
+                reasonList.clear();
+
+                CollectionObject collObj = (CollectionObject) dataObj;
+                if (collObj.getFragments().size() > 0)
+                {
+                    return false;
+                }
+            }
+        }
+        return super.okToEnableDelete(dataObj);
     }
     
     /* (non-Javadoc)
