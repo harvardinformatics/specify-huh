@@ -756,7 +756,7 @@
                 </row>
                 <row>
 					<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" isrequired="true" colspan="3"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="true" colspan="3"/>
                 </row>
                 <row>
 	                <cell type="label" labelfor="prepMethod"/>
