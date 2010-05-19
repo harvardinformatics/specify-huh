@@ -2,6 +2,8 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -14,6 +16,7 @@ import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
@@ -37,7 +40,9 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
     @Override
     public void addChildrenToNewDataObjects(Object newDataObj)
     {
-        Fragment fragment = (Fragment) newDataObj;
+        super.addChildrenToNewDataObjects(newDataObj);
+        
+       /* Fragment fragment = (Fragment) newDataObj;
         
         CollectionObject collectionObject = fragment.getCollectionObject();
 
@@ -70,14 +75,49 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
             locality = new Locality();
             locality.initialize();
             collectingEvent.setLocality(locality);
-        }
+        }*/
     }
     
-	@Override
-	public void afterFillForm(Object dataObj)
-	{
+    @Override
+    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
+    {        
+        Fragment fragment = (Fragment) dataObj;
+        CollectionObject collObj = fragment.getCollectionObject();
+        
+        if (collObj != null)
+        {
+            // save the collecting event
+            CollectingEvent collEvt = collObj.getCollectingEvent();
+            if (collEvt != null)
+            {
+                // save the locality
+                Locality loc = collEvt.getLocality();
+                if (loc != null)
+                {
+                    loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
+                    collEvt.setLocality(loc);
+                }
+                collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
+                collObj.setCollectingEvent(collEvt);
+            }
+            
+            // save the collection object
+            collObj = (CollectionObject) HUHFragmentBusRules.saveObject(collObj, session);
+            fragment.setCollectionObject(collObj);
+        }
+        // save the preparation
+        Preparation prep = fragment.getPreparation();
 
-	}
+        if (prep != null)
+        {
+            prep.setCountAmt(1);
+
+            // save the preparation
+            prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
+
+            fragment.setPreparation(prep);
+        }
+    }
     
     /** Either the Fragment or its Preparation must have a barcode, and the barcode
      *  must be unique across the union of all Fragment and Preparation objects .
@@ -130,8 +170,39 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
             reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, formattedBarcode));
             return STATUS.Error;
         }
+        else if (dataObj instanceof Preparation)
+        {
+            Preparation preparation = (Preparation) dataObj;
+
+            String fieldName = "identifier";
+            String barcode = (String) FormHelper.getValue(dataObj, fieldName);
+
+            Integer prepCount = 0;
+            Integer fragmentCount = 0;
+            if (!StringUtils.isEmpty(barcode))
+            {
+                // count preparations with this barcode
+                prepCount =
+                    HUHFragmentBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, preparation.getId());
+                
+                // count fragment records with this barcode
+                fragmentCount =
+                    HUHFragmentBusRules.getCountSql(Fragment.class, "fragmentId", fieldName, barcode, null);
+            }
+
+            if (fragmentCount + prepCount == 0)
+            {
+                // prep has the barcode
+                return STATUS.OK;
+            }
+            else
+            {
+                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Preparation.class, fieldName, barcode));
+                return STATUS.Error;
+            }
+        }
         
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException(dataObj.getClass().getName());
     }
     
     /**

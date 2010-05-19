@@ -19,11 +19,10 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -49,67 +48,63 @@ public class HUHMixedPrepBusRules extends HUHCollectionObjectBusRules
     }
 
     @Override
-    public void addChildrenToNewDataObjects(Object newDataObj)
-    {
-        CollectionObject collObj = (CollectionObject) newDataObj;
-
-        if (collObj != null)
-        {
-            Agent agent = Agent.getUserAgent();
-            collObj.setCataloger(agent);
-            collObj.setCatalogedDate(Calendar.getInstance());
-            collObj.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-        }
-        
-        CollectingEvent collEvt = collObj.getCollectingEvent();
-        if (collEvt == null)
-        {
-            collEvt = new CollectingEvent();
-            collEvt.initialize();
-            collObj.addReference(collEvt, "collectingEvent");
-        }
-
-        Locality loc = collEvt.getLocality();
-        if (loc == null)
-        {
-            loc = new Locality();
-            loc.initialize();
-            collEvt.addReference(loc, "locality");
-        }
-    }
-
-    @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {        
         CollectionObject collObj = (CollectionObject) dataObj;
         
         if (collObj != null)
         {
-            for (Fragment fragment : collObj.getFragments())
-            {
+            // temporarilty remove the collection object's fragments
+            Set<Fragment> unsavedFragments = collObj.getFragments();
+            Set<Fragment> savedFragments = new HashSet<Fragment>();
+            collObj.setFragments(savedFragments);
 
-                HUHFragmentBusRules.saveObject(fragment, session);
-                
-                Preparation prep = fragment.getPreparation();
-                if (prep != null)
-                {
-                    prep.setCountAmt(1);
-                    prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
-                    fragment.setPreparation(prep);
-                }
-            }
-            
+            // save the collecting event
             CollectingEvent collEvt = collObj.getCollectingEvent();
             if (collEvt != null)
             {
-                collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
-                collObj.setCollectingEvent(collEvt);
-                
+                // save the locality
                 Locality loc = collEvt.getLocality();
-                loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
-                collEvt.setLocality(loc);
+                if (loc != null)
+                {
+                    loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
+                }
+                collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
             }
-        }
+            
+            // save the collection object
+            collObj = (CollectionObject) HUHFragmentBusRules.saveObject(collObj, session);
 
+            // save the fragment/preparations
+            for (Fragment fragment : unsavedFragments)
+            {
+                Preparation prep = fragment.getPreparation();
+
+                if (prep != null)
+                {
+                    prep.setCountAmt(1);
+
+                    // temporarily detach the preparation's fragments
+                    Set<Fragment> prepFragments = prep.getFragments();
+                    prep.setFragments(new HashSet<Fragment>());
+
+                    // save the preparation
+                    prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
+
+                    // reattach the preparation's fragments
+                    prep.setFragments(prepFragments);
+                    fragment.setPreparation(prep);
+                }
+                
+                // save the fragment
+                fragment = (Fragment) HUHFragmentBusRules.saveObject(fragment, session);
+                savedFragments.add(fragment);
+            }
+            
+            // reattach the collection object's fragments
+            collObj.setFragments(savedFragments);
+            
+            // allow the merge to proceed with reattached fragments
+        }
     }
 }

@@ -24,6 +24,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.util.Calendar;
 
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
@@ -97,6 +98,27 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         }
     }
     
+    @Override
+    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
+    {
+        CollectionObject collObj = (CollectionObject) dataObj;
+        
+        // save the collecting event
+        CollectingEvent collEvt = collObj.getCollectingEvent();
+        if (collEvt != null)
+        {
+            // save the locality
+            Locality loc = collEvt.getLocality();
+            if (loc != null)
+            {
+                loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
+                collEvt.setLocality(loc);
+            }
+            collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
+            collObj.setCollectingEvent(collEvt);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
