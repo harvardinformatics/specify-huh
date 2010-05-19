@@ -2259,7 +2259,7 @@ repositoryagreement.RepositoryAgreementNumber,
                 </sql>
                 <captions>
                     <caption tableid="63" col="pp.PreparationID" visible="false"/>
-                    <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="63" name="pp.Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
                     <caption tableid="7" col="ac.AccessionNumber" formatter="HUHAccessionNumber"/>
                     <caption tableid="4" col="t1.FullName"/>
                     <caption tableid="3" col="geo.FullName"/>
