@@ -441,7 +441,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
      *       * CollectionObject
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = false, insertable = true, updatable = true)
+    @JoinColumn(name = "CollectionObjectID", unique = false, nullable = true, insertable = true, updatable = true)
     public CollectionObject getCollectionObject() {
         return this.collectionObject;
     }
@@ -485,7 +485,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     /**
      *      * Preparation
      */
-    @ManyToOne(cascade = { }, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
     public Preparation getPreparation() {
         return this.preparation;

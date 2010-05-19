@@ -179,6 +179,8 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         objectCondition     = null;
         treatmentEvents     = new HashSet<TreatmentEvent>();
         
+        fragments = new HashSet<Fragment>();
+        
         accessionPreparations = new HashSet<AccessionPreparation>();
         giftPreparations = new HashSet<GiftPreparation>();
         loanPreparations = new HashSet<LoanPreparation>();
@@ -235,7 +237,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
      * 
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL })
     public Set<Fragment> getFragments() {
         return this.fragments;
     }
