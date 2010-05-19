@@ -110,7 +110,9 @@
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttr" abbrev="coa" id="28" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionObjectAttribute" abbrev="coas" id="93" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionRelType" abbrev="crt" id="98"/>
-        <table name="edu.ku.brc.specify.datamodel.CollectionRelationship" abbrev="cr" id="99"/>
+        <table name="edu.ku.brc.specify.datamodel.CollectionRelationship" abbrev="cr" id="99">
+			<display view="CollectionRelationship" newobjdlg="CollectionRelationshipDisplay" searchable="true"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.Collector" abbrev="ctr" id="30" searchable="true">
             <display view="Collector" dataobjformatter=""  searchdlg="CollectorSearch" newobjdlg="CollectorDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.CollectorBusRules</businessrule>
