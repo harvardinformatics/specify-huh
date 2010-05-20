@@ -1108,6 +1108,8 @@ public class FormViewObj implements Viewable,
         {
             carryForwardInfo.add(dlg.getSelectedObjects());
         }
+        
+        if (carryFwdDataObj == null) carryFwdDataObj = dataObj;
     }
     
     /**
@@ -6406,5 +6408,4 @@ public class FormViewObj implements Viewable,
     {
         FormViewObj.useDebugForm = useDebugForm;
     }
-
 }
