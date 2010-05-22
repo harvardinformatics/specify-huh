@@ -147,6 +147,7 @@
         <view name="BorrowReturnMaterial"
             objtitle="Borrow Return Material"
             class="edu.ku.brc.specify.datamodel.BorrowReturnMaterial"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHBorrowReturnMaterialBusRules"
             resourcelabels="false">
             <desc><![CDATA[Borrow display form]]></desc>
             <altviews>
@@ -1260,7 +1261,7 @@
             
             <desc><![CDATA[Borrow viewing form.]]></desc>
             <columnDef>         105px, 2px, 174px,        5px,   105px, 2px, 107px, 10px, 132px, 5px,   60px, 2px, 112px,        0px, 15px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 184px,        5px,   131px, 2px, 115px, 15px, 150px, 15px,  65px, 2px, 115px,        0px, 15px, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 200px,        5px,   126px, 2px, 115px, 15px, 130px, 5px,   85px, 2px, 115px,        0px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 184px,        5px,   150px, 2px, 142px, 10px, 190px, 5px,   70px, 2px, 142px,        0px, 15px, p:g</columnDef>
             <columnDef os="exp">p,     2px, max(p;150px), 5px:g, p,     2px, 122px, 10px, p,     5px:g, p,    2px, max(p;122px), 0px, p,    p:g</columnDef> 
             <rowDef auto="true" cell="p" sep="1dlu"/>
@@ -1369,8 +1370,8 @@
                 <row>
                     <cell type="label" labelfor="9" />
                     <cell type="field" id="9" name="materialNumber" uitype="formattedtext" isrequired="true"/>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=2000"/>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="itemCount" uitype="spinner" initialize="max=2000"/>
                     <cell type="label" labelfor="typeCount"/>
                     <cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=2000"/>
                     <cell type="label" labelfor="nonSpecimenCount"/>
@@ -1379,8 +1380,7 @@
                 <row>
                 	<cell type="label" labelfor="higherTaxon"/>
                 	<cell type="field" id="higherTaxon" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="5"/>
-	                <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="itemCount" uitype="spinner" initialize="max=2000"/>
+	                
                 </row>
                 <row>
                 	<cell type="label" labelfor="srcTaxonomy"/>
@@ -1417,12 +1417,12 @@
             
             <rows>
             	<row>
-            		<cell type="label" labelfor="returnedDate" uitype="formattedtext" uifieldformatter="Date"/>
-                    <cell type="field" id="returnedDate" name="returnedDate" uitype="text"/>
+            		<cell type="label" labelfor="returnedDate"/>
+                    <cell type="field" id="returnedDate" name="returnedDate" uitype="formattedtext" uifieldformatter="Date"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=2000"/>
+                    <cell type="label" labelfor="itemCount"/>
+                    <cell type="field" id="itemCount" name="itemCount" uitype="spinner" initialize="max=2000"/>
                     <cell type="label" labelfor="typeCount"/>
                     <cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=2000"/>
                     <cell type="label" labelfor="nonSpecimenCount"/>
@@ -2389,7 +2389,7 @@
                 	<cell type="label" labelfor="geography"/>
                 	<cell type="field" id="geography" name="geography" uitype="querycbx" initialize="name=Taxon"/>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=2000" />
+                    <cell type="field" id="1" name="itemCount" uitype="spinner" initialize="max=2000" />
                     <cell type="label" labelfor="typeCount"/>
                     <cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=2000" />
 					<cell type="label" labelfor="nonSpecimenCount"/>
@@ -2683,7 +2683,7 @@
                 	<cell type="label" labelfor="geography"/>
                 	<cell type="field" id="geography" name="geography" uitype="querycbx" initialize="name=Taxon"/>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=2000" />
+                    <cell type="field" id="1" name="itemCount" uitype="spinner" initialize="max=2000" />
                     <cell type="label" labelfor="typeCount"/>
                     <cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=2000" />
 					<cell type="label" labelfor="nonSpecimenCount"/>
@@ -3255,7 +3255,7 @@
                         </rows>
                     </cell>
                 </row> -->
-                <row>
+                <!-- <row>
                     <cell type="panel" id="16" name="outerPanel" coldef="max(p;100px),f:480px,p,5px,p," rowdef="p,4px,p" colspan="15">
                         <rows>
 			                <row>
@@ -3268,7 +3268,7 @@
                             </row>
                         </rows>
                     </cell>
-                </row>
+                </row> -->
             </rows>
         </viewdef>
         
@@ -3339,6 +3339,13 @@
                 <row>
                 	<cell type="label" labelfor="preparation"/>
 					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" colspan="3"/>
+					<cell type="label" label=" "/>
+					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
+					<cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/>	
+                </row>
+                <row>
+                	<cell type="label" labelfor="3" />
+                	<cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="11"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="higherTaxon"/>
@@ -3347,24 +3354,12 @@
                     <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text" colspan="6"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="quantity" uitype="spinner" initialize="max=5000" />
+                    <cell type="label" labelfor="itemCount"/>
+                    <cell type="field" id="itemCount" name="itemCount" uitype="spinner" initialize="max=5000" />
                     <cell type="label" labelfor="typeCount"/>
                     <cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=5000"/>
                     <cell type="label" labelfor="nonSpecimenCount"/>
                     <cell type="field" id="nonSpecimenCount" name="nonSpecimenCount" uitype="spinner" initialize="max=5000"/>
-                </row>
-                <row>
-                    
-                    <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="itemCount" uitype="dsptextfield"/>
-                    <cell type="label" label=" "/>
-                    <cell type="field" id="8" name="isResolved" uitype="checkbox"/>
-					<cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation"/>					
-                </row>
-                <row>
-                    <cell type="label" labelfor="3" />
-                    <cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="11"/>
                 </row>
             </rows>
         </viewdef>
@@ -3378,7 +3373,7 @@
             
             <desc><![CDATA[LoanReturnPreparation viewing form.]]></desc>
             <columnDef>         102px, 2px,  80px, 5px, 120px, 2px,  80px, 0px:g, f:p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 100px, 5px, 120px, 2px,  80px, 0px:g, f:p:g</columnDef>
+            <columnDef os="lnx">140px, 2px, 100px, 5px, 100px, 2px,  80px, 0px:g, f:p:g</columnDef>
             <columnDef os="mac">130px, 2px, 100px, 5px, 150px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <columnDef os="exp">p,     2px, 100px, 5px,     p, 2px, 100px, 0px:g, f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
@@ -3390,14 +3385,12 @@
                 <row>
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="returnedDate" uitype="formattedtext" uifieldformatter="Date" default="today" colspan="1"/>
+					<cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="itemCount" uitype="spinner" initialize="max=5000" />
                 </row>
                 <row>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="itemCount" uitype="spinner" initialize="max=5000" />
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" name="nonSpecimenCount" uitype="spinner" initialize="max=5000" />
-                </row>
-                <row>
                 	<cell type="label" labelfor="typeCount"/>
                 	<cell type="field" id="typeCount" name="typeCount" uitype="spinner" initialize="max=5000"/>
                 </row>
