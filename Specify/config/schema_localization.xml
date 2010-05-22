@@ -60,7 +60,7 @@
           </str>
         </descs>
       </item>
-      <item name="accessionNumber" isUIFormatter="false" isRequired="true">
+      <item name="accessionNumber" format="HUHAccessionNumber" isUIFormatter="true" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -5047,7 +5047,7 @@
           </str>
         </descs>
       </item>
-      <item name="materialNumber" type="java.lang.String">
+      <item name="materialNumber" type="java.lang.String" format="HUHBorrowMaterialNumber" isUIFormatter="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
@@ -14197,7 +14197,7 @@
           </str>
         </descs>
       </item>
-      <item name="exchangeNumber">
+      <item name="exchangeNumber" format="HUHExchangeNumber" isUIFormatter="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -17878,7 +17878,7 @@
         </names>
         <descs/>
       </item>
-      <item name="giftNumber" type="java.lang.String" isUIFormatter="false">
+      <item name="giftNumber" type="java.lang.String" format="HUHGiftNumber" isUIFormatter="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
@@ -20454,7 +20454,7 @@
           </str>
         </descs>
       </item>
-      <item name="loanNumber" type="java.lang.String" isUIFormatter="false" isRequired="true">
+      <item name="loanNumber" type="java.lang.String" format="HUHLoanNumber" isUIFormatter="true" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
