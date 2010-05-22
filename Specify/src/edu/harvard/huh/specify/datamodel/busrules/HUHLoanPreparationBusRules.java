@@ -20,25 +20,14 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import edu.ku.brc.af.ui.forms.FormViewObj;
-import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
-import edu.ku.brc.af.ui.forms.TableViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.validation.UIValidator;
-import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
-import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
 import edu.ku.brc.dbsupport.DataProviderFactory;
@@ -46,15 +35,10 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.StaleObjectException;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
-import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
-import edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules;
-import edu.ku.brc.specify.datamodel.busrules.LoanBusRules;
 import edu.ku.brc.specify.datamodel.busrules.LoanPreparationBusRules;
-import edu.ku.brc.ui.CommandAction;
-import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -68,9 +52,6 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implements CommandListener
 {
-    private final String LOAN_QTY_RANGE_ERR = "LOAN_QTY_RANGE_ERR";
-    
-    private boolean    isFillingForm    = false;
     private SubViewBtn loanRetBtn       = null;
     
     private final String PREPARATION  = "preparation";
@@ -101,55 +82,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         {
             formViewObj.setSkippingAttach(true);
 
-            // comp will be reused later
-            Component comp = formViewObj.getControlByName("quantityResolved");
-            if (comp instanceof ValSpinner)
-            {
-                final JTextField quantityResolved = (JTextField)formViewObj.getControlByName("quantityReturned");
-                final ValSpinner quantity         = (ValSpinner)formViewObj.getControlByName("quantity");
-                final ValSpinner qtyResolved      = (ValSpinner)comp;
-    
-                final ValCheckBox isResolved = (ValCheckBox)formViewObj.getControlByName("isResolved");
-                ChangeListener cl = new ChangeListener()
-                {
-                    @Override
-                    public void stateChanged(ChangeEvent e)
-                    {
-                        if (!UIValidator.isIgnoreAllValidation())
-                        {
-                            if (formViewObj != null)
-                            {
-                                LoanPreparation loanPrep = (LoanPreparation)formViewObj.getDataObj();
-                                Integer qty = quantity.getIntValue();
-                                if (qty != null && qty >= quantity.getMinValue() && qty <= quantity.getMaxValue())
-                                {
-                                    loanPrep.setItemCount(qty);
-                                } else
-                                {
-                                    UIRegistry.showLocalizedError(LOAN_QTY_RANGE_ERR, qty, quantity.getMinValue(), quantity.getMaxValue());
-                                }
-                            }
-                            
-                            if (!isFillingForm)
-                            {
-                                Integer qtyResVal = Integer.parseInt(quantityResolved.getText());
-                                if (qtyResVal != null && qtyResVal >= quantity.getMinValue() && qtyResVal <= quantity.getMaxValue())
-                                {
-                                    quantitiesChanged(quantity, qtyResVal, qtyResolved, isResolved);
-                                } else
-                                {
-                                    UIRegistry.showLocalizedError(LOAN_QTY_RANGE_ERR, qtyResVal, quantity.getMinValue(), quantity.getMaxValue());
-                                }
-                            }
-                        }
-                    }
-                };
-                quantity.addChangeListener(cl);
-                qtyResolved.addChangeListener(cl);
-            }
-            
-            // new comp
-            comp = formViewObj.getControlById("loanReturnPreparations");
+            Component comp = formViewObj.getControlById("loanReturnPreparations");
             if (comp instanceof SubViewBtn)
             {
                 loanRetBtn = (SubViewBtn)comp;
@@ -182,7 +115,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                                     @Override
                                     public void valueChanged(ListSelectionEvent e)
                                     {
-                                        if (e != null && !e.getValueIsAdjusting())  // Specify sometimes send a null event for updating the display
+                                        if (e != null && !e.getValueIsAdjusting())  // Specify sometimes sends a null event for updating the display
                                         {
                                             Preparation prep  = (Preparation) prepComboBox.getValue();
                                             if (prep != null)
