@@ -4140,7 +4140,7 @@
                 <row>
                 	<cell type="label" labelfor="cost"/>
                 	<cell type="field" id="cost" name="number1" uitype="text" uifieldformatter="NumericFloat"/>
-                	<cell type="label" label=" "/>
+                	<cell type="label" label="Weight:" initialize="align=right"/>
                 	<cell type="field" id="lb" name="number2" uitype="text" uifieldformatter="NumericFloat"/>
                 	<cell type="label" label="lb."/>
                 	<cell type="field" id="oz" name="number3" uitype="text" uifieldformatter="NumericFloat"/>
