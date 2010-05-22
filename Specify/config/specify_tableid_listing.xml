@@ -82,7 +82,9 @@
             <display view="BorrowAgent" newobjdlg="BorrowAgentDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.BorrowMaterial" abbrev="bom" id="20" searchable="true"/>
-        <table name="edu.ku.brc.specify.datamodel.BorrowReturnMaterial" abbrev="brm" id="21" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.BorrowReturnMaterial" abbrev="brm" id="21" searchable="true">
+			<businesrule>edu.harvard.huh.specify.datamodel.busrules.HUHBorrowReturnMaterialBusRules</businesrule>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.Collection" abbrev="col" id="23" workbench="true" searchable="true">
             <display view="Collection" newobjdlg="Collection"/>
         </table>
