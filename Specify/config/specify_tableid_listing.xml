@@ -271,7 +271,7 @@
         <table name="edu.ku.brc.specify.datamodel.LithoStratTreeDefItem" abbrev="lstdi" id="102"/>
         <table name="edu.ku.brc.specify.datamodel.Loan" abbrev="ln" id="52" searchable="true">
         	<display view="Loan" uiformatter="HUHLoanNumber"/>
-            <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanBusRules</businessrule>          
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHLoanBusRules</businessrule>          
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanAgent" abbrev="lna" id="53" searchable="true">
             <display view="LoanAgent" newobjdlg="LoanAgentDisplay"/>
@@ -285,7 +285,7 @@
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHLoanPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.LoanReturnPreparation" abbrev="lrpo" id="55" searchable="true">
-            <!-- <businessrule>edu.ku.brc.specify.datamodel.busrules.LoanReturnPreparationBusRules</businessrule>    -->        
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHLoanBusRules</businessrule>     
         </table>
         <table name="edu.ku.brc.specify.datamodel.Locality" abbrev="loc" id="2" workbench="true" searchable="true">
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.LocalityBusRules</businessrule>
