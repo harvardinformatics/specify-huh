@@ -127,9 +127,10 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
     // Static Data Members
     private static final Logger log = Logger.getLogger(ExpressSearchTask.class);
 
-    public static final int RESULTS_THRESHOLD   = 5000;
-    public static final String EXPRESSSEARCH      = "Express_Search";
-    public static final String CHECK_INDEXER_PATH = "CheckIndexerPath";
+    public static final int RESULTS_THRESHOLD       = 5000;
+    public static final int NO_RESULTS_DISPLAY_TIME = 1200;  // milliseconds
+    public static final String EXPRESSSEARCH        = "Express_Search";
+    public static final String CHECK_INDEXER_PATH   = "CheckIndexerPath";
     
     protected Color selectionFG = UIManager.getColor("TextField.selectionForeground");
     protected Color selectionBG = UIManager.getColor("TextField.selectionBackground");
@@ -1177,7 +1178,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
     protected void displayNoResults(final String msgKey)
     {
         String fullMsg = UIRegistry.getLocalizedMessage(StringUtils.isNotEmpty(msgKey) ? msgKey : "NoExpressSearchResults", searchText.getText());
-        UIRegistry.writeTimedSimpleGlassPaneMsg(fullMsg, null, null, 24, true);
+        UIRegistry.writeTimedSimpleGlassPaneMsg(fullMsg, NO_RESULTS_DISPLAY_TIME, null, 24, true);
     }
     
     //-------------------------------------------------------------------------
