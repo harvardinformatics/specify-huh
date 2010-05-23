@@ -67,6 +67,17 @@
         <alias name="Shipment" field="shipments"/>
     </table>
     
+    <table name="BorrowReturnMaterial">
+    	<table name="BorrowMaterial" field="borrowMaterial">
+    		<table name="Borrow" field="borrow">
+    			<table name="BorrowAgent" field="borrowAgents">
+    				<alias name="Agent"/>
+    			</table>
+    			<table name="Shipment" fieldl="shipments"/>
+    		</table>
+    	</table>
+    </table>
+
     <table name="CollectingEvent">
     	<alias name="Locality"/>
 	    <table name="Collector" field="collectors">
