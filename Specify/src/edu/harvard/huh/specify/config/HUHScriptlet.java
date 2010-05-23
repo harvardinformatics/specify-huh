@@ -8,20 +8,30 @@ public class HUHScriptlet extends Scriptlet {
      * Builds the shipped to agent's name string.
      * @param firstName
      * @param lastName
-     * @param middleInitial
      */
-	@Override
-    public String buildNameString(String firstName, String lastName, String middleInitial)
+    public String buildNameString(String firstName, String lastName)
     {
         String name = firstName == null ? "" : firstName;
-        if (middleInitial != null)
-        {
-            name += " " + middleInitial;
-        }
         
         if (name.length() > 0) name += " ";
         
         name += lastName;
+        
+        return name;
+    }
+    
+    /**
+     * Builds the shipped to agent's name string.
+     * @param title
+     * @param firstName
+     * @param lastName
+     */
+    @Override
+    public String buildNameString(String title, String firstName, String lastName)
+    {
+        String name = buildNameString(firstName, lastName);
+
+        if (title != null) name = title + " " + name;
         
         return name;
     }
@@ -31,30 +41,16 @@ public class HUHScriptlet extends Scriptlet {
      * @param title
      * @param firstName
      * @param lastName
-     * @param middleInitial
+     * @param jobTitle
      */
-    public String buildNameString(String title, String firstName, String lastName, String middleInitial)
+    public String buildNameString(String title, String firstName, String lastName, String jobTitle)
     {
-        String name = buildNameString(firstName, lastName, middleInitial);
-        if (title != null)
+        String name = buildNameString(title, firstName, lastName);
+        if (jobTitle != null)
         {
-        	name = title + " " + name;
+        	name = name + ", " + jobTitle;
         }
         return name;
     }
-    
-    /**
-     * Builds the shipped to agent's name string.
-     * @param override - if this field is present it will be returned unchanged
-     * @param title
-     * @param firstName
-     * @param lastName
-     * @param middleInitial
-     */
-    public String buildNameString(String override, String title, String firstName, String lastName, String middleInitial)
-    {
-    	if (override != null) return override;
-    	
-    	return buildNameString(title, firstName, lastName, middleInitial);
-    }
+
 }
