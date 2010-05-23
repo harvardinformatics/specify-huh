@@ -20,6 +20,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import edu.ku.brc.af.ui.forms.BaseBusRules;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.BorrowReturnMaterial;
 import edu.ku.brc.ui.UIRegistry;
@@ -38,6 +39,16 @@ public class HUHBorrowReturnMaterialBusRules extends BaseBusRules
     public HUHBorrowReturnMaterialBusRules()
     {
         super(BorrowReturnMaterial.class);
+    }
+    
+    @Override
+    public void beforeMerge(final Object dataObj, DataProviderSessionIFace session)
+    {
+        BorrowReturnMaterial returnMaterial = (BorrowReturnMaterial) dataObj;
+        
+        if (returnMaterial.getItemCount() == null) returnMaterial.setItemCount((short) 0);
+        if (returnMaterial.getTypeCount() == null) returnMaterial.setTypeCount((short) 0);
+        if (returnMaterial.getNonSpecimenCount() == null) returnMaterial.setNonSpecimenCount((short) 0);
     }
     
     /* (non-Javadoc)

@@ -81,7 +81,9 @@
          <table name="edu.ku.brc.specify.datamodel.BorrowAgent" abbrev="boa" id="19" searchable="true">
             <display view="BorrowAgent" newobjdlg="BorrowAgentDisplay"/>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.BorrowMaterial" abbrev="bom" id="20" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.BorrowMaterial" abbrev="bom" id="20" searchable="true">
+	        <businesrule>edu.harvard.huh.specify.datamodel.busrules.HUHBorrowMaterialBusRules</businesrule>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.BorrowReturnMaterial" abbrev="brm" id="21" searchable="true">
 			<businesrule>edu.harvard.huh.specify.datamodel.busrules.HUHBorrowReturnMaterialBusRules</businesrule>
         </table>

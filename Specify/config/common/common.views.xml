@@ -134,6 +134,7 @@
         <view name="BorrowMaterial"
             objtitle="Borrow Material"
             class="edu.ku.brc.specify.datamodel.BorrowMaterial"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHBorrowMaterialBusRules"
             resourcelabels="false">
             <desc><![CDATA[Borrow display form]]></desc>
             <altviews>
@@ -1342,7 +1343,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch"/>
+                    <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=Agent;title=Catalog Agent;displaydlg=AffiliateAgent"/>
                     <cell type="label" labelfor="2"/>
                     <cell type="field" id="2" name="role" uitype="combobox" />
                 </row>
