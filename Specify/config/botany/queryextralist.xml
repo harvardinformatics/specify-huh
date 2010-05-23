@@ -3,6 +3,7 @@
   <string>Attachment</string>
   <string>Author</string>
   <string>Borrow</string>
+  <string>BorrowReturnMaterial</string>
   <string>CollectingTrip</string>
   <string>ExchangeIn</string>
   <string>Loan</string>
