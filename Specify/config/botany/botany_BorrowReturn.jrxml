@@ -3,7 +3,7 @@
 <!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
 
 <jasperReport
-		 name="LoanInvoice"
+		 name="BorrowReturnInvoice"
 		 columnCount="1"
 		 printOrder="Vertical"
 		 orientation="Portrait"
@@ -60,8 +60,8 @@ FROM borrowreturnmaterial brm JOIN
      borrow b on bm.BorrowID=b.BorrowID JOIN
      shipment on b.BorrowID=shipment.BorrowID JOIN
      agent shippedToAgent on shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
-     picklistitem titles on shippedToAgent.Title=titles.Value JOIN
-     address on shippedToAgent.ParentOrganizationID=address.AgentID JOIN
+     picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
+     address on shippedToAgent.AgentID=address.AgentID JOIN
      borrowagent ba on b.BorrowID=ba.BorrowID JOIN
      agent borrowerAgent on ba.AgentID=borrowerAgent.AgentID JOIN
      (select bsum.BorrowID, sum(bmsum.ItemCount) as TotalOutItemCount, sum(bmsum.TypeCount) as TotalOutTypeCount, sum(bmsum.NonSpecimenCount) as TotalOutNonSpecimenCount
@@ -69,7 +69,6 @@ FROM borrowreturnmaterial brm JOIN
      (select bmsum.BorrowID, sum(brmsum.ItemCount) as TotalInItemCount, sum(brmsum.TypeCount) as TotalInTypeCount, sum(brmsum.NonSpecimenCount) as TotalInNonSpecimenCount
         from borrowmaterial bmsum join borrowreturnmaterial brmsum on bmsum.BorrowMaterialID=brmsum.BorrowMaterialID group by bmsum.BorrowMaterialID) totalsIn on totalsOut.BorrowID=totalsIn.BorrowID
 WHERE ba.Role='Borrower' AND 
-      titles.PickListID=(select PickListID from picklist where Name='AgentTitles') AND
       address.IsShipping AND 
       address.IsCurrent AND 
       brm.ReturnedDate=shipment.ShipmentDate AND 
@@ -229,7 +228,7 @@ U.S.A.]]></text>
 				<textElement textAlignment="Center" markup="none">
 					<font size="11" isBold="false"/>
 				</textElement>
-				<text><![CDATA[For the Director of Collcetions]]></text>
+				<text><![CDATA[For the Director of Collections]]></text>
 			</staticText>
 			<line>
 				<reportElement key="line-4" x="318" y="250" width="256" height="1"/>
