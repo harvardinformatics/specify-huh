@@ -12,10 +12,13 @@
     <file level="3" mimetype="jrxml/label" name="botany_label.jrxml" description="Botany Labels" file="botany_label.jrxml" 
           metadata="tableid=1;reqrs=true;type=Report;action=PrintBasicLabel;reporttype=Report;icon=Labels16"/>    
         
-    <file level="3" mimetype="jrxml/report" name="botany_BorrowReturn.jrxml" description="Borrow Return Shipment Invoice" file="botany_BorrowReturn.jrxml" 
+    <file level="3" mimetype="jrxml/report" name="botany_BorrowReturn.jrxml" description="Borrow Return Invoice" file="botany_BorrowReturn.jrxml" 
         metadata="tableid=21;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
 
-	<file level="3" mimetype="jrxml/report" name="botany_GiftInvoice.jrxml" description="Gift Shipment Invoice" file="botany_GiftInvoice.jrxml" 
+	<file level="3" mimetype="jrxml/report" name="botany_ExchangeOutInvoice.jrxml" description="Outgoing Exchange Invoice" file="botany_ExchangeOutInvoice.jrxml" 
+        metadata="tableid=40;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
+        
+	<file level="3" mimetype="jrxml/report" name="botany_GiftInvoice.jrxml" description="Gift Invoice" file="botany_GiftInvoice.jrxml" 
         metadata="tableid=131;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
 
     <file level="3" mimetype="jrxml/report" name="botany_ShipmentInvoice.jrxml" description="Shipment Invoice" file="botany_ShipmentInvoice.jrxml" 

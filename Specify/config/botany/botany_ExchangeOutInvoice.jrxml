@@ -3,7 +3,7 @@
 <!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
 
 <jasperReport
-		 name="GiftInvoice"
+		 name="ExhangeOutInvoice"
 		 columnCount="1"
 		 printOrder="Vertical"
 		 orientation="Portrait"
@@ -29,42 +29,43 @@
 	<parameter name="RPT_IMAGE_DIR" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[SELECT g.GiftID,
-                 DATE_FORMAT(shipment.ShipmentDate, '%d %b %Y') as ShipmentDate,
-                 titles.Title as ShippedToTitle,
-                 shippedToAgent.FirstName as ShippedToFirstName,
-                 shippedToAgent.LastName as ShippedToLastName,
-                 shippedToAgent.JobTitle as ShippedToJobTitle,
-                 shipment.NumberOfPackages,
-                 address.Address,
-                 address.Address2,
-                 address.City,
-                 address.State,
-                 address.PostalCode,
-                 address.Country,
-                 g.GiftNumber,
-                 UPPER(concat('gift ', if(g.PurposeOfGift='Unrestricted', '', if(g.PurposeOfGift='ForId', 'for determination', purposes.Title)), ' from the ', colls.Title)) as PurposeOfGift,
-                 g.Text1 as ForUseBy,
-                 g.SpecialConditions,
-                 geo.FullName as Geography,
-                 ifnull(gp.DescriptionOfMaterial, "") as Description,
-                 gp.ItemCount,
-                 gp.TypeCount,
-                 gp.NonSpecimenCount
-FROM gift g JOIN
-     giftpreparation gp ON g.GiftID=gp.GiftID JOIN
-     shipment on g.GiftID=shipment.GiftID JOIN
-     picklistitem colls ON (g.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) JOIN
-     geography geo ON gp.GeographyID=geo.GeographyID JOIN
+		<![CDATA[SELECT eo.ExchangeOutID,
+                        DATE_FORMAT(shipment.ShipmentDate, '%d %b %Y') as ShipmentDate,
+                        titles.Title as ShippedToTitle,
+                        shippedToAgent.FirstName as ShippedToFirstName,
+                        shippedToAgent.LastName as ShippedToLastName,
+                        shippedToAgent.JobTitle as ShippedToJobTitle,
+                        shipment.NumberOfPackages,
+                        address.Address,
+                        address.Address2,
+                        address.City,
+                        address.State,
+                        address.PostalCode,
+                        address.Country,
+                        eo.ExchangeNumber,
+                        UPPER(concat('exchange ', if(eo.Restrictions='Unrestricted', '', if(eo.Restrictions='ForId', 'for determination', purposes.Title)), ' from the ', colls.Title)) as Restrictions,
+                        eo.Text1 as ForUseBy,
+                        eo.DescriptionOfMaterial as GeneralDescription,
+                        geo.FullName as Geography,
+                        ifnull(eop.DescriptionOfMaterial, "") as Description,
+                        eop.ItemCount,
+                        eop.TypeCount,
+                        eop.NonSpecimenCount
+FROM exchangeout eo JOIN
+     exchangeoutpreparation eop ON eo.ExchangeOutID=eop.ExchangeOutID JOIN
+     shipment on eo.ExchangeOutID=shipment.ExchangeOutID JOIN
+     picklistitem colls ON (eo.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) JOIN
+     geography geo ON eop.GeographyID=geo.GeographyID JOIN
      agent shippedToAgent ON shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
-     picklistitem purposes ON (g.PurposeOfGift=purposes.Value AND purposes.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Transaction Purpose')) LEFT JOIN
-     address ON shippedToAgent.AgentID=address.AgentID
+     picklistitem purposes ON (eo.Restrictions=purposes.Value AND purposes.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Transaction Purpose')) LEFT JOIN
+     address ON shippedToAgent.AgentID=address.AgentID LEFT JOIN
+     agent sentToAgent ON eo.SentToOrganizationID=sentToAgent.AgentID
 WHERE address.IsShipping AND 
       address.IsCurrent AND 
-      g.GiftID $P!{itemnum}]]>
+      eo.ExchangeOutID $P!{itemnum}]]>
 	</queryString>
-	<field name="GiftID" class="java.lang.Long"/>
+	<field name="ExchangeOutID" class="java.lang.Long"/>
 	<field name="ShipmentDate" class="java.lang.String"/>
 	<field name="NumberOfPackages" class="java.lang.Integer"/>
 	<field name="ShippedToTitle" class="java.lang.String"/>
@@ -77,12 +78,12 @@ WHERE address.IsShipping AND
 	<field name="State" class="java.lang.String"/>
 	<field name="PostalCode" class="java.lang.String"/>
 	<field name="Country" class="java.lang.String"/>
-	<field name="GiftNumber" class="java.lang.String"/>
-	<field name="PurposeOfGift" class="java.lang.String"/>
+	<field name="ExchangeNumber" class="java.lang.String"/>
+	<field name="Restrictions" class="java.lang.String"/>
 	<field name="ForUseBy" class="java.lang.String"/>
-	<field name="SpecialConditions" class="java.lang.String"/>
-	<field name="Geography" class="java.lang.String"/>
+	<field name="GeneralDescription" class="java.lang.String"/>
 	<field name="Description" class="java.lang.String"/>
+	<field name="Geography" class="java.lang.String"/>
 	<field name="ItemCount" class="java.lang.Integer"/>
 	<field name="TypeCount" class="java.lang.Integer"/>
 	<field name="NonSpecimenCount" class="java.lang.Integer"/>
@@ -242,7 +243,7 @@ U.S.A.]]></text>
 				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single" markup="none">
 					<font fontName="sansserif" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
 				</textElement>
-				<textFieldExpression class="java.lang.String"><![CDATA[$F{GiftNumber}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ExchangeNumber}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement key="staticText-15" x="206" y="287" width="230" height="15"/>
@@ -356,14 +357,14 @@ U.S.A.]]></text>
 				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single" markup="none">
 					<font fontName="sansserif" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
 				</textElement>
-				<textFieldExpression class="java.lang.String"><![CDATA[$F{PurposeOfGift}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Restrictions}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement key="staticText-15" x="4" y="410" width="572" height="31"/>
 				<textElement markup="none">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression class="java.lang.String"><![CDATA[$F{SpecialConditions}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{GeneralDescription}]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement key="line-3" x="2" y="440" width="573" height="1"/>

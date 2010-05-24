@@ -30,7 +30,7 @@
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[SELECT brm.BorrowMaterialID,
-                                DATE_FORMAT(brm.ReturnedDate, '%d %M %Y') as ReturnedDate,
+                                DATE_FORMAT(brm.ReturnedDate, '%d %b %Y') as ReturnedDate,
                                 titles.Title as ShippedToTitle,
                                 shippedToAgent.FirstName as ShippedToFirstName,
                                 shippedToAgent.LastName as ShippedToLastName,
