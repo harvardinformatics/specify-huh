@@ -15,6 +15,9 @@
     <file level="3" mimetype="jrxml/report" name="botany_BorrowReturn.jrxml" description="Borrow Return Shipment Invoice" file="botany_BorrowReturn.jrxml" 
         metadata="tableid=21;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
 
+	<file level="3" mimetype="jrxml/report" name="botany_GiftInvoice.jrxml" description="Gift Shipment Invoice" file="botany_GiftInvoice.jrxml" 
+        metadata="tableid=131;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
+
     <file level="3" mimetype="jrxml/report" name="botany_ShipmentInvoice.jrxml" description="Shipment Invoice" file="botany_ShipmentInvoice.jrxml" 
         metadata="tableid=71;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice;subreports=botany_LoanInvoice_subreport.jrxml,botany_GiftInvoice_subreport.jrxml,botany_ExchangeOutInvoice_subreport.jrxml,botany_LoanPrep_subreport.jrxml,botany_GiftPrep_subreport.jrxml,botany_ExchangeOutPrep_subreport.jrxml"/>
         
