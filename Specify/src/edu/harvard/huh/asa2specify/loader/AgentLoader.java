@@ -196,14 +196,6 @@ public class AgentLoader extends CsvToSqlLoader
 		    email = truncate(email, 50, "email");
 			agent.setEmail(email);
 		}
-
-		// FirstName TODO: go back over agent names, this mostly works but not always.
-		String firstName = asaAgent.getFirstName();
-		if (firstName != null)
-		{
-		    firstName = truncate(firstName, 50, "first name");
-			agent.setFirstName(firstName);
-		}
 	    
 		// GUID: temporarily hold asa organization.id TODO: don't forget to unset this after migration
 		Integer asaAgentId = asaAgent.getId();
@@ -229,7 +221,7 @@ public class AgentLoader extends CsvToSqlLoader
 		}
 		
 		// LastName
-		String lastName = asaAgent.getLastName();
+		String lastName = asaAgent.getName();
 		checkNull(lastName, "last name");
 		lastName = truncate(lastName, 200, "last name");
 		agent.setLastName(lastName);
@@ -327,25 +319,24 @@ public class AgentLoader extends CsvToSqlLoader
        
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle, " +
+		String fieldNames = "AgentType, Email, GUID, Interests, JobTitle, " +
 				            "LastName, ParentOrganizationID, Remarks, TimestampCreated, " +
 				            "Title, URL, Version";
 
-		String[] values = new String[13];
+		String[] values = new String[12];
 
 		values[0]  = SqlUtils.sqlString( agent.getAgentType());
 		values[1]  = SqlUtils.sqlString( agent.getEmail());
-		values[2]  = SqlUtils.sqlString( agent.getFirstName());
-		values[3]  = SqlUtils.sqlString( agent.getGuid());
-		values[4]  = SqlUtils.sqlString( agent.getInterests());
-		values[5]  = SqlUtils.sqlString( agent.getJobTitle());
-		values[6]  = SqlUtils.sqlString( agent.getLastName());
-		values[7]  = SqlUtils.sqlString( agent.getOrganization().getId());
-		values[8]  = SqlUtils.sqlString( agent.getRemarks());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.sqlString( agent.getTitle());
-		values[11] = SqlUtils.sqlString( agent.getUrl());
-		values[12] = SqlUtils.one();
+		values[2]  = SqlUtils.sqlString( agent.getGuid());
+		values[3]  = SqlUtils.sqlString( agent.getInterests());
+		values[4]  = SqlUtils.sqlString( agent.getJobTitle());
+		values[5]  = SqlUtils.sqlString( agent.getLastName());
+		values[6]  = SqlUtils.sqlString( agent.getOrganization().getId());
+		values[7]  = SqlUtils.sqlString( agent.getRemarks());
+		values[8]  = SqlUtils.now();
+		values[9]  = SqlUtils.sqlString( agent.getTitle());
+		values[10] = SqlUtils.sqlString( agent.getUrl());
+		values[11] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
