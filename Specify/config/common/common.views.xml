@@ -2382,7 +2382,7 @@
             <rows>
             	<row>
             		<cell type="label" labelfor="preparation"/>
-            		<cell type="field" id="preparation" name="preparation" isrequired="true" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
+            		<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
             		<cell type="label" labelfor="geography"/>
                 	<cell type="field" id="geography" name="geography" uitype="querycbx" initialize="name=Taxon" colspan="5"/>
             	</row>
@@ -2676,7 +2676,7 @@
             <rows>
             	<row>
             		<cell type="label" labelfor="preparation"/>
-            		<cell type="field" id="preparation" name="preparation" isrequired="true" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
+            		<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
             		<cell type="label" labelfor="geography"/>
                 	<cell type="field" id="geography" name="geography" uitype="querycbx" initialize="name=Taxon" colspan="5"/>
             	</row>
@@ -3341,7 +3341,7 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" isrequired="true" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
 					<cell type="label" label=" "/>
 					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
 					<!-- <cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/> -->	
