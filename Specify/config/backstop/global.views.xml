@@ -1015,7 +1015,7 @@
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
+                    <cell type="field" id="5" name="firstName" uitype="text" isreadonly="true" cols="20" colspan="3"/>
                     <!-- <cell type="label" labelfor="4"/>
                     <cell type="field" id="4" name="middleInitial" uitype="text" colspan="3"/> -->
                 </row>
