@@ -41,10 +41,8 @@ FROM exchangeout eo JOIN
      agent organization ON shippedToAgent.ParentOrganizationID=organization.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
      picklistitem purposes ON (eo.Restrictions=purposes.Value AND purposes.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Transaction Purpose')) LEFT JOIN
-     address ON shippedToAgent.AgentID=address.AgentID
-WHERE address.IsShipping AND 
-      address.IsCurrent AND 
-      eo.ExchangeOutID $P!{itemnum}]]>
+     address ON (ifnull(shippedToAgent.ParentOrganizationID, shippedToAgent.AgentID)=address.AgentID AND address.IsShipping AND address.IsCurrent)
+WHERE eo.ExchangeOutID $P!{itemnum}]]>
 	</queryString>
 	<field name="ExchangeOutID" class="java.lang.Long"/>
 	<field name="ShipmentDate" class="java.lang.String"/>
@@ -101,7 +99,7 @@ WHERE address.IsShipping AND
 Cambridge, MA 02138
 U.S.A.]]></text>
 			</staticText>
-			<textField isBlankWhenNull="false">
+			<textField isBlankWhenNull="true">
 				<reportElement key="textField" mode="Transparent" x="22" y="84" width="230" height="13" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -151,7 +149,7 @@ U.S.A.]]></text>
 				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single" markup="none">
 					<font fontName="sansserif" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
 				</textElement>
-				<textFieldExpression class="java.lang.String"><![CDATA[$F{City} + ($F{State} != null ? ", " + $F{State} : "")]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[($F{City} != null ? $F{City} + ($F{State} != null ? ", " : "") : "") + ($F{State} != null ? $F{State} : "")]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement key="textField" mode="Transparent" x="22" y="149" width="100" height="13" forecolor="#000000" backcolor="#FFFFFF"/>
@@ -476,7 +474,7 @@ U.S.A.]]></text>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
-			<textField evaluationTime="Auto" isBlankWhenNull="false">
+			<textField evaluationTime="Auto" isBlankWhenNull="true">
 				<reportElement key="textField-1" mode="Transparent" x="120" y="80" width="100" height="16" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -600,7 +598,7 @@ U.S.A.]]></text>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
-			<textField evaluationTime="Auto" isBlankWhenNull="false">
+			<textField evaluationTime="Auto" isBlankWhenNull="true">
 				<reportElement key="textField-1" mode="Transparent" x="120" y="70" width="100" height="16" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>

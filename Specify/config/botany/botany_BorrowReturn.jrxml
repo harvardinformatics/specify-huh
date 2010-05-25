@@ -88,7 +88,7 @@ WHERE ba.Role='Borrower' AND
 	</background>
 	<title>
 		<band height="265" splitType="Stretch">
-			<textField isBlankWhenNull="false">
+			<textField isBlankWhenNull="true">
 				<reportElement key="textField" mode="Transparent" x="22" y="84" width="200" height="13" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -201,7 +201,7 @@ U.S.A.]]></text>
 				<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single" markup="none">
 					<font fontName="sansserif" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
 				</textElement>
-				<textFieldExpression class="java.lang.String"><![CDATA[$F{City} + ($F{State} != null ? ", " + $F{State} : "")]]></textFieldExpression>
+				<textFieldExpression class="java.lang.String"><![CDATA[($F{City} != null ? $F{City} + ($F{State} != null ? ", " : "") : "") + ($F{State} != null ? $F{State} : "")]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement key="textField" mode="Transparent" x="22" y="96" width="200" height="13" forecolor="#000000" backcolor="#FFFFFF"/>
@@ -500,7 +500,7 @@ U.S.A.]]></text>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
-			<textField evaluationTime="Auto" isBlankWhenNull="false">
+			<textField evaluationTime="Auto" isBlankWhenNull="true">
 				<reportElement key="textField-1" mode="Transparent" x="134" y="169" width="100" height="16" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -542,7 +542,7 @@ U.S.A.]]></text>
 				</textElement>
 				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{BalanceTypeCount}]]></textFieldExpression>
 			</textField>
-			<textField evaluationTime="Auto" isBlankWhenNull="false">
+			<textField evaluationTime="Auto" isBlankWhenNull="true">
 				<reportElement key="textField-1" mode="Transparent" x="266" y="169" width="100" height="16" forecolor="#000000" backcolor="#FFFFFF"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
