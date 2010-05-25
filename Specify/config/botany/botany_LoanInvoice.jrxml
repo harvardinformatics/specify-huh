@@ -32,6 +32,7 @@
                         lp.ItemCount,
                         lp.TypeCount,
                         lp.NonSpecimenCount,
+                        p.PreparationID,
                         ifnull((select pt.Name from preptype pt where pt.PrepTypeID=p.PrepTypeID), 'Lot') as PrepType
 FROM loan JOIN
      loanpreparation lp ON loan.LoanID=lp.LoanID LEFT JOIN
@@ -71,6 +72,7 @@ WHERE address.IsShipping AND
 	<field name="TypeCount" class="java.lang.Integer"/>
 	<field name="NonSpecimenCount" class="java.lang.Integer"/>
 	<field name="PrepType" class="java.lang.String"/>
+	<field name="PreparationID" class="java.lang.Long"/>
 	
 	<variable name="TotalItemCount" class="java.lang.Integer" calculation="Sum">
 		<variableExpression><![CDATA[$F{ItemCount}]]></variableExpression>
@@ -82,6 +84,12 @@ WHERE address.IsShipping AND
 	<variable name="TotalNonSpecimenCount" class="java.lang.Integer" calculation="Sum">
 		<variableExpression><![CDATA[$F{NonSpecimenCount}]]></variableExpression>
 	</variable>
+	
+	<variable name="lots" class="java.lang.Integer" resetType="Report" calculation="Count">
+	</variable>
+	<variable name="specimens" class="java.lang.Integer" resetType="Report" calculation="Sum">
+	</variable>
+	
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -501,21 +509,23 @@ U.S.A.]]></text>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{Description}]]></textFieldExpression>
 			</textField>
 		</band>
-		<band height="20">
+		<band height="32">
 			<printWhenExpression><![CDATA[new Boolean($F{PrepType} != null && !$F{PrepType}.equals("Lot"))]]></printWhenExpression>
-			<staticText>
-				<reportElement key="staticText-11" x="12" y="5" width="111" height="15"/>
-				<box>
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement>
-					<font size="9"/>
-				</textElement>
-				<text><![CDATA[barcode]]></text>
-			</staticText>
+			<subreport  isUsingCache="true">
+					<reportElement
+						x="1"
+						y="1"
+						width="549"
+						height="30"
+						key="subreport-1"/>
+					<subreportParameter  name="itemnum">
+						<subreportParameterExpression><![CDATA[$F{PreparationID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<returnValue subreportVariable="lotCount" toVariable="lots"/>
+					<returnValue subreportVariable="specimenCount" toVariable="specimens"/>
+					<subreportExpression  class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "botany_LoanInvoice_subreport1.jasper"]]></subreportExpression>
+				</subreport>
 		</band>
 	</detail>
 	<columnFooter>

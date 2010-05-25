@@ -20,12 +20,12 @@
         
 	<file level="3" mimetype="jrxml/report" name="botany_GiftInvoice.jrxml" description="Gift Invoice" file="botany_GiftInvoice.jrxml" 
         metadata="tableid=131;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
-        
-    <file level="3" mimetype="jrxml/report" name="botany_LoanInvoice.jrxml" description="Loan Invoice" file="botany_LoanInvoice.jrxml" 
-        metadata="tableid=52;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
 
 	<file level="3" mimetype="jrxml/report" name="botany_LoanInvoice.jrxml" description="Loan Invoice" file="botany_LoanInvoice.jrxml" 
-        metadata="tableid=52;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice"/>
+        metadata="tableid=52;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice;subreports=botany_LoanInvoice_subreport1.jrxml"/>
+        
+    <file level="3" mimetype="jrxml/subreport" name="botany_LoanInvoice_subreport1.jrxml" description="LoanInvoice SubReport" 
+        file="botany_LoanInvoice_subreport1.jrxml" metadata=""/>
         
     <!-- <file level="3" mimetype="jrxml/report" name="botany_ShipmentInvoice.jrxml" description="Shipment Invoice" file="botany_ShipmentInvoice.jrxml" 
         metadata="tableid=71;reqrs=true;type=Labels;action=PrintLabel;reporttype=Invoice;subreports=botany_LoanInvoice_subreport.jrxml,botany_GiftInvoice_subreport.jrxml,botany_ExchangeOutInvoice_subreport.jrxml,botany_LoanPrep_subreport.jrxml,botany_GiftPrep_subreport.jrxml,botany_ExchangeOutPrep_subreport.jrxml"/>
