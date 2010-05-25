@@ -54,13 +54,12 @@
 FROM exchangeout eo JOIN
      exchangeoutpreparation eop ON eo.ExchangeOutID=eop.ExchangeOutID JOIN
      shipment on eo.ExchangeOutID=shipment.ExchangeOutID JOIN
-     picklistitem colls ON (eo.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) JOIN
+     picklistitem colls ON (eo.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) LEFT JOIN
      geography geo ON eop.GeographyID=geo.GeographyID JOIN
      agent shippedToAgent ON shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
      picklistitem purposes ON (eo.Restrictions=purposes.Value AND purposes.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Transaction Purpose')) LEFT JOIN
-     address ON shippedToAgent.AgentID=address.AgentID LEFT JOIN
-     agent sentToAgent ON eo.SentToOrganizationID=sentToAgent.AgentID
+     address ON shippedToAgent.AgentID=address.AgentID
 WHERE address.IsShipping AND 
       address.IsCurrent AND 
       eo.ExchangeOutID $P!{itemnum}]]>
