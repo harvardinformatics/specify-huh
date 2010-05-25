@@ -86,7 +86,7 @@
   
   <format system="true" name="HUHBorrowMaterialNumber" class="edu.ku.brc.specify.datamodel.BorrowMaterial" fieldname="materialNumber" default="true">
     <autonumber>edu.ku.brc.af.core.db.AutoNumberGeneric</autonumber>
-    <field type="numeric" size="6" inc="true"/>
+    <field type="numeric" size="5" inc="true"/>
   </format>
   
   <format system="true" name="HUHExchangeNumber" class="edu.ku.brc.specify.datamodel.ExchangeOut" fieldname="exchangeNumber" default="true">
