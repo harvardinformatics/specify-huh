@@ -18,8 +18,12 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
+import edu.ku.brc.specify.datamodel.Address;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.busrules.LoanGiftShipmentBusRules;
+import edu.ku.brc.ui.UIRegistry;
 
 public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
 {
@@ -57,5 +61,45 @@ public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
                 }
             }
         }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BusinessRulesIFace#processBusinessRules(java.lang.Object)
+     */
+    @Override
+    public STATUS processBusinessRules(final Object dataObj)
+    {
+    	STATUS status = super.processBusinessRules(dataObj);
+    	
+    	if (!STATUS.OK.equals(status)) return status;
+    	
+        reasonList.clear();
+
+        Shipment shipment = (Shipment) dataObj;
+        
+        Agent shippedToAgent = shipment.getShippedTo();
+        
+        if (!areAddressesOK(shippedToAgent))
+        {
+        	reasonList.add(UIRegistry.getLocalizedMessage("SHIPPEDTO_MULT_ADDR"));
+        	return STATUS.Error;
+        }
+        
+        return STATUS.OK;
+    }
+    
+    private boolean areAddressesOK(Agent shippedToAgent)
+    {
+    	if (shippedToAgent != null)
+        {
+        	int currentShippingAddressCount = 0;
+        	for (Address address : shippedToAgent.getAddresses())
+        	{
+        		if (address.getIsCurrent() && address.getIsShipping()) currentShippingAddressCount++;
+
+        		if (currentShippingAddressCount > 1) return false;
+        	}
+        }
+    	return true;
     }
 }
