@@ -876,7 +876,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     /**
      *      * Associated record in Address table
      */
-    @OneToMany(mappedBy = "agent")
+    @OneToMany(mappedBy = "agent",  fetch = FetchType.EAGER)
     @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Set<Address> getAddresses() 
     {
