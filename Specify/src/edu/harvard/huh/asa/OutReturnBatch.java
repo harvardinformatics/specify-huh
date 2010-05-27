@@ -10,7 +10,9 @@ public class OutReturnBatch extends ReturnBatch
 	private Float   cost;
 	private Boolean isEstimatedCost;
 	private String  note;
-
+	private Integer agentId;
+	private Integer organizationId; // the parent of the agent
+	
 	public CARRIER getCarrier() { return carrier; }
     
     public METHOD getMethod() { return method; }
@@ -20,6 +22,10 @@ public class OutReturnBatch extends ReturnBatch
     public Boolean isEstimatedCost() { return isEstimatedCost; }
 	
 	public String getNote() { return note; }
+	
+	public Integer getAgentId() { return agentId; }
+	
+	public Integer getOrganizationId() { return organizationId; }
     
     public void setCarrier(CARRIER carrier) { this.carrier = carrier; }
     
@@ -30,4 +36,8 @@ public class OutReturnBatch extends ReturnBatch
     public void setIsEstimatedCost(Boolean isEstimatedCost) { this.isEstimatedCost = isEstimatedCost; }
 	
 	public void setNote(String note) { this.note = note; }
+	
+	public void setAgentId(Integer agentId) { this.agentId = agentId; }
+	
+	public void setOrganizationId(Integer organizationId) { this.organizationId = organizationId; }
 }

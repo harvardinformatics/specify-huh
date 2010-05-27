@@ -14,6 +14,8 @@
  */
 package edu.harvard.huh.asa;
 
+import java.util.Date;
+
 import edu.harvard.huh.asa.Transaction.TYPE;
 
 public class AsaShipment
@@ -56,18 +58,21 @@ public class AsaShipment
     
     private Integer id;
     private Integer transactionId;
-    private    TYPE type;
+    private TYPE    type;
     private CARRIER carrier;
-    private  METHOD method;
-    private   Float cost;
+    private METHOD  method;
+    private Float   cost;
     private Boolean isEstimatedCost;
     private Boolean isInsured;
     private Integer ordinal;
-    private  String trackingNo;
-    private  String customsNo;
-    private  String description;
-    private  String boxCount;
-    private  String collectionCode;
+    private String  trackingNo;
+    private String  customsNo;
+    private String  description;
+    private String  boxCount;
+    private String  collectionCode;
+    private Integer agentId;
+    private Integer organizationId; // the parent of the agent
+    private Date    shipmentDate;
     
     public Integer getId() { return id; }
     
@@ -97,6 +102,12 @@ public class AsaShipment
     
     public String getCollectionCode() { return collectionCode; }
     
+    public Integer getAgentId() { return agentId; }
+    
+    public Integer getOrganizationId() { return organizationId; }
+    
+    public Date getShipmentDate() { return shipmentDate; }
+    
     public void setId(Integer id) { this.id = id; }
     
     public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
@@ -124,4 +135,10 @@ public class AsaShipment
     public void setBoxCount(String boxCount) { this.boxCount = boxCount; }
     
     public void setCollectionCode(String collectionCode) { this.collectionCode = collectionCode; }
+    
+    public void setAgentId(Integer agentId) { this.agentId = agentId; }
+    
+    public void setOrganizationId(Integer organizationId) { this.organizationId = organizationId; }
+    
+    public void setShipmentDate(Date shipmentDate) { this.shipmentDate = shipmentDate; }
 }

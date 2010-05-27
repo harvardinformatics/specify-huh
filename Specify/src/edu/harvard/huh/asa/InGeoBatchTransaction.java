@@ -21,7 +21,6 @@ public class InGeoBatchTransaction extends CountableTransaction
     private Integer distributeCount;
     private Integer returnCount;
     private Float   cost;
-    private Integer organizationId;
     
     public String getGeoUnit() { return geoUnit; }
     
@@ -33,8 +32,6 @@ public class InGeoBatchTransaction extends CountableTransaction
     
     public Float getCost() { return cost; }
     
-    public Integer getOrganziationId() { return organizationId; }
-    
     public void setGeoUnit(String geoUnit) { this.geoUnit = geoUnit; }
     
     public void setDiscardCount(Integer discardCount) { this.discardCount = discardCount; }
@@ -44,8 +41,6 @@ public class InGeoBatchTransaction extends CountableTransaction
     public void setReturnCount(Integer returnCount) { this.returnCount = returnCount; }
     
     public void setCost(Float cost) { this.cost = cost; }
-    
-    public void setOrganizationId(Integer organizationId) { this.organizationId = organizationId; }
     
     /**
      * itemCount + typeCount + nonSpecimenCount - discardCount - distributeCount - returnCount

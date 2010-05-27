@@ -8,13 +8,13 @@ public class OutGeoBatch extends CountableBatch
     private TYPE   type;
     private REQUEST_TYPE requestType;
 	private Integer geoUnitId;
-	
+    
 	public TYPE getType() { return type; }
 	
 	public REQUEST_TYPE getRequestType() { return requestType; }
 	
 	public Integer getGeoUnitId() { return geoUnitId; }
-		
+    
 	public void setType(TYPE type) { this.type = type; }
 	
 	public void setRequestType(REQUEST_TYPE requestType) { this.requestType = requestType; }
