@@ -1265,7 +1265,7 @@
             <desc><![CDATA[Borrow viewing form.]]></desc>
             <columnDef>         110px, 2px, 174px,        5px,   110px, 2px, 107px, 10px, 132px, 5px,   60px, 2px, 112px,        0px, 20px, p:g</columnDef>
             <columnDef os="lnx">110px, 2px, 200px,        5px,   126px, 2px, 115px, 15px, 130px, 5px,   85px, 2px, 115px,        0px, 15px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 184px,        5px,   150px, 2px, 142px, 10px, 190px, 5px,   70px, 2px, 142px,        0px, 15px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 225px,        5px,   150px, 2px, 142px, 10px, 170px, 5px,   80px, 2px, 142px,        0px, 15px, p:g</columnDef>
             <columnDef os="exp">p,     2px, max(p;150px), 5px:g, p,     2px, 122px, 10px, p,     5px:g, p,    2px, max(p;122px), 0px, p,    p:g</columnDef> 
             <rowDef auto="true" cell="p" sep="1dlu"/>
             
@@ -1336,7 +1336,7 @@
             
             <columnDef>         105px, 2px, 200px, 5px, 133px, 2px, 110px,        260px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 220px, 5px,  75px, 2px, 125px,        373px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px,        433px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 365px, 5px,  80px, 2px, 165px,        283px, p:g</columnDef>
             <columnDef os="exp">p,     2px, p,     5px, 133px, 2px, max(p;130px), p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
@@ -2375,7 +2375,7 @@
             
             <columnDef>          85px, 2px, 115px,        5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <columnDef os="lnx">150px, 2px, max(p;150px), 5px, 110px, 2px, 100px, 5px,  30px, 5px, 150px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, p,            5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="mac">150px, 2px, 180,          5px, 180px, 2px, 120px, 5px,  30px, 5px, 155px, 2px, 145px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px, 70px, 5px:g,   p, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
@@ -2632,7 +2632,7 @@
 
             <columnDef>         105px, 2px, 200px, 5px, 103px, 2px, 150px, 5px, 103px, 2px, 150px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 300px, 5px,  73px, 2px, 155px, 5px,  73px, 2px, 155px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px, 5px,  80px, 2px, 165px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 315px, 5px,  80px, 2px, 165px, 5px,  80px, 2px, 165px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px, 100px, 2px, max(p;150px), p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
@@ -2669,7 +2669,7 @@
             
             <columnDef>          85px, 2px, 115px,        5px, 100px, 2px,  80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <columnDef os="lnx">135px, 2px, max(p;150px), 5px, 110px, 2px, 100px, 5px,  30px, 5px, 150px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, p,            5px, 100px, 2px,  80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 180,          5px, 180px, 2px, 120px, 5px,  30px, 5px, 155px, 2px, 145px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px,  70px, 5px:g,   p, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
@@ -3187,7 +3187,7 @@
             <desc><![CDATA[Loan viewing form.]]></desc>
             <columnDef>         105px, 2px, 105px, 5px,   120px, 2px, 105px,  5px, 120px, 5px,   156px, 2px, 105px, 0px, 15px, p,p:g</columnDef>
             <columnDef os="lnx">125px, 2px, 117px, 5px,   135px, 2px, 110px, 15px, 148px, 5px,   141px, 2px, 110px, 0px, 15px, p,p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 150px, 5px,   105px, 2px, 150px,  5px, 155px, 5px,   170px, 2px, 150px, 0px, 15px, p,p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px,   150px, 2px, 150px,  5px, 155px, 5px,   150px, 2px, 150px, 0px, 15px, p,p:g</columnDef>
             <columnDef os="exp">p,     2px, 150px, 5px:g, p,     2px, 120px,  5px, p,     5px:g, p,     2px, 120px, 0px, p,    p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             
@@ -3300,7 +3300,7 @@
 
             <columnDef>          65px, 2px, 280px, 5px,  65px, 2px, 120px, 5px,  65px, 2px, 120px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 300px, 5px,  73px, 2px, 155px, 5px,  73px, 2px, 155px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px, 5px,  80px, 2px, 165px, 5px,  80px, 2px, 165px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 315px, 5px,  80px, 2px, 165px, 5px,  80px, 2px, 165px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px, 100px, 2px, max(p;150px), p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 
@@ -3337,7 +3337,7 @@
             
             <columnDef>         105px, 2px, 152px, 5px, 130px, 2px, 105px, 5px, 105px, 2px, 115px, 2px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 190px, 5px, 115px, 2px, 137px, 5px, 150px, 2px, 147px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 130px, 2px, 155px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 165px, 2px, 155px, 2px, p:g</columnDef>
             <columnDef os="exp">p,     2px, 152px, 5px:g,   p, 2px,     p, 5px:g,   p, 2px, 115px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
@@ -3383,7 +3383,7 @@
             <desc><![CDATA[LoanReturnPreparation viewing form.]]></desc>
             <columnDef>         140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <columnDef os="lnx">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 150px, 2px, 100px, 0px:g, f:p:g</columnDef>
-            <columnDef os="mac">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
+            <columnDef os="mac">140px, 2px, 150px, 5px, 140px, 2px, 150px, 5px, 165px, 2px, 150px, 0px:g, f:p:g</columnDef>
             <columnDef os="exp">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             <rows>
