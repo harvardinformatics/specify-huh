@@ -1263,7 +1263,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Borrow viewing form.]]></desc>
-            <columnDef>         105px, 2px, 174px,        5px,   105px, 2px, 107px, 10px, 132px, 5px,   60px, 2px, 112px,        0px, 15px, p:g</columnDef>
+            <columnDef>         110px, 2px, 174px,        5px,   110px, 2px, 107px, 10px, 132px, 5px,   60px, 2px, 112px,        0px, 20px, p:g</columnDef>
             <columnDef os="lnx">110px, 2px, 200px,        5px,   126px, 2px, 115px, 15px, 130px, 5px,   85px, 2px, 115px,        0px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 184px,        5px,   150px, 2px, 142px, 10px, 190px, 5px,   70px, 2px, 142px,        0px, 15px, p:g</columnDef>
             <columnDef os="exp">p,     2px, max(p;150px), 5px:g, p,     2px, 122px, 10px, p,     5px:g, p,    2px, max(p;122px), 0px, p,    p:g</columnDef> 
