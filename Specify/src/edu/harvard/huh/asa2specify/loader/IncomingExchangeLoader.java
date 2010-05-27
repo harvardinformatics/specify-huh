@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.IncomingExchange;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -53,22 +54,29 @@ public class IncomingExchangeLoader extends InGeoBatchTransactionLoader
             insert(sql);
         }
         
-        Agent donorAgent = lookupAgent(incomingExchange);
-        if (donorAgent != null)
+        int organizationId = incomingExchange.getOrganizationId();
+        boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+        
+        if (!isSelfOrganized)
         {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Contact);
-            sql = getInsertSql(donor);
-            insert(sql);
-            
-            Agent contributorAgent = lookupOrganization(incomingExchange);
-            
-            if (contributorAgent != null)
+            Agent contactAgent = lookupAgent(incomingExchange);
+            if (contactAgent != null)
             {
-                AccessionAgent contributor = getAccessionAgent(accession, contributorAgent, ROLE.Contributor);
-                sql = getInsertSql(contributor);
+                AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
+                sql = getInsertSql(contact);
                 insert(sql);
             }
         }
+
+        Agent contributorAgent = isSelfOrganized ? lookupAgent(incomingExchange) : lookupOrganization(incomingExchange);
+
+        if (contributorAgent != null)
+        {
+            AccessionAgent contributor = getAccessionAgent(accession, contributorAgent, ROLE.Contributor);
+            sql = getInsertSql(contributor);
+            insert(sql);
+        }
+
     }
     
     private IncomingExchange parse(String[] columns) throws LocalException

@@ -20,6 +20,7 @@ import java.text.DecimalFormat;
 import java.util.Date;
 
 import edu.harvard.huh.asa.AsaBorrow;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa.Transaction.USER_TYPE;
@@ -86,21 +87,19 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         Integer borrowId = insert(sql);
         borrow.setBorrowId(borrowId);
         
-        BorrowAgent borrower = getBorrowAgent(asaBorrow, borrow, ROLE.Borrower, collectionMemberId); // "for use by"
+        BorrowAgent borrower = getBorrowAgent(lookupAffiliate(asaBorrow),
+                borrow, ROLE.Borrower, collectionMemberId); // "for use by"
         if (borrower != null)
         {
             sql = getInsertSql(borrower);
             insert(sql);
         }
         
-        BorrowAgent contact = getBorrowAgent(asaBorrow, borrow, ROLE.Contact, collectionMemberId); // "contact"
-        if (contact != null)
-        {
-            sql = getInsertSql(contact);
-            insert(sql);
-        }
-        
-        BorrowAgent lender = getBorrowAgent(asaBorrow, borrow, ROLE.Lender, collectionMemberId); // "organization"
+        int organizationId = asaBorrow.getOrganizationId();
+        boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+
+        BorrowAgent lender = getBorrowAgent(isSelfOrganized ? lookupAgent(asaBorrow) : lookupOrganization(asaBorrow),
+                borrow, ROLE.Lender, collectionMemberId); // "organization"
         if (lender != null)
         {
             sql = getInsertSql(lender);
@@ -262,26 +261,11 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         return borrow;
     }
     
-    private BorrowAgent getBorrowAgent(Transaction transaction, Borrow borrow, ROLE role, Integer collectionMemberId) throws LocalException
+    private BorrowAgent getBorrowAgent(Agent agent, Borrow borrow, ROLE role, Integer collectionMemberId) throws LocalException
     {
         BorrowAgent borrowAgent = new BorrowAgent();
         
         // Agent
-        Agent agent = null;
-
-        if (role.equals(ROLE.Borrower))
-        {
-            agent = lookupAffiliate(transaction);
-        }
-        else if (role.equals(ROLE.Contact))
-        {
-            agent = lookupAgent(transaction);
-        }
-        else if (role.equals(ROLE.Lender))
-        {
-            agent = lookupOrganization(transaction);
-        }
-
         if (agent ==  null || agent.getId() == null) return null;
         
         borrowAgent.setAgent(agent);
@@ -291,14 +275,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         
         // LoanID
         borrowAgent.setBorrow(borrow);
-        
-        // Remarks (borrow.userType)
-        if (role.equals(ROLE.Borrower))
-        {
-            String userType = Transaction.toString(transaction.getUserType());
-            borrowAgent.setRemarks(userType);
-        }
-        
+
         // Role
         borrowAgent.setRole(Transaction.toString(role));
         
@@ -388,18 +365,17 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(BorrowAgent borrowAgent)
     {
-        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Remarks, Role, " +
+        String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, " +
         		            "TimestampCreated, Version";
 
-        String[] values = new String[7];
+        String[] values = new String[6];
 
         values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( borrowAgent.getBorrow().getId());
         values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
-        values[3] = SqlUtils.sqlString( borrowAgent.getRemarks());
-        values[4] = SqlUtils.sqlString( borrowAgent.getRole());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[3] = SqlUtils.sqlString( borrowAgent.getRole());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
     }

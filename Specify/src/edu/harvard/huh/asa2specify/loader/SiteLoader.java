@@ -46,7 +46,11 @@ public class SiteLoader extends CsvToSqlLoader
 		setCurrentRecordId(siteId);
 		
 		// skip this record if it only has SRE initial values set
-		if (! site.hasData()) return;
+		if (! site.hasData())
+		{
+		    getLogger().warn(rec() + "Empty record, not inserting.");
+		    return;
+		}
 
 		Locality locality = getLocality(site);
 

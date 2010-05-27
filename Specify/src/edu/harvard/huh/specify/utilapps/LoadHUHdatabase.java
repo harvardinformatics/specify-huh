@@ -439,8 +439,7 @@ public class LoadHUHdatabase
                                                    affiliateLookup,
                                                    agentLookup,
                                                    orgLookup,
-                                                   taxonLookup,
-                                                   new File(dir, "loan_botanist.csv"));
+                                                   taxonLookup);
             loanLoader.setFrame(frame);
             int loanLoaderRecords = loanLoader.loadRecords();
             log.info("Loaded " + loanLoaderRecords + " loan records");
@@ -504,6 +503,7 @@ public class LoadHUHdatabase
             frame.setDesc("Loading shipments...");
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
+                                                               agentLookup,
                                                                loanLookup,
                                                                outExchangeLookup,
                                                                outGiftLookup);
@@ -538,6 +538,7 @@ public class LoadHUHdatabase
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,
                                                                                  borrowMaterialLookup,
+                                                                                 agentLookup,
                                                                                  carrierLookup,
                                                                                  borrowLookup);
             outReturnBatchLoader.setFrame(frame);

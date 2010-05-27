@@ -32,8 +32,6 @@ import edu.ku.brc.specify.datamodel.Shipment;
 
 public class OutgoingMiscLoader extends TransactionLoader
 {
-    private static final String DEFAULT_SHIPPING_NUMBER = "none";
-    
     private CarrierLookup carrierLookup;
     
     public OutgoingMiscLoader(File csvFile,
@@ -158,13 +156,13 @@ public class OutgoingMiscLoader extends TransactionLoader
         shipment.setShipmentMethod(method);
         
         // ShipmentNumber (trackingNumber)
-        String trackingNumber = outMisc.getTrackingNumber();
-        if (trackingNumber == null)
+        Integer transactionId = outMisc.getId();
+        if (transactionId == null)
         {
-            trackingNumber = DEFAULT_SHIPPING_NUMBER;
+            throw new LocalException("No transaction id");
         }
-        trackingNumber = truncate(trackingNumber, 50, "tracking number");
-        shipment.setShipmentNumber(trackingNumber);
+        String shipmentNumber = ShipmentLoader.getShipmentNumber(transactionId);
+        shipment.setShipmentNumber(shipmentNumber);
         
         // ShippedTo
         Agent shippedTo = lookupAgent(outMisc);
@@ -180,10 +178,6 @@ public class OutgoingMiscLoader extends TransactionLoader
         // Text1 (customsNo)
         String customsNumber = outMisc.getCustomsNumber();
         shipment.setText1(customsNumber);
-                
-        // Text2 (transactionId)
-        Integer transactionId = outMisc.getId();
-        shipment.setText2("Asa transaction id: " + String.valueOf(transactionId));
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = outMisc.isAcknowledged();
@@ -234,10 +228,10 @@ public class OutgoingMiscLoader extends TransactionLoader
     {
         String fields = "CreatedByAgentID, DisciplineID, InsuredForAmount, ModifiedByAgentID, NumberOfPackages, " +
                         "Number1, Number2, Remarks, ShipmentDate, ShipmentMethod, ShipmentNumber, " +
-                        "ShippedToID, ShipperID, Text1, Text2, TimestampCreated, TimestampModified, " +
-                        "Version, YesNo1, YesNo2";
+                        "ShippedToID, ShipperID, Text1, TimestampCreated, TimestampModified, Version, " +
+                        "YesNo1, YesNo2";
 
-        String[] values = new String[20];
+        String[] values = new String[19];
 
         values[0]  = SqlUtils.sqlString( shipment.getCreatedByAgent().getId());
         values[1]  = SqlUtils.sqlString( shipment.getDiscipline().getId());
@@ -253,12 +247,11 @@ public class OutgoingMiscLoader extends TransactionLoader
         values[11] = SqlUtils.sqlString( shipment.getShippedTo().getId());
         values[12] = SqlUtils.sqlString( shipment.getShipper().getId());
         values[13] = SqlUtils.sqlString( shipment.getText1());
-        values[14] = SqlUtils.sqlString( shipment.getText2());
-        values[15] = SqlUtils.sqlString( shipment.getTimestampCreated());
-        values[16] = SqlUtils.sqlString( shipment.getTimestampModified());
-        values[17] = SqlUtils.one();
+        values[14] = SqlUtils.sqlString( shipment.getTimestampCreated());
+        values[15] = SqlUtils.sqlString( shipment.getTimestampModified());
+        values[16] = SqlUtils.one();
+        values[17] = SqlUtils.sqlString( shipment.getYesNo1());
         values[18] = SqlUtils.sqlString( shipment.getYesNo1());
-        values[19] = SqlUtils.sqlString( shipment.getYesNo1());
         
         return SqlUtils.getInsertSql("shipment", fields, values);
     } 

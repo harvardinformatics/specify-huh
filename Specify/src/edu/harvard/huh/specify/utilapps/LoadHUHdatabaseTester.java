@@ -483,8 +483,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
                                                    affiliateLookup,
                                                    agentLookup,
                                                    orgLookup,
-                                                   taxonLookup,
-                                                   new File(dir, "loan_botanist.csv"));
+                                                   taxonLookup);
             
             if (doLoan)
             {
@@ -566,6 +565,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             ShipmentLoader shipmentLoader = new ShipmentLoader(new File(dir, "shipment.csv"),
                                                                statement,
+                                                               agentLookup,
                                                                loanLookup,
                                                                outExchangeLookup,
                                                                outGiftLookup);
@@ -600,6 +600,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             OutReturnBatchLoader outReturnBatchLoader = new OutReturnBatchLoader(new File(dir, "out_return_batch.csv"),
                                                                                  statement,
                                                                                  borrowMaterialLookup,
+                                                                                 agentLookup,
                                                                                  carrierLookup,
                                                                                  borrowLookup);
             if (doOutRetBatch)

@@ -13,6 +13,7 @@ import edu.harvard.huh.asa.AsaShipment.CARRIER;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowMaterialLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.BorrowLookup;
@@ -25,10 +26,9 @@ import edu.ku.brc.specify.datamodel.Shipment;
 // Run this class after BorrowLoader, LoanLoader, and ShipmentLoader
 
 public class OutReturnBatchLoader extends ReturnBatchLoader
-{
-    private static final String DEFAULT_SHIPPING_NUMBER = "none";
-    
+{   
 	private BorrowMaterialLookup borrowMaterialLookup;
+	private AgentLookup agentLookup;
 	private CarrierLookup carrierLookup;
 	private BorrowLookup borrowLookup;
 	
@@ -37,12 +37,14 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 	public OutReturnBatchLoader(File csvFile,
 			                    Statement sqlStatement,
 			                    BorrowMaterialLookup borrowMaterialLookup,
+			                    AgentLookup agentLookup,
 			                    CarrierLookup carrierLookup,
 			                    BorrowLookup borrowLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
 		this.borrowMaterialLookup = borrowMaterialLookup;
+		this.agentLookup = agentLookup;
 		this.carrierLookup = carrierLookup;
 		this.borrowLookup = borrowLookup;
 		
@@ -72,7 +74,7 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 	 
         int i = super.parse(columns, outReturnBatch);
 		
-        if (columns.length < i + 5)
+        if (columns.length < i + 7)
 		{
 			throw new LocalException("Not enough columns");
 		}
@@ -84,6 +86,8 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 			outReturnBatch.setCost(             SqlUtils.parseFloat( columns[i + 2] ));
 			outReturnBatch.setIsEstimatedCost( Boolean.parseBoolean( columns[i + 3] ));
 			outReturnBatch.setNote(                                  columns[i + 4] );
+			outReturnBatch.setAgentId(            SqlUtils.parseInt( columns[i + 5] ));
+			outReturnBatch.setOrganizationId(     SqlUtils.parseInt( columns[i + 6] ));
 		}
 		catch (NumberFormatException e)
 		{
@@ -194,6 +198,13 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
         Float cost = outReturnBatch.getCost();
         shipment.setNumber1(cost);
     	
+        // ShippedTo
+        Integer asaAgentId = outReturnBatch.getAgentId();
+        checkNull(asaAgentId, "agent id");
+        
+        Agent shippedTo = lookupAgent(asaAgentId);
+        shipment.setShippedTo(shippedTo);
+
         // Shipper (carrier)
         Agent shipper = null;
 
@@ -219,10 +230,12 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
     	shipment.setShipmentMethod(method);
     	
     	// ShipmentNumber (shipment.trackingNumber)
-    	String shipmentNumber = DEFAULT_SHIPPING_NUMBER;
-    	
-    	shipmentNumber = truncate(shipmentNumber, 50, "transaction number");
-    	shipment.setShipmentNumber(shipmentNumber);
+    	if (transactionId == null)
+        {
+            throw new LocalException("No transaction id");
+        }
+    	String shipmentNumber = ShipmentLoader.getShipmentNumber(transactionId);
+        shipment.setShipmentNumber(shipmentNumber);
     	
     	// Remarks (shipment.description)
     	String note = outReturnBatch.getNote();
@@ -252,6 +265,11 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
     	}
     	return carrier;
     }
+    
+    private Agent lookupAgent(Integer asaAgentId) throws LocalException
+    {
+        return agentLookup.getById(asaAgentId);
+    }
 
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
@@ -276,24 +294,25 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 	private String getInsertSql(Shipment shipment)
 	{
 		String fields = "BorrowID, DisciplineID, NumberOfPackages, Number1, " +
-				        "Remarks, ShipperID, ShipmentDate, ShipmentMethod, " +
+				        "Remarks, ShippedToID, ShipperID, ShipmentDate, ShipmentMethod, " +
 				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
-		String[] values = new String[13];
+		String[] values = new String[14];
 		
 		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
 		values[1]  = SqlUtils.sqlString( shipment.getDiscipline().getId());
 		values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
 		values[3]  = SqlUtils.sqlString( shipment.getNumber1());
 		values[4]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[5]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[6]  = SqlUtils.sqlString( shipment.getShipmentDate());
-		values[7]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[8]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.one();
-		values[11] = SqlUtils.sqlString( shipment.getYesNo1());
-		values[12] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[5]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
+		values[6]  = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[7]  = SqlUtils.sqlString( shipment.getShipmentDate());
+		values[8]  = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[9]  = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[10] = SqlUtils.now();
+		values[11] = SqlUtils.one();
+		values[12] = SqlUtils.sqlString( shipment.getYesNo1());
+		values[13] = SqlUtils.sqlString( shipment.getYesNo2());
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

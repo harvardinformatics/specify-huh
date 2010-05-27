@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.harvard.huh.asa.AsaAgent;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -24,6 +25,9 @@ public class AgentLoader extends CsvToSqlLoader
 	private OrganizationLookup organizationLookup;
 	private AsaIdMapper        agents;
 	private BotanistLookup     botanistLookup;
+	
+	private final static Pattern wholeName = Pattern.compile(".*([\\(&]|Curador|Curator|Default|Director|Keeper|Responsable).*");
+	private final static Pattern lastInitial = Pattern.compile(".* [A-Z]\\.$");
 	
     private final static Pattern usPattern  = Pattern.compile("^(u\\.\\s*s\\.\\s*a\\.|usa|united\\s+states|puerto\\s+rico)$", Pattern.CASE_INSENSITIVE);
     private final static Pattern auPattern  = Pattern.compile("^(australia)$", Pattern.CASE_INSENSITIVE);
@@ -46,7 +50,7 @@ public class AgentLoader extends CsvToSqlLoader
     private final static Pattern auCityTerrPattern     = Pattern.compile("^\\s*([a-zA-Z ]+),?\\s+(A\\.C\\.T\\.|(N\\.?S\\.?W\\.?)|New\\s+South\\s+Wales\\s+|Northern\\s+Territory|Tasmania|QLD|Queensland|Victoria|WA|Western\\s+Australia)\\s*$");
     private final static Pattern auCityTerrCodePattern = Pattern.compile("^\\s*([a-zA-Z ]+),?\\s+(A\\.C\\.T\\.|(N\\.?S\\.?W\\.?)|New\\s+South\\s+Wales\\s+|Northern\\s+Territory|Tasmania|QLD|Queensland|Victoria|WA|Western\\s+Australia)\\s+(\\d{4})\\s*$");
 
-	public AgentLoader(File csvFile,
+    public AgentLoader(File csvFile,
 	                   Statement specifySqlStatement,
 	                   File agentBotanists,
 	                   BotanistLookup botanistLookup,
@@ -91,34 +95,56 @@ public class AgentLoader extends CsvToSqlLoader
 
 		Integer asaAgentId = asaAgent.getId();
 		setCurrentRecordId(asaAgentId);
-		
-		Agent agent = getAgent(asaAgent);
 
-		Integer botanistId = getBotanistId(asaAgentId);
+		Integer organizationId = asaAgent.getOrganizationId();
+		checkNull(organizationId, "organization id");
+
+		Agent organization = lookupOrganization(organizationId);
+
+		boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+		if (isSelfOrganized)
+		{		    
+		    // prefer the Asa organization record's version of the name
+		    String organizationName = this.getString("agent", "LastName", "AgentID", organization.getId());
+		    asaAgent.setName(organizationName);
+		}
+			
+		Agent agent = getAgent(asaAgent, isSelfOrganized ? NullAgent() : organization);
 		
+		Integer botanistId = getBotanistId(asaAgentId);
+        
         if (botanistId != null) // retain botanist id in guid
         {
-            Agent botanistAgent = lookup(botanistId);
-            Integer agentId = botanistAgent.getId();
-            agent.setAgentId(agentId);
+            Agent botanistAgent = lookupBotanist(botanistId);
             
         	if (agent.getRemarks() != null)
             {
                 getLogger().warn(rec() + "Ignoring remarks: " + asaAgent.getRemarks());
             }
         	
-            String sql = getUpdateSql(agent, agentId);
+            String sql = getUpdateBotanistSql(agent,  botanistAgent.getId());
             update(sql);
         }
         else
         {
-            String sql = getInsertSql(agent);
-            Integer agentId = insert(sql);
-            agent.setAgentId(agentId);
+            if (isSelfOrganized)
+            {
+                getLogger().warn(rec() + "Merging organization and agent.");
+                
+                String sql = getUpdateOrganizationSql(agent, organization.getId());
+                update(sql);
+            }
+            else
+            {
+                String sql = getInsertSql(agent);
+                insert(sql);
+            }
         }
 
+        Agent addressAgent = isSelfOrganized ? agent : agent.getOrganization();
+        
         // Correspondence address
-        Address correspAddress = getCorrespAddress(asaAgent, agent);
+        Address correspAddress = getCorrespAddress(asaAgent, addressAgent);
         if (correspAddress != null)
         {
 		    String sql = getInsertSql(correspAddress);
@@ -126,7 +152,7 @@ public class AgentLoader extends CsvToSqlLoader
         }
 		
         // Shipping address
-        Address shippingAddress = getShippingAddress(asaAgent, agent);
+        Address shippingAddress = getShippingAddress(asaAgent, addressAgent);
         if (shippingAddress != null)
         {
         	String sql = getInsertSql(shippingAddress);
@@ -139,11 +165,16 @@ public class AgentLoader extends CsvToSqlLoader
 		return agentId + " agent";
 	}
 
-	private Agent lookup(Integer botanistId) throws LocalException
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
 	{
 	    return botanistLookup.getById(botanistId);
 	}
 
+    private Agent lookupOrganization(Integer organizationId) throws LocalException
+    {
+        return organizationLookup.getById(organizationId);
+    }
+    
 	private Integer getBotanistId(Integer agentId)
 	{
 	    return agents.map(agentId);
@@ -182,7 +213,7 @@ public class AgentLoader extends CsvToSqlLoader
 		return agent;
 	}
 
-	private Agent getAgent(AsaAgent asaAgent) throws LocalException
+	private Agent getAgent(AsaAgent asaAgent, Agent organization) throws LocalException
 	{		
 		Agent agent = new Agent();
 		
@@ -220,17 +251,104 @@ public class AgentLoader extends CsvToSqlLoader
 			agent.setJobTitle(position);
 		}
 		
-		// LastName
-		String lastName = asaAgent.getName();
-		checkNull(lastName, "last name");
-		lastName = truncate(lastName, 200, "last name");
+		// FirstName, LastName
+		String name = asaAgent.getName();
+		checkNull(name, "last name");
+		
+		if (name.startsWith("Dr. ") || name.startsWith("Mr. ") || name.startsWith("Ma. "))
+		{
+		    String prefix = name.substring(0, 3);
+		    name = name.substring(4);
+		    
+		    if (asaAgent.getPrefix() != null)
+		    {
+		        getLogger().warn(rec() + "Appending to prefix " + asaAgent.getPrefix());
+		        prefix = asaAgent.getPrefix() + " " + prefix;
+		    }
+		    asaAgent.setPrefix(prefix);
+		    
+		}
+		else if (name.startsWith("Mrs. "))
+        {
+		    String prefix = name.substring(0, 4);
+            name = name.substring(5);
+            
+            if (asaAgent.getPrefix() != null)
+            {
+                getLogger().warn(rec() + "Appending to prefix " + asaAgent.getPrefix());
+                prefix = asaAgent.getPrefix() + " " + prefix;
+            }
+            asaAgent.setPrefix(prefix);
+        }
+		
+		String firstName = null;
+		String lastName  = null;
+		
+		Matcher wholeNameMatcher = wholeName.matcher(name);
+		Matcher lastInitialMatcher = lastInitial.matcher(name);
+		
+		if (wholeNameMatcher.matches())
+		{
+		    lastName = name;
+		}
+		else if (name.toLowerCase().contains(" de "))
+		{
+		    int index = name.toLowerCase().indexOf(" de ");
+		    firstName = name.substring(0, index);
+		    lastName  = name.substring(index + 1);
+		}
+		else if (name.toLowerCase().contains(" da "))
+        {
+            int index = name.toLowerCase().indexOf(" da ");
+            firstName = name.substring(0, index);
+            lastName  = name.substring(index + 1);
+        }
+		else if (name.toLowerCase().contains(" van "))
+        {
+            int index = name.toLowerCase().indexOf(" van ");
+            firstName = name.substring(0, index);
+            lastName  = name.substring(index + 1);
+        }
+		else
+		{
+		    int index = name.lastIndexOf(" ");
+		    if (name.endsWith(" III"))
+		    {
+		        int fromIndex = name.indexOf(" III");
+		        index = name.lastIndexOf(" ", fromIndex-1);
+		    }
+		    else if (name.endsWith(", III"))
+            {
+                int fromIndex = name.indexOf(", III");
+                index = name.lastIndexOf(" ", fromIndex-1);
+            }
+		    else if (name.endsWith(" Jr."))
+            {
+                int fromIndex = name.indexOf(" Jr.");
+                index = name.lastIndexOf(" ", fromIndex-1);
+            }
+		    else if (lastInitialMatcher.matches())
+            {
+                index = name.lastIndexOf(" ", name.length()-4);
+            }
+
+		    if (index < 0)
+		    {
+		        lastName = name;
+		    }
+		    else
+		    {
+		        firstName = name.substring(0, index);
+		        lastName  = name.substring(index + 1);
+		    }
+		}
+		if (firstName != null) firstName = truncate(firstName.trim(), 50, "first name");
+        agent.setFirstName(firstName);
+        
+		lastName = truncate(lastName.trim(), 200, "last name");
 		agent.setLastName(lastName);
   
 		// ParentOrganziation
-		Integer organizationId = asaAgent.getOrganizationId();
-		checkNull(organizationId, "organization id");
-		
-		Agent organization = lookupOrganization(organizationId);
 		agent.setOrganization(organization);
 		
         // Remarks
@@ -252,11 +370,6 @@ public class AgentLoader extends CsvToSqlLoader
 		agent.setUrl(uri);
 		
 		return agent;
-	}
-
-	private Agent lookupOrganization(Integer organizationId) throws LocalException
-	{
-		return organizationLookup.getById(organizationId);
 	}
 	
 	private Address getCorrespAddress(AsaAgent asaAgent, Agent agent)
@@ -319,45 +432,68 @@ public class AgentLoader extends CsvToSqlLoader
        
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "AgentType, Email, GUID, Interests, JobTitle, " +
+		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle, " +
 				            "LastName, ParentOrganizationID, Remarks, TimestampCreated, " +
 				            "Title, URL, Version";
 
-		String[] values = new String[12];
+		String[] values = new String[13];
 
 		values[0]  = SqlUtils.sqlString( agent.getAgentType());
 		values[1]  = SqlUtils.sqlString( agent.getEmail());
-		values[2]  = SqlUtils.sqlString( agent.getGuid());
-		values[3]  = SqlUtils.sqlString( agent.getInterests());
-		values[4]  = SqlUtils.sqlString( agent.getJobTitle());
-		values[5]  = SqlUtils.sqlString( agent.getLastName());
-		values[6]  = SqlUtils.sqlString( agent.getOrganization().getId());
-		values[7]  = SqlUtils.sqlString( agent.getRemarks());
-		values[8]  = SqlUtils.now();
-		values[9]  = SqlUtils.sqlString( agent.getTitle());
-		values[10] = SqlUtils.sqlString( agent.getUrl());
-		values[11] = SqlUtils.one();
+		values[2]  = SqlUtils.sqlString( agent.getFirstName());
+		values[3]  = SqlUtils.sqlString( agent.getGuid());
+		values[4]  = SqlUtils.sqlString( agent.getInterests());
+		values[5]  = SqlUtils.sqlString( agent.getJobTitle());
+		values[6]  = SqlUtils.sqlString( agent.getLastName());
+		values[7]  = SqlUtils.sqlString( agent.getOrganization().getId());
+		values[8]  = SqlUtils.sqlString( agent.getRemarks());
+		values[9]  = SqlUtils.now();
+		values[10] = SqlUtils.sqlString( agent.getTitle());
+		values[11] = SqlUtils.sqlString( agent.getUrl());
+		values[12] = SqlUtils.one();
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 	
-	private String getUpdateSql(Agent agent, Integer agentId)
+	private String getUpdateBotanistSql(Agent agent, Integer agentId)
 	{
-		String[] fields = { "Email", "Interests", "JobTitle", "ParentOrganizationID",
+		String[] fields = { "Email", "FirstName", "Interests", "JobTitle", "LastName", "ParentOrganizationID",
 				            "Title", "URL" };
 		
-		String[] values = new String[6];
+		String[] values = new String[8];
 		
 		values[0] = SqlUtils.sqlString( agent.getEmail());
-		values[1] = SqlUtils.sqlString( agent.getInterests());
-		values[2] = SqlUtils.sqlString( agent.getJobTitle());
-		values[3] = SqlUtils.sqlString( agent.getOrganization().getId());
-		values[4] = SqlUtils.sqlString( agent.getTitle());
-		values[5] = SqlUtils.sqlString( agent.getUrl());
+		values[1] = SqlUtils.sqlString( agent.getFirstName());
+		values[2] = SqlUtils.sqlString( agent.getInterests());
+		values[3] = SqlUtils.sqlString( agent.getJobTitle());
+		values[4] = SqlUtils.sqlString( agent.getLastName());
+		values[5] = SqlUtils.sqlString( agent.getOrganization().getId());
+		values[6] = SqlUtils.sqlString( agent.getTitle());
+		values[7] = SqlUtils.sqlString( agent.getUrl());
 		
 		return SqlUtils.getUpdateSql("agent", fields, values, "AgentID", agentId);
 	}
 	
+	private String getUpdateOrganizationSql(Agent agent, Integer agentId)
+	{
+	    String[] fields = { "AgentType", "Email", "FirstName", "GUID", "Interests", "JobTitle", "LastName",
+	            "Title", "URL" };
+
+	    String[] values = new String[9];
+
+	    values[0] = SqlUtils.sqlString( agent.getAgentType());
+        values[1] = SqlUtils.sqlString( agent.getEmail());
+        values[2] = SqlUtils.sqlString( agent.getFirstName());
+	    values[3] = SqlUtils.sqlString( agent.getGuid());
+	    values[4] = SqlUtils.sqlString( agent.getInterests());
+	    values[5] = SqlUtils.sqlString( agent.getJobTitle());
+	    values[6] = SqlUtils.sqlString( agent.getLastName());
+	    values[7] = SqlUtils.sqlString( agent.getTitle());
+	    values[8] = SqlUtils.sqlString( agent.getUrl());
+
+	    return SqlUtils.getUpdateSql("agent", fields, values, "AgentID", agentId);
+	}
+	   
     private String getInsertSql(Address address) throws LocalException
     {
         String fieldNames = "Address, Address2, AgentID, City, Country, Fax, IsShipping, " +

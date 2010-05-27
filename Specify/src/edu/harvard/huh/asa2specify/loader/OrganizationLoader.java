@@ -15,8 +15,8 @@ import edu.ku.brc.specify.datamodel.Agent;
 // Run this class after SeriesLoader.
 
 public class OrganizationLoader extends AuditedObjectLoader
-{
-	private OrganizationLookup organizationLookup;
+{    
+    private OrganizationLookup organizationLookup;
 	
 	private String getGuid(Integer organizationId)
 	{

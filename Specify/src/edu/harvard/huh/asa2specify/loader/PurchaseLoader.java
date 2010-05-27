@@ -17,6 +17,7 @@ package edu.harvard.huh.asa2specify.loader;
 import java.io.File;
 import java.sql.Statement;
 
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Purchase;
 import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
@@ -54,20 +55,34 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
             insert(sql);
         }
         
-        Agent donorAgent = lookupOrganization(purchase);
-        if (donorAgent != null)
-        {
-            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Seller);
-            sql = getInsertSql(donor);
-            insert(sql);
-        }
+        Integer organizationId = purchase.getOrganizationId();
         
-        Agent contactAgent = lookupAgent(purchase);
-        if (contactAgent != null)
+        if (organizationId != null)
         {
-            AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
-            sql = getInsertSql(contact);
-            insert(sql);
+            boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+            
+            if (!isSelfOrganized)
+            {
+                Agent contactAgent = lookupAgent(purchase);
+                if (contactAgent != null)
+                {
+                    AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
+                    sql = getInsertSql(contact);
+                    insert(sql);
+                }
+            }
+            
+            Agent sellerAgent = isSelfOrganized ? lookupAgent(purchase) : lookupOrganization(purchase);
+            if (sellerAgent != null)
+            {
+                AccessionAgent seller = getAccessionAgent(accession, sellerAgent, ROLE.Seller);
+                sql = getInsertSql(seller);
+                insert(sql);
+            }
+        }
+        else
+        {
+            getLogger().warn(rec() + "No organization id");
         }
     }
     

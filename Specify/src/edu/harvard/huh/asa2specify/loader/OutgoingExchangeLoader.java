@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
 
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.OutgoingExchange;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -133,8 +134,11 @@ public class OutgoingExchangeLoader extends TransactionLoader
         exchangeOut.setRestrictions(purpose);
         
         // SentToOrganization
-        Agent agentSentTo = lookupOrganization(outExchange);
-        if (agentSentTo == null) agentSentTo = lookupAgent(outExchange);
+        int organizationId = outExchange.getOrganizationId();
+        boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+        
+        Agent agentSentTo = isSelfOrganized ? lookupAgent(outExchange) : lookupOrganization(outExchange);
+        
         checkNull(agentSentTo, "recipient");
         exchangeOut.setAgentSentTo(agentSentTo);
         

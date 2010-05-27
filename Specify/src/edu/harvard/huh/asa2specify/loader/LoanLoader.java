@@ -23,11 +23,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.harvard.huh.asa.AsaLoan;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.PURPOSE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa.Transaction.USER_TYPE;
-import edu.harvard.huh.asa2specify.AsaStringMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -54,9 +54,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     
     private final static String LOAN_NO_FMT = "00000";
     
-    private AsaStringMapper nameToBotanistMapper;
-    private BotanistLookup botanistLookup;
-    
     private LoanLookup loanLookup;
     private LoanPreparationLookup loanPrepLookup;
     
@@ -66,8 +63,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
                       AffiliateLookup affiliateLookup,
                       AgentLookup agentLookup,
                       OrganizationLookup organizationLookup,
-                      TaxonLookup taxonLookup,
-                      File nameToBotanist) throws LocalException
+                      TaxonLookup taxonLookup) throws LocalException
     {
         super(csvFile,
               sqlStatement,
@@ -76,8 +72,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
               agentLookup,
               organizationLookup,
               taxonLookup);
-        
-        this.nameToBotanistMapper = new AsaStringMapper(nameToBotanist);
     }
     
     public void loadRecord(String[] columns) throws LocalException
@@ -93,31 +87,19 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         Integer collectionMemberId = getCollectionId(code);
         
         Loan loan = getLoan(asaLoan);
-        
-        Agent borrowerAgent = null;
-        Agent contactAgent = null;
 
-        borrowerAgent = lookupOrganization(asaLoan);
-        contactAgent = lookupAgent(asaLoan);
+        int organizationId = asaLoan.getOrganizationId();
+        boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+        
+        Agent borrowerAgent = isSelfOrganized ? lookupAgent(asaLoan) : lookupOrganization(asaLoan);
         
         String sql = getInsertSql(loan);
         Integer loanId = insert(sql);
         loan.setLoanId(loanId);
         
-        if (contactAgent != null)
-        {
-            LoanAgent contact = getLoanAgent(loan, contactAgent, ROLE.Contact, null);
-            
-            if (contact != null)
-            {
-                sql = getInsertSql(contact);
-                insert(sql);
-            }
-        }
-        
         if (borrowerAgent != null)
         {
-            LoanAgent borrower = getLoanAgent(loan, borrowerAgent, ROLE.Borrower, Transaction.toString(asaLoan.getUserType()));
+            LoanAgent borrower = getLoanAgent(loan, borrowerAgent, ROLE.Borrower);
             if (borrower != null)
             {
                 sql = getInsertSql(borrower);
@@ -178,11 +160,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             };
         }
         return loanPrepLookup;
-    }
-    
-    private Agent lookup(Integer botanistId) throws LocalException
-    {
-        return botanistLookup.getById(botanistId);
     }
     
     private AsaLoan parse(String[] columns) throws LocalException
@@ -339,7 +316,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
 
     }
 
-    private LoanAgent getLoanAgent(Loan loan, Agent agent, ROLE role, String userType) throws LocalException
+    private LoanAgent getLoanAgent(Loan loan, Agent agent, ROLE role) throws LocalException
     {
         LoanAgent loanAgent = new LoanAgent();
         
@@ -351,9 +328,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // LoanID
         loanAgent.setLoan(loan);
-        
-        // Remarks
-        loan.setRemarks(userType);
         
         // Role
         loanAgent.setRole(Transaction.toString(role));
@@ -519,17 +493,16 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     
     private String getInsertSql(LoanAgent loanAgent)
     {
-        String fieldNames = "AgentID, DisciplineID, LoanID, Remarks, Role, TimestampCreated, Version";
+        String fieldNames = "AgentID, DisciplineID, LoanID, Role, TimestampCreated, Version";
             
-        String[] values = new String[7];
+        String[] values = new String[6];
         
         values[0] = SqlUtils.sqlString( loanAgent.getAgent().getId());
         values[1] = SqlUtils.sqlString( loanAgent.getDiscipline().getId());
         values[2] = SqlUtils.sqlString( loanAgent.getLoan().getId());
-        values[3] = SqlUtils.sqlString( loanAgent.getRemarks());
-        values[4] = SqlUtils.sqlString( loanAgent.getRole());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        values[3] = SqlUtils.sqlString( loanAgent.getRole());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanagent", fieldNames, values);
     }

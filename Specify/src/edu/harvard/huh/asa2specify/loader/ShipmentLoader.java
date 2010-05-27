@@ -16,6 +16,8 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 import edu.harvard.huh.asa.AsaException;
@@ -23,8 +25,10 @@ import edu.harvard.huh.asa.AsaShipment;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.AsaShipment.CARRIER;
 import edu.harvard.huh.asa.Transaction.TYPE;
+import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.AgentLookup;
 import edu.harvard.huh.asa2specify.lookup.CarrierLookup;
 import edu.harvard.huh.asa2specify.lookup.LoanLookup;
 import edu.harvard.huh.asa2specify.lookup.OutgoingExchangeLookup;
@@ -40,10 +44,11 @@ public class ShipmentLoader extends CsvToSqlLoader
 {
     // Loan/Exchange/Gift
            
-    private static final String DEFAULT_SHIPPING_NUMBER = "none";
+    private final static String SHIP_NO_FMT = "00000";
     
 	private HashMap<String, Agent> shippers;
 	
+	private AgentLookup agentLookup;
 	private CarrierLookup carrierLookup;
 	private LoanLookup loanLookup;
 	private OutgoingExchangeLookup outExchangeLookup;
@@ -55,13 +60,14 @@ public class ShipmentLoader extends CsvToSqlLoader
 	
     public ShipmentLoader(File csvFile, 
     		              Statement sqlStatement,
+    		              AgentLookup agentLookup,
     		              LoanLookup loanLookup,
     		              OutgoingExchangeLookup outExchangeLookup,
     		              OutgoingGiftLookup outGiftLookup) throws LocalException
     {
         super(csvFile, sqlStatement);
 
-
+        this.agentLookup = agentLookup;
         this.loanLookup = loanLookup;
         
         this.shippers = new HashMap<String, Agent>();
@@ -122,13 +128,13 @@ public class ShipmentLoader extends CsvToSqlLoader
     @Override
     protected void postLoad() throws LocalException
     {
-        String sql = "insert into agent_discipline(AgentID, DisciplineID) select a.AgentID, 3 from agent a where a.AgentID>1";
-        execute(sql);
+       String sql = "insert into agent_discipline(AgentID, DisciplineID) select a.AgentID, 3 from agent a where a.AgentID>1";
+       execute(sql);
     }
 
     private AsaShipment parse(String[] columns) throws LocalException
     {
-    	if (columns.length < 14)
+    	if (columns.length < 17)
     	{
     		throw new LocalException("Not enough columns");
     	}
@@ -145,11 +151,14 @@ public class ShipmentLoader extends CsvToSqlLoader
     		asaShipment.setIsEstimatedCost( Boolean.parseBoolean( columns[6]  ));
     		asaShipment.setIsInsured(       Boolean.parseBoolean( columns[7]  ));
     		asaShipment.setOrdinal(            SqlUtils.parseInt( columns[8]  ));
-    		asaShipment.setTrackingNumber(                        columns[9] );
+    		asaShipment.setTrackingNumber(                        columns[9]  );
     		asaShipment.setCustomsNumber(                         columns[10] );
     		asaShipment.setDescription(                           columns[11] );
     		asaShipment.setBoxCount(                              columns[12] );
             asaShipment.setCollectionCode(                        columns[13] );
+            asaShipment.setAgentId(            SqlUtils.parseInt( columns[14] ));
+            asaShipment.setOrganizationId(     SqlUtils.parseInt( columns[15] ));
+            asaShipment.setShipmentDate(      SqlUtils.parseDate( columns[16] ));
     	}
     	catch (NumberFormatException e)
     	{
@@ -230,6 +239,17 @@ public class ShipmentLoader extends CsvToSqlLoader
     	String description = asaShipment.getDescription();
     	shipment.setRemarks(description);
     	
+    	// ShipmentDate
+    	Date shipmentDate = asaShipment.getShipmentDate();
+    	if (shipmentDate != null) shipment.setShipmentDate(DateUtils.toCalendar(shipmentDate));
+    	
+    	// ShippedTo
+    	Integer asaAgentId = asaShipment.getAgentId();
+        checkNull(asaAgentId, "agent id");
+        
+        Agent shippedTo = lookupAgent(asaAgentId);
+        shipment.setShippedTo(shippedTo);
+        
     	// Shipper (carrier)
     	Agent shipper = null;
 
@@ -249,21 +269,21 @@ public class ShipmentLoader extends CsvToSqlLoader
     	String method = AsaShipment.toString(asaShipment.getMethod());
     	shipment.setShipmentMethod(method);
     	
-    	// ShipmentNumber (trackingNumber)
-    	String trackingNumber = asaShipment.getTrackingNumber();
-    	if (trackingNumber == null)
-    	{
-    	    trackingNumber = DEFAULT_SHIPPING_NUMBER;
-    	}
-    	trackingNumber = truncate(trackingNumber, 50, "tracking number");
-    	shipment.setShipmentNumber(trackingNumber);
-    	
+    	// ShipmentNumber (transactionId)
+        if (transactionId == null)
+        {
+            throw new LocalException("No transaction id");
+        }
+        shipment.setShipmentNumber(getShipmentNumber(transactionId));
+	
     	// Text1 (customsNo)
     	String customsNumber = asaShipment.getCustomsNumber();
     	shipment.setText1(customsNumber);
     	    	
-    	// Text2 (transactionId)
-    	shipment.setText2("Asa transaction id: " + String.valueOf(transactionId));
+    	// Text2 (trackingNumber)
+        String trackingNumber = asaShipment.getTrackingNumber();
+        if (trackingNumber != null) trackingNumber = truncate(trackingNumber, 50, "tracking number");
+        shipment.setText2(trackingNumber);
 
     	// YesNo1 (acknowledgedFlag)
         
@@ -272,6 +292,17 @@ public class ShipmentLoader extends CsvToSqlLoader
         shipment.setYesNo2(isEstimatedCost);
     	
     	return shipment;
+    }
+    
+    static String getShipmentNumber(Integer transactionId)
+    {
+        return (new DecimalFormat( SHIP_NO_FMT ) ).format( transactionId );
+    }
+
+    
+    private Agent lookupAgent(Integer asaAgentId) throws LocalException
+    {
+        return agentLookup.getById(asaAgentId);
     }
     
     private Agent lookupCarrier(String carrierName) throws LocalException
@@ -336,10 +367,11 @@ public class ShipmentLoader extends CsvToSqlLoader
 	private String getInsertSql(Shipment shipment)
     {
 		String fields = "DisciplineID, ExchangeOutID, GiftID, InsuredForAmount, LoanID, " +
-                        "NumberOfPackages, Number1, Number2, Remarks, ShipperID, ShipmentMethod, " +
-                        "ShipmentNumber, Text1, Text2, TimestampCreated, Version, YesNo2";
+                        "NumberOfPackages, Number1, Number2, Remarks, ShipmentDate, " +
+                        "ShippedToID, ShipperID, ShipmentMethod, ShipmentNumber, Text1, " +
+                        "Text2, TimestampCreated, Version, YesNo2";
 
-		String[] values = new String[17];
+		String[] values = new String[19];
 
 		values[0]  = SqlUtils.sqlString( shipment.getDiscipline().getId());
 		values[1]  = SqlUtils.sqlString( shipment.getExchangeOut().getId());
@@ -350,14 +382,16 @@ public class ShipmentLoader extends CsvToSqlLoader
 		values[6]  = SqlUtils.sqlString( shipment.getNumber1());
 		values[7]  = SqlUtils.sqlString( shipment.getNumber2());
 		values[8]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[9]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[10] = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[11] = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[12] = SqlUtils.sqlString( shipment.getText1());
-		values[13] = SqlUtils.sqlString( shipment.getText2());
-		values[14] = SqlUtils.now();
-		values[15] = SqlUtils.one();
-		values[16] = SqlUtils.sqlString( shipment.getYesNo2());
+		values[9]  = SqlUtils.sqlString( shipment.getShipmentDate());
+		values[10] = SqlUtils.sqlString( shipment.getShippedTo().getId());
+		values[11] = SqlUtils.sqlString( shipment.getShipper().getId());
+		values[12] = SqlUtils.sqlString( shipment.getShipmentMethod());
+		values[13] = SqlUtils.sqlString( shipment.getShipmentNumber());
+		values[14] = SqlUtils.sqlString( shipment.getText1());
+		values[15] = SqlUtils.sqlString( shipment.getText2());
+		values[16] = SqlUtils.now();
+		values[17] = SqlUtils.one();
+		values[18] = SqlUtils.sqlString( shipment.getYesNo2());
     	
     	return SqlUtils.getInsertSql("shipment", fields, values);
     }

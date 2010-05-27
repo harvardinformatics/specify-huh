@@ -16,8 +16,10 @@ package edu.harvard.huh.asa2specify.loader;
 
 import java.io.File;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.Date;
 
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.OutgoingGift;
 import edu.harvard.huh.asa.Transaction;
 import edu.harvard.huh.asa.Transaction.ROLE;
@@ -33,6 +35,8 @@ import edu.ku.brc.specify.datamodel.GiftAgent;
 public class OutgoingGiftLoader extends TransactionLoader
 {
     private static String DEFAULT_HERBARIUM = "A";
+    
+    private final static String GIFT_NO_FMT = "00000";
     
     private OutgoingGiftLookup outGiftLookup;
     
@@ -64,23 +68,24 @@ public class OutgoingGiftLoader extends TransactionLoader
             herbariumCode = DEFAULT_HERBARIUM;
         }
         Integer collectionMemberId = getCollectionId(herbariumCode);
-
-        Agent receiverAgent = lookupOrganization(outgoingGift);
-        if (receiverAgent != null)
-        {
-            GiftAgent receiver = getGiftAgent(receiverAgent, collectionMemberId, gift, ROLE.Receiver);
-
-            sql = getInsertSql(receiver);
-            insert(sql);
-        }
         
-        Agent contactAgent = lookupAgent(outgoingGift);
-        if (contactAgent != null)
+        Integer organizationId = outgoingGift.getOrganizationId();
+        if (organizationId != null)
         {
-            GiftAgent contact = getGiftAgent(contactAgent, collectionMemberId, gift, ROLE.Contact);
+            boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+            
+            Agent receiverAgent = isSelfOrganized ? lookupAgent(outgoingGift) : lookupOrganization(outgoingGift);
+            if (receiverAgent != null)
+            {
+                GiftAgent receiver = getGiftAgent(receiverAgent, collectionMemberId, gift, ROLE.Receiver);
 
-            sql = getInsertSql(contact);
-            insert(sql);
+                sql = getInsertSql(receiver);
+                insert(sql);
+            }
+        }
+        else
+        {
+            getLogger().warn(rec() + "No organization id");
         }
     }
     
@@ -95,7 +100,7 @@ public class OutgoingGiftLoader extends TransactionLoader
                 {
                     Gift gift = new Gift();
                     
-                    Integer deaccessionId = getInt("gift", "GiftID", "Number1", transactionId);
+                    Integer deaccessionId = getId("gift", "GiftID", "GiftNumber", getGiftNumber(transactionId));
                     
                     gift.setGiftId(deaccessionId);
                     
@@ -131,8 +136,11 @@ public class OutgoingGiftLoader extends TransactionLoader
             
         // GiftNumber
         Integer transactionId = outGift.getId();
-        checkNull(transactionId, "transaction id");
-        gift.setGiftNumber(String.valueOf(transactionId));
+        if (transactionId == null)
+        {
+            throw new LocalException("No transaction id");
+        }
+        gift.setGiftNumber(getGiftNumber(transactionId));
         
         // Number1 (id) TODO: temporary!! remove when done!
         gift.setNumber1((float) transactionId);
@@ -169,6 +177,11 @@ public class OutgoingGiftLoader extends TransactionLoader
         setAuditFields(outGift, gift);
         
         return gift;
+    }
+    
+    private String getGiftNumber(Integer id)
+    {
+        return (new DecimalFormat( GIFT_NO_FMT ) ).format( id );
     }
     
     private GiftAgent getGiftAgent(Agent agent, Integer collectionMemberId, Gift gift, ROLE role)

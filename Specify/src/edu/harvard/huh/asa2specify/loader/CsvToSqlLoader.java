@@ -43,6 +43,9 @@ public abstract class CsvToSqlLoader
     private Discipline botanyDiscipline;
     private Division   botanyDivision;
 
+    private static int updates;
+    private static int inserts;
+    
     public CsvToSqlLoader(File csvFile, Statement sqlStatement) throws LocalException
     {
         this.csvFile = csvFile;
@@ -63,6 +66,9 @@ public abstract class CsvToSqlLoader
         int counter   = 0;
         int errors    = 0;
         int successes = 0;
+        
+        updates = 0;
+        inserts = 0;
         
         while (true)
         {
@@ -107,6 +113,8 @@ public abstract class CsvToSqlLoader
         getLogger().info(counter + " records processed");
         getLogger().info(successes + " successful imports");
         getLogger().info(errors + " errors");
+        getLogger().info(inserts + " records inserted");
+        getLogger().info(updates + " records updated");
         
         postLoad();
         
@@ -158,6 +166,17 @@ public abstract class CsvToSqlLoader
     protected String rec()
     {
         return " [" + getCurrentRecordId() + "] ";
+    }
+    
+    private void incrementUpdates()
+    {
+        getLogger().info(rec() + " updated");
+        updates++;
+    }
+    
+    private void incrementInserts()
+    {
+        inserts++;
     }
     
     protected String truncate(String s, int len, String fieldName)
@@ -376,7 +395,8 @@ public abstract class CsvToSqlLoader
         {
             throw new LocalException("CsvToSqlLoader: Couldn't get inserted record ID");
         }
-
+        
+        incrementInserts();
         return id;
     }
 
@@ -395,7 +415,8 @@ public abstract class CsvToSqlLoader
         {
             throw new LocalException("CsvToSqlLoader: Couldn't execute update", e);
         }
-
+        
+        incrementUpdates();
         return true;
     } 
 

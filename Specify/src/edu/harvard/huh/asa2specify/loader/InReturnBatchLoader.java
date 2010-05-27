@@ -70,6 +70,10 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         // Discipline
         loanReturnPreparation.setDiscipline(getBotanyDiscipline());
         
+        // ItemCount
+        int itemCount = inReturnBatch.getItemCount();
+        loanReturnPreparation.setItemCount(itemCount);
+        
         // LoanPreparation
         Integer transactionId = inReturnBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
@@ -80,13 +84,6 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         // NonSpecimenCount
         int nonSpecimenCount = inReturnBatch.getNonSpecimenCount();
         loanReturnPreparation.setNonSpecimenCount(nonSpecimenCount);
-        
-        // QuantityResolved (quantity returned)
-        int quantity = inReturnBatch.getBatchQuantity();
-        loanReturnPreparation.setQuantityResolved(quantity);
-        
-        // QuantityReturned
-        loanReturnPreparation.setQuantityReturned(quantity);
         
         // Remarks (boxCount)
         String boxCount = inReturnBatch.getBoxCount();
@@ -99,6 +96,10 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         	Calendar returnedDate = DateUtils.toCalendar(actionDate);
         	loanReturnPreparation.setReturnedDate(returnedDate);
         }
+        
+        // TypeCount
+        int typeCount = inReturnBatch.getTypeCount();
+        loanReturnPreparation.setTypeCount(typeCount);
         
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = inReturnBatch.isAcknowledged();
@@ -114,18 +115,18 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
     {
-        String fieldNames = "DisciplineID, LoanPreparationID, NonSpecimenCount, QuantityResolved, " +
-        		            "QuantityReturned, ReturnedDate, TimestampCreated, Version, YesNo1";
+        String fieldNames = "DisciplineID, ItemCount, LoanPreparationID, NonSpecimenCount, " +
+        		            "ReturnedDate, TimestampCreated, TypeCount, Version, YesNo1";
         
         String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId());
-        values[1] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-        values[2] = SqlUtils.sqlString( loanReturnPreparation.getNonSpecimenCount());
-        values[3] = SqlUtils.sqlString( loanReturnPreparation.getQuantityResolved());
-        values[4] = SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned());
-        values[5] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-        values[6] = SqlUtils.now();
+        values[1] = SqlUtils.sqlString( loanReturnPreparation.getItemCount());
+        values[2] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
+        values[3] = SqlUtils.sqlString( loanReturnPreparation.getNonSpecimenCount());
+        values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.sqlString( loanReturnPreparation.getTypeCount());
         values[7] = SqlUtils.one();
         values[8] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
         

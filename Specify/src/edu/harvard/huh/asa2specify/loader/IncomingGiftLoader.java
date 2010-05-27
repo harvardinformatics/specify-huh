@@ -18,6 +18,7 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.IncomingGift;
+import edu.harvard.huh.asa.Organization;
 import edu.harvard.huh.asa.Transaction.ACCESSION_TYPE;
 import edu.harvard.huh.asa.Transaction.ROLE;
 import edu.harvard.huh.asa2specify.LocalException;
@@ -53,12 +54,26 @@ public class IncomingGiftLoader extends InGeoBatchTransactionLoader
             insert(sql);
         }
         
-        Agent contactAgent = lookupAgent(incomingGift);
-        if (contactAgent != null)
+        int organizationId = incomingGift.getOrganizationId();
+        boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
+        
+        if (!isSelfOrganized)
         {
-            AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Donor);
-            sql = getInsertSql(contact);
-            insert(sql);
+            Agent contactAgent = lookupAgent(incomingGift);
+            if (contactAgent != null)
+            {
+                AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
+                sql = getInsertSql(contact);
+                insert(sql);
+            }
+        }
+        
+        Agent donorAgent = isSelfOrganized ? lookupAgent(incomingGift) : lookupOrganization(incomingGift);
+        if (donorAgent != null)
+        {
+            AccessionAgent donor = getAccessionAgent(accession, donorAgent, ROLE.Donor);
+            sql = getInsertSql(donor);
+            insert(sql);            
         }
 
     }
