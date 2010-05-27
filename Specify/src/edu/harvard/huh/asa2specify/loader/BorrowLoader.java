@@ -41,9 +41,7 @@ import edu.ku.brc.specify.datamodel.BorrowMaterial;
 import edu.ku.brc.specify.datamodel.Taxon;
 
 public class BorrowLoader extends TaxonBatchTransactionLoader
-{
-    private static final String DEFAULT_BORROW_NUMBER = "none";
-    
+{    
     private final static String BORROW_MAT_FMT = "00000";
     
     private BorrowLookup         borrowLookup;
@@ -194,11 +192,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
 
         // InvoiceNumber
         String transactionNo = asaBorrow.getTransactionNo();
-        if ( transactionNo == null)
-        {
-            transactionNo = DEFAULT_BORROW_NUMBER;
-        }
-        transactionNo = truncate(transactionNo, 50, "invoice number");
+        if (transactionNo != null) transactionNo = truncate(transactionNo, 50, "invoice number");
         borrow.setInvoiceNumber(transactionNo);
         
         // IsClosed
