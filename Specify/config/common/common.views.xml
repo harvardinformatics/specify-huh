@@ -1364,7 +1364,7 @@
             <desc><![CDATA[BorrowMaterial viewing form.]]></desc>
             
             <columnDef>         105px, 2px, 120px, 5px,   65px, 2px,  90px, 5px,    65px, 2px,  90px, 5px,   117px, 2px,  90px, 0px, p:g</columnDef>
-            <columnDef os="lnx">125px, 2px, 140px, 5px,   85px, 2px,  85px, 5px,   149px, 2px,  84px, 5px,   145px, 2px,  84px, 0px, p:g</columnDef>
+            <columnDef os="lnx">125px, 2px, 140px, 5px,   85px, 2px,  85px, 5px,   100px, 2px,  85px, 5px,   155px, 2px,  85px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 150px, 5px,   90px, 2px, 100px, 5px,   160px, 2px, 109px, 5px,   160px, 2px, 110px, 0px, p:g</columnDef>
             <columnDef os="exp">p,     2px, 160px, 5px:g, p,    2px,  90px, 5px:g, p,     2px,  90px, 5px:g, p,     2px,  90px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
@@ -2374,7 +2374,7 @@
             <desc><![CDATA[ExchangeOut viewing form.]]></desc>
             
             <columnDef>          85px, 2px, 115px,        5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, max(p;150px), 5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="lnx">150px, 2px, max(p;150px), 5px, 110px, 2px, 100px, 5px,  30px, 5px, 150px, 2px, 115px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, p,            5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px, 70px, 5px:g,   p, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
@@ -2667,10 +2667,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Gift viewing form.]]></desc>
             
-            <columnDef>          85px, 2px, 115px,        5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, max(p;150px), 5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, p,            5px, 100px, 2px, 80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px, 70px, 5px:g,   p, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef>          85px, 2px, 115px,        5px, 100px, 2px,  80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="lnx">135px, 2px, max(p;150px), 5px, 110px, 2px, 100px, 5px,  30px, 5px, 150px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, p,            5px, 100px, 2px,  80px, 5px,  30px, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, p,            5px:g,   p, 2px,  70px, 5px:g,   p, 5px, 135px, 2px, 115px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
@@ -3336,7 +3336,7 @@
             <desc><![CDATA[Loan viewing form.]]></desc>
             
             <columnDef>         105px, 2px, 152px, 5px, 130px, 2px, 105px, 5px, 105px, 2px, 115px, 2px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 190px, 5px, 115px, 2px, 137px, 5px, 140px, 2px, 147px, 2px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 190px, 5px, 115px, 2px, 137px, 5px, 150px, 2px, 147px, 2px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 130px, 2px, 155px, 2px, p:g</columnDef>
             <columnDef os="exp">p,     2px, 152px, 5px:g,   p, 2px,     p, 5px:g,   p, 2px, 115px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
@@ -3351,7 +3351,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="3" />
-                	<cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="11"/>
+                	<cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="10"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="higherTaxon"/>
@@ -3382,7 +3382,7 @@
             
             <desc><![CDATA[LoanReturnPreparation viewing form.]]></desc>
             <columnDef>         140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
-            <columnDef os="lnx">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
+            <columnDef os="lnx">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 150px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <columnDef os="mac">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <columnDef os="exp">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
@@ -4129,7 +4129,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="shipmentNumber" uitype="text"/>
+                    <cell type="field" id="2" name="shipmentNumber" uitype="formattedtext"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="shipmentDate" uitype="formattedtext" uifieldformatter="Date" colspan="7"/>
                     <cell type="label" labelfor="8"/>
