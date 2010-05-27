@@ -49,7 +49,7 @@ public class IncomingGiftLoader extends InGeoBatchTransactionLoader
         Agent receiverAgent = lookupAffiliate(incomingGift);
         if (receiverAgent != null)
         {
-            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.Receiver);
+            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.ForUseBy);
             sql = getInsertSql(receiver);
             insert(sql);
         }
