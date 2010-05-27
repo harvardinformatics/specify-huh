@@ -11,9 +11,12 @@ select orb.id,
        (select name from st_lookup where id=orb.method_id) as method,
        orb.cost,
        decode(orb.cost_estimated_flag, 1,'true', '') as is_estimated_cost,
-       regexp_replace(orb.note, '[[:space:]]+', ' ') as note
+       regexp_replace(orb.note, '[[:space:]]+', ' ') as note,
+       a.id,
+       a.organization_id
 
 from out_return_batch orb left join
-     herb_transaction t on orb.herb_transaction_id=t.id
+     herb_transaction t on orb.herb_transaction_id=t.id left join
+     agent a on t.agent_id=a.id
 
 order by orb.id
