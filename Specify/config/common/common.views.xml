@@ -4118,10 +4118,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Shipment form.]]></desc>
             
-            <columnDef>         105px, 2px, 125px, 5px,   133px, 2px, 115px,        5px,   113px, 2px, 200px, 0px, p:g</columnDef> 
+            <columnDef>         131px, 2px, 142px, 5px,   128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,   146px, 2px, 210px, 0px, p:g</columnDef> 
             <columnDef os="lnx">131px, 2px, 142px, 5px,   128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,   146px, 2px, 210px, 0px, p:g</columnDef> 
             <columnDef os="mac">131px, 2px, 150px, 5px,   140px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 24px, 5px,   146px, 2px, 220px, 0px, p:g</columnDef>
-            <columnDef os="exp">p,     2px, 140px, 5px:g, p,     2px, max(p;140px), 5px:g, p,     2px, p,     p:g</columnDef> 
+            <columnDef os="exp">131px, 2px, 142px, 5px,   128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,   146px, 2px, 210px, 0px, p:g</columnDef> 
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
                 <row>
