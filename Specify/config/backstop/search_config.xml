@@ -1329,9 +1329,63 @@ repositoryagreement.RepositoryAgreementNumber,
             </detailView>
         </table>
 
+        <table id="61" tableid="18" indexed="false" name="BorrowToBorrowMaterial" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="18" primary="true">bo.BorrowID</join>
+                <join tableid="20">bom.BorrowID</join>
+            </joins>
+            <detailView icon="Borrow">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ bo.BorrowID,
+ bo.InvoiceNumber,
+ bo.ReceivedDate, 
+ bom.MaterialNumber, 
+ bom.SrcTaxonomy,
+ %s 
+ From borrow bo
+ Inner Join borrowmaterial bom ON bo.BorrowID = bom.BorrowID
+ WHERE %s order by bo.InvoiceNumber, bom.MaterialNumber]]>
+                </sql>
+                <captions>
+                	<caption tableid="18" col="bo.BorrowID" visible="false"/>
+	                <caption tableid="18" col="bo.InvoiceNumber"/>
+                    <caption tableid="18" col="ReceivedDate"/>
+                	<caption tableid="20" col="MaterialNumber" formatter="HUHBorrowMaterialNumber"/>
+                	<caption tableid="20" col="SrcTaxonomy"/>
+                </captions>
+            </detailView>
+        </table>
         
-        
-        
+        <table id="62" tableid="18" indexed="false" name="BorrowMaterialToBorrow" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="29" primary="true">bom.BorrowID</join>
+                <join tableid="18">bo.BorrowID</join>
+            </joins>
+            <detailView icon="Borrow">
+                <sql>
+                    <![CDATA[
+ SELECT distinct 
+ bo.BorrowID,
+ bo.InvoiceNumber,
+ bo.ReceivedDate, 
+ bom.MaterialNumber, 
+ bom.SrcTaxonomy,
+ %s 
+ From borrow bo
+ Inner Join borrowmaterial bom ON bo.BorrowID = bom.BorrowID
+ WHERE %s order by bo.InvoiceNumber, bom.MaterialNumber]]>
+                </sql>
+                <captions>
+                	<caption tableid="18" col="bo.BorrowID" visible="false"/>
+	                <caption tableid="18" col="bo.InvoiceNumber"/>
+                    <caption tableid="18" col="ReceivedDate"/>
+                	<caption tableid="20" col="MaterialNumber" formatter="HUHBorrowMaterialNumber"/>
+                	<caption tableid="20" col="SrcTaxonomy"/>
+                </captions>
+            </detailView>
+        </table>
         
         <!-- ============================ -->
         <!--  Attachment Related Searches -->
