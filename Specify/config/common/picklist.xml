@@ -204,7 +204,7 @@
     <items>
       <picklistitem title="Incoming Exchange" value="Exchange"/>
       <picklistitem title="Gift" value="Gift"/>
-      <picklistitem title="Field Work" value="FieldWork"/>
+      <picklistitem title="Staff Collection" value="FieldWork"/>
       <picklistitem title="Other" value="Other"/>
       <picklistitem title="Purchase" value="Purchase"/>
     </items>
