@@ -43,7 +43,7 @@ FROM borrowreturnmaterial brm JOIN
      agent shippedToAgent on shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      agent organization ON shippedToAgent.ParentOrganizationID=organization.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
-     address on shippedToAgent.AgentID=address.AgentID JOIN
+     address ON (ifnull(shippedToAgent.ParentOrganizationID, shippedToAgent.AgentID)=address.AgentID AND address.IsShipping AND address.IsCurrent) JOIN
      borrowagent ba on b.BorrowID=ba.BorrowID JOIN
      agent borrowerAgent on ba.AgentID=borrowerAgent.AgentID JOIN
      (select bsum.BorrowID, sum(bmsum.ItemCount) as TotalOutItemCount, sum(bmsum.TypeCount) as TotalOutTypeCount, sum(bmsum.NonSpecimenCount) as TotalOutNonSpecimenCount
