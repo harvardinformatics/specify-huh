@@ -265,7 +265,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Status of Accession, e.g. `In process`, `Complete` ...</text>
+            <text>Status of Accession, e.g. 'In process', 'Complete' ...</text>
           </str>
         </descs>
       </item>
@@ -388,7 +388,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Source of Accession, e.g. `Collecting`, `Gift`, `Bequest` ...</text>
+            <text>Source of Accession, e.g. 'Collecting', 'Gift', 'Bequest' ...</text>
           </str>
         </descs>
       </item>
@@ -2096,7 +2096,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Agent`s (person) job title at specified address and organization.</text>
+            <text>Agent's (person) job title at specified address and organization.</text>
           </str>
         </descs>
       </item>
@@ -4526,7 +4526,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Lender`s loan number.</text>
+            <text>Lender's loan number.</text>
           </str>
         </descs>
       </item>
@@ -5058,7 +5058,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>e.g. `FMNH 223456`</text>
+            <text>e.g. 'FMNH 223456'</text>
           </str>
         </descs>
       </item>
@@ -10121,7 +10121,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>The units for the measurements (`feet` or `meters`).</text>
+            <text>The units for the measurements ('feet' or 'meters').</text>
           </str>
         </descs>
       </item>
@@ -16521,7 +16521,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>`Yes` if the Name and/or Geographic/Political entity is currently valid.</text>
+            <text>'Yes' if the Name and/or Geographic/Political entity is currently valid.</text>
           </str>
         </descs>
       </item>
@@ -23574,7 +23574,7 @@
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Permit category - `CITES`, `Migratory Bird Treaty Act`, ...</text>
+            <text>Permit category - 'CITES', 'Migratory Bird Treaty Act', ...</text>
           </str>
         </descs>
       </item>
@@ -27428,22 +27428,22 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Description of shipment. E.g. `Hand-carried`, `Overnight`, `Air`, `Land`, `Sea`, ...</text>
+            <text>Description of shipment. E.g. 'Hand-carried', 'Overnight', 'Air', 'Land', 'Sea', ...</text>
           </str>
         </descs>
       </item>
-      <item name="shipmentNumber" type="java.lang.String">
+      <item name="shipmentNumber" type="java.lang.String" format="HUHBorrowMaterialNumber" isUIFormatter="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Tracking Number</text>
+            <text>Shipment Number</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Shipper`s tracking number</text>
+            <text>Our tracking number</text>
           </str>
         </descs>
       </item>
@@ -27499,7 +27499,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Asa Transaction ID</text>
+            <text>Tracking Number</text>
           </str>
         </names>
         <descs>
