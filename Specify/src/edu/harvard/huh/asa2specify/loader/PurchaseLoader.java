@@ -50,39 +50,17 @@ public class PurchaseLoader extends InGeoBatchTransactionLoader
         Agent receiverAgent = lookupAffiliate(purchase);
         if (receiverAgent != null)
         {
-            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.Receiver);
+            AccessionAgent receiver = getAccessionAgent(accession, receiverAgent, ROLE.ForUseBy);
             sql = getInsertSql(receiver);
             insert(sql);
         }
-        
-        Integer organizationId = purchase.getOrganizationId();
-        
-        if (organizationId != null)
+
+        Agent collectorAgent = lookupAgent(purchase);
+        if (collectorAgent != null)
         {
-            boolean isSelfOrganized = Organization.IsSelfOrganizing(organizationId);
-            
-            if (!isSelfOrganized)
-            {
-                Agent contactAgent = lookupAgent(purchase);
-                if (contactAgent != null)
-                {
-                    AccessionAgent contact = getAccessionAgent(accession, contactAgent, ROLE.Contact);
-                    sql = getInsertSql(contact);
-                    insert(sql);
-                }
-            }
-            
-            Agent sellerAgent = isSelfOrganized ? lookupAgent(purchase) : lookupOrganization(purchase);
-            if (sellerAgent != null)
-            {
-                AccessionAgent seller = getAccessionAgent(accession, sellerAgent, ROLE.Seller);
-                sql = getInsertSql(seller);
-                insert(sql);
-            }
-        }
-        else
-        {
-            getLogger().warn(rec() + "No organization id");
+            AccessionAgent seller = getAccessionAgent(accession, collectorAgent, ROLE.Collector);
+            sql = getInsertSql(seller);
+            insert(sql);
         }
     }
     
