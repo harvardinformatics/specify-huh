@@ -393,7 +393,13 @@ public class AgentLoader extends CsvToSqlLoader
         	fax = truncate(fax, 50, "fax");
         	address.setFax(fax);
         }
-        
+
+        // IsCurrent
+        address.setIsCurrent(false);
+
+        // IsPrimary
+        address.setIsPrimary(false);
+
         // IsShipping
         address.setIsShipping(false);
         
@@ -422,8 +428,14 @@ public class AgentLoader extends CsvToSqlLoader
 	    
 	    // Fax
 	    
-	    // IsShipping
-	    address.setIsShipping(true);
+        // IsCurrent
+        address.setIsCurrent(false);
+
+        // IsPrimary
+        address.setIsPrimary(false);
+
+        // IsShipping
+        address.setIsShipping(true);
 
 	    // Phone
 	    
@@ -496,11 +508,11 @@ public class AgentLoader extends CsvToSqlLoader
 	   
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "Address, Address2, AgentID, City, Country, Fax, IsShipping, " +
-        		            "Ordinal, Phone1, PostalCode, Remarks, State, TimestampCreated," +
-        		            " Version";
+        String fieldNames = "Address, Address2, AgentID, City, Country, Fax, IsCurrent, " +
+        		            "IsPrimary, IsShipping, Ordinal, Phone1, PostalCode, Remarks, " +
+        		            "State, TimestampCreated, Version";
         
-        String[] values = new String[14];
+        String[] values = new String[16];
         
         values[0]  = SqlUtils.sqlString( address.getAddress());
         values[1]  = SqlUtils.sqlString( address.getAddress2());
@@ -508,14 +520,16 @@ public class AgentLoader extends CsvToSqlLoader
         values[3]  = SqlUtils.sqlString( address.getCity());
         values[4]  = SqlUtils.sqlString( address.getCountry());
         values[5]  = SqlUtils.sqlString( address.getFax());
-        values[6]  = SqlUtils.sqlString( address.getIsShipping());
-        values[7]  = SqlUtils.addressOrdinal( address.getAgent().getAgentId());
-        values[8]  = SqlUtils.sqlString( address.getPhone1());
-        values[9]  = SqlUtils.sqlString( address.getPostalCode());
-        values[10]  = SqlUtils.sqlString( address.getRemarks());
-        values[11] = SqlUtils.sqlString( address.getState());
-        values[12] = SqlUtils.now();
-        values[13] = SqlUtils.one();
+        values[6]  = SqlUtils.sqlString( address.getIsCurrent());
+        values[7]  = SqlUtils.sqlString( address.getIsPrimary());
+        values[8]  = SqlUtils.sqlString( address.getIsShipping());
+        values[9]  = SqlUtils.addressOrdinal( address.getAgent().getId());
+        values[10] = SqlUtils.sqlString( address.getPhone1());
+        values[11] = SqlUtils.sqlString( address.getPostalCode());
+        values[12] = SqlUtils.sqlString( address.getRemarks());
+        values[13] = SqlUtils.sqlString( address.getState());
+        values[14] = SqlUtils.now();
+        values[15] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

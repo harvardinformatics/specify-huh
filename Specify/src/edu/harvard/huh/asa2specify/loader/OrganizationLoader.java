@@ -212,6 +212,15 @@ public class OrganizationLoader extends AuditedObjectLoader
 			address.setCity(city);
 		}
 		
+		// IsCurrent
+        address.setIsCurrent(false);
+
+        // IsPrimary
+        address.setIsPrimary(false);
+
+        // IsShipping
+        address.setIsShipping(false);
+        
 		// State
 		if (state != null)
 		{
@@ -266,17 +275,21 @@ public class OrganizationLoader extends AuditedObjectLoader
 
 	private String getInsertSql(Address address) throws LocalException
     {
-    	String fieldNames = "AgentID, City, State, Country, Ordinal, TimestampCreated, Version";
+    	String fieldNames = "AgentID, City, Country, IsCurrent, IsPrimary, IsShipping, " +
+    			            "Ordinal, State, TimestampCreated, Version";
     	
-    	String[] values = new String[7];
+    	String[] values = new String[10];
     	
     	values[0] = SqlUtils.sqlString( address.getAgent().getAgentId());
     	values[1] = SqlUtils.sqlString( address.getCity());
-    	values[2] = SqlUtils.sqlString( address.getState());
-    	values[3] = SqlUtils.sqlString( address.getCountry());
-    	values[4] = SqlUtils.addressOrdinal( address.getAgent().getAgentId());
-    	values[5] = SqlUtils.now();
-    	values[6] = SqlUtils.one();
+    	values[2] = SqlUtils.sqlString( address.getCountry());
+    	values[3] = SqlUtils.sqlString( address.getIsCurrent());
+    	values[4] = SqlUtils.sqlString( address.getIsPrimary());
+    	values[5] = SqlUtils.sqlString( address.getIsShipping());
+    	values[6] = SqlUtils.addressOrdinal( address.getAgent().getId());
+    	values[7] = SqlUtils.sqlString( address.getState());
+    	values[8] = SqlUtils.now();
+    	values[9] = SqlUtils.one();
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }

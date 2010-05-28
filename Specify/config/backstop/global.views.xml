@@ -1297,11 +1297,11 @@
             <rows>
                 <row>
 	                <cell type="label" label=" "/>
-                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox"/>
+                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox" default="false"/>
                     <cell type="label" label=" "/>
-                    <cell type="field" id="1" name="isPrimary" uitype="checkbox"/>
+                    <cell type="field" id="1" name="isPrimary" uitype="checkbox" default="false"/>
                     <cell type="label" label=" "/>
-                    <cell type="field" id="isShipping" name="isShipping" uitype="checkbox"/>
+                    <cell type="field" id="isShipping" name="isShipping" uitype="checkbox" default="false"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="positionHeld"/>

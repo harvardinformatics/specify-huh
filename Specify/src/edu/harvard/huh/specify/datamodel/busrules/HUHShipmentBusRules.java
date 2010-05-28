@@ -18,7 +18,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import edu.ku.brc.af.ui.forms.MultiView;
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Shipment;
@@ -96,7 +95,8 @@ public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
         	int currentShippingAddressCount = 0;
         	for (Address address : shippedToAgent.getAddresses())
         	{
-        		if (address.getIsCurrent() && address.getIsShipping()) currentShippingAddressCount++;
+        		if (address.getIsCurrent() != null && address.getIsCurrent() &&
+        		        address.getIsShipping() != null && address.getIsShipping()) currentShippingAddressCount++;
 
         		if (currentShippingAddressCount > 1) return false;
         	}

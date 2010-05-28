@@ -225,6 +225,15 @@ public class AffiliateLoader extends AuditedObjectLoader
         
         // Agent
         address.setAgent(agent);
+        
+        // IsCurrent
+        address.setIsCurrent(false);
+
+        // IsPrimary
+        address.setIsPrimary(false);
+
+        // IsShipping
+        address.setIsShipping(false);
 
         return address;
 	}
@@ -256,16 +265,20 @@ public class AffiliateLoader extends AuditedObjectLoader
 	
     private String getInsertSql(Address address) throws LocalException
     {
-        String fieldNames = "Address, AgentID, Ordinal, Phone1, TimestampCreated, Version";
+        String fieldNames = "Address, AgentID, IsCurrent, IsPrimary, IsShipping, Ordinal, " +
+        		            "Phone1, TimestampCreated, Version";
         
-        String[] values = new String[6];
+        String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( address.getAddress());
         values[1] = SqlUtils.sqlString( address.getAgent().getId());
-        values[2] = SqlUtils.addressOrdinal( address.getAgent().getAgentId());
-        values[3] = SqlUtils.sqlString( address.getPhone1());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        values[2] = SqlUtils.sqlString( address.getIsCurrent());
+        values[3] = SqlUtils.sqlString( address.getIsPrimary());
+        values[4] = SqlUtils.sqlString( address.getIsShipping());
+        values[5] = SqlUtils.addressOrdinal( address.getAgent().getId());
+        values[6] = SqlUtils.sqlString( address.getPhone1());
+        values[7] = SqlUtils.now();
+        values[8] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }
