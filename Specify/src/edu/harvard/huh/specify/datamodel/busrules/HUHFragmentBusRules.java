@@ -1,5 +1,6 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
@@ -13,8 +14,10 @@ import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
@@ -30,7 +33,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
     {
         super();
     }
-    
+
     @Override
     public void afterDeleteCommit(final Object dataObj)
     {
@@ -41,6 +44,49 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
         
         CollectionObject collObj = fragment.getCollectionObject();
         if (collObj != null) collObj.getFragments().remove(collObj);
+    }
+    
+    @Override
+    public void beforeFormFill()
+    {
+        if (formViewObj != null)
+        {
+            if (formViewObj.getDataObj() instanceof Fragment)
+            {
+                Fragment fragment = (Fragment) formViewObj.getDataObj();
+
+                if (fragment.getCollectionObject() == null)
+                {
+                    CollectionObject collectionObject = new CollectionObject();
+                    collectionObject.initialize();
+
+                    Agent agent = Agent.getUserAgent();
+                    collectionObject.setCataloger(agent);
+                    collectionObject.setCatalogedDate(Calendar.getInstance());
+                    collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+
+
+                    CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
+                    if (collectingEvent == null)
+                    {
+                        collectingEvent = new CollectingEvent();
+                        collectingEvent.initialize();
+                        collectionObject.setCollectingEvent(collectingEvent);
+                        collectionObject.addReference(collectingEvent, "collectingEvent");
+                    }
+
+                    Locality locality = collectingEvent.getLocality();
+                    if (locality == null)
+                    {
+                        locality = new Locality();
+                        locality.initialize();
+                        collectingEvent.setLocality(locality);
+                    }
+                    collectionObject.getOtherIdentifiers().size();
+                    fragment.addReference(collectionObject, "collectionObject");
+                }
+            }
+        }
     }
     
     @Override
