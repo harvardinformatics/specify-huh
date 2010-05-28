@@ -35,6 +35,7 @@ import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -709,6 +710,25 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
                     } else
                     {
                         errMsg = "Why would more than one object be found in DBObjSearchDialog? return size["+list.size()+"]";
+                        
+                        HashSet<Object> set = new HashSet<Object>();
+                        set.addAll(list);
+                        ArrayList<Object> arrayList = new ArrayList<Object>();
+                        arrayList.addAll(set);
+                        
+                        if (doAll)
+                        {
+                            if (objList == null)
+                            {
+                                objList = new Vector<Object>();
+                            }
+                            ((FormDataObjIFace)arrayList.get(0)).forceLoad();
+                            objList.add(arrayList.get(0));
+                            
+                        } else
+                        {
+                            return arrayList.get(0);
+                        }
                     }
                 }
 

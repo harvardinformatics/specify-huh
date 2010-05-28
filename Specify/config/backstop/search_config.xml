@@ -2205,7 +2205,7 @@ repositoryagreement.RepositoryAgreementNumber,
         <table id="128" tableid="5" name="OrganizationSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT ag.AgentID, 
+                    <![CDATA[SELECT distinct ag.AgentID, 
  ag.LastName, 
  ag.Abbreviation, 
  ad.Address, 
@@ -2214,8 +2214,8 @@ repositoryagreement.RepositoryAgreementNumber,
  ad.Postalcode, 
  ad.Country 
  FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID 
- LEFT JOIN address ad ON ag.AgentID = ad.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ag.LastName, ag.FirstName]]>
+ LEFT JOIN address ad ON (ag.AgentID = ad.AgentID AND ad.Ordinal=1)
+ WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ag.Abbreviation, ag.LastName, ag.FirstName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="AgentID" visible="false"/>

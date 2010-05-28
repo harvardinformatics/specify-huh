@@ -67,8 +67,8 @@
         SELECT %s1 FROM Locality loc JOIN loc.discipline as dsp WHERE dsp.disciplineId = DSPLNID AND %s2 ORDER BY localityName
     </typesearch>
     <typesearch tableid="143" name="LogicalContainer"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
-    <typesearch tableid="5"   name="OrgByAcronym"           searchfield="ag.abbreviation" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="Agent">
-           SELECT %s1 FROM Agent ag WHERE %s2 ORDER BY ag.abbreviation, ag.lastName
+    <typesearch tableid="5"   name="OrgByAcronym"           searchfield="ag.abbreviation,ag.lastName" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="Agent">
+           SELECT distinct %s1 FROM Agent ag WHERE %s2 ORDER BY ifnull(ag.abbreviation, 'z'), ag.lastName
     </typesearch>
     <typesearch tableid="6"   name="Permit"                 searchfield="permitNumber"    displaycols="permitNumber"       format="%s"     dataobjformatter=""/>
     <typesearch tableid="63"  name="Preparation"            searchfield="frag.identifier,frag.preparation.identifier" displaycols="frag.preparation.prepType.name,frag.preparation.identifier,frag.identifier" format="%s - %s (%s)"     dataobjformatter="Preparation">
