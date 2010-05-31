@@ -271,7 +271,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     
     private String               appName             = "Specify-HUH"; //$NON-NLS-1$
     private String               appVersion          = "6.0"; //$NON-NLS-1$
-    private String               appBuildVersion     = "18"; //$NON-NLS-1$
+    private String               appBuildVersion     = "19"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
 
@@ -707,13 +707,13 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
         mainPanel = new MainPanel();
 
-        int[] sections = {5, 5, 5, 1};
+        int[] sections = {5, 5, 5, 5, 1};
         statusField = new JStatusBar(sections);
         statusField.setErrorIcon(IconManager.getIcon("Error", IconManager.IconSize.Std16)); //$NON-NLS-1$
         statusField.setWarningIcon(IconManager.getIcon("Warning", IconManager.IconSize.Std16)); //$NON-NLS-1$
         UIRegistry.setStatusBar(statusField);
         
-        JLabel secLbl = statusField.getSectionLabel(3);
+        JLabel secLbl = statusField.getSectionLabel(4);
         if (secLbl != null)
         {
             boolean isSecurityOn = AppContextMgr.isSecurityOn();
@@ -1334,7 +1334,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                             AppContextMgr.getInstance().setSecurity(isSecurityOn);
                             ((JMenuItem)ae.getSource()).setSelected(isSecurityOn);
                             
-                            JLabel secLbl = statusField.getSectionLabel(3);
+                            JLabel secLbl = statusField.getSectionLabel(4);
                             if (secLbl != null)
                             {
                                 secLbl.setIcon(IconManager.getImage(isSecurityOn ? "SecurityOn" : "SecurityOff", IconManager.IconSize.Std16));
@@ -2603,9 +2603,12 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         
         restartApp(window, databaseName, userName, false, firstTime);
         
-        statusField.setSectionText(2, userName);
-        statusField.setSectionToolTipText(2, DBTableIdMgr.getInstance().getTitleForId(SpecifyUser.getClassTableId()));
+        statusField.setSectionText(3, userName);
+        statusField.setSectionToolTipText(3, DBTableIdMgr.getInstance().getTitleForId(SpecifyUser.getClassTableId()));
         
+        
+        String server = databaseName + "@" + AppPreferences.getLocalPrefs().get("login.servers_selected", null);
+        statusField.setSectionText(0, server);
     }
     
     /**
@@ -2616,11 +2619,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         AppContextMgr mgr = AppContextMgr.getInstance();
         String disciplineName = mgr.getClassObject(Discipline.class).getName();
         String collectionName = mgr.getClassObject(Collection.class) != null ? mgr.getClassObject(Collection.class).getCollectionName() : ""; //$NON-NLS-1$ //$NON-NLS-2$
-        statusField.setSectionText(0, disciplineName);
-        statusField.setSectionText(1, collectionName);
+        statusField.setSectionText(1, disciplineName);
+        statusField.setSectionText(2, collectionName);
         
-        statusField.setSectionToolTipText(0, DBTableIdMgr.getInstance().getTitleForId(Discipline.getClassTableId()));
-        statusField.setSectionToolTipText(1, DBTableIdMgr.getInstance().getTitleForId(Collection.getClassTableId()));
+        statusField.setSectionToolTipText(1, DBTableIdMgr.getInstance().getTitleForId(Discipline.getClassTableId()));
+        statusField.setSectionToolTipText(2, DBTableIdMgr.getInstance().getTitleForId(Collection.getClassTableId()));
         
         AppPreferences.getLocalPrefs().put("CURRENT_DB", databaseName);
     }
