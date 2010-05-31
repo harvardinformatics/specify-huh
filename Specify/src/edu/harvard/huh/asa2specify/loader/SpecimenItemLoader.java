@@ -612,8 +612,13 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 				collectingEvent.setEndDateVerbatim(endDateVerbatim);
 			}
 		}
+        else if (endYear != null && endMonth != null && endDay != null)
+        {
+            getLogger().warn(rec() + "Invalid end date: " +
+                    String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
+        }
 
-	    String habitat = specimenItem.getHabitat();
+		String habitat = specimenItem.getHabitat();
 
         // Locality
 	    Locality locality = null;
