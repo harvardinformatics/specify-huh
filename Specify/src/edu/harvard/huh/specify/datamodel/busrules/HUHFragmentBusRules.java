@@ -6,11 +6,11 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
-import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
@@ -19,13 +19,15 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules;
 
-public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIFace
+public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements BusinessRulesIFace
 {
     private static final Logger  log   = Logger.getLogger(HUHFragmentBusRules.class);
 
@@ -43,7 +45,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
         if (prep != null) prep.getFragments().remove(fragment);
         
         CollectionObject collObj = fragment.getCollectionObject();
-        if (collObj != null) collObj.getFragments().remove(collObj);
+        if (collObj != null) collObj.getFragments().remove(fragment);
     }
     
     @Override
@@ -65,7 +67,13 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
                     collectionObject.setCatalogedDate(Calendar.getInstance());
                     collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
 
-
+                    // assign collection if not already assigned
+                    if (collectionObject.getCollection() == null)
+                    {
+                        Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
+                        collectionObject.setCollection(catSeries); 
+                    }
+                    
                     CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
                     if (collectingEvent == null)
                     {
@@ -127,6 +135,7 @@ public class HUHFragmentBusRules extends BaseBusRules implements BusinessRulesIF
             prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
 
             fragment.setPreparation(prep);
+            prep.getFragments().add(fragment);
         }
     }
     

@@ -2416,6 +2416,8 @@ public class FormViewObj implements Viewable,
     public static void deleteItemsInDelList(final DataProviderSessionIFace localSession,
                                             final Vector<Object> deletedItems) throws Exception
     {
+        Vector<Object> mergedDeletedItems = new Vector<Object>();
+        
         for (Object obj : deletedItems)
         {
             BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(obj);
@@ -2426,8 +2428,10 @@ public class FormViewObj implements Viewable,
                 delBusRules.beforeDelete(obj2, localSession);
             }
             localSession.delete(obj2);
+            mergedDeletedItems.add(obj2);
         }
-        for (Object obj : deletedItems)
+        
+        for (Object obj : mergedDeletedItems)
         {
             BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(obj);
             // notify the business rules object that a deletion is going to be committed

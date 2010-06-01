@@ -87,6 +87,20 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
     }
     
     @Override
+    public void afterDeleteCommit(final Object dataObj)
+    {
+        CollectionObject collObj = (CollectionObject) dataObj;
+        
+        if (collObj != null)
+        {
+            for (Fragment fragment : collObj.getFragments())
+            {
+                collObj.getFragments().remove(fragment);
+            }
+        }
+    }
+    
+    @Override
     public void beforeFormFill()
     {
         if (formViewObj != null)

@@ -122,13 +122,16 @@ public abstract class AttachmentOwnerBaseBusRules extends BaseBusRules
         if (dataObj instanceof AttachmentOwnerIFace<?>)
         {
             AttachmentOwnerIFace<?> owner = (AttachmentOwnerIFace<?>)dataObj;
-            for (ObjectAttachmentIFace<?> oa: owner.getAttachmentReferences())
+            if (owner.getAttachmentReferences() != null)
             {
-                Attachment a = oa.getAttachment();
-                if (a != null && a.getAttachmentLocation() == null)
+                for (ObjectAttachmentIFace<?> oa: owner.getAttachmentReferences())
                 {
-                    AttachmentUtils.getAttachmentManager().setStorageLocationIntoAttachment(a);
-                    a.setStoreFile(true);
+                    Attachment a = oa.getAttachment();
+                    if (a != null && a.getAttachmentLocation() == null)
+                    {
+                        AttachmentUtils.getAttachmentManager().setStorageLocationIntoAttachment(a);
+                        a.setStoreFile(true);
+                    }
                 }
             }
         }
@@ -152,22 +155,25 @@ public abstract class AttachmentOwnerBaseBusRules extends BaseBusRules
         if (dataObj instanceof AttachmentOwnerIFace<?>)
         {
             AttachmentOwnerIFace<?> owner = (AttachmentOwnerIFace<?>)dataObj;
-            for (ObjectAttachmentIFace<?> oa: owner.getAttachmentReferences())
+            if (owner.getAttachmentReferences() != null)
             {
-                Attachment a = oa.getAttachment();
-                if (a != null && a.isStoreFile())
+                for (ObjectAttachmentIFace<?> oa: owner.getAttachmentReferences())
                 {
-                    // this is a new Attachment object
-                    // we need to store it's file into the storage system
-                    try
+                    Attachment a = oa.getAttachment();
+                    if (a != null && a.isStoreFile())
                     {
-                        a.storeFile();
-                    }
-                    catch (IOException e)
-                    {
-                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AttachmentOwnerBaseBusRules.class, e);
-                        log.error("Unable to store attached file", e); //$NON-NLS-1$
+                        // this is a new Attachment object
+                        // we need to store it's file into the storage system
+                        try
+                        {
+                            a.storeFile();
+                        }
+                        catch (IOException e)
+                        {
+                            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(AttachmentOwnerBaseBusRules.class, e);
+                            log.error("Unable to store attached file", e); //$NON-NLS-1$
+                        }
                     }
                 }
             }
