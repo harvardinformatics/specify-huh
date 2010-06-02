@@ -1,19 +1,10 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import java.util.Calendar;
-
-import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
-import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.CollectingEvent;
-import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
-import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Preparation;
 
 public class HUHMinCaptureBusRules extends HUHFragmentBusRules implements BusinessRulesIFace
@@ -21,65 +12,6 @@ public class HUHMinCaptureBusRules extends HUHFragmentBusRules implements Busine
     public HUHMinCaptureBusRules()
     {
         super();
-    }
-    
-    public void addChildrenToNewDataObjects(Object newDataObj)
-    {
-        /*if (newDataObj instanceof Fragment)
-        {
-            Fragment fragment = (Fragment) newDataObj;
-
-            if (fragment.getCollectionObject() == null)
-            {
-                CollectionObject collectionObject = new CollectionObject();
-                collectionObject.initialize();
-
-                Agent agent = Agent.getUserAgent();
-                collectionObject.setCataloger(agent);
-                collectionObject.setCatalogedDate(Calendar.getInstance());
-                collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-
-                // assign collection if not already assigned
-                if (collectionObject.getCollection() == null)
-                {
-                    Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
-                    collectionObject.setCollection(catSeries); 
-                }
-                
-                CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
-                if (collectingEvent == null)
-                {
-                    collectingEvent = new CollectingEvent();
-                    collectingEvent.initialize();
-                    collectionObject.setCollectingEvent(collectingEvent);
-                    collectionObject.addReference(collectingEvent, "collectingEvent");
-                }
-
-                Locality locality = collectingEvent.getLocality();
-                if (locality == null)
-                {
-                    locality = new Locality();
-                    locality.initialize();
-                    collectingEvent.setLocality(locality);
-                }
-                collectionObject.getOtherIdentifiers().size();
-                fragment.addReference(collectionObject, "collectionObject");
-            }
-        }*/
-    }
-
-    @Override
-    public void beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
-    {
-/*        Fragment fragment = (Fragment) dataObj;
-        
-        Preparation prep = fragment.getPreparation();
-        if (prep != null) prep.getFragments().remove(fragment);
-        fragment.setPreparation(null);
-        
-        CollectionObject collObj = fragment.getCollectionObject();
-        if (collObj != null) collObj.getFragments().remove(fragment);
-        fragment.setCollectionObject(null);*/
     }
     
     @Override
