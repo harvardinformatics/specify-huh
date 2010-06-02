@@ -139,6 +139,23 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         }
     }
     
+    @Override
+    public boolean okToEnableDelete(final Object dataObj)
+    {
+        boolean ok = super.okToEnableDelete(dataObj);
+        
+        if (!ok) return false;
+        
+        if (dataObj instanceof Fragment)
+        {
+            Fragment fragment = (Fragment) dataObj;
+            
+            if (fragment.getRightSideRels().size() > 0) return false;
+        }
+        
+        return true;
+    }
+    
     /** Either the Fragment or its Preparation must have a barcode, and the barcode
      *  must be unique across the union of all Fragment and Preparation objects .
      * @param dataObj the Fragment to check

@@ -200,7 +200,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
 
     public void setDistribution(String distribution) 
     {
-        this.description = distribution;
+        this.distribution = distribution;
     }
 
     @Id
@@ -528,7 +528,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     /**
      * 
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "rightSide")
+    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "rightSide")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     public Set<CollectionRelationship> getRightSideRels() 
     {
