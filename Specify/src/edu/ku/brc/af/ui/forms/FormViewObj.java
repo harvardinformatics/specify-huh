@@ -4192,12 +4192,25 @@ public class FormViewObj implements Viewable,
         }
         
         //log.debug("----------------- "+formViewDef.getName()+"----------------- ");
-        if (delRecBtn != null && !isJavaCollection())
+        boolean isJavaCollection = isJavaCollection();
+        if (delRecBtn != null)
         {
             boolean enableDelBtn = dataObj != null && (businessRules == null || businessRules.okToEnableDelete(this.dataObj));
             //log.debug("1----------------- Del "+formViewDef.getName()+"  "+enableDelBtn+"----------------- ");
             
-            delRecBtn.setEnabled(enableDelBtn);
+            if (isJavaCollection)
+            {
+                if (rsController != null)
+                {
+                    // update the delete button based on business rules
+                    rsController.getDelRecBtn().setEnabled(enableDelBtn);
+                    rsController.getPanel().validate();
+                }
+            }
+            else
+            {
+                delRecBtn.setEnabled(enableDelBtn);
+            }
         }
         
         boolean enableNewBtn = false;
