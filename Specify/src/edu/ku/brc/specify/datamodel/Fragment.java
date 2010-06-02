@@ -513,7 +513,7 @@ public class Fragment extends CollectionMember implements AttachmentOwnerIFace<F
     /**
      * 
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSide")
+    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "leftSide")
     @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     public Set<CollectionRelationship> getLeftSideRels() 
     {
