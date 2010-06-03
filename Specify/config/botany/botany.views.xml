@@ -315,6 +315,9 @@
                     <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                </row>
+                <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
                 </row>
                 <row>
@@ -349,9 +352,6 @@
                 <row>
                     <cell type="label" labelfor="internalRemarks"/>
                     <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
                 </row>
                 <row>
                     <cell type="separator" label="Cataloger" colspan="11"/>
@@ -481,7 +481,7 @@
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent" colspan="5"/>
+                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent;title=Determiner;displaydlg=Botanist;searchdlg=BotanistSearch" colspan="5"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="8"/>
@@ -588,7 +588,7 @@
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent" colspan="5"/>
+                    <cell type="field" id="5" name="determiner" uitype="querycbx" initialize="name=Agent;title=Determiner;displaydlg=Botanist;searchdlg=BotanistSearch" colspan="5"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="8"/>
@@ -904,12 +904,11 @@
                 	<cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="3"/>
                     <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
-
-                <row>
-                    <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
-                </row>
                 <row>
                     <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
                 </row>
                 <row>
                     <cell type="separator" label="Collection Attributes" colspan="11"/>
@@ -1053,6 +1052,9 @@
                 	<cell type="field" id="container" name="collectionObject.container" uitype="querycbx" initialize="name=Container" colspan="3"/>
                 </row>
                 <row>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="collectionObject.otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                </row>
+                <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectionObject.collectingEvent" initialize="nosep=true" colspan="11"/>
                 </row>
                 <row>
@@ -1094,9 +1096,6 @@
                 <row>
 					<cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
 				</row>
-                <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="collectionObject.otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
-                </row>
 				<row>
 					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" initialize="hide=true" rows="1" colspan="12"/>
 				</row>
