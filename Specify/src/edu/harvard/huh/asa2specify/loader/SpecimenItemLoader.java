@@ -1064,7 +1064,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	{
 	    String containerStr = specimenItem.getContainer();
 
-        if (containerStr != null)
+        if (containerStr != null && !specimenItem.hasCollectingTrip()) // if it has a collecting trip, that will be saved elsewhere
         {
             // TODO: normalizing of container and subcollection name strings.
             // Note that if the container string = subcollection.name for some subcollection (it does happen),
