@@ -13,7 +13,6 @@ import edu.harvard.huh.asa.SpecimenItem.CONTAINER_TYPE;
 import edu.harvard.huh.asa.SpecimenItem.FORMAT;
 import edu.harvard.huh.asa.SpecimenItem.PREP_METHOD;
 import edu.harvard.huh.asa.SpecimenItem.REPRO_STATUS;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -55,7 +54,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private SubcollectionLookup subcollLookup;
 	private SiteLookup siteLookup;
 	private SeriesLookup seriesLookup;
-	private AsaIdMapper specimenIdBarcodes;
 	
 	// These objects are all related to the collection object
 	// and need the collection object to be saved first
@@ -64,23 +62,18 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	private final CollectingTrip nullCollectingTrip = new CollectingTrip();
 	private final Preparation    nullPreparation    = new Preparation();
     private final Storage        nullStorage        = new Storage();
-    
-	private int nextCatalogNumber = 1;
 	
 	private CollectionObject collectionObject;
 
 	public SpecimenItemLoader(File csvFile,
 	                          Statement sqlStatement,
 	                          File seriesBotanists,
-	                          File specimenIdBarcodes,
 	                          BotanistLookup botanistLookup,
 	                          SubcollectionLookup subcollLookup,
 	                          SeriesLookup seriesLookup,
 	                          SiteLookup siteLookup) throws LocalException 
 	{
 		super(csvFile, sqlStatement);
-
-		this.specimenIdBarcodes = new AsaIdMapper(specimenIdBarcodes);
 		
 		this.prepTypesByFormatAndColl = new Hashtable<String, PrepType>();
 		
@@ -388,11 +381,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return seriesLookup.getById(seriesId);
     }
     
-    private Integer lookupBarcode(Integer specimenItemId)
-    {
-        return specimenIdBarcodes.map(specimenItemId);
-    }
-    
 	private SpecimenItem parse(String[] columns) throws LocalException
 	{
 	    SpecimenItem specimenItem = new SpecimenItem();
@@ -602,22 +590,56 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 			collectingEvent.setEndDate( DateUtils.getSpecifyEndDate( bdate ) );
 			collectingEvent.setEndDatePrecision( DateUtils.getDatePrecision( endYear, endMonth, endDay ) );
 		}
-		// EndDateVerbatim
-		else if ( DateUtils.isValidCollectionDate( endYear, endMonth, endDay ) )
-		{
-			String endDateVerbatim = DateUtils.getSpecifyStartDateVerbatim( bdate );
-			if (endDateVerbatim != null && endDateVerbatim.length() > 50)
-			{
-				endDateVerbatim = truncate(endDateVerbatim, 50, "end date verbatim");
-				collectingEvent.setEndDateVerbatim(endDateVerbatim);
-			}
-		}
-        else if (endYear != null && endMonth != null && endDay != null)
-        {
-            getLogger().warn(rec() + "Invalid end date: " +
-                    String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay));
-        }
+        else if (endYear != null || endMonth != null || endDay != null)
+        {            
+            BDate idate = DateUtils.getInterpolatedEndDate(bdate);
 
+            if (idate != null)
+            {
+                // try again with interpolated values
+                endYear  = idate.getEndYear();
+                endMonth = idate.getEndMonth();
+                endDay   = idate.getEndDay();
+
+                // EndDate and EndDatePrecision
+                if ( DateUtils.isValidSpecifyDate( endYear, endMonth, endDay ) )
+                {
+                    collectingEvent.setEndDate( DateUtils.getSpecifyEndDate( idate ) );
+                    collectingEvent.setEndDatePrecision( DateUtils.getDatePrecision( endYear, endMonth, endDay ) );
+                }
+                // EndDateVerbatim
+                else if ( DateUtils.isValidCollectionDate( endYear, endMonth, endDay ) )
+                {
+                    String endDateVerbatim = DateUtils.getSpecifyEndDateVerbatim( idate );
+                    if (endDateVerbatim != null)
+                    {
+                        endDateVerbatim = truncate(endDateVerbatim, 50, "end date verbatim");
+                        collectingEvent.setEndDateVerbatim(endDateVerbatim);
+                    }
+                }
+                else
+                {
+                    getLogger().warn(rec() + "Invalid end date: " +
+                            String.valueOf(endYear) + " " + String.valueOf(endMonth) + " " +String.valueOf(endDay));
+                }
+            }
+            else
+            {
+                getLogger().warn(rec() + "Invalid end date: " +
+                        String.valueOf(endYear) + " " + String.valueOf(endMonth) + " " +String.valueOf(endDay));
+            }
+        }
+		
+		if (collectingEvent.getStartDate() != null && collectingEvent.getEndDate() != null)
+		{
+		    if (collectingEvent.getStartDate().after(collectingEvent.getEndDate()))
+		    {
+		        getLogger().warn(rec() + "Start date after end date: " +
+		                String.valueOf(startYear) + " " + String.valueOf(startMonth) + " " +String.valueOf(startDay) + ", " +
+		                String.valueOf(endYear) + " " + String.valueOf(endMonth) + " " +String.valueOf(endDay));
+		    }
+		}
+		
 		String habitat = specimenItem.getHabitat();
 
         // Locality
@@ -1054,11 +1076,6 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         
         return null;
     }
-    	
-	private int nextCatalogNumber()
-	{
-	    return nextCatalogNumber++;
-	}
 
 	private Container getContainer(SpecimenItem specimenItem, Integer collectionMemberId, Integer type) throws LocalException
 	{

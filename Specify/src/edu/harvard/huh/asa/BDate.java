@@ -8,15 +8,29 @@ public class BDate
 	private Integer startYear;
 	private Integer startMonth;
 	private Integer startDay;
-	private  String startPrecision;
+	private String  startPrecision;
 	private Integer endYear;
 	private Integer endMonth;
 	private Integer endDay;
-	private  String endPrecision;
-	private  String text;
+	private String  endPrecision;
+	private String  text;
 	
 	public BDate() { ; }
 	
+	public BDate(BDate bdate)
+	{
+	    this.id             = bdate.id;
+	    this.startYear      = bdate.startYear;
+	    this.startMonth     = bdate.startMonth;
+	    this.startDay       = bdate.startDay;
+	    this.startPrecision = bdate.startPrecision;
+	    this.endYear        = bdate.endYear;
+	    this.endMonth       = bdate.endMonth;
+	    this.endDay         = bdate.endDay;
+	    this.endPrecision   = bdate.endPrecision;
+	    this.text           = bdate.text;	    
+	}
+
 	public Integer getId() { return id; }
 	
 	public Integer getStartYear() { return startYear; }

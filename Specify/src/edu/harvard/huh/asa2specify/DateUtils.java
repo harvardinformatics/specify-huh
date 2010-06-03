@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 
 import edu.harvard.huh.asa.BDate;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace.PartialDateEnum;
 
 public class DateUtils {
 	
@@ -214,40 +215,38 @@ public class DateUtils {
 	 * date fields for the missing end date fields yields a valid collection end date.  Return
 	 * null otherwise, or if the end date fields are all missing.
 	 */
-	public static Calendar getInterpolatedEndDate(BDate date) {
+	public static BDate getInterpolatedEndDate(BDate date) {
 		if (isValidCollectionDate(date.getStartYear(), date.getStartMonth(), date.getStartDay())) {
-		
-			Calendar startCal =
-				getDefaultCalendar(date.getStartYear(), date.getStartMonth(), date.getStartDay());
 
-			Integer endYear = isAsaNull(date.getEndYear()) ? date.getStartYear() : date.getEndYear();
-			Integer endMonth = isAsaNull(date.getEndMonth()) ? date.getStartMonth() : date.getEndMonth();
-			Integer endDay = isAsaNull(date.getEndDay()) ? date.getStartDay() : date.getEndDay();
+		    BDate newDate = new BDate(date);
 
-			Calendar endCal =
-				getDefaultCalendar(endYear, endMonth, endDay);
-
-			if ( startCal.compareTo(endCal) > 0) return null;
-
-		
-			if (! isAsaNull(date.getStartYear()) &&
+		    if (! isAsaNull(date.getStartYear()) &&
 					! isAsaNull(date.getStartMonth()) &&
 						! isAsaNull(date.getStartDay())) {
 				
 				// Apr 25, 1920 - May 1, 1920
 				if (! isAsaNull(date.getEndYear()) &&
 						! isAsaNull(date.getEndMonth()) &&
-							! isAsaNull(date.getEndDay())) { return endCal; }
+							! isAsaNull(date.getEndDay())) {
+				    return newDate;
+				}
 				
 				// Apr 25, 1920 - May 1
 				else if (isAsaNull(date.getEndYear()) &&
 							! isAsaNull(date.getEndMonth()) &&
-								! isAsaNull(date.getEndDay())) { return endCal; }
+								! isAsaNull(date.getEndDay())) {
+				    newDate.setEndYear(date.getStartYear());
+				    return newDate;
+				}
 				
 				// Apr 25, 1920 - 27
 				else if (isAsaNull(date.getEndYear()) &&
 							isAsaNull(date.getEndMonth()) &&
-								! isAsaNull(date.getEndDay())) { return endCal; }
+								! isAsaNull(date.getEndDay())) {
+				    newDate.setEndYear(date.getStartYear());
+                    newDate.setEndMonth(date.getStartMonth());
+				    return newDate;
+				}
 			}
 			
 			else if (! isAsaNull(date.getStartYear()) &&
@@ -257,12 +256,17 @@ public class DateUtils {
 				// Apr 1920 - May 1920
 				if (! isAsaNull(date.getEndYear()) &&
 						! isAsaNull(date.getEndMonth()) &&
-							isAsaNull(date.getEndDay())) { return endCal; }
+							isAsaNull(date.getEndDay())) {
+				    return newDate;
+				}
 				
 				// Apr 1920 - May
 				else if (isAsaNull(date.getEndYear()) &&
 							! isAsaNull(date.getEndMonth()) &&
-								isAsaNull(date.getEndDay())) { return endCal; }
+								isAsaNull(date.getEndDay())) {
+				    newDate.setEndYear(date.getStartYear());
+				    return newDate;
+				}
 			}
 			
 			else if (! isAsaNull(date.getStartYear()) &&
@@ -272,7 +276,9 @@ public class DateUtils {
 				// 1920 - 1921
 				if (! isAsaNull(date.getEndYear()) &&
 						isAsaNull(date.getEndMonth()) &&
-							isAsaNull(date.getEndDay())) { return endCal; }
+							isAsaNull(date.getEndDay())) {
+				    return newDate;
+				}
 			}
 			
 			else if ( isAsaNull(date.getStartYear()) &&
@@ -282,22 +288,29 @@ public class DateUtils {
 				// Apr 25 - Apr 27
 				if (isAsaNull(date.getEndYear()) &&
 						! isAsaNull(date.getEndMonth()) &&
-							! isAsaNull(date.getEndDay())) { return endCal; }
+							! isAsaNull(date.getEndDay())) {
+				    return newDate;
+				}
 			
-				// Apr 25, 1920 - 27
+				// Apr 25 - 27
 				else if (isAsaNull(date.getEndYear()) &&
 							isAsaNull(date.getEndMonth()) &&
-								! isAsaNull(date.getEndDay())) { return endCal; }
+								! isAsaNull(date.getEndDay())) {
+				    newDate.setEndMonth(date.getStartMonth());
+				    return newDate;
+				}
 			}
 			
 			else if ( isAsaNull(date.getStartYear()) &&
 						! isAsaNull(date.getStartMonth()) &&
 							isAsaNull(date.getStartDay())) {
 		
-				// 1920 - 1921
+				// Apr - May
 				if ( isAsaNull(date.getEndYear()) &&
 						! isAsaNull(date.getEndMonth()) &&
-							isAsaNull(date.getEndDay())) { return endCal; }
+							isAsaNull(date.getEndDay())) {
+				    return newDate;
+				}
 			}
 		}	
 		
@@ -363,6 +376,9 @@ public class DateUtils {
 			return null;
 	}
 	
+	/**
+	 * Return true if the value is null or equal to 0.
+	 */
 	public static boolean isAsaNull(Integer i) {
 		return i == null || i.intValue() == 0;
 	}
@@ -388,23 +404,23 @@ public class DateUtils {
 	public static GregorianCalendar getDefaultCalendar(Integer year, Integer month, Integer day) {
 		GregorianCalendar c = new GregorianCalendar();
 		c.clear();
-		
-		if (! isAsaNull(year)) c.set(GregorianCalendar.YEAR, year.intValue());
-		if (! isAsaNull(month)) c.set(GregorianCalendar.MONTH, month.intValue()-1);
-		if (! isAsaNull(day)) c.set(GregorianCalendar.DAY_OF_MONTH, day.intValue());
+
+		c.set(GregorianCalendar.YEAR,         isAsaNull(year)  || year.intValue()  < 0 ? 0 : year.intValue());
+		c.set(GregorianCalendar.MONTH,        isAsaNull(month) || month.intValue() < 0 ? 0 : month.intValue()-1);
+		c.set(GregorianCalendar.DAY_OF_MONTH, isAsaNull(day)   || day.intValue()   < 1 ? 1 : day.intValue());
 		
 		return c;
 	}
 	
 	public static byte getDatePrecision(Integer year, Integer month, Integer day) {
-	    byte result = (byte) UIFieldFormatterIFace.PartialDateEnum.None.ordinal();
+	    byte result = (byte) PartialDateEnum.None.ordinal();
 	    
 	    if (! isAsaNull(year)) {
-	        result = (byte)  UIFieldFormatterIFace.PartialDateEnum.Year.ordinal();
+	        result = (byte)  PartialDateEnum.Year.ordinal();
 	        if (! isAsaNull(month)) {
-	            result = (byte) UIFieldFormatterIFace.PartialDateEnum.Month.ordinal();
+	            result = (byte) PartialDateEnum.Month.ordinal();
 	            if (! isAsaNull(day)) {
-	                result = (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal();
+	                result = (byte) PartialDateEnum.Full.ordinal();
 	            }
 	        }
 	    }
@@ -414,7 +430,7 @@ public class DateUtils {
 	
 	public static byte getFullDatePrecision()
 	{
-		return (byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal();
+		return (byte) PartialDateEnum.Full.ordinal();
 	}
 	
 	// don't call this unless the params have been vetted by isValidCollectionDate

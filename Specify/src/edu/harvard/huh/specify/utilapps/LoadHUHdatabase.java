@@ -365,7 +365,6 @@ public class LoadHUHdatabase
             SpecimenItemLoader specimenItemLoader = new SpecimenItemLoader(new File(dir, "specimen_item.csv"),
                                                                            statement,
                                                                            new File(dir, "series_botanist.csv"),
-                                                                           new File(dir, "specimen_item_id_barcode.csv"),
                                                                            botanistLookup,
                                                                            subcollLookup,
                                                                            seriesLookup,
