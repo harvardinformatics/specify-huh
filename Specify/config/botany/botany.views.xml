@@ -260,13 +260,17 @@
                     <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="8" rows="3"/>
                 </row>
                 <row>
-                    <!-- <cell type="label" labelfor="1"/> -->
-                    <!-- <cell type="field" id="1" name="stationFieldNumber" uitype="text"/> -->
-                    <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" uitype="plugin" name="this" initialize="name=PartialDateUI;df=startDate;tp=startDatePrecision" uifieldformatter="Date"/>
+                    <cell type="label" labelfor="startDate"/>
+                    <cell type="field" id="startDate" uitype="plugin" name="this" initialize="name=PartialDateUI;df=startDate;tp=startDatePrecision" uifieldformatter="Date"/>
                     <cell type="label" labelfor="endDate"/>
                     <cell type="field" id="endDate" uitype="plugin" name="this" initialize="name=PartialDateUI;df=endDate;tp=endDatePrecision" uifieldformatter="Date"/>
                     <!-- <cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectingEventAttachments" initialize="align=right;btn=true;icon=CollectingEventAttachment"/> -->
+                </row>
+                <row>
+                	<cell type="label" labelfor="startDateVerbatim"/>
+                	<cell type="field" id="startDateVerbatim" uitype="text" name="startDateVerbatim"/>
+                	<cell type="label" labelfor="endDateVerbatim"/>
+                	<cell type="field" id="endDateVerbatim" name="endDateVerbatim" uitype="text"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="verbatimDate"/>
@@ -1274,7 +1278,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="institution"/>
-                	<cell type="field" id="institution" name="institution" uitype="text"/>
+                	<cell type="field" id="institution" name="institution" uitype="combobox" picklist="HUH Series Institution"/>
                 	<cell type="label" labelfor="identifier"/>
                 	<cell type="field" id="identifier" name="identifier" uitype="text"/>
                 </row>
