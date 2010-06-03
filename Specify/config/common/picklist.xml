@@ -386,6 +386,50 @@
       <picklistitem title="Diatoms" value="Diatoms"/>
     </items>
   </picklist>
+  <picklist name="HUH Series Institution" type="0" issystem="true" readonly="true" sizelimit="40">
+	<items>
+		<picklistitem title="A (Forest Department, Sandakan, Sabah)"   value="Forest Department, Sandakan, Sabah"/>
+		<picklistitem title="ANU (Australian National University)" value="Australian National University"/>
+		<picklistitem title="BB (Bosschen Buitengewesten)"  value="bosschen buitengewesten; FRI, Bogor"/>
+		<picklistitem title="BKF (Forest Herbarium, Bangkok)" value="Forest Herbarium, Bangkok"/>
+		<picklistitem title="BNBFD (British North Borneo Forestry Dept.)" value="British North Borneo Forestry Dept."/>
+		<picklistitem title="BRUN (Forest Department, Brunei)" value="Forest Department, Brunei"/>
+		<picklistitem title="BS (Bureau of Science, Manila)" value="Bureau of Science, Manila"/>
+		<picklistitem title="BSI (Botanical Survey of India)" value="Botanical Survey of India"/>
+		<picklistitem title="BSIP (British Solomon Islands Protectorate)" value="British Solomon Islands Protectorate"/>
+		<picklistitem title="BW (Boswezen, West New Guinea)" value="Boswezen, West New Guinea"/>
+		<picklistitem title="CCC (Canton Christian College, Canton)" value="Canton Christian College, Canton"/>
+		<picklistitem title="Cel. (Celebes: Forest Research Institute, Bogor)" value="Celebes: Forest Research Institute, Bogor"/>
+		<picklistitem title="CF (Conservator of Forests, Kepong)" value="Conservator of Forests, Kepong"/>
+		<picklistitem title="CHR" value="CHR"/>
+		<picklistitem title="FB (Forestry Bureau, Manila)" value="Forestry Bureau, Manila"/>
+		<picklistitem title="FMS (Federated Malay States (Museums))" value="Federated Malay States (Museums)"/>
+		<picklistitem title="FRI (Forest Research Institute, Kepong)" value="Forest Research Institute, Kepong"/>
+		<picklistitem title="Ja. (Java: Forest Research Institute, Bogor)" value="Java: Forest Research Institute, Bogor"/>
+		<picklistitem title="KEP (Forest Research Institute, Kepong)" value="Forest Research Institute, Kepong"/>
+		<picklistitem title="KL (Phytochemical Survey of Malaya, Kuala Lumpur)" value="Phytochemical Survey of Malaya, Kuala Lumpur"/>
+		<picklistitem title="LAE (Botany Division, Lae)" value="Botany Division, Lae"/>
+		<picklistitem title="NBFD (North Borneo Forestry Dept.)" value="North Borneo Forestry Dept."/>
+		<picklistitem title="NGBF" value="NGBF"/>
+		<picklistitem title="NGF (New Guinea Forces/Forests, Lae)" value="New Guinea Forces/Forests, Lae"/>
+		<picklistitem title="NIFS (Netherlands Indies Forest Service)" value="Netherlands Indies Forest Service"/>
+		<picklistitem title="PNH (Philippine National Herbarium)" value="Philippine National Herbarium"/>
+		<picklistitem title="PPI (Philippine Plant Inventory)" value="Philippine Plant Inventory"/>
+		<picklistitem title="RFK" value="RFK"/>
+		<picklistitem title="Ri (Riouw)" value="Riouw; FRI, (Buitenzorg) Bogor"/>
+		<picklistitem title="RRI (Rubber Research Institute, Malaya)" value="Rubber Research Institute, Malaya"/>
+		<picklistitem title="RSNB (Royal Society North Borneo Expedition)" value="Royal Society North Borneo Expedition"/>
+		<picklistitem title="RSS (Royal Society Solomons Expedition)" value="Royal Society Solomons Expedition"/>
+		<picklistitem title="S (Sarawak Forest Dept., Kuching)" value="Sarawak Forest Dept., Kuching"/>
+		<picklistitem title="SAN (Forest Department, Sandakan, Sabah)" value="Forest Department, Sandakan, Sabah"/>
+		<picklistitem title="SF (Singapore Field (number))" value="Singapore Field (number)"/>
+		<picklistitem title="SMHI" value="SMHI"/>
+		<picklistitem title="SWK (Sumatra's West Kust)" value="Sumatra's West Kust"/>
+		<picklistitem title="T (Thorenaar: Boschbouw.)" value="Thorenaar: Boschbouw., Buitenzorg (Bogor)"/>
+		<picklistitem title="UN" value="UN"/>
+		<picklistitem title="UPNG (University of Papua New Guinea, Boroko)" value="University of Papua New Guinea, Boroko"/>
+	</items>
+  </picklist>
   <picklist name="HUH Taxon Status" type="0" issystem="true" readonly="true" sizelimit="10">
     <items>
       <picklistitem title="nom. leg." value="NomLeg"/>

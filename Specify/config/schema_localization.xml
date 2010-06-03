@@ -22963,7 +22963,7 @@
         </names>
         <descs/>
       </item>
-      <item name="institution" type="java.lang.String">
+      <item name="institution" type="java.lang.String" pickListName="HUH Series Institution">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
