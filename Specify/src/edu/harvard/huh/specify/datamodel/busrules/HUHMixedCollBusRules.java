@@ -58,7 +58,7 @@ public class HUHMixedCollBusRules extends HUHPreparationBusRules
             // temporarily remove the preparation's fragments
             Set<Fragment> unsavedFragments = prep.getFragments();
             
-            // one of the form helper classes set this to null sometimes... sigh...
+            // one of the form helper classes set this to null sometimes
             if (unsavedFragments == null)
             {
                 unsavedFragments = new HashSet<Fragment>();

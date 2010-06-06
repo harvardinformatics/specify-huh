@@ -31,7 +31,6 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
-import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
@@ -183,7 +182,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 reasonList.clear();
 
                 CollectionObject collObj = (CollectionObject) dataObj;
-                if (collObj.getFragments().size() > 0)
+                if (collObj.getFragments().size() > 1)
                 {
                     return false;
                 }

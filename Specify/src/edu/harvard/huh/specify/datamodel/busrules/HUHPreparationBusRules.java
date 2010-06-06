@@ -21,21 +21,21 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.HashSet;
+import java.util.List;
 
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
-import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
 /**
- * @author rod
+ * @author mkelly
  *
  * @code_status Alpha
  *
- * Feb 11, 2008
+ * June 4, 2010
  *
  */
 public class HUHPreparationBusRules extends PreparationBusRules
@@ -45,7 +45,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
         super();
     }
     
-    @Override
+/*    @Override
     public void beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
     {
         if (dataObj instanceof Preparation)
@@ -56,10 +56,10 @@ public class HUHPreparationBusRules extends PreparationBusRules
             {
                 fragment.setPreparation(null);
             }
-            prep.setFragments(null);
+            prep.setFragments(new HashSet<Fragment>());
             prep.getPreparationAttachments().size();
         }
-    }
+    }*/
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
@@ -78,6 +78,24 @@ public class HUHPreparationBusRules extends PreparationBusRules
         }
     }
     
+    public boolean okToEnableDelete(Object dataObj)
+    {
+        if (dataObj != null)
+        {
+            if (dataObj instanceof Preparation)
+            {
+                reasonList.clear();
+
+                Preparation prep = (Preparation) dataObj;
+                if (prep.getFragments().size() > 1)
+                {
+                    return false;
+                }
+            }
+        }
+        return super.okToEnableDelete(dataObj);
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
      */
@@ -88,71 +106,31 @@ public class HUHPreparationBusRules extends PreparationBusRules
         
         if (!STATUS.OK.equals(status)) return status;
         
-        status = isParentOK((FormDataObjIFace) dataObj);
+        Preparation prep = (Preparation) dataObj;
         
-        if (!STATUS.OK.equals(status)) return status;
+        status = isParentOK(prep, reasonList);
         
-        return isBarcodeOK((FormDataObjIFace) dataObj);
-    }
-    
-    /** Either the Fragment or its Preparation must have a barcode, and the barcode
-     *  must be unique across the union of all Fragment and Preparation objects .
-     * @param dataObj the Fragment to check
-     * @return whether the Fragment or its Preparation has a unique barcode
-     */
-    protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
-    {
-        if (dataObj instanceof Preparation)
+        if (prep.getFragments().size() > 0)
         {
-            Preparation preparation = (Preparation) dataObj;
-
-            String fieldName = "identifier";
-            String barcode = (String) FormHelper.getValue(dataObj, fieldName);
-
-            Integer prepCount = 0;
-            Integer fragmentCount = 0;
-            if (!StringUtils.isEmpty(barcode))
-            {
-                // count preparations with this barcode
-                prepCount =
-                    HUHFragmentBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, preparation.getId());
-                
-                // count fragment records with this barcode
-                fragmentCount =
-                    HUHFragmentBusRules.getCountSql(Fragment.class, "fragmentId", fieldName, barcode, null);
-            }
-
-            if (fragmentCount + prepCount == 0)
-            {
-                // prep has the barcode
-                return STATUS.OK;
-            }
-            else
-            {
-                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Preparation.class, fieldName, barcode));
-                return STATUS.Error;
-            }
+            status = HUHFragmentBusRules.checkBarcode(prep, reasonList);
         }
         
-        throw new IllegalArgumentException();
+        return status;
     }
     
-    protected STATUS isParentOK(final FormDataObjIFace dataObj)
+    protected static STATUS isParentOK(final Preparation prep, List<String> reasonList)
     {
-        if (dataObj instanceof Preparation)
+
+        Preparation parentPrep = prep.getParent();
+
+        while (parentPrep != null)
         {
-            Preparation formPrep = (Preparation) dataObj;
-            Preparation parentPrep = formPrep.getParent();
-            
-            while (parentPrep != null)
+            if (parentPrep.getPreparationId().equals(prep.getPreparationId()))
             {
-                if (parentPrep.getPreparationId().equals(formPrep.getPreparationId()))
-                {
-                    reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
-                    return STATUS.Error;
-                }
-                parentPrep = parentPrep.getParent();
+                reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
+                return STATUS.Error;
             }
+            parentPrep = parentPrep.getParent();
         }
         return STATUS.OK;
     }

@@ -1,25 +1,21 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
-import edu.ku.brc.af.ui.forms.FormHelper;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
-import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -34,68 +30,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     public HUHFragmentBusRules()
     {
         super();
-    }
-
-    @Override
-    public void afterDeleteCommit(final Object dataObj)
-    {
-        Fragment fragment = (Fragment) dataObj;
-        
-        Preparation prep = fragment.getPreparation();
-        if (prep != null) prep.getFragments().remove(fragment);
-        
-        CollectionObject collObj = fragment.getCollectionObject();
-        if (collObj != null) collObj.getFragments().remove(fragment);
-    }
-    
-    @Override
-    public void beforeFormFill()
-    {
-        if (formViewObj != null)
-        {
-            if (formViewObj.getDataObj() instanceof Fragment)
-            {
-                Fragment fragment = (Fragment) formViewObj.getDataObj();
-
-                if (fragment.getCollectionObject() == null)
-                {
-                    CollectionObject collectionObject = new CollectionObject();
-                    collectionObject.initialize();
-
-                    Agent agent = Agent.getUserAgent();
-                    collectionObject.setCataloger(agent);
-                    collectionObject.setCatalogedDate(Calendar.getInstance());
-                    collectionObject.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-
-                    // assign collection if not already assigned
-                    if (collectionObject.getCollection() == null)
-                    {
-                        Collection catSeries = AppContextMgr.getInstance().getClassObject(Collection.class);
-                        collectionObject.setCollection(catSeries); 
-                    }
-                    
-                    CollectingEvent collectingEvent = collectionObject.getCollectingEvent();
-                    if (collectingEvent == null)
-                    {
-                        collectingEvent = new CollectingEvent();
-                        collectingEvent.initialize();
-                        collectionObject.setCollectingEvent(collectingEvent);
-                        collectionObject.addReference(collectingEvent, "collectingEvent");
-                    }
-
-                    Locality locality = collectingEvent.getLocality();
-                    if (locality == null)
-                    {
-                        locality = new Locality();
-                        locality.initialize();
-                        collectingEvent.setLocality(locality);
-                    }
-                    collectionObject.getOtherIdentifiers().size();
-                    fragment.addReference(collectionObject, "collectionObject");
-                }
-            }
-        }
-    }
+    }    
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
@@ -161,104 +96,240 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         return true;
     }
     
-    /** Either the Fragment or its Preparation must have a barcode, and the barcode
-     *  must be unique across the union of all Fragment and Preparation objects .
-     * @param dataObj the Fragment to check
-     * @return whether the Fragment or its Preparation has a unique barcode
-     */
-    protected STATUS isBarcodeOK(final FormDataObjIFace dataObj)
+    @Override
+    public boolean beforeDeleteCommit(final Object dataObj, final DataProviderSessionIFace session) throws Exception
     {
         if (dataObj instanceof Fragment)
         {
             Fragment fragment = (Fragment) dataObj;
             
-            String fieldName = "identifier";
-            String barcode = (String)FormHelper.getValue(fragment, fieldName);
-            String formattedBarcode = formatToUI(Fragment.class, fieldName, barcode);
-            
-            Integer prepCount = 0;
-            Integer fragmentCount = 0;
-            if (!StringUtils.isEmpty(barcode))
+            CollectionObject collObj = fragment.getCollectionObject();
+            if (collObj != null)
             {
-                // count preparations with this barcode
-                prepCount =
-                    HUHFragmentBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, null);
-                
-                // count fragment records with this barcode
-                fragmentCount =
-                    HUHFragmentBusRules.getCountSql(Fragment.class, "fragmentId", fieldName, barcode, fragment.getId());
-            }
-            
-            if (fragmentCount + prepCount == 0)
-            {
-                if (!StringUtils.isEmpty(barcode))
+                if (collObj.getFragments().size() <= 1)
                 {
-                    // fragment has the barcode
-                    return STATUS.OK;
-                }
-                else
-                {
-                    if (fragment.getPreparation() != null &&
-                            fragment.getPreparation().getIdentifier() != null)
+                    // check business rules
+                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(collObj);
+                    if (delBusRules != null)
                     {
-                        // preparation has the barcode
-                        return STATUS.OK;
+                        if (!delBusRules.okToEnableDelete(collObj)) return false;
+                        
+                        delBusRules.beforeDelete(collObj, session);
+                        session.delete(collObj);
+                        delBusRules.beforeDeleteCommit(collObj, session);                        
                     }
-                    reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", Fragment.class, fieldName, ""));
-                    return STATUS.Error;
+                    session.delete(collObj);
                 }
             }
-
-            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, formattedBarcode));
+            
+            Preparation prep = fragment.getPreparation();
+            if (prep != null)
+            {
+                if (prep.getFragments().size() <= 1)
+                {
+                    // check business rules
+                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(prep);
+                    if (delBusRules != null)
+                    {
+                        if (!delBusRules.okToEnableDelete(prep)) return false;
+                        
+                        delBusRules.beforeDelete(prep, session);
+                        session.delete(prep);
+                        delBusRules.beforeDeleteCommit(prep, session);                        
+                    }
+                    session.delete(prep);
+                }
+            }
+        }
+        return true;
+    }
+    
+    
+    /** Either the Fragment or its Preparation must have a barcode, and the barcode
+     *  must be unique across the union of all Fragment and Preparation objects.
+     *  
+     * @param dataObj the Fragment to check
+     * @return whether the Fragment or its Preparation has a unique barcode
+     */    
+    static STATUS checkBarcode(Fragment fragment, List<String> reasonList)
+    {
+        Preparation prep  = fragment.getPreparation();
+        
+        String fBarcodeFieldName = "identifier";
+        String fBarcode = fragment.getIdentifier();
+        Integer fId = fragment.getId();
+        
+        String pBarcodeFieldName = fBarcodeFieldName;
+        String pBarcode = null;
+        Integer pId = null;
+        
+        if (prep != null)
+        {
+            pBarcode = prep.getIdentifier();
+            pId = prep.getId();
+        }
+        
+        // There must be a barcode associated with at least one of the fragments on this preparation
+        if (fBarcode == null && !HasOtherBarcode(prep))
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", Fragment.class, fBarcodeFieldName, ""));
             return STATUS.Error;
         }
-        else if (dataObj instanceof Preparation)
+        
+        if (StringUtils.isEmpty(fBarcode)) return STATUS.OK;
+        
+        // If the fragment has a barcode, it must not already exist in other fragment records
+        // or other preparation records in the database
+        
+        // count saved fragment records with this barcode
+        int fCount = getCountSql(Fragment.class, "fragmentId", fBarcodeFieldName, fBarcode, fId);
+
+        if (fCount > 0)
         {
-            Preparation preparation = (Preparation) dataObj;
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fBarcodeFieldName, fBarcode));
+            return STATUS.Error;
+        }
 
-            String fieldName = "identifier";
-            String barcode = (String) FormHelper.getValue(dataObj, fieldName);
+        // count saved preparation records with this barcode
+        int pCount = getCountSql(Preparation.class, "preparationId", pBarcodeFieldName, fBarcode, pId);
 
-            Integer prepCount = 0;
-            Integer fragmentCount = 0;
-            if (!StringUtils.isEmpty(barcode))
+        if (pCount > 0)
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Preparation.class, pBarcodeFieldName, fBarcode));
+            return STATUS.Error;
+        }
+            
+        // count unsaved records with this barcode
+        if (fBarcode.equals(pBarcode))
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fBarcodeFieldName, fBarcode));
+            return STATUS.Error;
+        }
+        
+        return STATUS.OK;
+    }
+
+    static STATUS checkBarcode(Preparation prep, List<String> reasonList)
+    {
+        String fieldName = "identifier";
+        
+        // There must be a barcode associated with at least one of the fragments on this preparation
+        if (!HasOtherBarcode(prep))
+        {
+            reasonList.add(getErrorMsg("GENERIC_FIELD_MISSING", Fragment.class, fieldName, ""));
+            return STATUS.Error;
+        }
+ 
+        // Each barcode must not exist in the set of saved fragments and preparation excluding the
+        // current preparation and its fragments; find the set of existing ids.
+        Integer prepId = prep.getId();
+        HashSet<Integer> fragmentIds = new HashSet<Integer>();
+        
+        // The various barcodes in the set of unsaved fragments and this preparation must be distinct;
+        // find the set of barcodes.
+        HashSet<String> barcodes = new HashSet<String>();
+        String pBarcode = prep.getIdentifier();
+        
+        for (Fragment fragment : prep.getFragments())
+        {
+            Integer fragmentId = fragment.getId();
+            if (fragmentId != null) fragmentIds.add(fragmentId);
+            
+            String fBarcode = fragment.getIdentifier();
+            if (!StringUtils.isEmpty(fBarcode))
             {
-                // count preparations with this barcode
-                prepCount =
-                    HUHFragmentBusRules.getCountSql(Preparation.class, "preparationId", fieldName, barcode, preparation.getId());
-                
-                // count fragment records with this barcode
-                fragmentCount =
-                    HUHFragmentBusRules.getCountSql(Fragment.class, "fragmentId", fieldName, barcode, null);
+                if (barcodes.contains(fBarcode) || fBarcode.equals(pBarcode))
+                {
+                    reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, fBarcode));
+                    return STATUS.Error;
+                }
+                barcodes.add(fBarcode);
             }
+        }
 
-            if (fragmentCount + prepCount == 0)
+        // check this preparation's barcode against database
+        if (!StringUtils.isEmpty(pBarcode))
+        {
+            int pCount = getCountSql(Preparation.class, "preparationId", fieldName, pBarcode, prepId);
+
+            if (pCount > 0)
             {
-                // prep has the barcode
-                return STATUS.OK;
+                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, pBarcode));
+                return STATUS.Error;
             }
-            else
+            
+            int fCount = getCountSql(Fragment.class, "fragmentId", fieldName, pBarcode, fragmentIds);
+
+            if (fCount > 0)
             {
-                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Preparation.class, fieldName, barcode));
+                reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, pBarcode));
                 return STATUS.Error;
             }
         }
-        
-        throw new IllegalArgumentException(dataObj.getClass().getName());
+
+        // check each fragment's barcode against the database
+        for (Fragment fragment : prep.getFragments())
+        {
+            String fBarcode = fragment.getIdentifier();
+
+            if (fBarcode != null)
+            {
+                int pCount = getCountSql(Preparation.class, "preparationId", fieldName, fBarcode, prepId);
+
+                if (pCount > 0)
+                {
+                    reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, fBarcode));
+                    return STATUS.Error;
+                }
+
+                int fCount = getCountSql(Fragment.class, "fragmentId", fieldName, fBarcode, fragmentIds);
+
+                if (fCount > 0)
+                {
+                    reasonList.add(getErrorMsg("GENERIC_FIELD_IN_USE", Fragment.class, fieldName, fBarcode));
+                    return STATUS.Error;
+                }
+            }
+        }
+
+        return STATUS.OK;
     }
     
     /**
-     * Search the table represented by dataClass for fields with fieldName having value fieldValue; omit records with primaryFieldName
-     * having value id.
-     * 
-     * @param dataClass
-     * @param primaryFieldName
-     * @param fieldName
-     * @param fieldValue
-     * @param id
-     * @return
+     * Return true if the preparation's Identifier is not empty, or if at least one
+     * of its associated fragments' Identifiers is not empty.  Otherwise return false.
      */
+    static boolean HasOtherBarcode(Preparation prep)
+    {
+        if (prep == null) return false;
+        
+        String barcode = prep.getIdentifier();
+        
+        if (!StringUtils.isEmpty(barcode)) return true;
+        
+        for (Fragment fragment : prep.getFragments())
+        {
+            barcode = fragment.getIdentifier();
+            if (!StringUtils.isEmpty(barcode)) return true;
+        }
+        
+        return false;
+    }
+
     static int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Integer id)
+    {
+        HashSet<Integer> ids = new HashSet<Integer>();
+
+        if (id != null) ids.add(id);
+        
+        return getCountSql(dataClass, primaryFieldName, fieldName, fieldValue, ids);
+    }
+
+    /**
+     * Search the table represented by dataClass for fields with fieldName having value fieldValue; omit records with primaryFieldName
+     * having value in the set of ids.
+     */
+    static int getCountSql(final Class<?> dataClass, final String primaryFieldName, final String fieldName, final String fieldValue, final Set<Integer> ids)
     {
         DBTableInfo tableInfo = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
         DBFieldInfo fieldInfo = tableInfo.getFieldByName(fieldName);
@@ -286,9 +357,11 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         String sql = String.format("SELECT COUNT(%s) FROM %s WHERE %s = %s", countColumnName, tableName, compareColumName, quote + fieldValue + quote);
 
         // if we should ignore records with a given primary_key from the result, add a clause: and primary_key <> id_value
-        if (id != null)
+        if (ids != null && ids.size() > 0)
         {
-            sql += " AND " + countColumnName + " <> " + id;
+            sql += " AND " + countColumnName + " NOT IN (";
+            for (Integer id : ids) sql +=  id.toString() + " ";
+            sql += ") ";
         }
 
         // not sure what special columns might be but I saw this called somewhere else
@@ -351,6 +424,20 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
 		
 		if (!STATUS.OK.equals(status)) return status;
 		
-		return isBarcodeOK((FormDataObjIFace) dataObj);
+		if (dataObj instanceof Fragment)
+        {
+            Fragment fragment = (Fragment) dataObj;
+            
+            status = checkBarcode(fragment, reasonList);
+        }
+
+		if (!STATUS.OK.equals(status)) return status;
+		
+		if (dataObj instanceof Preparation)
+		{
+		    Preparation prep = (Preparation) dataObj;
+		    status = HUHPreparationBusRules.isParentOK(prep, reasonList);
+		}
+        return status;
 	}
 }

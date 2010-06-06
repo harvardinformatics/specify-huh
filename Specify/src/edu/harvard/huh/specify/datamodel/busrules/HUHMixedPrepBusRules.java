@@ -22,12 +22,15 @@ package edu.harvard.huh.specify.datamodel.busrules;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
  * @author mkelly
@@ -46,7 +49,40 @@ public class HUHMixedPrepBusRules extends HUHCollectionObjectBusRules
     {
         super();
     }
-
+    
+    @Override
+    public boolean beforeDeleteCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
+    {
+        boolean ok = super.beforeDeleteCommit(dataObj, session);
+        
+        if (ok)
+        {
+            CollectionObject collObj = (CollectionObject)dataObj;
+            if (collObj.getFragments().size() == 1)
+            {
+                Fragment fragment = collObj.getFragments().iterator().next();
+                Preparation prep = fragment.getPreparation();
+                
+                if (prep != null && prep.getFragments().size() == 1)
+                {
+                    try
+                    {
+                        session.delete(prep);
+                        return true;
+                        
+                    } catch (Exception ex)
+                    {
+                        edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
+                        ex.printStackTrace();
+                        return false;
+                    }
+                }
+            }
+        }
+        return ok;
+    }
+    
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {        
