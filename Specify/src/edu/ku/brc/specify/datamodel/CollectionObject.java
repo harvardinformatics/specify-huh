@@ -785,7 +785,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     /**
      *
      */
-    @OneToMany(cascade = {}, mappedBy = "collectionObject")
+    @OneToMany(cascade = {}, mappedBy = "collectionObject", fetch = FetchType.EAGER)
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.LOCK, org.hibernate.annotations.CascadeType.MERGE, org.hibernate.annotations.CascadeType.DELETE })
     public Set<Fragment> getFragments() {
         return this.fragments;
