@@ -2045,10 +2045,10 @@ repositoryagreement.RepositoryAgreementNumber,
             <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[SELECT co.CollectionObjectID, av.Name, co.FieldNumber, ce.StartDate, ce.StartDatePrecision
-                               FROM collectionobject co JOIN collectingevent ce ON co.CollectingEventID=ce.CollectingEventID
-                               JOIN collector ctr ON ce.CollectingEventID=ctr.CollectingEventID
-                               JOIN agentvariant av ON ctr.AgentID=av.AgentID
-                              WHERE av.VarType=4 AND co.CollectionMemberID = COLMEMID AND (%s) ORDER BY av.Name, co.FieldNumber, ce.StartDate]]>
+                               FROM collectionobject co LEFT JOIN collectingevent ce ON co.CollectingEventID=ce.CollectingEventID
+                               LEFT JOIN collector ctr ON ce.CollectingEventID=ctr.CollectingEventID
+                               LEFT JOIN agentvariant av ON ctr.AgentID=av.AgentID AND av.VarType=4
+                              WHERE co.CollectionMemberID = COLMEMID AND (%s) ORDER BY av.Name, co.FieldNumber, ce.StartDate]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
