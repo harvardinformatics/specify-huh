@@ -690,7 +690,7 @@ public class BaseBusRules implements BusinessRulesIFace
      * @param dataClass the class for which the field name belongs too.
      * @return
      */
-    protected String getErrorMsg(final String msgKey, final Class<?> dataClass, final String fieldName, final String value)
+    protected static String getErrorMsg(final String msgKey, final Class<?> dataClass, final String fieldName, final String value)
     {
         String      title = "Unknown Field"; // this should never happen so I am not localizing it
         DBTableInfo ti    = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
