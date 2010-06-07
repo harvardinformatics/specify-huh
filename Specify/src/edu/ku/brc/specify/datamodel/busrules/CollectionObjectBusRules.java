@@ -51,6 +51,7 @@ import edu.ku.brc.specify.datamodel.DeaccessionPreparation;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
+import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Project;
@@ -291,8 +292,11 @@ public class CollectionObjectBusRules extends AttachmentOwnerBaseBusRules
                 CollectingEvent ce = colObj.getCollectingEvent();
                 if (ce != null)
                 {
+                    Locality loc = ce.getLocality();
+                    
                     try
                     {
+                        session.delete(loc);
                         session.delete(ce);
                         return true;
                         
