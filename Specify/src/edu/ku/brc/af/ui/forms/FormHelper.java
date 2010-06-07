@@ -209,6 +209,42 @@ public final class FormHelper
         }
         return null;
     }
+    
+    /**
+     * Creates a new data object and initializes it.  Also initializes the business rules.
+     * @param newDataClass class of new Object to be created and initialized
+     * @param overrideAddKids whether to override the business rules as to whether to add children
+    */
+   public static FormDataObjIFace createAndNewDataObj(final Class<?> newDataClass, final Boolean overrideAddKids, final FormViewObj formViewObj)
+   {
+       try
+       {
+           FormDataObjIFace formDataObj = (FormDataObjIFace)newDataClass.newInstance();
+           formDataObj.initialize();
+           BusinessRulesIFace br = DBTableIdMgr.getInstance().getBusinessRule(newDataClass);
+           br.initialize(formViewObj);
+           if (((overrideAddKids != null && overrideAddKids) || overrideAddKids == null) && br != null)
+           {
+               br.addChildrenToNewDataObjects(formDataObj);
+           }
+           CommandDispatcher.dispatch(new CommandAction("Data", "NewObjDataCreated", formDataObj));
+           
+           return formDataObj;
+           
+       } catch (IllegalAccessException ex)
+       {
+           edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+           edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormHelper.class, ex);
+           ex.printStackTrace();
+  
+       } catch (InstantiationException ex)
+       {
+           edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+           edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(FormHelper.class, ex);
+           ex.printStackTrace();
+       }
+       return null;
+   }
 
     /**
      * Creates a new data object and initializes it.

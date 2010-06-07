@@ -1913,7 +1913,7 @@ public class FormViewObj implements Viewable,
             FormDataObjIFace obj;
             if (classToCreate != null)
             {
-                obj = FormHelper.createAndNewDataObj(classToCreate, null);//!shouldDoCarryForward);
+                obj = FormHelper.createAndNewDataObj(classToCreate, null, this);//!shouldDoCarryForward);
             } else
             {
                 obj = FormHelper.createAndNewDataObj(view.getClassName(), null);//!shouldDoCarryForward);
