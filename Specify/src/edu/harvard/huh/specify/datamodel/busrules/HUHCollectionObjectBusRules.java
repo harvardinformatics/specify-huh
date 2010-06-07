@@ -81,7 +81,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 locality.initialize();
                 collectingEvent.setLocality(locality);
             }
-            collectionObject.getOtherIdentifiers().size();
+            //collectionObject.getOtherIdentifiers().size();
         }
     }
     
@@ -104,10 +104,24 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
     {
         if (formViewObj != null)
         {
-            if (formViewObj.getDataObj() instanceof CollectionObject)
+            CollectionObject collObj = (CollectionObject) formViewObj.getDataObj();
+            
+            if (collObj != null)
             {
-                CollectionObject collectionObject = (CollectionObject) formViewObj.getDataObj();
-                collectionObject.getOtherIdentifiers().size();
+                CollectingEvent collEvt = collObj.getCollectingEvent();
+                if (collEvt == null)
+                {
+                    collEvt = new CollectingEvent();
+                    collEvt.initialize();
+                    collObj.addReference(collEvt, "collectingEvent");
+                }
+                Locality loc = collEvt.getLocality();
+                if (loc == null)
+                {
+                    loc = new Locality();
+                    loc.initialize();
+                    collEvt.addReference(loc, "locality");
+                }
             }
         }
     }

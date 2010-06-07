@@ -88,11 +88,7 @@ public class HUHAgentBusRules extends AgentBusRules
     {
         reasonList.clear();
         STATUS status =  super.processBusinessRules(dataObj);
-        
-        if (status == STATUS.OK)
-        {
-            status = checkVariants((Agent) dataObj);
-        }
+
         return status;
     }
     

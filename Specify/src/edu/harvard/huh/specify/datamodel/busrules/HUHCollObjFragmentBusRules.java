@@ -1,6 +1,5 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
@@ -8,7 +7,7 @@ import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 
-public class HUHCollObjFragmentBusRules extends HUHFragmentBusRules implements BusinessRulesIFace
+public class HUHCollObjFragmentBusRules extends HUHFragmentBusRules
 {
     public HUHCollObjFragmentBusRules()
     {

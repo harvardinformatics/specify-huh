@@ -1,5 +1,6 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -13,8 +14,11 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
@@ -31,6 +35,84 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     {
         super();
     }    
+    
+    @Override
+    public void addChildrenToNewDataObjects(Object newDataObj)
+    {
+        super.addChildrenToNewDataObjects(newDataObj);
+        
+        // only add new collection object if there is not a valcombobox for it.
+        if (formViewObj != null && newDataObj != null)
+        {
+            if (formViewObj.getControlByName("collectionObject") == null)
+            {
+                Fragment fragment = (Fragment) newDataObj;
+                
+                if (fragment.getCollectionObject() == null)
+                {
+                    CollectionObject collObj = new CollectionObject();
+                    collObj.initialize();
+
+                    Agent agent = Agent.getUserAgent();
+                    collObj.setCataloger(agent);
+                    collObj.setCatalogedDate(Calendar.getInstance());
+                    collObj.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+
+                    fragment.addReference(collObj, "collectionObject");
+                    
+                    CollectingEvent collEvt = new CollectingEvent();
+                    collEvt.initialize();
+                    collObj.addReference(collEvt, "collectingEvent");
+                    
+                    Locality loc = new Locality();
+                    loc.initialize();
+                    collEvt.addReference(loc, "locality");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void beforeFormFill()
+    {
+        if (formViewObj != null)
+        {
+            if (formViewObj.getControlByName("collectionObject") != null) return;
+            
+            Fragment fragment = (Fragment) formViewObj.getDataObj();
+
+            if (fragment != null)
+            {
+                CollectionObject collObj = fragment.getCollectionObject();
+                if (collObj == null)
+                {
+                    collObj = new CollectionObject();
+                    collObj.initialize();
+                    
+                    Agent agent = Agent.getUserAgent();
+                    collObj.setCataloger(agent);
+                    collObj.setCatalogedDate(Calendar.getInstance());
+                    collObj.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+
+                    fragment.addReference(collObj, "collectionObject");
+                }
+                CollectingEvent collEvt = collObj.getCollectingEvent();
+                if (collEvt == null)
+                {
+                    collEvt = new CollectingEvent();
+                    collEvt.initialize();
+                    collObj.addReference(collEvt, "collectingEvent");
+                }
+                Locality loc = collEvt.getLocality();
+                if (loc == null)
+                {
+                    loc = new Locality();
+                    loc.initialize();
+                    collEvt.addReference(loc, "locality");
+                }
+            }
+        }
+    }
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
