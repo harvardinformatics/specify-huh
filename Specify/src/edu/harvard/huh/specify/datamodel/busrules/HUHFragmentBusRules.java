@@ -152,7 +152,6 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
             prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
 
             fragment.setPreparation(prep);
-            prep.getFragments().add(fragment);
         }
     }
     
