@@ -1871,11 +1871,11 @@
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -2144,11 +2144,11 @@
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -2207,11 +2207,11 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -2223,11 +2223,11 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -7574,11 +7574,11 @@
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -7795,11 +7795,11 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -7811,11 +7811,11 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -11571,11 +11571,11 @@
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -11695,11 +11695,11 @@
       </item>
       <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs>
@@ -11841,7 +11841,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Annotation Remarks</text>
+            <text>Annotation Text</text>
           </str>
         </names>
         <descs>
@@ -11853,11 +11853,11 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -11869,11 +11869,11 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -15567,11 +15567,11 @@
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -15665,6 +15665,22 @@
           </str>
         </names>
         <descs/>
+      </item>
+      <item name="modifiedByAgent" isUIFormatter="false" isRequired="false">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Modified By</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Link to lookup table for Method.</text>
+          </str>
+        </descs>
       </item>
       <item name="number1" type="java.lang.Integer">
         <version>0</version>
@@ -15864,7 +15880,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -15880,7 +15896,7 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -16409,11 +16425,11 @@
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -16537,11 +16553,11 @@
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -16670,11 +16686,11 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -16686,11 +16702,11 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -24156,11 +24172,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -24238,11 +24254,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -24446,11 +24462,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -24462,11 +24478,11 @@ Preparation: A subdivision of a collection object that refers to the preparation
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -26065,11 +26081,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -26172,11 +26188,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -26348,11 +26364,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -26364,11 +26380,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -31593,11 +31609,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -31654,11 +31670,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -31796,11 +31812,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -31812,11 +31828,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
@@ -32346,11 +32362,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Created By Agent</text>
+            <text>Created By</text>
           </str>
         </names>
         <descs/>
@@ -32564,11 +32580,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
-            <text>Modified By Agent</text>
+            <text>Modified By</text>
           </str>
         </names>
         <descs/>
@@ -32750,11 +32766,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Created</text>
+            <text>Created</text>
           </str>
         </names>
         <descs>
@@ -32766,11 +32782,11 @@ Specify provides an extensive array of utilities for curatorial management of sp
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Timestamp Modified</text>
+            <text>Modified</text>
           </str>
         </names>
         <descs>
