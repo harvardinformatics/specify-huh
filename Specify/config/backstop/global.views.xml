@@ -229,7 +229,7 @@
         <view name="JournalForm"
             objtitle="Journal"
             class="edu.ku.brc.specify.datamodel.Journal"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[The Journal Form.]]></desc>
             <altviews>
@@ -431,7 +431,7 @@
             objtitle="Geologic Time Period"
             class="edu.ku.brc.specify.datamodel.GeologicTimePeriod"
             busrules="edu.ku.brc.specify.datamodel.busrules.GeologicTimePeriodBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[GeologicTimePeriod data entry form.]]></desc>
             <altviews>
@@ -477,7 +477,7 @@
         <view name="LithoStrat"
             class="edu.ku.brc.specify.datamodel.LithoStrat"
             busrules="edu.ku.brc.specify.datamodel.busrules.LithoStratBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[LithoStrat data entry form.]]></desc>
             <altviews>
@@ -955,7 +955,20 @@
                 <row>
                     <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
-                
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
 	    	</rows>
         </viewdef>
         
@@ -1060,7 +1073,20 @@
                 <row>
                     <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
-                
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
 	    	</rows>
         </viewdef>
         
@@ -1134,7 +1160,20 @@
                 <row>
                     <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
-                
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
 	    	</rows>
         </viewdef>
         
@@ -1204,7 +1243,20 @@
                 <row>
                     <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
-                
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
 	    	</rows>
         </viewdef>
 
@@ -1633,6 +1685,20 @@
                 	<cell type="label" labelfor="remarks"/>
                 	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="4" colspan="9"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef> 
         
@@ -2057,6 +2123,20 @@
                 <row>
                     <cell type="subview" id="attachments" viewname="ObjectAttachment" name="taxonAttachments" colspan="16" initialize="btn=true;icon=TaxonAttachment"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef>
 
@@ -2122,6 +2202,20 @@
                 <row>
                     <cell type="subview" viewname="GeographySubform" id="children" defaulttype="table" name="children" colspan="11"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef>
         
@@ -2166,7 +2260,20 @@
                     <cell type="label" labelfor="definitionItem"/>
                 	<cell type="field" id="definitionItem" uitype="combobox" name="definitionItem" colspan="6"/>
                 </row>
-
+				<row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef>
         

@@ -87,7 +87,7 @@
         <view name="Appraisal"
             class="edu.ku.brc.specify.datamodel.Appraisal"
             busrules="edu.ku.brc.specify.datamodel.busrules.AppraisalBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[The appraisal subform.]]></desc>
             <altviews>
@@ -98,7 +98,7 @@
         
         <view name="AttributeDef"
             class="edu.ku.brc.specify.datamodel.AttributeDef"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Attribute definition subform.]]></desc>
             <altviews>
@@ -188,7 +188,7 @@
             objtitle="Collecting Trip"
             class="edu.ku.brc.specify.datamodel.CollectingTrip"
             busrules="edu.ku.brc.specify.datamodel.busrules.CollectingTripBusRules"
-            isinternal="false"
+            isinternal="true"
             resourelabels="false">
             <desc><![CDATA[CollectingTrip Form]]></desc>
             <altviews>
@@ -261,7 +261,7 @@
             objtitle="Conservation Description"
             class="edu.ku.brc.specify.datamodel.ConservDescription"
             busrules="edu.ku.brc.specify.datamodel.busrules.ConservDescriptionBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Conservation Description.]]></desc>
             <altviews>
@@ -344,7 +344,7 @@
               objtitle="DNA Sequence"
               class="edu.ku.brc.specify.datamodel.DNASequence"
               busrules="edu.ku.brc.specify.datamodel.busrules.DNASequenceBusRules"
-              isinternal="false">
+              isinternal="true">
             <desc><![CDATA[DNA Sequencing form.]]></desc>
             <altviews>
                 <altview name="DNASequence View" viewdef="DNASequence" mode="view"/>
@@ -416,7 +416,7 @@
             objtitle="Field Notebook"
             class="edu.ku.brc.specify.datamodel.FieldNotebook"
             busrules="edu.ku.brc.specify.datamodel.busrules.FieldNotebookBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Field Notebook Form.]]></desc>
             <altviews>
@@ -695,7 +695,7 @@
         <view name="Locality"
             class="edu.ku.brc.specify.datamodel.Locality"
             busrules="edu.ku.brc.specify.datamodel.busrules.LocalityBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Locality form.]]></desc>
             <altviews>
@@ -786,7 +786,7 @@
         
         <view name="Project"
             class="edu.ku.brc.specify.datamodel.Project"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Project form.]]></desc>
             <altviews>
@@ -829,7 +829,7 @@
         <view name="RepositoryAgreement"
             objtitle="Repository Agreement"
             class="edu.ku.brc.specify.datamodel.RepositoryAgreement"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[The RepositoryAgreement form.]]></desc>
             <altviews>
@@ -863,7 +863,7 @@
         <view name="TreatmentEvent"
             objtitle="Treatment Event"
             class="edu.ku.brc.specify.datamodel.TreatmentEvent"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Treatment Event form.]]></desc>
             <altviews>
@@ -1230,7 +1230,7 @@
                     <cell type="field" id="5" name="notes" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
                 <row> 
-                    <cell type="subview" viewname="CollectionObjectSub" id="25" desc="Collection Object" name="collectionObjects" colspan="13" initialize="addsearch=true" />
+                    <cell type="subview" viewname="Preparation" id="25" desc="Preparation" name="preparations" colspan="13" initialize="addsearch=true" />
                 </row>
             </rows>
         </viewdef>

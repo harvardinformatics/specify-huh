@@ -6,7 +6,7 @@
             objtitle="Collecting Event"
             class="edu.ku.brc.specify.datamodel.CollectingEvent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollectingEventBusRules"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[CollectingEvent Form]]></desc>
             <altviews>
@@ -198,7 +198,7 @@
         <view name="OtherIdentifier"
             objtitle="Series Identifier"
             class="edu.ku.brc.specify.datamodel.OtherIdentifier"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false"
             >
             <desc><![CDATA[Subform within the Collection Object form.]]></desc>
@@ -215,7 +215,7 @@
               class="edu.ku.brc.specify.datamodel.Preparation"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
               resourcelabels="false"
-              isinternal="false">
+              isinternal="true">
             <desc><![CDATA[Subform within the Preparation form.]]></desc>
             <altviews>
                 <altview name="Preparation View" viewdef="Preparation" mode="view"/>
@@ -319,7 +319,7 @@
                     <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
@@ -375,11 +375,11 @@
                     <cell type="field" id="2" name="projectNumber" uitype="text"/> -->
                 </row>
                 <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
 
             </rows>
@@ -524,7 +524,21 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="DeterminationCitation" id="determinationCitations" name="determinationCitations" class="edu.ku.brc.specify.datamodel.DeterminationCitation" defaulttype="table" initialize="hide=true" rows="1" colspan="10"/>
+                    <cell type="subview" viewname="DeterminationCitation" id="determinationCitations" name="determinationCitations" class="edu.ku.brc.specify.datamodel.DeterminationCitation" defaulttype="table" rows="1" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
             </rows>
         </viewdef>
@@ -544,7 +558,7 @@
             <rows>
             	<row>
             		<cell type="label" labelfor="parent"/>
-            		<cell type="field" id="parent" name="referenceWork.containedRFParent.title" uitype="dsptextfield" colspan="2"/>
+            		<cell type="field" id="parent" name="referenceWork.title" uitype="dsptextfield" colspan="2"/>
             	</row>
                 <row>
                     <cell type="label" labelfor="referenceWork"/>
@@ -635,7 +649,7 @@
                 </row>
                 <row>
                 	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="DeterminationCitation" id="determinationCitations" name="determinationCitations" class="edu.ku.brc.specify.datamodel.DeterminationCitation" defaulttype="table" initialize="hide=true" rows="1" colspan="10"/>
+                    <cell type="subview" viewname="DeterminationCitation" id="determinationCitations" name="determinationCitations" class="edu.ku.brc.specify.datamodel.DeterminationCitation" defaulttype="table" rows="1" colspan="10"/>
                 </row>
             </rows>
         </viewdef>
@@ -789,6 +803,13 @@
                     <cell type="separator" label="Attachments" colspan="12"/>
                 </row>
                 <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="modifiedByAgent"/>
                     <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
@@ -829,6 +850,18 @@
                 </row>
                 <row>
                 	<cell type="subview" id="preparation" name="preparation" viewname="PrepShort" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
             </rows>
         </viewdef>
@@ -882,6 +915,20 @@
                 <row>
                  	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef>
         
@@ -909,7 +956,7 @@
                     <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
@@ -968,13 +1015,19 @@
                     <cell type="field" id="2" name="projectNumber" uitype="text"/> -->
                 </row>
                 <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
-
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
             </rows>
         </viewdef>
         
@@ -1056,7 +1109,7 @@
                 	<cell type="field" id="container" name="collectionObject.container" uitype="querycbx" initialize="name=Container" colspan="3"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="collectionObject.otherIdentifiers" defaulttype="table" initialize="hide=true" rows="1" colspan="11"/>
+                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="collectionObject.otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectionObject.collectingEvent" initialize="nosep=true" colspan="11"/>
@@ -1101,10 +1154,10 @@
 					<cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
 				</row>
 				<row>
-					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" initialize="hide=true" rows="1" colspan="12"/>
+					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" rows="1" colspan="12"/>
 				</row>
 				<row>
-					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" initialize="hide=true" rows="1" colspan="12"/>
+					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" rows="1" colspan="12"/>
 				</row>
                 <row>
                     <cell type="separator" label="Attachments" colspan="12"/>
@@ -1239,10 +1292,10 @@
                 	<cell type="label" label=" "/>
                 </row>
 				<row>
-					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" initialize="hide=true" colspan="12"/>
+					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" colspan="12"/>
 				</row>
 				<row>
-					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" defaulttype="table" initialize="hide=true" colspan="12"/>
+					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" defaulttype="table" colspan="12"/>
 				</row>
                 <!-- <row>
                     <cell type="label" labelfor="modifiedByAgent"/>
