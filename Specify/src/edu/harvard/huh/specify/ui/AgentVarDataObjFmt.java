@@ -5,6 +5,7 @@ import static edu.ku.brc.helpers.XMLHelper.xmlAttr;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.util.Properties;
+import java.util.Set;
 
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -67,6 +68,12 @@ public class AgentVarDataObjFmt implements DataObjDataFieldFormatIFace, Cloneabl
         
         if (!(dataValue instanceof Agent || dataValue instanceof Author || dataValue instanceof Collector))
         {
+            if (dataValue instanceof Set)
+            {
+                Set set = (Set) dataValue;
+                if (set.size() > 0) return format(set.iterator().next());
+                else return "";
+            }
             throw new RuntimeException("The data value set into AgentVarDataObjFmt is not an Author, Collector, or Agent ["+dataValue.getClass().getSimpleName()+"]");
         }
 

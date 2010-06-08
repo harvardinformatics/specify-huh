@@ -1,5 +1,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
+import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Preparation;
@@ -41,7 +44,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     {
         super.addChildrenToNewDataObjects(newDataObj);
         
-        // only add new collection object if there is not a valcombobox for it.
+        /*// only add new collection object if there is not a valcombobox for it.
         if (formViewObj != null && newDataObj != null)
         {
             if (formViewObj.getControlByName("collectionObject") == null)
@@ -69,13 +72,15 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
                     collEvt.addReference(loc, "locality");
                 }
             }
-        }
+        }*/
     }
 
     @Override
     public void beforeFormFill()
     {
-        if (formViewObj != null)
+        super.beforeFormFill();
+        
+        /*if (formViewObj != null)
         {
             if (formViewObj.getControlByName("collectionObject") != null) return;
             
@@ -111,13 +116,15 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
                     collEvt.addReference(loc, "locality");
                 }
             }
-        }
+        }*/
     }
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {        
-        Fragment fragment = (Fragment) dataObj;
+        super.beforeMerge(dataObj, session);
+        
+        /*Fragment fragment = (Fragment) dataObj;
         CollectionObject collObj = fragment.getCollectionObject();
         
         if (collObj != null)
@@ -134,12 +141,12 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
                     collEvt.setLocality(loc);
                 }
                 collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
-                collObj.setCollectingEvent(collEvt);
+                //collObj.setCollectingEvent(collEvt);
             }
             
             // save the collection object
             collObj = (CollectionObject) HUHFragmentBusRules.saveObject(collObj, session);
-            fragment.setCollectionObject(collObj);
+            //fragment.setCollectionObject(collObj);
         }
         // save the preparation
         Preparation prep = fragment.getPreparation();
@@ -151,8 +158,8 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
             // save the preparation
             prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
 
-            fragment.setPreparation(prep);
-        }
+            //fragment.setPreparation(prep);
+        }*/
     }
     
     @Override
@@ -180,6 +187,10 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     @Override
     public boolean beforeDeleteCommit(final Object dataObj, final DataProviderSessionIFace session) throws Exception
     {
+        boolean ok = super.beforeDeleteCommit(dataObj, session);
+        
+        if (!ok) return ok;
+        
         if (dataObj instanceof Fragment)
         {
             Fragment fragment = (Fragment) dataObj;
@@ -232,7 +243,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
      * @param dataObj the Fragment to check
      * @return whether the Fragment or its Preparation has a unique barcode
      */    
-    static STATUS checkBarcode(Fragment fragment, List<String> reasonList)
+    static STATUS checkBarcode(final Fragment fragment, List<String> reasonList)
     {
         Preparation prep  = fragment.getPreparation();
         
@@ -290,7 +301,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         return STATUS.OK;
     }
 
-    static STATUS checkBarcode(Preparation prep, List<String> reasonList)
+    static STATUS checkBarcode(final Preparation prep, List<String> reasonList)
     {
         String fieldName = "identifier";
         
@@ -380,7 +391,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
      * Return true if the preparation's Identifier is not empty, or if at least one
      * of its associated fragments' Identifiers is not empty.  Otherwise return false.
      */
-    static boolean HasOtherBarcode(Preparation prep)
+    static boolean HasOtherBarcode(final Preparation prep)
     {
         if (prep == null) return false;
         
@@ -498,7 +509,35 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         return obj;
     }
     
-	@Override
+    static STATUS checkDeterminations(final Fragment fragment, List<String> reasonList)
+    {
+        if (fragment.getDeterminations().size() > 0)
+        {
+            int currents = 0;
+            for (Determination det : fragment.getDeterminations())
+            {
+                if (det.isCurrentDet())
+                {
+                    currents++;
+                }
+            }
+            if (currents != 1)
+            {
+                if (currents == 0)
+                {
+                    reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
+                }
+                else
+                {
+                    reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
+                }
+                return STATUS.Warning;
+            }
+        }
+        return STATUS.OK;
+    }
+
+    @Override
 	public STATUS processBusinessRules(Object dataObj)
 	{
 		STATUS status = super.processBusinessRules(dataObj);
@@ -519,6 +558,7 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
 		    Preparation prep = (Preparation) dataObj;
 		    status = HUHPreparationBusRules.isParentOK(prep, reasonList);
 		}
+
         return status;
 	}
 }

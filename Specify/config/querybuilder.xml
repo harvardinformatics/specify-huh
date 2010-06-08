@@ -114,7 +114,6 @@
     	</table>
     	
         <alias name="Fragment" field="fragments"/>
-      	<alias name="Appraisal" field="appraisal" />
       	<alias name="Agent" field="cataloger" />
     	<table name="Collection" field="collection" >
     		<alias name="Agent" field="contentContacts" />
@@ -147,7 +146,6 @@
       	<alias name="Agent" field="modifiedByAgent" />
       	<table name="OtherIdentifier" field="otherIdentifiers" />
       	<alias name="Project" field="projects" />
-      	<table name="TreatmentEvent" field="treatmentEvents" />
     </table>
     
     <table name="ConservDescription" >
@@ -197,6 +195,9 @@
         </table>
         <!--<table name="DeterminationStatus" field="status"/>-->
         <alias name="Agent" field="determiner"/>
+        <table name="Fragment" field="fragment">
+			<table name="Preparation" field="preparation"/>
+        </table>
     </table>
     
     <table name="ExchangeIn" >

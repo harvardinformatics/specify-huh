@@ -1,9 +1,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 
@@ -15,57 +13,9 @@ public class HUHMinCaptureBusRules extends HUHFragmentBusRules implements Busine
     }
     
     @Override
-    public boolean beforeDeleteCommit(final Object dataObj, final DataProviderSessionIFace session) throws Exception
-    {
-        if (dataObj instanceof Fragment)
-        {
-            Fragment fragment = (Fragment) dataObj;
-            
-            CollectionObject collObj = fragment.getCollectionObject();
-            if (collObj != null)
-            {
-                if (collObj.getFragments().size() <= 1)
-                {
-                    // check business rules
-                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(collObj);
-                    if (delBusRules != null)
-                    {
-                        if (!delBusRules.okToEnableDelete(collObj)) return false;
-                        
-                        delBusRules.beforeDelete(collObj, session);
-                        session.delete(collObj);
-                        delBusRules.beforeDeleteCommit(collObj, session);                        
-                    }
-                    session.delete(collObj);
-                }
-            }
-            
-            Preparation prep = fragment.getPreparation();
-            if (prep != null)
-            {
-                if (prep.getFragments().size() <= 1)
-                {
-                    // check business rules
-                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(prep);
-                    if (delBusRules != null)
-                    {
-                        if (!delBusRules.okToEnableDelete(prep)) return false;
-                        
-                        delBusRules.beforeDelete(prep, session);
-                        session.delete(prep);
-                        delBusRules.beforeDeleteCommit(prep, session);                        
-                    }
-                    session.delete(prep);
-                }
-            }
-        }
-        return true;
-    }
-    
-    @Override
     public void beforeFormFill()
     {
-        ;
+        ; // don't create the collection object
     }
 
     @Override

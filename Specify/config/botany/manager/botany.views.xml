@@ -91,6 +91,18 @@
             </altviews>
         </view>
         
+        <view name="DeterminationItem"
+        	class="edu.ku.brc.specify.datamodel.Fragment"
+        	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHFragmentBusRules" 
+        	useresourcelabels="true"
+        	isinternal="true">
+        	<desc><![CDATA[The Fragment subform for the .]]></desc>
+        	<altviews>
+        		<altview name="DeterminationItem View" viewdef="DeterminationItem" mode="view"/>
+        		<altview name="DeterminationItem Edit" viewdef="DeterminationItem" mode="edit"/>
+        	</altviews>
+        </view>
+        
         <view name="DeterminationSub"
             class="edu.ku.brc.specify.datamodel.Determination"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHDeterminationBusRules" 
@@ -140,58 +152,6 @@
         	<altviews>
         		<altview name="FragmentShort View" viewdef="FragmentShort" mode="view"/>
         		<altview name="FragmentShort Edit" viewdef="FragmentShort" mode="edit"/>
-        	</altviews>
-        </view>
-        
-        <view name="MixedColl"
-              objtitle="Single/Multiple Collection"
-              class="edu.ku.brc.specify.datamodel.Preparation"
-              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHMixedCollBusRules"
-              resourcelabels="false"
-              isinternal="false">
-            <desc><![CDATA[A form for entering items that have one preparation and multiple collection objects.]]></desc>
-            <altviews>
-                <altview name="MixedColl View" viewdef="MixedColl" mode="view"/>
-                <altview name="MixedColl Edit" viewdef="MixedColl" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
-        <view name="MixedCollFragment"
-              class="edu.ku.brc.specify.datamodel.Fragment"
-              busrules="edu.harvard.huh.specify.datamodel.busrules.HUHCollObjFragmentBusRules"
-              resourcelabels="false"
-              isinternal="true">
-            <desc><![CDATA[Subform within the Preparation form.]]></desc>
-            <altviews>
-                <altview name="MixedCollFragment View" viewdef="MixedCollFragment" mode="view"/>
-                <altview name="MixedCollFragment Edit" viewdef="MixedCollFragment" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
-        <view name="MixedPrep"
-			objtitle="Single/Multiple Preparation"
-            class="edu.ku.brc.specify.datamodel.CollectionObject"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHMixedPrepBusRules"
-            isinternal="false"
-            resourcelabels="false"
-            >
-            <desc><![CDATA[A form for entering items that have one collection object and multiple preparations.]]></desc>
-            <altviews>
-                <altview name="MixedPrep View" viewdef="MixedPrep" mode="view"/>
-                <altview name="MixedPrep Edit" viewdef="MixedPrep" mode="edit" default="true"/>
-            </altviews>
-        </view>
-        
-        <view name="MixedPrepFragment"
-        	objtitle="Mixed Prep Item"
-        	class="edu.ku.brc.specify.datamodel.Fragment"
-        	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPrepFragmentBusRules" 
-        	useresourcelabels="true"
-        	isinternal="true">
-        	<desc><![CDATA[The Fragment form.]]></desc>
-        	<altviews>
-        		<altview name="MixedPrepFragment View" viewdef="MixedPrepFragment" mode="view"/>
-        		<altview name="MixedPrepFragment Edit" viewdef="MixedPrepFragment" mode="edit"/>
         	</altviews>
         </view>
         
@@ -475,7 +435,7 @@
             <rows>
             	<row>
                     <cell type="label" labelfor="fragment"/>
-                    <cell type="field" id="fragment" name="fragment" uitype="querycbx" initialize="name=Fragment" dataobjformatter="Fragment" colspan="10"/>
+                    <cell type="field" id="fragment" name="fragment" uitype="querycbx" initialize="name=Fragment;displaydlg=DeterminationItem" dataobjformatter="Fragment" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
@@ -556,13 +516,18 @@
             <columnDef os="mac">130px, 2px, 308px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
-            	<row>
-            		<cell type="label" labelfor="parent"/>
-            		<cell type="field" id="parent" name="referenceWork.title" uitype="dsptextfield" colspan="2"/>
-            	</row>
+
                 <row>
                     <cell type="label" labelfor="referenceWork"/>
-                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork;displaydlg=RefWorkTaxCitSub" name="referenceWork" colspan="2"/>
+                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork;displaydlg=RefWorkTaxCitSub" name="referenceWork" columns="1" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="text1"/>
+                    <cell type="field" id="text1" name="text1" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="text2"/>
+                    <cell type="field" id="text2" name="text2" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="remarks"/>
@@ -580,6 +545,119 @@
             
             <desc><![CDATA[Determination Citation subform table for Collection Object form.]]></desc>
             <definition>DeterminationCitation</definition>
+        </viewdef>
+        
+        <viewdef
+            name="DeterminationItem"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Fragment"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="true">
+            <desc><![CDATA[The Fragment form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 195px,   5px, 125px, 2px, 200px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="identifier"/>
+                    <cell type="field" id="identifier" name="identifier" uitype="formattedtext" isrequired="false"/>
+                    <cell type="label" labelfor="herbarium"/>
+                	<cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
+					<cell type="label" label=" "/>
+					<cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                	<cell type="label" label=" "/>
+                	<cell type="label" label=" "/>
+                	<cell type="label" label=" "/>
+                	<cell type="label" label=" "/>
+                	<cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
+                </row>
+				<row>
+					<cell type="label" labelfor="collectionObject"/>
+					<cell type="field" id="collectionObject" name="collectionObject" uitype="querycbx" formatname="CollectionObjectDetail" initialize="name=CollectionObject" isrequired="true" colspan="3"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="accessionNumber"/>
+                    <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
+                	<cell type="label" labelfor="replicates"/>
+                    <cell type="field" id="replicates" name="number1" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="distribution"/>
+                    <cell type="field" id="distribution" name="distribution" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="provenance"/>
+                    <cell type="field" id="provenance" name="provenance" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="reference"/>
+                    <cell type="field" id="reference" name="text2" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="voucher"/>
+                    <cell type="field" id="voucher" name="voucher" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="description"/>
+                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                </row>
+                <row>
+					<cell type="label" labelfor="preparation"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="true" colspan="3"/>
+                </row>
+                <row>
+	                <cell type="label" labelfor="prepMethod"/>
+                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method" isrequired="true"/>
+                	<cell type="label" labelfor="phenology"/>
+                    <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
+                    <cell type="label" labelfor="sex"/>
+                	<cell type="field" id="sex" name="sex" uitype="combobox" picklist="HUH Plant Sexuality"/>
+                </row>
+                <row>
+                	<cell type="label" label=" "/>
+                </row>
+                <row>
+					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" colspan="12"/>
+				</row>
+				<row>
+					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" colspan="12"/>
+				</row>
+                <row>
+                    <cell type="subview" id="fragattachments" viewname="ObjectAttachment" name="fragmentAttachments" colspan="12" initialize="btn=true;icon=FragmentAttachment"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="12"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
         </viewdef>
         
         <viewdef
@@ -862,454 +940,6 @@
                     <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" labelfor="timestampModified"/>
                     <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="MixedColl"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Preparation"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
-            useresourcelabels="true">
-            <desc><![CDATA[Top-level Preparation form.]]></desc>
-            <enableRules/>
-
-            <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  2px, 100px, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 165px,        5px,   100px, 2px, 150px, 5px,   120px, 2px, 146px,  2px, 120px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 190px,        5px,   100px, 2px, 165px, 5px,   120px, 2px, 174px,  2px, 120px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px, 10px,     p, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2dlu"/>
-
-            <rows>
-                <row>
-                	<cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
-                    <cell type="label" label=" "/>
-                	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
-                </row>
-				<row>
-					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" colspan="5"/>
-				</row>
-                <row>
-                	<cell type="label" labelfor="storage"/>
-                	<cell type="field" id="storage" uitype="querycbx" initialize="name=Storage" colspan="8"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="description"/>
-                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="subview" id="fragments" name="fragments" viewname="MixedCollFragment" colspan="13"/>
-                </row>
-                <row>
-                 	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="createdByAgent"/>
-                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampCreated"/>
-                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="modifiedByAgent"/>
-                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampModified"/>
-                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="MixedPrep"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.CollectionObject"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[The Collection Object form for entering items with multiple preparations.]]></desc>
-            <enableRules/>
-            
-            <columnDef>          85px, 2px, 175px,   5px,  96px, 2px, 180px, 5px,  94px, 2px, 101px, 15px:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 195px,   5px, 120px, 2px, 255px, 5px, 130px, 2px, 120px, 15px:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 235px, 5px, 138px, 2px, 155px, 15px:g</columnDef>
-            <columnDef os="exp">    p, 2px, 195px, 5px:g,     p, 2px, 255px, 5px:g,   p, 2px, 120px, 15px:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-                <row>
-                	<cell type="label" labelfor="fieldNumber"/>
-                	<cell type="field" id="fieldNumber" name="fieldNumber" uitype="text"/>
-                	<cell type="label" labelfor="container"/>
-                	<cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="3"/>
-                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Collection Attributes" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="frequency"/>
-                	<cell type="field" id="frequency" name="text4" uitype="text" colspan="5"/>
-
-	                <cell type="field" id="isCultivated" name="yesNo1" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="vernacularName"/>
-                    <cell type="field" id="vernacularName" name="text3" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="host"/>
-                    <cell type="field" id="host" name="text1" uitype="text" cols="2"  colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="substrate"/>
-                    <cell type="field" id="substrate" name="text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="description"/>
-                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="internalRemarks"/>
-                    <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="subview" viewname="MixedPrepFragment" id="fragments" name="fragments" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Cataloger" colspan="11"/>
-                </row>
-                <row>
-                    <!-- <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="accession" uitype="querycbx" initialize="name=AccessionCO;title=AccessionCO" isrequired="false"/> -->
-                    <cell type="label" labelfor="14"/>
-                    <cell type="field" id="14" name="altCatalogNumber" uitype="text" readonly="true"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="cataloger" uitype="querycbx" initialize="name=Agent;title=Catalog Agent;displaydlg=AffiliateAgent" isrequired="true"/>
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" uitype="plugin" name="this" initialize="name=PartialDateUI;df=catalogedDate;tp=catalogedDatePrecision" uifieldformatter="Date"/>
-                    <!-- <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="projectNumber" uitype="text"/> -->
-                </row>
-                <row>
-                    <cell type="label" labelfor="createdByAgent"/>
-                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampCreated"/>
-                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="modifiedByAgent"/>
-                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampModified"/>
-                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="MixedCollFragment"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Fragment"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
-            useresourcelabels="true">
-            <desc><![CDATA[The Fragment form.]]></desc>
-            <enableRules/>
-            
-            <columnDef>         100px, 2px, 175px,   5px,  75px, 2px, 175px, 5px,  75px, 5px, 125px, 0px, p:g</columnDef>
-            <columnDef os="lnx">120px, 2px, 195px,   5px, 125px, 2px, 200px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-            <row>
-                    <cell type="label" labelfor="fragmentBarcode"/>
-                    <cell type="field" id="fragmentBarcode" name="identifier" uitype="formattedtext" isrequired="false"/>
-                    <cell type="label" labelfor="herbarium"/>
-                	<cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-                	<cell type="label" labelfor="prepMethod"/>
-                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method" isrequired="true"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="phenology"/>
-                    <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
-                    <cell type="label" labelfor="sex"/>
-                	<cell type="field" id="sex" name="sex" uitype="combobox" picklist="HUH Plant Sexuality"/>
-                	<cell type="label" label=" "/>
-					<cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="accessionNumber"/>
-                    <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
-                	<cell type="label" labelfor="replicates"/>
-                    <cell type="field" id="replicates" name="number1" uitype="text"/>
-                    <cell type="label" label=" "/>
-                	<cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="distribution"/>
-                    <cell type="field" id="distribution" name="distribution" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="provenance"/>
-                    <cell type="field" id="provenance" name="provenance" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="reference"/>
-                    <cell type="field" id="reference" name="text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="voucher"/>
-                    <cell type="field" id="voucher" name="voucher" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="fragmentDescription"/>
-                    <cell type="field" id="fragmentDescription" name="description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="fragmentRemarks"/>
-                    <cell type="field" id="fragmentRemarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                </row>
-                <row>
-                	<cell type="separator" label=""/>
-                	<cell type="separator" label="Collecting Event" colspan="9"/>
-                </row>
-            	<row>
-                	<cell type="label" labelfor="fieldNumber"/>
-                	<cell type="field" id="fieldNumber" name="collectionObject.fieldNumber" uitype="text"/>
-                	<cell type="label" labelfor="container"/>
-                	<cell type="field" id="container" name="collectionObject.container" uitype="querycbx" initialize="name=Container" colspan="3"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="collectionObject.otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectionObject.collectingEvent" initialize="nosep=true" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Collection Attributes" colspan="11"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="frequency"/>
-                	<cell type="field" id="frequency" name="collectionObject.text4" uitype="text" colspan="5"/>
-
-	                <cell type="field" id="isCultivated" name="collectionObject.yesNo1" uitype="checkbox"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="vernacularName"/>
-                    <cell type="field" id="vernacularName" name="collectionObject.text3" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="host"/>
-                    <cell type="field" id="host" name="collectionObject.text1" uitype="text" cols="2"  colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="substrate"/>
-                    <cell type="field" id="substrate" name="collectionObject.text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="collObjDescription"/>
-                    <cell type="field" id="collObjDescription" name="collectionObject.description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="collObjRemarks"/>
-                    <cell type="field" id="collObjRemarks" name="collectionObject.remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="internalRemarks"/>
-                    <cell type="field" id="internalRemarks" name="collectionObject.internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                </row>
-                <row>
-					<cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
-				</row>
-				<row>
-					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" rows="1" colspan="12"/>
-				</row>
-				<row>
-					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" rows="1" colspan="12"/>
-				</row>
-                <row>
-                    <cell type="separator" label="Attachments" colspan="12"/>
-                </row>
-                <row>
-                    <cell type="subview" id="fragattachments" viewname="ObjectAttachment" name="fragmentAttachments" colspan="12" initialize="btn=true;icon=FragmentAttachment"/>
-                </row>
-				<row>
-                    <cell type="separator" label="Cataloger" colspan="11"/>
-                </row>
-                <row>
-                    <!-- <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="accession" uitype="querycbx" initialize="name=AccessionCO;title=AccessionCO" isrequired="false"/> -->
-                    <cell type="label" labelfor="14"/>
-                    <cell type="field" id="14" name="collectionObject.altCatalogNumber" uitype="text" readonly="true"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="10"/>
-                    <cell type="field" id="10" name="collectionObject.modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="collectionObject.timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="MixedPrepFragment"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Fragment"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
-            useresourcelabels="true">
-            <desc><![CDATA[The Fragment form.]]></desc>
-            <enableRules/>
-            
-            <columnDef>          75px, 2px, 150px,   5px,  75px, 2px, 150px, 5px,  75px, 5px, 150px, 0px, p:g</columnDef>
-            <columnDef os="lnx">120px, 2px, 190px,   5px, 125px, 2px, 200px, 5px,  95px, 5px, 185px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            <rows>
-                <row>
-	                <cell type="label" labelfor="phenology"/>
-                    <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
-                    <cell type="label" labelfor="sex"/>
-                	<cell type="field" id="sex" name="sex" uitype="combobox" picklist="HUH Plant Sexuality"/>
-                	<cell type="label" label=" "/>
-					<cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
-                </row>
-            	<row>
-                	<cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="preparation.prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
-                    <cell type="label" labelfor="prepMethod"/>
-                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method" isrequired="true"/>
-					<cell type="label" label=" "/>
-                	<cell type="field" id="isOversize" uitype="checkbox" name="preparation.yesNo1"/>
-                </row>
-                <row>
-                <cell type="label" labelfor="fragmentBarcode"/>
-                    <cell type="field" id="fragmentBarcode" name="identifier" uitype="formattedtext" isrequired="false"/>
-                	<cell type="label" labelfor="herbarium"/>
-                	<cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-                	<cell type="label" label=" "/>
-                    <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                    <cell type="separator" label="Preparation" colspan="11"/>
-                </row>
-				<row>
-					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="preparation.parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" colspan="5"/>
-				</row>
-                <row>
-                	<cell type="label" labelfor="storage"/>
-                	<cell type="field" id="storage" uitype="querycbx" initialize="name=Storage" name="preparation.storage" colspan="8"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="preparation.storageLocation" uitype="text" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="prepDescription"/>
-                	<cell type="field" id="prepDescription" name="preparation.description" uitype="textareabrief" rows="2" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="prepRemarks"/>
-                	<cell type="field" id="prepRemarks" name="preparation.remarks" uitype="textareabrief" rows="2" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                    <cell type="separator" label="" colspan="11"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="accessionNumber"/>
-                    <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
-                	<cell type="label" labelfor="replicates"/>
-                    <cell type="field" id="replicates" name="number1" uitype="text"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="distribution"/>
-                    <cell type="field" id="distribution" name="distribution" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="provenance"/>
-                    <cell type="field" id="provenance" name="provenance" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="reference"/>
-                    <cell type="field" id="reference" name="text2" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="voucher"/>
-                    <cell type="field" id="voucher" name="voucher" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="fragmentDescription"/>
-                    <cell type="field" id="fragmentDescription" name="description" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="fragmentRemarks"/>
-                    <cell type="field" id="fragmentRemarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                </row>
-				<row>
-					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" colspan="12"/>
-				</row>
-				<row>
-					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" defaulttype="table" colspan="12"/>
-				</row>
-                <!-- <row>
-                    <cell type="label" labelfor="modifiedByAgent"/>
-                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampModified"/>
-                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row> -->
-				
-                <row>
-                    <cell type="separator" label="Attachments" colspan="12"/>
-                </row>
-                <row>
-                    <cell type="subview" id="fragattachments" viewname="ObjectAttachment" name="fragmentAttachments" colspan="12" initialize="btn=true;icon=FragmentAttachment"/>
                 </row>
             </rows>
         </viewdef>

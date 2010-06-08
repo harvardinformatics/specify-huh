@@ -23,10 +23,12 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.util.Calendar;
 
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
@@ -56,6 +58,11 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
     { 
         CollectionObject collectionObject = (CollectionObject) newDataObj;
 
+        fillNewCollectionObject(collectionObject);
+    }
+    
+    private void fillNewCollectionObject(CollectionObject collectionObject)
+    {
         if (collectionObject != null)
         {
             if (collectionObject.getCataloger() == null)
@@ -71,7 +78,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             {
                 collectingEvent = new CollectingEvent();
                 collectingEvent.initialize();
-                collectionObject.setCollectingEvent(collectingEvent);
+                collectionObject.addReference(collectingEvent, "collectingEvent");
             }
 
             Locality locality = collectingEvent.getLocality();
@@ -79,13 +86,13 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             {
                 locality = new Locality();
                 locality.initialize();
-                collectingEvent.setLocality(locality);
+                collectingEvent.addReference(locality, "locality");
             }
             //collectionObject.getOtherIdentifiers().size();
         }
     }
     
-    @Override
+/*    @Override
     public void afterDeleteCommit(final Object dataObj)
     {
         CollectionObject collObj = (CollectionObject) dataObj;
@@ -97,7 +104,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 collObj.getFragments().remove(fragment);
             }
         }
-    }
+    }*/
     
     @Override
     public void beforeFormFill()
@@ -106,44 +113,50 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         {
             CollectionObject collObj = (CollectionObject) formViewObj.getDataObj();
             
-            if (collObj != null)
-            {
-                CollectingEvent collEvt = collObj.getCollectingEvent();
-                if (collEvt == null)
-                {
-                    collEvt = new CollectingEvent();
-                    collEvt.initialize();
-                    collObj.addReference(collEvt, "collectingEvent");
-                }
-                Locality loc = collEvt.getLocality();
-                if (loc == null)
-                {
-                    loc = new Locality();
-                    loc.initialize();
-                    collEvt.addReference(loc, "locality");
-                }
-            }
+            fillNewCollectionObject(collObj);
         }
     }
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {
-        CollectionObject collObj = (CollectionObject) dataObj;
-        
-        // save the collecting event
-        CollectingEvent collEvt = collObj.getCollectingEvent();
-        if (collEvt != null)
+        CollectionObject colObj = (CollectionObject)dataObj;
+        if (AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent())
         {
-            // save the locality
-            Locality loc = collEvt.getLocality();
-            if (loc != null)
+            CollectingEvent ce = colObj.getCollectingEvent();
+            if (ce != null)
             {
-                loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
-                collEvt.setLocality(loc);
+                try
+                {
+                    Locality loc = ce.getLocality();
+                    if (loc != null)
+                    {
+                        if (loc.getId() != null)
+                        {
+                            Locality mergedLoc = session.merge(ce.getLocality());
+                            ce.setLocality(mergedLoc);
+                        }
+                        else
+                        {
+                            session.save(ce.getLocality());
+                        }
+                    }
+                    if (ce.getId() != null)
+                    {
+                        CollectingEvent mergedCE = session.merge(colObj.getCollectingEvent());
+                        colObj.setCollectingEvent(mergedCE);
+                    } else
+                    {
+                        session.save(colObj.getCollectingEvent());
+                    }
+                    
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectBusRules.class, ex);
+                }
             }
-            collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
-            collObj.setCollectingEvent(collEvt);
         }
     }
 
@@ -154,7 +167,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
      */
     protected STATUS checkDeterminations(final Object dataObj)
     {
-        // check that a current determination exists
+        /*// check that a current determination exists
         if (((CollectionObject) dataObj).getFragments().size() > 0)
         {
             for (Fragment fragment : ((CollectionObject) dataObj).getFragments())
@@ -183,7 +196,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                     }
                 }
             }
-        }
+        }*/
         return STATUS.OK;
     }
     

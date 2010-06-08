@@ -91,9 +91,9 @@ public class HUHMixedCollBusRules extends HUHPreparationBusRules
                         {
                             loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
                         }
-                        collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);                
+                        collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
                     }
-                    collObj.setCollectingEvent(collEvt);
+                    //collObj.setCollectingEvent(collEvt);
 
                     // temporarily detach the collection object's fragments
                     Set<Fragment> collObjFragments = collObj.getFragments();

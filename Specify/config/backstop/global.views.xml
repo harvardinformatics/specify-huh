@@ -1752,9 +1752,9 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[The ReferenceWork form]]></desc>
 
-            <columnDef os="exp">p,     2px, 160px, 5px:g, p,     2px, 150px, 5px:g, p,     2px, 151px, p,    p:g</columnDef>
-            <columnDef>         100px, 2px, 160px, 5px,   100px, 2px, 150px, 5px,   150px, 2px, 151px, 15px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 203px, 5px,   100px, 2px, 203px, 5px,   185px, 2px, 195px, 15px, p:g</columnDef>
+            <columnDef os="exp">p,     2px, 160px, 5px:g, p,     2px, 150px, 5px:g, p,     2px, 181px, 25px,    p:g</columnDef>
+            <columnDef>         100px, 2px, 160px, 5px,   100px, 2px, 150px, 5px,   150px, 2px, 181px, 25px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 203px, 5px,   100px, 2px, 203px, 5px,   185px, 2px, 195px, 25px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
                 <row>
@@ -1762,32 +1762,11 @@
                     <cell type="field" id="containedRFParent" uitype="querycbx" initialize="name=ReferenceWork" name="containedRFParent" colspan="5"/>
                 </row>
                 <row>
-                    <cell type="label" label="Title/Protologue:"/>
-                    <cell type="field" id="1" name="title" uitype="text" cols="50" colspan="9" isrequired="true"/>
-                </row>
-                <row>
                     <cell type="label" labelfor="8"/>
                     <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="volume" uitype="text"/>
-                    <cell type="label" labelfor="6"/>
-                    <cell type="field" id="6" name="pages" uitype="text"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="workDate" uitype="text" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="url"/>
-                	<cell type="field" id="url" uitype="text" name="url" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="Authors" id="10" name="authors" initialize="name=Agent;displaydlg=Botanist;searchdlg=BotanistSearch" rows="1" colspan="8"/>
+                    <cell type="subview" viewname="Author" id="10" name="authors" initialize="name=Agent;displaydlg=Botanist;searchdlg=BotanistSearch" defaulttype="table" rows="1" colspan="9"/>
                 </row>
             </rows>
         </viewdef> 

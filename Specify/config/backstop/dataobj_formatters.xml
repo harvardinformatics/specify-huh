@@ -699,6 +699,7 @@
         <switch single="true">
             <fields>
                 <field>text1</field>
+                <field sep="within: ">containedRFParent.text1</field>
             </fields>
         </switch>
     </format>
