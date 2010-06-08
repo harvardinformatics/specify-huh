@@ -1431,13 +1431,15 @@ public class ReportsBaseTask extends BaseTask
         if (runAction != null && repAction == null)
         {
             toRun = selectReport("ReportRunReport"); //XXX add help
-            CommandAction cmd = (CommandAction)toRun.getData();
-            if (cmd.getProperty("spreport") != null)
+            if (toRun != null && toRun.getData() != null)
             {
-            	RecordSet repRS = (RecordSet)cmd.getProperty("spreport") ;
-            	spRepToRun = loadReport(repRS);
+                CommandAction cmd = (CommandAction)toRun.getData();
+                if (cmd.getProperty("spreport") != null)
+                {
+                    RecordSet repRS = (RecordSet)cmd.getProperty("spreport") ;
+                    spRepToRun = loadReport(repRS);
+                }
             }
-            
         }
         else if ((runAction != null || rs != null) && repAction != null)
         {
