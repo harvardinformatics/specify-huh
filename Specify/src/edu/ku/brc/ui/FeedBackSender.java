@@ -97,7 +97,7 @@ public abstract class FeedBackSender
      */
     protected void send(final FeedBackSenderItem item) throws Exception
     {
-        if (item != null)
+        if (false) //(item != null) TODO: implement this?
         {
             // check the website for the info about the latest version
             HttpClient httpClient = new HttpClient();
@@ -240,7 +240,7 @@ public abstract class FeedBackSender
                     // connect to the server, sending usage stats if allowed, and gathering the latest modules version info
                     try
                     {
-                        send(item);
+                        // TODO: implement this? //send(item);
                         return null;
                     }
                     catch (Exception e)

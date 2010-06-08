@@ -46,7 +46,7 @@ public class ConvertStatSender extends FeedBackSender
     @Override
     protected String getSenderURL()
     {
-        return "http://specify6-test.nhm.ku.edu/convinfo.php";
+        return null; // TODO: implement this? "http://specify6-test.nhm.ku.edu/convinfo.php";
     }
     
     public void senConvertInfo(final String collectionName, final int numColObj, final int convTime)
@@ -59,7 +59,7 @@ public class ConvertStatSender extends FeedBackSender
             props.put("num_convtime",   Integer.toString(convTime));
             FeedBackSenderItem item = new FeedBackSenderItem();
             item.setProps(props);
-            send(item);
+            // TODO: impement this? send(item);
             
         } catch (Exception ex)
         {

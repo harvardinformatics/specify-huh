@@ -272,7 +272,7 @@ public class StatsTrackerTask extends BaseTask
         // connect to the server
         try
         {
-            httpClient.executeMethod(postMethod);
+            // TODO: impelement this? httpClient.executeMethod(postMethod);
             
             // get the server response
             /*String responseString = postMethod.getResponseBodyAsString();

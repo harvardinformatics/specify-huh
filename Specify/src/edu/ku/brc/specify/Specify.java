@@ -2184,7 +2184,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
                     {
                         UIRegistry.getTopWindow().setVisible(false);
                         statsTrackerTask.setSendSecondaryStatsAllowed(canSendISAStats);
-                        statsTrackerTask.sendStats(true, false); // false means don't do it silently
+                        // TODO: impelement this? statsTrackerTask.sendStats(true, false); // false means don't do it silently
                         return false;
                     }
                     DataProviderFactory.getInstance().shutdown();

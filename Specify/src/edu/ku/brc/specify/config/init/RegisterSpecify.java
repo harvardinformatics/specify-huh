@@ -395,7 +395,7 @@ public class RegisterSpecify
         // connect to the server
         try
         {
-            httpClient.executeMethod(postMethod);
+            //TODO: imlement this? httpClient.executeMethod(postMethod);
         }
         catch (Exception e)
         {

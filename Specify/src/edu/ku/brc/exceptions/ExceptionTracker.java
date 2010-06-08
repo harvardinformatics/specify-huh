@@ -54,7 +54,7 @@ public class ExceptionTracker extends FeedBackSender
      */
     protected String getSenderURL()
     {
-        return "http://specify6-test.nhm.ku.edu/exception.php";
+        return null; //"http://specify6-test.nhm.ku.edu/exception.php"; TODO:  implement this?
     }
     
     /**
