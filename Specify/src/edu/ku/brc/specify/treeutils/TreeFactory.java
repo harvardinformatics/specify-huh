@@ -266,7 +266,7 @@ public class TreeFactory
             sb.append("FROM taxon AS TX INNER JOIN determination as DET ON TX.TaxonID = ");
             //Using 'ActiveTaxonID' means that counts for preferred taxa will include dets to their synonyms. 
             sb.append("DET.PreferredTaxonID "); 
-            sb.append("INNER JOIN collectionobject ON DET.CollectionObjectID = collectionobject.CollectionObjectID ");
+            sb.append("INNER JOIN fragment ON DET.FragmentID = fragment.FragmentID ");
         }
         
         if (clazz.equals(Geography.class))
@@ -299,7 +299,7 @@ public class TreeFactory
         } else if (clazz.equals(Storage.class))
         {
             // HQL
-            sb.append("SELECT count(DISTINCT co.id) FROM CollectionObject AS co INNER JOIN co.preparations AS prep INNER JOIN prep.storage as loc WHERE prep.collectionMemberId = COLMEMID AND loc.id = %d");
+            sb.append("SELECT count(DISTINCT f.id) FROM Fragment AS f INNER JOIN f.preparation AS prep INNER JOIN prep.storage as loc WHERE prep.collectionMemberId = COLMEMID AND loc.id = %d");
             
         } else if (clazz.equals(GeologicTimePeriod.class))
         {
@@ -345,7 +345,7 @@ public class TreeFactory
             
         } else if (clazz.equals(Storage.class))
         {
-            sb.append("SELECT count(*) FROM CollectionObject AS co INNER JOIN co.preparations AS prep INNER JOIN prep.storage as loc WHERE prep.collectionMemberId = COLMEMID AND loc.nodeNumber > %d AND loc.highestChildNodeNumber <= %d");
+            sb.append("SELECT count(*) FROM Fragment AS f INNER JOIN f.preparation AS prep INNER JOIN prep.storage as loc WHERE prep.collectionMemberId = COLMEMID AND loc.nodeNumber > %d AND loc.highestChildNodeNumber <= %d");
             
         } else if (clazz.equals(LithoStrat.class))
         {
