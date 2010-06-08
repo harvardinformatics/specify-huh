@@ -267,7 +267,9 @@ public class SqlUtils
 
     public static String iso8859toUtf8( String string ) throws LocalException
     {
-        if (string != null) {
+        return string;
+
+        /*if (string != null) {
             try
             {
                 return new String(string.getBytes("ISO-8859-1"), "UTF-8");
@@ -277,6 +279,6 @@ public class SqlUtils
                 throw new LocalException("Couldn't convert string from iso8859 to utf8", e);
             }
         }
-        return null;
+        return null;*/
     }
 }
