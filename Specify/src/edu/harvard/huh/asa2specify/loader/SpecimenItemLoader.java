@@ -1219,9 +1219,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     private String getInsertSql(CollectionObject collectionObject) throws LocalException
 	{
 		String fieldNames = "AltCatalogNumber, CatalogerID, CatalogedDate, CatalogedDatePrecision, CatalogNumber, " +
-							"CollectionID, CollectionMemberID, CollectingEventID, CreatedByAgentID, Description, " +
-							"FieldNumber, ModifiedByAgentID, Remarks, Text1, Text2, Text3, TimestampCreated, " +
-							"TimestampModified, Version, YesNo1";
+							"CollectionID, CollectionMemberID, CollectingEventID, ContainerID, CreatedByAgentID, " +
+							"Description, FieldNumber, ModifiedByAgentID, Remarks, Text1, Text2, Text3, " +
+							"TimestampCreated, TimestampModified, Version, YesNo1";
 
 		String[] values = new String[20];
 		
@@ -1233,18 +1233,19 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 		values[5]  = SqlUtils.sqlString( collectionObject.getCollection().getId());
 		values[6]  = SqlUtils.sqlString( collectionObject.getCollectionMemberId());
 		values[7]  = SqlUtils.sqlString( collectionObject.getCollectingEvent().getId());
-		values[8]  = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
-		values[9]  = SqlUtils.sqlString( collectionObject.getDescription());
-		values[10] = SqlUtils.sqlString( collectionObject.getFieldNumber());
-		values[11] = SqlUtils.sqlString( collectionObject.getModifiedByAgent().getId());
-		values[12] = SqlUtils.sqlString( collectionObject.getRemarks());
-		values[13] = SqlUtils.sqlString( collectionObject.getText1());
-		values[14] = SqlUtils.sqlString( collectionObject.getText2());
-		values[15] = SqlUtils.sqlString( collectionObject.getText3());
-		values[16] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
-		values[17] = SqlUtils.sqlString( collectionObject.getTimestampModified());
-        values[18] = SqlUtils.one();
-		values[19] = SqlUtils.sqlString( collectionObject.getYesNo1());		
+		values[8]  = SqlUtils.sqlString( collectionObject.getContainer().getId());
+		values[9]  = SqlUtils.sqlString( collectionObject.getCreatedByAgent().getId());
+		values[10] = SqlUtils.sqlString( collectionObject.getDescription());
+		values[11] = SqlUtils.sqlString( collectionObject.getFieldNumber());
+		values[12] = SqlUtils.sqlString( collectionObject.getModifiedByAgent().getId());
+		values[13] = SqlUtils.sqlString( collectionObject.getRemarks());
+		values[14] = SqlUtils.sqlString( collectionObject.getText1());
+		values[15] = SqlUtils.sqlString( collectionObject.getText2());
+		values[16] = SqlUtils.sqlString( collectionObject.getText3());
+		values[17] = SqlUtils.sqlString( collectionObject.getTimestampCreated());
+		values[18] = SqlUtils.sqlString( collectionObject.getTimestampModified());
+        values[19] = SqlUtils.one();
+		values[20] = SqlUtils.sqlString( collectionObject.getYesNo1());		
 
 		return SqlUtils.getInsertSql("collectionobject", fieldNames, values);
 	}
