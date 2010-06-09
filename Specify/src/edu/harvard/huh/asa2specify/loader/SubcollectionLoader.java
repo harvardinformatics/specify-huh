@@ -4,9 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Botanist;
-import edu.harvard.huh.asa.BotanistName;
+import edu.harvard.huh.asa.MichaelaSubcollection;
 import edu.harvard.huh.asa.Subcollection;
-import edu.harvard.huh.asa.BotanistName.TYPE;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -66,10 +65,14 @@ public class SubcollectionLoader extends TreeLoader
     private int collectionRankId = 150;
     private int subcollRankId    = 175;
 
+    private CsvToSqlLoader mSubcollLoader = null;
+    private MichaelaSubcollection mSubcollection = null;
+
     public SubcollectionLoader(File csvFile,
 	                           Statement sqlStatement,
 	                           File subcollToBotanist,
-	                           BotanistLookup botanistLookup)
+	                           BotanistLookup botanistLookup,
+	                           File michaelaSubcollections)
 	    throws LocalException
 	{
 		super(csvFile, sqlStatement);
@@ -79,6 +82,17 @@ public class SubcollectionLoader extends TreeLoader
 		this.botanistLookup = botanistLookup;
 		
 		this.treeDef = getStorageTreeDef();
+		
+		this.mSubcollLoader = new CsvToSqlLoader(michaelaSubcollections, sqlStatement) {
+
+            @Override
+            public void loadRecord(String[] columns) throws LocalException
+            {
+                ;
+            }   
+		};
+		
+		mSubcollection = getNextMichaelaRecord();
 	}
 
     @Override
@@ -195,6 +209,13 @@ public class SubcollectionLoader extends TreeLoader
 		Integer subcollectionId = subcollection.getId();
 		setCurrentRecordId(subcollectionId);
 		
+		Integer mSubcollectionId = mSubcollection.getId();
+		if (subcollectionId.equals(mSubcollectionId))
+		{
+		    merge(subcollection, mSubcollection);
+		    mSubcollection = getNextMichaelaRecord();
+		}
+		
         // if this subcollection represents an exsiccata...
         if (subcollection.isExsiccata())
         {
@@ -253,6 +274,29 @@ public class SubcollectionLoader extends TreeLoader
         storage.setStorageId(storageId);
 
 	}
+
+    private void merge(Subcollection subcoll, MichaelaSubcollection mSubcoll)
+    {
+        subcoll.setExsiccata(mSubcoll.isExsiccata());
+        
+        String taxonGroup = mSubcoll.getTaxonGroup();
+        if (taxonGroup != null) subcoll.setTaxonGroup(taxonGroup);
+        
+        String name = mSubcoll.getName();
+        if (name != null) subcoll.setName(name);
+        
+        String author = mSubcoll.getAuthor();
+        if (author != null) subcoll.setAuthor(author);
+        
+        String specimenCount = mSubcoll.getSpecimenCount();
+        if (specimenCount != null) subcoll.setSpecimenCount(specimenCount);
+        
+        String location = mSubcoll.getLocation();
+        if (location != null) subcoll.setLocation(location);
+        
+        String cabinet = mSubcoll.getCabinet();
+        if (cabinet != null) subcoll.setCabinet(cabinet);
+    }
 
     public void numberNodes() throws LocalException
 	{
@@ -340,6 +384,37 @@ public class SubcollectionLoader extends TreeLoader
     	return subcollection;
     }
     
+	private MichaelaSubcollection getNextMichaelaRecord() throws LocalException
+	{
+	    String line = this.mSubcollLoader.getNextLine();
+        String [] columns = this.mSubcollLoader.parseLine(line);
+        
+        MichaelaSubcollection mSubcollection = new MichaelaSubcollection();
+        
+        if (columns.length < 7)
+        {
+            throw new LocalException("Not enough columns");
+        }
+
+        try
+        {
+            mSubcollection.setId(          SqlUtils.parseInt(  columns[0] ));
+            mSubcollection.setExsiccata( Boolean.parseBoolean( columns[1] ));
+            mSubcollection.setTaxonGroup(                      columns[1]  );
+            mSubcollection.setName(                            columns[2]  );
+            mSubcollection.setAuthor(                          columns[3]  );
+            mSubcollection.setSpecimenCount(                   columns[4]  );
+            mSubcollection.setLocation(                        columns[5]  );
+            mSubcollection.setCabinet(                         columns[6]  );
+        }
+        catch (NumberFormatException e)
+        {
+            throw new LocalException("Couldn't parse numeric field", e);
+        }
+        
+        return mSubcollection;
+	}
+
     private Storage getStorage(Subcollection subcollection) throws LocalException
     {    
         Storage storage = new Storage();

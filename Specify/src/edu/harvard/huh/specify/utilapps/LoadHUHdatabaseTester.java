@@ -392,7 +392,8 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             SubcollectionLoader subcollectionLoader = new SubcollectionLoader(new File(dir, "new_subcollection.csv"),
                                                                               statement,
                                                                               new File(dir, "subcollection_botanist.csv"),
-                                                                              botanistLookup);
+                                                                              botanistLookup,
+                                                                              new File(dir, "michaela_subcollection.csv"));
             if (doSubcoll)
             {
                 int subcollectionRecords = subcollectionLoader.loadRecords();
