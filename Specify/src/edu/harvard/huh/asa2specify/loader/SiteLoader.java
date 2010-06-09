@@ -18,9 +18,6 @@ import edu.ku.brc.util.LatLonConverter.FORMAT;
 
 public class SiteLoader extends CsvToSqlLoader
 {
-	// default locality name
-	private static final String UNNAMED = "Unnamed locality";
-
 	// set a default srcLatLongUnit
 	private static final byte srcLatLongUnit = (byte) FORMAT.DDDDDD.ordinal();
 	
@@ -185,8 +182,7 @@ public class SiteLoader extends CsvToSqlLoader
 
 		// LocalityName is a required field
 		String localityName = site.getLocality();
-		if (localityName == null) localityName = UNNAMED;
-		localityName = truncate(localityName, 255, "locality name");
+		if (localityName != null) localityName = truncate(localityName, 255, "locality name");
 		locality.setLocalityName(localityName);
 
 		// Long1Text, Longitude1
