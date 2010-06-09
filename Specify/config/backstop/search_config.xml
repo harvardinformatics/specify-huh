@@ -2328,18 +2328,20 @@ repositoryagreement.RepositoryAgreementNumber,
                 <sql>
                     <![CDATA[SELECT frag.FragmentID,
                                     frag.Identifier as FragIdentifier,
+                                    frag.Description as FragDescription,
                                     ppt.Name,
-                                    pp.SampleNumber,
-                                    pp.Text1,
-                                    pp.Identifier as PrepIdentifier
+                                    pp.Identifier as PrepIdentifier,
+                                    pp.Description as PrepDescription
                                FROM fragment frag LEFT JOIN preparation pp ON frag.PreparationID=pp.PreparationID LEFT JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID
                               WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier, frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="FragmentID" visible="false"/>
                     <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="142" name="Description" col="fragment.Description"/>
                     <caption tableid="65" name="Name" col="prepType.Name"/>
                     <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="63" name="Description" col="preparation.Description"/>
                 </captions>
             </detailView>
         </table>
