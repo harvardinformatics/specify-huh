@@ -92,12 +92,8 @@ public abstract class CsvToSqlLoader
 
             updateProgressFrame(counter);
 
-            String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
-            
-            for (int i=0; i<columns.length; i++)
-            {
-            	columns[i] = StringUtils.trimToNull(columns[i]);
-            }
+            String[] columns = parseLine(line);
+
             try {
                 loadRecord(columns);
             }
@@ -470,7 +466,7 @@ public abstract class CsvToSqlLoader
         return lastLine;
     }
 
-    private String getNextLine() throws LocalException
+    protected String getNextLine() throws LocalException
     {
         try
         {
@@ -492,6 +488,18 @@ public abstract class CsvToSqlLoader
             LineIterator.closeQuietly(lineIterator);
             return null;
         }
+    }
+
+    protected String[] parseLine(String line)
+    {
+        String[] columns = StringUtils.splitPreserveAllTokens(line, '\t');
+        
+        for (int i=0; i<columns.length; i++)
+        {
+            columns[i] = StringUtils.trimToNull(columns[i]);
+        }
+        
+        return columns;
     }
 
     /**
