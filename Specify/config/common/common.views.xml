@@ -214,8 +214,8 @@
             resourcelabels="false">
             <desc><![CDATA[The Collectors Subform.]]></desc>
             <altviews>
-                <!-- <altview name="Collectors Icon View"  viewdef="CollectorsIconView" mode="view"/>
-                <altview name="Collectors Icon Edit"  viewdef="CollectorsIconView" mode="edit"/>  -->
+                <altview name="Collectors View"  viewdef="Collector" mode="view"/>
+                <altview name="Collectors Edit"  viewdef="Collector" mode="edit"/>
                 <altview name="Collectors Table View" viewdef="Collectors Table"   mode="view"/>
                 <altview name="Collectors Table Edit" viewdef="Collectors Table"   mode="edit" default="true"/>
             </altviews>
