@@ -233,6 +233,11 @@
                 </row>
                 
                 <row>
+                    <cell type="label" labelfor="lookupfieldcolor" label="LOOKUP_FIELD_CLR"/>
+                    <cell type="field" uitype="colorchooser" id="lookupfieldcolor" name="ui.formatting.lookupfieldcolor"/>
+                </row>
+                
+                <row>
                     <cell type="label" labelfor="viewfieldcolor" label="VIEW_FIELD_CLR"/>
                     <cell type="field" uitype="colorchooser" id="viewfieldcolor" name="ui.formatting.viewfieldcolor"/>
                 </row>

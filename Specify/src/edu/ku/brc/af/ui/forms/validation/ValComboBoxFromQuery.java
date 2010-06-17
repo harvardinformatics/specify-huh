@@ -120,7 +120,8 @@ public class ValComboBoxFromQuery extends JPanel implements UIValidatable,
 
     protected static ColorWrapper valTextColor       = null;
     protected static ColorWrapper requiredFieldColor = null;
-
+    protected static ColorWrapper lookupFieldColor   = null;
+    
     protected UIValidatable.ErrorType valState  = UIValidatable.ErrorType.Valid;
 
     protected String             cellName   = null;
@@ -464,11 +465,14 @@ public class ValComboBoxFromQuery extends JPanel implements UIValidatable,
         }
 
         bgColor = textWithQuery.getTextField().getBackground();
-        if (valTextColor == null || requiredFieldColor == null)
+        if (valTextColor == null || requiredFieldColor == null || lookupFieldColor == null)
         {
             valTextColor       = AppPrefsCache.getColorWrapper("ui.formatting.valtextcolor");
             requiredFieldColor = AppPrefsCache.getColorWrapper("ui.formatting.requiredfieldcolor");
+            lookupFieldColor   = AppPrefsCache.getColorWrapper("ui.formatting.lookupfieldcolor");
         }
+        
+        textWithQuery.setBorder(BorderFactory.createLineBorder(lookupFieldColor.getColor(), 2));
         
         AppPrefsCache.addChangeListener("ui.formatting.requiredfieldcolor", this);
 

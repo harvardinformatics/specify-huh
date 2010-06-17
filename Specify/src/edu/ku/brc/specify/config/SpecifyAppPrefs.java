@@ -99,5 +99,8 @@ public class SpecifyAppPrefs
        
         ColorWrapper viewFieldColor = new ColorWrapper(250, 250, 250);
         AppPrefsCache.register(viewFieldColor, "ui", "formatting", "viewfieldcolor");
+        
+        ColorWrapper lookupfieldcolor = new ColorWrapper(Color.BLUE);
+        AppPrefsCache.register(lookupfieldcolor, "ui", "formatting", "lookupfieldcolor");
     }
 }
