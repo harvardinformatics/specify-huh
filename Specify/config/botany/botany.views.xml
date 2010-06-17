@@ -519,7 +519,11 @@
 
                 <row>
                     <cell type="label" labelfor="referenceWork"/>
-                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork;displaydlg=RefWorkTaxCitSub" name="referenceWork" columns="1" colspan="2"/>
+                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" name="referenceWork" columns="1" colspan="2"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="designator"/>
+                	<cell type="field" id="designator" uitype="querycbx" initialize="name=Agent;title=Neo/Lecto/Epitype Designator;displaydlg=Botanist;searchdlg=BotanistSearch" name="designator" colspan="2"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="text1"/>

@@ -55,6 +55,7 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
      protected String        remarks;
      protected String        text1;
      protected String        text2;
+     protected Agent         designator;
      protected ReferenceWork referenceWork;
      protected Determination determination;
 
@@ -84,6 +85,7 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
         text1 = null;
         text2 = null;
         remarks = null;
+        designator = null;
         referenceWork = null;
         determination = null;
     }
@@ -163,6 +165,19 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
         this.remarks = remarks;
     }
 
+    /**
+     *      * Neo/lecto/epitype designator
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "DesignatorID", unique = false, nullable = false, insertable = true, updatable = true)
+    public Agent getDesignator() {
+        return this.designator;
+    }
+    
+    public void setDesignator(Agent designator) {
+        this.designator = designator;
+    }
+    
     /**
      *      * ID of the publication citing the determination
      */

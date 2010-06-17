@@ -11999,6 +11999,22 @@
         </names>
         <descs/>
       </item>
+      <item name="designator" type="ManyToOne" isUIFormatter="false" isRequired="true">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Neo/lecto/epitype Designator</text>
+          </str>
+        </names>
+        <descs>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Neo/lecto/epitype Designator.</text>
+          </str>
+        </descs>
+      </item>
       <item name="determination" type="ManyToOne" isUIFormatter="false" isRequired="true">
         <version>0</version>
         <isHidden>false</isHidden>
