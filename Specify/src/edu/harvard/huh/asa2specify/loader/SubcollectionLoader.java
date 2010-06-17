@@ -400,12 +400,11 @@ public class SubcollectionLoader extends TreeLoader
         {
             mSubcollection.setId(          SqlUtils.parseInt(  columns[0] ));
             mSubcollection.setExsiccata( Boolean.parseBoolean( columns[1] ));
-            mSubcollection.setTaxonGroup(                      columns[1]  );
-            mSubcollection.setName(                            columns[2]  );
-            mSubcollection.setAuthor(                          columns[3]  );
-            mSubcollection.setSpecimenCount(                   columns[4]  );
-            mSubcollection.setLocation(                        columns[5]  );
-            mSubcollection.setCabinet(                         columns[6]  );
+            mSubcollection.setTaxonGroup(                      columns[2]  );
+            mSubcollection.setName(                            columns[3]  );
+            mSubcollection.setAuthor(                          columns[4]  );
+            mSubcollection.setSpecimenCount(                   columns[5]  );
+            mSubcollection.setLocation(                        columns[6]  );
         }
         catch (NumberFormatException e)
         {
