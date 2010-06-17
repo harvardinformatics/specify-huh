@@ -1223,7 +1223,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 							"Description, FieldNumber, ModifiedByAgentID, Remarks, Text1, Text2, Text3, " +
 							"TimestampCreated, TimestampModified, Version, YesNo1";
 
-		String[] values = new String[20];
+		String[] values = new String[21];
 		
 		values[0]  = SqlUtils.sqlString( collectionObject.getAltCatalogNumber());
 		values[1]  = SqlUtils.sqlString( collectionObject.getCataloger().getAgentId());
