@@ -602,6 +602,7 @@ public class DataEntryTask extends BaseTask
                 else
                 {
                     options |= MultiView.VIEW_SWITCHER;
+                    mode = "edit";
                 }
                 formPane = new FormPane(name, task, view, mode, null, options);
                 formPane.setIcon(getIconForView(view));
