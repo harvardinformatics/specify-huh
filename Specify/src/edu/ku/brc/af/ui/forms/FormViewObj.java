@@ -4580,7 +4580,7 @@ public class FormViewObj implements Viewable,
                     shortClassName = classToCreate.getSimpleName();
                 }
             }
-            perm = SecurityMgr.getInstance().getPermission("DO."+shortClassName);
+            perm = SecurityMgr.getInstance().getPermission("DO."+shortClassName.toLowerCase());
         }
     }
 
@@ -4634,7 +4634,7 @@ public class FormViewObj implements Viewable,
             if (AppContextMgr.isSecurityOn())
             {
                 ensurePermissions();
-                if ((isEditing && perm.isViewOnly()) || (!isEditing && !perm.canView()))
+                if (/*(isEditing && perm.isViewOnly()) || (!isEditing &&*/ !perm.canView()) // isEditing is set according to the value on the view def
                 {
                     return;
                 }
