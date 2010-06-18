@@ -708,7 +708,7 @@ public class DataEntryTask extends BaseTask
                             cmdAction.setProperty(NavBoxAction.ORGINATING_TASK, task);
                             
                             String toolTip = view.getObjTitle();
-                            if (toolTip != null) toolTip = dev.getView();
+                            if (toolTip == null) toolTip = dev.getView();
                             ContextMgr.registerService(10, dev.getView(), tblId, cmdAction, this, DATA_ENTRY, toolTip, true); // the Name gets Hashed
                         }
                         
