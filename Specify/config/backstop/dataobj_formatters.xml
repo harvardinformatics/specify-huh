@@ -225,7 +225,7 @@
         class="edu.ku.brc.specify.datamodel.CollectingEvent"
         >
         <switch single="true">
-          <external class="edu.ku.brc.specify.ui.CollectingEventDataObjFmt"/>
+          <external class="edu.harvard.huh.specify.ui.CollectingEventDataObjFmt"/>
         </switch>
     </format>
 
@@ -686,6 +686,20 @@
                 <field formatter="PrepType">prepType</field>
                 <field sep=" - ">identifier</field>
                 <field sep=" ">text1</field>
+            </fields>
+        </switch>
+    </format>
+    
+    <format
+        name="Project"
+        title="Project"
+        class="edu.ku.brc.specify.datamodel.Project"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>projectName</field>
+                <field sep=" - ">projectNumber</field>
             </fields>
         </switch>
     </format>

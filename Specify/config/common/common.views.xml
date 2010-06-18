@@ -786,7 +786,7 @@
         
         <view name="Project"
             class="edu.ku.brc.specify.datamodel.Project"
-            isinternal="true"
+            isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Project form.]]></desc>
             <altviews>
@@ -797,10 +797,24 @@
         
         <view name="ProjectSub"
             class="edu.ku.brc.specify.datamodel.Project"
+            isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Project form.]]></desc>
             <altviews>
+                <altview name="ProjectSub View" viewdef="ProjectSub" mode="view" default="true"/>
+                <altview name="ProjectSub Edit" viewdef="ProjectSub" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="Projects"
+            class="edu.ku.brc.specify.datamodel.Project"
+            resourcelabels="false">
+            <desc><![CDATA[Project form.]]></desc>
+            <altviews>
+            	<altview name="ProjectSub View"  viewdef="ProjectSub" mode="view"/>
+                <!--<altview name="ProjectSub Edit"  viewdef="ProjectSub" mode="edit"/>-->
                 <altview name="ProjectSub Table View" viewdef="ProjectSub Table" mode="view" default="true"/>
+                <!--<altview name="ProjectSub Table Edit" viewdef="ProjectSub Table" mode="edit" default="true"/>-->
             </altviews>
         </view>
 
@@ -1689,22 +1703,16 @@
               <desc><![CDATA[The Collection Object Subform for appraisal and project forms.]]></desc>
               <enableRules/>
               
-              <columnDef>100px,2px,120px,5px,100px,2px,98px,5px,95px,2px,98px,5px,95px,2px,98px,p:g</columnDef>
-              <columnDef os="lnx">115px,2px,159px,5px,107px,2px,100px,5px,110px,2px,100px,5px,110px,2px,100px,p:g</columnDef>
-              <columnDef os="mac">130px,2px,150px,5px,127px,2px,121px,5px,120px,2px,121px,5px,119px,2px,121px,p:g</columnDef>
-              <columnDef os="exp">p,2px,min(p;150px),5px:g,p,2px,100px,5px:g,p,2px,100px,5px:g,p,2px,100px:g</columnDef>
+              <columnDef>         100px,2px,650px,p:g</columnDef>
+              <columnDef os="lnx">145px,2px,650px,p:g</columnDef>
+              <columnDef os="mac">130px,2px,650px,p:g</columnDef>
+              <columnDef os="exp">p,    2px,min(p;650px),px:g</columnDef>
               <rowDef auto="true" cell="p" sep="2px"/>
 		  
                 <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="catalogNumber" uitype="formattedtext"/>
-                    <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="altCatalogNumber" uitype="text"/>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="collection.collectionName" uitype="dsptextfield"/>
-                    <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="projectNumber" uitype="text"/>
+                    <cell type="field" id="1" name="collectingEvent" formatname="CollectingEventDetail" uitype="querycbx" initialize="name=CollectingEvent;editbtn=false;newbtn=false;searchbtn=false;editoncreate=true" readonly="true"/>
                 </row>
              </rows>
         </viewdef>

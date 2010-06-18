@@ -39,7 +39,7 @@ import edu.ku.brc.ui.UIHelper;
  * Mar 26, 2008
  *
  */
-public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, Cloneable
+public class CollectingEventDataObjFmt implements DataObjDataFieldFormatIFace, Cloneable
 {   
     // Needed for the Custom Editor
     protected ChangeListener changeListener = null;
@@ -51,7 +51,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
     /**
      * Constructor.
      */
-    public CollectionObjectDataObjFmt()
+    public CollectingEventDataObjFmt()
     {
     }
     
@@ -65,9 +65,9 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
             return "";
         }
         
-        if (!(dataValue instanceof CollectionObject))
+        if (!(dataValue instanceof CollectingEvent))
         {
-            throw new RuntimeException("The data value set into CollectionObjectDataObjFmt is not a CollectionObject ["+dataValue.getClass().getSimpleName()+"]");
+            throw new RuntimeException("The data value set into CollectingEventDataObjFmt is not a CollectingEvent ["+dataValue.getClass().getSimpleName()+"]");
         }
 
         String restricted = FormHelper.checkForRestrictedValue(CollectionObject.getClassTableId());
@@ -86,7 +86,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
         String collectorNumber = emptyCollectorNumber;
         String collectionDate  = null;
 
-        CollectionObject co = (CollectionObject)dataValue;
+        CollectingEvent ce = (CollectingEvent)dataValue;
 
         DataProviderSessionIFace session = null;
         String errMsg = null;
@@ -94,46 +94,43 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
         try
         {
             session = DataProviderFactory.getInstance().createSession();
-            if (co.getId() != null) co = session.merge(co);
+            if (ce.getId() != null) ce = session.merge(ce);
 
-            if (co.getCollectingEvent() != null)
+
+            if (ce.getCollectors().size() > 0)
             {
-                CollectingEvent ce = co.getCollectingEvent();
-                if (ce.getCollectors().size() > 0)
-                {
-                    Collector ctr = ce.getCollectors().iterator().next();
+                Collector ctr = ce.getCollectors().iterator().next();
 
-                    if (ctr.getAgent() != null)
-                    {
-                        Agent agent = ctr.getAgent();
-                        if (agent.getCollectorName() != null)
-                        {
-                            collectorName = agent.getCollectorName();
-                        }
-                        else
-                        {
-                            collectorName = agent.getLastName();
-                        }
-                    }
-                }
-                if (ce.getStartDate() != null)
+                if (ctr.getAgent() != null)
                 {
-                    if (ce.getStartDatePrecision() != null)
+                    Agent agent = ctr.getAgent();
+                    if (agent.getCollectorName() != null)
                     {
-                        DateWrapper scrDateFormat = UIFieldFormatterMgr.getDateWrapper(ce.getStartDatePrecision());
-                        collectionDate = scrDateFormat.format(ce.getStartDate().getTime());
+                        collectorName = agent.getCollectorName();
                     }
-                }
-                if (ce.getStationFieldNumber() != null)
-                {
-                    collectorNumber = ce.getStationFieldNumber();
+                    else
+                    {
+                        collectorName = agent.getLastName();
+                    }
                 }
             }
-
+            if (ce.getStartDate() != null)
+            {
+                if (ce.getStartDatePrecision() != null)
+                {
+                    DateWrapper scrDateFormat = UIFieldFormatterMgr.getDateWrapper(ce.getStartDatePrecision());
+                    collectionDate = scrDateFormat.format(ce.getStartDate().getTime());
+                }
+            }
+            if (ce.getStationFieldNumber() != null)
+            {
+                collectorNumber = ce.getStationFieldNumber();
+            }
+            
         } catch (Exception ex)
         {
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectionObjectDataObjFmt.class, ex);
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(CollectingEventDataObjFmt.class, ex);
             errMsg = ex.toString();
             ex.printStackTrace();
 
@@ -158,7 +155,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
     @Override
     public Class<?> getDataClass()
     {
-        return CollectionObject.class;
+        return CollectingEvent.class;
     }
 
     /* (non-Javadoc)
@@ -176,7 +173,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
     @Override
     public String getName()
     {
-        return "CollectionObjectDetail";
+        return "CollectingEventDetail";
     }
 
     /* (non-Javadoc)
@@ -334,7 +331,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
     @Override
     public Object clone() throws CloneNotSupportedException
     {
-        CollectionObjectDataObjFmt codof = (CollectionObjectDataObjFmt) super.clone();
+        CollectingEventDataObjFmt codof = (CollectingEventDataObjFmt) super.clone();
 
         return codof;
     }

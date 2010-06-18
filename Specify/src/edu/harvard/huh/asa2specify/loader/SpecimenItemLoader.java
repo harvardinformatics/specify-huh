@@ -662,6 +662,14 @@ public class SpecimenItemLoader extends AuditedObjectLoader
 	    // Remarks (habitat)
 	    collectingEvent.setRemarks(habitat);
 	    
+	    // StationFieldNumber (collector number)
+	    String collectorNo = specimenItem.getCollectorNo();
+        if (collectorNo != null)
+        {
+            collectorNo = truncate(collectorNo, 50, "collector number");
+            collectingEvent.setStationFieldNumber(collectorNo);
+        }
+        
 	    // VerbatimDate
 	    String verbatimDate = bdate.getText();
 	    if (verbatimDate!= null) verbatimDate = truncate(verbatimDate, 50, "date text");
@@ -926,12 +934,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
 
         // FieldNumber
-        String collectorNo = specimenItem.getCollectorNo();
+        /*String collectorNo = specimenItem.getCollectorNo();
         if (collectorNo != null)
         {
         	collectorNo = truncate(collectorNo, 50, "collector number");
             collectionObject.setFieldNumber(collectorNo);
-        }
+        }*/
         
          // Remarks
         String remarks = specimenItem.getRemarks();
@@ -1177,9 +1185,9 @@ public class SpecimenItemLoader extends AuditedObjectLoader
     {
         String fieldNames = "CollectingTripID, DisciplineID, EndDate, EndDatePrecision, EndDateVerbatim, " +
         		            "LocalityID, Remarks, StartDate, StartDatePrecision, StartDateVerbatim, " +
-                            "TimestampCreated, VerbatimDate, Version";
+                            "StationFieldNumber, TimestampCreated, VerbatimDate, Version";
 
-        String[] values = new String[13];
+        String[] values = new String[14];
         
         values[0]  = SqlUtils.sqlString( collectingEvent.getCollectingTrip().getId());
         values[1]  = SqlUtils.sqlString( collectingEvent.getDiscipline().getDisciplineId());
@@ -1191,9 +1199,10 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         values[7]  = SqlUtils.sqlString( collectingEvent.getStartDate());
         values[8]  = SqlUtils.sqlString( collectingEvent.getStartDatePrecision());
         values[9]  = SqlUtils.sqlString( collectingEvent.getStartDateVerbatim());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
-        values[12] = SqlUtils.one();
+        values[10] = SqlUtils.sqlString( collectingEvent.getStationFieldNumber());
+        values[11] = SqlUtils.now();
+        values[12] = SqlUtils.sqlString( collectingEvent.getVerbatimDate());
+        values[13] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("collectingevent", fieldNames, values);
     }

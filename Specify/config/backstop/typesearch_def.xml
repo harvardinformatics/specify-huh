@@ -75,6 +75,7 @@
 		SELECT %s1 FROM Fragment frag JOIN frag.preparation as pp WHERE %s2 ORDER BY frag.identifier, frag.preparation.identifier, frag.preparation.sampleNumber
     </typesearch>
     <typesearch tableid="65"  name="PrepType"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
+	<typesearch tableid="66"  name="Project"                searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="69"  name="ReferenceWork"          searchfield="title,text1"     displaycols="title,text1"        format="%s (%s)" dataobjformatter="ReferenceWork"/>
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter="ReferenceWork"/>
     <typesearch tableid="70"  name="RepositoryAgreement"    searchfield="repositoryAgreementNumber" displaycols="repositoryAgreementNumber" format="%s"     dataobjformatter=""/>
