@@ -89,7 +89,7 @@
 	<icon name="FieldNotebookAttachment"         file="field_notebook_attachment.png" sizes="NonStd"/>
 	<icon name="FieldNotebookPageAttachment"     file="field_notebook_page_attachment.png" sizes="NonStd"/>
 	<icon name="FieldNotebookPageSetAttachment"  file="field_notebook_page_set_attachment.png" sizes="NonStd"/>
-	<icon name="FragmentAttachment"              file="collection_object_attachment.png" sizes="NonStd"/>
+	<icon name="FragmentAttachment"              file="attachment.png" sizes="NonStd"/>
 	<icon name="LoanAttachment"                  file="loan_attachment.png" sizes="NonStd"/>
 	<icon name="LocalityAttachment"              file="locality_attachment.png" sizes="NonStd"/>
 	<icon name="PermitAttachment"                file="permit_attachment.png" sizes="NonStd"/>
