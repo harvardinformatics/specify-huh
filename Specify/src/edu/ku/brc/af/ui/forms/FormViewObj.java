@@ -81,6 +81,7 @@ import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
@@ -3516,6 +3517,10 @@ public class FormViewObj implements Viewable,
             if (mvParent.isTopLevel())
             {
                 rsController.setupGotoListener();
+            }
+            else
+            {
+                mainComp.setBorder(BorderFactory.createEtchedBorder());
             }
             
             rsController.addListener(this);

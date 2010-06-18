@@ -108,6 +108,7 @@ public class ResultSetController implements ValidationListener
     protected int     lastInx    = 0;
     protected int     numRecords = 0;
     
+    protected String  objTitle   = null;
     protected boolean isNewObj   = false;
     protected boolean doLayoutBtns;
     
@@ -151,6 +152,7 @@ public class ResultSetController implements ValidationListener
     {
         this.formValidator = formValidator;
         this.doLayoutBtns  = doLayoutBtns;
+        this.objTitle      = objTitle;
         
         if (formValidator != null)
         {
@@ -650,7 +652,7 @@ public class ResultSetController implements ValidationListener
         recDisp.setEnabled(enabled);
         recDisp.setBorder(enabled ? enabledBorder : disabledBorder);
         //recDisp.setBackground(enabled ? enabledTxtBG : disabledTxtBG);
-        recDisp.setText(numRecords > 0 ? ((currentInx+1) + " of " + numRecords) : " "); // XXX Move to I18N properties file formatted
+        recDisp.setText(numRecords > 0 ? ((currentInx+1) + " of " + numRecords + " (" + objTitle + ")" ) : " "); // XXX Move to I18N properties file formatted
         
         if (delRecBtn != null)
         {
