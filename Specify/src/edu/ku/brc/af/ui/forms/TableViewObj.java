@@ -642,7 +642,7 @@ public class TableViewObj implements Viewable,
                             }
                             model.fireDataChanged();
                             tellMultiViewOfChange();
-                            formValidator.validateRoot();
+                            if (formValidator != null) formValidator.validateRoot(); // TODO: is it OK if formValidator is null here?
                             
                             newObjsList.addAll(newDataObjects);
                             
