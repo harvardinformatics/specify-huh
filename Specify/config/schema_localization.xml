@@ -5527,6 +5527,16 @@
           </str>
         </descs>
       </item>
+      <item name="etAl" type="java.lang.String">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Et Al.</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="locality" type="ManyToOne" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>

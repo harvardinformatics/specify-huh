@@ -1572,6 +1572,10 @@
                     <cell type="field" id="1" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector;displaydlg=Botanist" colspan="2"/>
                 </row>
                 <row>
+                	<cell type="label" labelfor="2"/>
+                	<cell type="field" id="2" name="etAl" uitype="text" colspan="2"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="3"/>
                     <cell type="field" id="3" name="remarks" uitype="textareabrief" rows="2" colspan="2" cols="40"/>
                 </row>
@@ -1632,6 +1636,10 @@
                 <row>
                 	<cell type="label" labelfor="collectorFirstName"/>
                 	<cell type="field" id="collectorFirstName" name="agent" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Collector" formatname="CollectorVarAgent"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="etAl"/>
+                	<cell type="field" id="etAl" name="etAl" uitype="text"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="datesType"/>
