@@ -5640,17 +5640,17 @@
       </item>
       <item name="stationFieldNumber" type="java.lang.String" isUIFormatter="false" isRequired="false">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Field Number</text>
+            <text>Collector Number</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Station number or field number of the site where collecting event took place, A number or code recorded in field notes and/or written on field tags that identifies ALL material collected in a Collecting Event.</text>
+            <text>A unique number a collector assigns to each specimen at the time of collection. For example, botanists often keep a running count of the individual specimens they have collected (LKK1023, LKK1024, etc.).</text>
           </str>
         </descs>
       </item>
@@ -7682,7 +7682,7 @@
       </item>
       <item name="projectNumber">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -7693,7 +7693,7 @@
       </item>
       <item name="projects">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
