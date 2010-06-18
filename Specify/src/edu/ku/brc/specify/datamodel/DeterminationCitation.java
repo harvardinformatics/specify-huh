@@ -169,7 +169,7 @@ public class DeterminationCitation extends CollectionMember implements java.io.S
      *      * Neo/lecto/epitype designator
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "DesignatorID", unique = false, nullable = false, insertable = true, updatable = true)
+    @JoinColumn(name = "DesignatorID", unique = false, nullable = true, insertable = true, updatable = true)
     public Agent getDesignator() {
         return this.designator;
     }
