@@ -164,9 +164,17 @@
             <desc><![CDATA[Subform within the Collection Object form.]]></desc>
             <altviews>
                 <altview name="OtherIdentifier View" viewdef="OtherIdentifier" mode="view"/>
-                <altview name="OtherIdentifier Edit" viewdef="OtherIdentifier" mode="edit" default="true"/>
+                <altview name="OtherIdentifier Edit" viewdef="OtherIdentifier" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="OtherIdentifiers"
+            class="edu.ku.brc.specify.datamodel.OtherIdentifier"
+            resourcelabels="false">
+            <desc><![CDATA[OtherIdentifier form.]]></desc>
+            <altviews>
                 <altview name="OtherIdentifier Table View" viewdef="OtherIdentifier Table" mode="view"/>
-                <altview name="OtherIdentifier Table Edit" viewdef="OtherIdentifier Table" mode="edit"/>
+                <altview name="OtherIdentifier Table Edit" viewdef="OtherIdentifier Table" mode="edit" default="true"/>
             </altviews>
         </view>
         
@@ -208,7 +216,7 @@
             <desc><![CDATA[Collecting Event subform for the Collection Object form.]]></desc>
             
             <columnDef>          75px, 2px, 190px, 5px,  80px, 2px, 190px,   2px, 190px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 235px, 5px, 100px, 2px, 190px,   2px, 230px, 0px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 235px, 5px, 130px, 2px, 235px,   2px, 180px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px,     p, 5px, 100px, 2px,     p,   2px, 200px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
             
@@ -217,11 +225,13 @@
             <rows>
                 <row>
                 	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="8" rows="3"/>
+                    <cell type="subview" viewname="Collectors" id="5" name="collectors" colspan="8" rows="1"/>
                 </row>
 				<row>
 					<cell type="label" labelfor="stationFieldNumber"/>
 					<cell type="field" id="stationFieldNumber" name="stationFieldNumber" uitype="text"/>
+					<cell type="label" label=" "/>
+					<cell type="subview" id="attachments" viewname="ObjectAttachment" name="collectingEventAttachments" initialize="btn=true;icon=CollectingEventAttachment"/>
 				</row>
                 <row>
                     <cell type="label" labelfor="startDate"/>
@@ -249,6 +259,9 @@
                     <cell type="field" id="6" name="remarks" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
                 <row>
+                	<cell type="label" label=" "/>
+                </row>
+                <row>
                 	<cell type="separator" label=""/>
                 	<cell type="separator" label="Site" colspan="8"/>
                 </row>
@@ -269,28 +282,36 @@
             <enableRules/>
             
             <columnDef>         100px, 2px, 195px,   5px,  96px, 2px, 210px, 5px,  94px, 2px, 101px,  5px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 195px,   5px, 120px, 2px, 255px, 5px, 130px, 2px,  81px, 45px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 195px,   5px, 120px, 2px, 255px, 5px, 130px, 2px,  81px, 45px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 220px, 5px, 130px, 2px, 140px, 15px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 255px, 5px:g,   p, 2px, 200px,    p, p:g</columnDef>
 
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
+               	<row>
+                	<cell type="label" labelfor="container"/>
+                	<cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="5"/>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
+                </row>
             	<row>
-            		<cell type="subview" viewname="Projects" id="projects" name="projects" rows="1" colspan="11" initialize="name=Project;addsearch=true"/>
+            		<cell type="label" label=" "/>
+            		<cell type="subview" viewname="Projects" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
             	</row>
                 <row>
-                    <cell type="subview" viewname="OtherIdentifier" id="otheridentifier" name="otherIdentifiers" defaulttype="table" rows="1" colspan="11"/>
+                	<cell type="label" label=" "/>
+                    <cell type="subview" viewname="OtherIdentifiers" id="otherIdentifier" name="otherIdentifiers" defaulttype="table" rows="2" colspan="9"/>
+                </row>
+                <row>
+                	<cell type="separator" label=""/>
+                	<cell type="separator" label="Collecting Information" colspan="9"/>
                 </row>
                 <row>
                     <cell type="subview" viewname="CollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="container"/>
-                	<cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="3"/>
-                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Collection Attributes" colspan="11"/>
+	                <cell type="separator" label=""/>
+                    <cell type="separator" label="Collection Attributes" colspan="9"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="frequency"/>
@@ -516,31 +537,29 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[The Determination Citation form]]></desc>
 
-            <columnDef os="exp">    p, 2px, 200px, p:g</columnDef>
-            <columnDef>         100px, 2px, 225px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 308px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 200px, 5px,     p, 2px, 200px, p:g</columnDef>
+            <columnDef>         100px, 2px, 225px, 5px, 100px, 2px, 225px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 308px, 5px, 130px, 2px, 308px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
 
                 <row>
                     <cell type="label" labelfor="referenceWork"/>
-                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" name="referenceWork" columns="1" colspan="2"/>
+                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" name="referenceWork" columns="1" colspan="5"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="designator"/>
-                	<cell type="field" id="designator" uitype="querycbx" initialize="name=Agent;title=Neo/Lecto/Epitype Designator;displaydlg=Botanist;searchdlg=BotanistSearch" name="designator" colspan="2"/>
+                	<cell type="field" id="designator" uitype="querycbx" initialize="name=Agent;title=Neo/Lecto/Epitype Designator;displaydlg=Botanist;searchdlg=BotanistSearch" name="designator" colspan="5"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="text1"/>
                     <cell type="field" id="text1" name="text1" uitype="text"/>
-                </row>
-                <row>
                     <cell type="label" labelfor="text2"/>
                     <cell type="field" id="text2" name="text2" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="remarks"/>
-                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="2"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="5"/>
                 </row>
             </rows>
         </viewdef>
@@ -801,7 +820,7 @@
             <enableRules/>
             
             <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 195px,   5px, 125px, 2px, 200px, 5px, 100px, 5px, 185px, 0px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 195px,   5px, 125px, 2px, 200px, 15px, 100px, 5px, 200px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
@@ -811,26 +830,15 @@
                     <cell type="field" id="identifier" name="identifier" uitype="formattedtext" isrequired="false"/>
                     <cell type="label" labelfor="herbarium"/>
                 	<cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
-					<cell type="label" label=" "/>
-					<cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                	<cell type="label" label=" "/>
-                	<cell type="label" label=" "/>
-                	<cell type="label" label=" "/>
-                	<cell type="label" label=" "/>
                 	<cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
-                </row>
-				<row>
-					<cell type="label" labelfor="collectionObject"/>
-					<cell type="field" id="collectionObject" name="collectionObject" uitype="querycbx" formatname="CollectionObjectDetail" initialize="name=CollectionObject" isrequired="true" colspan="3"/>
+					<cell type="subview" id="attachments" viewname="ObjectAttachment" name="fragmentAttachments" initialize="btn=true;icon=FragmentAttachment"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="accessionNumber"/>
                     <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
                 	<cell type="label" labelfor="replicates"/>
                     <cell type="field" id="replicates" name="number1" uitype="text"/>
+                   	<cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="distribution"/>
@@ -856,12 +864,12 @@
                     <cell type="label" labelfor="remarks"/>
                     <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
                 </row>
+				<row>
+					<cell type="subview" id="collectionObject" name="collectionObject" viewname="CollectionObject" colspan="12"/>
+				</row>
+                
                 <row>
                 	<cell type="label" label=" "/>
-                </row>
-                <row>
-					<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="true" colspan="3"/>
                 </row>
                 <row>
 	                <cell type="label" labelfor="prepMethod"/>
@@ -871,6 +879,9 @@
                     <cell type="label" labelfor="sex"/>
                 	<cell type="field" id="sex" name="sex" uitype="combobox" picklist="HUH Plant Sexuality"/>
                 </row>
+				<row>
+					<cell type="subview" id="preparation" name="preparation" viewname="Preparation" colspan="12"/>
+				</row>
                 <row>
                 	<cell type="label" label=" "/>
                 </row>
@@ -883,12 +894,6 @@
 				<row>
 					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" colspan="12"/>
 				</row>
-                <row>
-                    <cell type="subview" id="fragattachments" viewname="ObjectAttachment" name="fragmentAttachments" colspan="12" initialize="btn=true;icon=FragmentAttachment"/>
-                </row>
-                <row>
-                    <cell type="separator" label="Attachments" colspan="12"/>
-                </row>
                 <row>
                     <cell type="label" labelfor="createdByAgent"/>
                     <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
@@ -950,6 +955,10 @@
                     <cell type="label" labelfor="timestampModified"/>
                     <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
                 </row>
+                <row>
+                	<cell type="label" labelfor="collectionObject"/>
+                	<cell type="field" id="collectionObject" name="collectionObject" uitype="querycbx" formatname="CollectionObjectDetail" initialize="name=CollectionObject" colspan="7"/>
+                </row>
             </rows>
         </viewdef>
         
@@ -961,10 +970,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Other Identifier]]></desc>
             
-            <columnDef>         80px, 2px, 200px, 5px,   100px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="lnx">80px, 2px, 200px, 5px,   100px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="mac">70px, 2px, 180px, 5px,    70px, 2px, 180px, 5px,   40px, 2px, p:g</columnDef>
-            <columnDef os="exp">p,    2px, 200px, 5px:g, p,     2px, 200px, 5px:g, p,    2px, p:g</columnDef>
+            <columnDef>         80px, 2px, 200px, 5px,   100px, 2px, 200px, 0px, p:g</columnDef>
+            <columnDef os="lnx">80px, 2px, 360px, 5px,   100px, 2px, 200px, 0px, p:g</columnDef>
+            <columnDef os="mac">70px, 2px, 180px, 5px,    70px, 2px, 180px, 0px, p:g</columnDef>
+            <columnDef os="exp">p,    2px, 200px, 5px:g, p,     2px, 200px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -976,7 +985,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="text" colspan="7"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="text" colspan="6"/>
                 </row>
             </rows>
         </viewdef>
@@ -1002,10 +1011,10 @@
             <desc><![CDATA[Preparation form.]]></desc>
             <enableRules/>
 
-            <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  2px, 100px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 145px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  2px, 100px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,   100px, 2px, 174px,  2px, 100px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px, 10px,     p, p:g</columnDef>
+            <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 145px,        5px,    75px, 2px, 130px, 25px,  100px, 2px, 126px,  p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,   100px, 2px, 174px,  p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px,  p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -1014,20 +1023,12 @@
                 	<cell type="field" id="identifier" uitype="formattedtext" name="identifier"/>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
-                    <cell type="label" label=" "/>
                 	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
+                	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
-                <!-- <row>
-                	<cell type="label" labelfor="itemNo"/>
-                	<cell type="field" id="itemNo" name="sampleNumber" uitype="text" default="1"/>
-                	<cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="countAmt" uitype="text" default="1"/>
-					<cell type="label" labelfor="tag"/>
-                	<cell type="field" id="tag" name="text1" uitype="text" colspan="3"/>
-                </row> -->
 				<row>
 					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" formatname="BatchPrepDetail" colspan="5"/>
+					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" formatname="BatchPrepDetail" colspan="8"/>
 				</row>
                 <row>
                 	<cell type="label" labelfor="storage"/>
@@ -1035,18 +1036,15 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="11"/>
+                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="10"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="description"/>
-                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="11"/>
+                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="11"/>
-                </row>
-                <row>
-                 	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
                 </row>
             </rows>
         </viewdef>

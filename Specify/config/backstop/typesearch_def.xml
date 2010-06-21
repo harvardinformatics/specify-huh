@@ -85,4 +85,7 @@
 	    SELECT DISTINCT %s1 FROM AgentVariant av WHERE av.varType = 3 AND %s2 ORDER BY name
     </typesearch>
     <typesearch tableid="77"  name="TaxonTreeDefItem"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
+    <typesearch tableid="5"   name="TransactionAgent"       searchfield="org.abbreviation,ag.abbreviation" displaycols="ag.abbreviation,ag.firstName,ag.lastName" format="%s %s %s"     dataobjformatter="Agent">
+           SELECT distinct %s1 FROM Agent ag LEFT JOIN ag.organization as org WHERE %s2 ORDER BY ifnull(ag.abbreviation, org.abbreviation), ifnull(org.abbreviation, 'a'), ag.lastName
+    </typesearch>
 </typesearches>
