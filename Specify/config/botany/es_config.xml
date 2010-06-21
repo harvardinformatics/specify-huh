@@ -1,11 +1,11 @@
 <search>
   <tables>
     <searchtable>
-      <tableName>Agent</tableName>
+      <tableName>AgentVariant</tableName>
       <displayOrder>0</displayOrder>
       <searchFields>
         <searchfield>
-          <fieldName>lastName</fieldName>
+          <fieldName>name</fieldName>
           <isSortable>true</isSortable>
           <isAscending>true</isAscending>
           <order>3</order>
@@ -13,12 +13,12 @@
       </searchFields>
       <displayFields>
         <displayfield>
-          <fieldName>firstName</fieldName>
+          <fieldName>varType</fieldName>
           <formatter></formatter>
           <order>1</order>
         </displayfield>
         <displayfield>
-          <fieldName>lastName</fieldName>
+          <fieldName>name</fieldName>
           <formatter></formatter>
           <order>0</order>
         </displayfield>
@@ -157,6 +157,31 @@
       </displayFields>
       <wsFields/>
     </searchtable>
+    <searchtable>
+      <tableName>Agent</tableName>
+      <displayOrder>8</displayOrder>
+      <searchFields>
+        <searchfield>
+          <fieldName>lastName</fieldName>
+          <isSortable>true</isSortable>
+          <isAscending>true</isAscending>
+          <order>3</order>
+        </searchfield>
+      </searchFields>
+      <displayFields>
+        <displayfield>
+          <fieldName>lastName</fieldName>
+          <formatter></formatter>
+          <order>1</order>
+        </displayfield>
+        <displayfield>
+          <fieldName>firstName</fieldName>
+          <formatter></formatter>
+          <order>0</order>
+        </displayfield>
+      </displayFields>
+      <wsFields/>
+    </searchtable>
   </tables>
   <relatedQueries>
     <relatedquery>
@@ -272,7 +297,7 @@
     </entry>
     <entry>
       <string>5</string>
-      <searchtable reference="../../../tables/searchtable"/>
+      <searchtable reference="../../../tables/searchtable[8]"/>
     </entry>
     <entry>
       <string>4</string>
@@ -293,6 +318,10 @@
     <entry>
       <string>10</string>
       <searchtable reference="../../../tables/searchtable[2]"/>
+    </entry>
+    <entry>
+      <string>107</string>
+      <searchtable reference="../../../tables/searchtable"/>
     </entry>
   </tableIdHash>
   <tableNameHash>
@@ -318,11 +347,15 @@
     </entry>
     <entry>
       <string>Agent</string>
-      <searchtable reference="../../../tables/searchtable"/>
+      <searchtable reference="../../../tables/searchtable[8]"/>
     </entry>
     <entry>
       <string>Locality</string>
       <searchtable reference="../../../tables/searchtable[6]"/>
+    </entry>
+    <entry>
+      <string>AgentVariant</string>
+      <searchtable reference="../../../tables/searchtable"/>
     </entry>
   </tableNameHash>
 </search>
