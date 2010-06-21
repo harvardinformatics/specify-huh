@@ -54,6 +54,9 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.AgentVariant" abbrev="av" id="107" workbench="false" searchable="true">
         	<display view="AgentVariant" newobjdlg="AgentVariant"/>
+        	<fieldaliases>
+                <field vname="variantName" aname="name"/>
+            </fieldaliases> 
         </table>
         <table name="edu.ku.brc.specify.datamodel.Appraisal" abbrev="aps" id="67" workbench="false" searchable="true">
         	<display view="Appraisal" searchdlg="AppraisalSearch" newobjdlg="AppraisalDisplay"/>
