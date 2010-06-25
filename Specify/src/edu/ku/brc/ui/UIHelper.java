@@ -78,6 +78,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -855,6 +856,16 @@ public final class UIHelper
 
             } catch (ParseException ex)
             {
+                try
+                {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(new SimpleDateFormat("yyyy-mm-dd").parse(dateStr));
+                    return cal;
+                }
+                catch (ParseException ex2)
+                {
+                    ;
+                }
                 log.error("Date is in error for parsing["+dateStr+"]");
             }
         }
