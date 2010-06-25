@@ -87,6 +87,11 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     public static final byte                OTHER  = 2;
     public static final byte                GROUP  = 3;
 
+    public static final byte                BIRTH              = 0;
+    public static final byte                FLOURISHED         = 1;
+    public static final byte                COLLECTED          = 2;
+    public static final byte                RECEIVED_SPECIMENS = 3;
+
     protected Integer                       agentId;
     /** Organization (0), Person (1), Other (2) or Group (3) */
     protected Byte                          agentType;
@@ -96,9 +101,12 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     protected String                        middleInitial;
     protected String                        title;               // Mr., Mrs., Dr.
     protected Calendar                      dateOfBirth;
-    protected String                        dateOfBirthPrecision; // "ca.", "?"
+    protected String                        dateOfBirthConfidence; // "ca.", "?"
+    protected Byte                          dateOfBirthPrecision; // Accurate to Year, Month, Day
     protected Calendar                      dateOfDeath;
-    protected String                        dateOfDeathPrecision; // "ca.", "?"
+    protected String                        dateOfDeathConfidence; // "ca.", "?"
+    protected Byte                          dateOfDeathPrecision;   // Accurate to Year, Month, Day
+    protected Byte                          datesType;
     protected String                        interests;
     protected String                        abbreviation;
     protected String                        initials;
@@ -206,14 +214,17 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         super.init();
         agentId                   = null;
         agentType                 = PERSON;
+        datesType                 = null;
         firstName                 = null;
         lastName                  = null;
         middleInitial             = null;
         title                     = null;
         dateOfBirth               = null;
+        dateOfBirthConfidence     = null;
         dateOfBirthPrecision      = null;
         dateOfDeath               = null;
         dateOfDeathPrecision      = null;
+        dateOfDeathConfidence     = null;
         interests                 = null;
         abbreviation              = null;
         initials                  = null;
@@ -414,15 +425,27 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @Column(name = "DateOfBirthPrecision", length = 4)
-    public String getDateOfBirthPrecision() {
-        return this.dateOfBirthPrecision;
+    @Column(name = "DateOfBirthConfidence", length = 4)
+    public String getDateOfBirthConfidence() {
+        return this.dateOfBirthConfidence;
     }
     
-    public void setDateOfBirthPrecision(String dateOfBirthPrecision) {
+    public void setDateOfBirthConfidence(String dateOfBirthConfidence) {
+        this.dateOfBirthConfidence = dateOfBirthConfidence;
+    }
+    
+    /**
+     * 
+     */
+    @Column(name = "DateOfBirthPrecision")
+    public Byte getDateOfBirthPrecision() {
+        return this.dateOfBirthPrecision != null ? this.dateOfBirthPrecision : (byte)UIFieldFormatterIFace.PartialDateEnum.Full.ordinal();
+    }
+    
+    public void setDateOfBirthPrecision(Byte dateOfBirthPrecision) {
         this.dateOfBirthPrecision = dateOfBirthPrecision;
     }
-    
+
     /**
      * @return the dateOfDeath
      */
@@ -444,15 +467,40 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     /**
      * 
      */
-    @Column(name = "DateOfDeathPrecision", length = 4)
-    public String getDateOfDeathPrecision() {
-        return this.dateOfDeathPrecision;
+    @Column(name = "DateOfDeathConfidence", length = 4)
+    public String getDateOfDeathConfidence() {
+        return this.dateOfDeathConfidence;
     }
     
-    public void setDateOfDeathPrecision(String dateOfDeathPrecision) {
+    public void setDateOfDeathConfidence(String dateOfDeathConfidence) {
+        this.dateOfDeathConfidence = dateOfDeathConfidence;
+    }
+    
+    /**
+     * 
+     */
+    @Column(name = "DateOfDeathPrecision")
+    public Byte getDateOfDeathPrecision() {
+        return this.dateOfDeathPrecision != null ? this.dateOfDeathPrecision : (byte)UIFieldFormatterIFace.PartialDateEnum.Full.ordinal();
+    }
+    
+    public void setDateOfDeathPrecision(Byte dateOfDeathPrecision) {
         this.dateOfDeathPrecision = dateOfDeathPrecision;
     }
     
+    /**
+    *
+    */
+   @Column(name = "DatesType")
+   public Byte getDatesType() {
+       return this.datesType;
+   }
+
+   public void setDatesType(Byte datesType) 
+   {
+       this.datesType = datesType;
+   }
+   
     /**
      *      * of Person or Organization
      */
