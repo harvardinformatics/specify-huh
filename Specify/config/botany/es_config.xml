@@ -1,11 +1,11 @@
 <search>
   <tables>
     <searchtable>
-      <tableName>AgentVariant</tableName>
-      <displayOrder>0</displayOrder>
+      <tableName>Agent</tableName>
+      <displayOrder>8</displayOrder>
       <searchFields>
         <searchfield>
-          <fieldName>name</fieldName>
+          <fieldName>lastName</fieldName>
           <isSortable>true</isSortable>
           <isAscending>true</isAscending>
           <order>3</order>
@@ -13,21 +13,50 @@
       </searchFields>
       <displayFields>
         <displayfield>
-          <fieldName>varType</fieldName>
+          <fieldName>firstName</fieldName>
+          <formatter></formatter>
+          <order>0</order>
+          <isInitialInUse>false</isInitialInUse>
+        </displayfield>
+        <displayfield>
+          <fieldName>lastName</fieldName>
           <formatter></formatter>
           <order>1</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
+      </displayFields>
+      <wsFields/>
+    </searchtable>
+    <searchtable>
+      <tableName>AgentVariant</tableName>
+      <displayOrder>1</displayOrder>
+      <searchFields>
+        <searchfield>
+          <fieldName>name</fieldName>
+          <isSortable>true</isSortable>
+          <isAscending>true</isAscending>
+          <order>0</order>
+        </searchfield>
+      </searchFields>
+      <displayFields>
         <displayfield>
           <fieldName>name</fieldName>
           <formatter></formatter>
           <order>0</order>
+          <isInitialInUse>false</isInitialInUse>
+        </displayfield>
+        <displayfield>
+          <fieldName>varType</fieldName>
+          <formatter>AgentVariantVarType</formatter>
+          <order>1</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
     </searchtable>
     <searchtable>
       <tableName>CollectingEvent</tableName>
-      <displayOrder>1</displayOrder>
+      <displayOrder>0</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>startDate</fieldName>
@@ -47,32 +76,13 @@
           <fieldName>startDate</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
         <displayfield>
           <fieldName>stationFieldNumber</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
-        </displayfield>
-      </displayFields>
-      <wsFields/>
-    </searchtable>
-    <searchtable>
-      <tableName>Fragment</tableName>
-      <displayOrder>2</displayOrder>
-      <searchFields>
-        <searchfield>
-          <fieldName>identifier</fieldName>
-          <formatter></formatter>
-          <isSortable>false</isSortable>
-          <isAscending>true</isAscending>
-          <order>0</order>
-        </searchfield>
-      </searchFields>
-      <displayFields>
-        <displayfield>
-          <fieldName>identifier</fieldName>
-          <formatter>HUHFragmentBarcode</formatter>
-          <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
@@ -93,6 +103,7 @@
           <fieldName>determinedDate</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
@@ -113,6 +124,28 @@
           <fieldName>fullName</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
+        </displayfield>
+      </displayFields>
+      <wsFields/>
+    </searchtable>
+    <searchtable>
+      <tableName>Fragment</tableName>
+      <displayOrder>2</displayOrder>
+      <searchFields>
+        <searchfield>
+          <fieldName>identifier</fieldName>
+          <isSortable>false</isSortable>
+          <isAscending>true</isAscending>
+          <order>0</order>
+        </searchfield>
+      </searchFields>
+      <displayFields>
+        <displayfield>
+          <fieldName>identifier</fieldName>
+          <formatter>HUHFragmentBarcode</formatter>
+          <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
@@ -133,6 +166,7 @@
           <fieldName>localityName</fieldName>
           <formatter></formatter>
           <order>2147483647</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
@@ -153,31 +187,7 @@
           <fieldName>fullName</fieldName>
           <formatter></formatter>
           <order>0</order>
-        </displayfield>
-      </displayFields>
-      <wsFields/>
-    </searchtable>
-    <searchtable>
-      <tableName>Agent</tableName>
-      <displayOrder>8</displayOrder>
-      <searchFields>
-        <searchfield>
-          <fieldName>lastName</fieldName>
-          <isSortable>true</isSortable>
-          <isAscending>true</isAscending>
-          <order>3</order>
-        </searchfield>
-      </searchFields>
-      <displayFields>
-        <displayfield>
-          <fieldName>lastName</fieldName>
-          <formatter></formatter>
-          <order>1</order>
-        </displayfield>
-        <displayfield>
-          <fieldName>firstName</fieldName>
-          <formatter></formatter>
-          <order>0</order>
+          <isInitialInUse>false</isInitialInUse>
         </displayfield>
       </displayFields>
       <wsFields/>
@@ -190,172 +200,413 @@
     </relatedquery>
     <relatedquery>
       <id>1</id>
-      <displayOrder>8</displayOrder>
-    </relatedquery>
-    <relatedquery>
-      <id>2</id>
       <displayOrder>9</displayOrder>
     </relatedquery>
     <relatedquery>
-      <id>3</id>
+      <id>2</id>
       <displayOrder>10</displayOrder>
     </relatedquery>
-    <relatedquery>
-      <id>4</id>
+    <relatedquery isactive="true">
+      <id>3</id>
       <displayOrder>11</displayOrder>
     </relatedquery>
     <relatedquery>
-      <id>5</id>
+      <id>4</id>
       <displayOrder>12</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
-      <id>11</id>
+    <relatedquery isactive="true">
+      <id>5</id>
       <displayOrder>13</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
-      <id>7</id>
+    <relatedquery isactive="true">
+      <id>11</id>
       <displayOrder>14</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
+    <relatedquery isactive="true">
+      <id>7</id>
+      <displayOrder>15</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
       <id>8</id>
       <displayOrder>15</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
+    <relatedquery isactive="true">
       <id>10</id>
       <displayOrder>16</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
+    <relatedquery isactive="false">
       <id>12</id>
       <displayOrder>17</displayOrder>
-      <isActive>true</isActive>
     </relatedquery>
-    <relatedquery>
+    <relatedquery isactive="true">
       <id>6</id>
+      <displayOrder>17</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>32</id>
       <displayOrder>18</displayOrder>
-      <isActive>true</isActive>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>33</id>
+      <displayOrder>19</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>34</id>
+      <displayOrder>20</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>36</id>
+      <displayOrder>21</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>38</id>
+      <displayOrder>22</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>39</id>
+      <displayOrder>23</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>43</id>
+      <displayOrder>24</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>45</id>
+      <displayOrder>25</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>48</id>
+      <displayOrder>26</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>49</id>
+      <displayOrder>27</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>51</id>
+      <displayOrder>28</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>52</id>
+      <displayOrder>29</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="true">
+      <id>63</id>
+      <displayOrder>30</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>15</id>
+      <displayOrder>31</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>13</id>
+      <displayOrder>32</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>37</id>
+      <displayOrder>33</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>40</id>
+      <displayOrder>34</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>16</id>
+      <displayOrder>35</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>29</id>
+      <displayOrder>36</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>41</id>
+      <displayOrder>37</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>42</id>
+      <displayOrder>38</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>44</id>
+      <displayOrder>39</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>53</id>
+      <displayOrder>40</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>54</id>
+      <displayOrder>41</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="true">
+      <id>55</id>
+      <displayOrder>42</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>57</id>
+      <displayOrder>43</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>59</id>
+      <displayOrder>44</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="true">
+      <id>60</id>
+      <displayOrder>45</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>30</id>
+      <displayOrder>46</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>24</id>
+      <displayOrder>47</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>28</id>
+      <displayOrder>48</displayOrder>
     </relatedquery>
   </relatedQueries>
   <relatedQueryIdHash>
     <entry>
-      <string>9</string>
+      <formatter>29</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[31]"/>
+    </entry>
+    <entry>
+      <formatter>28</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[43]"/>
+    </entry>
+    <entry>
+      <formatter>59</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[39]"/>
+    </entry>
+    <entry>
+      <formatter>57</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[38]"/>
+    </entry>
+    <entry>
+      <formatter>24</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[42]"/>
+    </entry>
+    <entry>
+      <formatter>55</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[37]"/>
+    </entry>
+    <entry>
+      <formatter>54</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[36]"/>
+    </entry>
+    <entry>
+      <formatter>53</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[35]"/>
+    </entry>
+    <entry>
+      <formatter>52</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[24]"/>
+    </entry>
+    <entry>
+      <formatter>51</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[23]"/>
+    </entry>
+    <entry>
+      <formatter>9</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery"/>
     </entry>
     <entry>
-      <string>8</string>
+      <formatter>8</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[9]"/>
     </entry>
     <entry>
-      <string>7</string>
+      <formatter>7</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[8]"/>
     </entry>
     <entry>
-      <string>6</string>
+      <formatter>6</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[12]"/>
     </entry>
     <entry>
-      <string>5</string>
+      <formatter>49</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[22]"/>
+    </entry>
+    <entry>
+      <formatter>5</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[6]"/>
     </entry>
     <entry>
-      <string>4</string>
+      <formatter>16</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[30]"/>
+    </entry>
+    <entry>
+      <formatter>48</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[21]"/>
+    </entry>
+    <entry>
+      <formatter>4</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[5]"/>
     </entry>
     <entry>
-      <string>12</string>
-      <relatedquery reference="../../../relatedQueries/relatedquery[11]"/>
+      <formatter>15</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[26]"/>
     </entry>
     <entry>
-      <string>3</string>
+      <formatter>3</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[4]"/>
     </entry>
     <entry>
-      <string>2</string>
+      <formatter>2</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[3]"/>
     </entry>
     <entry>
-      <string>11</string>
+      <formatter>13</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[27]"/>
+    </entry>
+    <entry>
+      <formatter>45</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[20]"/>
+    </entry>
+    <entry>
+      <formatter>1</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[2]"/>
+    </entry>
+    <entry>
+      <formatter>12</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[11]"/>
+    </entry>
+    <entry>
+      <formatter>44</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[34]"/>
+    </entry>
+    <entry>
+      <formatter>11</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[7]"/>
     </entry>
     <entry>
-      <string>10</string>
+      <formatter>43</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[19]"/>
+    </entry>
+    <entry>
+      <formatter>10</formatter>
       <relatedquery reference="../../../relatedQueries/relatedquery[10]"/>
     </entry>
     <entry>
-      <string>1</string>
-      <relatedquery reference="../../../relatedQueries/relatedquery[2]"/>
+      <formatter>42</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[33]"/>
+    </entry>
+    <entry>
+      <formatter>41</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[32]"/>
+    </entry>
+    <entry>
+      <formatter>40</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[29]"/>
+    </entry>
+    <entry>
+      <formatter>39</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[18]"/>
+    </entry>
+    <entry>
+      <formatter>38</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[17]"/>
+    </entry>
+    <entry>
+      <formatter>37</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[28]"/>
+    </entry>
+    <entry>
+      <formatter>36</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[16]"/>
+    </entry>
+    <entry>
+      <formatter>34</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[15]"/>
+    </entry>
+    <entry>
+      <formatter>33</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[14]"/>
+    </entry>
+    <entry>
+      <formatter>32</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[13]"/>
+    </entry>
+    <entry>
+      <formatter>63</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[25]"/>
+    </entry>
+    <entry>
+      <formatter>30</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[41]"/>
+    </entry>
+    <entry>
+      <formatter>60</formatter>
+      <relatedquery reference="../../../relatedQueries/relatedquery[40]"/>
     </entry>
   </relatedQueryIdHash>
   <tableIdHash>
     <entry>
-      <string>9</string>
-      <searchtable reference="../../../tables/searchtable[4]"/>
-    </entry>
-    <entry>
-      <string>5</string>
-      <searchtable reference="../../../tables/searchtable[8]"/>
-    </entry>
-    <entry>
-      <string>4</string>
-      <searchtable reference="../../../tables/searchtable[7]"/>
-    </entry>
-    <entry>
-      <string>3</string>
-      <searchtable reference="../../../tables/searchtable[5]"/>
-    </entry>
-    <entry>
-      <string>2</string>
-      <searchtable reference="../../../tables/searchtable[6]"/>
-    </entry>
-    <entry>
-      <string>142</string>
-      <searchtable reference="../../../tables/searchtable[3]"/>
-    </entry>
-    <entry>
-      <string>10</string>
+      <formatter>107</formatter>
       <searchtable reference="../../../tables/searchtable[2]"/>
     </entry>
     <entry>
-      <string>107</string>
+      <formatter>9</formatter>
+      <searchtable reference="../../../tables/searchtable[4]"/>
+    </entry>
+    <entry>
+      <formatter>5</formatter>
       <searchtable reference="../../../tables/searchtable"/>
+    </entry>
+    <entry>
+      <formatter>4</formatter>
+      <searchtable reference="../../../tables/searchtable[8]"/>
+    </entry>
+    <entry>
+      <formatter>3</formatter>
+      <searchtable reference="../../../tables/searchtable[5]"/>
+    </entry>
+    <entry>
+      <formatter>2</formatter>
+      <searchtable reference="../../../tables/searchtable[7]"/>
+    </entry>
+    <entry>
+      <formatter>10</formatter>
+      <searchtable reference="../../../tables/searchtable[3]"/>
+    </entry>
+    <entry>
+      <formatter>142</formatter>
+      <searchtable reference="../../../tables/searchtable[6]"/>
     </entry>
   </tableIdHash>
   <tableNameHash>
     <entry>
-      <string>Geography</string>
+      <formatter>Geography</formatter>
       <searchtable reference="../../../tables/searchtable[5]"/>
     </entry>
     <entry>
-      <string>CollectingEvent</string>
-      <searchtable reference="../../../tables/searchtable[2]"/>
-    </entry>
-    <entry>
-      <string>Determination</string>
-      <searchtable reference="../../../tables/searchtable[4]"/>
-    </entry>
-    <entry>
-      <string>Fragment</string>
+      <formatter>CollectingEvent</formatter>
       <searchtable reference="../../../tables/searchtable[3]"/>
     </entry>
     <entry>
-      <string>Taxon</string>
-      <searchtable reference="../../../tables/searchtable[7]"/>
+      <formatter>Determination</formatter>
+      <searchtable reference="../../../tables/searchtable[4]"/>
     </entry>
     <entry>
-      <string>Agent</string>
+      <formatter>Taxon</formatter>
       <searchtable reference="../../../tables/searchtable[8]"/>
     </entry>
     <entry>
-      <string>Locality</string>
+      <formatter>Fragment</formatter>
       <searchtable reference="../../../tables/searchtable[6]"/>
     </entry>
     <entry>
-      <string>AgentVariant</string>
+      <formatter>Agent</formatter>
       <searchtable reference="../../../tables/searchtable"/>
+    </entry>
+    <entry>
+      <formatter>AgentVariant</formatter>
+      <searchtable reference="../../../tables/searchtable[2]"/>
+    </entry>
+    <entry>
+      <formatter>Locality</formatter>
+      <searchtable reference="../../../tables/searchtable[7]"/>
     </entry>
   </tableNameHash>
 </search>
