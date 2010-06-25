@@ -1336,21 +1336,21 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         if (hasStdAuthor)
         {
             stdAuthorName = getStdAuthor().getAuthorName();
-            if (stdAuthorName == null) stdAuthorName = getStdAuthor().getLastName();
+            if (stdAuthorName == null) stdAuthorName = "";
         }
         
         String parAuthorName = "";
         if (hasParAuthor)
         {
             parAuthorName = getParAuthor().getAuthorName();
-            if (parAuthorName == null) parAuthorName = getParAuthor().getLastName();
+            if (parAuthorName == null) parAuthorName = "";
         } 
             
         String stdExAuthorName = "";
         if (hasStdExAuthor)
         {
             stdExAuthorName = getStdExAuthor().getAuthorName();
-            if (stdExAuthorName == null) stdExAuthorName = getStdExAuthor().getLastName();
+            if (stdExAuthorName == null) stdExAuthorName = "";
         }
         if (stdExAuthorName != null) stdExAuthorName = " ex " + stdExAuthorName;
         
@@ -1358,7 +1358,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         if (hasParExAuthor)
         {
             parExAuthorName = getParExAuthor().getAuthorName();
-            if (parExAuthorName == null) parExAuthorName = getParExAuthor().getLastName();
+            if (parExAuthorName == null) parExAuthorName = "";
         }
         if (parExAuthorName != null) parExAuthorName = " ex " + parExAuthorName;
         

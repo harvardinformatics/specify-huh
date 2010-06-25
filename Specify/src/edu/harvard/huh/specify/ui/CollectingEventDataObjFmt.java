@@ -108,10 +108,7 @@ public class CollectingEventDataObjFmt implements DataObjDataFieldFormatIFace, C
                     {
                         collectorName = agent.getCollectorName();
                     }
-                    else
-                    {
-                        collectorName = agent.getLastName();
-                    }
+
                     if (ctr.getEtAl() != null) collectorName += ", " + ctr.getEtAl();
                 }
             }

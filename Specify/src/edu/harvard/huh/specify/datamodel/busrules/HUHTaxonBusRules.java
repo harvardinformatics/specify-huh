@@ -301,7 +301,7 @@ public class HUHTaxonBusRules extends TaxonBusRules
 
             if (author.getAuthorName() == null)
             {
-                reasonList.add(String.format(getResourceString("TaxonBusRules.NO_AUTHOR_ABBREV_VAR"), author.getLastName()));
+                reasonList.add(getResourceString("TaxonBusRules.NO_AUTHOR_ABBREV_VAR"));
                 authorStatus = STATUS.Error;
             }
         }

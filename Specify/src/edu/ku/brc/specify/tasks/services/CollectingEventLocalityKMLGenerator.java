@@ -397,13 +397,8 @@ public class CollectingEventLocalityKMLGenerator
 		List<String> agentNames = new Vector<String>();
 		for( Collector c : ce.getCollectors() )
 		{
-            if (StringUtils.isEmpty(c.getAgent().getFirstName()))
-            {
-                agentNames.add(c.getAgent().getLastName());
-            } else
-            {
-                agentNames.add(c.getAgent().getFirstName()+ " "+ c.getAgent().getLastName());
-            }
+		    String collectorName = c.getAgent().getCollectorName();
+		    if (collectorName != null) agentNames.add(collectorName);
 		}
 
 		// get taxonomy of collection object

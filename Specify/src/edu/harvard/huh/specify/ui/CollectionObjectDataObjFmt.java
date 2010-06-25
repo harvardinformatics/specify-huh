@@ -110,10 +110,7 @@ public class CollectionObjectDataObjFmt implements DataObjDataFieldFormatIFace, 
                         {
                             collectorName = agent.getCollectorName();
                         }
-                        else
-                        {
-                            collectorName = agent.getLastName();
-                        }
+
                         if (ctr.getEtAl() != null) collectorName += ", " + ctr.getEtAl();
                     }
                 }

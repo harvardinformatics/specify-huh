@@ -399,7 +399,8 @@ public class TaxonLabelFormatting extends UIPluginBase
                         int authNum = Integer.parseInt(token.substring(2))-1;
                         if (authNum < model.getSize())
                         {
-                            val = ((Agent)model.get(authNum)).getLastName();
+                            val = ((Agent)model.get(authNum)).getAuthorName();
+                            if (val == null) val = "";
                         } else
                         {
                             val = token;
