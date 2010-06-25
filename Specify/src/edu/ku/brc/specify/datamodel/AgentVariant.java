@@ -31,6 +31,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Index;
+
 /**
  * @author rods
  *
@@ -43,6 +45,9 @@ import javax.persistence.Transient;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "agentvariant")
+@org.hibernate.annotations.Table(appliesTo="agentvariant", indexes =
+    {   @Index (name="NameIDX", columnNames={"Name"})    
+    })
 public class AgentVariant extends DataModelObjBase implements Serializable
 {
     public static final Byte VARIANT       = 0;
