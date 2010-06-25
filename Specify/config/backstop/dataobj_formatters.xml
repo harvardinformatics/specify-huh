@@ -78,11 +78,12 @@
         >
         <switch single="false" field="agentType">
             <fields value="0">
-                <field>lastName</field>
+            	<field>abbreviation</field>
+                <field sep=" ">lastName</field>
             </fields>
             <fields value="1">
-                <field>lastName</field>
-                <field sep=", ">firstName</field>
+                <field>dateOfBirth</field>
+                <field sep="-">dateOfDeath</field>
             </fields>
             <fields value="2">
                 <field>lastName</field>
@@ -870,6 +871,17 @@
                 orderfieldname=""
                />
 
+	<aggregator name="Agent"
+                title="AgentAttachment"
+                class="edu.ku.brc.specify.datamodel.Agent"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="Agent"
+                orderfieldname=""
+               />
+               
     <aggregator name="AgentAttachment"
                 title="AgentAttachment"
                 class="edu.ku.brc.specify.datamodel.AgentAttachment"
