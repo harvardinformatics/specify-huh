@@ -179,4 +179,11 @@
   <format system="true" name="SearchDate" class="java.util.Date" type="date" partialdate="Search">
   </format>
 
+  <format system="true" name="AgentVariantVarType" class="java.lang.Integer">
+  	<external>edu.harvard.huh.specify.ui.AgentVariantVarTypeFormatter</external>
+  </format>
+  
+  <format system="true" name="AgentDatesType" class="java.lang.Integer">
+  	<external>edu.harvard.huh.specify.ui.AgentDatesTypeFormatter</external>
+  </format>
 </formats>
