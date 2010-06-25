@@ -23,10 +23,15 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Component;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.busrules.AgentBusRules;
 import edu.ku.brc.ui.UIHelper;
@@ -80,6 +85,43 @@ public class HUHAgentBusRules extends AgentBusRules
         super();
     }
     
+    @Override
+    public void initialize(Viewable viewableArg)
+    {
+        viewable = viewableArg;
+        if (viewable instanceof FormViewObj)
+        {
+            formViewObj = (FormViewObj)viewable;
+        }
+        
+        if (formViewObj != null)
+        {
+            typeComp       = formViewObj.getCompById("0");
+            
+            if (typeComp instanceof ValComboBox)
+            {
+                ValComboBox typeCBX = ((ValComboBox)typeComp);
+                typeCBX.getComboBox().addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        if (!ignoreSet)
+                        {
+                            fixUpTypeCBX((JComboBox)e.getSource());
+                        }
+                    }
+                });
+                
+                // Fill Type CBX with localized strings
+                if (typeCBX.getComboBox().getModel().getSize() == 0)
+                {
+                    for (String t : typeTitles)
+                    {
+                        typeCBX.getComboBox().addItem(t);
+                    }
+                }
+            }
+        }
+    }
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
      */
@@ -89,6 +131,9 @@ public class HUHAgentBusRules extends AgentBusRules
         reasonList.clear();
         STATUS status =  super.processBusinessRules(dataObj);
 
+        if (!STATUS.OK.equals(status)) return status;
+        
+        status = checkVariants((Agent) dataObj);
         return status;
     }
     
@@ -101,11 +146,11 @@ public class HUHAgentBusRules extends AgentBusRules
     protected STATUS checkVariants(final Agent agent)
     {
         // check that at least one variant exists
-        if (agent.getVariants().size() < 1)
+        if (agent.getVariants().size() < 1 && agent.getLastName() == null)
         {
             reasonList.add(getResourceString("AgentBusRules.NO_VARIANTS"));
 
-            return STATUS.Warning;
+            return STATUS.Error;
         }
 
         return STATUS.OK;
@@ -175,23 +220,17 @@ public class HUHAgentBusRules extends AgentBusRules
         if (!isPerson)
         {
             agent.setFirstName(null);
-            agent.setMiddleInitial(null);
+            agent.setDatesType(null);
         }
         enableFieldAndLabel(ABBREV, isOrganization, doSetOtherValues ? agent.getAbbreviation() : null);
         // address is handled in fixUpTypeCBX
         enableFieldAndLabel(FIRST_NAME, isPerson, doSetOtherValues ? agent.getFirstName() : null);
         setVisible(GROUP_PERSONS, isGroup);
-        enableFieldAndLabel(MIDDLE_INIT, isPerson, doSetOtherValues ? agent.getMiddleInitial() : null);
+        enableFieldAndLabel(DATES_TYPE, isPerson, doSetOtherValues ? agent.getMiddleInitial() : null);
         enableFieldAndLabel(INITIALS, isPerson, doSetOtherValues ? agent.getInitials() : null);
         enableFieldAndLabel(INTERESTS, isPerson, doSetOtherValues ? agent.getInterests() : null);
         enableFieldAndLabel(JOB_TITLE, isPerson, doSetOtherValues ? agent.getJobTitle() : null);
         enableFieldAndLabel(TITLE, isPerson, doSetOtherValues ? agent.getTitle() : null);
-        
-        
-        // Last Name
-        String lbl = UIRegistry.getResourceString(isPerson ? "AG_LASTNAME" : "AG_NAME");
-        lastLabel.setText(lbl + ":");
-        
 
     }
     

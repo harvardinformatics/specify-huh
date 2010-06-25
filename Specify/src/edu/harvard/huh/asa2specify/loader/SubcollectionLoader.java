@@ -601,14 +601,6 @@ public class SubcollectionLoader extends TreeLoader
         else if (botanist.isGroup()) agent.setAgentType( Agent.GROUP );
         else agent.setAgentType( Agent.PERSON );
         
-        // FirstName
-        
-        // LastName
-        String lastName = botanist.getName();
-        checkNull(lastName, "last name");
-        lastName = truncate(lastName, 50, "last name");
-        agent.setLastName(lastName);
-        
         return agent;
     }
     
@@ -696,15 +688,14 @@ public class SubcollectionLoader extends TreeLoader
     
     private String getInsertSql(Agent agent) throws LocalException
     {
-        String fieldNames = "AgentType, GUID, LastName, TimestampCreated, Version";
+        String fieldNames = "AgentType, GUID, TimestampCreated, Version";
 
-        String[] values = new String[5];
+        String[] values = new String[4];
 
         values[0] = SqlUtils.sqlString( agent.getAgentType());
         values[1] = SqlUtils.sqlString( agent.getGuid());
-        values[2] = SqlUtils.sqlString( agent.getLastName());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        values[2] = SqlUtils.now();
+        values[3] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
