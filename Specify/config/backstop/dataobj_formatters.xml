@@ -107,6 +107,18 @@
 	</format>
 	
 	<format
+		name="AgentSpecialty"
+		title="AgentSpecialty"
+		class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+		>
+		<switch single="true">
+			<fields>
+				<field>specialtyName</field>
+			</fields>
+		</switch>
+	</format>
+	
+	<format
 		name="AttributeDef"
 		title="AttributeDef"
 		class="edu.ku.brc.specify.datamodel.AttributeDef"
@@ -870,17 +882,6 @@
                 format="Address"
                 orderfieldname=""
                />
-
-	<aggregator name="Agent"
-                title="AgentAttachment"
-                class="edu.ku.brc.specify.datamodel.Agent"
-                default="true"
-                separator="; "
-                ending=""
-                count=""
-                format="Agent"
-                orderfieldname=""
-               />
                
     <aggregator name="AgentAttachment"
                 title="AgentAttachment"
@@ -893,6 +894,28 @@
                 orderfieldname="ordinal"
                />
 
+	<aggregator name="AgentSpecialty"
+                title="AgentSpecialty"
+                class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="AgentSpecialty"
+                orderfieldname=""
+               />
+               
+	<aggregator name="AgentVariant"
+                title="AgentVariant"
+                class="edu.ku.brc.specify.datamodel.AgentVariant"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="AgentVariant"
+                orderfieldname=""
+               />
+               
     <aggregator name="CollectingEventAttachment"
                 title="CollectingEventAttachment"
                 class="edu.ku.brc.specify.datamodel.CollectingEventAttachment"
