@@ -54,8 +54,9 @@ import edu.ku.brc.specify.ui.db.PickListDBAdapterFactory;
  */
 public class PickListFormatter extends UIFieldFormatter
 {
+    protected String pickListName;
     
-    PickListIFace pickList = null;
+    protected PickListIFace pickList = null;
     
     /**
      * 
@@ -92,21 +93,14 @@ public class PickListFormatter extends UIFieldFormatter
 
     protected PickListIFace getPickList()
     {
-        return this.pickList;
-    }
-
-    protected void setPickList(PickListIFace pickList)
-    {
-        this.pickList = pickList;
-    }
-
-    protected PickListIFace getPickList(String pickListName) 
-    {
-        if (pickListName != null)
+        if (this.pickList == null)
         {
-            return PickListDBAdapterFactory.getInstance().create(pickListName, false).getPickList();
+            if (this.pickListName != null)
+            {
+                return PickListDBAdapterFactory.getInstance().create(pickListName, false).getPickList();
+            }
         }
-        return null;
+        return this.pickList;
     }
 
     /* (non-Javadoc)
@@ -137,9 +131,9 @@ public class PickListFormatter extends UIFieldFormatter
             i = (Integer) value;
         }
         
-        if (this.pickList != null && i != null)
+        if (getPickList() != null && i != null)
         {
-            for (PickListItemIFace item : this.pickList.getItems())
+            for (PickListItemIFace item : getPickList().getItems())
             {
                 Integer itemValue = Integer.parseInt(item.getValue());
                 if (itemValue.equals(i)) return item.getTitle();

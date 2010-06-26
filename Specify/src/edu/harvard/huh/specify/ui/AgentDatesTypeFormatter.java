@@ -19,7 +19,7 @@ import java.util.Vector;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterField;
 
 public class AgentDatesTypeFormatter extends PickListFormatter
-{
+{   
     public AgentDatesTypeFormatter()
     {
         super();
@@ -44,6 +44,6 @@ public class AgentDatesTypeFormatter extends PickListFormatter
     
     protected void init()
     {
-        this.setPickList(this.getPickList("HUH Agent Dates Type"));
+        this.pickListName = "HUH Agent Dates Type";
     }
 }

@@ -44,6 +44,6 @@ public class AgentVariantVarTypeFormatter extends PickListFormatter
     
     protected void init()
     {
-        this.setPickList(this.getPickList("HUH Agent Variant"));
+        this.pickListName = "HUH Agent Dates Type";
     }
 }
