@@ -21,7 +21,6 @@ package edu.harvard.huh.specify.ui;
 
 import java.util.Vector;
 
-import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatter;
@@ -30,6 +29,22 @@ import edu.ku.brc.specify.ui.db.PickListDBAdapterFactory;
 
 
 /**
+ * This base class is intended to be used for express search results formatting of fields
+ * that are integer values with corresponding picklist labels.  The formatToUI method
+ * looks up the integer value and returns the corresponding label.  The object passed to
+ * formatToUI may be an integer or a string representation of an integer.
+ * 
+ * Since the format manager class only keeps one instance of a UIFIeldFormatter object
+ * in memory at a time (per name), and because it is difficult to determine the name of
+ * the required pick list dynamically from the express search code, it is expected that
+ * this class be subclassed: one subclass per picklist.
+ * 
+ * The subclass obj should initialize itself with the proper picklist, and it should also
+ * have a distinct name in uiformatters.xml so that it can be referenced in the appropriate
+ * place in search.config.xml.
+ * 
+ * This is not ideal but good enough for the time being.
+ * 
  * @author mmk
  *
  * @code_status Alpha
@@ -102,9 +117,27 @@ public class PickListFormatter extends UIFieldFormatter
     {
         Object value = datas[0];
 
-        Integer i = (Integer) value;
+        if (value == null) return "";
         
-        if (this.pickList != null)
+        Integer i = null;
+        
+        if (value instanceof String)
+        {
+            try
+            {
+                i = Integer.parseInt(value.toString());
+            }
+            catch (NumberFormatException nfe)
+            {
+                ;
+            }
+        }
+        else if (value instanceof Integer)
+        {
+            i = (Integer) value;
+        }
+        
+        if (this.pickList != null && i != null)
         {
             for (PickListItemIFace item : this.pickList.getItems())
             {
@@ -113,8 +146,7 @@ public class PickListFormatter extends UIFieldFormatter
             }
         }
         
-        String fmt = "%d";
-        return String.format(fmt, value).trim();
+        return value.toString();
 
     }
 
