@@ -316,21 +316,24 @@
                     <![CDATA[
  SELECT agent.AgentID, 
  agentvariant.Name,
- agentvariant.VarType,
  agent.DateOfBirth,
  agent.DateOfBirthPrecision,
  agent.DateOfDeath,
  agent.DateOfDeathPrecision,
  agent.DatesType,
+ agentspecialty.SpecialtyName,
  %s 
  FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
  INNER JOIN agentvariant ON agent.AgentID = agentvariant.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND %s order by agentvariant.Name asc]]>
+ LEFT JOIN agentspecialty ON agent.AgentID = agentspecialty.AgentID
+ WHERE agent_discipline.DisciplineID = DSPLNID AND %s order by agent.AgentID, agentvariant.Name, agentspecialty.SpecialtyName]]>
                 </sql>
                 <captions>
                     <caption tableid="5" col="agent.AgentID" visible="false"/>
-                    <caption tableid="107" col="agentvariant.Name"/>
-                    <caption tableid="107" col="agentvariant.VarType" formatter="AgentVariantVarType"/>
+                    <caption tableid="107" key="AgentVariants">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="agentvariant.Name" field="name"/>
+                    </caption>
     				<caption tableid="5" formatter="PartialDate">
     					<col name="agent.DateOfBirth" field="dateOfBirth"/>
                     	<col name="agent.DateOfBirthPrecision" field="dateOfBirthPrecision"/>
@@ -340,6 +343,10 @@
                     	<col name="agent.DateOfDeathPrecision" field="dateOfDeathPrecision"/>
                     </caption>
                     <caption tableid="5" col="agent.DatesType" formatter="AgentDatesType"/>
+                    <caption tableid="86" key="AgentSpecialties">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentSpecialty" aggregator="AgentSpecialty"/>
+                    	<col name="agentspecialty.SpecialtyName" field="specialtyName"/>
+                    </caption>
                 </captions>
             </detailView>
         </table>
