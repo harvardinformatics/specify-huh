@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Formatter;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
@@ -911,27 +912,33 @@ public class DataObjFieldFormatMgr
                 }
             }*/
             
+            HashSet<String> strings = new HashSet<String>();
+            
             int count = 0;
             for (Object obj : itemsAsCol)
             {
                 if (obj != null)
-                {
-                    // only add a separator after the first element
-                    if (count > 0)
-                    {
-                        aggStr.append(agg.getSeparator());
-                    }
-                    
+                {                    
+                    String string;
                     if (agg.useIdentity() && obj instanceof FormDataObjIFace)
                     {
-                        aggStr.append(((FormDataObjIFace)obj).getIdentityTitle());
+                        string = ((FormDataObjIFace)obj).getIdentityTitle();
                         
                     } else
                     {
-                        aggStr.append(formatInternal(getInstance().getDataFormatter(obj, agg.getFormatName()), obj));
+                        string = formatInternal(getInstance().getDataFormatter(obj, agg.getFormatName()), obj);
                     }
-                    
-                    //System.out.println(aggStr.toString());
+
+                    if (!strings.contains(string))
+                    {
+                        // only add a separator after the first element
+                        if (count > 0)
+                        {
+                            aggStr.append(agg.getSeparator());
+                        }
+                        aggStr.append(string);
+                        strings.add(string);
+                    }
                     
                     int aggCount = (agg.getCount() != null)? agg.getCount() : 0;
                     if (aggCount > 0 && count >= aggCount - 1)
