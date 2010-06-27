@@ -893,6 +893,7 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
                         {
                             Object          colObj  = rowCols[col];
                             ERTICaptionInfo capInfo = captions.get(capInx);
+                            UIFieldFormatterIFace uiFieldFormatter = capInfo.getUiFieldFormatter();
                             
                             if (col == 0)
                             {
@@ -916,14 +917,17 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
                                 {
                                     val[i] = capInfo.processValue(rowCols[col+i]);
                                 }
-                                row.add(capInfo.getUiFieldFormatter().formatToUI(val));
+                                row.add(uiFieldFormatter.formatToUI(val));
                                 col += capInfo.getColInfoList().size() - 1;
                                 capInx++;
                                 
                             } else
                             {
+                                
                                 Object obj = capInfo.processValue(colObj);
-                                row.add(obj);
+                                Object val = uiFieldFormatter == null ? obj : uiFieldFormatter.formatToUI(obj);
+                                
+                                row.add(val);
                                 if (doDebug) log.debug("*** 2 Adding id["+obj+"]");
                                 capInx++;
                             }
