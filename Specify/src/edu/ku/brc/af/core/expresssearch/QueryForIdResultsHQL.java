@@ -30,6 +30,7 @@ import edu.ku.brc.af.ui.ESTermParser;
 import edu.ku.brc.af.ui.db.ERTICaptionInfo;
 import edu.ku.brc.af.ui.db.QueryForIdResultsIFace;
 import edu.ku.brc.af.ui.db.ERTICaptionInfo.ColInfo;
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.RecordSetItemIFace;
@@ -301,10 +302,16 @@ public class QueryForIdResultsHQL implements QueryForIdResultsIFace
         int i = 0;
         for (DisplayFieldConfig dfc : searchTableConfig.getDisplayFields())
         {
+            // look for formatter on display field config; if not found, look for it on display field config's field info
+            UIFieldFormatterIFace uiFieldFormatter = null;
+            String formatterName = dfc.getFormatter();
+            if (formatterName != null) uiFieldFormatter = UIFieldFormatterMgr.getInstance().getFormatter(formatterName);
+            if (uiFieldFormatter == null) uiFieldFormatter = dfc.getFieldInfo().getFormatter();
+            
             ERTICaptionInfo caption = new ERTICaptionInfo(dfc.getFieldInfo().getColumn(), 
                                                           dfc.getFieldInfo().getTitle(), 
                                                           true,
-                                                          dfc.getFieldInfo().getFormatter(), 
+                                                          uiFieldFormatter, 
                                                           i+1);
             caption.setColClass(dfc.getFieldInfo().getDataClass());
             
