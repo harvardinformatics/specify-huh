@@ -14,6 +14,10 @@
  */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import static edu.ku.brc.ui.UIRegistry.getFormattedResStr;
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.busrules.CollectingEventBusRules;
@@ -45,5 +49,31 @@ public class HUHCollectingEventBusRules extends CollectingEventBusRules
 
             ce.addReference(locality, "locality");
         }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
+     */
+    @Override
+    public STATUS processBusinessRules(final Object dataObj)
+    {
+        reasonList.clear();
+        STATUS status =  super.processBusinessRules(dataObj);
+
+        if (!STATUS.OK.equals(status)) return status;
+        
+        status = checkCollectors((CollectingEvent) dataObj);
+        return status;
+    }
+    
+    protected STATUS checkCollectors(final CollectingEvent collEvt)
+    {
+        if (collEvt.getCollectors() != null  && collEvt.getCollectors().size() > 1)
+        {
+            reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY", getResourceString("CollectingEventBusRules.COLLECTOR")));
+            return STATUS.Error;
+        }
+        
+        return STATUS.OK;
     }
 }

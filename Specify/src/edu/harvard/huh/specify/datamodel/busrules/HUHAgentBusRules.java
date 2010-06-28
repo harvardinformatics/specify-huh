@@ -170,22 +170,22 @@ public class HUHAgentBusRules extends AgentBusRules
             
             if (authCount > 1)
             {
-                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.AUTHOR")));
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY", getResourceString("AgentBusRules.AUTHOR")));
                 return STATUS.Error;
             }
             else if (authAbbrevCount > 1)
             {
-                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.AUTHOR_ABBREV")));
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY", getResourceString("AgentBusRules.AUTHOR_ABBREV")));
                 return STATUS.Error;
             }
             else if (fullNameCount > 1)
             {
-                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.FULL_NAME")));
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY", getResourceString("AgentBusRules.FULL_NAME")));
                 return STATUS.Error;
             }
             else if (labelCount > 1)
             {
-                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.LABEL_NAME")));
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY", getResourceString("AgentBusRules.LABEL_NAME")));
                 return STATUS.Error;
             }
         }
