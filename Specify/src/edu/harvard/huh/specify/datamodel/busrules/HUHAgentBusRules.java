@@ -20,6 +20,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import static edu.ku.brc.ui.UIRegistry.getFormattedResStr;
 
 import java.awt.Component;
 import java.awt.Window;
@@ -33,6 +34,7 @@ import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.AgentVariant;
 import edu.ku.brc.specify.datamodel.busrules.AgentBusRules;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
@@ -152,7 +154,41 @@ public class HUHAgentBusRules extends AgentBusRules
 
             return STATUS.Error;
         }
-
+        
+        // ensure only one agent variant of type author, author abbrev, full name, or label name
+        int authCount = 0;
+        int authAbbrevCount = 0;
+        int fullNameCount = 0;
+        int labelCount = 0;
+        
+        for (AgentVariant av : agent.getVariants())
+        {
+            if (AgentVariant.AUTHOR.equals(av.getVarType())) authCount++;
+            else if (AgentVariant.AUTHOR_ABBREV.equals(av.getVarType())) authAbbrevCount++;
+            else if (AgentVariant.FULLNAME.equals(av.getVarType())) fullNameCount++;
+            else if (AgentVariant.LABLELNAME.equals(av.getVarType())) labelCount++;
+            
+            if (authCount > 1)
+            {
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.AUTHOR")));
+                return STATUS.Error;
+            }
+            else if (authAbbrevCount > 1)
+            {
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.AUTHOR_ABBREV")));
+                return STATUS.Error;
+            }
+            else if (fullNameCount > 1)
+            {
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.FULL_NAME")));
+                return STATUS.Error;
+            }
+            else if (labelCount > 1)
+            {
+                reasonList.add(getFormattedResStr("AgentBusRules.TOO_MANY_VARIANTS", getResourceString("AgentBusRules.LABEL_NAME")));
+                return STATUS.Error;
+            }
+        }
         return STATUS.OK;
     } 
 
