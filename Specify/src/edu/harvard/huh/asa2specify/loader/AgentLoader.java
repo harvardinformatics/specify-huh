@@ -111,7 +111,7 @@ public class AgentLoader extends CsvToSqlLoader
 			
 		Agent agent = getAgent(asaAgent, isSelfOrganized ? NullAgent() : organization);
 		
-		Integer botanistId = getBotanistId(asaAgentId);
+		/*Integer botanistId = getBotanistId(asaAgentId);
         
         if (botanistId != null) // retain botanist id in guid
         {
@@ -125,7 +125,7 @@ public class AgentLoader extends CsvToSqlLoader
             String sql = getUpdateBotanistSql(agent,  botanistAgent.getId());
             update(sql);
         }
-        else
+        else*/
         {
             if (isSelfOrganized)
             {

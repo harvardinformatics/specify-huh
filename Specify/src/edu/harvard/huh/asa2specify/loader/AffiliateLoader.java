@@ -73,7 +73,7 @@ public class AffiliateLoader extends AuditedObjectLoader
                 
         Integer botanistId = getBotanistId(affiliateId);
 
-        if (botanistId != null) // retain botanist id in guid
+/*        if (botanistId != null) // retain botanist id in guid
         {
             Agent botanistAgent = lookup(botanistId);
             Integer agentId = botanistAgent.getId();
@@ -87,7 +87,7 @@ public class AffiliateLoader extends AuditedObjectLoader
             String sql = getUpdateSql(agent, agentId);
             update(sql);
         }
-        else
+        else*/
         {
             String sql = getInsertSql(agent);
             Integer agentId = insert(sql);
