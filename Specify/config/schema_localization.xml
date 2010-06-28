@@ -2154,13 +2154,13 @@
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Last Name</text>
+            <text>Name</text>
           </str>
         </names>
         <descs>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Last name of Person.</text>
+            <text>Name of Organization or Group.</text>
           </str>
         </descs>
       </item>
@@ -2343,7 +2343,7 @@
     <names>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>Agent</text>
+        <text>Agent/Organization</text>
       </str>
     </names>
     <descs>
@@ -3104,7 +3104,7 @@
     <names>
       <str language="en" country="" variant="">
         <version>0</version>
-        <text>Agent Variant</text>
+        <text>Botanist Name</text>
       </str>
     </names>
     <descs>
