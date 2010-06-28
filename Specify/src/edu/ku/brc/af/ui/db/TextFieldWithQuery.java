@@ -253,9 +253,12 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         
         
         StringBuilder sb = new StringBuilder();
+        String tablePrefix = tableInfo.getAbbrev() + ".";
         for (String k : keyColumns)
         {
             String title = k;
+            if (k != null && k.contains(tablePrefix)) k = k.substring(tablePrefix.length()); // TODO: kludge
+            
             DBFieldInfo fi = tableInfo.getFieldByName(k);
             if (fi != null)
             {
