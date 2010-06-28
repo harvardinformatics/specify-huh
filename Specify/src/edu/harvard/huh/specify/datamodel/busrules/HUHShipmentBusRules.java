@@ -77,7 +77,7 @@ public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
         Shipment shipment = (Shipment) dataObj;
         
         Agent shippedToAgent = shipment.getShippedTo();
-        if (shippedToAgent.getOrganization() != null) shippedToAgent = shippedToAgent.getOrganization();
+        if (shippedToAgent != null && shippedToAgent.getOrganization() != null) shippedToAgent = shippedToAgent.getOrganization();
         
         if (!areAddressesOK(shippedToAgent))
         {
