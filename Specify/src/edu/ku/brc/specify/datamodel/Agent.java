@@ -1216,24 +1216,39 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     @Transient
     public String getAuthorName()
     {
-        String backupName = null;
-
-        for (AgentVariant variant : getVariants())
-        {
-            if (variant.getVarType().equals(AgentVariant.AUTHOR)) return variant.getName();
-            if (variant.getVarType().equals(AgentVariant.AUTHOR_ABBREV)) backupName = variant.getName();
-        }
+        String name = null;
         
-        return backupName;
+        name = getVariantName(AgentVariant.AUTHOR);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.AUTHOR_ABBREV);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.LABLELNAME);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.FULLNAME);
+        if (name != null) return name;
+        
+        return null;
     }
     
     @Transient
     public String getCollectorName()
     {
-        for (AgentVariant variant : getVariants())
-        {
-            if (variant.getVarType().equals(AgentVariant.LABLELNAME)) return variant.getName();
-        }
+        String name = null;
+        
+        name = getVariantName(AgentVariant.LABLELNAME);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.AUTHOR);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.AUTHOR_ABBREV);
+        if (name != null) return name;
+        
+        name = getVariantName(AgentVariant.FULLNAME);
+        if (name != null) return name;
         
         return null;
     }
