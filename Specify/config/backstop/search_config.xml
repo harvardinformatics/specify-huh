@@ -10,1425 +10,827 @@
     <!--      These are for Express Search      -->
     <!-- ************************************** -->
     <express>
-    
-        <table id="1" tableid="4" indexed="false" name="TaxonToDeterminer" priority="1" color="30, 144, 144">
+        
+        <!-- Return agent records found by previous search on agentvariant -->
+        <table id="1" tableid="5" name="BotanistsByBotanistName" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="5">agent.AgentID</join>
-                <join tableid="142">fragment.FragmentID</join>
-                <join tableid="4" primary="true">taxon.TaxonID</join>
+                <join tableid="107">av.AgentVariantID</join>
             </joins>
             <detailView icon="Agent">
                 <sql>
-                    <![CDATA[SELECT 
- taxon.TaxonID, 
- taxon.FullName, 
- taxon.CommonName, 
- agentvariant.Name,
- %s
- FROM 
- fragment
- INNER JOIN determination ON determination.FragmentID = fragment.FragmentID 
- INNER JOIN agent ON determination.DeterminerID = agent.AgentID 
- LEFT JOIN agentvariant ON (agent.AgentID=agentvariant.AgentID AND agentvariant.VarType=4)
- INNER JOIN taxon ON determination.TaxonID = taxon.TaxonID 
- WHERE determination.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="4" col="taxon.TaxonID" visible="false"/>
-                    <caption tableid="4" col="FullName"/>
-                    <caption tableid="4" col="CommonName"/>
-                    <caption tableid="107" col="Name"/>
-               </captions>
-            </detailView>
-        </table>
-    
-        <table id="2" tableid="10" indexed="false" name="CollectingEventToLocality" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
-                <join tableid="2">locality.LocalityID</join>
-            </joins>
-            <detailView icon="ColEvent">
-                <sql>
-                    <![CDATA[SELECT 
- collectingevent.CollectingEventID, 
- locality.LocalityName, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
- collectingevent.EndDate, 
- locality.Latitude1,
- locality.Longitude1, 
+                    <![CDATA[
+ SELECT
+ ag.AgentID,
+ av.Name,
+ ag.DateOfBirth,
+ ag.DateOfBirthPrecision,
+ ag.DateOfDeath,
+ ag.DateOfDeathPrecision,
+ ag.DatesType,
+ agsp.SpecialtyName,
  %s 
- From 
- collectingevent 
- Inner Join locality ON collectingevent.LocalityID = locality.LocalityID
- WHERE collectingevent.DisciplineID = DSPLNID AND %s order by StartDate]]>
+ FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID
+ JOIN agentvariant av ON ag.AgentID = av.AgentID
+ LEFT JOIN agentspecialty agsp ON ag.AgentID = agsp.AgentID
+ WHERE %s
+ ORDER BY ag.AgentID, av.Name, agsp.Role, agsp.OrderNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="10" col="CollectingEventID" visible="false"/>
-                    <caption tableid="2" col="LocalityName"/>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
+                    <caption tableid="5" col="ag.AgentID" visible="false"/>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
                     </caption>
-                    <caption tableid="10" col="EndDate"/>
-                    <caption tableid="2" col="Latitude1"/>
-                    <caption tableid="2" col="Longitude1"/>
+    				<caption tableid="5" formatter="PartialDate">
+    					<col name="ag.DateOfBirth" field="dateOfBirth"/>
+                    	<col name="ag.DateOfBirthPrecision" field="dateOfBirthPrecision"/>
+                    </caption>
+                    <caption tableid="5" formatter="PartialDate">
+    					<col name="ag.DateOfDeath" field="dateOfDeath"/>
+                    	<col name="ag.DateOfDeathPrecision" field="dateOfDeathPrecision"/>
+                    </caption>
+                    <caption tableid="5" col="ag.DatesType" field="datesType" formatter="AgentDatesType"/>
+                    <caption tableid="86" key="AgentSpecialties">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentSpecialty" aggregator="AgentSpecialty"/>
+                    	<col name="agsp.SpecialtyName" field="specialtyName"/>
+                    </caption>
                 </captions>
             </detailView>
         </table>
-            
-        <table id="3" tableid="142" indexed="false" name="Item" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="4">taxon.TaxonID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
-                <join tableid="63">preparation.PreparationID</join>
+        
+        <table id="2" tableid="1" name="CollObjectsByAccession" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="7">ac.AccessionID</join>
             </joins>
-            <detailView icon="Fragment">
+            <detailView icon="CollectionObject">
                 <sql>
                     <![CDATA[
- SELECT DISTINCT 
- fragment.FragmentID, 
- fragment.Identifier, 
- taxon.FullName, 
- %s 
- From fragment 
- Left Join determination ON determination.FragmentID = fragment.FragmentID 
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID 
- Inner Join collectionobject ON collectionobject.CollectionObjectID = fragment.CollectionObjectID
- Inner Join preparation ON preparation.PreparationID = fragment.PreparationID
- WHERE fragment.CollectionMemberID = COLMEMID AND %s order by fragment.Identifier asc]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="4" col="FullName" key="TaxonName"/>
-                </captions>
-            </detailView>
-        </table>
-
-        <table id="4" tableid="4" indexed="false" name="TaxonToGeography" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="4" primary="true">taxon.TaxonID</join>
-                <join tableid="3">geography.GeographyID</join>
-            </joins>
-            <detailView icon="Taxon">
-                <sql>
-                    <![CDATA[SELECT DISTINCT
- taxon.TaxonID,
- taxon.FullName,
- geography.FullName,
+ SELECT
+ co.CollectionObjectID,
+ ac.AccessionNumber,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ av.Name,
+ ce.StationFieldNumber,
  %s
- FROM geography   INNER JOIN locality ON locality.geographyid = geography.geographyid 
- INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID 
- INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
- INNER JOIN fragment ON collectionobject.CollectionObjectID = fragment.CollectionObjectID 
- INNER JOIN determination ON fragment.FragmentID = determination.FragmentID 
- Inner Join taxon ON taxon.TaxonID = determination.TaxonID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND determination.IsCurrent = true AND %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="4" col="taxon.TaxonID"         visible="false"/>
-                    <caption tableid="4" col="taxon.FullName"        key="TaxonName"/>
-                    <caption tableid="3" col="geography.FullName"    key="Geography"/>
-                </captions>
-            </detailView>
-        </table>
-
-        <table id="5" tableid="142" indexed="false" name="ItemToCollector" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="5">agent.AgentID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[
- SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
- CatalogedDate, 
- CatalogedDatePrecision, 
- StartDate, 
- StartDatePrecision, 
- agentvariant.Name,
- collector.OrderNumber,  
- %s 
- FROM fragment
- INNER JOIN collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
- INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID 
- INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID 
- INNER JOIN agent ON collector.AgentID = agent.AgentID 
- LEFT JOIN agentvariant ON (agent.AgentID=agentvariant.AgentID AND agentvariant.VarType=4)
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s 
- ORDER BY fragment.FragmentID, collector.OrderNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="142"  col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142"  col="fragment.Identifier"   formatter="HUHFragmentBarcode"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                    <caption tableid="10" key="Collectors">
-                        <agg class="edu.ku.brc.specify.datamodel.Collector" aggregator="Collector" ordercol="collector.OrderNumber"/>
-                        <subobject class="edu.ku.brc.specify.datamodel.Agent" fieldname="agent"/>                     
-                    </caption>
-               </captions>
-            </detailView>
-        </table>
-        
-        <table id="6" tableid="4" indexed="false" name="AcceptedTaxon" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="4" primary="true">t1.AcceptedID</join>
-                <join tableid="4">t2.TaxonID</join>
-            </joins>
-            <detailView icon="Taxon">
-                <sql>
-                    <![CDATA[SELECT t1.TaxonID, t1.FullName, t2.FullName, %s FROM taxon t1 INNER JOIN taxon t2 ON t1.AcceptedID = t2.TaxonID WHERE %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="4" col="t1.TaxonID"  visible="false"/>
-                    <caption tableid="4" col="t1.FullName" key="OldTaxonName"/>
-                    <caption tableid="4" col="t2.FullName" key="AcceptedTaxonName"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="7" tableid="142" indexed="false" name="ItemToSynonym" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">f.FragmentID</join>
-                <join tableid="4">t.TaxonID</join>
-                <join tableid="4">t2.TaxonID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT DISTINCT f.FragmentID, f.Identifier, t.FullName, t2.FullName, %s FROM 
- fragment f 
- INNER JOIN determination d ON d.FragmentID = f.FragmentID 
- INNER JOIN taxon t ON d.TaxonID = t.TaxonID 
- INNER JOIN taxon t2 ON t2.TaxonID = d.PreferredTaxonID 
- WHERE d.TaxonId <> d.PreferredTaxonId AND t.TaxonTreeDefID = TAXTREEDEFID AND f.CollectionMemberID = COLMEMID AND %s]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="f.FragmentID" visible="false"/>
-                    <caption tableid="142" col="f.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="4" col="t.FullName"   key="DeterminationName"/>
-                    <caption tableid="4" col="t2.FullName"  key="AcceptedTaxonName"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <!--  8 is the same as 7
-        <table id="8" tableid="1" indexed="false" name="AcceptedNameCollObjs" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">co.CollectionObjectID</join>
-                <join tableid="9">d.FragmentID</join>
-                <join tableid="4">t.TaxonID</join>
-                <join tableid="4">t2.TaxonID</join>
-            </joins>
-            <detailView icon="Taxon">
-                <sql>
-                    <![CDATA[SELECT DISTINCT co.CollectionObjectID, co.CatalogNumber, t.FullName, t2.FullName, %s 
- FROM collectionobject co INNER JOIN fragment f ON f.CollectionObjectID = co.CollectionObjectID 
- INNER JOIN determination d ON d.FragmentID = f.FragmentID 
- INNER JOIN taxon t ON d.TaxonID = t.TaxonID 
- INNER JOIN taxon t2 ON t.TaxonID = t2.AcceptedID 
- WHERE co.CollectionMemberID = COLMEMID AND %s]]>
+ FROM collectionobject co
+ LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
+ JOIN accessionpreparation ap ON frag.PreparationID = ap.PreparationID
+ JOIN accession ac ON ap.AccessionID ac.AccessionID
+ WHERE %s
+ ORDER BY ac.AccessionNumber, cp.PreparationID, frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name, frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="co.CatalogNumber"      formatter="CatalogNumber"/>
-                    <caption tableid="4" col="t.FullName"            key="DeterminationName"/>
-                    <caption tableid="4" col="t2.FullName"           key="OldTaxonName"/>
-                </captions>
+                    <caption tableid="7" col="ac.AccessionNumber" field="accessionNumber" formatter="HUHAccessionNumber"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
             </detailView>
-        </table>-->
+        </table>
         
-        <table id="9" tableid="142" indexed="false" name="ItemToOtherSynonym" priority="40" color="30, 144, 144">
+        <table id="3" tableid="1" name="CollObjectsByBarcode" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="142" primary="true">f.FragmentID</join>
-                <join tableid="4">deterTax.TaxonID</join>
-                <join tableid="4">acceptTax.TaxonID</join>
-                <join tableid="4">oldTax.TaxonID</join>
+                <join tableid="142">frag.FragmentID</join>
+                <join tableid="63">pp.PreparationID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ co.CollectionObjectID,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ av.Name,
+ ce.StationFieldNumber,
+ %s
+ FROM collectionobject co
+ LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType=4)
+ JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
+ JOIN preparation pp ON frag.PreparationID = pp.PreparationID
+ WHERE %s
+ ORDER BY ifnull(frag.Identifier, pp.Identifier), frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name]]>
+                </sql>
+                <captions>
+                    <caption tableid="1"   col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="4" tableid="1" name="CollObjectsByCitation" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="69">rw.ReferenceWorkID</join>
+                <join tableid="107">rwv.ReferenceWorkID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ co.CollectionObjectID,
+ rw.Title,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ ce.StationFieldNumber,
+ av.Name,
+ %s
+ FROM collectionobject co
+ JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
+ JOIN fragmentcitation fc ON frag.FragmentID = fc.FragmentID
+ JOIN referencework rw ON fc.ReferenceWorkID = rw.ReferenceWorkID
+ LEFT JOIN referenceworkvariant rvi ON rw.ReferenceWorkID = rvi.ReferenceWorkID
+ LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ WHERE %s
+ ORDER BY rw.Title, frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="1"  col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="69" col="rw.Title"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
+            </detailView>
+        </table>
+        
+         <table id="5" tableid="1" name="CollObjectsByCollector" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="107">av.AgentID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ co.CollectionObjectID,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ ce.StationFieldNumber,
+ av.Name,
+ %s
+ FROM collectionobject co
+ JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ WHERE %s
+ ORDER BY ctr.AgentID, av.AgentID, av.Name, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="1"  col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="6" tableid="1" name="CollObjectsByDetermination" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="4">tx.TaxonID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ co.CollectionObjectID,
+ tx.FullName,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ ce.StationFieldNumber,
+ av.Name,
+ %s
+ FROM collectionobject co
+ JOIN fragment frag ON co.CollectionObjectID = frag.CollectioObjectID
+ JOIN determination det ON frag.FragmentID = det.FragmentID
+ JOIN taxon ON det.TaxonID = tx.TaxonID
+ LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ WHERE %s
+ ORDER BY tx.FullName, frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="4" col="tx.FullName"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="7" tableid="1" name="CollObjectsByLoan" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="52">ln.LoanID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ co.CollectionObjectID,
+ ln.LoanNumber,
+ frag.Identifier,
+ ce.StartDate,
+ ce.StartDatePrecision,
+ av.Name,
+ ce.StationFieldNumber,
+ %s
+ FROM collectionobject
+ LEFT JOIN collectingevent ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN agent ON ctr.AgentID = ag.AgentID
+  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ JOIN fragment ON co.CollectionObjectID = frag.CollectionObjectID
+ JOIN preparation pp ON frag.PreparationID = pp.PreparationID
+ JOIN loanpreparation lpo ON pp.PreparationID = lpo.PreparationID
+ JOIN loan ln ON lpo.LoanID = ln.LoanID
+ WHERE %s
+ ORDER BY ln.LoanNumber, lpo.PreparationID, frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="1" col="co.CollectionObjectID" visible="false"/>
+                    <caption tableid="52" col="ln.LoanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+                    <caption tableid="10" formatter="PartialDate">
+                        <col name="ce.StartDate"          field="startDate"/>
+                        <col name="ce.StartDatePrecision" field="startDatePrecision"/>
+                    </caption>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="10" col="ce.StationFieldNumber" field="stationFieldNumber"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="8" tableid="1" name="ItemsByAccession" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="7">ac.AccessionID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
-                    <![CDATA[SELECT DISTINCT f.FragmentID, f.Identifier, deterTax.FullName, acceptTax.FullName, oldTax.FullName, %s 
- FROM fragment f 
- INNER JOIN determination d ON d.FragmentID = f.FragmentID 
- INNER JOIN taxon deterTax ON d.TaxonID = deterTax.TaxonID 
- INNER JOIN taxon acceptTax ON d.PreferredTaxonID = acceptTax.TaxonID 
- INNER JOIN taxon oldTax ON oldTax.AcceptedID = acceptTax.TaxonID AND oldTax.TaxonID != d.TaxonID 
- WHERE f.CollectionMemberID = COLMEMID AND %s]]>
+                    <![CDATA[
+ SELECT
+ frag.FragmentID,
+ ac.AccessionNumber,
+ frag.Identifier,
+ %s
+ FROM fragment frag
+ JOIN accessionpreparation ap ON frag.PreparationID = ap.PreparationID
+ JOIN accession ac ON ap.AccessionID = ac.AccessionID
+ WHERE %s
+ ORDER BY ac.AccessionNumber, ap.PreparationID, frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="f.FragmentID" visible="false"/>
-                    <caption tableid="142" col="f.Identifier"      formatter="HUHFragmentBarcode"/>
-                    <caption tableid="4" col="deterTax.FullName"    key="OldTaxonOnDeter"/>
-                    <caption tableid="4" col="acceptTax.FullName"   key="AcceptedTaxonName"/>
-                    <caption tableid="4" col="oldTax.FullName"      key="OtherOldTaxonName"/>
-                </captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="7"   col="accession.AccessionNumber"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+               </captions>
             </detailView>
         </table>
-
-
-        <table id="10" tableid="142" indexed="false" name="ItemToCurrentDetermination" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
+        
+        <table id="9" tableid="1" name="ItemsByPrep" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="63">preparation.PreparationID</join>
+            </joins>
+            <detailView icon="Fragment">
+                <sql>
+                    <![CDATA[
+ SELECT
+ frag.FragmentID,
+ frag.Identifier,
+ %s
+ FROM fragment
+ JOIN preparation ON frag.PreparationID = preparation.PreparationID
+ WHERE %s
+ ORDER BY frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="10" tableid="1" name="ItemsByCollector" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="107">av.AgentID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ frag.FragmentID,
+ frag.Identifier,
+ av.Name,
+ %s
+ FROM fragment
+ JOIN collectionobject ON frag.CollectionObjectID = co.CollectionObjectID
+ JOIN collectingevent ON co.CollectingEventID = ce.CollectingEventID
+ JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
+ JOIN agent ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ WHERE %s
+ ORDER BY av.AgentID, av.Name, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="11" tableid="1" name="ItemsByCitation" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="69">referencework.ReferenceWorkID</join>
+                <join tableid="107">referenceworkvariant.ReferenceWorkID</join>
+            </joins>
+            <detailView icon="CollectionObject">
+                <sql>
+                    <![CDATA[
+ SELECT
+ frag.FragmentID,
+ referencework.Title,
+ frag.Identifier,
+ %s
+ FROM fragment
+ JOIN fragmentcitation ON frag.FragmentID = fragmentcitation.FragmentID
+ JOIN referencework ON fragmentcitation.ReferenceWorkID = referencework.ReferenceWorkID
+ LEFT JOIN referenceworkvariant ON referencework.ReferenceWorkID = referenceworkvariant.ReferenceWorkID
+ WHERE %s
+ ORDER BY referencework.Title, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="69"  col="rw.Title"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="12" tableid="1" name="ItemsByDetermination" priority="1" color="30, 144, 144">
+        	<joins>
                 <join tableid="4">taxon.TaxonID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
- SELECT distinct 
- fragment.FragmentID, 
- fragment.Identifier, 
- FullName, 
- %s 
- From fragment 
- Inner Join determination AS DT ON DT.FragmentID = fragment.FragmentID
- Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
- WHERE DT.CollectionMemberID = COLMEMID AND 
- fragment.CollectionMemberID = COLMEMID AND 
- taxon.TaxonTreeDefID = TAXTREEDEFID AND 
- DT.IsCurrent = true AND
- %s order by fragment.Identifier asc]]>
+ SELECT
+ frag.FragmentID,
+ taxon.FullName,
+ frag.Identifier,
+ %s
+ FROM fragment
+ JOIN determination ON frag.FragmentID = determination.FragmentID
+ JOIN taxon ON determination.TaxonID = taxon.TaxonID
+ WHERE %s
+ ORDER BY taxon.FullName, frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="4" col="FullName" key="TaxonName"/>
-                </captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="4"   col="taxon.FullName"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
             </detailView>
         </table>
         
-        <!-- Return agent records found by previous search on agentvariant -->
-        <table id="11" tableid="5" indexed="false" name="AgentToAgentVariant" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="107">agentvariant.AgentVariantID</join>
+        <table id="13" tableid="1" name="ItemsByLoan" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="52">loan.LoanID</join>
             </joins>
-            <detailView icon="Agent">
+            <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
- SELECT agent.AgentID, 
- agentvariant.Name,
- agent.DateOfBirth,
- agent.DateOfBirthPrecision,
- agent.DateOfDeath,
- agent.DateOfDeathPrecision,
- agent.DatesType,
- agentspecialty.SpecialtyName,
- %s 
- FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- INNER JOIN agentvariant ON agent.AgentID = agentvariant.AgentID 
- LEFT JOIN agentspecialty ON agent.AgentID = agentspecialty.AgentID
- WHERE agent_discipline.DisciplineID = DSPLNID AND %s order by agent.AgentID, agentvariant.Name, agentspecialty.Role, agentspecialty.OrderNumber]]>
+ SELECT
+ frag.FragmentID,
+ loan.LoanNumber,
+ preptype.Name,
+ frag.Identifier,
+ %s
+ FROM fragment frag
+ JOIN loanpreparation lpo ON frag.PreparationID = lpo.PreparationID
+ JOIN loan ln ON loanpreparation.LoanID = ln.LoanID
+ WHERE %s
+ ORDER BY ln.LoanNumber, lpo.PreparationID, frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="5" col="agent.AgentID" visible="false"/>
-                    <caption tableid="107" key="AgentVariants">
-                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
-                    	<col name="agentvariant.Name" field="name"/>
-                    </caption>
-    				<caption tableid="5" formatter="PartialDate">
-    					<col name="agent.DateOfBirth" field="dateOfBirth"/>
-                    	<col name="agent.DateOfBirthPrecision" field="dateOfBirthPrecision"/>
-                    </caption>
-                    <caption tableid="5" formatter="PartialDate">
-    					<col name="agent.DateOfDeath" field="dateOfDeath"/>
-                    	<col name="agent.DateOfDeathPrecision" field="dateOfDeathPrecision"/>
-                    </caption>
-                    <caption tableid="5" col="agent.DatesType" formatter="AgentDatesType"/>
-                    <caption tableid="86" key="AgentSpecialties">
-                    	<agg class="edu.ku.brc.specify.datamodel.AgentSpecialty" aggregator="AgentSpecialty"/>
-                    	<col name="agentspecialty.SpecialtyName" field="specialtyName"/>
-                    </caption>
-                </captions>
+                    <caption tableid="142" col="frag.FragmentID" visible="false"/>
+                    <caption tableid="52"  col="ln.LoanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="65"  col="ppt.Name"/>
+                    <caption tableid="142" col="frag.Identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
             </detailView>
         </table>
-        
-        <table id="13" tableid="142" indexed="false" name="ItemToCollectingEvent" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="10">collectingevent.CollectingEventID</join>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
- collectingevent.EndDate, 
- collectingevent.EndDatePrecision, 
- %s 
- From 
- collectingevent 
- Inner Join collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
- Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
- WHERE collectingevent.DisciplineID = DSPLNID AND %s order by StartDate]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
+       
+       <table id="31" tableid="52" name="LoansByAgent" priority="1" color="30, 144, 144">
+        	<joins>
+        		<join tableid="5">ag.AgentID</join>
+        	</joins>
+        	<detailView icon="Loan">
+        		<sql>
+        			<![CDATA[
+ SELECT
+ ln.LoanID,
+ ag.Abbreviation,
+ ag.LastName,
+ lna.Role,
+ ln.LoanNumber,
+ ln.LoanDate,
+ ln.DateClosed,
+ %s
+ FROM loan ln
+ JOIN loanagent lna ON ln.LoanID = lna.LoanID
+ JOIN agent ag ON lna.AgentID = ag.AgentID
+ WHERE %s
+ ORDER BY ifnull(ag.Abbreviation, ag.LastName), ln.LoanNumber]]>
+        		</sql>
+        		<captions>
+                    <caption tableid="52" col="ln.LoanID" visible="false"/>
+                    <caption tableid="5"  col="ag.Abbreviation" field="abbreviation"/>
+                    <caption tableid="5"  col="ag.LastName"     field="lastName"/>
+                    <caption tableid="53" col="ag.Role"         field="role"/>
+                    <caption tableid="52" col="ln.LoanNumber"   field="loanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="52" col="ln.LoanDate"     field="loanDate"   formatter="Date"/>
+                    <caption tableid="52" col="ln.DateClosed"   field="dateClosed" formatter="Date"/>
+               </captions>
+        	</detailView>
+       </table>
+       
+       <table id="32" tableid="52" name="LoansByBarcode" priority="1" color="30, 144, 144">
+       		<joins>
+        		<join tableid="142">frag.FragmentID</join>
+                <join tableid="63">pp.PreparationID</join>
+        	</joins>
+        	<detailView icon="Loan">
+        		<sql>
+        			<![CDATA[
+ SELECT
+ ln.LoanID,
+ frag.Identifier,
+ ln.LoanDate,
+ ln.DateClosed,
+ %s
+ FROM loan ln
+ JOIN loanpreparation lpo ON ln.LoanID = lpo.LoanID
+ JOIN preparation pp ON lpo.PreparationID = pp.PreparationID
+ JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ WHERE %s
+ ORDER BY ifnull(ag.Abbreviation, ag.LastName), ln.LoanNumber]]>
+        		</sql>
+        		<captions>
+                    <caption tableid="52"  col="ln.LoanID" visible="false"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="52"  col="ln.LoanNumber"   field="loanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="52"  col="ln.LoanDate"     field="loanDate"   formatter="Date"/>
+                    <caption tableid="52"  col="ln.DateClosed"   field="dateClosed" formatter="Date"/>
+               </captions>
+        	</detailView>
+       </table>
+       
+       <table id="33" tableid="52" name="LoansByTaxon" priority="1" color="30, 144, 144">
+       		<joins>
+        		<join tableid="4">tx.TaxonID</join>
+        	</joins>
+        	<detailView icon="Loan">
+        		<sql>
+        			<![CDATA[
+ SELECT
+ ln.LoanID,
+ frag.Identifier,
+ ln.LoanDate,
+ ln.DateClosed,
+ %s
+ FROM loan ln
+ JOIN loanpreparation lpo ON ln.LoanID = lpo.LoanID
+ LEFT JOIN preparation pp ON lpo.PreparationID = pp.PreparationID
+ LEFT JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ LEFT JOIN determination det ON frag.FragmentID = det.FragmentID
+ JOIN taxon tx ON (det.TaxonID = tx.TaxonID OR lpo.TaxonID = tx.TaxonID)
+ WHERE %s
+ ORDER BY tx.FullName, lpo.LoanPreparationID, frag.Identifier]]>
+        		</sql>
+        		<captions>
+                    <caption tableid="52" col="ln.LoanID" visible="false"/>
+                    <caption tableid="4"  col="tx.FullName" field="fullName"/>
+                    <caption tableid="142" key="Fragments">
+						<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
                     </caption>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="EndDate"          field="endDate"/>
-                        <col name="EndDatePrecision" field="endDatePrecision"/>
-                    </caption>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="29" tableid="142" indexed="false" name="ItemToLocality" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="2">locality.LocalityID</join>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
- locality.LocalityName, 
- locality.Latitude1, 
- locality.Longitude1, 
- %s 
- FROM 
- locality 
- INNER JOIN collectingevent ON locality.LocalityID = collectingevent.LocalityID 
- INNER JOIN collectionobject ON collectingevent.CollectingEventID = collectionobject.CollectingEventID 
- INNER JOIN fragment ON collectionbject.CollectionObjectID = fragment.CollectionObjectID 
- WHERE locality.DisciplineID = DSPLNID AND collectionobject.collectionmemberid = COLMEMID 
- AND %s ORDER BY StartDate]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                    <caption tableid="2" col="LocalityName"/>
-                    <caption tableid="2" col="Latitude1"/>
-                    <caption tableid="2" col="Longitude1"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="31" tableid="63" indexed="false" name="PreparationToAccession" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="7">accession.AccessionID</join>
-                <join tableid="63" primary="true">preparation.PreparationID</join>
+                    <caption tableid="52" col="ln.LoanNumber"   field="loanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="52" col="ln.LoanDate"     field="loanDate"   formatter="Date"/>
+                    <caption tableid="52" col="ln.DateClosed"   field="dateClosed" formatter="Date"/>
+               </captions>
+        	</detailView>
+       </table>
+       
+       <table id="34" tableid="63" name="PrepsByAccession" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="7">ac.AccessionID</join>
             </joins>
             <detailView icon="Preparation">
                 <sql>
-                    <![CDATA[SELECT 
- preparation.PreparationID, 
- preparation.Identifier, 
- taxon.fullName, 
- accession.AccessionNumber, 
-  %s 
- FROM 
- preparation 
- INNER JOIN accession ON accession.accessionid = preparation.AccessionID
- INNER JOIN fragment ON fragment.PreparationID = preparation.PreparationID 
- INNER JOIN determination ON determination.FragmentID = fragment.FragmentID 
- INNER JOIN taxon ON taxon.TaxonID = determination.TaxonID 
- WHERE determination.IsCurrent AND collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY AccessionNumber, preparation.Identifier]]>
+                    <![CDATA[
+ SELECT
+ pp.PreparationID,
+ ac.AccessionNumber,
+ frag.Identifier,
+ %s
+ FROM preparation pp
+ JOIN accessionpreparation ap ON pp.PreparationID = ap.PreparationID
+ LEFT JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ WHERE %s
+ ORDER BY ac.AccessionNumber, acp.PreparationID, frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="63" col="preparation.PreparationID" visible="false"/>
-                    <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                    <caption tableid="4" col="FullName"/>
-                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessionNumber"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="32" tableid="5" indexed="false" name="AgentToAccession" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="7">accession.AccessionID</join>
-                <join tableid="5" primary="true">agent.AgentID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- accessionagent.Role, 
- accession.AccessionNumber, 
-  %s 
- FROM 
- accession 
- INNER JOIN accessionagent ON accessionagent.accessionid = accession.accessionid 
- INNER JOIN agent ON agent.agentid = accessionagent.agentid 
- INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY AccessionNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="12" col="Role" />
-                    <caption tableid="7" col="AccessionNumber" formatter="HUHAccessionNumber" />
-                </captions>
-            </detailView>
-        </table>
-
-        <table id="33" tableid="5" indexed="false" name="AgentToBorrow" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="18">borrow.BorrowID</join>
-                <join tableid="5" primary="true">agent.AgentID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- borrow.InvoiceNumber, 
- agent.LastName, 
- agent.FirstName, 
- borrowagent.Role, 
-  %s 
- FROM 
- borrow 
- INNER JOIN borrowagent ON borrowagent.borrowid = borrow.borrowid 
- INNER JOIN agent ON agent.agentid = borrowagent.agentid 
- INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY InvoiceNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="18" col="InvoiceNumber" />
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="19" col="Role" />
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="34" tableid="5" indexed="false" name="AgentToAppraisal" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="67">appraisal.AppriasalID</join>
-                <join tableid="5" primary="true">agent.AgentID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- appraisal.AppraisalNumber, 
- agent.LastName, 
- agent.FirstName, 
-  %s 
- FROM 
- appraisal 
-  INNER JOIN agent ON agent.agentid = appraisal.agentid 
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY AppraisalNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="67" col="AppraisalNumber" />
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                 </captions>
-            </detailView>
-        </table>
-        
-        
-        <table id="35" tableid="1" indexed="false" name="CollectionObjectToGeoTimePeriod" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="46">geologictimeperiod.GeologicTimePeriodID</join>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-            </joins>
-            <detailView icon="CollectionObject">
-                <sql>
-                    <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- geologictimeperiod.FullName, 
- collectionobject.CatalogNumber, 
-  %s 
- FROM 
- geologictimeperiod 
-  INNER JOIN paleocontext ON paleocontext.chronosstratid = geologictimeperiod.geologictimeperiodid 
-  INNER JOIN collectionobject ON collectionobject.paleocontextid = paleocontext.paleocontextid 
- WHERE collectionobject.collectionmemberid = COLMEMID AND %s ORDER BY FullName, collectionobject.CatalogNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="46" col="GeologicTimePeriodID" visible="false"/>
-                    <caption tableid="46" col="FullName" />
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber" />
-                 </captions>
-            </detailView>
-        </table>
-        
-        <table id="36" tableid="5" indexed="false" name="AgentToCollectingEvent" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="10">collectingevent.CollectingEventID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agentvariant.Name,
- collector.OrderNumber, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
- collectingevent.StationFieldNumber, 
-  %s 
- FROM 
- collectingevent 
-  INNER JOIN collector ON collector.collectingeventid = collectingevent.collectingeventid 
-  INNER JOIN agent ON agent.agentid = collector.agentid 
-  LEFT JOIN agentvariant ON (agent.AgentID=agentvariant.AgentID AND agentvariant.VarType=4)
- WHERE %s ORDER BY LastName, FirstName, StartDate, StationFieldNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="107" col="Name"/>
-                    <caption tableid="30" col="OrderNumber" />
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
+                    <caption tableid="63" col="pp.PreparationID" visible="false"/>
+                    <caption tableid="7"  col="ac.AccessionNumber" field="accessionNumber" formatter="HUHAccessionNumber"/>
+                    <caption tableid="142" key="Fragments">
+                    	<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
                     </caption>
-                    <caption tableid="10" col="StationFieldNumber"/>
-                 </captions>
+               </captions>
             </detailView>
         </table>
         
-        
-        <table id="37" tableid="10" indexed="false" name="CollectingEventToCollectingTrip" priority="1" color="30, 144, 144">
+        <table id="35" tableid="63" name="PrepsByItem" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="87">collectingtrip.CollectingTripID</join>
-                <join tableid="10"  primary="true">collectingevent.CollectingEventID</join>
+                <join tableid="142">frag.FragmentID</join>
             </joins>
-            <detailView icon="CollectingEvent">
-                <sql>
-                    <![CDATA[SELECT 
- collectingevent.CollectingEventID, 
- collectingevent.StationFieldNumber, 
- collectingtrip.CollectingTripName, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
-   %s 
- FROM 
- collectingevent 
-  INNER JOIN collectingtrip ON collectingtrip.CollectingTripID = collectingevent.CollectingTripID 
- WHERE %s ORDER BY CollectingTripName, StartDate, StationFieldNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="10" col="CollectingEventID" visible="false"/>
-                    <caption tableid="10" col="StationFieldNumber"/>
-                    <caption tableid="87" col="CollectingTripName" />
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                 </captions>
-            </detailView>
-        </table>
-        
-        <table id="38" tableid="39" indexed="false" name="ExchangeInToAgent" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="39" primary="true">exchangein.ExchangeInID</join>
-                <join tableid="5">agent.AgentID</join>
-            </joins>
-            <detailView icon="ExchangeIn">
-                <sql>
-                    <![CDATA[SELECT 
- exchangein.ExchangeInID, 
- exchangein.ExchangeDate, 
- exchangein.DescriptionOfMaterial, 
- agent.Abbreviation, 
-    %s 
- FROM 
- exchangein 
-  INNER JOIN agent ON agent.AgentID = exchangein.ReceivedFromOrganizationID 
- WHERE %s ORDER BY ExchangeDate, DescriptionOfMaterial]]>
-                </sql>
-                <captions>
-                    <caption tableid="39" col="ExchangeInID" visible="false"/>
-                    <caption tableid="39" col="ExchangeDate" />
-                    <caption tableid="39" col="DescriptionOfMaterial"/>
-                    <caption tableid="5" col="Abbreviation"/>
-                 </captions>
-            </detailView>
-        </table>
-        
-        <table id="39" tableid="40" indexed="false" name="ExchangeOutToAgent" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="40" primary="true">exchangeout.ExchangeOutID</join>
-                <join tableid="5">agent.AgentID</join>
-            </joins>
-            <detailView icon="ExchangeIn">
-                <sql>
-                    <![CDATA[SELECT 
- exchangeout.ExchangeOutID, 
- exchangeout.ExchangeDate, 
- exchangeout.DescriptionOfMaterial, 
- agent.Abbreviation, 
-    %s 
- FROM 
- exchangeout 
-  INNER JOIN agent ON agent.AgentID = exchangeout.SentToOrganizationID 
- WHERE %s ORDER BY ExchangeDate, DescriptionOfMaterial]]>
-                </sql>
-                <captions>
-                    <caption tableid="40" col="ExchangeOutID" visible="false"/>
-                    <caption tableid="40" col="ExchangeDate" />
-                    <caption tableid="40" col="DescriptionOfMaterial"/>
-                    <caption tableid="5" col="Abbreviation"/>
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="40" tableid="10" indexed="false" name="CollectingEventToGeography" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="10" primary="true">collectingevent.CollectingEventID</join>
-                <join tableid="3">geography.GeographyID</join>
-            </joins>
-            <detailView icon="CollectingEvent">
-                <sql>
-                    <![CDATA[SELECT DISTINCT 
- collectingevent.CollectingEventID, 
- collectingevent.StartDate, 
- collectingevent.StartDatePrecision, 
- collectingevent.StationFieldNumber, 
- geography.FullName, 
- %s 
- FROM 
- geography 
-  INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
-  INNER JOIN collectingevent on collectingevent.LocalityID = locality.LocalityID 
- WHERE collectingevent.DisciplineID = DSPLNID AND %s ORDER BY FullName,StartDate]]>
-                </sql>
-                <captions>
-                    <caption tableid="10" col="CollectingEventID" visible="false"/>
-                    <caption tableid="10" formatter="PartialDate">
-                        <col name="StartDate"          field="startDate"/>
-                        <col name="StartDatePrecision" field="startDatePrecision"/>
-                    </caption>
-                    <caption tableid="10" col="StationFieldNumber" />
-                    <caption tableid="3" col="FullName" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="41" tableid="142" indexed="false" name="ItemToGeography" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="3">geography.GeographyID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT DISTINCT 
- fragment.FragmentID,    
- fragment.Identifier, 
- geography.FullName, 
- %s 
- FROM 
- geography 
-  INNER JOIN locality ON locality.GeographyID = geography.GeographyID 
-  INNER JOIN collectingevent on collectingevent.LocalityID = locality.lLocalityID 
-  INNER JOIN collectionobject on collectionobject.CollectingEventID = collectingevent.CollectingEventID 
-  INNER JOIN fragment on fragment.CollectionObjectID = collectionobject.CollectionObjectID
- WHERE %s AND collectionobject.CollectionMemberID = COLMEMID ORDER BY FullName,collectionobject.CatalogNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="3" col="FullName" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="42" tableid="1" indexed="false" name="CollectionObjectToGift" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="142">fragment.FragmentID</join>
-                <join tableid="131">gift.GiftID</join>
-            </joins>
-            <detailView icon="CollectionObject">
-                <sql>
-                    <![CDATA[SELECT 
- collectionobject.CollectionObjectID,        
- collectionobject.CatalogNumber, 
- preptype.Name, 
- gift.GiftNumber, 
-     %s 
- FROM 
- gift 
-  INNER JOIN giftpreparation ON giftpreparation.GiftID = gift.GiftID 
-  INNER JOIN preparation on preparation.PreparatioNID = giftpreparation.PreparationID 
-  INNER JOIN preptype on preptype.PrepTypeID = preparation.PrepTypeID 
-  INNER JOIN fragment on fragment.PreparationID = preparation.PreparationID 
-  INNER JOIN collectionobject on collectionobject.CollectionObjectID = fragment.CollectionObjectID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY GiftNumber,collectionobject.CatalogNumber,Name]]>
-                </sql>
-                <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber"/>
-                    <caption tableid="65" col="Name" />
-                    <caption tableid="131" col="GiftNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="43" tableid="5" indexed="false" name="AgentToGift" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="131">gift.GiftID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- giftagent.Role, 
- gift.GiftNumber, 
-     %s 
- FROM 
- gift 
-  INNER JOIN giftagent ON giftagent.GiftID = gift.GifTID 
-  INNER JOIN agent on agent.AgentID = giftagent.AgentID 
- WHERE %s ORDER BY GiftNumber,Role,LastName,FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="133" col="Role" />
-                    <caption tableid="131" col="GiftNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="44" tableid="142" indexed="false" name="ItemToLoan" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="52">loan.LoanID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT 
- fragment.FragmentID, 
- fragment.Identifier, 
- preptype.Name, 
- loan.LoanNumber, 
-     %s 
- FROM 
- loan 
-  INNER JOIN loanpreparation ON loanpreparation.LoanID = loan.LoanID 
-  INNER JOIN preparation on preparation.PreparationID = loanpreparation.PreparationID 
-  INNER JOIN preptype on preptype.PrepTypeID = preparation.PrepTypeID 
-  INNER JOIN fragment on fragment.PreparationID = preparation.PreparationID 
- WHERE %s ORDER BY LoanNumber,fragment.Identifier,preparation.Identifier,Name]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="65" col="Name" />
-                    <caption tableid="52" col="LoanNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="45" tableid="5" indexed="false" name="AgentToLoan" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="52">loan.loanID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- loanagent.Role, 
- loan.LoanNumber, 
-     %s 
- FROM 
- loan 
-  INNER JOIN loanagent ON loanagent.loanid = loan.loanid 
-  INNER JOIN agent on agent.agentid = loanagent.agentid 
- WHERE %s ORDER BY LoanNumber,Role,LastName,FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="53" col="Role" />
-                    <caption tableid="52" col="LoanNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-
-        <table id="46" tableid="1" indexed="false" name="CollectionObjectToLithoStrat" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="100">lithostrat.LithoStratID</join>
-            </joins>
-            <detailView icon="CollectionObject">
-                <sql>
-                    <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- collectionobject.CatalogNumber, 
- lithostrat.FullName, 
-  %s 
- FROM 
- lithostrat 
-  INNER JOIN paleocontext ON paleocontext.LithoStratID = lithostrat.LithoStratID 
-  INNER JOIN collectionobject ON collectionobject.PaleoContextID = paleocontext.PaleoContextID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, collectionobject.CatalogNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="1" col="collectionobject.CatalogNumber" formatter="CatalogNumber" />
-                    <caption tableid="100" col="FullName" />
-                 </captions>
-            </detailView>
-        </table>
-
-
-        <table id="47" tableid="1" indexed="false" name="CollectionObjectToPermit" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="6">permit.PermitID</join>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-            </joins>
-            <detailView icon="CollectionObject">
-                <sql>
-                    <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- permit.PermitNumber, 
-  %s 
- FROM 
- permit 
-  INNER JOIN accessionauthorization ON accessionauthorization.PermitID = permit.PermitID 
-  INNER JOIN accession ON accession.AccessionID = accessionauthorization.AccessionID 
-  INNER JOIN preparation ON preparation.AccessionID = accession.AccessionID  
-  INNER JOIN fragment ON fragment.PreparationID = preparation.PreparationID 
-  INNER JOIN collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
- WHERE collectionobject.CollectionMemberID = COLMEMID AND %s ORDER BY PermitNumber, collectionobject.CatalogNumber]]>
-                </sql>
-                <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="6" col="PermitNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="48" tableid="5" indexed="false" name="IssuedToAgentToPermit" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="6">permit.PermitID</join>
-                <join tableid="5" primary="true">agent.AgentID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- permit.PermitNumber, 
-  %s 
- FROM 
- permit 
-  INNER JOIN agent ON agent.AgentID = permit.IssuedToID 
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY PermitNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="6" col="PermitNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="49" tableid="5" indexed="false" name="IssuedByAgentToPermit" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="6">permit.PermitID</join>
-                <join tableid="5" primary="true">agent.AgentID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- permit.PermitNumber, 
-  %s 
- FROM 
- permit 
-  INNER JOIN agent ON agent.AgentID = permit.IssuedByID 
-  INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY PermitNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="6" col="PermitNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-
-        <table id="50" tableid="1" indexed="false" name="CollectionObjectToProject" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="66">project.ProjectID</join>
-            </joins>
-            <detailView icon="CollectionObject">
-                <sql>
-                    <![CDATA[SELECT 
- collectionobject.CollectionObjectID, 
- project.ProjectName, 
- project.ProjectNumber, 
-  %s 
- FROM 
- project 
-  INNER JOIN project_colobj ON project_colobj.ProjectID = project.ProjectID 
-  INNER JOIN collectionobject ON collectionobject.CollectionObjectID = project_colobj.CollectionObjectID 
-  INNER JOIN fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
- WHERE collectionobject.CollectionmemberID = COLMEMID AND %s ORDER BY ProjectName, ProjectNumber, fragment.Identifier]]>
-                </sql>
-                <captions>
-                    <caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-                    <caption tableid="66" col="ProjectName" />
-                    <caption tableid="66" col="ProjectNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="51" tableid="5" indexed="false" name="AgentToProject" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="66">project.ProjectID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
- project.ProjectName, 
- project.ProjectNumber, 
-  %s 
- FROM 
- project 
-  INNER JOIN agent ON agent.AgentID = project.ProjectAgentID 
-  INNER JOIN agent_discipline on agent_discipline.AgentID = agent.AgentID 
- WHERE agent_discipline.disciplineid = DSPLNID AND %s ORDER BY ProjectName, ProjectNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="66" col="ProjectName" />
-                    <caption tableid="66" col="ProjectNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="52" tableid="5" indexed="false" name="AgentToRepositoryAgreement" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="5" primary="true">agent.AgentID</join>
-                <join tableid="70">repositoryagreement.RepositoryAgreementID</join>
-            </joins>
-            <detailView icon="Agent">
-                <sql>
-                    <![CDATA[SELECT 
- agent.AgentID, 
- agent.LastName, 
- agent.FirstName, 
-repositoryagreement.RepositoryAgreementNumber, 
-  %s 
- FROM 
- repositoryagreement 
-  INNER JOIN agent ON agent.AgentID = repositoryagreement.AgentID 
-  INNER JOIN agent_discipline on agent_discipline.AgentID = agent.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND %s ORDER BY RepositoryAgreementNumber, LastName, FirstName]]>
-                </sql>
-                <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="LastName" />
-                    <caption tableid="5" col="FirstName" />
-                    <caption tableid="70" col="RepositoryAgreementNumber" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="53" tableid="142" indexed="false" name="ItemToStorage" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="58">storage.StorageID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[SELECT DISTINCT 
- fragment.FragmentID,
- fragment.Identifier, 
- storage.FullName, 
-  %s 
- FROM 
- storage 
-  INNER JOIN preparation ON preparation.StorageID = storage.StorageID
-  INNER JOIN fragment ON fragment.PreparationID = preparation.PreparationID 
- WHERE fragment.CollectionMemberID = COLMEMID AND %s ORDER BY FullName, fragment.Identifier, preparation.Identifier]]>
-                </sql>
-                <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode" />
-                    <caption tableid="58" col="FullName" />
-                 </captions>
-            </detailView>
-        </table>
-
-        <table id="54" tableid="142" indexed="false" name="ItemToTaxon" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="4">taxon.TaxonID</join>
-            </joins>
-            <detailView icon="Fragment">
+            <detailView icon="Preparation">
                 <sql>
                     <![CDATA[
- SELECT distinct 
- fragment.FragmentID, 
- fragment.Identifier, 
- IsCurrent, 
- FullName, 
- %s 
- From fragment
- Inner Join determination AS DT ON DT.FragmentID = collectionobject.FragmentID 
- Inner Join taxon ON taxon.TaxonID = DT.TaxonID 
- WHERE DT.CollectionMemberID = COLMEMID AND 
- f.CollectionMemberID = COLMEMID AND 
- taxon.TaxonTreeDefID = TAXTREEDEFID AND 
- %s order by FullName, fragment.Identifier]]>
+ SELECT
+ pp.PreparationID,
+ ppt.Name,
+ frag.Identifier,
+ %s
+ FROM preparation pp
+ JOIN preptype ppt ON pp.PrepTypeID = ppt.PrepTypeID
+ JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ WHERE %s
+ ORDER BY frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="9" col="IsCurrent"/>
-                    <caption tableid="4" col="FullName" key="TaxonName"/>
-                </captions>
+                    <caption tableid="63"  col="pp.PreparationID" visible="false"/>
+                    <caption tableid="65"  col="ppt.Name" field="Name"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
             </detailView>
         </table>
-
-		<table id="55" tableid="142" indexed="false" name="ItemToPreparation" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="142" primary="true">fragment.FragmentID</join>
-                <join tableid="63">preparation.PreparationID</join>
+        
+        <table id="36" tableid="63" name="PrepsByCitation" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="69">rw.ReferenceWorkID</join>
+                <join tableid="107">rwv.ReferenceWorkID</join>
             </joins>
-            <detailView icon="Fragment">
+            <detailView icon="Preparation">
                 <sql>
                     <![CDATA[
- SELECT distinct 
- fragment.FragmentID, 
- fragment.Identifier,
- preparation.Identifier,
- preparation.SampleNumber, 
- collectionobject.CatalogedDate, 
- collectionobject.CatalogedDatePrecision, 
- %s 
- From collectionobject 
- Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join preparation ON preparation.PreparationID = fragment.PreparationID 
- WHERE preparation.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
+ SELECT
+ pp.PreparationID,
+ rw.Title,
+ ppt.Name,
+ frag.Identifier
+ %s
+ FROM preparation pp
+ JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ JOIN fragmentcitation fc ON frag.FragmentID = fc.FragmentID
+ JOIN referencework rw ON fc.ReferenceWorkID = rw.ReferenceWorkID
+ LEFT JOIN referenceworkvariant rwv ON rw.ReferenceWorkID = rwv.ReferenceWorkID
+ WHERE %s
+ ORDER BY rw.Title, frag.Identifier]]>
                 </sql>
                 <captions>
-                    <caption tableid="142" col="fragment.FragmentID" visible="false"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                    <caption tableid="63" col="SampleNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                </captions>
+                    <caption tableid="63"  col="pp.PreparationID" visible="false"/>
+                    <caption tableid="69"  col="rw.Title"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
             </detailView>
         </table>
-
-		<table id="56" tableid="69" indexed="false" name="RefWorkToRefWorkVariant" priority="1" color="30, 144, 144">
+        
+         <table id="37" tableid="63" name="PrepsByCollector" priority="1" color="30, 144, 144">
+        	<joins>
+                <join tableid="107">av.AgentID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT
+ pp.PreparationID, 
+ av.Name,
+ frag.Identifier,
+ %s 
+ FROM preparation pp
+ JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ JOIN collectionobject co ON frag.CollectionObjectID = co.CollectionObjectID
+ JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ JOIN agent ag ON ctr.AgentID = ag.AgentID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ WHERE %s
+ ORDER BY ctr.AgentID, av.Name, frag.PreparationID, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="63" col="pp.PreparationID" visible="false"/>
+                    <caption tableid="107" key="Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+                    <caption tableid="142" key="Fragments">
+						<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="38" tableid="63" name="PrepsByDetermination" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="4">tx.TaxonID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT DISTINCT
+ pp.PreparationID,
+ tx.FullName,
+ frag.Identifier,
+ %s
+ FROM preparation pp
+ JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ JOIN determination det ON frag.FragmentID = det.FragmentID
+ JOIN taxon tx ON det.TaxonID = tx.TaxonID
+ WHERE %s
+ ORDER BY tx.FullName, frag.PreparationID, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="63"  col="pp.PreparationID" visible="false"/>
+                    <caption tableid="4"   col="tx.FullName" field="fullName"/>
+                    <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+               </captions>
+            </detailView>
+        </table>
+        
+        <table id="39" tableid="63" name="PrepsByLoan" priority="1" color="30, 144, 144">
+        	<joins>
+            	<join tableid="52">ln.LoanID</join>
+            </joins>
+            <detailView icon="Preparation">
+                <sql>
+                    <![CDATA[
+ SELECT
+ pp.PreparationID,
+ ln.LoanNumber,
+ ppt.Name,
+ frag.Identifier
+ %s 
+ FROM preparation pp
+ JOIN preptype ppt ON pp.PrepTypeID = preptype.PrepTypeID
+ JOIN loanpreparation lpo ON pp.PreparationID = lpo.PreparationID
+ LEFT JOIN fragment frag ON pp.PreparationID=frag.PreparationID
+ WHERE %s
+ ORDER BY ln.LoanID, lpo.PreparationID, frag.Identifier]]>
+                </sql>
+                <captions>
+                    <caption tableid="63" col="pp.PreparationID" visible="false"/>
+                    <caption tableid="52" col="ln.LoanNumber" field="loanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="65" col="ppt.Name" field="name"/>
+                    <caption tableid="142" key="Fragments">
+						<agg class="edu.ku.brc.specify.datamodel.Fragment" aggregator="Fragment"/>
+						<col name="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    </caption>
+               </captions>
+            </detailView>
+        </table>
+       
+       <table id="40" tableid="69" name="RefWorksByRefWorkIdentifier" priority="1" color="30, 144, 144">
             <joins>
-                <join tableid="141">referenceworkvariant.ReferenceWorkVariantID</join>
-                <join tableid="69" primary="true">referencework.ReferenceWorkID</join>
+                <join tableid="140">rwi.ReferenceWorkIdentifierID</join>
             </joins>
             <detailView icon="ReferenceWork">
                 <sql>
                     <![CDATA[
- SELECT referencework.ReferenceWorkID, 
- referenceworkvariant.Name, 
- referencework.Text1, 
+ SELECT rw.ReferenceWorkID, 
+ rwv.Name, 
+ rw.Text1, 
  %s 
- FROM referencework 
- INNER JOIN referenceworkvariant ON referencework.ReferenceWorkID = referenceworkvariant.ReferenceWorkID 
- WHERE %s order by referenceworkvariant.Name asc]]>
+ FROM referencework rw
+ INNER JOIN referenceworkidentifier rwi ON rw.ReferenceWorkID = rwi.ReferenceWorkID 
+ WHERE %s ORDER BY rwi.Identifier, rw.Text1]]>
                 </sql>
                 <captions>
-                    <caption tableid="69" col="referencework.ReferenceWorkID" visible="false"/>
-                    <caption tableid="141" col="referenceworkvariant.Name"/>
-                    <caption tableid="69" key="ReferenceWork" dataobjformatter="ReferenceWork">
-                        <col name="referencework.Text1"  field="text1"/>                    
-                    </caption>
+                    <caption tableid="69"  col="rw.ReferenceWorkID" visible="false"/>
+                    <caption tableid="140" col="rwi.Identifier" field="identifier"/>
+                    <caption tableid="69"  col="rw.Text1"       field="text1"/>                    
+                </captions>
+            </detailView>
+        </table>
+        
+		<table id="41" tableid="69" name="RefWorksByVariantTitle" priority="1" color="30, 144, 144">
+            <joins>
+                <join tableid="141">rwv.ReferenceWorkVariantID</join>
+            </joins>
+            <detailView icon="ReferenceWork">
+                <sql>
+                    <![CDATA[
+ SELECT
+ rw.ReferenceWorkID, 
+ rwv.Name, 
+ rw.Text1, 
+ %s 
+ FROM referencework rw
+ INNER JOIN referenceworkvariant rwv ON rw.ReferenceWorkID = rwv.ReferenceWorkID 
+ WHERE %s ORDER BY rwv.Name]]>
+                </sql>
+                <captions>
+                    <caption tableid="69"  col="rw.ReferenceWorkID" visible="false"/>
+                    <caption tableid="141" col="rwv.Name" field="name"/>
+                    <caption tableid="69"  col="rw.Text1" field="text1"/>
                 </captions>
             </detailView>
         </table>
 
-         <table id="57" tableid="63" indexed="false" name="PreparationToItem" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="63" primary="true">preparation.PreparationID</join>
-                <join tableid="142">fragment.FragmentID</join>
-            </joins>
-            <detailView icon="Preparation">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- preparation.PreparationID, 
- preparation.Identifier,
- preparation.SampleNumber, 
- fragment.Identifier,
- collectionobject.CatalogedDate, 
- collectionobject.CatalogedDatePrecision, 
- %s 
- From preparation 
- Inner Join fragment ON fragment.PreparationID = preparation.PreparationID
- Inner Join collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
- WHERE preparation.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
-                </sql>
-                <captions>
-                	<caption tableid="63" col="preparation.PreparationID" visible="false"/>
-                	<caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                	<caption tableid="63" col="SampleNumber"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="58" tableid="63" indexed="false" name="PreparationToCollObj" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="63" primary="true">preparation.PreparationID</join>
-                <join tableid="1">collectionobject.CollectionObjectID</join>
-            </joins>
-            <detailView icon="Preparation">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- preparation.PreparationID, 
- preparation.Identifier,
- fragment.Identifier,
- collectionobject.FieldNumber,
- collectionobject.CatalogedDate, 
- collectionobject.CatalogedDatePrecision, 
- %s 
- From preparation 
- Inner Join fragment ON fragment.PreparationID = preparation.PreparationID
- Inner Join collectionobject ON fragment.CollectionObjectID = collectionobject.CollectionObjectID 
- WHERE preparation.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
-                </sql>
-                <captions>
-                	<caption tableid="63" col="preparation.PreparationID" visible="false"/>
-                	<caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                    <caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="1" col="FieldNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                </captions>
-            </detailView>
-        </table>
 
-        <table id="59" tableid="1" indexed="false" name="CollObjToPreparation" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="142">fragment.FragmentID</join>
-                <join tableid="63">preparation.PreparationID</join>
-            </joins>
-            <detailView icon="Preparation">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- collectionobject.CollectionObjectID,
- collectionobject.FieldNumber,
- collectionobject.CatalogedDate, 
- collectionobject.CatalogedDatePrecision, 
- fragment.Identifier,
- preparation.PreparationID, 
- preparation.Identifier,
- %s 
- From collectionobject 
- Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
- Inner Join preparation ON fragment.PreparationID = preparation.PreparationID 
- WHERE preparation.CollectionMemberID = COLMEMID AND 
- collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier, preparation.Identifier, preparation.SampleNumber]]>
-                </sql>
-                <captions>
-                	<caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-	                <caption tableid="1" col="FieldNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                	<caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="63" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="60" tableid="1" indexed="false" name="CollObjToItem" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="1" primary="true">collectionobject.CollectionObjectID</join>
-                <join tableid="142">fragment.FragmentID</join>
-            </joins>
-            <detailView icon="Fragment">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- collectionobject.CollectionObjectID,
- collectionobject.FieldNumber,
- collectionobject.CatalogedDate, 
- collectionobject.CatalogedDatePrecision, 
- fragment.Identifier,
- %s 
- From collectionobject 
- Inner Join fragment ON fragment.CollectionObjectID = collectionobject.CollectionObjectID
- WHERE collectionobject.CollectionMemberID = COLMEMID AND 
- %s order by fragment.Identifier]]>
-                </sql>
-                <captions>
-                	<caption tableid="1" col="collectionobject.CollectionObjectID" visible="false"/>
-	                <caption tableid="1" col="FieldNumber"/>
-                    <caption tableid="1" formatter="PartialDate">
-                        <col name="CatalogedDate"          field="catalogedDate"/>
-                        <col name="CatalogedDatePrecision" field="catalogedDatePrecision"/>
-                    </caption>
-                	<caption tableid="142" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                </captions>
-            </detailView>
-        </table>
-
-        <table id="61" tableid="18" indexed="false" name="BorrowToBorrowMaterial" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="18" primary="true">bo.BorrowID</join>
-                <join tableid="20">bom.BorrowID</join>
-            </joins>
-            <detailView icon="Borrow">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- bo.BorrowID,
- bo.InvoiceNumber,
- bo.ReceivedDate, 
- bom.MaterialNumber, 
- bom.SrcTaxonomy,
- %s 
- From borrow bo
- Inner Join borrowmaterial bom ON bo.BorrowID = bom.BorrowID
- WHERE %s order by bo.InvoiceNumber, bom.MaterialNumber]]>
-                </sql>
-                <captions>
-                	<caption tableid="18" col="bo.BorrowID" visible="false"/>
-	                <caption tableid="18" col="bo.InvoiceNumber"/>
-                    <caption tableid="18" col="ReceivedDate"/>
-                	<caption tableid="20" col="MaterialNumber" formatter="HUHBorrowMaterialNumber"/>
-                	<caption tableid="20" col="SrcTaxonomy"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <table id="62" tableid="18" indexed="false" name="BorrowMaterialToBorrow" priority="1" color="30, 144, 144">
-            <joins>
-                <join tableid="29" primary="true">bom.BorrowID</join>
-                <join tableid="18">bo.BorrowID</join>
-            </joins>
-            <detailView icon="Borrow">
-                <sql>
-                    <![CDATA[
- SELECT distinct 
- bo.BorrowID,
- bo.InvoiceNumber,
- bo.ReceivedDate, 
- bom.MaterialNumber, 
- bom.SrcTaxonomy,
- %s 
- From borrow bo
- Inner Join borrowmaterial bom ON bo.BorrowID = bom.BorrowID
- WHERE %s order by bo.InvoiceNumber, bom.MaterialNumber]]>
-                </sql>
-                <captions>
-                	<caption tableid="18" col="bo.BorrowID" visible="false"/>
-	                <caption tableid="18" col="bo.InvoiceNumber"/>
-                    <caption tableid="18" col="ReceivedDate"/>
-                	<caption tableid="20" col="MaterialNumber" formatter="HUHBorrowMaterialNumber"/>
-                	<caption tableid="20" col="SrcTaxonomy"/>
-                </captions>
-            </detailView>
-        </table>
-        
-        <!-- Return agentvariant records found by previous search on agentvariant -->
-        <table id="63" tableid="107" indexed="false" name="AgentVariantToAgent" priority="1" color="30, 144, 144">
-            <joins>
-	            <join tableid="5">agent.AgentID</join>
-                <join tableid="107" primary="true">agentvariant.AgentVariantID</join>
-            </joins>
-            <detailView icon="AgentVariant">
-                <sql>
-                    <![CDATA[
- SELECT agentvariant.AgentVariantID, 
- agentvariant.Name,
- agentvariant.VarType,
- agent.DateOfBirth,
- agent.DateOfBirthPrecision,
- agent.DateOfDeath,
- agent.DateOfDeathPrecision,
- agent.DatesType,
- %s 
- FROM agent INNER JOIN agent_discipline ON agent.AgentID = agent_discipline.AgentID 
- INNER JOIN agentvariant ON agent.AgentID = agentvariant.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND agent.LastName is null AND %s order by agentvariant.Name asc]]>
-                </sql>
-                <captions>
-                    <caption tableid="107" col="agentvariant.AgentVariantID" visible="false"/>
-                    <caption tableid="107" col="agentvariant.Name"/>
-                    <caption tableid="107" col="agentvariant.VarType" formatter="AgentVariantVarType"/>
-    				<caption tableid="5" formatter="PartialDate">
-    					<col name="agent.DateOfBirth" field="dateOfBirth"/>
-                    	<col name="agent.DateOfBirthPrecision" field="dateOfBirthPrecision"/>
-                    </caption>
-                    <caption tableid="5" formatter="PartialDate">
-    					<col name="agent.DateOfDeath" field="dateOfDeath"/>
-                    	<col name="agent.DateOfDeathPrecision" field="dateOfDeathPrecision"/>
-                    </caption>
-                    <caption tableid="5" col="agent.DatesType" formatter="AgentDatesType"/>
-                </captions>
-            </detailView>
-        </table>
         
         <!-- ============================ -->
         <!--  Attachment Related Searches -->
