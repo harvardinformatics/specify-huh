@@ -142,16 +142,29 @@
         	</altviews>
         </view>
         
-        <view name="FragmentShort"
-            objtitle="Item (Minimal Capture)"
+        <view name="FragmentCollObjSub"
         	class="edu.ku.brc.specify.datamodel.Fragment"
-        	busrules="edu.harvard.huh.specify.datamodel.busrules.HUHMinCaptureBusRules" 
-        	useresourcelabels="true"
-        	isinternal="false">
-        	<desc><![CDATA[The Fragment form.]]></desc>
+        	usedefbusrule="false"
+        	useresourcelabels="true">
+        	<desc><![CDATA[The Fragment subform for the CollectionObject form.]]></desc>
         	<altviews>
-        		<altview name="FragmentShort View" viewdef="FragmentShort" mode="view"/>
-        		<altview name="FragmentShort Edit" viewdef="FragmentShort" mode="edit"/>
+        		<altview name="FragmentCollObjSub View" viewdef="FragmentCollObjSub" mode="view"/>
+        		<altview name="FragmentCollObjSub Edit" viewdef="FragmentCollObjSub" mode="edit" default="true"/>
+        		<altview name="FragmentCollObjSub Table Edit" viewdef="FragmentCollObjSub Table" mode="edit"/>
+                <altview name="FragmentCollObjSub Table View" viewdef="FragmentCollObjSub Table" mode="view"/>
+        	</altviews>
+        </view>
+
+		<view name="FragmentPrepSub"
+        	class="edu.ku.brc.specify.datamodel.Fragment"
+        	usedefbusrule="false"
+        	useresourcelabels="true">
+        	<desc><![CDATA[The Fragment subform for the CollectionObject form.]]></desc>
+        	<altviews>
+        		<altview name="FragmentPrepSub View" viewdef="FragmentPrepSub" mode="view"/>
+        		<altview name="FragmentPrepSub Edit" viewdef="FragmentPrepSub" mode="edit" default="true"/>
+        		<altview name="FragmentPrepSub Table Edit" viewdef="FragmentPrepSub Table" mode="edit"/>
+                <altview name="FragmentPrepSub Table View" viewdef="FragmentPrepSub Table" mode="view"/>
         	</altviews>
         </view>
         
@@ -183,7 +196,7 @@
               class="edu.ku.brc.specify.datamodel.Preparation"
               busrules="edu.harvard.huh.specify.datamodel.busrules.HUHPreparationBusRules"
               resourcelabels="false"
-              isinternal="true">
+              isinternal="false">
             <desc><![CDATA[Subform within the Preparation form.]]></desc>
             <altviews>
                 <altview name="Preparation View" viewdef="Preparation" mode="view"/>
@@ -342,6 +355,9 @@
                 <row>
                     <cell type="label" labelfor="internalRemarks"/>
                     <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="11"/>
                 </row>
                 <row>
                     <cell type="separator" label="Cataloger" colspan="11"/>
@@ -963,6 +979,92 @@
         </viewdef>
         
         <viewdef
+              name="FragmentCollObjSub"
+              type="form"
+              class="edu.ku.brc.specify.datamodel.Fragment"
+              gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+              settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+              
+              <desc><![CDATA[The Fragment Subform for the CollectionObject form.]]></desc>
+              <enableRules/>
+              
+              <columnDef>         100px,2px,650px,p:g</columnDef>
+              <columnDef os="lnx">145px,2px,145px,5px,145px,2px,145px,p:g</columnDef>
+              <columnDef os="mac">130px,2px,650px,p:g</columnDef>
+              <columnDef os="exp">p,    2px,min(p;650px),px:g</columnDef>
+              <rowDef auto="true" cell="p" sep="2px"/>
+		  
+                <rows>
+                <row>
+                	<cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="text1" uitype="combobox" picklist="HUH Collection Code"/>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="identifier" uitype="formattedtext"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="prepMethod"/>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="preparation" uitype="querycbx" initialize="name=Preparation;editbtn=false;newbtn=false;searchbtn=false;editoncreate=true" readonly="true"/>
+                </row>
+             </rows>
+        </viewdef>
+        
+        <viewdef
+            name="FragmentCollObjSub Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Fragment"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Fragment subform table for CollectionObject form.]]></desc>
+            <definition>FragmentCollObjSub</definition>
+        </viewdef>
+        
+        <viewdef
+              name="FragmentPrepSub"
+              type="form"
+              class="edu.ku.brc.specify.datamodel.Fragment"
+              gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+              settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+              
+              <desc><![CDATA[The Fragment Subform for the Preparation form.]]></desc>
+              <enableRules/>
+              
+              <columnDef>         100px,2px,650px,p:g</columnDef>
+              <columnDef os="lnx">145px,2px,145px,5px,145px,2px,145px,p:g</columnDef>
+              <columnDef os="mac">130px,2px,650px,p:g</columnDef>
+              <columnDef os="exp">p,    2px,min(p;650px),px:g</columnDef>
+              <rowDef auto="true" cell="p" sep="2px"/>
+		  
+                <rows>
+                <row>
+                	<cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="text1" uitype="combobox" picklist="HUH Collection Code"/>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="identifier" uitype="formattedtext"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="prepMethod"/>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="collectionObject.collectingEvent" formatname="CollectingEventDetail" uitype="querycbx" initialize="name=CollectingEvent;editbtn=false;newbtn=false;searchbtn=false;editoncreate=true" readonly="true"/>
+                </row>
+             </rows>
+        </viewdef>
+        
+        <viewdef
+            name="FragmentPrepSub Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Fragment"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Fragment subform table for Preparation form.]]></desc>
+            <definition>FragmentCollObjSub</definition>
+        </viewdef>
+        
+        <viewdef
             name="OtherIdentifier"
             type="form"
             class="edu.ku.brc.specify.datamodel.OtherIdentifier"
@@ -1045,6 +1147,9 @@
                 <row>
                 	<cell type="label" labelfor="remarks"/>
                 	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
+                </row>
+                <row>
+                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="12"/>
                 </row>
             </rows>
         </viewdef>
