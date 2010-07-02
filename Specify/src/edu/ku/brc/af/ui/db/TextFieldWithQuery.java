@@ -111,7 +111,8 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
     protected static DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
     
     protected int                              popupDlgThreshold = 15;
-            
+    protected int                              popupTextCharWidth = 100;
+    
     protected JTextField                       textField;
     protected Object                           dataObj        = null;
     protected Vector<Integer>                  idList         = new Vector<Integer>();
@@ -1000,9 +1001,9 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
                                 } else if (val instanceof String)
                                 {
                                     String str = val.toString();
-                                    if (str.length() > 25)
+                                    if (str.length() > popupTextCharWidth)
                                     {
-                                        val = str.substring(0, 25) + "...";
+                                        val = str.substring(0, popupTextCharWidth) + "...";
                                     }
                                 }
                                 values[i] = val != null ? val : ""; //$NON-NLS-1$
