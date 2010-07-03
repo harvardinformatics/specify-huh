@@ -19,6 +19,8 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+
 import java.util.Calendar;
 
 import edu.ku.brc.af.core.AppContextMgr;
@@ -30,7 +32,6 @@ import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
-import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
@@ -190,7 +191,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         else
         {
             reasonList.clear();
-            reasonList.add("No Items"); // TODO
+            reasonList.add(getResourceString("CollectionObjectBusRules.NO_ITEMS"));
             return false;
         }
     }
@@ -206,7 +207,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 CollectionObject collObj = (CollectionObject) dataObj;
                 if (collObj.getFragments().size() > 0)
                 {
-                    reasonList.add("Attached items"); // TODO
+                    reasonList.add(getResourceString("CollectionObjectBusRules.ATTACHED_ITEMS"));
                     return false;
                 }
             }
@@ -235,7 +236,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
         }
         else
         {
-            reasonList.add("No Items"); // TODO
+            reasonList.add(getResourceString("CollectionObjectBusRules.NO_ITEMS"));
             return STATUS.Error;
         }
     }

@@ -20,8 +20,8 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
-import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -30,9 +30,7 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
-import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
@@ -62,8 +60,6 @@ public class HUHPreparationBusRules extends PreparationBusRules
 
         if (ok)
         {
-
-
             if (dataObj instanceof Preparation)
             {
                 Preparation prep = (Preparation) dataObj;
@@ -141,7 +137,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
                 Preparation prep = (Preparation) dataObj;
                 if (prep.getFragments().size() > 0)
                 {
-                    reasonList.add("Attached Items"); // TODO
+                    reasonList.add(getResourceString("PreparationBusRules.ATTACHED_ITEMS"));
                     return false;
                 }
             }
@@ -165,8 +161,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
             {
                 if (StringUtils.isEmpty(prep.getIdentifier()))
                 {
-                    reasonList.clear();
-                    reasonList.add("No Items and no barcode"); // TODO
+                    reasonList.add(getLocalizedMessage("PreparationBusRules.NO_ITEMS"));
                     return false;
                 }
                 else return true;
@@ -192,19 +187,26 @@ public class HUHPreparationBusRules extends PreparationBusRules
         if (hasCycle)
         {
             reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
-            return STATUS.Error;
+            status = STATUS.Error;
         }
+        if (!STATUS.OK.equals(status)) return status;
         
         boolean hasFragment = hasFragment(prep);
         
-        if (!hasFragment)
+        if (!hasFragment && StringUtils.isEmpty(prep.getIdentifier()))
         {
-            reasonList.add("No Items"); // TODO
-            return STATUS.Error;
+            reasonList.add(getLocalizedMessage("NO_ITEMS"));
+            status = STATUS.Error;
         }
+        if (!STATUS.OK.equals(status)) return status;
         
-        status = HUHFragmentBusRules.checkBarcode(prep, reasonList);
+        String barcodeError = HUHFragmentBusRules.checkForBarcodeError(prep);
         
+        if (barcodeError != null)
+        {
+            reasonList.add(barcodeError);
+            status = STATUS.Error;
+        }        
         return status;
     }
     
