@@ -146,6 +146,17 @@
             </altviews>
         </view>
 
+		<view 
+          name="ExsiccataSearch"
+          class="edu.ku.brc.specify.datamodel.ReferenceWork"
+          usedefbusrule="false"
+          resourcelabels="false">
+          <desc><![CDATA[The Exsiccata Search Form]]></desc>
+          <altviews>
+             <altview name="ExsiccataSearch" viewdef="ExsiccataSearch" mode="edit" validated="true" default="true"/>
+          </altviews>
+        </view>
+        
         <view 
             name="FieldNotebookPageSearch"
             class="edu.ku.brc.specify.datamodel.FieldNotebookPage"
@@ -1009,6 +1020,46 @@ Good: <cell type="field" name="FieldNum" ...>
             </rows>
         </viewdef>
 
+		<viewdef type="form"
+            name="ExsiccataSearch"
+            class="edu.ku.brc.specify.datamodel.ReferenceWork"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Publication Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                	<cell type="label" labelfor="1" label="Author (Last Name)"/>
+                	<cell type="field" id="1" name="LastName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="Title" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3" label="Variant Name"/>
+                    <cell type="field" id="3" name="Name" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="WorkDate" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="6" label="Reference Number"/>
+                    <cell type="field" id="6" name="Identifier" isrequired="false" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
         <viewdef type="form"
             name="ReferenceWorkSearch"
             class="edu.ku.brc.specify.datamodel.ReferenceWork"
