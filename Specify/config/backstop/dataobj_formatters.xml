@@ -82,6 +82,8 @@
                 <field sep=" ">lastName</field>
             </fields>
             <fields value="1">
+            	<field>firstName</field>
+	            <field sep=" ">lastName</field>
                 <field>dateOfBirth</field>
                 <field sep="-">dateOfDeath</field>
             </fields>
@@ -698,7 +700,6 @@
             <fields>
                 <field formatter="PrepType">prepType</field>
                 <field sep=" - ">identifier</field>
-                <field sep=" ">text1</field>
             </fields>
         </switch>
     </format>
