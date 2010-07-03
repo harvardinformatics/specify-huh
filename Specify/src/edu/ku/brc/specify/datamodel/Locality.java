@@ -677,7 +677,7 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     }
 
     //@OneToMany(cascade = { javax.persistence.CascadeType.ALL }, mappedBy = "locality")
-    @OneToMany(mappedBy = "locality")
+    @OneToMany(mappedBy = "locality", fetch = FetchType.EAGER )
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     @OrderBy("ordinal ASC")
     public Set<LocalityAttachment> getLocalityAttachments()
