@@ -42,6 +42,8 @@ import edu.ku.brc.ui.UIRegistry;
 /**
  * This alters the UI depending on which type of agent is set.
  * 
+ * This class was created by mkelly from AgentBusRules.
+ * 
  * @author rods
  *
  * @code_status Complete
