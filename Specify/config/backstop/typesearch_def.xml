@@ -56,7 +56,7 @@
 	<typesearch tableid="85"  name="FieldNotebookPage"      searchfield="pageNumber"      displaycols="fnbp.pageNumber,fnb.name"  format="%s - %s"     dataobjformatter="FieldNotebookPage">
         SELECT %s1 FROM FieldNotebookPage fnbp JOIN fnbp.pageSet as fnbps JOIN fnbps.fieldNotebook as fnb JOIN fnb.discipline as dsp WHERE dsp.disciplineId = DSPLNID AND %s2 ORDER BY fnb.name, fnbp.pageNumber
     </typesearch>
-    <typesearch tableid="142" name="Fragment"               searchfield="frag.identifier,pp.identifier"      displaycols="frag.identifier, pp.identifier" format="%s%s" dataobjformatter="Fragment">
+    <typesearch tableid="142" name="Fragment"               searchfield="frag.identifier,pp.identifier"      displaycols="frag.identifier,pp.identifier,frag.description" format="%s %s " dataobjformatter="Fragment">
 		SELECT %s1 FROM Fragment frag, Preparation pp WHERE frag.preparation.id=pp.id AND %s2 ORDER BY frag.identifier, pp.identifier
 	</typesearch>
     <typesearch tableid="3"   name="Geography"              searchfield="fullName"        displaycols="fullName"           format="%s"     dataobjformatter="Geography"/>
@@ -76,7 +76,9 @@
     </typesearch>
     <typesearch tableid="65"  name="PrepType"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
 	<typesearch tableid="66"  name="Project"                searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
-    <typesearch tableid="69"  name="ReferenceWork"          searchfield="title,text1"     displaycols="title,text1"        format="%s (%s)" dataobjformatter="ReferenceWork"/>
+    <typesearch tableid="69"  name="ReferenceWork"          searchfield="title,text1"     displaycols="text1,av.name"      format="%s %s" dataobjformatter="ReferenceWork">
+		SELECT %s1 FROM ReferenceWork rw LEFT JOIN rw.authors as au with au.orderNumber=1 LEFT JOIN au.agent as ag LEFT JOIN ag.variants as av with av.varType=2 WHERE %s2 ORDER BY ifnull(rw.title, rw.text1), av.name
+    </typesearch>
     <typesearch tableid="69"  name="RefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter="ReferenceWork"/>
     <typesearch tableid="70"  name="RepositoryAgreement"    searchfield="repositoryAgreementNumber" displaycols="repositoryAgreementNumber" format="%s"     dataobjformatter=""/>
     <typesearch tableid="58"  name="Storage"                searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
@@ -87,5 +89,8 @@
     <typesearch tableid="77"  name="TaxonTreeDefItem"       searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="5"   name="TransactionAgent"       searchfield="org.abbreviation,ag.abbreviation" displaycols="ag.abbreviation,ag.firstName,ag.lastName" format="%s %s %s"     dataobjformatter="Agent">
            SELECT distinct %s1 FROM Agent ag LEFT JOIN ag.organization as org WHERE %s2 ORDER BY ifnull(ag.abbreviation, org.abbreviation), ifnull(org.abbreviation, 'a'), ag.lastName
+    </typesearch>
+    <typesearch tableid="63"  name="BarcodedPreparation"  searchfield="frag.identifier,frag.preparation.identifier" displaycols="frag.preparation.prepType.name,frag.preparation.identifier,frag.identifier" format="%s - %s (%s)"     dataobjformatter="Preparation">
+		SELECT %s1 FROM Fragment frag JOIN frag.preparation as pp WHERE %s2 ORDER BY frag.identifier, frag.preparation.identifier, frag.preparation.sampleNumber
     </typesearch>
 </typesearches>

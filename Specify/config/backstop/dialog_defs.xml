@@ -48,6 +48,7 @@
     <dialog type="display" view="AttributeDef"       name="AttributeDef"             class="edu.ku.brc.specify.datamodel.AttributeDef" helpcontext="CBXQSearch"/>
     <dialog type="display" view="AutoNumberingScheme" name="AutoNumberingScheme"     class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Author"             name="AuthorDisplay"            class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="BarcodedPreparation" name="BarcodedPreparation"     class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BioStrat"           name="BioStratDisplay"          class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BorrowAgent"        name="BorrowAgentDisplay"       class="edu.ku.brc.specify.datamodel.BorrowAgent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Botanist"           name="Botanist"                 class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
