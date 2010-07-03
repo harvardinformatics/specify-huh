@@ -76,7 +76,7 @@
  %s
  FROM collectionobject co
  LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
- LEFT JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
+ LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
  LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
  JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
@@ -127,7 +127,7 @@
  LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType=4)
  JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
- JOIN preparation pp ON frag.PreparationID = pp.PreparationID
+ LEFT JOIN preparation pp ON frag.PreparationID = pp.PreparationID
  WHERE %s
  ORDER BY ifnull(frag.Identifier, pp.Identifier), frag.CollectionObjectID, ctr.AgentID, av.AgentID, av.Name]]>
                 </sql>
@@ -260,7 +260,7 @@
  FROM collectionobject co
  JOIN fragment frag ON co.CollectionObjectID = frag.CollectioObjectID
  JOIN determination det ON frag.FragmentID = det.FragmentID
- JOIN taxon ON det.TaxonID = tx.TaxonID
+ JOIN taxon tx ON det.TaxonID = tx.TaxonID
  LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
  LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
  LEFT JOIN agent ag ON ctr.AgentID = ag.AgentID
@@ -304,12 +304,12 @@
  av.Name,
  ce.StationFieldNumber,
  %s
- FROM collectionobject
- LEFT JOIN collectingevent ON co.CollectingEventID = ce.CollectingEventID
- LEFT JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
+ FROM collectionobject co
+ LEFT JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ LEFT JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
  LEFT JOIN agent ON ctr.AgentID = ag.AgentID
-  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
- JOIN fragment ON co.CollectionObjectID = frag.CollectionObjectID
+ LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
+ JOIN fragment frag ON co.CollectionObjectID = frag.CollectionObjectID
  JOIN preparation pp ON frag.PreparationID = pp.PreparationID
  JOIN loanpreparation lpo ON pp.PreparationID = lpo.PreparationID
  JOIN loan ln ON lpo.LoanID = ln.LoanID
@@ -336,7 +336,7 @@
             </detailView>
         </table>
         
-        <table id="8" tableid="1" name="ItemsByAccession" priority="1" color="30, 144, 144">
+        <table id="8" tableid="142" name="ItemsByAccession" priority="1" color="30, 144, 144">
         	<joins>
             	<join tableid="7">ac.AccessionID</join>
             </joins>
@@ -365,9 +365,9 @@
             </detailView>
         </table>
         
-        <table id="9" tableid="1" name="ItemsByPrep" priority="1" color="30, 144, 144">
+        <table id="9" tableid="142" name="ItemsByPrep" priority="1" color="30, 144, 144">
         	<joins>
-            	<join tableid="63">preparation.PreparationID</join>
+            	<join tableid="63">pp.PreparationID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
@@ -375,20 +375,24 @@
  SELECT
  frag.FragmentID,
  frag.Identifier,
+ frag.PrepMethod,
+ pp.Identifier,
  %s
- FROM fragment
- JOIN preparation ON frag.PreparationID = preparation.PreparationID
+ FROM fragment frag
+ JOIN preparation pp ON frag.PreparationID = pp.PreparationID
  WHERE %s
  ORDER BY frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="frag.FragmentID" visible="false"/>
                     <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="142" col="frag.PrepMethod" field="prepMethod"/>
+                    <caption tableid="63"  col="pp.Identifier"   field="identifier" formatter="HUHPreparationBarcode"/>
                </captions>
             </detailView>
         </table>
         
-        <table id="10" tableid="1" name="ItemsByCollector" priority="1" color="30, 144, 144">
+        <table id="10" tableid="142" name="ItemsByCollector" priority="1" color="30, 144, 144">
         	<joins>
                 <join tableid="107">av.AgentID</join>
             </joins>
@@ -400,11 +404,11 @@
  frag.Identifier,
  av.Name,
  %s
- FROM fragment
- JOIN collectionobject ON frag.CollectionObjectID = co.CollectionObjectID
- JOIN collectingevent ON co.CollectingEventID = ce.CollectingEventID
- JOIN collector ON ce.CollectingEventID = ctr.CollectingEventID
- JOIN agent ON ctr.AgentID = ag.AgentID
+ FROM fragment frag
+ JOIN collectionobject co ON frag.CollectionObjectID = co.CollectionObjectID
+ JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID
+ JOIN collector ctr ON ce.CollectingEventID = ctr.CollectingEventID
+ JOIN agent ag ON ctr.AgentID = ag.AgentID
  LEFT JOIN agentvariant av ON (ag.AgentID = av.AgentID AND av.VarType="4")
  WHERE %s
  ORDER BY av.AgentID, av.Name, frag.Identifier]]>
@@ -420,10 +424,10 @@
             </detailView>
         </table>
         
-        <table id="11" tableid="1" name="ItemsByCitation" priority="1" color="30, 144, 144">
+        <table id="11" tableid="142" name="ItemsByCitation" priority="1" color="30, 144, 144">
         	<joins>
-                <join tableid="69">referencework.ReferenceWorkID</join>
-                <join tableid="107">referenceworkvariant.ReferenceWorkID</join>
+                <join tableid="69">rw.ReferenceWorkID</join>
+                <join tableid="107">rwv.ReferenceWorkID</join>
             </joins>
             <detailView icon="CollectionObject">
                 <sql>
@@ -433,12 +437,12 @@
  referencework.Title,
  frag.Identifier,
  %s
- FROM fragment
- JOIN fragmentcitation ON frag.FragmentID = fragmentcitation.FragmentID
- JOIN referencework ON fragmentcitation.ReferenceWorkID = referencework.ReferenceWorkID
- LEFT JOIN referenceworkvariant ON referencework.ReferenceWorkID = referenceworkvariant.ReferenceWorkID
+ FROM fragment frag
+ JOIN fragmentcitation fc ON frag.FragmentID = fc.FragmentID
+ JOIN referencework rw ON fc.ReferenceWorkID = rw.ReferenceWorkID
+ LEFT JOIN referenceworkvariant rwv ON rw.ReferenceWorkID = rwv.ReferenceWorkID
  WHERE %s
- ORDER BY referencework.Title, frag.Identifier]]>
+ ORDER BY rw.Title, frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="frag.FragmentID" visible="false"/>
@@ -448,9 +452,9 @@
             </detailView>
         </table>
         
-        <table id="12" tableid="1" name="ItemsByDetermination" priority="1" color="30, 144, 144">
+        <table id="12" tableid="142" name="ItemsByDetermination" priority="1" color="30, 144, 144">
         	<joins>
-                <join tableid="4">taxon.TaxonID</join>
+                <join tableid="4">tx.TaxonID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
@@ -460,36 +464,36 @@
  taxon.FullName,
  frag.Identifier,
  %s
- FROM fragment
- JOIN determination ON frag.FragmentID = determination.FragmentID
- JOIN taxon ON determination.TaxonID = taxon.TaxonID
+ FROM fragment frag
+ JOIN determination det ON frag.FragmentID = det.FragmentID
+ JOIN taxon tx ON det.TaxonID = tx.TaxonID
  WHERE %s
- ORDER BY taxon.FullName, frag.Identifier]]>
+ ORDER BY tx.FullName, frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="frag.FragmentID" visible="false"/>
-                    <caption tableid="4"   col="taxon.FullName"/>
+                    <caption tableid="4"   col="tx.FullName"/>
                     <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
                </captions>
             </detailView>
         </table>
         
-        <table id="13" tableid="1" name="ItemsByLoan" priority="1" color="30, 144, 144">
+        <table id="13" tableid="142" name="ItemsByLoan" priority="1" color="30, 144, 144">
         	<joins>
-            	<join tableid="52">loan.LoanID</join>
+            	<join tableid="52">ln.LoanID</join>
             </joins>
             <detailView icon="Fragment">
                 <sql>
                     <![CDATA[
  SELECT
  frag.FragmentID,
- loan.LoanNumber,
- preptype.Name,
+ ln.LoanNumber,
+ ppt.Name,
  frag.Identifier,
  %s
  FROM fragment frag
  JOIN loanpreparation lpo ON frag.PreparationID = lpo.PreparationID
- JOIN loan ln ON loanpreparation.LoanID = ln.LoanID
+ JOIN loan ln ON lpo.LoanID = ln.LoanID
  WHERE %s
  ORDER BY ln.LoanNumber, lpo.PreparationID, frag.Identifier]]>
                 </sql>
@@ -553,7 +557,7 @@
  FROM loan ln
  JOIN loanpreparation lpo ON ln.LoanID = lpo.LoanID
  JOIN preparation pp ON lpo.PreparationID = pp.PreparationID
- JOIN fragment frag ON pp.PreparationID = frag.PreparationID
+ LEFT JOIN fragment frag ON pp.PreparationID = frag.PreparationID
  WHERE %s
  ORDER BY ifnull(ag.Abbreviation, ag.LastName), ln.LoanNumber]]>
         		</sql>
@@ -1780,7 +1784,7 @@
                                     pp.Identifier as PrepIdentifier,
                                     pp.Description as PrepDescription
                                FROM fragment frag LEFT JOIN preparation pp ON frag.PreparationID=pp.PreparationID LEFT JOIN preptype ppt ON pp.PrepTypeID=ppt.PrepTypeID
-                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier, frag.Identifier]]>
+                              WHERE frag.CollectionMemberID = COLMEMID AND (%s) ORDER BY pp.Identifier, frag.Identifier]]>
                 </sql>
                 <captions>
                     <caption tableid="142" col="FragmentID" visible="false"/>
