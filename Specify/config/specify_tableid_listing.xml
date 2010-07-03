@@ -119,6 +119,7 @@
         <table name="edu.ku.brc.specify.datamodel.CollectionRelType" abbrev="crt" id="98"/>
         <table name="edu.ku.brc.specify.datamodel.CollectionRelationship" abbrev="cr" id="99">
 			<display view="CollectionRelationship" newobjdlg="CollectionRelationshipDisplay" searchable="true"/>
+			<businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHCollectionRelationshipBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Collector" abbrev="ctr" id="30" searchable="true">
             <display view="Collector" dataobjformatter=""  searchdlg="CollectorSearch" newobjdlg="CollectorDisplay"/>
