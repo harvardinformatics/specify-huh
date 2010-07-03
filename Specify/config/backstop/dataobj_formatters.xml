@@ -463,6 +463,7 @@
                 <field>identifier</field>
                 <field sep=" ">text1</field>
                 <field sep=" ">preparation.identifier</field>
+                <field sep=" ">description</field>
             </fields>
         </switch>
     </format>
@@ -800,6 +801,16 @@
         </switch>
     </format>
 
+	<format
+        name="TaxonDetail"
+        title="TaxonDetail"
+        class="edu.ku.brc.specify.datamodel.Taxon"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.TaxonDataObjFmt"/>
+        </switch>
+    </format>
+    
     <format
         name="TaxonCitation"
         title="TaxonCitation"
