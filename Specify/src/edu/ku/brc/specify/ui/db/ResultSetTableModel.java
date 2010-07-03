@@ -618,10 +618,11 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
                 Vector<Object> previousRow = null;  // the previous displayRow
                 
                 int previousId = -1;
-                
+                int id;
+
                 do 
                 {
-                    int id = resultSet.getInt(1);
+                    id = resultSet.getInt(1);
                     
                     // If we are aggregating, only create new display rows for new id values.  Otherwise,
                     // create a new display row for each results row
@@ -802,6 +803,7 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
                         rowIndex++;
                     }
                 }
+                if (previousId != id) ids.add(id);
                 if (displayRow != null) cache.add(displayRow);
                 
                 fireTableStructureChanged();
