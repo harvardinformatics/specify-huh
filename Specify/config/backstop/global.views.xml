@@ -1024,7 +1024,7 @@
                     <cell type="label" labelfor="0"/>
                     <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
                     <cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=ParentOrganization;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
                 </row>
                 <!-- "Dates of Birth/Death: -->
                 <row>
