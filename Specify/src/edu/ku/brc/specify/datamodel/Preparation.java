@@ -236,8 +236,8 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     /**
      * 
      */
-    @OneToMany(cascade = {}, fetch = FetchType.EAGER, mappedBy = "preparation")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.LOCK, org.hibernate.annotations.CascadeType.MERGE, org.hibernate.annotations.CascadeType.DELETE })
+    @OneToMany(cascade = { javax.persistence.CascadeType.MERGE, javax.persistence.CascadeType.PERSIST }, mappedBy = "preparation", fetch = FetchType.EAGER)
+    @org.hibernate.annotations.Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     public Set<Fragment> getFragments() {
         return this.fragments;
     }
