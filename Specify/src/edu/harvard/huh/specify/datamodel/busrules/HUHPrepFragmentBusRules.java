@@ -1,11 +1,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
-import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
-import edu.ku.brc.af.ui.forms.MultiView;
-import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Fragment;
-import edu.ku.brc.specify.datamodel.Preparation;
 
 public class HUHPrepFragmentBusRules extends HUHFragmentBusRules implements BusinessRulesIFace
 {
@@ -15,32 +11,20 @@ public class HUHPrepFragmentBusRules extends HUHFragmentBusRules implements Busi
     }
 
     @Override
-    public void addChildrenToNewDataObjects(Object newDataObj)
+    public boolean okToEnableDelete(final Object dataObj)
     {
-        ;
-    }
-        
-    @Override
-    public void okToDelete(final Object dataObj,
-                           final DataProviderSessionIFace session,
-                           final BusinessRulesOkDeleteIFace deletable)
-    {
-        // if is a fragment and has a singleton preparation, get rid of the preparation, too
-        // the preparation is not a FormViewObj, just a data obj; if we put it on the same
-        // MultiView objects-to-delete list, it will get deleted for us on the save of the
-        // parent CollectionObject
-        
         if (dataObj instanceof Fragment)
         {
             Fragment fragment = (Fragment) dataObj;
-            Preparation prep = fragment.getPreparation();
             
-            if (prep != null && prep.getFragments().size() == 1)
-            {
-                MultiView mv = formViewObj.getMVParent();
-                mv.getTopLevel().addDeletedItem(prep);
-            }
+            // In our collectionrelationship form, the user can associate a fragment
+            // with the current object.  The associated fragment becomes the right side,
+            // and the current becomes the left.  f.getRightSideRels() returns
+            // CollectionRelationship objects for which fragment f is on the right side.
+            if (fragment.getRightSideRels().size() > 0) return false;
+            if (fragment.getLeftSideRels().size()  > 0) return false;
         }
-        super.okToDelete(dataObj, session, deletable);
+        
+        return true;
     }
 }

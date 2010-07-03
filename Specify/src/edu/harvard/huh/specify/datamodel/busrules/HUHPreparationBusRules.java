@@ -21,11 +21,18 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Vector;
 
+import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.af.ui.forms.BusinessRulesIFace.STATUS;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
@@ -45,22 +52,33 @@ public class HUHPreparationBusRules extends PreparationBusRules
         super();
     }
     
-/*    @Override
-    public void beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean beforeDeleteCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
     {
-        if (dataObj instanceof Preparation)
+        boolean ok = super.beforeDeleteCommit(dataObj, session);
+
+        if (ok)
         {
-            Preparation prep = (Preparation) dataObj;
-            
-            for (Fragment fragment : prep.getFragments())
+
+
+            if (dataObj instanceof Preparation)
             {
-                fragment.setPreparation(null);
+                Preparation prep = (Preparation) dataObj;
+
+                for (Fragment fragment : prep.getFragments())
+                {
+                    fragment.setPreparation(null);
+                    prep.getFragments().remove(fragment);
+                }
             }
-            prep.setFragments(new HashSet<Fragment>());
-            prep.getPreparationAttachments().size();
+            return true;
         }
-    }*/
-    
+        return false;
+    }
+
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {
@@ -78,6 +96,40 @@ public class HUHPreparationBusRules extends PreparationBusRules
         }
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.busrules.BaseBusRules#okToDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace, edu.ku.brc.ui.forms.BusinessRulesOkDeleteIFace)
+     */
+    @Override
+    public void okToDelete(final Object dataObj,
+                           final DataProviderSessionIFace session,
+                           final BusinessRulesOkDeleteIFace deletable)
+    {
+        reasonList.clear();
+        
+        boolean isOK = false;
+        if (deletable != null)
+        {
+            FormDataObjIFace dbObj = (FormDataObjIFace)dataObj;
+            
+            Integer id = dbObj.getId();
+            if (id == null)
+            {
+                isOK = true;
+                
+            } else
+            {
+                DBTableInfo tableInfo      = DBTableIdMgr.getInstance().getInfoById(Preparation.getClassTableId());
+                String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"preparation", "fragment"}, tableInfo);
+                isOK = okToDelete(tableFieldList, dbObj.getId());
+            }
+            deletable.doDeleteDataObj(dataObj, session, isOK);
+            
+        } else
+        {
+            super.okToDelete(dataObj, session, deletable);
+        }
+    }
+    
     public boolean okToEnableDelete(Object dataObj)
     {
         if (dataObj != null)
@@ -87,13 +139,40 @@ public class HUHPreparationBusRules extends PreparationBusRules
                 reasonList.clear();
 
                 Preparation prep = (Preparation) dataObj;
-                if (prep.getFragments().size() > 1)
+                if (prep.getFragments().size() > 0)
                 {
+                    reasonList.add("Attached Items"); // TODO
                     return false;
                 }
             }
         }
         return super.okToEnableDelete(dataObj);
+    }
+    
+    @Override
+    public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj instanceof Preparation)
+        {
+            Preparation prep = (Preparation) dataObj;
+            boolean hasFragment = hasFragment(prep);
+
+            if (hasFragment)
+            {
+                return true;
+            }
+            else
+            {
+                if (StringUtils.isEmpty(prep.getIdentifier()))
+                {
+                    reasonList.clear();
+                    reasonList.add("No Items and no barcode"); // TODO
+                    return false;
+                }
+                else return true;
+            }
+        }
+        return true;
     }
     
     /* (non-Javadoc)
@@ -108,30 +187,53 @@ public class HUHPreparationBusRules extends PreparationBusRules
         
         Preparation prep = (Preparation) dataObj;
         
-        status = isParentOK(prep, reasonList);
+        boolean hasCycle = hasCycle(prep);
         
-        if (prep.getFragments().size() > 0)
+        if (hasCycle)
         {
-            status = HUHFragmentBusRules.checkBarcode(prep, reasonList);
+            reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
+            return STATUS.Error;
         }
+        
+        boolean hasFragment = hasFragment(prep);
+        
+        if (!hasFragment)
+        {
+            reasonList.add("No Items"); // TODO
+            return STATUS.Error;
+        }
+        
+        status = HUHFragmentBusRules.checkBarcode(prep, reasonList);
         
         return status;
     }
     
-    protected static STATUS isParentOK(final Preparation prep, List<String> reasonList)
+    protected static boolean hasCycle(final Preparation prep)
     {
-
         Preparation parentPrep = prep.getParent();
-
+        
+        Vector<Integer> descendantIds = new Vector<Integer>();
+        
         while (parentPrep != null)
         {
-            if (parentPrep.getPreparationId().equals(prep.getPreparationId()))
+            Integer parentId = parentPrep.getPreparationId();
+            
+            for (Integer descendantId : descendantIds)
             {
-                reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
-                return STATUS.Error;
+                if (parentId.equals(descendantId)) return true;
             }
             parentPrep = parentPrep.getParent();
+            descendantIds.add(parentId);
         }
-        return STATUS.OK;
+        return false;
+    }
+    
+    protected boolean hasFragment(Preparation prep)
+    {
+        if (prep != null)
+        {
+            if (prep.getFragments() == null || prep.getFragments().size() < 1) return false;
+        }
+        return true;
     }
 }

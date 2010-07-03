@@ -2,7 +2,6 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -16,17 +15,12 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
-import edu.ku.brc.af.ui.forms.FormViewObj;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
-import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules;
 
@@ -40,126 +34,41 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     }    
     
     @Override
-    public void addChildrenToNewDataObjects(Object newDataObj)
+    public boolean isOkToAssociateSearchObject(Object newParentDataObj, Object dataObjectFromSearch)
     {
-        super.addChildrenToNewDataObjects(newDataObj);
-        
-        /*// only add new collection object if there is not a valcombobox for it.
-        if (formViewObj != null && newDataObj != null)
+        reasonList.clear();
+
+        if (dataObjectFromSearch instanceof Fragment)
         {
-            if (formViewObj.getControlByName("collectionObject") == null)
+            Fragment fragment = (Fragment) dataObjectFromSearch;
+
+            if (newParentDataObj instanceof Preparation)
             {
-                Fragment fragment = (Fragment) newDataObj;
-                
-                if (fragment.getCollectionObject() == null)
+                Preparation preparation = (Preparation) newParentDataObj;
+
+                if (fragment.getPreparation() != null &&
+                        !fragment.getPreparation().equals(preparation))
                 {
-                    CollectionObject collObj = new CollectionObject();
-                    collObj.initialize();
-
-                    Agent agent = Agent.getUserAgent();
-                    collObj.setCataloger(agent);
-                    collObj.setCatalogedDate(Calendar.getInstance());
-                    collObj.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
-
-                    fragment.addReference(collObj, "collectionObject");
-                    
-                    CollectingEvent collEvt = new CollectingEvent();
-                    collEvt.initialize();
-                    collObj.addReference(collEvt, "collectingEvent");
-                    
-                    Locality loc = new Locality();
-                    loc.initialize();
-                    collEvt.addReference(loc, "locality");
+                    reasonList.add("This Item already has a preparation; remove it from that preparation first"); // TODO
+                    return false;
                 }
+                else return true;
             }
-        }*/
-    }
 
-    @Override
-    public void beforeFormFill()
-    {
-        super.beforeFormFill();
-        
-        /*if (formViewObj != null)
-        {
-            if (formViewObj.getControlByName("collectionObject") != null) return;
-            
-            Fragment fragment = (Fragment) formViewObj.getDataObj();
-
-            if (fragment != null)
+            if (newParentDataObj instanceof CollectionObject)
             {
-                CollectionObject collObj = fragment.getCollectionObject();
-                if (collObj == null)
-                {
-                    collObj = new CollectionObject();
-                    collObj.initialize();
-                    
-                    Agent agent = Agent.getUserAgent();
-                    collObj.setCataloger(agent);
-                    collObj.setCatalogedDate(Calendar.getInstance());
-                    collObj.setCatalogedDatePrecision((byte) UIFieldFormatterIFace.PartialDateEnum.Full.ordinal());
+                CollectionObject collObj = (CollectionObject) newParentDataObj;
 
-                    fragment.addReference(collObj, "collectionObject");
-                }
-                CollectingEvent collEvt = collObj.getCollectingEvent();
-                if (collEvt == null)
+                if (fragment.getCollectionObject() != null &&
+                        !fragment.getCollectionObject().equals(collObj))
                 {
-                    collEvt = new CollectingEvent();
-                    collEvt.initialize();
-                    collObj.addReference(collEvt, "collectingEvent");
+                    reasonList.add("This Item already has a collobj; remove it from that collobj first"); // TODO
+                    return false;
                 }
-                Locality loc = collEvt.getLocality();
-                if (loc == null)
-                {
-                    loc = new Locality();
-                    loc.initialize();
-                    collEvt.addReference(loc, "locality");
-                }
+                else return true;
             }
-        }*/
-    }
-    
-    @Override
-    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
-    {        
-        super.beforeMerge(dataObj, session);
-        
-        /*Fragment fragment = (Fragment) dataObj;
-        CollectionObject collObj = fragment.getCollectionObject();
-        
-        if (collObj != null)
-        {
-            // save the collecting event
-            CollectingEvent collEvt = collObj.getCollectingEvent();
-            if (collEvt != null)
-            {
-                // save the locality
-                Locality loc = collEvt.getLocality();
-                if (loc != null)
-                {
-                    loc = (Locality) HUHFragmentBusRules.saveObject(loc, session);
-                    collEvt.setLocality(loc);
-                }
-                collEvt = (CollectingEvent) HUHFragmentBusRules.saveObject(collEvt, session);
-                //collObj.setCollectingEvent(collEvt);
-            }
-            
-            // save the collection object
-            collObj = (CollectionObject) HUHFragmentBusRules.saveObject(collObj, session);
-            //fragment.setCollectionObject(collObj);
         }
-        // save the preparation
-        Preparation prep = fragment.getPreparation();
-
-        if (prep != null)
-        {
-            prep.setCountAmt(1);
-
-            // save the preparation
-            prep = (Preparation) HUHFragmentBusRules.saveObject(prep, session);
-
-            //fragment.setPreparation(prep);
-        }*/
+        return true;
     }
     
     @Override
@@ -173,6 +82,11 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         {
             Fragment fragment = (Fragment) dataObj;
             
+            // Items must be removed from collection objects and preps first.
+            // Otherwise, we may leave collection objects or preps that can't be found by barcode.
+            if (fragment.getCollectionObject() != null) return false;
+            if (fragment.getPreparation() != null) return false;
+            
             // In our collectionrelationship form, the user can associate a fragment
             // with the current object.  The associated fragment becomes the right side,
             // and the current becomes the left.  f.getRightSideRels() returns
@@ -183,59 +97,6 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
         
         return true;
     }
-    
-    @Override
-    public boolean beforeDeleteCommit(final Object dataObj, final DataProviderSessionIFace session) throws Exception
-    {
-        boolean ok = super.beforeDeleteCommit(dataObj, session);
-        
-        if (!ok) return ok;
-        
-        if (dataObj instanceof Fragment)
-        {
-            Fragment fragment = (Fragment) dataObj;
-            
-            CollectionObject collObj = fragment.getCollectionObject();
-            if (collObj != null)
-            {
-                if (collObj.getFragments().size() <= 1)
-                {
-                    // check business rules
-                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(collObj);
-                    if (delBusRules != null)
-                    {
-                        if (!delBusRules.okToEnableDelete(collObj)) return false;
-                        
-                        delBusRules.beforeDelete(collObj, session);
-                        session.delete(collObj);
-                        delBusRules.beforeDeleteCommit(collObj, session);                        
-                    }
-                    session.delete(collObj);
-                }
-            }
-            
-            Preparation prep = fragment.getPreparation();
-            if (prep != null)
-            {
-                if (prep.getFragments().size() <= 1)
-                {
-                    // check business rules
-                    BusinessRulesIFace delBusRules = DBTableIdMgr.getInstance().getBusinessRule(prep);
-                    if (delBusRules != null)
-                    {
-                        if (!delBusRules.okToEnableDelete(prep)) return false;
-                        
-                        delBusRules.beforeDelete(prep, session);
-                        session.delete(prep);
-                        delBusRules.beforeDeleteCommit(prep, session);                        
-                    }
-                    session.delete(prep);
-                }
-            }
-        }
-        return true;
-    }
-    
     
     /** Either the Fragment or its Preparation must have a barcode, and the barcode
      *  must be unique across the union of all Fragment and Preparation objects.
@@ -549,16 +410,11 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
             Fragment fragment = (Fragment) dataObj;
             
             status = checkBarcode(fragment, reasonList);
+            
+            if (!STATUS.OK.equals(status)) return status;
+            
+            status = checkDeterminations(fragment, reasonList);
         }
-
-		if (!STATUS.OK.equals(status)) return status;
-		
-		if (dataObj instanceof Preparation)
-		{
-		    Preparation prep = (Preparation) dataObj;
-		    status = HUHPreparationBusRules.isParentOK(prep, reasonList);
-		}
-
         return status;
 	}
 }

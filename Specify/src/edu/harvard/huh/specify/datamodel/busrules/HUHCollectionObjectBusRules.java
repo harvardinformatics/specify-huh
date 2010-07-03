@@ -19,8 +19,6 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
-import static edu.ku.brc.ui.UIRegistry.getResourceString;
-
 import java.util.Calendar;
 
 import edu.ku.brc.af.core.AppContextMgr;
@@ -30,9 +28,9 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.CollectionObject;
-import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.CollectionObjectBusRules;
 
 /**
@@ -88,23 +86,33 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 locality.initialize();
                 collectingEvent.addReference(locality, "locality");
             }
-            //collectionObject.getOtherIdentifiers().size();
         }
     }
-    
-/*    @Override
-    public void afterDeleteCommit(final Object dataObj)
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean beforeDeleteCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
     {
-        CollectionObject collObj = (CollectionObject) dataObj;
+        boolean ok = super.beforeDeleteCommit(dataObj, session);
         
-        if (collObj != null)
+        if (ok)
         {
-            for (Fragment fragment : collObj.getFragments())
+            if (dataObj instanceof CollectionObject)
             {
-                collObj.getFragments().remove(fragment);
+                CollectionObject collObj = (CollectionObject) dataObj;
+
+                for (Fragment fragment : collObj.getFragments())
+                {
+                    fragment.setCollectionObject(null);
+                    collObj.getFragments().remove(fragment);
+                }
             }
+            return true;
         }
-    }*/
+        return false;
+    }
     
     @Override
     public void beforeFormFill()
@@ -167,37 +175,24 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
      */
     protected STATUS checkDeterminations(final Object dataObj)
     {
-        /*// check that a current determination exists
-        if (((CollectionObject) dataObj).getFragments().size() > 0)
-        {
-            for (Fragment fragment : ((CollectionObject) dataObj).getFragments())
-            {
-                if (fragment.getDeterminations().size() > 0)
-                {
-                    int currents = 0;
-                    for (Determination det : fragment.getDeterminations())
-                    {
-                        if (det.isCurrentDet())
-                        {
-                            currents++;
-                        }
-                    }
-                    if (currents != 1)
-                    {
-                        if (currents == 0)
-                        {
-                            reasonList.add(getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED"));
-                        }
-                        else
-                        {
-                            reasonList.add(getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET"));
-                        }
-                        return STATUS.Warning;
-                    }
-                }
-            }
-        }*/
         return STATUS.OK;
+    }
+    
+    @Override
+    public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        boolean hasFragment = hasFragment((CollectionObject) dataObj);
+        
+        if (hasFragment)
+        {
+            return true;
+        }
+        else
+        {
+            reasonList.clear();
+            reasonList.add("No Items"); // TODO
+            return false;
+        }
     }
     
     public boolean okToEnableDelete(Object dataObj)
@@ -209,8 +204,9 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 reasonList.clear();
 
                 CollectionObject collObj = (CollectionObject) dataObj;
-                if (collObj.getFragments().size() > 1)
+                if (collObj.getFragments().size() > 0)
                 {
+                    reasonList.add("Attached items"); // TODO
                     return false;
                 }
             }
@@ -231,6 +227,25 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
             return STATUS.Error;
         }
         
-        return STATUS.OK;
+        boolean hasFragment = hasFragment((CollectionObject) dataObj);
+        
+        if (hasFragment)
+        {
+            return STATUS.OK;
+        }
+        else
+        {
+            reasonList.add("No Items"); // TODO
+            return STATUS.Error;
+        }
+    }
+    
+    protected boolean hasFragment(CollectionObject collObj)
+    {
+        if (collObj != null)
+        {
+            if (collObj.getFragments() == null || collObj.getFragments().size() < 1) return false;
+        }
+        return true;
     }
 }
