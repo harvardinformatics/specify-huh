@@ -122,8 +122,8 @@
             <altviews>
                 <altview name="DeterminationSub View"       viewdef="DeterminationSub" mode="view"/>
                 <altview name="DeterminationSub Edit"       viewdef="DeterminationSub" mode="edit" default="true"/>
-                <altview name="DeterminationSub Table View" viewdef="DeterminationSub Table" mode="view"/>
-                <altview name="DeterminationSub Table Edit" viewdef="DeterminationSub Table" mode="edit"/>
+                <altview name="Determinations Table View" viewdef="Determinations Table" mode="view"/>
+                <altview name="Determinations Table Edit" viewdef="Determinations Table" mode="edit"/>
             </altviews>
         </view>
         
@@ -462,7 +462,7 @@
                     <cell type="label" labelfor="collectionRelType"/>
                 	<cell type="field" id="collectionRelType" name="collectionRelType" uitype="combobox" picklist="HUH Item Relationship Type" isrequired="true"/>
                 	<cell type="label" labelfor="rightSide"/>
-                	<cell type="field" id="rightSide" name="rightSide" uitype="querycbx" initialize="name=Fragment"/>
+                	<cell type="field" id="rightSide" name="rightSide" uitype="querycbx" initialize="name=Fragment;newbtn=false;editbtn=false"/>
                 </row>
             </rows>
         </viewdef>
@@ -537,7 +537,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="10"/>
+                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" formatname="TaxonDetail" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
@@ -554,8 +554,8 @@
                     <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="13"/>
-                    <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
+                    <cell type="label" label=" "/>
+                    <cell type="label" label=" " colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
                 </row>
@@ -731,7 +731,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="10"/>
+                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" formatname="TaxonDetail" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
@@ -748,8 +748,8 @@
                     <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="13"/>
-                    <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
+                    <cell type="label" label=" "/>
+                    <cell type="label" label=" " colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
                 </row>
@@ -786,14 +786,62 @@
         </viewdef>
         
         <viewdef
-            name="DeterminationSub Table"
+            name="Determinations"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Determination"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Determination subform table.]]></desc>
+            <enableRules/>
+
+            <columnDef>p,5dlu,p:g,5dlu,p</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                	<cell type="label" labelfor="date"/>
+                    <cell type="field" id="date" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="typeStatusName"/>
+                    <cell type="field" id="typeStatusName" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="taxon"/>
+                	<cell type="field" id="taxon" name="taxon" uitype="querycbx" initialize="name=Taxon"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isCurrent"/>
+                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isLabel"/>
+                    <cell type="field" id="isLabel" name="yesNo1" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isFiledUnder"/>
+                    <cell type="field" id="isFiledUnder" name="yesNo3" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="determiner"/>
+                    <cell type="field" id="determiner" name="determiner" uitype="querycbx" initialize="name=Agent;title=Determiner;displaydlg=Botanist;searchdlg=BotanistSearch"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="text1"/>
+                	<cell type="field" id="text1" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="Determinations Table"
             type="formtable"
             class="edu.ku.brc.specify.datamodel.DeterminationCitation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Determination subform table.]]></desc>
-            <definition>DeterminationSub</definition>
+            <definition>Determinations</definition>
         </viewdef>
         
         <viewdef
@@ -805,7 +853,7 @@
         	<desc><![CDATA[Exsiccata Item]]></desc>
         	
             <columnDef>         100px, 2px, 225px, 5px,   100px, 2px, 225px, 2px, p:g</columnDef>
-            <columnDef os="lnx">100px, 2px, 225px, 5px,   100px, 2px, 225px, 2px, p:g</columnDef>
+            <columnDef os="lnx">100px, 2px, 225px, 5px,    80px, 2px, 275px, 2px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 225px, 5px,   138px, 2px, 225px, 2px, p:g</columnDef>
         	<columnDef os="exp">p,     2px, 225px, 5px:g, p,     2px, 225px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
@@ -813,7 +861,7 @@
         	<rows>
         		<row>
 	        		<cell type="label" labelfor="exsiccata"/>
-    	    		<cell type="field" id="exsiccata" name="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" colspan="5"/>
+    	    		<cell type="field" id="exsiccata" name="referenceWork" uitype="querycbx" initialize="name=Exsiccata;title=Exsiccata;searchdlg=ExsiccataSearch" colspan="5"/>
     	    	</row>
     	    	<row>
     	    		<cell type="label" labelfor="fascicle"/>

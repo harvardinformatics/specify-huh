@@ -28,20 +28,6 @@
                 <altview name="Collection Object Edit" viewdef="CollectionObject" mode="edit" default="true"/>
             </altviews>
         </view>
-
-		<view name="CollectionRelationship"
-			objtitle="Item Relationship"
-            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
-            isinternal="true"
-            resourcelabels="false">
-            <desc><![CDATA[The CollectionRelationship form.]]></desc>
-            <altviews>
-                <altview name="CollectionRelationship View" viewdef="CollectionRelationship" mode="view"/>
-                <altview name="CollectionRelationship Edit" viewdef="CollectionRelationship" mode="edit" default="true"/>
-                <altview name="CollectionRelationship Table View" viewdef="CollectionRelationship Table" mode="view"/>
-                <altview name="CollectionRelationship Table Edit" viewdef="CollectionRelationship Table" mode="edit"/>
-            </altviews>
-        </view>
         
         <view name="Container"
             class="edu.ku.brc.specify.datamodel.Container"
@@ -110,21 +96,9 @@
             <altviews>
                 <altview name="DeterminationSub View"       viewdef="DeterminationSub" mode="view"/>
                 <altview name="DeterminationSub Edit"       viewdef="DeterminationSub" mode="edit" default="true"/>
-                <altview name="DeterminationSub Table View" viewdef="DeterminationSub Table" mode="view"/>
-                <altview name="DeterminationSub Table Edit" viewdef="DeterminationSub Table" mode="edit"/>
+                <altview name="Determinations Table View" viewdef="Determinations Table" mode="view"/>
+                <altview name="Determinations Table Edit" viewdef="Determinations Table" mode="edit"/>
             </altviews>
-        </view>
-        
-        <view name="Exsiccatae"
-        	class="edu.ku.brc.specify.datamodel.FragmentCitation"
-        	resourcelabels="false">
-        	<desc><![CDATA[The Exsiccata Item subform for Collection Object form.]]></desc>
-        	<altviews>
-        		<altview name="ExsiccataItem View" viewdef="ExsiccataItem" mode="view"/>
-        		<altview name="ExsiccataItem Edit" viewdef="ExsiccataItem" mode="edit"/>
-        		<altview name="ExsiccataItem Table View" viewdef="ExsiccataItem Table" mode="view"/>
-        		<altview name="ExsiccataItem Table Edit" viewdef="ExsiccataItem Table" mode="edit"/>
-        	</altviews>
         </view>
         
         <view name="Fragment"
@@ -371,42 +345,6 @@
         </viewdef>
 
         <viewdef
-            name="CollectionRelationship"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            <desc><![CDATA[CollectionRelationship]]></desc>
-            
-            <columnDef>          80px, 2px, 200px, 5px,  90px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="lnx">120px, 2px, 200px, 5px, 120px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="mac">120px, 2px, 200px, 5px, 120px, 2px, 290px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 200px, 5px:g,   p, 2px, 200px, 5px:g,    p, 2px, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            
-            <rows>
-                <row>
-                    <cell type="label" labelfor="collectionRelType"/>
-                	<cell type="field" id="collectionRelType" name="collectionRelType" uitype="combobox" picklist="HUH Item Relationship Type" isrequired="true"/>
-                	<cell type="label" labelfor="rightSide"/>
-                	<cell type="field" id="rightSide" name="rightSide" uitype="querycbx" initialize="name=Fragment"/>
-                </row>
-            </rows>
-        </viewdef>
-        
-        <viewdef
-            name="CollectionRelationship Table"
-            type="formtable"
-            class="edu.ku.brc.specify.datamodel.CollectionRelationship"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            
-            <desc><![CDATA[CollectionRelationship subform table for Fragment form.]]></desc>
-            <definition>CollectionRelationship</definition>
-        </viewdef>
-        
-             
-        <viewdef
             name="Container"
             type="form"
             class="edu.ku.brc.specify.datamodel.Container"
@@ -464,7 +402,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="10"/>
+                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" formatname="TaxonDetail" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
@@ -481,8 +419,8 @@
                     <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="13"/>
-                    <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
+                    <cell type="label" label=" "/>
+                    <cell type="label" label=" " colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
                 </row>
@@ -658,7 +596,7 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="10"/>
+                    <cell type="field" id="1" name="taxon" uitype="querycbx" initialize="name=Taxon" formatname="TaxonDetail" colspan="10"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="7"/>
@@ -675,8 +613,8 @@
                     <cell type="field" id="6" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
                 </row>
                 <row>
-                    <cell type="label" labelfor="13"/>
-                    <cell type="field" id="13" name="preferredTaxon" uitype="text" readonly="true" colspan = "5"/>
+                    <cell type="label" label=" "/>
+                    <cell type="label" label=" " colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="field" id="3" name="isCurrent" uitype="checkbox"/>
                 </row>
@@ -713,52 +651,62 @@
         </viewdef>
         
         <viewdef
-            name="DeterminationSub Table"
+            name="Determinations"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Determination"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Determination subform table.]]></desc>
+            <enableRules/>
+
+            <columnDef>p,5dlu,p:g,5dlu,p</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                	<cell type="label" labelfor="date"/>
+                    <cell type="field" id="date" uitype="plugin" name="this" initialize="name=PartialDateUI;df=determinedDate;tp=determinedDatePrecision" uifieldformatter="Date"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="typeStatusName"/>
+                    <cell type="field" id="typeStatusName" name="typeStatusName" uitype="combobox" picklist="HUH Type Status"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="taxon"/>
+                	<cell type="field" id="taxon" name="taxon" uitype="querycbx" initialize="name=Taxon"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isCurrent"/>
+                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isLabel"/>
+                    <cell type="field" id="isLabel" name="yesNo1" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="isFiledUnder"/>
+                    <cell type="field" id="isFiledUnder" name="yesNo3" uitype="checkbox"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="determiner"/>
+                    <cell type="field" id="determiner" name="determiner" uitype="querycbx" initialize="name=Agent;title=Determiner;displaydlg=Botanist;searchdlg=BotanistSearch"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="text1"/>
+                	<cell type="field" id="text1" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="Determinations Table"
             type="formtable"
             class="edu.ku.brc.specify.datamodel.DeterminationCitation"
             gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Determination subform table.]]></desc>
-            <definition>DeterminationSub</definition>
-        </viewdef>
-        
-        <viewdef
-        	name="ExsiccataItem"
-        	type="form"
-        	class="edu.ku.brc.specify.datamodel.FragmentCitation"
-        	gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-        	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-        	<desc><![CDATA[Exsiccata Item]]></desc>
-        	
-            <columnDef>         100px, 2px, 225px, 5px,   100px, 2px, 225px, 2px, p:g</columnDef>
-            <columnDef os="lnx">100px, 2px, 225px, 5px,   100px, 2px, 225px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 225px, 5px,   138px, 2px, 225px, 2px, p:g</columnDef>
-        	<columnDef os="exp">p,     2px, 225px, 5px:g, p,     2px, 225px, 2px, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-            
-        	<rows>
-        		<row>
-	        		<cell type="label" labelfor="exsiccata"/>
-    	    		<cell type="field" id="exsiccata" name="referenceWork" uitype="querycbx" initialize="name=ReferenceWork" colspan="5"/>
-    	    	</row>
-    	    	<row>
-    	    		<cell type="label" labelfor="fascicle"/>
-    	    		<cell type="field" id="fascicle" name="text1" uitype="text"/>
-    	    		<cell type="label" labelfor="number"/>
-    	    		<cell type="field" id="number" name="text2" uitype="text"/>
-    	    	</row>
-        	</rows>
-        </viewdef>
-        
-        <viewdef
-        	name="ExsiccataItem Table"
-        	type="formtable"
-        	class="edu.ku.brc.specify.datamodel.FragmentCitation"
-        	gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-        	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-        	<desc><![CDATA[Exsiccata Item]]></desc>
-		<definition>ExsiccataItem</definition>
+            <definition>Determinations</definition>
         </viewdef>
         
         <viewdef
@@ -832,12 +780,6 @@
                 </row>
                 <row>
 					<cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
-				</row>
-				<row>
-					<cell type="subview" id="exsiccatae" name="fragmentCitations" viewname="Exsiccatae" colspan="12"/>
-				</row>
-				<row>
-					<cell type="subview" id="leftSideRels" name="leftSideRels" viewname="CollectionRelationship" colspan="12"/>
 				</row>
                 <row>
                     <cell type="label" labelfor="createdByAgent"/>
@@ -1004,10 +946,6 @@
                 	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
                 	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
-				<row>
-					<cell type="label" labelfor="parent"/>
-					<cell type="field" id="parent" name="parent" uitype="querycbx" initialize="name=Preparation;searchdlg=BatchPrepSearch" isrequired="false" formatname="BatchPrepDetail" colspan="8"/>
-				</row>
                 <row>
                 	<cell type="label" labelfor="storage"/>
                 	<cell type="field" id="storage" uitype="querycbx" initialize="name=Storage" colspan="8"/>
