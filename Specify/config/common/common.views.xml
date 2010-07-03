@@ -797,7 +797,7 @@
         
         <view name="ProjectSub"
             class="edu.ku.brc.specify.datamodel.Project"
-            isinternal="false"
+            isinternal="true"
             resourcelabels="false">
             <desc><![CDATA[Project subform.]]></desc>
             <altviews>
