@@ -377,6 +377,7 @@
  frag.Identifier,
  frag.PrepMethod,
  pp.Identifier,
+ frag.Description,
  %s
  FROM fragment frag
  JOIN preparation pp ON frag.PreparationID = pp.PreparationID
@@ -388,6 +389,7 @@
                     <caption tableid="142" col="frag.Identifier" field="identifier" formatter="HUHFragmentBarcode"/>
                     <caption tableid="142" col="frag.PrepMethod" field="prepMethod"/>
                     <caption tableid="63"  col="pp.Identifier"   field="identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="142" col="frag.Description" field="description"/>
                </captions>
             </detailView>
         </table>
@@ -1796,5 +1798,26 @@
                 </captions>
             </detailView>
         </table>
+        
+        <table id="134" tableid="69" name="ExsiccataSearch" priority="1" color="30, 144, 255">
+            <detailView icon="ReferenceWork">
+                <sql>
+                    <![CDATA[SELECT rw.ReferenceWorkID, rw.ReferenceWorkType, rw.Text1, ag.LastName, rw.WorkDate, rwv.Name, rwi.Identifier
+                               FROM referencework rw LEFT JOIN referenceworkvariant rwv on rwv.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    referenceworkidentifier rwi on rwi.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    author au on au.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    agent ag on ag.AgentID=au.AgentID WHERE rw.ReferenceWorkType=6 AND (%s) ORDER BY rw.Text1]]>
+                </sql>
+                <captions>
+                    <caption tableid="69" col="ReferenceWorkID" visible="false"/>
+                    <caption tableid="69" col="Text1"/>
+                    <caption tableid="5" col="LastName"/>
+                    <caption tableid="69" col="WorkDate"/>
+                    <caption tableid="141" col="Name"/>
+                    <caption tableid="140" col="Identifier"/>
+                </captions>
+            </detailView>
+        </table>
+        
     </generic>
 </searches>
