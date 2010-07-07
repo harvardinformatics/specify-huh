@@ -294,10 +294,12 @@ public class ERTICaptionInfo
         if (StringUtils.isNotEmpty(compositeClassName))
         {
             colInfoList = new Vector<ColInfo>();
+            int position = 0;
             for (Object colObj : element.selectNodes("col")) //$NON-NLS-1$
             {
                 Element colInfoObj = (Element)colObj;
                 ColInfo columnInfo = new ColInfo(getAttr(colInfoObj, "name", null), getAttr(colInfoObj, "field", null)); //$NON-NLS-1$ //$NON-NLS-2$
+                columnInfo.setPosition(position++);
                 colInfoList.add(columnInfo);
             }
 
