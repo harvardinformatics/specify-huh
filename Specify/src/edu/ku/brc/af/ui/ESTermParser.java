@@ -111,7 +111,7 @@ public class ESTermParser implements SearchTermParserIFace
                 
             } else if (parseAsSingleTerm)
             {
-                terms = new String[] {searchTerm.replaceAll("\\W", "_")};
+                terms = new String[] {searchTerm};
                 
             } else
             {
