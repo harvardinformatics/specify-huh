@@ -433,7 +433,11 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
             {
                 String colName = null;
 
-                String abbrev = captionInfo.getFieldInfo().getTableInfo().getAbbrev();
+                String abbrev = "";
+                if (captionInfo.getFieldInfo() != null)
+                {
+                    abbrev = captionInfo.getFieldInfo().getTableInfo().getAbbrev();
+                }
                 
                 Object value = null;
                 if (captionInfo.getColName() == null)
@@ -506,8 +510,8 @@ public class DBObjSearchPanel extends JPanel implements ExpressSearchResultsPane
                                     
                                     if (clause == null)
                                     {
-                                        String fieldName = captionInfo.getFieldInfo().getName();
-                                        if (fieldName == null) fieldName = colName;
+                                        String fieldName = colName;
+                                        if (captionInfo.getFieldInfo() != null) fieldName = captionInfo.getFieldInfo().getName();
                                         
                                         clause = ESTermParser.getInstance().createWhereClause(firstTerm, fieldName.contains(".") ? null : abbrev, fieldName);
                                     }
