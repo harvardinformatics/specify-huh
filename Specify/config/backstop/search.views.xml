@@ -1074,12 +1074,8 @@ Good: <cell type="field" name="FieldNum" ...>
             
             <rows>
                 <row>
-                    <cell type="label" labelfor="0"/>
-                    <cell type="field" id="0" name="ReferenceWorkType" isrequired="true" uitype="combobox" picklist="HUH Reference Work Type"/>
-                </row>
-                <row>
-                	<cell type="label" labelfor="1" label="Author (Last Name)"/>
-                	<cell type="field" id="1" name="LastName" isrequired="false" uitype="text"/>
+                	<cell type="label" labelfor="1" label="Author"/>
+                	<cell type="field" id="1" name="av.Name" isrequired="false" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="2"/>
@@ -1087,7 +1083,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="3" label="Variant Name"/>
-                    <cell type="field" id="3" name="Name" uitype="text" cols="20"/>
+                    <cell type="field" id="3" name="rwv.Name" uitype="text" cols="20"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
@@ -1095,11 +1091,11 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="WorkDate" isrequired="false" uitype="text"/>
+                    <cell type="field" id="5" name="Text2" isrequired="false" uitype="text"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="6" label="Reference Number"/>
-                    <cell type="field" id="6" name="Identifier" isrequired="false" uitype="text"/>
+                    <cell type="field" id="6" name="rwi.Identifier" isrequired="false" uitype="text"/>
                 </row>
             </rows>
         </viewdef>

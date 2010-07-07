@@ -1574,20 +1574,29 @@
         <table id="121" tableid="69" name="ReferenceWorkSearch" priority="1" color="30, 144, 255">
             <detailView icon="ReferenceWork">
                 <sql>
-                    <![CDATA[SELECT rw.ReferenceWorkID, rw.ReferenceWorkType, rw.Text1, ag.LastName, rw.WorkDate, rwv.Name, rwi.Identifier
-                               FROM referencework rw LEFT JOIN referenceworkvariant rwv on rwv.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
-                                    referenceworkidentifier rwi on rwi.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
-                                    author au on au.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
-                                    agent ag on ag.AgentID=au.AgentID WHERE (%s) ORDER BY rw.Text1]]>
+                    <![CDATA[SELECT rw.ReferenceWorkID, rw.Text1, rw.Title, av.Name, rw.Text2, rwv.Name, rwi.Type, rwi.Identifier
+                               FROM referencework rw LEFT JOIN referenceworkvariant rwv ON rwv.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    referenceworkidentifier rwi ON rwi.ReferenceWorkID=rw.ReferenceWorkID LEFT JOIN
+                                    author au ON (au.ReferenceWorkID=rw.ReferenceWorkID AND au.OrderNumber=1) LEFT JOIN
+                                    agent ag ON ag.AgentID=au.AgentID LEFT JOIN
+                                    agentvariant av on (ag.AgentID=av.AgentID AND av.VarType=2)
+                                    WHERE (%s) ORDER BY rw.ReferenceWorkID, rwi.ReferenceWorkIdentifierID, rwi.Type, rwv.ReferenceWorkVariantID]]>
                 </sql>
                 <captions>
-                    <caption tableid="69" col="ReferenceWorkID" visible="false"/>
-                    <caption tableid="69" col="ReferenceWorkType"/>
-                    <caption tableid="69" col="Text1"/>
-                    <caption tableid="5" col="LastName"/>
-                    <caption tableid="69" col="WorkDate"/>
-                    <caption tableid="141" col="Name"/>
-                    <caption tableid="140" col="Identifier"/>
+                    <caption tableid="69"  col="ReferenceWorkID" visible="false"/>
+                    <caption tableid="69"  col="Text1"       name="rw.Text1" field="text1"/>
+                    <caption tableid="69"  col="Title"       name="rw.Title" field="title"/>
+                    <caption tableid="107" col="av.Name"     name="av.Name" field="name"/>
+                    <caption tableid="69"  col="Text2"    name="rw.Text2" field="text2"/>
+                    <caption tableid="141" key="ReferenceWorkVariant">
+                    	<agg class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" aggregator="ReferenceWorkVariant"/>
+                    	<col name="rwv.Name" field="name"/>
+                    </caption>
+                    <caption tableid="140" key="ReferenceWorkIdentifier">
+                    	<agg class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" aggregator="ReferenceWorkIdentifier"/>
+						<col name="rwi.Type" field="type"/>
+                    	<col name="rwi.Identifier" field="identifier"/>
+                    </caption>
                 </captions>
             </detailView>
         </table>

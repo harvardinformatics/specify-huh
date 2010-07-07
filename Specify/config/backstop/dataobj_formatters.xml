@@ -733,6 +733,33 @@
         </switch>
     </format>
 
+	<format
+        name="ReferenceWorkIdentifier"
+        title="ReferenceWorkIdentifier"
+        class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+            	<field>type</field>
+                <field sep=": ">identifier</field>
+            </fields>
+        </switch>
+    </format>
+    
+    <format
+        name="ReferenceWorkVariant"
+        title="ReferenceWorkVariant"
+        class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>name</field>
+            </fields>
+        </switch>
+    </format>
+    
     <format
         name="Shipment"
         title="Shipment"
@@ -1170,6 +1197,28 @@
                 orderfieldname="ordinal"
                />
 
+	<aggregator name="ReferenceWorkIdentifier"
+                title="ReferenceWorkIdentifier"
+                class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="identity"
+                orderfieldname=""
+               />
+               
+    <aggregator name="ReferenceWorkVariant"
+                title="ReferenceWorkVariant"
+                class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="identity"
+                orderfieldname=""
+               />
+               
     <aggregator name="RepositoryAgreementAttachment"
                 title="RepositoryAgreementAttachment"
                 class="edu.ku.brc.specify.datamodel.RepositoryAgreementAttachment"
