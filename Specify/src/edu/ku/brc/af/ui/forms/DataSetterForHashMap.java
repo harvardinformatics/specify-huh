@@ -49,14 +49,21 @@ public class DataSetterForHashMap implements DataObjectSettable
     @SuppressWarnings("unchecked")
     public void setFieldValue(Object dataObj, String fieldName, Object data)
     {
-        if (dataObj != null && data != null)
+        if (dataObj != null)
         {
             if (!(dataObj instanceof Map))
             {
                 throw new RuntimeException("In DataGetterForHashMap - Object["+dataObj.getClass().getSimpleName()+
                                             "] does not implement java.util.Map");
             }
-            ((Map)dataObj).put(fieldName, data);
+            if (data == null)
+            {
+                ((Map)dataObj).remove(fieldName);
+            }
+            else
+            {
+                ((Map)dataObj).put(fieldName, data);
+            }
         }
     }
 
