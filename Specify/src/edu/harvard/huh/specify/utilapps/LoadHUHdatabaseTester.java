@@ -97,8 +97,53 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
     private static final Logger log = Logger.getLogger(LoadHUHdatabaseTester.class);
 
     protected static Vector<DatabaseDriverInfo> driverList;
-   
-    private String specifyDbName = "specify";
+
+    void setUpConnection()
+    {
+        Vector<DatabaseDriverInfo> driverList = DatabaseDriverInfo.getDriversList();
+        DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getInfoByName(driverList, "MySQL");
+
+        String dbName   = "specify";
+        String userName = "Specify";
+        String password = "Tmd#4el8d8";
+        String hostname = "localhost";
+
+        String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, 
+                hostname, 
+                dbName);
+
+        if (connStr == null)
+        {
+            connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname,  dbName);
+        }
+        else {
+            System.err.println("Couldn't create connection");
+        }
+
+        DBConnection dbConn = DBConnection.getInstance();
+
+        dbConn.setDriver(driverInfo.getDriverClassName());
+        dbConn.setDialect(driverInfo.getDialectClassName());
+        dbConn.setDatabaseName(dbName);
+        dbConn.setConnectionStr(connStr);
+        dbConn.setUsernamePassword(userName, password);
+
+        Connection connection = dbConn.createConnection();
+        if (connection != null)
+        {
+            try
+            {
+                connection.close();
+
+            } catch (SQLException ex)
+            {
+                // do nothing
+            }
+        }
+        else {
+            System.err.println("Couldn't open connection");
+        }
+    }
     
     /**
      * @param args
@@ -624,53 +669,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-    }
-    
-    void setUpConnection() {
-        String dbName = specifyDbName;
-
-        Vector<DatabaseDriverInfo> driverList = DatabaseDriverInfo.getDriversList();
-        DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getInfoByName(driverList, "MySQL");
-
-        String userName = "Specify";
-        String password = "Specify";
-        String hostname = "localhost";
-
-        String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, 
-                hostname, 
-                dbName);
-
-        if (connStr == null)
-        {
-            connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, hostname,  dbName);
-        }
-        else {
-            System.err.println("Couldn't create connection");
-        }
-
-        DBConnection dbConn = DBConnection.getInstance();
-
-        dbConn.setDriver(driverInfo.getDriverClassName());
-        dbConn.setDialect(driverInfo.getDialectClassName());
-        dbConn.setDatabaseName(dbName);
-        dbConn.setConnectionStr(connStr);
-        dbConn.setUsernamePassword(userName, password);
-
-        Connection connection = dbConn.createConnection();
-        if (connection != null)
-        {
-            try
-            {
-                connection.close();
-
-            } catch (SQLException ex)
-            {
-                // do nothing
-            }
-        }
-        else {
-            System.err.println("Couldn't open connection");
         }
     }
 
