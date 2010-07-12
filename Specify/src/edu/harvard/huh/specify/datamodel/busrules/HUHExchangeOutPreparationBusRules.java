@@ -23,18 +23,21 @@ import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.TableViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
 import edu.ku.brc.specify.datamodel.ExchangeOutPreparation;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.ExchangeOutBusRules;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandListener;
+import edu.ku.brc.ui.UIRegistry;
 
 /**
- * @author rod
+ * @author mmk
  *
  * @code_status Alpha
  *
- * Jan 29, 2007
+ * July 10, 2010
  *
  */
 public class HUHExchangeOutPreparationBusRules extends BaseBusRules implements CommandListener
@@ -62,11 +65,129 @@ public class HUHExchangeOutPreparationBusRules extends BaseBusRules implements C
     {
         if (dataObj != null && dataObj instanceof ExchangeOutPreparation)
         {
-            ExchangeOutPreparation exchPrep = (ExchangeOutPreparation) dataObj;
+            ExchangeOutPreparation eop = (ExchangeOutPreparation) dataObj;
             
-            if (exchPrep.getTypeCount() == null) exchPrep.setTypeCount(0);
-            if (exchPrep.getNonSpecimenCount() == null) exchPrep.setNonSpecimenCount(0);
+            if (eop.getTypeCount() == null) eop.setTypeCount(0);
+            if (eop.getNonSpecimenCount() == null) eop.setNonSpecimenCount(0);
         }
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BusinessRulesIFace#beforeFormFill(edu.ku.brc.ui.forms.Viewable)
+     */
+    @Override
+    public void beforeFormFill()
+    {
+        if (formViewObj != null && formViewObj.getDataObj() instanceof ExchangeOutPreparation)
+        {
+            ExchangeOutPreparation eop = (ExchangeOutPreparation) formViewObj.getDataObj();
+            
+            if (eop.getTypeCount() == null) eop.setTypeCount(0);
+            if (eop.getNonSpecimenCount() == null) eop.setNonSpecimenCount(0);
+        }
+    }
+    
+    @Override
+    public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj != null && dataObj instanceof ExchangeOutPreparation)
+        {
+            ExchangeOutPreparation eop = (ExchangeOutPreparation) dataObj;
+
+            Preparation p = eop.getPreparation();
+         
+            if (p != null)
+            {                
+                try
+                {
+                    if (p.getId() != null)
+                    {
+                        Preparation mergedP = session.merge(p);
+                        eop.setPreparation(mergedP);
+                    }
+                    else
+                    {
+                        session.save(p);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHExchangeOutPreparationBusRules.class, ex);
+                }
+            }
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean beforeDeleteCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
+    {
+        boolean ok = super.beforeDeleteCommit(dataObj, session);
+        
+        if (ok)
+        {
+            ExchangeOutPreparation eop = (ExchangeOutPreparation)dataObj;
+            
+            Preparation p = eop.getPreparation();
+            if (p != null && p.getPrepType().getName().equalsIgnoreCase("lot"))
+            {
+                p.getExchangeOutPreparations().remove(eop);
+                try
+                {
+                    session.delete(p);
+                    return true;
+
+                } catch (Exception ex)
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHExchangeOutPreparationBusRules.class, ex);
+                    ex.printStackTrace();
+                    return false;
+                }
+            }
+
+        }
+        return ok;
+    }
+ 
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BusinessRulesIFace#processBusinessRules(java.lang.Object)
+     */
+    public STATUS processBusinessRules(final Object dataObj)
+    {
+        STATUS status = super.processBusinessRules(dataObj);
+
+        if (! STATUS.OK.equals(status))
+        {
+            return status;
+        }
+
+        if (dataObj != null && dataObj instanceof ExchangeOutPreparation)
+        {
+            ExchangeOutPreparation eop = (ExchangeOutPreparation) dataObj;
+
+            if (eop.getPreparation() != null)
+            {
+                if ((eop.getItemCount() != null && eop.getItemCount() > 0) ||
+                        (eop.getTypeCount() != null && eop.getTypeCount() > 0) ||
+                        (eop.getNonSpecimenCount() != null && eop.getNonSpecimenCount() > 0))
+                {
+                    status = STATUS.OK;
+                }
+                else
+                {
+                    reasonList.add(UIRegistry.getLocalizedMessage("ZERO_COUNT"));
+                    status = STATUS.Error;
+                }
+            }
+        }
+
+        return status;
     }
 
     /* (non-Javadoc)

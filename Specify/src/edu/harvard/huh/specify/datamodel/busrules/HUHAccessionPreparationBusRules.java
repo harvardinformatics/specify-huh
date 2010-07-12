@@ -19,13 +19,14 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import org.apache.log4j.Logger;
+
+import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.GiftPreparation;
+import edu.ku.brc.specify.datamodel.AccessionPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
-import edu.ku.brc.specify.datamodel.busrules.GiftPreparationBusRules;
-import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -33,16 +34,17 @@ import edu.ku.brc.ui.UIRegistry;
  *
  * @code_status Alpha
  *
- * July 12, 2010
+ * Jul 10, 2010
  *
  */
-public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implements CommandListener
+public class HUHAccessionPreparationBusRules extends BaseBusRules
 {
+    protected Logger log = Logger.getLogger(HUHAccessionPreparationBusRules.class);
     
     /**
      * 
      */
-    public HUHGiftPreparationBusRules()
+    public HUHAccessionPreparationBusRules()
     {
         super();
     }
@@ -60,15 +62,28 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
         }
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.ui.forms.BusinessRulesIFace#addChildrenToNewDataObjects(java.lang.Object)
+     */
+    @Override
+    public void addChildrenToNewDataObjects(final Object newDataObj)
+    {
+        AccessionPreparation ap = (AccessionPreparation) newDataObj;
+        
+        if (ap.getDiscardCount() == null) ap.setDiscardCount((short) 0);
+        if (ap.getDistributeCount() == null) ap.setDistributeCount((short) 0);
+        if (ap.getReturnCount() == null) ap.setReturnCount((short) 0);
+    }
+    
     @Override
     public void afterFillForm(Object dataObj)
     {
-        if (dataObj != null && dataObj instanceof GiftPreparation)
+        if (dataObj != null && dataObj instanceof AccessionPreparation)
         {
-            GiftPreparation gp = (GiftPreparation) dataObj;
+            AccessionPreparation ap = (AccessionPreparation) dataObj;
             
-            if (gp.getTypeCount() == null) gp.setTypeCount(0);
-            if (gp.getNonSpecimenCount() == null) gp.setNonSpecimenCount(0);
+            if (ap.getTypeCount() == null) ap.setTypeCount((short) 0);
+            if (ap.getNonSpecimenCount() == null) ap.setNonSpecimenCount((short) 0);
         }
     }
 
@@ -78,23 +93,27 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
     @Override
     public void beforeFormFill()
     {
-        if (formViewObj != null && formViewObj.getDataObj() instanceof GiftPreparation)
+        if (formViewObj != null && formViewObj.getDataObj() instanceof AccessionPreparation)
         {
-            GiftPreparation gp = (GiftPreparation) formViewObj.getDataObj();
+            AccessionPreparation ap = (AccessionPreparation) formViewObj.getDataObj();
             
-            if (gp.getTypeCount() == null) gp.setTypeCount(0);
-            if (gp.getNonSpecimenCount() == null) gp.setNonSpecimenCount(0);
+            if (ap.getTypeCount() == null) ap.setTypeCount((short) 0);
+            if (ap.getNonSpecimenCount() == null) ap.setNonSpecimenCount((short) 0);
         }
     }
     
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {
-        if (dataObj != null && dataObj instanceof GiftPreparation)
+        if (dataObj != null && dataObj instanceof AccessionPreparation)
         {
-            GiftPreparation gp = (GiftPreparation) dataObj;
+            AccessionPreparation ap = (AccessionPreparation) dataObj;
+            
+            if (ap.getDiscardCount() == null) ap.setDiscardCount((short) 0);
+            if (ap.getDistributeCount() == null) ap.setDistributeCount((short) 0);
+            if (ap.getReturnCount() == null) ap.setReturnCount((short) 0);
 
-            Preparation p = gp.getPreparation();
+            Preparation p = ap.getPreparation();
          
             if (p != null)
             {                
@@ -103,7 +122,7 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
                     if (p.getId() != null)
                     {
                         Preparation mergedP = session.merge(p);
-                        gp.setPreparation(mergedP);
+                        ap.setPreparation(mergedP);
                     }
                     else
                     {
@@ -114,7 +133,7 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
                 {
                     ex.printStackTrace();
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHGiftPreparationBusRules.class, ex);
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHAccessionPreparationBusRules.class, ex);
                 }
             }
         }
@@ -130,12 +149,12 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
         
         if (ok)
         {
-            GiftPreparation gp = (GiftPreparation)dataObj;
+            AccessionPreparation ap = (AccessionPreparation)dataObj;
             
-            Preparation p = gp.getPreparation();
+            Preparation p = ap.getPreparation();
             if (p != null && p.getPrepType().getName().equalsIgnoreCase("lot"))
             {
-                p.getGiftPreparations().remove(gp);
+                p.getAccessionPreparations().remove(ap);
                 try
                 {
                     session.delete(p);
@@ -144,7 +163,7 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
                 } catch (Exception ex)
                 {
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHGiftPreparationBusRules.class, ex);
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHAccessionPreparationBusRules.class, ex);
                     ex.printStackTrace();
                     return false;
                 }
@@ -167,15 +186,15 @@ public class HUHGiftPreparationBusRules extends GiftPreparationBusRules implemen
             return status;
         }
 
-        if (dataObj != null && dataObj instanceof GiftPreparation)
+        if (dataObj != null && dataObj instanceof AccessionPreparation)
         {
-            GiftPreparation gp = (GiftPreparation) dataObj;
+            AccessionPreparation ap = (AccessionPreparation) dataObj;
 
-            if (gp.getPreparation() != null)
+            if (ap.getPreparation() != null)
             {
-                if ((gp.getItemCount() != null && gp.getItemCount() > 0) ||
-                    (gp.getTypeCount() != null && gp.getTypeCount() > 0) ||
-                    (gp.getNonSpecimenCount() != null && gp.getNonSpecimenCount() > 0))
+                if ((ap.getItemCount() != null && ap.getItemCount() > 0) ||
+                    (ap.getTypeCount() != null && ap.getTypeCount() > 0) ||
+                    (ap.getNonSpecimenCount() != null && ap.getNonSpecimenCount() > 0))
                 {
                     status = STATUS.OK;
                 }

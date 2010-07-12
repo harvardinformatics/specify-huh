@@ -186,7 +186,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
         
         if (hasCycle)
         {
-            reasonList.add(getLocalizedMessage("ANCESTOR_ERR"));
+            reasonList.add(getLocalizedMessage("PreparationBusRules.ANCESTOR_ERR"));
             status = STATUS.Error;
         }
         if (!STATUS.OK.equals(status)) return status;
@@ -195,7 +195,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
         
         if (!hasFragment && StringUtils.isEmpty(prep.getIdentifier()))
         {
-            reasonList.add(getLocalizedMessage("NO_ITEMS"));
+            reasonList.add(getLocalizedMessage("PreparationBusRules.NO_ITEMS"));
             status = STATUS.Error;
         }
         if (!STATUS.OK.equals(status)) return status;
