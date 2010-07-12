@@ -1287,7 +1287,8 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         return SqlUtils.getInsertSql("fragment", fieldNames, values);
     }
 
-    private String getInsertSql(Preparation preparation) throws LocalException
+    @Override
+    protected String getInsertSql(Preparation preparation) throws LocalException
 	{
 		String fieldNames = "CollectionMemberID, CountAmt, PrepTypeID, Remarks, " +
 				            "SampleNumber, StorageID, StorageLocation, Text1, " +

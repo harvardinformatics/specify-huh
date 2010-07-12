@@ -32,6 +32,7 @@ import edu.ku.brc.specify.datamodel.ExchangeOutPreparation;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftPreparation;
+import edu.ku.brc.specify.datamodel.Preparation;
 
 public class OutGeoBatchLoader extends CsvToSqlLoader
 {
@@ -64,20 +65,26 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         Integer transactionId = outGeoBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
         
+        // Preparation
+        Preparation prep = getPreparation(outGeoBatch);
+        String sql = getInsertSql(prep);
+        Integer preparationId = insert(sql);
+        prep.setPreparationId(preparationId);
+        
         TYPE type = outGeoBatch.getType();
         
         if (type.equals(TYPE.OutExchange) || type.equals(TYPE.OutSpecial))
         {
-            ExchangeOutPreparation exchOutPrep = getExchangeOutPreparation(outGeoBatch);
+            ExchangeOutPreparation exchOutPrep = getExchangeOutPreparation(outGeoBatch, prep);
             
-            String sql = getInsertSql(exchOutPrep);
+            sql = getInsertSql(exchOutPrep);
             insert(sql);
         }
         else if (type.equals(TYPE.OutGift))
         {
-            GiftPreparation giftPrep = getGiftPreparation(outGeoBatch);
+            GiftPreparation giftPrep = getGiftPreparation(outGeoBatch, prep);
             
-            String sql = getInsertSql(giftPrep);
+            sql = getInsertSql(giftPrep);
             insert(sql);
         }
         else
@@ -119,7 +126,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         return outGeoBatch;
     }
 
-    private GiftPreparation getGiftPreparation(OutGeoBatch outGeoBatch) throws LocalException
+    private GiftPreparation getGiftPreparation(OutGeoBatch outGeoBatch, Preparation prep) throws LocalException
     {
         GiftPreparation giftPrep = new GiftPreparation();
 
@@ -130,12 +137,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         
         // Discipline
         giftPrep.setDiscipline(getBotanyDiscipline());
-        
-        // Geography
-        Geography geography = GeoUnit.NullGeography;
-        
-        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
-        giftPrep.setGeography(geography);
         
         // Gift
         Integer transactionId = outGeoBatch.getTransactionId();
@@ -152,6 +153,9 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         int nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
         giftPrep.setNonSpecimenCount(nonSpecimenCount);
         
+        // Preparation
+        giftPrep.setPreparation(prep);
+        
         // TypeCount
         int typeCount = outGeoBatch.getTypeCount();
         giftPrep.setTypeCount(typeCount);
@@ -159,7 +163,7 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         return giftPrep;
     }
     
-    private ExchangeOutPreparation getExchangeOutPreparation(OutGeoBatch outGeoBatch) throws LocalException
+    private ExchangeOutPreparation getExchangeOutPreparation(OutGeoBatch outGeoBatch, Preparation prep) throws LocalException
     {
         ExchangeOutPreparation exchOutPrep = new ExchangeOutPreparation();
 
@@ -169,12 +173,6 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         
         // Discipline
         exchOutPrep.setDiscipline(getBotanyDiscipline());
-        
-        // Geography
-        Geography geography = GeoUnit.NullGeography;
-        
-        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
-        exchOutPrep.setGeography(geography);
         
         // Gift
         Integer transactionId = outGeoBatch.getTransactionId();
@@ -191,6 +189,9 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         int nonSpecimenCount = outGeoBatch.getNonSpecimenCount();
         exchOutPrep.setNonSpecimenCount(nonSpecimenCount);
         
+        // Preparation
+        exchOutPrep.setPreparation(prep);
+
         // TypeCount
         int typeCount = outGeoBatch.getTypeCount();
         exchOutPrep.setTypeCount(typeCount);
@@ -198,6 +199,32 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
         return exchOutPrep;
     }
     
+    private Preparation getPreparation(OutGeoBatch outGeoBatch) throws LocalException
+    {
+        Preparation preparation = new Preparation();
+        
+        // CollectionMemberID
+        Integer collectionMemberId = this.getCollectionId(null);
+        preparation.setCollectionMemberId(collectionMemberId);
+
+        // CountAmt
+        preparation.setCountAmt(1);
+        
+        // Geography
+        Geography geography = CsvToSqlLoader.NullGeography;
+        
+        Integer geoUnitId = outGeoBatch.getGeoUnitId();
+        
+        if (geoUnitId != null && geoUnitId != GeoUnit.CultRegionId && geoUnitId != GeoUnit.MiscRegionId) geography = lookupGeography(geoUnitId);
+        
+        preparation.setGeography(geography);
+        
+        // PrepType
+        preparation.setPrepType(getLotPrepType());
+        
+        return preparation;
+    }
+
     private Gift lookupGift(Integer transactionId) throws LocalException
     {
         return outGiftLookup.getById(transactionId);
@@ -215,17 +242,17 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
 
     private String getInsertSql(GiftPreparation giftPrep)
     {
-        String fieldNames = "DescriptionOfMaterial, DisciplineID, GeographyID, GiftID, " +
-                            "ItemCount, NonSpecimenCount, TimestampCreated, TypeCount, Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, GiftID, " +
+                            "ItemCount, NonSpecimenCount, PreparationID, TimestampCreated, TypeCount, Version";
         
         String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( giftPrep.getDescriptionOfMaterial());
         values[1] = SqlUtils.sqlString( giftPrep.getDiscipline().getId());
-        values[2] = SqlUtils.sqlString( giftPrep.getGeography().getId());
-        values[3] = SqlUtils.sqlString( giftPrep.getGift().getId());
-        values[4] = SqlUtils.sqlString( giftPrep.getItemCount());
-        values[5] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
+        values[2] = SqlUtils.sqlString( giftPrep.getGift().getId());
+        values[3] = SqlUtils.sqlString( giftPrep.getItemCount());
+        values[4] = SqlUtils.sqlString( giftPrep.getNonSpecimenCount());
+        values[5] = SqlUtils.sqlString( giftPrep.getPreparation().getId());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( giftPrep.getTypeCount());
         values[8] = SqlUtils.one();
@@ -235,17 +262,17 @@ public class OutGeoBatchLoader extends CsvToSqlLoader
     
     private String getInsertSql(ExchangeOutPreparation exchOutPrep)
     {
-        String fieldNames = "DescriptionOfMaterial, DisciplineID, ExchangeOutID, GeographyID, " +
-                            "ItemCount, NonSpecimenCount, TimestampCreated, TypeCount, Version";
+        String fieldNames = "DescriptionOfMaterial, DisciplineID, ExchangeOutID, ItemCount, " +
+                            "NonSpecimenCount, PreparationID, TimestampCreated, TypeCount, Version";
         
         String[] values = new String[9];
         
         values[0] = SqlUtils.sqlString( exchOutPrep.getDescriptionOfMaterial());
         values[1] = SqlUtils.sqlString( exchOutPrep.getDiscipline().getId());
         values[2] = SqlUtils.sqlString( exchOutPrep.getExchangeOut().getId());
-        values[3] = SqlUtils.sqlString( exchOutPrep.getGeography().getId());
-        values[4] = SqlUtils.sqlString( exchOutPrep.getItemCount());
-        values[5] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
+        values[3] = SqlUtils.sqlString( exchOutPrep.getItemCount());
+        values[4] = SqlUtils.sqlString( exchOutPrep.getNonSpecimenCount());
+        values[5] = SqlUtils.sqlString( exchOutPrep.getPreparation().getId());
         values[6] = SqlUtils.now();
         values[7] = SqlUtils.sqlString( exchOutPrep.getTypeCount());
         values[8] = SqlUtils.one();

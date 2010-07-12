@@ -42,6 +42,7 @@ import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanAgent;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
 
 public class LoanLoader extends TaxonBatchTransactionLoader
@@ -83,9 +84,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         String code = asaLoan.getLocalUnit();
         checkNull(code, "local unit");
-        
-        Integer collectionMemberId = getCollectionId(code);
-        
         Loan loan = getLoan(asaLoan);
 
         int organizationId = asaLoan.getOrganizationId();
@@ -107,7 +105,12 @@ public class LoanLoader extends TaxonBatchTransactionLoader
             }
         }
         
-        LoanPreparation loanPrep = getLoanPreparation(asaLoan, loan, collectionMemberId);
+        Preparation prep = getPreparation(asaLoan);
+        sql = getInsertSql(prep);
+        Integer preparationId = insert(sql);
+        prep.setPreparationId(preparationId);
+        
+        LoanPreparation loanPrep = getLoanPreparation(asaLoan, loan, prep);
         if (loanPrep != null)
         {
             sql = getInsertSql(loanPrep);
@@ -150,8 +153,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
                     LoanPreparation loanPrep = new LoanPreparation();
               
                     Integer loanPrepId =
-                        getInt("select LoanPreparationID from loanpreparation where " +
-                        	"PreparationID is null and LoanID=(select LoanID from loan where Number1=" + transactionId + ")");
+                        getInt("select lp.LoanPreparationID from loanpreparation lp join preparation pp on lp.PreparationID=pp.PreparationID " +
+                        	"where pp.PrepTypeID=(select PrepTypeID from preptype where Name='Lot') and lp.LoanID=(select LoanID from loan where Number1=" + transactionId + ")");
                     
                     loanPrep.setLoanPreparationId(loanPrepId);
                     
@@ -267,7 +270,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         return loan;
     }
     
-    private LoanPreparation getLoanPreparation(AsaLoan asaLoan, Loan loan, Integer collectionMemberId) throws LocalException
+    private LoanPreparation getLoanPreparation(AsaLoan asaLoan, Loan loan, Preparation prep) throws LocalException
     {
         LoanPreparation loanPreparation = new LoanPreparation();
         
@@ -293,6 +296,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         int nonSpecimenCount = asaLoan.getNonSpecimenCount();
         loanPreparation.setNonSpecimenCount(nonSpecimenCount);
 
+        // Preparation
+        loanPreparation.setPreparation(prep);
+        
         // ReceivedComments (transferred from)
         String transferredFrom = asaLoan.getReceivedComments();
         loanPreparation.setInComments(transferredFrom);
@@ -300,13 +306,6 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         // SrcTaxonomy
         String srcTaxonomy = asaLoan.getTaxon();
         loanPreparation.setSrcTaxonomy(srcTaxonomy);
-        
-        // Taxon
-        Integer taxonId = asaLoan.getHigherTaxonId();
-        Taxon higherTaxon = NullTaxon;
-        
-        if (taxonId != null) higherTaxon = lookupTaxon(taxonId);
-        loanPreparation.setTaxon(higherTaxon);
 
         // TypeCount
         int typeCount = asaLoan.getTypeCount();
@@ -333,6 +332,32 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         loanAgent.setRole(Transaction.toString(role));
         
         return loanAgent;
+    }
+    
+    private Preparation getPreparation(AsaLoan asaLoan) throws LocalException
+    {
+        Preparation preparation = new Preparation();
+        
+        // CollectionMemberID
+        Integer collectionMemberId = this.getCollectionId(null);
+        preparation.setCollectionMemberId(collectionMemberId);
+
+        // CountAmt
+        preparation.setCountAmt(1);
+        
+        // Taxon
+        Taxon taxon = CsvToSqlLoader.NullTaxon;
+        
+        Integer asaTaxonId = asaLoan.getHigherTaxonId();
+        
+        if (asaTaxonId != null) taxon = lookupTaxon(asaTaxonId);
+        
+        preparation.setTaxon(taxon);
+        
+        // PrepType
+        preparation.setPrepType(getLotPrepType());
+        
+        return preparation;
     }
     
     protected String getLoanNumber(String loanNo, int year, int id)
@@ -510,7 +535,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(LoanPreparation loanPreparation)
     {
         String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, ItemCount, " +
-        		            "LoanID, NonSpecimenCount, ReceivedComments, SrcTaxonomy, TaxonID, " +
+        		            "LoanID, NonSpecimenCount, PreparationID, ReceivedComments, SrcTaxonomy, " +
         		            "TimestampCreated, TypeCount, Version";
         
         String[] values = new String[12];
@@ -521,9 +546,9 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[3]  = SqlUtils.sqlString( loanPreparation.getItemCount());
         values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
         values[5]  = SqlUtils.sqlString( loanPreparation.getNonSpecimenCount());
-        values[6]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
-        values[7]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
-        values[8]  = SqlUtils.sqlString( loanPreparation.getTaxon().getId());
+        values[6]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+        values[7]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+        values[8]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
         values[9]  = SqlUtils.now();
         values[10] = SqlUtils.sqlString( loanPreparation.getTypeCount());
         values[11] = SqlUtils.one();
