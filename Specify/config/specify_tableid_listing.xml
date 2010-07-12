@@ -29,7 +29,8 @@
             <businessrule>edu.ku.brc.specify.datamodel.busrules.AccessionAuthorizationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.AccessionPreparation" abbrev="ap" id="144" searchable="true">
-            <display view="AccessionPreparations" dataobjformatter="" newobjdlg="AccessionPreparationsDisplay"/>
+            <display view="AccessionItem" dataobjformatter="" newobjdlg="AccessionPreparationsDisplay"/>
+            <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Address" abbrev="ad" id="8" workbench="false" searchable="true">
             <display view="Address" newobjdlg="AddressDisplay"/>
@@ -180,7 +181,7 @@
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" abbrev="eop" id="138" searchable="true">
-            <display view="ExchangeOutItems" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>
+            <display view="ExchangeOutItem" dataobjformatter="ExchangeOutPreparation" newobjdlg="ExchangeOutItemsDisplay"/>
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutPreparationBusRules</businessrule> 
         </table>
         <table name="edu.ku.brc.specify.datamodel.FieldNotebook" abbrev="fnb" id="83" searchable="true">
@@ -241,11 +242,11 @@
         	<display view="Gift"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GiftBusRules</businessrule>          
         </table>
-        <table name="edu.ku.brc.specify.datamodel.GiftAgent" abbrev="gfp" id="133" searchable="true">
+        <table name="edu.ku.brc.specify.datamodel.GiftAgent" abbrev="gfa" id="133" searchable="true">
             <display view="GiftAgent" newobjdlg="GiftAgentDisplay"/>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.GiftPreparation" abbrev="gfa" id="132" searchable="true">
-            <display view="GiftItems" dataobjformatter="GiftPreparation" newobjdlg="GiftItemsDisplay"/>
+        <table name="edu.ku.brc.specify.datamodel.GiftPreparation" abbrev="gfp" id="132" searchable="true">
+            <display view="GiftItem" dataobjformatter="GiftPreparation" newobjdlg="GiftItemsDisplay"/>
             <businessrule>edu.harvard.huh.specify.datamodel.busrules.HUHGiftPreparationBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.GroupPerson" abbrev="gp" id="49" searchable="true">

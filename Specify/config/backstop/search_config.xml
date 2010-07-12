@@ -1716,21 +1716,44 @@
         </table>
         
         <table id="130" tableid="5" name="BotanistSearch" priority="1" color="30, 144, 255">
-            <detailView icon="">
+            <detailView icon="Agent">
                 <sql>
-                    <![CDATA[SELECT ag.AgentID, 
- ag.FirstName, 
- ag.LastName, 
- av.Name
- FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID 
- LEFT JOIN agentvariant av ON ag.AgentID = av.AgentID 
- WHERE agent_discipline.DisciplineID = DSPLNID AND (%s) GROUP BY ag.AgentID ORDER BY ag.LastName, ag.FirstName, av.Name]]>
+                    <![CDATA[
+ SELECT
+ ag.AgentID,
+ av.Name,
+ ag.DateOfBirth,
+ ag.DateOfBirthPrecision,
+ ag.DateOfDeath,
+ ag.DateOfDeathPrecision,
+ ag.DatesType,
+ agsp.SpecialtyName,
+ %s 
+ FROM agent ag INNER JOIN agent_discipline ON ag.AgentID = agent_discipline.AgentID
+ JOIN agentvariant av ON ag.AgentID = av.AgentID
+ LEFT JOIN agentspecialty agsp ON ag.AgentID = agsp.AgentID
+ WHERE %s
+ ORDER BY ag.AgentID, av.Name, agsp.Role, agsp.OrderNumber]]>
                 </sql>
                 <captions>
-                    <caption tableid="5" col="AgentID" visible="false"/>
-                    <caption tableid="5" col="FirstName"/>
-                    <caption tableid="5" col="LastName"/>
-                    <caption tableid="107" col="Name"/>
+                    <caption tableid="5" col="ag.AgentID" visible="false"/>
+                    <caption tableid="107" key="Author/Collector">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentVariant" aggregator="AgentVariant"/>
+                    	<col name="av.Name" field="name"/>
+                    </caption>
+    				<caption tableid="5" formatter="PartialDate">
+    					<col name="ag.DateOfBirth" field="dateOfBirth"/>
+                    	<col name="ag.DateOfBirthPrecision" field="dateOfBirthPrecision"/>
+                    </caption>
+                    <caption tableid="5" formatter="PartialDate">
+    					<col name="ag.DateOfDeath" field="dateOfDeath"/>
+                    	<col name="ag.DateOfDeathPrecision" field="dateOfDeathPrecision"/>
+                    </caption>
+                    <caption tableid="5" col="ag.DatesType" field="datesType" formatter="AgentDatesType"/>
+                    <caption tableid="86" key="AgentSpecialties">
+                    	<agg class="edu.ku.brc.specify.datamodel.AgentSpecialty" aggregator="AgentSpecialty"/>
+                    	<col name="agsp.SpecialtyName" field="specialtyName"/>
+                    </caption>
                 </captions>
             </detailView>
         </table>
@@ -1760,27 +1783,33 @@
                     <![CDATA[SELECT pp.PreparationID,
                                     pp.Identifier as PrepIdentifier,
                                     ac.AccessionNumber,
+                                    exo.ExchangeNumber,
+                                    gf.GiftNumber,
+                                    ln.LoanNumber,
                                     t1.FullName,
                                     geo.FullName,
-                                    ln.LoanNumber,
                                     t2.FullName
                                FROM preparation pp LEFT JOIN accessionpreparation ap ON pp.PreparationID=ap.PreparationID
-                                                   LEFT JOIN loanpreparation lpo ON pp.PreparationID=lpo.PreparationID
-                                                   LEFT JOIN accession ac ON ap.AccessionID=ac.AccessionID
-                                                   LEFT JOIN loan ln ON lpo.LoanID=ln.LoanID
-                                                   LEFT JOIN taxon t1 ON lpo.TaxonID=t1.TaxonID
-                                                   LEFT JOIN taxon t2 ON ap.TaxonID=t2.TaxonID
-                                                   LEFT JOIN geography geo ON ap.GeographyID=geo.GeographyID
-                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY ac.AccessionNumber, ln.LoanNumber, t1.FullName, t2.FullName, geo.FullName]]>
+                               					   LEFT JOIN accession ac ON ap.AccessionID=ac.AccessionID
+                               					   LEFT JOIN exchangeoutpreparation eop ON pp.PreparationID=eop.PreparationID
+                               					   LEFT JOIN exchangeout exo ON eop.ExchangeOutID=eo.ExchangeOutID
+                               					   LEFT JOIN giftpreparation gf ON pp.PreparationID=gf.PreparationID
+                               					   LEFT JOIN gift gf ON gfp.GiftID=gf.GiftID
+                               					   LEFT JOIN loanpreparation lpo ON pp.PreparationID=lpo.PreparationID
+                               					   LEFT JOIN loan ln ON lpo.LoanID=ln.LoanID
+                               					   LEFT JOIN taxon tx ON (tx.TaxonID=pp.TaxonID)
+                                                   LEFT JOIN geography geo ON (geo.GeographyID=pp.GeographyID)
+                              WHERE pp.CollectionMemberID = COLMEMID AND (%s) ORDER BY ac.AccessionNumber, eo.ExchangeNumber, gf.GiftNumber, ln.LoanNumber, tx.FullName, geo.FullName]]>
                 </sql>
                 <captions>
-                    <caption tableid="63" col="pp.PreparationID" visible="false"/>
-                    <caption tableid="63" name="pp.Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                    <caption tableid="7" col="ac.AccessionNumber" formatter="HUHAccessionNumber"/>
-                    <caption tableid="4" col="t1.FullName"/>
-                    <caption tableid="3" col="geo.FullName"/>
-                    <caption tableid="52" col="ln.LoanNumber"/>
-                    <caption tableid="4" col="t2.FullName"/>
+                    <caption tableid="63"  col="pp.PreparationID" visible="false"/>
+                    <caption tableid="63"  col="pp.Identifier" name="pp.Identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="7"   col="ac.AccessionNumber" formatter="HUHAccessionNumber"/>
+                    <caption tableid="40"  col="exo.ExchangeNumber" formatter="HUHExchangeNumber"/>
+                    <caption tableid="131" col="gf.GiftNumber" formatter="HUHGiftNumber"/>
+                    <caption tableid="52"  col="ln.LoanNumber" formatter="HUHLoanNumber"/>
+                    <caption tableid="4"   col="tx.FullName"/>
+                    <caption tableid="3"   col="geo.FullName"/>
                 </captions>
             </detailView>
         </table>
@@ -1799,11 +1828,11 @@
                 </sql>
                 <captions>
                     <caption tableid="142" col="FragmentID" visible="false"/>
-                    <caption tableid="142" name="Identifier" col="fragment.Identifier" formatter="HUHFragmentBarcode"/>
-                    <caption tableid="142" name="Description" col="fragment.Description"/>
-                    <caption tableid="65" name="Name" col="prepType.Name"/>
-                    <caption tableid="63" name="Identifier" col="preparation.Identifier" formatter="HUHPreparationBarcode"/>
-                    <caption tableid="63" name="Description" col="preparation.Description"/>
+                    <caption tableid="142" name="Identifier"  col="frag.Identifier"  field="identifier" formatter="HUHFragmentBarcode"/>
+                    <caption tableid="142" name="Description" col="frag.Description" field="description"/>
+                    <caption tableid="65"  name="Name"        col="ppt.Name"         field="name"/>
+                    <caption tableid="63"  name="Identifier"  col="pp.Identifier"    field="identifier" formatter="HUHPreparationBarcode"/>
+                    <caption tableid="63"  name="Description" col="pp.Description"   field="description"/>
                 </captions>
             </detailView>
         </table>

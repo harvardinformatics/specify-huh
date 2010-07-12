@@ -36,7 +36,7 @@
     
     <dialog type="display" view="AccessionCO"        name="AccessionDisplay"         class="edu.ku.brc.specify.datamodel.Accession" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AccessionAgent"     name="AccessionAgentDisplay"    class="edu.ku.brc.specify.datamodel.AccessionAgent" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="AccessionPreparation" name="AccessionPreparationDisplay" class="edu.ku.brc.specify.datamodel.AccessionPrepration" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="AccessionPreparation" name="AccessionPreparationsDisplay" class="edu.ku.brc.specify.datamodel.AccessionPrepration" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Address"            name="AddressDisplay"           class="edu.ku.brc.specify.datamodel.Accession" helpcontext="CBXQViewEdit"/>
 	<dialog type="display" view="AffiliateAgent"     name="AffiliateAgent"           class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Agent"              name="AgentDisplay"             class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
@@ -50,6 +50,7 @@
     <dialog type="display" view="AutoNumberingScheme" name="AutoNumberingScheme"     class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Author"             name="AuthorDisplay"            class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BarcodedPreparation" name="BarcodedPreparation"     class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="BatchPreparation"   name="BatchPreparation"         class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BioStrat"           name="BioStratDisplay"          class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BorrowAgent"        name="BorrowAgentDisplay"       class="edu.ku.brc.specify.datamodel.BorrowAgent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Botanist"           name="Botanist"                 class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
@@ -64,13 +65,13 @@
     <dialog type="display" view="DeterminationCitation" name="DeterminationCitationDisplay" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="DeterminationItem"  name="DeterminationItem" class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="ExchangeOutItems"   name="ExchangeOutItemsDisplay"  class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="ExchangeOutItem"   name="ExchangeOutItemsDisplay"  class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="FieldNotebookPage"  name="FieldNotebookPageDisplay" class="edu.ku.brc.specify.datamodel.FieldNotebookPage" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Fragment"           name="FragmentDisplay"          class="edu.ku.brc.specify.datamodel.Fragment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ChronosStrat"       name="ChronosStratDisplay"      class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Geography"          name="GeographyDisplay"         class="edu.ku.brc.specify.datamodel.Geography" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="GiftAgent"          name="GiftAgentDisplay"         class="edu.ku.brc.specify.datamodel.GiftAgent" helpcontext="CBXQViewEdit"/>
-    <dialog type="display" view="GiftItems"          name="GiftItemsDisplay"         class="edu.ku.brc.specify.datamodel.GiftPreparation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="GiftItem"          name="GiftItemsDisplay"         class="edu.ku.brc.specify.datamodel.GiftPreparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="GroupPerson"        name="GroupPersonDisplay"       class="edu.ku.brc.specify.datamodel.GroupPerson" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Journal"            name="JournalDisplay"           class="edu.ku.brc.specify.datamodel.Journal" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="LithoStrat"         name="LithoStratDisplay"        class="edu.ku.brc.specify.datamodel.LithoStrat" helpcontext="CBXQViewEdit"/>

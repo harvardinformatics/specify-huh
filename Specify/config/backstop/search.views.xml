@@ -475,6 +475,14 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="field" id="2" name="ac.AccessionNumber" uitype="text"/>
                 </row>
                 <row>
+                    <cell type="label" label="Exchange Out Number:" />
+                    <cell type="field" id="2" name="eo.ExchangeNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Gift Number:" />
+                    <cell type="field" id="2" name="gf.GiftNumber" uitype="text"/>
+                </row>
+                <row>
                     <cell type="label" label="Loan Number:" />
                     <cell type="field" id="3" name="ln.LoanNumber" uitype="text"/>
                 </row>
@@ -499,7 +507,7 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="4" label="Variant Name"/>
-                    <cell type="field" id="4" name="Name" uitype="text" cols="20"/>
+                    <cell type="field" id="4" name="av.Name" uitype="text" cols="20"/>
                 </row>
             </rows>
         </viewdef>
@@ -706,11 +714,11 @@ Good: <cell type="field" name="FieldNum" ...>
                 </row>
                 <row>
                     <cell type="label" labelfor="1" label="Item Barcode"/>
-                    <cell type="field" id="1" name="fragment.Identifier" uitype="formattedtext" uifieldformatter="HUHFragmentBarcode" initialize="ispartial=true"/>
+                    <cell type="field" id="1" name="frag.Identifier" uitype="formattedtext" uifieldformatter="HUHFragmentBarcode" initialize="ispartial=true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="2" label="Preparation Barcode"/>
-                    <cell type="field" id="2" name="preparation.Identifier" uitype="formattedtext" uifieldformatter="HUHPreparationBarcode" initialize="ispartial=true"/>
+                    <cell type="field" id="2" name="pp.Identifier" uitype="formattedtext" uifieldformatter="HUHPreparationBarcode" initialize="ispartial=true"/>
                 </row>
             </rows>
         </viewdef>

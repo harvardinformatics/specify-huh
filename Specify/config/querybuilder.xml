@@ -213,6 +213,7 @@
      	<alias name="Agent" field="agentSentTo"/>
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
+      	<alias name="Preparation" field="preparations"/>
      	<alias name="Shipment" field="shipments" />
     </table>
     
@@ -381,6 +382,7 @@
 
     <table name="Preparation">
     	<alias name="Accession" field="accession"/> 
+        <table name="Geography"/>
         <table name="PrepType"/>
         <table name="PreparationAttachment" field="preparationAttachments">
             <table name="Attachment"/>
@@ -389,6 +391,7 @@
         <table name="PreparationAttribute"/>
         <alias name="LoanPreparation" field="loanPreparations"/>
         <alias name="Storage"/>
+        <table name="Taxon"/>
         <alias name="Agent" field="preparedByAgent" />
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />

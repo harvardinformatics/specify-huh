@@ -934,23 +934,13 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="geography" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Geography</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="itemCount" type="java.lang.Integer" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
-            <text>Items</text>
+            <text>Item Count</text>
           </str>
         </names>
         <descs>
@@ -1004,16 +994,6 @@
           <str language="en">
             <version>0</version>
             <text>Received Comments</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
-      <item name="taxon" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Taxon</text>
           </str>
         </names>
         <descs/>
@@ -14620,16 +14600,6 @@
         </names>
         <descs/>
       </item>
-      <item name="geography" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Geography</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="inComments">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -18425,16 +18395,6 @@
         <descs/>
         <spExportSchemaItems/>
       </item>
-      <item name="geography" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Geography</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="gift">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -21394,16 +21354,6 @@
         </names>
         <descs/>
       </item>
-      <item name="taxon" type="ManyToOne">
-        <version>0</version>
-        <names>
-          <str language="en" country="" variant="">
-            <version>0</version>
-            <text>Higher Taxon</text>
-          </str>
-        </names>
-        <descs/>
-      </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
         <isHidden>true</isHidden>
@@ -24321,6 +24271,16 @@ Preparation: A subdivision of a collection object that refers to the preparation
         </names>
         <descs/>
       </item>
+      <item name="geography" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Geography</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="giftPreparations">
         <version>0</version>
         <isHidden>false</isHidden>
@@ -24530,6 +24490,16 @@ Preparation: A subdivision of a collection object that refers to the preparation
           <str language="en" country="" variant="">
             <version>0</version>
             <text>Storage Location</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
+      <item name="taxon" type="ManyToOne">
+        <version>0</version>
+        <names>
+          <str language="en" country="" variant="">
+            <version>0</version>
+            <text>Taxon</text>
           </str>
         </names>
         <descs/>
