@@ -68,7 +68,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     protected Preparation                   preparation;
     protected Loan                          loan;
     protected Set<LoanReturnPreparation>    loanReturnPreparations;
-    protected Taxon                         taxon;
 
     // Constructors
 
@@ -104,7 +103,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
         preparation = null;
         loan = null;
         loanReturnPreparations = new HashSet<LoanReturnPreparation>();
-        taxon = null;
     }
     // End Initializer
 
@@ -339,24 +337,6 @@ public class LoanPreparation extends DisciplineMember implements java.io.Seriali
     
     public void setLoan(Loan loan) {
         this.loan = loan;
-    }
-
-    /**
-     * @return the family or other higher taxon group
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "TaxonID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Taxon getTaxon()
-    {
-        return taxon;
-    }
-
-    /**
-     * @param higher taxon to set
-     */
-    public void setTaxon(Taxon taxon)
-    {
-        this.taxon = taxon;
     }
     
     /**

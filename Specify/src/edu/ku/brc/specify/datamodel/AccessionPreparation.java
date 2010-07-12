@@ -29,7 +29,6 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Index;
 
@@ -39,9 +38,7 @@ import org.hibernate.annotations.Index;
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "accessionpreparation", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"accessionID", "geographyID", "taxonID"} ) 
-})
+@Table(name = "accessionpreparation")
 @org.hibernate.annotations.Table(appliesTo="accessionpreparation", indexes =
     {   @Index (name="AccPrepDspMemIDX", columnNames={"DisciplineID"})
     })
@@ -63,9 +60,6 @@ public class AccessionPreparation extends DisciplineMember implements java.io.Se
 
     protected Preparation preparation;
     protected Accession   accession;
-    protected Geography   geography;
-    protected Taxon       taxon;
-
 
     // Constructors
 
@@ -98,8 +92,6 @@ public class AccessionPreparation extends DisciplineMember implements java.io.Se
         typeCount = null;
         preparation = null;
         accession = null;
-        geography = null;
-        taxon = null;
     }
     // End Initializer
 
@@ -186,43 +178,6 @@ public class AccessionPreparation extends DisciplineMember implements java.io.Se
     {
         this.receivedComments = receivedComments;
     }
-    
-    /**
-     * @return the geography.
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "GeographyID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Geography getGeography()
-    {
-        return this.geography;
-    }
-
-    /**
-     * @param geography to set
-     */
-    public void setGeography(Geography geography)
-    {
-        this.geography = geography;
-    }
-    
-    /**
-     * @return the taxon.
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "TaxonID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Taxon getTaxon()
-    {
-        return this.taxon;
-    }
-
-    /**
-     * @param higher taxon to set
-     */
-    public void setTaxon(Taxon taxon)
-    {
-        this.taxon = taxon;
-    }
-    
 
     /**
      *      * Number of specimens discarded
@@ -299,7 +254,7 @@ public class AccessionPreparation extends DisciplineMember implements java.io.Se
     /**
      * 
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
     public Preparation getPreparation() {
         return this.preparation;
@@ -310,7 +265,7 @@ public class AccessionPreparation extends DisciplineMember implements java.io.Se
     }
 
     /**
-     *      * Loan containing the Preparation
+     *      * Accession containing the Preparation
      */
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
     @JoinColumn(name = "AccessionID", unique = false, nullable = false, insertable = true, updatable = true)

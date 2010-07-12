@@ -57,7 +57,6 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     protected String                        receivedComments;     // Received Comments
     protected Preparation                   preparation;
     protected ExchangeOut                   exchangeOut;
-    protected Geography                     geography;
     // Constructors
 
     /** default constructor */
@@ -89,7 +88,6 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
         receivedComments = null;
         preparation = null;
         exchangeOut = null;
-        geography = null;
     }
     // End Initializer
 
@@ -221,23 +219,9 @@ public class ExchangeOutPreparation extends DisciplineMember implements java.io.
     }
     
     /**
-     * Geography
-     */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @JoinColumn(name = "GeographyID", unique = false, nullable = true, insertable = true, updatable = true)
-    public Geography getGeography() {
-        return this.geography;
-    }
-    
-    public void setGeography(Geography geography) 
-    {
-        this.geography = geography;
-    }
-    
-    /**
      * 
      */
-    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {javax.persistence.CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PreparationID", unique = false, nullable = true, insertable = true, updatable = true)
     public Preparation getPreparation() {
         return this.preparation;

@@ -418,7 +418,7 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
         this.yesNo2 = yesNo2;
     }
     
-    @OneToMany(mappedBy = "accession")
+    @OneToMany(mappedBy = "accession", fetch = FetchType.EAGER)
     @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     @OrderBy("ordinal ASC")
     public Set<AccessionAttachment> getAccessionAttachments()
@@ -460,8 +460,8 @@ public class Accession extends DataModelObjBase implements java.io.Serializable,
     /**
      *
      */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "accession")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    @OneToMany(cascade = {}, mappedBy = "accession")
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Set<AccessionPreparation> getAccessionPreparations() {
         return this.accessionPreparations;
     }

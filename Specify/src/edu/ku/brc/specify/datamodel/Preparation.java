@@ -107,6 +107,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected Set<Fragment>               fragments;
     
     protected Set<AccessionPreparation>   accessionPreparations;
+    protected Set<ExchangeOutPreparation> exchangeOutPreparations;
     protected Set<GiftPreparation>        giftPreparations;
     protected Set<LoanPreparation>        loanPreparations;
     protected PrepType                    prepType;
@@ -117,6 +118,10 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected PreparationAttribute        preparationAttribute;    // Specify 5 Attributes table
     protected Set<PreparationAttr>        preparationAttrs;        // Generic Expandable Attributes
     protected Set<PreparationAttachment>  preparationAttachments;
+    
+    // Unbarcoded Lots
+    protected Geography   geography;
+    protected Taxon       taxon;
     
     // Tree
     protected Preparation                 parent;
@@ -181,7 +186,11 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         
         fragments = new HashSet<Fragment>();
         
+        geography = null;
+        taxon = null;
+        
         accessionPreparations = new HashSet<AccessionPreparation>();
+        exchangeOutPreparations = new HashSet<ExchangeOutPreparation>();
         giftPreparations = new HashSet<GiftPreparation>();
         loanPreparations = new HashSet<LoanPreparation>();
         prepType = null;
@@ -707,6 +716,43 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         this.yesNo3 = yesNo3;
     }
     
+
+    /**
+     * @return the geography.
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "GeographyID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Geography getGeography()
+    {
+        return this.geography;
+    }
+
+    /**
+     * @param geography to set
+     */
+    public void setGeography(Geography geography)
+    {
+        this.geography = geography;
+    }
+    
+    /**
+     * @return the taxon.
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "TaxonID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Taxon getTaxon()
+    {
+        return this.taxon;
+    }
+
+    /**
+     * @param higher taxon to set
+     */
+    public void setTaxon(Taxon taxon)
+    {
+        this.taxon = taxon;
+    }
+    
     /**
      * 
      */
@@ -733,6 +779,19 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         this.loanPreparations = loanPreparations;
     }
 
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<ExchangeOutPreparation> getExchangeOutPreparations() {
+        return this.exchangeOutPreparations;
+    }
+    
+    public void setExchangeOutPreparations(Set<ExchangeOutPreparation> exchangeOutPreparations) {
+        this.exchangeOutPreparations = exchangeOutPreparations;
+    }
+    
     /**
      * 
      */
