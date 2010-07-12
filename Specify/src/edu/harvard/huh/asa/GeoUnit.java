@@ -3,12 +3,8 @@ package edu.harvard.huh.asa;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.ku.brc.specify.datamodel.Geography;
-
 public class GeoUnit extends AuditedObject
 {
-    public static final Geography NullGeography = new Geography();
-    
     public static final int CultRegionId = 10295;
     public static final int MiscRegionId = 10297;
     

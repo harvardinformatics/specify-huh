@@ -14,6 +14,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.asa.SpecimenItem;
 import edu.harvard.huh.asa2specify.IdNotFoundException;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -21,6 +22,10 @@ import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.Geography;
+import edu.ku.brc.specify.datamodel.PrepType;
+import edu.ku.brc.specify.datamodel.Preparation;
+import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.ui.ProgressFrame;
 
 public abstract class CsvToSqlLoader
@@ -28,6 +33,8 @@ public abstract class CsvToSqlLoader
     private static final Logger log  = Logger.getLogger(CsvToSqlLoader.class);
     
     private static final Agent NullAgent = new Agent();
+    public static final Geography NullGeography = new Geography();
+    public static final Taxon NullTaxon = new Taxon();
     
     protected static final String EMPTY = "EMPTY";
     
@@ -42,7 +49,8 @@ public abstract class CsvToSqlLoader
 
     private Discipline botanyDiscipline;
     private Division   botanyDivision;
-
+    private PrepType   lotPrepType;
+    
     private static int updates;
     private static int inserts;
     
@@ -231,6 +239,23 @@ public abstract class CsvToSqlLoader
             botanyDivision.setDivisionId(divisionId);
         }
         return botanyDivision;
+    }
+
+    protected PrepType getLotPrepType() throws LocalException
+    {
+        if (lotPrepType == null)
+        {
+            Integer collectionId = getCollectionId(null);
+            String container = SpecimenItem.toString(SpecimenItem.CONTAINER_TYPE.Lot);
+
+            String sql = "select PrepTypeID from preptype where CollectionID=" + collectionId + " and Name=" + SqlUtils.sqlString(container);
+            Integer prepTypeId = queryForInt(sql);
+            if (prepTypeId == null) throw new LocalException("Couldn't find prep type for " + container);
+
+            lotPrepType = new PrepType();
+            lotPrepType.setPrepTypeId(prepTypeId);
+        }
+        return lotPrepType;
     }
 
     protected void execute(String sql) throws LocalException
@@ -548,5 +573,25 @@ public abstract class CsvToSqlLoader
         }
 
         return string;
+    }
+    
+    protected String getInsertSql(Preparation preparation) throws LocalException
+    {
+        String fieldNames = "CollectionMemberID, CountAmt, GeographyID, PrepTypeID, TaxonID, TimestampCreated, Version";
+
+        if (preparation.getGeography() == null) preparation.setGeography(NullGeography);
+        if (preparation.getTaxon() == null) preparation.setTaxon(NullTaxon);
+
+        String[] values = new String[7];
+        
+        values[0] = SqlUtils.sqlString( preparation.getCollectionMemberId());
+        values[1] = SqlUtils.sqlString( preparation.getCountAmt());
+        values[2] = SqlUtils.sqlString( preparation.getGeography().getId());
+        values[3] = SqlUtils.sqlString( preparation.getPrepType().getId());
+        values[4] = SqlUtils.sqlString( preparation.getTaxon().getId());
+        values[5] = SqlUtils.now();
+        values[6] = SqlUtils.one();
+        
+        return SqlUtils.getInsertSql("preparation", fieldNames, values);
     }
 }
