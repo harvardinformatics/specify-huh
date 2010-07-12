@@ -34,9 +34,10 @@
                         eop.NonSpecimenCount
 FROM exchangeout eo JOIN
      exchangeoutpreparation eop ON eo.ExchangeOutID=eop.ExchangeOutID JOIN
+     preparation pp ON eop.PreparationID=pp.PreparationID JOIN
      shipment on eo.ExchangeOutID=shipment.ExchangeOutID JOIN
      picklistitem colls ON (eo.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) LEFT JOIN
-     geography geo ON eop.GeographyID=geo.GeographyID JOIN
+     geography geo ON pp.GeographyID=geo.GeographyID JOIN
      agent shippedToAgent ON shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      agent organization ON shippedToAgent.ParentOrganizationID=organization.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN

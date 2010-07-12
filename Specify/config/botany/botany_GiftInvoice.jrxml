@@ -34,9 +34,10 @@
                  gp.NonSpecimenCount
 FROM gift g JOIN
      giftpreparation gp ON g.GiftID=gp.GiftID JOIN
-     shipment on g.GiftID=shipment.GiftID JOIN
+     preparation pp ON gp.PreparationID=pp.PreparationID JOIN
+     shipment ON g.GiftID=shipment.GiftID JOIN
      picklistitem colls ON (g.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) LEFT JOIN
-     geography geo ON gp.GeographyID=geo.GeographyID JOIN
+     geography geo ON pp.GeographyID=geo.GeographyID JOIN
      agent shippedToAgent ON shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      agent organization ON shippedToAgent.ParentOrganizationID=organization.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
