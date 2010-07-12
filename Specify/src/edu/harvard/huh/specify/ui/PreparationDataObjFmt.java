@@ -1,6 +1,5 @@
 package edu.harvard.huh.specify.ui;
 
-
 import static edu.ku.brc.helpers.XMLHelper.xmlAttr;
 
 import java.util.Properties;
@@ -21,12 +20,9 @@ import edu.ku.brc.af.ui.forms.formatters.DataObjDataFieldFormatIFace;
 import edu.ku.brc.af.ui.forms.formatters.DataObjSwitchFormatter;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.Accession;
-import edu.ku.brc.specify.datamodel.AccessionPreparation;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Geography;
-import edu.ku.brc.specify.datamodel.Loan;
-import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.ui.DocumentAdaptor;
@@ -73,36 +69,17 @@ public class PreparationDataObjFmt implements DataObjDataFieldFormatIFace, Clone
         {
             return restricted;
         }
-
-        restricted = FormHelper.checkForRestrictedValue(Loan.getClassTableId());
+        
+        restricted = FormHelper.checkForRestrictedValue(Fragment.getClassTableId());
         if (restricted != null)
         {
             return restricted;
         }
         
-        restricted = FormHelper.checkForRestrictedValue(LoanPreparation.getClassTableId());
-        if (restricted != null)
-        {
-            return restricted;
-        }
-        
-        restricted = FormHelper.checkForRestrictedValue(Accession.getClassTableId());
-        if (restricted != null)
-        {
-            return restricted;
-        }
-        
-        restricted = FormHelper.checkForRestrictedValue(AccessionPreparation.getClassTableId());
-        if (restricted != null)
-        {
-            return restricted;
-        }
-        
-        String loanNumber      = null;
-        String accessionNumber = null;
-        String taxonomy        = null;
-        String geography       = null;
-        String description     = null;
+        String barcode     = null;
+        String taxonomy    = null;
+        String geography   = null;
+        String description = null;
 
         String result = null;
         
@@ -116,48 +93,28 @@ public class PreparationDataObjFmt implements DataObjDataFieldFormatIFace, Clone
             session = DataProviderFactory.getInstance().createSession();
             p = session.merge(p);
 
-            if (p.getLoanPreparations() != null && p.getLoanPreparations().size() > 0)
+            barcode = p.getIdentifier();
+            if (barcode == null)
             {
-                for (LoanPreparation lpo : p.getLoanPreparations())
+                for (Fragment f : p.getFragments())
                 {
-                    Taxon tx = lpo.getTaxon();
-                    if (tx != null) taxonomy = tx.getFullName();
-
-                    description = lpo.getDescriptionOfMaterial();
-                    loanNumber = lpo.getLoan().getLoanNumber();
-
-                    result = loanNumber + " " +
-                             (taxonomy != null ? taxonomy + " " : (description != null ? description : ""));
-                    
-                    break;
-                }
-
-            }
-            else if (p.getAccessionPreparations() != null && p.getAccessionPreparations().size() > 0)
-            {
-                for (AccessionPreparation ap : p.getAccessionPreparations())
-                {
-                    Taxon tx = ap.getTaxon();
-                    if (tx != null) taxonomy = tx.getFullName();
-                    
-                    Geography geo = ap.getGeography();
-                    if (geo != null) geography = geo.getFullName();
-                    
-                    description = ap.getDescriptionOfMaterial();
-                    accessionNumber = ap.getAccession().getAccessionNumber();
-                    
-                    result = accessionNumber + " " +
-                             (taxonomy  != null ? taxonomy  + " " : "") + 
-                             (geography != null ? geography + " " : "") +
-                             (geography == null && taxonomy == null && description != null ? description : "");
-                    
-                    break;
+                    barcode = f.getIdentifier();
+                    if (barcode != null) break;
                 }
             }
-            else
-            {
-                result = p.getIdentifier();
-            }
+            
+            Taxon tx = p.getTaxon();
+            if (tx != null) taxonomy = tx.getFullName();
+                
+            Geography geo = p.getGeography();
+            if (geo != null) geography = geo.getFullName();
+                
+            result = (barcode     != null ? barcode     + " " : "") +
+                     (taxonomy    != null ? taxonomy    + " " : "") + 
+                     (geography   != null ? geography   + " " : "") +
+                     (description != null ? description + " " : "");
+            
+            if (result != null) result = result.trim();
 
         } catch (Exception ex)
         {
