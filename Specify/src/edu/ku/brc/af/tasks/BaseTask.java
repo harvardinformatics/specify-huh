@@ -1400,7 +1400,7 @@ public abstract class BaseTask implements Taskable, CommandListener, SubPaneMgrL
       */
      public RecordSetIFace askForCatNumbersRecordSet()
      {
-         AskForNumbersDlg dlg = new AskForNumbersDlg("BT_COLOBJ_TITLE", "BT_LABEL", CollectionObject.class, "catalogNumber");
+         AskForNumbersDlg dlg = new AskForNumbersDlg("BT_COLOBJ_TITLE", "BT_LABEL");
          dlg.setVisible(true);
          if (!dlg.isCancelled())
          {

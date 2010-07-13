@@ -93,7 +93,43 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="loan" table="loan" view="Loan" type="Interactions" action="OpenNewView" icon="Loan" isonleft="true" 
+  <entry name="loan" table="loan" view="Loan" type="Interactions" action="NEW_LOAN" icon="Loan" isonleft="true" 
+         issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.NEW_LN">
+    <draggableFlavors/>
+    <droppableFlavors>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
+        <tableIds>
+          <int>52</int>
+          <int>1</int>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.datamodel.InfoRequest" humanreadable="InfoRequest">
+        <tableIds>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+    </droppableFlavors>
+  </entry>
+  <entry name="loan" table="loan" view="Loan" type="Interactions" action="Edit" icon="Loan" isonleft="false" 
+         issrchsrv="true" order="0" enabled="true" visible="false" tooltip="InteractionsTask.EDT_LN">
+    <draggableFlavors/>
+    <droppableFlavors>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
+        <tableIds>
+          <int>52</int>
+          <int>1</int>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+    </droppableFlavors>
+  </entry>  
+  <entry name="loan" table="loan" view="Loan" label="LOAN_NO_PRP" type="Interactions" action="LN_NO_PRP" icon="Loan" isonleft="true" 
+         issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.LN_NO_PREP">
+    <draggableFlavors/>
+    <droppableFlavors/>
+  </entry>  
+  <!-- <entry name="loan" table="loan" view="Loan" type="Interactions" action="OpenNewView" icon="Loan" isonleft="true" 
          issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.NEW_LN">
     <draggableFlavors/>
     <droppableFlavors>
@@ -128,7 +164,7 @@
          issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.LN_NO_PREP">
     <draggableFlavors/>
     <droppableFlavors/>
-  </entry>
+  </entry> -->
     <entry name="permit" table="permit" view="Permit" type="Interactions" action="OpenNewView" icon="Permit" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="true" tooltip="">
     <draggableFlavors/>

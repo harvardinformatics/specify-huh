@@ -46,6 +46,7 @@ import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.InfoRequest;
 import edu.ku.brc.specify.datamodel.PreparationsProviderIFace;
 import edu.ku.brc.specify.ui.ColObjInfo;
@@ -87,15 +88,15 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
     
     
     /**
-     * Asks where the source of the Loan Preps should come from.
+     * Asks where the source of the Loan Preps should come from. (ResultSet, InfoRequest, or dialog for catalog numbers)
      * @return the source enum
      */
-    protected ASK_TYPE askSourceOfPreps(final boolean hasInfoReqs, final boolean hasColObjRS)
+    protected ASK_TYPE askSourceOfPreps(final boolean hasInfoReqs, final boolean hasFragmentRS)
     {
         String label;
-        if (hasInfoReqs && hasColObjRS)
+        if (hasInfoReqs && hasFragmentRS)
         {
-            label = getResourceString("NEW_INTER_USE_RS_IR");
+            label = getResourceString("NEW_INTER_USE_RS_IR");  // RecordSet
             
         } else if (hasInfoReqs)
         {
@@ -177,25 +178,25 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         if (infoRequest == null && recordSet == null)
         {
             // Get a List of InfoRequest RecordSets
-            Vector<RecordSetIFace> rsList       = task.getInfoReqRecordSetsFromSideBar();
-            RecordSetTask          rsTask       = (RecordSetTask)TaskMgr.getTask(RecordSetTask.RECORD_SET);
-            List<RecordSetIFace>   colObjRSList = rsTask.getRecordSets(CollectionObject.getClassTableId());
+            Vector<RecordSetIFace> rsList         = task.getInfoReqRecordSetsFromSideBar();
+            RecordSetTask          rsTask         = (RecordSetTask)TaskMgr.getTask(RecordSetTask.RECORD_SET);
+            List<RecordSetIFace>   fragmentRSList = rsTask.getRecordSets(Fragment.getClassTableId());
             
             // If the List is empty then
-            if (rsList.size() == 0 && colObjRSList.size() == 0)
+            if (rsList.size() == 0 && fragmentRSList.size() == 0)
             {
-                recordSet = task.askForCatNumbersRecordSet();
+                recordSet = task.askForCatNumbersRecordSet(); // Fragments
                 
             } else 
             {
-                ASK_TYPE rv = askSourceOfPreps(rsList.size() > 0, colObjRSList.size() > 0);
+                ASK_TYPE rv = askSourceOfPreps(rsList.size() > 0, fragmentRSList.size() > 0);
                 if (rv == ASK_TYPE.ChooseRS)
                 {
-                    recordSet = RecordSetTask.askForRecordSet(CollectionObject.getClassTableId(), rsList);
+                    recordSet = RecordSetTask.askForRecordSet(Fragment.getClassTableId(), rsList);
                     
                 } else if (rv == ASK_TYPE.EnterCats)
                 {
-                    recordSet = task.askForCatNumbersRecordSet();
+                    recordSet = task.askForCatNumbersRecordSet(); // Fragments
                     
                 } else if (rv == ASK_TYPE.Cancel)
                 {
@@ -253,8 +254,8 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 return;
             }
             
-            // OK, here we have a recordset of CollectionObjects
-            // First we process all the CollectionObjects in the RecordSet
+            // OK, here we have a recordset of Fragments
+            // First we process all the Fragments in the RecordSet
             // and create a list of Preparations that can be loaned
             String sqlStr = DBTableIdMgr.getInstance().getQueryForTable(recordSet);
             if (StringUtils.isNotBlank(sqlStr))
@@ -294,26 +295,26 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
     }
 
     /**
-     * @param coToPrepHash
+     * @param frToPrepHash
      * @param prepTypeHash
      * @param prepProvider
      * @param infoRequest
      * @param session
      */
-    protected void prepsLoaded(final Hashtable<Integer, ColObjInfo> coToPrepHash,
+    protected void prepsLoaded(final Hashtable<Integer, ColObjInfo> frToPrepHash,
                                final Hashtable<Integer, String>     prepTypeHash,
                                final T                              prepProvider,
                                final InfoRequest                    infoRequest)
     {
-        if (coToPrepHash.size() == 0 || prepTypeHash.size() == 0)
+        if (frToPrepHash.size() == 0 || prepTypeHash.size() == 0)
         {
             UIRegistry.showLocalizedMsg("NEW_INTER_NO_PREPS_TITLE", "NEW_INTER_NO_PREPS");
             return;
         }
         
-        final DBTableInfo ti = DBTableIdMgr.getInstance().getInfoById(tableId);
+        final DBTableInfo ti = DBTableIdMgr.getInstance().getInfoById(tableId);  // gift or loan table id
 
-        final SelectPrepsDlg loanSelectPrepsDlg = new SelectPrepsDlg(coToPrepHash, prepTypeHash, ti.getTitle());
+        /*final SelectPrepsDlg loanSelectPrepsDlg = new SelectPrepsDlg(frToPrepHash, prepTypeHash, ti.getTitle());
         loanSelectPrepsDlg.createUI();
         loanSelectPrepsDlg.setModal(true);
         
@@ -326,9 +327,9 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 viewable.setNewObject(null);
             }
             return;
-        }
+        }*/
 
-        final Hashtable<Integer, Integer> prepsHash = loanSelectPrepsDlg.getPreparationCounts();
+        final Hashtable<Integer, Integer> prepsHash = getPreparationCounts(frToPrepHash); //loanSelectPrepsDlg.getPreparationCounts();
         if (prepsHash.size() > 0)
         {
             final SwingWorker worker = new SwingWorker()
@@ -362,6 +363,23 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             };
             worker.start();
         }
+    }
+    
+    private Hashtable<Integer, Integer> getPreparationCounts(Hashtable<Integer, ColObjInfo> frToPrepHash)
+    {
+        Hashtable<Integer, Integer> result = new Hashtable<Integer, Integer>();
+        
+        for (ColObjInfo fragmentInfo : frToPrepHash.values())
+        {
+            for (PrepInfo prepInfo : fragmentInfo.getPreps().values())
+            {
+                Integer prepId = prepInfo.getPrepId();
+                int countAmt = prepInfo.getQtyPrep();
+
+                result.put(prepId, countAmt);
+            }
+        }
+        return result;
     }
     
     /**
@@ -411,7 +429,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         private boolean        isForLoan;
 
         private Hashtable<Integer, String>     prepTypeHash = new Hashtable<Integer, String>();
-        private Hashtable<Integer, ColObjInfo> coToPrepHash = new Hashtable<Integer, ColObjInfo>();
+        private Hashtable<Integer, ColObjInfo> frToPrepHash = new Hashtable<Integer, ColObjInfo>();
         
         /**
          * @param prepsProvider
@@ -439,21 +457,24 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         }
         
         /**
-         * @return a List of rows that have the CollectionObject info from the rcordset
+         * @return a List of rows that have the Fragment info from the recordset
          */
-        protected Vector<Object[]> getColObjsFromRecordSet()
+        protected Vector<Object[]> getFragmentsFromRecordSet()
         {
-            String sql = "SELECT co.CollectionObjectID, co.CatalogNumber, tx.FullName FROM determination as dt INNER JOIN collectionobject as co ON dt.CollectionObjectID = co.CollectionObjectID " +
-                         "INNER JOIN taxon as tx ON dt.TaxonID = tx.TaxonID WHERE isCurrent <> 0 AND dt.CollectionMemberID = COLMEMID " + 
-                         "AND co.CollectionObjectID " + DBTableIdMgr.getInstance().getInClause(recordSet);
+            String sql = "SELECT f.FragmentID, ifnull(f.Identifier, p.Identifier), tx.FullName " +
+            		     "FROM fragment f INNER JOIN " +
+            		     "preparation p ON f.PreparationID=p.PreparationID LEFT JOIN " +
+            		     "determination dt ON f.FragmentID=dt.FragmentID LEFT JOIN " +
+                         "taxon tx ON (dt.TaxonID=tx.TaxonID AND dt.isCurrent <> 0) " + 
+                         "WHERE f.CollectionMemberID = COLMEMID AND f.FragmentID " + DBTableIdMgr.getInstance().getInClause(recordSet);
             sql = QueryAdjusterForDomain.getInstance().adjustSQL(sql);
             log.debug(sql);
             
             Vector<Object[]> fullItems = BasicSQLUtils.query(sql);
             if (fullItems.size() != recordSet.getNumItems())
             {
-                sql = "SELECT CollectionObjectID, CatalogNumber FROM collectionobject WHERE CollectionMemberID = COLMEMID " + 
-                      "AND CollectionObjectID " + DBTableIdMgr.getInstance().getInClause(recordSet);
+                sql = "SELECT FragmentID, Identifier FROM fragment WHERE CollectionMemberID = COLMEMID " + 
+                      "AND FragmentID " + DBTableIdMgr.getInstance().getInClause(recordSet);
                 Vector<Object[]> partialItems = BasicSQLUtils.query(QueryAdjusterForDomain.getInstance().adjustSQL(sql));
                 partialItems.addAll(fullItems);
                 return partialItems;
@@ -470,37 +491,39 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             int count = 0;
             try
             {
-                Vector<Object[]> coIdRows = getColObjsFromRecordSet();
-                total = coIdRows.size() * 2;
-                if (coIdRows.size() != 0)
+                Vector<Object[]> frIdRows = getFragmentsFromRecordSet();
+                total = frIdRows.size() * 2;
+                if (frIdRows.size() != 0)
                 {
                     UIRegistry.getStatusBar().setProgressRange(LOAN_LOADR, 0, Math.min(count, total));
     
-                    // Get Preps with Gifts
+                    // Get Preps with Loans
                     StringBuilder sb = new StringBuilder();
-                    sb.append("SELECT co.CollectionObjectID, p.PreparationID, gp.Quantity " +
-                             "FROM preparation AS p INNER JOIN collectionobject AS co ON p.CollectionObjectID = co.CollectionObjectID " +
-                             "INNER JOIN giftpreparation AS gp ON p.PreparationID = gp.PreparationID " +
-                             "WHERE co.CollectionMemberID = COLMEMID AND co.CollectionObjectID in (");
-                   for (Object[] row : coIdRows)
+                    sb.append("SELECT f.FragmentID, p.PreparationID, (ifnull(lp.ItemCount, 0) + ifnull(lp.TypeCount, 0) + ifnull(lp.NonSpecimenCount, 0)) " +
+                             "FROM preparation p INNER JOIN fragment f ON p.PreparationID = f.PreparationID " +
+                             "INNER JOIN loanpreparation lp ON p.PreparationID = lp.PreparationID " +
+                             "WHERE f.CollectionMemberID = COLMEMID AND f.FragmentID in (");
+                   for (Object[] row : frIdRows)
                    {
                        count++;
                        if ((count % 10) == 0) firePropertyChange(PROGRESS, 0, count);
                        
-                       Integer coId = (Integer)row[0];
-                       sb.append(coId);
+                       Integer frId = (Integer)row[0];
+                       sb.append(frId);
                        sb.append(',');
                        
-                       if (row[1] != null)
+                       if (row.length > 1 && row[1] != null)
                        {
-                           coToPrepHash.put(coId, new ColObjInfo(coId, row[1].toString(), row.length == 3 ? row[2].toString() : null));
+                           String identifier = row.length > 1  && row[1] != null ? row[1].toString() : null;
+                           String taxonName  = row.length > 2  && row[2] != null ? row[2].toString() : null;
+                           frToPrepHash.put(frId, new ColObjInfo(frId, identifier, taxonName));
                        }
                    }
                    sb.setLength(sb.length()-1); // chomp last comma
                    sb.append(')');
                    
-                   // Get a hash contain a mapping from PrepId to Gift Quantity
-                   Hashtable<Integer, Integer> prepIdToGiftQnt = new Hashtable<Integer, Integer>();
+                   // Get a hash contain a mapping from PrepId to Loan Quantity
+                   Hashtable<Integer, Integer> prepIdToLoanQnt = new Hashtable<Integer, Integer>();
                    
                    String sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
                    log.debug(sql);
@@ -510,25 +533,25 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                    {
                        for (Object[] row : rows)
                        {
-                           prepIdToGiftQnt.put((Integer)row[1], (Integer)row[2]);
+                           prepIdToLoanQnt.put((Integer)row[1], ((Long)row[2]).intValue());
                        }
                    }
                    
                    // Now get the Preps With Loans
                    sb = new StringBuilder();
                    sb.append("SELECT p.PreparationID, p.CountAmt, lp.ItemCount, lp.QuantityResolved, " +
-                             "co.CollectionObjectID, pt.PrepTypeID, pt.Name " +
-                             "FROM preparation AS p INNER JOIN collectionobject AS co ON p.CollectionObjectID = co.CollectionObjectID " +
+                             "f.FragmentID, pt.PrepTypeID, pt.Name " +
+                             "FROM preparation AS p INNER JOIN fragment AS f ON p.PreparationID = f.PreparationID " +
                              "INNER JOIN preptype AS pt ON p.PrepTypeID = pt.PrepTypeID " +
                              "LEFT OUTER JOIN loanpreparation AS lp ON p.PreparationID = lp.PreparationID " +
-                             "WHERE pt.IsLoanable <> 0 AND co.CollectionObjectID in (");
-                   for (Object[] row : coIdRows)
+                             "WHERE pt.IsLoanable <> 0 AND f.FragmentID in (");
+                   for (Object[] row : frIdRows)
                    {
                        sb.append(row[0]);
                        sb.append(',');
                    }
                    sb.setLength(sb.length()-1); // chomp last comma
-                   sb.append(") ORDER BY co.CatalogNumber ASC");
+                   sb.append(") ORDER BY f.Identifier ASC");
                    
                    // Get the Preps and Qty
                    sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
@@ -546,25 +569,25 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                            int pQty   = getInt(row[1]);
                            int qty    = getInt(row[2]);
                            int qtyRes = getInt(row[3]);
-                           int coId   = getInt(row[4]);
+                           int frId   = getInt(row[4]);
                            
                            prepTypeHash.put((Integer)row[5], row[6].toString());
                            
-                           pQty -= getInt(prepIdToGiftQnt.get(prepId));
+                           pQty -= getInt(prepIdToLoanQnt.get(prepId));
                            
-                           ColObjInfo colObjInfo = coToPrepHash.get(coId);
-                           if (colObjInfo == null)
+                           ColObjInfo frObjInfo = frToPrepHash.get(frId);
+                           if (frObjInfo == null)
                            {
                                // error
                            }
                            
-                           PrepInfo prepInfo = colObjInfo.get(prepId);
+                           PrepInfo prepInfo = frObjInfo.get(prepId);
                            if (prepInfo != null)
                            {
                                prepInfo.add(qty, qtyRes);
                            } else
                            {
-                               colObjInfo.add(new PrepInfo(prepId, (Integer)row[5], pQty, qty, qtyRes));    
+                               frObjInfo.add(new PrepInfo(prepId, (Integer)row[5], pQty, qty, qtyRes));    
                            }
                        }
                    }                   
@@ -590,29 +613,29 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             int count = 0;
             try
             {
-                Vector<Object[]> coIdRows = getColObjsFromRecordSet();
-                if (coIdRows.size() != 0)
+                Vector<Object[]> frIdRows = getFragmentsFromRecordSet();
+                if (frIdRows.size() != 0)
                 {
                     UIRegistry.getStatusBar().setProgressRange(LOAN_LOADR, 0, total);
                     
                     // Get Preps with Loans
                     StringBuilder sb = new StringBuilder();
                     sb.append("SELECT p.PreparationID, lp.ItemCount, lp.QuantityResolved " +
-                             "FROM preparation AS p INNER JOIN collectionobject AS co ON p.CollectionObjectID = co.CollectionObjectID " +
+                             "FROM preparation AS p INNER JOIN fragment AS f ON p.PreparationID = f.PreparationID " +
                              "INNER JOIN loanpreparation AS lp ON p.PreparationID = lp.PreparationID " +
-                             "WHERE co.CollectionMemberID = COLMEMID AND co.CollectionObjectID in (");
-                   for (Object[] row : coIdRows)
+                             "WHERE f.CollectionMemberID = COLMEMID AND f.FragmentID in (");
+                   for (Object[] row : frIdRows)
                    {
                        count++;
                        if ((count % 10) == 0) firePropertyChange(PROGRESS, 0, Math.min(count, total));
                        
-                       Integer coId = (Integer)row[0];
-                       sb.append(coId);
+                       Integer frId = (Integer)row[0];
+                       sb.append(frId);
                        sb.append(',');
                        
                        if (row[1] != null)
                        {
-                           coToPrepHash.put(coId, new ColObjInfo(coId, row[1].toString(), row.length == 3 ? row[2].toString() : null));
+                           frToPrepHash.put(frId, new ColObjInfo(frId, row[1].toString(), row.length == 3 ? row[2].toString() : null));
                        }
                    }
                    sb.setLength(sb.length()-1); // chomp last comma
@@ -638,18 +661,18 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                    // Now get the Preps With Gift
                    sb = new StringBuilder();
                    sb.append("SELECT p.PreparationID, p.CountAmt, gp.Quantity, " +
-                             "co.CollectionObjectID, pt.PrepTypeID, pt.Name " +
-                             "FROM preparation AS p INNER JOIN collectionobject AS co ON p.CollectionObjectID = co.CollectionObjectID " +
+                             "f.FragmentID, pt.PrepTypeID, pt.Name " +
+                             "FROM preparation AS p INNER JOIN fragment AS f ON p.PreparationID = f.PreparationID " +
                              "INNER JOIN preptype AS pt ON p.PrepTypeID = pt.PrepTypeID " +
                              "LEFT OUTER JOIN giftpreparation AS gp ON p.PreparationID = gp.PreparationID " +
-                             "WHERE pt.IsLoanable <> 0 AND co.CollectionObjectID in (");
-                   for (Object[] row : coIdRows)
+                             "WHERE pt.IsLoanable <> 0 AND f.FragmentID in (");
+                   for (Object[] row : frIdRows)
                    {
                        sb.append(row[0]);
                        sb.append(',');
                    }
                    sb.setLength(sb.length()-1); // chomp last comma
-                   sb.append(") ORDER BY co.CatalogNumber ASC");
+                   sb.append(") ORDER BY f.Identifier ASC");
                    
                    // Get the Preps and Qty
                    sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
@@ -673,19 +696,19 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                            
                            pQty -= getInt(prepIdToLoanQnt.get(prepId));
                            
-                           ColObjInfo colObjInfo = coToPrepHash.get(coId);
-                           if (colObjInfo == null)
+                           ColObjInfo frObjInfo = frToPrepHash.get(coId);
+                           if (frObjInfo == null)
                            {
                                // error
                            }
                            
-                           PrepInfo prepInfo = colObjInfo.get(prepId);
+                           PrepInfo prepInfo = frObjInfo.get(prepId);
                            if (prepInfo != null)
                            {
                                prepInfo.add(qty, qty);
                            } else
                            {
-                               colObjInfo.add(new PrepInfo(prepId, (Integer)row[4], pQty, qty, 0));    
+                               frObjInfo.add(new PrepInfo(prepId, (Integer)row[4], pQty, qty, 0));    
                            }
                        }
                    }                   
@@ -709,7 +732,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         @Override
         protected Integer doInBackground() throws Exception
         {
-            coToPrepHash = new Hashtable<Integer, ColObjInfo>();
+            frToPrepHash = new Hashtable<Integer, ColObjInfo>();
             
             return isForLoan ? collectForLoan() : collectForGift();
         }
@@ -729,7 +752,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 UIRegistry.clearSimpleGlassPaneMsg();
             }
             
-            prepsLoaded(coToPrepHash, prepTypeHash, prepsProvider, infoRequest);
+            prepsLoaded(frToPrepHash, prepTypeHash, prepsProvider, infoRequest);
         }
         
     }

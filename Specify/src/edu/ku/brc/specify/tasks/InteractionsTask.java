@@ -1889,6 +1889,20 @@ public class InteractionsTask extends BaseTask
         dueDate.add(Calendar.MONTH, 6);                 // XXX PREF Due Date
         loan.setCurrentDueDate(dueDate);
         
+        // add a new shipment.  unfortunately this doesn't tell the shipments
+        // subview that a new record has been added, so it doesn't know to tell
+        // its parent the loan view that it has new data, so if we try to save
+        // this record without the user editing anything else in the shipments
+        // form, we never get data from the form to the new shipment object.
+        // the result may be a shipment object without a value for the required
+        // field shipmentNumber, if it so happens that the user has set that
+        // field to an autoincrementer, for example.  This problem may well
+        // occur anywhere that objects are added this way.
+        
+        // TODO: ensure new data added via object rather than ui interaction on
+        // form causes new object's form's validator to set itself as having
+        // been changed.  See HUHLoanBusRules for the workaround.
+        
         Shipment shipment = new Shipment();
         shipment.initialize();
         

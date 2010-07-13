@@ -28,7 +28,6 @@ import java.util.Calendar;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JTextField;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -38,7 +37,6 @@ import edu.ku.brc.af.ui.forms.DraggableRecordIdentifier;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.validation.UIValidatable;
 import edu.ku.brc.af.ui.forms.validation.ValFormattedTextFieldSingle;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
@@ -47,12 +45,8 @@ import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.RecordSet;
-import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules;
-import edu.ku.brc.ui.CommandAction;
-import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.DateWrapper;
-import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -210,28 +204,13 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                 }
             }
             
-            if (isNewObj)
+            // TODO see problem in InteractionsTask.createLoanNoPreps that
+            // this is the workaround for.  This is not the preferred fix.
+            for (MultiView mv : formViewObj.getKids())
             {
-                Component shipComp = formViewObj.getControlByName("shipmentNumber");
-                comp = formViewObj.getControlByName("loanNumber");
-                if (comp instanceof JTextField && shipComp instanceof JTextField)
+                if (mv.getViewName().equals("Shipment"))
                 {
-                    JTextField loanTxt = (JTextField) comp;
-                    if (shipComp instanceof GetSetValueIFace)
-                    {
-                        GetSetValueIFace gsv = (GetSetValueIFace) shipComp;
-                        gsv.setValue(loanTxt.getText(), loanTxt.getText());
-                        
-                    } else if (shipComp instanceof JTextField)
-                    {
-                        ((JTextField)shipComp).setText(loanTxt.getText());
-                    }
-                    
-                    if (shipComp instanceof UIValidatable)
-                    {
-                        UIValidatable uiv = (UIValidatable) shipComp;
-                        uiv.setChanged(true);
-                    }
+                    for (Viewable v : mv.getViewables()) v.getValidator().setHasChanged(true);
                 }
             }
         }

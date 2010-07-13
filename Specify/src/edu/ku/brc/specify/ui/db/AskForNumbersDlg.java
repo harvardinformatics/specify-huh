@@ -25,6 +25,8 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.HeadlessException;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -32,6 +34,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.DocumentFilter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -50,6 +57,8 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
+import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.ui.CustomDialog;
@@ -58,26 +67,28 @@ import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
- *
+ * @author maureen
+ * 
  * @code_status Alpha
  *
  * Apr 10, 2008
+ * Jul 13, 2010
  *
  */
 public class AskForNumbersDlg extends CustomDialog
 {
     private static final Logger log = Logger.getLogger(AskForNumbersDlg.class);
     
-    protected Vector<Integer> numbersList = new Vector<Integer>();
-    protected Class<? extends FormDataObjIFace> dataClass;
+    protected Vector<Integer> numbersList = new Vector<Integer>(); // FragmentIDs
     protected String          labelKey;
-    protected String          fieldName;
     protected JTextArea       textArea;
     protected JTextArea       status;
     protected JScrollPane     statusSP;
     protected StringBuilder   errorList = new StringBuilder();
     
-    
+    private char listSep  = ',';           // dialog for catalog numbers uses this char to separate entries
+    private int  entryLen = 9;             // catalog numbers have this length
+    private String entryRegex = "^\\d+$";  // catalog numbers are numeric
     /**
      * @param dialog
      * @param title
@@ -87,14 +98,11 @@ public class AskForNumbersDlg extends CustomDialog
      * @throws HeadlessException
      */
     public AskForNumbersDlg(final String  titleKey,
-                            final String  labelKey,
-                            Class<? extends FormDataObjIFace> dataClass,
-                            final String  fieldName) throws HeadlessException
+                            final String  labelKey
+    ) throws HeadlessException
     {
         super((Frame)UIRegistry.getTopWindow(), getResourceString(titleKey), true, OKCANCELHELP, null);
         this.labelKey  = labelKey;
-        this.dataClass = dataClass;
-        this.fieldName = fieldName;
         
         this.helpContext = "AskForCatNumbers";
     }
@@ -113,6 +121,49 @@ public class AskForNumbersDlg extends CustomDialog
         textArea = UIHelper.createTextArea(5, 30);
         status   = UIHelper.createTextArea(3, 30);
         status.setEditable(false);
+        
+        // add a listener that appends "," to the text area whenever 9 digits have been entered
+        // 
+        textArea.getDocument().addDocumentListener(new DocumentListener()
+        {
+            @Override
+            public void changedUpdate(DocumentEvent e)
+            {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e)
+            {
+                final int length = textArea.getText().length();
+                if (length >= entryLen)
+                {
+                    Runnable r = new Runnable()
+                    {
+                        public void run()
+                        {
+                            String text = textArea.getText();
+                            if (text.substring(length - entryLen).matches(entryRegex))
+                            {
+                                textArea.append(String.valueOf(listSep));
+                                textArea.setCaretPosition(length+1);
+                            }
+                        }
+                    };
+                    new Thread(r).start();
+                }
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e)
+            {
+                // TODO Auto-generated method stub
+                
+            }
+            
+        });
+        
+        
         
         pb.add(UIHelper.createI18NLabel(labelKey, SwingConstants.RIGHT), cc.xy(1,1));
         pb.add(UIHelper.createScrollPane(textArea), cc.xy(3,1));
@@ -136,8 +187,8 @@ public class AskForNumbersDlg extends CustomDialog
         numbersList.clear();
         errorList.setLength(0);
         
-        DBTableInfo           ti        = DBTableIdMgr.getInstance().getByClassName(dataClass.getName());
-        DBFieldInfo           fi        = ti.getFieldByName(fieldName);
+        DBTableInfo           ti        = DBTableIdMgr.getInstance().getByClassName(Fragment.class.getName());
+        DBFieldInfo           fi        = ti.getFieldByName("identifier");
         UIFieldFormatterIFace formatter = fi.getFormatter();
         
         boolean isOK = true;
@@ -150,7 +201,7 @@ public class AskForNumbersDlg extends CustomDialog
             {
                 session = DataProviderFactory.getInstance().createSession();
                 
-                for (String catNumStr : StringUtils.split(catNumbersStr, ','))
+                for (String catNumStr : StringUtils.split(catNumbersStr, listSep))
                 {
                     String catNum      = catNumStr.trim();
                     String catNumForDB = catNum;
@@ -172,20 +223,47 @@ public class AskForNumbersDlg extends CustomDialog
                     
                     if (StringUtils.isNotEmpty(catNumForDB))
                     {
-                        String sql = QueryAdjusterForDomain.getInstance().adjustSQL("SELECT id FROM "+ti.getClassName()+" WHERE "+fieldName+" = '"+catNumForDB+"' AND CollectionMemberID = COLLID");
+
+                        String hql = QueryAdjusterForDomain.getInstance().adjustSQL( // TODO unhardcode
+                                "SELECT f.id FROM Preparation pp join pp.fragments f WHERE (pp.identifier = '"+catNumForDB+"' or f.identifier='"+catNumForDB+"') AND f.collectionMemberId = COLLID");
                         //log.debug(sql);
-                        Integer colObjId = (Integer)session.getData(sql);
+                        Integer fragmentId = (Integer)session.getData(hql);
                         
-                        if (colObjId != null)
+                        if (fragmentId != null)
                         {
-                            numbersList.add(colObjId);
-                        } else
+
+                            // check that this item is not already out on loan
+                            hql = QueryAdjusterForDomain.getInstance().adjustSQL(
+                                    "SELECT f.id FROM Fragment f JOIN f.preparation.loanPreparations lp " +
+                                    "WHERE lp.isResolved = false and " +
+                                    "(f.identifier = '"+catNumForDB+"' OR f.preparation.identifier='"+catNumForDB+"') AND " +
+                                    "f.collectionMemberId = COLMEMID"
+                                    );
+                            
+                            Integer onLoanId = (Integer)session.getData(hql);
+                            
+                            if (onLoanId == null)
+                            {
+                                numbersList.add(fragmentId);
+                            }
+                            else
+                            {
+                                errorList.append(getLocalizedMessage("AFN_ONLOAN_ERROR", catNum));
+                                errorList.append("\n");
+                                isOK = false;
+                            }
+                        }
+                        else
                         {
-                            statusSP.setVisible(true);
-                            pack();
                             errorList.append(getLocalizedMessage("AFN_NOTFND_ERROR", fi.getTitle(), catNum));
                             errorList.append("\n");
                             isOK = false;
+                        }
+                        
+                        if (!isOK)
+                        {
+                            statusSP.setVisible(true);
+                            pack();
                         }
                     }
                 }
@@ -241,7 +319,7 @@ public class AskForNumbersDlg extends CustomDialog
             RecordSet rs = new RecordSet();
             rs.initialize();
             rs.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
-            rs.setDbTableId(DBTableIdMgr.getInstance().getByClassName(dataClass.getName()).getTableId());
+            rs.setDbTableId(DBTableIdMgr.getInstance().getByClassName(Fragment.class.getName()).getTableId());  // TODO unhardcode
             for (Integer id : numbersList)
             {
                 rs.addItem(id);
