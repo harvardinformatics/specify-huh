@@ -27524,7 +27524,7 @@ Specify provides an extensive array of utilities for curatorial management of sp
           </str>
         </descs>
       </item>
-      <item name="shipmentNumber" type="java.lang.String" format="HUHBorrowMaterialNumber" isUIFormatter="true">
+      <item name="shipmentNumber" type="java.lang.String" format="HUHShippingNumber" isUIFormatter="true">
         <version>0</version>
         <names>
           <str language="en" country="" variant="">
