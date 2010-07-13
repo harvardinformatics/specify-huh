@@ -250,7 +250,7 @@ public class SelectPrepsDlg extends CustomDialog
     }
     
     /**
-     * Sets all the spinners to there max values.
+     * Sets all the spinners to their max values.
      */
     protected void selectAllItems()
     {
