@@ -41,7 +41,7 @@ FROM loan JOIN
      preparation p ON lp.PreparationID=p.PreparationID JOIN
      shipment on loan.LoanID=shipment.LoanID JOIN
      picklistitem colls ON (loan.Text2=colls.Value AND colls.PickListID=(SELECT PickListID FROM picklist WHERE Name='HUH Collection Code')) LEFT JOIN
-     taxon tx ON lp.TaxonID=tx.TaxonID JOIN
+     taxon tx ON p.TaxonID=tx.TaxonID JOIN
      agent shippedToAgent ON shipment.ShippedToID=shippedToAgent.AgentID LEFT JOIN
      agent organization ON shippedToAgent.ParentOrganizationID=organization.AgentID LEFT JOIN
      picklistitem titles ON (shippedToAgent.Title=titles.Value AND titles.PickListID=(SELECT PickListID FROM picklist WHERE Name='AgentTitles')) LEFT JOIN
