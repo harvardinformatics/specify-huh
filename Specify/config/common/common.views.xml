@@ -3354,7 +3354,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="localUnit"/>
-                	<cell type="field" id="localUnit" name="text2" uitype="combobox" picklist="HUH Collection Code" colspan="3"/>
+                	<cell type="field" id="localUnit" name="text2" uitype="combobox" picklist="HUH Collection Code" isrequired="true" colspan="3"/>
                 	<cell type="label" label=" "/>
                 	<cell type="field" id="isTheirs" uitype="checkbox" name="yesNo2"/>
                 	<cell type="label" labelfor="21"/>
@@ -3495,7 +3495,7 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" colspan="5"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" formatname="BatchPrepDetail" colspan="5"/>
 					<cell type="label" label=" "/>
 					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
 					<!-- <cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/> -->	
@@ -4284,7 +4284,7 @@
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="shipmentDate" uitype="formattedtext" uifieldformatter="Date" colspan="7"/>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="shippedTo" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=TransactionAgent;searchdlg=AgentSearch"/>
+                    <cell type="field" id="8" name="shippedTo" uitype="querycbx" initialize="name=TransactionAgent;title=Agent;displaydlg=TransactionAgent;searchdlg=AgentSearch"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
