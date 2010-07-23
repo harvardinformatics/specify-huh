@@ -895,7 +895,7 @@
             
             <columnDef>         80px, 2px, 300px,   5px, 100px, 2px, 200px, 0px, p:g</columnDef>
             <columnDef os="lnx">80px, 2px, 360px,   5px, 100px, 2px, 200px, 0px, p:g</columnDef>
-            <columnDef os="mac">70px, 2px, 180px,   5px,  70px, 2px, 180px, 0px, p:g</columnDef>
+            <columnDef os="mac">70px, 2px, 380px,   5px,  70px, 2px, 200px, 0px, p:g</columnDef>
             <columnDef os="exp">   p, 2px, 300px, 5px:g,     p, 2px, 200px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
