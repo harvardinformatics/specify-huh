@@ -391,7 +391,8 @@
         <view name="ExchangeIn"
             objtitle="Incoming Exchange"
             class="edu.ku.brc.specify.datamodel.ExchangeIn"
-            resourcelabels="false">
+            resourcelabels="false"
+            isinternal="true">
             <desc><![CDATA[Exchange In display form]]></desc>
             <altviews>
                 <altview name="ExchangeIn View" viewdef="ExchangeIn" mode="view" default="true"/>
