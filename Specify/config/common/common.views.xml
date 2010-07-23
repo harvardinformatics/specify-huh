@@ -1560,7 +1560,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[CollectingTrip Form - unknown use in database]]></desc>
             
-            <columnDef>p,2px,210px,2px,max(110px;p),2px,210px,2px,p,2px,p,p:g</columnDef>
+            <columnDef>p,2px,230px,2px,max(110px;p),2px,230px,2px,p,2px,p,p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row> 
