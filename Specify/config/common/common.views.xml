@@ -2673,7 +2673,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Gift viewing form.]]></desc>
             
-            <columnDef>         105px, 2px, max(p;130px),   5px,   60px, 2px, 100px, 5px,    90px, 2px, 136px,  5px, 142px, 0px, 15px, p:g</columnDef>
+            <columnDef>         105px, 2px, max(p;130px),   5px,   60px, 2px, 100px, 5px,    90px, 2px, 136px,  5px, 160px, 0px, 15px, p:g</columnDef>
             <columnDef os="lnx">130px, 2px, max(p;100px),   5px,   85px, 2px, 110px, 5px,   120px, 2px, 163px, 15px, 160px, 0px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, max(p;130px),   5px,   86px, 2px, 115px, 5px,   120px, 2px, 165px, 10px, 200px, 0px, 15px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,            p, 5px:g,      p, 2px, 120px, 5px:g,     p, 2px, 161px,  5px,     p, 0px, 15px, p:g</columnDef>
