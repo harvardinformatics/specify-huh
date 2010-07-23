@@ -934,10 +934,10 @@
             <desc><![CDATA[Preparation form.]]></desc>
             <enableRules/>
 
-            <columnDef>         100px, 2px,        130px,   5px, 75px, 2px, 130px,   5px, 100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="lnx">115px, 2px,        145px,   5px, 75px, 2px, 130px,  25px, 100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="mac">130px, 2px,        190px,   5px, 75px, 2px, 165px,   5px, 100px, 2px, 174px,  p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,    p, 2px,     p, 5px:g,     p, 2px, 151px,  p:g</columnDef>
+            <columnDef>         100px, 2px,        130px,   5px, 75px, 2px, 130px,   5px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px,        145px,   5px, 75px, 2px, 130px,  25px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        190px,   5px, 75px, 2px, 165px,   5px, 100px, 2px, 174px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,    p, 2px,     p, 5px:g,     p, 2px, 151px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -953,18 +953,18 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="10"/>
+                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="8"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="description"/>
-                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="10"/>
+                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
                 <row>
-                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="12"/>
+                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="11"/>
                 </row>
             </rows>
         </viewdef>

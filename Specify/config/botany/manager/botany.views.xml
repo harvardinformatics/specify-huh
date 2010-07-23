@@ -1136,18 +1136,18 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="storageLocation"/>
-                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="10"/>
+                	<cell type="field" id="storageLocation" name="storageLocation" uitype="text" colspan="8"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="description"/>
-                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="10"/>
+                	<cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="remarks"/>
-                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="10"/>
+                	<cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="8"/>
                 </row>
                 <row>
-                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="12"/>
+                	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="11"/>
                 </row>
             </rows>
         </viewdef>
