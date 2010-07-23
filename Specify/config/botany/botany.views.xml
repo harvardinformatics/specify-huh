@@ -812,7 +812,7 @@
               <columnDef>          90px, 2px,        200px, 5px, 105px, 2px, 200px, p:g</columnDef>
               <columnDef os="lnx"> 90px, 2px,        200px, 5px, 105px, 2px, 200px, p:g</columnDef>
               <columnDef os="mac">130px, 2px,        250px, 5px, 105px, 2px, 250px, p:g</columnDef>
-              <columnDef os="exp"> 90px, 2px, min(p;200px), 5px, 105px, 2px, 200px, px:g</columnDef>
+              <columnDef os="exp"> 90px, 2px, min(p;200px), 5px, 105px, 2px, 200px, p:g</columnDef>
               <rowDef auto="true" cell="p" sep="2px"/>
 		  
                 <rows>
@@ -854,7 +854,7 @@
               
               <columnDef>         100px, 2px,        180px, 5px, 105px, 2px, 180px, p:g</columnDef>
               <columnDef os="lnx"> 90px, 2px,        180px, 5px, 105px, 2px, 180px, p:g</columnDef>
-              <columnDef os="mac">130px, 2px,        650px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="mac">130px, 2px,        180px, 5px, 105px, 2px, 180px, p:g</columnDef>
               <columnDef os="exp">    p, 2px, min(p;180px), 5px, 105px, 2px, 180px, p:g</columnDef>
               <rowDef auto="true" cell="p" sep="2px"/>
 		  
