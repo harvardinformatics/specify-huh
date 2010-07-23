@@ -241,10 +241,10 @@
             <desc><![CDATA[Preparation form.]]></desc>
             <enableRules/>
 
-            <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 145px,        5px,    75px, 2px, 130px, 25px,  100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,   100px, 2px, 174px,  p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px,  p:g</columnDef>
+            <columnDef>         100px, 2px,        130px, 5px,   75px, 2px, 130px,   5px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px,        145px, 5px,   75px, 2px, 130px,  25px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        190px, 5px,   75px, 2px, 165px,   5px, 100px, 2px, 174px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,    p, 2px,     p, 5px:g,     p, 2px, 151px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -288,10 +288,10 @@
             useresourcelabels="true">
             <desc><![CDATA[Collecting Event subform for the Collection Object form.]]></desc>
             
-            <columnDef>          75px, 2px, 190px, 5px,  80px, 2px, 190px,   2px, 190px, 0px, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 235px, 5px, 130px, 2px, 235px,   2px, 180px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px,     p, 5px, 100px, 2px,     p,   2px, 200px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 150px, 5px:g,   p, 2px, 255px, 5px:g,   p:g, 0px</columnDef>
+            <columnDef>          75px, 2px, 190px,   5px,  80px, 2px, 190px,   2px, 190px, 0px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 235px,   5px, 130px, 2px, 235px,   2px, 180px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,     p,   5px, 100px, 2px,     p,   2px, 200px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 150px, 5px:g,     p, 2px, 255px, 5px:g,   p:g, 0px, p:g</columnDef>
             
             <rowDef auto="true" cell="p" sep="2px"/>
             
@@ -354,10 +354,10 @@
             <desc><![CDATA[The Collection Object subform for the Fragment form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 195px,   5px,  96px, 2px, 210px, 5px,  94px, 2px, 101px,  5px, p:g</columnDef>
-            <columnDef os="lnx">130px, 2px, 195px,   5px, 120px, 2px, 255px, 5px, 130px, 2px,  81px, 45px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 220px, 5px, 130px, 2px, 140px, 15px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 255px, 5px:g,   p, 2px, 200px,    p, p:g</columnDef>
+            <columnDef>         100px, 2px, 195px,   5px,  96px, 2px, 210px, 5px,   94px, 2px, 101px,  5px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 195px,   5px, 120px, 2px, 255px, 5px,  130px, 2px,  81px, 45px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 220px, 5px,  130px, 2px, 140px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 255px, 5px:g,    p, 2px, 200px,    p, p:g</columnDef>
 
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
@@ -451,10 +451,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[CollectionRelationship]]></desc>
             
-            <columnDef>          80px, 2px, 200px, 5px,  90px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="lnx">120px, 2px, 200px, 5px, 120px, 2px, 200px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="mac">120px, 2px, 200px, 5px, 120px, 2px, 290px, 5px,   50px, 2px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 200px, 5px:g,   p, 2px, 200px, 5px:g,    p, 2px, p:g</columnDef>
+            <columnDef>          80px, 2px, 200px,   5px,  90px, 2px, 200px,   5px, 50px, 2px, p:g</columnDef>
+            <columnDef os="lnx">120px, 2px, 200px,   5px, 120px, 2px, 200px,   5px, 50px, 2px, p:g</columnDef>
+            <columnDef os="mac">120px, 2px, 200px,   5px, 120px, 2px, 290px,   5px, 50px, 2px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 200px, 5px:g,     p, 2px, 200px, 5px:g,    p, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -487,7 +487,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Container]]></desc>
             
-            <columnDef os="exp">p,     2px, 200px, 5px:g, p,     2px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 200px, 5px:g,     p, 2px, p:g</columnDef>
             <columnDef>         100px, 2px, 200px, 5px,   100px, 2px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px, 5px,   138px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
@@ -528,7 +528,7 @@
             <columnDef>          95px, 2px, 180px, 5px,   71px, 2px, 140px, 5px,  75px, 2px, 120px, 0px, p:g</columnDef>
             <columnDef os="lnx">135px, 2px, 210px, 5px,  110px, 2px, 175px, 5px,  80px, 2px, 156px, 0px, p:g</columnDef>
             <columnDef os="mac">140px, 2px, 230px, 5px,   95px, 2px, 210px, 5px, 100px, 2px, 185px, 0px, p:g</columnDef>
-            <columnDef os="exp">p,     2px,     p, 5px:g,    p, 2px,     p, 15px,    p, 2px,     p, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px:g,    p, 2px,     p, 15px,    p, 2px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
             	<row>
@@ -657,10 +657,10 @@
             <desc><![CDATA[The Fragment form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
             <columnDef os="lnx">130px, 2px, 195px,   5px, 125px, 2px, 200px, 15px, 100px, 5px, 200px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 220px,  5px, 220px, 5px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
@@ -723,10 +723,10 @@
             <desc><![CDATA[Determination subform for the Item form.]]></desc>
             <enableRules/>
             
-            <columnDef>          95px, 2px, 180px, 5px,   71px, 2px, 140px, 5px,  75px, 2px, 120px, 0px, p:g</columnDef>
-            <columnDef os="lnx">135px, 2px, 210px, 5px,  110px, 2px, 175px, 5px,  80px, 2px, 156px, 0px, p:g</columnDef>
-            <columnDef os="mac">140px, 2px, 230px, 5px,   95px, 2px, 210px, 5px, 100px, 2px, 185px, 0px, p:g</columnDef>
-            <columnDef os="exp">p,     2px,     p, 5px:g,    p, 2px,     p, 15px,    p, 2px,     p, p:g</columnDef>
+            <columnDef>          95px, 2px, 180px,   5px,  71px, 2px, 140px,  5px,  75px, 2px, 120px, 0px, p:g</columnDef>
+            <columnDef os="lnx">135px, 2px, 210px,   5px, 110px, 2px, 175px,  5px,  80px, 2px, 156px, 0px, p:g</columnDef>
+            <columnDef os="mac">140px, 2px, 230px,   5px,  95px, 2px, 210px,  5px, 100px, 2px, 185px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px:g,     p, 2px,     p, 15px,     p, 2px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
@@ -852,10 +852,10 @@
         	settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
         	<desc><![CDATA[Exsiccata Item]]></desc>
         	
-            <columnDef>         100px, 2px, 225px, 5px,   100px, 2px, 225px, 2px, p:g</columnDef>
-            <columnDef os="lnx">100px, 2px, 225px, 5px,    80px, 2px, 275px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 225px, 5px,   138px, 2px, 225px, 2px, p:g</columnDef>
-        	<columnDef os="exp">p,     2px, 225px, 5px:g, p,     2px, 225px, 2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 225px,   5px, 100px, 2px, 225px, 2px, p:g</columnDef>
+            <columnDef os="lnx">100px, 2px, 225px,   5px,  80px, 2px, 275px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 225px,   5px, 138px, 2px, 225px, 2px, p:g</columnDef>
+        	<columnDef os="exp">    p, 2px, 225px, 5px:g,     p, 2px, 225px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
         	<rows>
@@ -892,10 +892,10 @@
             <desc><![CDATA[The Fragment form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
             <columnDef os="lnx">130px, 2px, 195px,   5px, 125px, 2px, 200px, 15px, 100px, 5px, 200px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 220px,  5px, 220px, 5px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
@@ -987,10 +987,10 @@
               <desc><![CDATA[The Fragment Subform for the CollectionObject form.]]></desc>
               <enableRules/>
               
-              <columnDef>         100px,2px,650px,p:g</columnDef>
-              <columnDef os="lnx">90px,2px,200px,5px,105px,2px,145px,p:g</columnDef>
-              <columnDef os="mac">130px,2px,650px,p:g</columnDef>
-              <columnDef os="exp">p,    2px,min(p;650px),px:g</columnDef>
+              <columnDef>         100px, 2px,        650px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="lnx"> 90px, 2px,        200px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="mac">130px, 2px,        650px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="exp">    p, 2px, min(p;650px), 5px, 105px, 2px, 145px, px:g</columnDef>
               <rowDef auto="true" cell="p" sep="2px"/>
 		  
                 <rows>
@@ -1030,10 +1030,10 @@
               <desc><![CDATA[The Fragment Subform for the Preparation form.]]></desc>
               <enableRules/>
               
-              <columnDef>         100px,2px,650px,p:g</columnDef>
-              <columnDef os="lnx">90px,2px,180px,5px,105px,2px,145px,p:g</columnDef>
-              <columnDef os="mac">130px,2px,650px,p:g</columnDef>
-              <columnDef os="exp">p,    2px,min(p;650px),px:g</columnDef>
+              <columnDef>         100px, 2px,        650px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="lnx"> 90px, 2px,        180px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="mac">130px, 2px,        650px, 5px, 105px, 2px, 145px, p:g</columnDef>
+              <columnDef os="exp">    p, 2px, min(p;650px), 5px, 105px, 2px, 145px, p:g</columnDef>
               <rowDef auto="true" cell="p" sep="2px"/>
 		  
                 <rows>
@@ -1071,10 +1071,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Other Identifier]]></desc>
             
-            <columnDef>         80px, 2px, 200px, 5px,   100px, 2px, 200px, 0px, p:g</columnDef>
-            <columnDef os="lnx">80px, 2px, 360px, 5px,   100px, 2px, 200px, 0px, p:g</columnDef>
-            <columnDef os="mac">70px, 2px, 180px, 5px,    70px, 2px, 180px, 0px, p:g</columnDef>
-            <columnDef os="exp">p,    2px, 200px, 5px:g, p,     2px, 200px, 0px, p:g</columnDef>
+            <columnDef>         80px, 2px, 200px,   5px, 100px, 2px, 200px, 0px, p:g</columnDef>
+            <columnDef os="lnx">80px, 2px, 360px,   5px, 100px, 2px, 200px, 0px, p:g</columnDef>
+            <columnDef os="mac">70px, 2px, 180px,   5px,  70px, 2px, 180px, 0px, p:g</columnDef>
+            <columnDef os="exp">   p, 2px, 200px, 5px:g,     p, 2px, 200px, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -1112,10 +1112,10 @@
             <desc><![CDATA[Preparation form.]]></desc>
             <enableRules/>
 
-            <columnDef>         100px, 2px, 130px,        5px,    75px, 2px, 130px, 5px,   100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 145px,        5px,    75px, 2px, 130px, 25px,  100px, 2px, 126px,  p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 190px,        5px,    75px, 2px, 165px, 5px,   100px, 2px, 174px,  p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,     p, 2px,     p, 5px:g,     p, 2px, 151px,  p:g</columnDef>
+            <columnDef>         100px, 2px,        130px,   5px, 75px, 2px, 130px,   5px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px,        145px,   5px, 75px, 2px, 130px,  25px, 100px, 2px, 126px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        190px,   5px, 75px, 2px, 165px,   5px, 100px, 2px, 174px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;150px), 5px:g,    p, 2px,     p, 5px:g,     p, 2px, 151px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
 
             <rows>
@@ -1172,10 +1172,10 @@
             <desc><![CDATA[The Fragment form.]]></desc>
             <enableRules/>
             
-            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef>         100px, 2px, 175px,   5px, 100px, 2px, 175px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
             <columnDef os="lnx">130px, 2px, 215px,   5px, 110px, 2px, 200px, 15px, 100px, 5px, 200px, 0px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px, 5px, 100px, 5px, 175px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 220px, 5px:g,    p, 2px,  220px, 5px, 220px, 5px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 130px, 2px, 235px,  5px, 100px, 5px, 175px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 220px,  5px, 220px, 5px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
