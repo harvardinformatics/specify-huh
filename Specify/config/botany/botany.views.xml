@@ -390,7 +390,7 @@
             <desc><![CDATA[Determination subform for Collection Object form.]]></desc>
             <enableRules/>
             
-            <columnDef>          95px, 2px, 180px, 5px,   71px, 2px, 140px, 5px,  75px, 2px, 140px, 0px, p:g</columnDef>
+            <columnDef>          95px, 2px, 180px, 5px,   71px, 2px, 140px, 5px,  75px, 2px, 120px, 0px, p:g</columnDef>
             <columnDef os="lnx">135px, 2px, 210px, 5px,  110px, 2px, 175px, 5px,  80px, 2px, 156px, 0px, p:g</columnDef>
             <columnDef os="mac">140px, 2px, 230px, 5px,   95px, 2px, 210px, 5px, 100px, 2px, 185px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px:g,    p, 2px,     p, 15px,    p, 2px,     p, 0px, p:g</columnDef>
@@ -475,7 +475,8 @@
             <desc><![CDATA[The Determination Citation form]]></desc>
 
             <columnDef os="exp">    p, 2px, 200px, 5px,     p, 2px, 200px, p:g</columnDef>
-            <columnDef>         120px, 2px, 205px, 5px, 100px, 2px, 225px, p:g</columnDef>
+            <columnDef>         100px, 2px, 225px, 5px, 100px, 2px, 225px, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 225px, 5px, 100px, 2px, 225px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 308px, 5px, 130px, 2px, 308px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
@@ -588,10 +589,10 @@
             <desc><![CDATA[Determination subform for the Item form.]]></desc>
             <enableRules/>
             
-            <columnDef>          95px, 2px, 180px,   5px,   71px, 2px, 140px,  5px,  75px, 2px, 120px, 0px, p:g</columnDef>
-            <columnDef os="lnx">135px, 2px, 210px,   5px,  110px, 2px, 175px,  5px,  80px, 2px, 156px, 0px, p:g</columnDef>
-            <columnDef os="mac">140px, 2px, 230px,   5px,   95px, 2px, 210px,  5px, 100px, 2px, 185px, 0px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px,     p, 5px:g,      p, 2px,     p, 15px,     p, 2px,     p, 0px, p:g</columnDef>
+            <columnDef>          95px, 2px, 180px,   5px,  71px, 2px, 140px,  5px,  75px, 2px, 120px, 0px, p:g</columnDef>
+            <columnDef os="lnx">135px, 2px, 210px,   5px, 110px, 2px, 175px,  5px,  80px, 2px, 156px, 0px, p:g</columnDef>
+            <columnDef os="mac">140px, 2px, 230px,   5px,  95px, 2px, 210px,  5px, 100px, 2px, 185px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px:g,     p, 2px,     p, 15px,     p, 2px,     p, 0px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
                 <row>
