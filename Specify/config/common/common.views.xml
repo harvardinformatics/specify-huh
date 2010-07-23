@@ -2363,7 +2363,7 @@
             
             <columnDef>         115px, 2px, 105px, 5px,  85px, 2px, 160px, 25px,  115px, 2px, 215px, 0px, 15px, p, p:g</columnDef>
             <columnDef os="lnx">135px, 2px, 135px, 5px, 110px, 2px, 210px, 25px,  125px, 2px, 200px, 0px, 15px, p, p:g</columnDef>
-            <columnDef os="mac">140px, 2px, 160px, 5px, 140px, 2px, 220px, 25px,  140px, 2px, 200px, 0px, 15px, p, p:g</columnDef>
+            <columnDef os="mac">140px, 2px, 160px, 5px, 140px, 2px, 228px, 25px,  140px, 2px, 200px, 0px, 15px, p, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 145px, 5px:g,   p, 2px,     p, 25px:g,    p, 2px,     p, 0px, 15px, p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             
