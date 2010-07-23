@@ -1686,7 +1686,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="datesType"/>
-                	<cell type="field" id="datesType" name="agent.initials" uitype="combobox" picklist="HUH Agent Dates Type"/>
+                	<cell type="field" id="datesType" name="agent.datesType" uitype="combobox" picklist="HUH Agent Dates Type"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="startDate"/>
