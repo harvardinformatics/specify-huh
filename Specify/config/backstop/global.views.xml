@@ -704,7 +704,7 @@
             <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px,     p, p:g</columnDef>
             <columnDef>          80px, 2px, 150px, 5px,  80px, 2px, 320px, p:g</columnDef>
             <columnDef os="lnx"> 80px, 2px, 150px, 5px, 100px, 2px, 400px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 471px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 400px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
@@ -775,7 +775,7 @@
             
             <columnDef>          80px, 2px,        150px, 5px,  80px, 2px, 320px, p, p:g</columnDef>
             <columnDef os="lnx">100px, 2px,        150px, 5px,  70px, 2px, 300px, p, p:g</columnDef>
-            <columnDef os="mac">130px, 2px,        150px, 5px,  80px, 2px, 663px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        150px, 5px,  80px, 2px, 400px, p, p:g</columnDef>
             <columnDef os="exp">    p, 2px, max(p;190px), 5px, 100px, 2px,        p, p:g</columnDef>
             
             <rowDef auto="true" cell="p" sep="2dlu"/>
@@ -925,7 +925,7 @@
 
             <columnDef>          98px, 2px,        147px,   5px,  80px, 2px,        147px,   5px,  99px, 2px,  85px, 2px, 15px, p:g</columnDef>
             <columnDef os="lnx">113px, 2px,        160px,   5px, 120px, 2px,        160px,   5px, 120px, 2px, 110px, 2px, 100px, p:g</columnDef>
-            <columnDef os="mac">128px, 2px,        190px,   5px, 100px, 2px,        190px,   5px, 133px, 2px, 120px, 2px, 15px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px,        190px,   5px, 100px, 2px,        190px,   5px, 133px, 2px, 140px, 2px, 15px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, max(p;160px),   5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p,  2px,    p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 			<enableRules>
