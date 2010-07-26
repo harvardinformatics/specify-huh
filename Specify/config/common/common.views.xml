@@ -2673,7 +2673,7 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Gift viewing form.]]></desc>
             
-            <columnDef>         105px, 2px, max(p;130px),   5px,   60px, 2px, 100px, 5px,    90px, 2px, 136px,  5px, 160px, 0px, 15px, p:g</columnDef>
+            <columnDef>         105px, 2px, max(p;130px),   5px,   60px, 2px, 100px, 5px,    90px, 2px, 136px,  5px, 140px, 0px, 15px, p:g</columnDef>
             <columnDef os="lnx">130px, 2px, max(p;100px),   5px,   85px, 2px, 110px, 5px,   120px, 2px, 163px, 15px, 160px, 0px, 15px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, max(p;130px),   5px,   86px, 2px, 115px, 5px,   120px, 2px, 165px, 10px, 200px, 0px, 15px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,            p, 5px:g,      p, 2px, 120px, 5px:g,     p, 2px, 161px,  5px,     p, 0px, 15px, p:g</columnDef>
@@ -4273,10 +4273,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Shipment form.]]></desc>
             
-            <columnDef>         103px, 2px, 139px, 5px, 100px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,  85px, 2px, 230px, 0px, p:g</columnDef> 
+            <columnDef>         103px, 2px, 130px, 5px, 100px, 2px, 40px, 5px, 18px, 2px, 40px, 5px, 18px, 5px,  85px, 2px, 230px, 0px, p:g</columnDef> 
             <columnDef os="lnx">131px, 2px, 142px, 5px, 128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px, 146px, 2px, 210px, 0px, p:g</columnDef> 
             <columnDef os="mac">131px, 2px, 150px, 5px, 140px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 24px, 5px, 146px, 2px, 220px, 0px, p:g</columnDef>
-            <columnDef os="exp">131px, 2px, 142px, 5px, 128px, 2px, 50px, 5px, 18px, 2px, 50px, 5px, 18px, 5px,  85px, 2px, 210px, 0px, p:g</columnDef> 
+            <columnDef os="exp">103px, 2px, 130px, 5px, 100px, 2px, 40px, 5px, 18px, 2px, 40px, 5px, 18px, 5px,  85px, 2px, 230px, 0px, p:g</columnDef> 
             <rowDef auto="true" cell="p" sep="2dlu"/>
             <rows>
                 <row>
