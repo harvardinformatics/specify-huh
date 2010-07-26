@@ -1344,9 +1344,9 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Author subform for Reference Work]]></desc>
             
-            <columnDef>         100px, 2px, 240px, 385px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 265px, 435px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 250px, 550px, p:g</columnDef>
+            <columnDef>         100px, 2px, 300px, 200px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 350px, 250px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 350px, 250px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p,     p, p:g</columnDef>
             <rowDef auto="true" sep="2px" cell="p"/>
             <rows>
