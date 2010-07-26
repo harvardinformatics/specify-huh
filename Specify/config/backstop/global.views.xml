@@ -1105,7 +1105,7 @@
             <desc><![CDATA[The Group Person form.]]></desc>
             <enableRules/>
             
-            <columnDef>60px,2px,p:g,2px</columnDef>
+            <columnDef>100px,2px,max(300px;p),2px</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
@@ -1129,7 +1129,7 @@
             <desc><![CDATA[The Group Person form.]]></desc>
             <enableRules/>
             
-            <columnDef>60px,2px,p:g,2px</columnDef>
+            <columnDef>100px,2px,max(300px;p),2px</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
             
             <rows>
