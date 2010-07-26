@@ -3009,10 +3009,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             
             <desc><![CDATA[Collection Data Entry Form]]></desc>
-            <columnDef>         100px, 2px, 225px,   15px, 485px,   15px, p:g</columnDef>
-            <columnDef os="lnx">    p, 2px, 200px,   15px, 500px,   15px, p:g</columnDef>
-            <columnDef os="mac">    p, 2px, 300px,   15px, 585px,   15px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, 200px:g, 15px, 200px:g, 15px, p:g</columnDef>
+            <columnDef>         p, 2px, 225px,   15px, 485px,   15px, p:g</columnDef>
+            <columnDef os="lnx">p, 2px, 200px,   15px, 500px,   15px, p:g</columnDef>
+            <columnDef os="mac">p, 2px, 300px,   15px, 585px,   15px, p:g</columnDef>
+            <columnDef os="exp">p, 2px, 200px:g, 15px, 200px:g, 15px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>            
             
             <rows>
