@@ -664,7 +664,7 @@
             <rows>
   		        <row>
                     <cell type="label" labelfor="role"/>
-                    <cell type="field" id="role" name="role" uitype="combobox" picklist="AgentRole"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="AgentRole" isrequired="true"/>
                     <cell type="label" labelfor="referenceWork"/>
                     <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=ReferenceWork;title=Citation" name="referenceWork"/>
                 </row>
