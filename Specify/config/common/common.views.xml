@@ -975,7 +975,7 @@
             <desc><![CDATA[The Accession form.]]></desc>
             <enableRules/>
 
-            <columnDef>         p,            0px, max(p;150px), 5px,   130px, 2px, 170px,        5px,   110px, 2px, 140px,        0px, 15px, p:g</columnDef>
+            <columnDef>         p,            0px, max(p;150px), 5px,   122px, 2px, 170px,        5px,    82px, 2px, 140px,        0px, 15px, p:g</columnDef>
             <columnDef os="lnx">max(115px;p), 2px, max(p;175px), 5px,   130px, 2px, 190px,        5px,   135px, 2px, 150px,        0px, 15px, p:g</columnDef>
             <columnDef os="mac">max(130px;p), 2px, max(p;208px), 5px,   130px, 2px, 190px,        5px,   140px, 2px, 189px,        0px, 15px, p:g</columnDef>
             <columnDef os="exp">p,            0px, max(p;175px), 5px:g, p,     2px, max(p;150px), 5px:g, p,     2px, max(p;150px), 0px, p,    p:g</columnDef>
@@ -1078,7 +1078,7 @@
             <desc><![CDATA[The Accession form.]]></desc>
             <enableRules/>
 
-            <columnDef>         105px, 2px, 200px, 5px,  85px, 2px, 150px,       263px, p:g</columnDef>
+            <columnDef>         105px, 2px, 200px, 5px,  85px, 2px, 120px,       263px, p:g</columnDef>
             <columnDef os="lnx">115px, 2px, 230px, 5px,  98px, 2px, 155px,       310px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 215px, 5px, 153px, 2px, 189px,       336px, p:g</columnDef>
             <columnDef os="exp">    p, 2px,     p, 5px,  85px, 2px, max(p;150px),    p, p:g</columnDef>
