@@ -441,7 +441,7 @@
             objtitle="Field Notebook"
             class="edu.ku.brc.specify.datamodel.FieldNotebook"
             busrules="edu.ku.brc.specify.datamodel.busrules.FieldNotebookBusRules"
-            isinternal="true"
+            isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Field Notebook Form.]]></desc>
             <altviews>
@@ -2705,13 +2705,13 @@
                     <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="11"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GiftAgent" id="8" name="giftAgents" desc="Agents" colspan="15" rows="2"/>
+                    <cell type="subview" viewname="GiftAgent" id="8" name="giftAgents" desc="Agents" colspan="14" rows="2"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="Shipment" id="11" name="shipments" desc="Shipments" colspan="15"/>
+                    <cell type="subview" viewname="Shipment" id="11" name="shipments" desc="Shipments" colspan="14"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="GiftItems" id="10" name="giftPreparations" defaulttype="table" colspan="15" rows="4"/>
+                    <cell type="subview" viewname="GiftItems" id="10" name="giftPreparations" defaulttype="table" colspan="14" rows="4"/>
                 </row>
             </rows>
         </viewdef>
