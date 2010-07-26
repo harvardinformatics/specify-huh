@@ -274,7 +274,7 @@
             objtitle="Conservation Description"
             class="edu.ku.brc.specify.datamodel.ConservDescription"
             busrules="edu.ku.brc.specify.datamodel.busrules.ConservDescriptionBusRules"
-            isinternal="true"
+            isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Conservation Description.]]></desc>
             <altviews>
@@ -912,7 +912,7 @@
         <view name="TreatmentEvent"
             objtitle="Treatment Event"
             class="edu.ku.brc.specify.datamodel.TreatmentEvent"
-            isinternal="true"
+            isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Treatment Event form.]]></desc>
             <altviews>
