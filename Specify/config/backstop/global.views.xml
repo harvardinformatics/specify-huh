@@ -2,17 +2,6 @@
 <viewset name="Global" i18nresname="global_views" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <views>
-        <view name="Agent"
-            class="edu.ku.brc.specify.datamodel.Agent"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
-            isinternal="false"
-            resourcelabels="false">
-            <desc><![CDATA[Agent subform within the AccessionAgent form.]]></desc>
-            <altviews defaultmode="view">
-                <altview name="Agent View"        title="Agent"        viewdef="Agent"        mode="view" validated="false"/>
-                <altview name="Agent Edit"        title="Agent"        viewdef="Agent"        mode="edit" validated="true" default="true"/>
-            </altviews>
-        </view>
         
         <view name="AgentCitation"
             objtitle="Botanist Citation"
@@ -812,166 +801,6 @@
             <definition>AgentVariant</definition>
         </viewdef>
         
-		<viewdef
-            name="Agent"
-            type="form"
-            class="edu.ku.brc.specify.datamodel.Agent"
-            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
-            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
-            <desc><![CDATA[Agent form.]]></desc>
-
-            <columnDef>          98px, 2px, 150px,        5px,   40px, 5px,  80px, 2px, 150px,        5px,   40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="lnx">113px, 2px, 160px,        5px,   40px, 5px,  95px, 2px, 160px,        5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="mac">128px, 2px, 190px,        5px,   40px, 5px, 100px, 2px, 190px,        5px,   40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="exp">p,     2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
-            <rowDef auto="true" cell="p" sep="2px"/>
-			<enableRules>
-                <rule id="mailto"><![CDATA[email.isNotEmpty()]]></rule>
-            </enableRules>
-            
-            <rows>
-                <row>
-                    <cell type="label" labelfor="0"/>
-                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
-                    <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles" colspan="3"/>
-                    <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
-                    <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
-                    <!-- <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="middleInitial" uitype="text" colspan="3"/> -->
-                </row>
-                <!-- "Dates of Birth/Death: -->
-                <row>
-                	<cell type="label" labelfor="19" />
-                	<cell type="field" id="19" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" />
-                	<cell type="field" id="startPrec" name="dateOfBirthPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
-                	<cell type="label" labelfor="20" />
-                	<cell type="field" id="20" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfDeath;pd=Year"/>
-                	<cell type="field" id="endPrec" name="dateOfDeathPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
-                	<cell type="label" labelfor="datesType"/>
-                	<cell type="field" id="datesType" name="initials" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
-                </row>
-                <!-- "GUID:" <row>
-                	<cell type="label" labelfor="11" />
-                	<cell type="field" id="11" name="guid" uitype="text" cols="20" />
-                </row> -->
-                <!-- "Job Title:" -->
-                <row>
-                	<cell type="label" labelfor="14" />
-                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="9" />
-                </row>
-                <!-- "Initials:"
-                <row>
-                	<cell type="label" labelfor="12" />
-                	<cell type="field" id="12" name="initials" uitype="text" cols="20" />
-                </row>
-                <row>
-                    <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="abbreviation" uitype="text" cols="20"/>
-                    <cell type="label" labelfor="7"/>
-                    <cell type="field" id="7" name="email" uitype="text" colspan="5" cols="32"/>
-                    <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=7"/>
-                </row> -->
-                <!-- "URL:" -->
-                <row>
-                	<cell type="label" labelfor="17" />
-                	<cell type="field" id="17" name="url" uitype="text" colspan="9" />
-                </row>
-                <row>
-                	<cell type="label" labelfor="email"/>
-                	<cell type="field" id="email" name="email" uitype="text" colspan="9" cols="32"/>
-                    <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=email"/>
-                </row>
-                <!-- "Author Name:"
-                <row>
-                	<cell type="label" labelfor="21" />
-                	<cell type="field" id="21" name="authorName" uitype="text" cols="20" />
-                </row> -->
-                <!-- "Collector Name:"
-                <row>
-                	<cell type="label" labelfor="18" />
-                	<cell type="field" id="18" name="collectorName" uitype="text" cols="20" />
-                </row> -->
-                <!-- "Label Name:"
-                <row>
-                	<cell type="label" labelfor="15" />
-                	<cell type="field" id="15" name="labelName" uitype="text" cols="20" />
-                </row> -->
-                <!-- "Interests:" <row>
-                	<cell type="label" labelfor="13" />
-                	<cell type="field" id="13" name="interests" uitype="textareabrief" rows="2" cols="20" />
-                </row>-->
-                
-                <!-- Parent Organization -->
-                <row>
-                	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization" colspan="9"/>
-                </row>
-
-				<!-- Interests -->
-                <row>
-                	<cell type="label" labelfor="interests"/>
-                	<cell type="field" id="interests" name="interests" uitype="text" colspan="9"/>
-                </row>
-                
-                <!-- "Remarks:" -->
-                <row>
-                	<cell type="label" labelfor="16" />
-                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
-                </row>
-
-			    <row>
-                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
-                </row>
-                <row>
-                	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="GroupPersons" id="31" name="groups" defaulttype="table" colspan="16"/>
-                </row>
-			    <row>
-			    	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="AgentVariant" defaulttype="AgentVariant Table View" id="agentVariants" name="variants" colspan="16"/>
-			    </row>
-			    <row>
-				    <cell type="label" label=" "/>
-                    <cell type="subview" viewname="AgentGeography" defaulttype="AgentGeography Table View" id="agentGeographies" name="agentGeographies" colspan="16"/>
-			    </row>
-			    <row>
-			    	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="AgentSpecialty" defaulttype="AgentSpecialty Table View" id="agentSpecialties" name="agentSpecialties" colspan="16"/>
-			    </row>
-			    <row>
-			    	<cell type="label" label=" "/>
-                    <cell type="subview" viewname="AgentCitation" defaulttype="AgentCitation Table View" id="agentCitations" name="agentCitations" colspan="16"/>
-			    </row>
-                <row>
-                    <cell type="separator" label="Attachments" colspan="18"/>
-                </row>
-                <row>
-                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="createdByAgent"/>
-                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampCreated"/>
-                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-                <row>
-                    <cell type="label" labelfor="modifiedByAgent"/>
-                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
-                    <cell type="label" label=""/>
-                    <cell type="label" labelfor="timestampModified"/>
-                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
-                </row>
-	    	</rows>
-        </viewdef>
-        
         <viewdef
             name="AffiliateAgent"
             type="form"
@@ -1094,10 +923,10 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Form for data entry of agents related to transactions.]]></desc>
 
-            <columnDef>          98px, 2px,        147px,   5px, 40px, 5px,  80px, 2px,        147px,   5px, 40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="lnx">113px, 2px,        160px,   5px, 40px, 5px,  95px, 2px,        160px,   5px, 40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="mac">128px, 2px,        190px,   5px, 40px, 5px, 100px, 2px,        190px,   5px, 40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
-            <columnDef os="exp">    p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
+            <columnDef>          98px, 2px,        147px,   5px,  80px, 2px,        147px,   5px,  99px, 2px,  85px, 2px, 15px, p:g</columnDef>
+            <columnDef os="lnx">113px, 2px,        160px,   5px, 120px, 2px,        160px,   5px, 120px, 2px, 110px, 2px, 100px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px,        190px,   5px, 100px, 2px,        190px,   5px, 133px, 2px, 120px, 2px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;160px),   5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p,  2px,    p, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2px"/>
 			<enableRules>
                 <rule id="mailto"><![CDATA[email.isNotEmpty()]]></rule>
@@ -1105,70 +934,70 @@
             <rows>
                 <row>
                     <cell type="label" labelfor="1"/>
-                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles" colspan="3"/>
+                    <cell type="field" id="1" name="title" uitype="combobox" picklist="AgentTitles"/>
                     <cell type="label" labelfor="8"/>
-                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text"/>
                     <cell type="label" labelfor="0"/>
-                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true"/>
                 </row>
                 <row>
 	                <cell type="label" labelfor="5"/>
-                    <cell type="field" id="5" name="firstName" uitype="text" cols="20" colspan="3"/>
-                	<cell type="label" labelfor="3"/>
-                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
+                    <cell type="field" id="5" name="firstName" uitype="text" cols="20"/>
+                	<cell type="label" label="Last Name:" initialize="align=right"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" colspan="6"/>
                 </row>
                 <!-- "Job Title:" -->
                 <row>
                 	<cell type="label" labelfor="14" />
-                	<cell type="field" id="14" name="jobTitle" uitype="text" colspan="3" />
+                	<cell type="field" id="14" name="jobTitle" uitype="text"/>
                 	<cell type="label" labelfor="organization"/>
-                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="9"/>
+                	<cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=OrgByAcronym;title=Organization;displaydlg=OrganizationDisplay;searchdlg=OrganizationSearch" colspan="6"/>
                 </row>
                 <!-- "URL:" -->
                 <row>
                 	<cell type="label" labelfor="17" />
-                	<cell type="field" id="17" name="url" uitype="text" colspan="9" />
+                	<cell type="field" id="17" name="url" uitype="text" colspan="11" />
                 </row>
                 <row>
                 	<cell type="label" labelfor="email"/>
-                	<cell type="field" id="email" name="email" uitype="text" colspan="9" cols="32"/>
+                	<cell type="field" id="email" name="email" uitype="text" colspan="5" cols="32"/>
                     <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=email"/>
                 </row>
 
 				<!-- Interests -->
                 <row>
                 	<cell type="label" labelfor="interests"/>
-                	<cell type="field" id="interests" name="interests" uitype="text" colspan="9"/>
+                	<cell type="field" id="interests" name="interests" uitype="text" colspan="11"/>
                 </row>
                 
                 <!-- "Remarks:" -->
                 <row>
                 	<cell type="label" labelfor="16" />
-                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
+                	<cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="11"/>
                 </row>
 
 			    <row>
-                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="18"/>
+                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="14"/>
                 </row>
                 <row>
-                    <cell type="separator" label="Attachments" colspan="18"/>
+                    <cell type="separator" label="Attachments" colspan="14"/>
                 </row>
                 <row>
-                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="14" initialize="btn=true;icon=AgentAttachment"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="createdByAgent"/>
                     <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
                     <cell type="label" labelfor="timestampCreated"/>
-                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="modifiedByAgent"/>
                     <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
                     <cell type="label" labelfor="timestampModified"/>
-                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20"/>
                 </row>
 	    	</rows>
         </viewdef>
@@ -1335,7 +1164,7 @@
             <desc><![CDATA[Address subform for Acessions.]]></desc>
             
             <columnDef>         100px, 2px, 113px, 5px,  80px, 2px, 113px, 5px,    90px, 2px, 113px, 5px,    80px, 2px, 113px, 0px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 125px, 5px,  90px, 2px, 125px, 5px,    99px, 2px, 125px, 5px,    90px, 2px, 125px, 0px, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 125px, 5px,  88px, 2px, 125px, 5px,    98px, 2px, 125px, 5px,    88px, 2px, 125px, 0px, p:g</columnDef>
             <columnDef os="mac">130px, 2px, 130px, 5px, 115px, 2px, 130px, 5px,   127px, 2px, 130px, 5px,   115px, 2px, 130px, 0px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 113px, 5px:g,   p, 2px, 113px, 5px:g,     p, 2px, 113px, 5px:g,     p, 2px, 113px, 0px, p:g</columnDef>
             <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
