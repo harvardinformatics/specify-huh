@@ -21,10 +21,13 @@ package edu.ku.brc.af.core.expresssearch;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
@@ -225,6 +228,11 @@ public class SearchConfigService
     {
         XStream xstream = new XStream();
         SearchConfig.configXStream(xstream);
+
+        // TODO: MMK: if you uncomment the following try/catch, then run Specify
+        // and use the simple search configuration tool, this block will print the
+        // configuration in an xml file called "config.xml" in the main config
+        // directory.  This file can be used for config/{discipline}/es_config.xml.
         
         // This is for testing only RELEASE
         /*
@@ -237,7 +245,7 @@ public class SearchConfigService
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SearchConfigService.class, ex);
             ex.printStackTrace();
-        }*/
+        } */
         
         AppResourceIFace escAppRes = AppContextMgr.getInstance().getResourceFromDir("Personal", resourceName); //$NON-NLS-1$
         if (escAppRes != null)
