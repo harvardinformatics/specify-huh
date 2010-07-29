@@ -5,6 +5,7 @@
 		<level name="continent"              enforced="true"  infullname="false" rank="100"/>
 		<level name="region"                 enforced="true"  infullname="false" rank="150"/>
 		<level name="archipelago"            enforced="false" infullname="false" rank="160"/>
+		<level name="island"                 enforced="false" infullname="false" rank="170"/>
 		<level name="country"                enforced="false" infullname="true"  rank="200"/>
 		<level name="land"                   enforced="false" infullname="false" rank="210"/>
 		<level name="territory"              enforced="false" infullname="false" rank="220"/>
