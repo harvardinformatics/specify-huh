@@ -1480,7 +1480,9 @@ public class DataEntryTask extends BaseTask
             RecordSetIFace rs = (RecordSetIFace)cmdAction.getSrcObj();
             for (DataEntryView dev : list)
             {
-                if (dev.getTableInfo().getTableId() == rs.getDbTableId())
+                if (dev != null &&
+                        dev.getTableInfo() != null &&
+                            dev.getTableInfo().getTableId() == rs.getDbTableId())
                 {
                     editData(this, rs, dev.getView());
                     return true;
