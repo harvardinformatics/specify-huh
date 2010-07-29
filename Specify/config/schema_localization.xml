@@ -20739,7 +20739,7 @@
           </str>
         </descs>
       </item>
-      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
+      <item name="text2" type="java.lang.String" isUIFormatter="false" isRequired="false" pickListName="HUH Loan Account">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>

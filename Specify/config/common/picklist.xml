@@ -301,6 +301,12 @@
       <picklistitem title="unknown" value="Unknown"/>
     </items>
   </picklist>
+  <picklist name="HUH Loan Account" type="0" issytem="true" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="General Collections" value="GC"/>
+  		<picklistitem title="Farlow Collections" value="FC"/>
+  	</items>
+  </picklist>
   <picklist name="HUH Plant Sexuality" type="0" issystem="true" readonly="true" sizelimit="3">
 	<items>
 		<picklistitem title="Female" value="Female"/>
