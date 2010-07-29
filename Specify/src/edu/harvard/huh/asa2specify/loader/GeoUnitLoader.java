@@ -37,6 +37,10 @@ public class GeoUnitLoader extends TreeLoader
 	private final String ARCHIPELAGO_TYPE = "archipelago";
 	private final Integer ARCHIPELAGO_RANK = 160;
 
+	// sub-region
+    private final String HISPANIOLA_TYPE = "archipelago";
+    private final Integer HISPANIOLA_RANK = 170;
+    
 	// country
 	private final String COUNTRY_TYPE = "country";
 	private final Integer COUNTRY_RANK = 200;  // Specify value
@@ -521,7 +525,8 @@ public class GeoUnitLoader extends TreeLoader
 	    if (parentRank == null) return ROOT_RANK;
 
 		if ( parentRank.equals( REGION_RANK ) && type.equals( OTHER_TYPE ) ) {
-			if ( name.indexOf( "archipelago" ) >= 0 ) return ARCHIPELAGO_RANK;
+		    if (name.indexOf( "Hispaniola" ) >= 0 )   return HISPANIOLA_RANK;
+		    else if ( name.indexOf( "archipelago" ) >= 0 ) return ARCHIPELAGO_RANK;
 			else if ( name.indexOf( "Island" ) >= 0 ) return SUBCONTINENT_ISL_RANK;
 			else if ( name.indexOf( "Lake" ) >= 0 )   return LAKE_RANK;
 			else if ( name.indexOf( "Land" ) >= 0 )   return LAND_RANK;
