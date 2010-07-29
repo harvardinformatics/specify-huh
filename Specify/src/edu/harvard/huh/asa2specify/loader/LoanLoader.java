@@ -275,7 +275,7 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         LoanPreparation loanPreparation = new LoanPreparation();
         
         // Description (description, box count)
-        String taxonDescription = getDescriptionOfMaterial(asaLoan);
+        String taxonDescription = asaLoan.getDescription();
         loanPreparation.setDescriptionOfMaterial(taxonDescription);
    
         // Discipline
@@ -296,6 +296,10 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         int nonSpecimenCount = asaLoan.getNonSpecimenCount();
         loanPreparation.setNonSpecimenCount(nonSpecimenCount);
 
+        // OutComments
+        String packages = asaLoan.getBoxCountNote();
+        loanPreparation.setOutComments(packages);
+        
         // Preparation
         loanPreparation.setPreparation(prep);
         
@@ -535,10 +539,10 @@ public class LoanLoader extends TaxonBatchTransactionLoader
     private String getInsertSql(LoanPreparation loanPreparation)
     {
         String fieldNames = "DescriptionOfMaterial, DisciplineID, IsResolved, ItemCount, " +
-        		            "LoanID, NonSpecimenCount, PreparationID, ReceivedComments, SrcTaxonomy, " +
-        		            "TimestampCreated, TypeCount, Version";
+        		            "LoanID, NonSpecimenCount, OutComments, PreparationID, ReceivedComments, " +
+        		            "SrcTaxonomy, TimestampCreated, TypeCount, Version";
         
-        String[] values = new String[12];
+        String[] values = new String[13];
         
         values[0]  = SqlUtils.sqlString( loanPreparation.getDescriptionOfMaterial());
         values[1]  = SqlUtils.sqlString( loanPreparation.getDiscipline().getId());
@@ -546,12 +550,13 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         values[3]  = SqlUtils.sqlString( loanPreparation.getItemCount());
         values[4]  = SqlUtils.sqlString( loanPreparation.getLoan().getId());
         values[5]  = SqlUtils.sqlString( loanPreparation.getNonSpecimenCount());
-        values[6]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
-        values[7]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
-        values[8]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
-        values[9]  = SqlUtils.now();
-        values[10] = SqlUtils.sqlString( loanPreparation.getTypeCount());
-        values[11] = SqlUtils.one();
+        values[6]  = SqlUtils.sqlString( loanPreparation.getOutComments());
+        values[7]  = SqlUtils.sqlString( loanPreparation.getPreparation().getId());
+        values[8]  = SqlUtils.sqlString( loanPreparation.getReceivedComments());
+        values[9]  = SqlUtils.sqlString( loanPreparation.getSrcTaxonomy());
+        values[10] = SqlUtils.now();
+        values[11] = SqlUtils.sqlString( loanPreparation.getTypeCount());
+        values[12] = SqlUtils.one();
         
         return SqlUtils.getInsertSql("loanpreparation", fieldNames, values);
     }
