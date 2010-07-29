@@ -327,32 +327,42 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     }
     
     /**
-     * If the fragment has determinations, exactly one should be marked current.
+     * If the fragment has determinations, exactly one ought be marked current, and
+     * no more than one is allowed to be marked "is filed under"
      * 
      * @param fragment
      * @return String warning message if problem found, otherwise null
      */
-    protected String checkForDeterminationWarning(final Fragment fragment)
+    protected static String checkForDeterminationWarning(final Fragment fragment)
     {
         if (fragment.getDeterminations().size() > 0)
         {
             int currentDets = 0;
-            
+            int filedUnderDets = 0;
             for (Determination det : fragment.getDeterminations())
             {
                 if (det.isCurrentDet())
                 {
                     currentDets++;
                 }
+                
+                if (det.getYesNo3() != null && det.getYesNo3())
+                {
+                    filedUnderDets++;
+                }
             }
 
-            if (currentDets == 0)
+            if (currentDets < 1)
             {
                 return getResourceString("CollectionObjectBusRules.CURRENT_DET_REQUIRED");
             }
             else if (currentDets > 1)
             {
                 return getResourceString("CollectionObjectBusRules.ONLY_ONE_CURRENT_DET");
+            }
+            else if (filedUnderDets > 1)
+            {
+                return getResourceString("CollectionObjectBusRules.ONLY_ONE_FILED_DET");
             }
         }
 
