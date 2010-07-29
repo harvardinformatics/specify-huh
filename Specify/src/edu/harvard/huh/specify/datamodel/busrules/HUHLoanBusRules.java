@@ -210,7 +210,10 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
             {
                 if (mv.getViewName().equals("Shipment"))
                 {
-                    for (Viewable v : mv.getViewables()) v.getValidator().setHasChanged(true);
+                    for (Viewable v : mv.getViewables())
+                    {
+                        if (v.getValidator() != null) v.getValidator().setHasChanged(true);
+                    }
                 }
             }
         }
