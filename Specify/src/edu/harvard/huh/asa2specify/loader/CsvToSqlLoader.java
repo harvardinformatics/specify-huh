@@ -137,11 +137,20 @@ public abstract class CsvToSqlLoader
         this.frame = frame;
     }
     
+    /**
+     * This is called before the first record is processed.  If an exception
+     * is thrown, no records are processed.
+     * @throws LocalException
+     */
     protected void preLoad() throws LocalException
     {
         ;
     }
 
+    /**
+     * This is called after the last record is processed.
+     * @throws LocalException
+     */
     protected void postLoad() throws LocalException
     {
         ;
