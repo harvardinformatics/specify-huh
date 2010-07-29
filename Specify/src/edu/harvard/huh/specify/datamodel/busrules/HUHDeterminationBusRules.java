@@ -20,6 +20,7 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.busrules.DeterminationBusRules;
 
 /**
@@ -38,29 +39,28 @@ public class HUHDeterminationBusRules extends DeterminationBusRules
     {
         super();
     }
-/*
+    
     @Override
-    public boolean afterSaveCommit(Object dataObj, DataProviderSessionIFace session)
+    public STATUS processBusinessRules(Object dataObj)
     {
-        if (dataObj instanceof Determination && formViewObj != null)
+        STATUS status = super.processBusinessRules(dataObj);
+        
+        if (!STATUS.OK.equals(status)) return status;
+        
+        if (dataObj instanceof Determination)
         {
-            Determination determination = (Determination) dataObj;
+            Determination det = (Determination) dataObj;
             
-            Fragment fragment = determination.getFragment();
-
-            formViewObj.setParentDataObj(fragment);
-            formViewObj.setCellName("determinations");
+            Fragment fragment = det.getFragment();
+            
+            String determinationWarning = HUHFragmentBusRules.checkForDeterminationWarning(fragment);
+            
+            if (determinationWarning != null)
+            {
+                reasonList.add(determinationWarning);
+                status = STATUS.Warning;
+            }
         }
-        
-        return true;
+        return status;
     }
-
-    @Override
-    public boolean shouldCloneField(final String fieldName)
-    {
-        if ("fragment".equals(fieldName)) return false;
-        
-        return super.shouldCloneField(fieldName);
-    }
-*/
 }
