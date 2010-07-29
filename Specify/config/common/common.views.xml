@@ -3496,7 +3496,7 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation" formatname="BatchPrepDetail" colspan="5"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;displaydlg=BatchPreparation" formatname="BatchPrepDetail" colspan="5"/>
 					<cell type="label" label=" "/>
 					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
 					<!-- <cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/> -->	
@@ -3506,10 +3506,10 @@
                 	<cell type="field" id="3" name="descriptionOfMaterial" uitype="textareabrief" rows="4" colspan="10"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="higherTaxon"/>
-                    <cell type="field" id="higherTaxon" name="taxon" uitype="querycbx" initialize="name=Taxon" colspan="3"/>
 					<cell type="label" labelfor="srcTaxonomy"/>
                     <cell type="field" id="srcTaxonomy" name="srcTaxonomy" uitype="text" colspan="3"/>
+                    <cell type="label" labelfor="outComments"/>
+                    <cell type="field" id="outComments" name="outComments" uitype="text" colspan="3"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="itemCount"/>
