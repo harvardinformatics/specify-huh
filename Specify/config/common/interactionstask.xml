@@ -21,37 +21,6 @@
       </flavor>
     </droppableFlavors>
   </entry>
-  <entry name="gift" table="gift" view="Gift" type="Interactions" action="OpenNewView" icon="Gift" isonleft="true" 
-         issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.NEW_GFT">
-    <draggableFlavors/>
-    <droppableFlavors>
-      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
-        <tableIds>
-          <int>131</int>
-          <int>1</int>
-          <int>50</int>
-        </tableIds>
-      </flavor>
-      <flavor isdrag="false" classname="edu.ku.brc.specify.datamodel.InfoRequest" humanreadable="InfoRequest">
-        <tableIds>
-          <int>50</int>
-        </tableIds>
-      </flavor>
-    </droppableFlavors>
-  </entry>
-  <entry name="gift" table="gift" view="Gift" type="Interactions" action="Edit" icon="Gift" isonleft="false" 
-         issrchsrv="true" order="0" enabled="true" visible="false" tooltip="InteractionsTask.EDT_GFT">
-    <draggableFlavors/>
-    <droppableFlavors>
-      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
-        <tableIds>
-          <int>131</int>
-          <int>1</int>
-          <int>50</int>
-        </tableIds>
-      </flavor>
-    </droppableFlavors>
-  </entry>
   <entry name="exchangein" table="exchangein" view="ExchangeIn" type="Interactions" action="OpenNewView" icon="ExchangeIn" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="false" tooltip="">
     <draggableFlavors/>
@@ -165,6 +134,37 @@
     <draggableFlavors/>
     <droppableFlavors/>
   </entry> -->
+  <entry name="gift" table="gift" view="Gift" type="Interactions" action="OpenNewView" icon="Gift" isonleft="true" 
+         issrchsrv="false" order="0" enabled="true" visible="true" tooltip="InteractionsTask.NEW_GFT">
+    <draggableFlavors/>
+    <droppableFlavors>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
+        <tableIds>
+          <int>131</int>
+          <int>1</int>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.datamodel.InfoRequest" humanreadable="InfoRequest">
+        <tableIds>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+    </droppableFlavors>
+  </entry>
+  <entry name="gift" table="gift" view="Gift" type="Interactions" action="Edit" icon="Gift" isonleft="false" 
+         issrchsrv="true" order="0" enabled="true" visible="false" tooltip="InteractionsTask.EDT_GFT">
+    <draggableFlavors/>
+    <droppableFlavors>
+      <flavor isdrag="false" classname="edu.ku.brc.specify.tasks.RecordSetTask" humanreadable="Record_Set">
+        <tableIds>
+          <int>131</int>
+          <int>1</int>
+          <int>50</int>
+        </tableIds>
+      </flavor>
+    </droppableFlavors>
+  </entry>
     <entry name="permit" table="permit" view="Permit" type="Interactions" action="OpenNewView" icon="Permit" isonleft="false" 
          issrchsrv="true" order="0" enabled="true" visible="true" tooltip="">
     <draggableFlavors/>
