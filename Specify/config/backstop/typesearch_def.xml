@@ -38,6 +38,9 @@
     <typesearch tableid="46"  name="BioStrat"               searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter="">
         SELECT %s1 FROM GeologicTimePeriod gtp JOIN gtp.definition as gtpd WHERE gtpd.geologicTimePeriodTreeDefId = GTPTREEDEFID AND gtp.isBioStrat = 1 AND %s2 ORDER BY fullName
     </typesearch>
+    <typesearch tableid="63"  name="BatchPreparation"       searchfield="frag.identifier,frag.preparation.identifier" displaycols="frag.preparation.prepType.name,frag.preparation.identifier,frag.identifier" format="%s - %s (%s)"     dataobjformatter="Preparation">
+		SELECT %s1 FROM Fragment frag JOIN frag.preparation as pp WHERE %s2 ORDER BY frag.identifier, frag.preparation.identifier, frag.preparation.sampleNumber
+    </typesearch>
     <typesearch tableid="97"  name="CatAutoNumberingScheme" searchfield="schemeName"      displaycols="schemeName"         format="%s"     dataobjformatter=""/>
     <typesearch tableid="46"  name="ChronosStrat"           searchfield="name"            displaycols="fullName"           format="%s"     dataobjformatter=""/>
     <typesearch tableid="10"  name="CollectingEvent"        searchfield="stationFieldNumber" displaycols="stationFieldNumber,startDate,loc.localityName,geo.fullName" format="%s; %s; %s; %s" dataobjformatter="">
