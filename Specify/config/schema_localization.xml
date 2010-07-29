@@ -32354,6 +32354,18 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
+      <item name="basionymTaxon">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Basionym / Replaced Synonym</text>
+          </str>
+        </names>
+        <descs/>
+        <spExportSchemaItems/>
+      </item>
       <item name="children" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>

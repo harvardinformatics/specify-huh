@@ -1902,7 +1902,7 @@
 			        <cell type="separator" label=" " colspan="14"/>
                 </row>
                 <row>
-                	<cell type="label" labelfor="basionym"/>
+                	<cell type="label" labelfor="basionym" colspan="3"/>
                 	<cell type="field" id="basionym" name="basionymTaxon" uitype="querycbx" initialize="name=Taxon;title=Basionym" colspan="10"/>
                 </row>
                 <row>
