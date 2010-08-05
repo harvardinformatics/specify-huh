@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vector>
+      <preptype name="Sheet"            isloanable="true"/>
+      <preptype name="Packet"           isloanable="true"/>
+      <preptype name="Bag"              isloanable="true"/>
+      <preptype name="Box"              isloanable="true"/>
+      <preptype name="Microscope slide" isloanable="true"/>
+      <preptype name="Jar"              isloanable="true"/>
+      <preptype name="35mm slide"       isloanable="true"/>
+      <preptype name="Self"             isloanable="true"/>
+      <preptype name="Other"            isloanable="true"/>
+      <preptype name="Lot"              isloanable="true"/>
+</vector>

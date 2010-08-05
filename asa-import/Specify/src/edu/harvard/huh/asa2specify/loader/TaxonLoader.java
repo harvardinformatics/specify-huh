@@ -1,0 +1,464 @@
+package edu.harvard.huh.asa2specify.loader;
+
+import java.io.File;
+import java.sql.Statement;
+import java.util.HashMap;
+
+import edu.harvard.huh.asa.AsaException;
+import edu.harvard.huh.asa.AsaTaxon;
+import edu.harvard.huh.asa.AsaTaxon.ENDANGERMENT;
+import edu.harvard.huh.asa.AsaTaxon.GROUP;
+import edu.harvard.huh.asa.AsaTaxon.STATUS;
+import edu.harvard.huh.asa2specify.LocalException;
+import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
+import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
+import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
+import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.ReferenceWork;
+import edu.ku.brc.specify.datamodel.Taxon;
+import edu.ku.brc.specify.datamodel.TaxonCitation;
+import edu.ku.brc.specify.datamodel.TaxonTreeDef;
+import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
+
+// Run this class after OptrLoader.
+
+public class TaxonLoader extends TreeLoader
+{
+    private TaxonTreeDef treeDef;
+	
+	private HashMap <String, Integer> taxonRankIdsByType = new HashMap<String, Integer>();
+
+	private HashMap <Integer, TaxonTreeDefItem> taxonDefItemsByRank = new HashMap<Integer, TaxonTreeDefItem>();
+	
+	private TaxonLookup       taxonLookup;
+	private PublicationLookup publicationLookup;
+	private BotanistLookup    botanistLookup;
+	
+	public TaxonLoader(File csvFile, Statement sqlStatement,
+	                   PublicationLookup publicationLookup,
+	                   BotanistLookup botanistLookup) throws LocalException
+	{
+		super(csvFile, sqlStatement);
+
+		this.publicationLookup = publicationLookup;
+		this.botanistLookup    = botanistLookup;
+		
+		this.treeDef = getTaxonTreeDef();
+		
+		// this must match config/botany/taxon_init.xml
+		
+		taxonRankIdsByType.put("life",             0);
+		taxonRankIdsByType.put("kingdom",         10);
+		taxonRankIdsByType.put("\"Major Group\"", 20);
+		taxonRankIdsByType.put("division",        30);
+		taxonRankIdsByType.put("class",           60);
+		taxonRankIdsByType.put("order",          100);
+		taxonRankIdsByType.put("family",         140);
+		taxonRankIdsByType.put("tribe",          160);
+		taxonRankIdsByType.put("genus",          180);
+		taxonRankIdsByType.put("subgenus",       190);
+		taxonRankIdsByType.put("species",        220);
+		taxonRankIdsByType.put("subspecies",     230);
+		taxonRankIdsByType.put("variety",        240);
+		taxonRankIdsByType.put("nothovariety",   240); // ICBN 4.4. "The subordinate ranks of nothotaxa are the same as the subordinate ranks of non-hybrid taxa"
+		taxonRankIdsByType.put("nothomorph",     240); // ICBN H.12.2. "Names published at the rank of nothomorph are treated as having been published as names of varieties"
+		taxonRankIdsByType.put("subvariety",     250);
+		taxonRankIdsByType.put("forma",          260);
+		taxonRankIdsByType.put("subforma",       270);
+		taxonRankIdsByType.put("lusus",          280);
+		taxonRankIdsByType.put("modification",   290);
+		taxonRankIdsByType.put("prolus",         300);
+	}
+
+	protected TaxonTreeDef getTaxonTreeDef() throws LocalException
+	{
+	    TaxonTreeDef t = new TaxonTreeDef();
+
+	    Integer taxonTreeDefId = getId("taxontreedef", "TaxonTreeDefID", "Name", "Taxon");
+	    t.setTaxonTreeDefId(taxonTreeDefId);
+
+	    return t;
+	}
+
+	protected TaxonTreeDefItem getTreeDefItemByRankId(Integer rankId) throws LocalException
+	{
+	    TaxonTreeDefItem treeDefItem = taxonDefItemsByRank.get(rankId);
+
+	    if (treeDefItem == null)
+	    {
+	        Integer taxonTreeDefItemId = getInt("taxontreedefitem", "TaxonTreeDefItemID", "RankID", rankId);
+
+	        treeDefItem = new TaxonTreeDefItem();
+	        treeDefItem.setTaxonTreeDefItemId(taxonTreeDefItemId);
+	        taxonDefItemsByRank.put(rankId, treeDefItem);
+	    } 
+
+	    return treeDefItem;
+	}
+
+	@Override
+	protected void preLoad() throws LocalException
+	{
+	    disableKeys("taxon");
+	}
+	
+	@Override
+	public void loadRecord(String[] columns) throws LocalException
+	{
+		AsaTaxon asaTaxon = parse(columns);
+		
+		Integer asaTaxonId = asaTaxon.getId();
+		setCurrentRecordId(asaTaxonId);
+		
+		Taxon taxon = getTaxon(asaTaxon);
+		
+		String rank = asaTaxon.getRank();
+		checkNull(rank, "rank");
+		
+		Integer rankId = taxonRankIdsByType.get(rank);
+		checkNull(rankId, "rank id");
+		
+		if (rankId <= taxonRankIdsByType.get("family"))
+		{
+		    getLogger().info("Processing " + taxon.getName());
+		    if (frame != null)
+		    {
+		        frame.setDesc("Loading " + taxon.getName() + "...");
+		    }
+		}
+		
+		String sql = getInsertSql(taxon);
+		Integer taxonId = insert(sql);
+		taxon.setTaxonId(taxonId);
+		
+		// TaxonCitation
+		Integer citPublId = asaTaxon.getCitPublId();
+		if (citPublId != null)
+		{
+		    ReferenceWork referenceWork = lookupPublication(citPublId);
+		    
+            // CitInAuthor or StdExAuthor or StdAuthor
+            Agent authorAgent = asaTaxon.getCitInAuthorId() != null ? taxon.getCitInAuthor() : 
+                asaTaxon.getStdExAuthor() != null ? taxon.getStdExAuthor() : taxon.getStdAuthor();
+
+            if (authorAgent != null)
+            {
+                if (authorAgent.getId() == null)
+                {
+                    getLogger().warn(rec() + taxon.getFullName() + " Publication but no author");
+                }
+            }
+
+            TaxonCitation taxonCitation = getTaxonCitation(asaTaxon, taxon, referenceWork);
+
+		    taxonCitation.setTaxon(taxon);
+		    sql = getInsertSql(taxonCitation);
+		    insert(sql);
+		}
+	}
+	
+	public void numberNodes() throws LocalException
+	{
+		numberNodes("taxon", "TaxonID");
+	}
+	
+	public TaxonLookup getTaxonLookup()
+	{
+		if (taxonLookup == null)
+		{
+			taxonLookup = new TaxonLookup() {
+
+				public Taxon getById(Integer asaTaxonId) throws LocalException
+				{
+					Taxon taxon = new Taxon();
+
+					String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
+
+					Integer taxonId = getId("taxon", "TaxonID", "TaxonomicSerialNumber", taxonSerialNumber);
+
+					taxon.setTaxonId(taxonId);
+
+					return taxon;
+				}
+			};
+		}
+
+		return taxonLookup;
+	}
+
+	private AsaTaxon parse(String[] columns) throws LocalException
+	{
+	    AsaTaxon taxon = new AsaTaxon();
+	    
+	    int i = super.parse(columns, taxon);
+	    
+	    if (columns.length < i + 21)
+	    {
+	        throw new LocalException("Not enough columns");
+	    }
+
+		try
+		{
+		    taxon.setParentId(              SqlUtils.parseInt( columns[i + 0]  ));
+		    taxon.setRank(                                     columns[i + 1]  );
+		    taxon.setRankType(                                 columns[i + 2]  );
+		    taxon.setRankAbbrev(                               columns[i + 3]  );
+		    taxon.setGroup(               AsaTaxon.parseGroup( columns[i + 4]  ));
+		    taxon.setStatus(             AsaTaxon.parseStatus( columns[i + 5]  ));
+		    taxon.setEndangerment( AsaTaxon.parseEndangerment( columns[i + 6]  ));
+		    taxon.setIsHybrid(           Boolean.parseBoolean( columns[i + 7]  ));
+		    taxon.setName(                                     columns[i + 8]  );
+		    taxon.setAuthor(                                   columns[i + 9]  );
+		    taxon.setParAuthorId(           SqlUtils.parseInt( columns[i + 10] ));
+		    taxon.setParExAuthorId(         SqlUtils.parseInt( columns[i + 11] ));
+		    taxon.setStdAuthorId(           SqlUtils.parseInt( columns[i + 12] ));
+		    taxon.setStdExAuthorId(         SqlUtils.parseInt( columns[i + 13] ));
+		    taxon.setCitInAuthorId(         SqlUtils.parseInt( columns[i + 14] ));
+		    taxon.setCitPublId(             SqlUtils.parseInt( columns[i + 15] ));
+		    taxon.setCitCollation(                             columns[i + 16] );
+		    taxon.setCitDate(                                  columns[i + 17] );
+		    taxon.setRemarks(          SqlUtils.iso8859toUtf8( columns[i + 18] ));
+		    taxon.setDataSource(                               columns[i + 19] );
+		    taxon.setFullName(                                 columns[i + 20] );
+		}
+		catch (NumberFormatException e)
+		{
+		    throw new LocalException("Couldn't parse numeric field", e);
+		}
+		catch (AsaException e)
+		{
+		    throw new LocalException("Couldn't parse taxon field", e);
+		}
+
+		return taxon;
+	}
+
+	private Taxon getTaxon(AsaTaxon asaTaxon) throws LocalException
+	{
+		Taxon specifyTaxon = new Taxon();
+
+		// Author
+		String author = asaTaxon.getAuthor();
+		specifyTaxon.setAuthor(author);
+		
+		// CITES Status TODO: cites status = none: insert none or leave null?
+		ENDANGERMENT endangerment = asaTaxon.getEndangerment();
+		specifyTaxon.setCitesStatus(AsaTaxon.toString(endangerment));
+        
+		// CitInAuthor
+        Agent citInAuthor = NullAgent();
+        Integer citInAuthorId = asaTaxon.getCitInAuthorId();
+        if (citInAuthorId != null) citInAuthor = lookupBotanist(citInAuthorId);
+        specifyTaxon.setCitInAuthor(citInAuthor);
+        
+		// FullName
+        String name = asaTaxon.getName();
+        checkNull(name, "name");
+
+        String fullName = asaTaxon.getFullName();
+		checkNull(fullName, "full name");
+		
+		fullName = truncate(fullName, 255, "full name");
+		specifyTaxon.setFullName(fullName);
+
+		// GroupNumber
+		GROUP group = asaTaxon.getGroup();
+		specifyTaxon.setGroupNumber(AsaTaxon.toString(group));
+	        
+	    // isAccepted (this is an internal field for distinguishing an accepted taxon among a set of synonyms)
+        specifyTaxon.setIsAccepted(true);
+        
+        // isHybrid
+        Boolean isHybrid = asaTaxon.isHybrid();
+        specifyTaxon.setIsHybrid(isHybrid);
+
+        // Name
+		name = truncate(name, 64, "name");
+		specifyTaxon.setName(name);
+
+		// ParAuthor
+		Agent parAuthor = NullAgent();
+		Integer parAuthorId = asaTaxon.getParAuthorId();
+		if (parAuthorId != null) parAuthor = lookupBotanist(parAuthorId);
+		specifyTaxon.setParAuthor(parAuthor);
+		    
+		// ParExAuthor
+        Agent parExAuthor = NullAgent();
+        Integer parExAuthorId = asaTaxon.getParExAuthorId();
+        if (parExAuthorId != null) parExAuthor = lookupBotanist(parExAuthorId);
+        specifyTaxon.setParExAuthor(parExAuthor);
+        
+		// Parent
+		Taxon parent = null;
+		Integer parentId = asaTaxon.getParentId();
+		if (parentId != null)
+		{
+		    parent = getTaxonLookup().getById(parentId);
+		}
+		else
+		{
+			parent = new Taxon();
+			parent.setTaxonId(1); // TODO: this only just happens to work.
+		}
+		specifyTaxon.setParent(parent);
+		        
+		// RankID
+		String rank = asaTaxon.getRank();
+		checkNull(rank, "rank");
+		
+		if (rank.startsWith("notho"))
+		{
+		    getLogger().warn(rec() + "Changing notho rank to non-hybrid");
+		    if (!asaTaxon.isHybrid())
+		    {
+		        getLogger().warn(rec() + "Changing isHybrid to true");
+		        specifyTaxon.setIsHybrid(true);
+		    }
+		}
+
+		Integer rankId = taxonRankIdsByType.get(rank);
+		checkNull(rankId, "rank id");
+		
+		specifyTaxon.setRankId(rankId);
+		
+		// Remarks
+        String remarks = asaTaxon.getRemarks();
+        specifyTaxon.setRemarks(remarks);
+        
+        // Source
+        String dataSource = asaTaxon.getDataSource();
+        specifyTaxon.setSource(dataSource);
+        
+        // StdAuthor
+        Agent stdAuthor = NullAgent();
+        Integer stdAuthorId = asaTaxon.getStdAuthorId();
+        if (stdAuthorId != null) stdAuthor = lookupBotanist(stdAuthorId);
+        specifyTaxon.setStdAuthor(stdAuthor);
+        
+        // StdExAuthor
+        Agent stdExAuthor = NullAgent();
+        Integer stdExAuthorId = asaTaxon.getStdExAuthorId(); 
+        if (stdExAuthorId != null) stdExAuthor = lookupBotanist(stdExAuthorId);
+        specifyTaxon.setStdExAuthor(stdExAuthor);
+        
+		// TaxonomicSerialNumber
+		Integer asaTaxonId = asaTaxon.getId();
+		checkNull(asaTaxonId, "id");
+		
+        String taxonSerialNumber = getTaxonSerialNumber(asaTaxonId);
+		specifyTaxon.setTaxonomicSerialNumber(taxonSerialNumber);
+
+		// TaxonTreeDef
+		specifyTaxon.setDefinition(treeDef);
+		
+		// TaxonTreeDefItem
+		TaxonTreeDefItem defItem = getTreeDefItemByRankId(rankId);
+		checkNull(defItem, "tree def item");
+		
+		specifyTaxon.setDefinitionItem(defItem);
+		
+		// Text1 (status)
+		STATUS status = asaTaxon.getStatus();
+        specifyTaxon.setText1(AsaTaxon.toString(status));
+        
+        // Version
+        specifyTaxon.setVersion(1);
+
+        setAuditFields(asaTaxon, specifyTaxon);
+
+        // return converted taxon record
+		return specifyTaxon;
+	}
+
+    private String getTaxonSerialNumber(Integer asaTaxonId)
+	{
+		return String.valueOf(asaTaxonId);
+	}
+    
+	private TaxonCitation getTaxonCitation(AsaTaxon asaTaxon, Taxon taxon, ReferenceWork referenceWork) throws LocalException
+	{	        
+	    TaxonCitation taxonCitation = new TaxonCitation();
+	    
+	    // ReferenceWork
+        taxonCitation.setReferenceWork(referenceWork);
+
+        // Taxon
+        taxonCitation.setTaxon(taxon);
+        
+        // Text1 (collation)
+        String collation = asaTaxon.getCitCollation();
+        taxonCitation.setText1(collation);
+        
+        // Text2 (date)
+        String date = asaTaxon.getCitDate();
+        taxonCitation.setText2(date);
+        
+        return taxonCitation;
+	}
+
+	private ReferenceWork lookupPublication(Integer publicationId) throws LocalException
+	{
+		return publicationLookup.getById(publicationId);
+	}
+	
+	private Agent lookupBotanist(Integer botanistId) throws LocalException
+	{
+	    return botanistLookup.getById(botanistId);
+	}
+	
+	private String getInsertSql(Taxon taxon)
+	{
+		String fieldNames = "Author, CitesStatus, CitInAuthorID, CreatedByAgentID, FullName, " +
+				            "GroupNumber, IsAccepted, IsHybrid, ModifiedByAgentID, Name, ParAuthorID, " +
+				            "ParExAuthorID, ParentID, RankID, Remarks, Source, StdAuthorID, " +
+				            "StdExAuthorID, TaxonomicSerialNumber, TaxonTreeDefID, TaxonTreeDefItemID, " +
+				            "Text1, TimestampCreated, TimestampModified, Version";
+
+		String[] values = new String[25];
+
+		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
+		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
+		values[2]  = SqlUtils.sqlString( taxon.getCitInAuthor().getId());
+		values[3]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
+		values[4]  = SqlUtils.sqlString( taxon.getFullName());
+		values[5]  = SqlUtils.sqlString( taxon.getGroupNumber());
+		values[6]  = SqlUtils.sqlString( taxon.getIsAccepted());
+		values[7]  = SqlUtils.sqlString( taxon.getIsHybrid());
+		values[8]  = SqlUtils.sqlString( taxon.getModifiedByAgent().getId());
+		values[9]  = SqlUtils.sqlString( taxon.getName());
+		values[10] = SqlUtils.sqlString( taxon.getParAuthor().getId());
+		values[11] = SqlUtils.sqlString( taxon.getParExAuthor().getId());
+		values[12] = SqlUtils.sqlString( taxon.getParent().getId());
+		values[13] = SqlUtils.sqlString( taxon.getRankId());
+		values[14] = SqlUtils.sqlString( taxon.getRemarks());
+		values[15] = SqlUtils.sqlString( taxon.getSource());
+		values[16] = SqlUtils.sqlString( taxon.getStdAuthor().getId());
+		values[17] = SqlUtils.sqlString( taxon.getStdExAuthor().getId());
+		values[18] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
+		values[19] = SqlUtils.sqlString( taxon.getDefinition().getId());
+		values[20] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
+		values[21] = SqlUtils.sqlString( taxon.getText1());
+		values[22] = SqlUtils.sqlString( taxon.getTimestampCreated());
+		values[23] = SqlUtils.sqlString( taxon.getTimestampModified());
+		values[24] = SqlUtils.sqlString( taxon.getVersion());
+
+		return SqlUtils.getInsertSql("taxon", fieldNames, values);
+	}
+	
+    private String getInsertSql(TaxonCitation taxonCitation)
+    {
+        String fieldNames = "ReferenceWorkID, TaxonID, Text1, Text2, TimestampCreated, Version";
+        
+        String[] values = new String[6];
+        
+        values[0] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
+        values[1] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
+        values[2] = SqlUtils.sqlString( taxonCitation.getText1());
+        values[3] = SqlUtils.sqlString( taxonCitation.getText2());
+        values[4] = SqlUtils.now();
+        values[5] = SqlUtils.one();
+        
+        return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
+    }
+}

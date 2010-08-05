@@ -1,0 +1,202 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Readme</title>
+</head>
+
+<body>
+<h3>Specify 6.1<br />
+30 October 2009<br />
+Release Notes<br />
+Specify Software Project</h3>
+
+<br />
+
+<h3>New Capabilities:</h3>
+<ol>
+<li>Added support for automatic generation of Life Science Identifiers (LSIDs) for Agents, Chronostratigraphy, Collection Objects, Geography, Journals, Lithostratigraphy, Localities, Reference Works, and Taxonomy.</li>
+
+<li>Added NASA World Wind plug-in for geo-referencing specimen localities.</li>
+
+<li>Added support for the GBIF IPT toolkit for publishing XML structured data with the TAPIR protocol to the GBIF cache and to other specimen database portals.</li>
+
+<li>Added database audit records which identify changed records.</li>
+
+<li>Added support for polygon boundaries for localities and added fields to the GeoCoordinate Detail Table to accommodate ever shifting MANIS Network requirements for mammal collections.</li>
+
+<li>Added several requested fields to Specify WorkBench schema</li>
+
+<li>Added capability to extract Day, Month, Year from date fields in queries and reports.</li>
+</ol>
+ 
+
+<h3>A new Specify Mobile WorkBench application and a new easy-install version of Specify 6, Specify EZDB will be released shortly as an update Specify 6.1.1.</h3>
+
+<br />
+
+<h3>List of changes for 6.1</h3>
+
+<ol>
+<li>[NODUP][branch] Only one collection object can be saved in Accession.&nbsp;&nbsp;2009-08-05 10:14:22 -0500&nbsp;&nbsp;(7526).</li>
+<li>[trunk] Should removed hold on "root" for master username in MySQL embedded.&nbsp;&nbsp;2009-08-05 10:26:25 -0500&nbsp;&nbsp;(7517).</li>
+<li>[Trunk/Branch] To only permit one instance of each launcher for all mobile, embed, and external launchers.&nbsp;&nbsp;2009-08-12 12:29:27 -0500&nbsp;&nbsp;(7505).</li>
+<li>[branch] Can't add attachments to Pages subform in Field Notebook.&nbsp;&nbsp;2009-08-12 12:31:16 -0500&nbsp;&nbsp;(7515).</li>
+
+<li>[Trunk] Neither Close button nor (X) button kill the ImportFileSplitter program/process&nbsp;&nbsp;2009-08-12 12:32:57 -0500&nbsp;&nbsp;(7365).</li>
+<li>[Br,Tr] Exception when deleting Taxon Citations in taxon tree editor.&nbsp;&nbsp;2009-08-17 16:33:17 -0500&nbsp;&nbsp;(7536).</li>
+<li>Can't save changes to Institution&nbsp;&nbsp;2009-08-26 13:11:50 -0500&nbsp;&nbsp;(7279).</li>
+<li>Branch and trunk - Carry forward is creating many to one for prep attributes,  and Collection Object Attributes.&nbsp;&nbsp;2009-08-27 13:56:29 -0500&nbsp;&nbsp;(7488).</li>
+<li>The wizard's build process is generating two error messages&nbsp;&nbsp;2009-08-31 10:39:11 -0500&nbsp;&nbsp;(7608).</li>
+
+<li>Cancel button in Wizard should be dumb-mistake proofed&nbsp;&nbsp;2009-09-04 09:46:44 -0500&nbsp;&nbsp;(7185).</li>
+<li>[Trunk] Warning message for creating new Discipline/Division should mention that root credentials are required.&nbsp;&nbsp;2009-09-14 10:02:06 -0500&nbsp;&nbsp;(7612).</li>
+<li>[Trunk] After entering root credentials for creating a new discipline or division, the screen "unlocks."&nbsp;&nbsp;2009-09-14 10:04:42 -0500&nbsp;&nbsp;(7613).</li>
+<li>"Removing" a user does not totally remove it:  cannot re-add the same username.&nbsp;&nbsp;2009-09-14 10:17:34 -0500&nbsp;&nbsp;(7243).</li>
+<li>The Loan preference, Due in Months, does not do anything (yet).&nbsp;&nbsp;2009-09-14 10:26:54 -0500&nbsp;&nbsp;(7283).</li>
+
+<li>[Branch/Trunk] Help->Help in SpiReport brings up a broken link in a web browser.&nbsp;&nbsp;2009-09-14 10:32:32 -0500&nbsp;&nbsp;(7416).</li>
+<li>[Trunk/Branch] The Next button in 70% (Preload Taxon) becomes badly enabled upon keystrokes in Choose field.&nbsp;&nbsp;2009-09-14 10:40:48 -0500&nbsp;&nbsp;(7432).</li>
+<li>Custom Catalog Number Formatter causes exception upon save.&nbsp;&nbsp;2009-09-14 15:37:35 -0500&nbsp;&nbsp;(7494).</li>
+<li>[T&B] Don't allow deletion of the Administrator&nbsp;&nbsp;2009-09-14 16:21:17 -0500&nbsp;&nbsp;(7410).</li>
+
+<li>[T/B] Deleting CO from query results exception&nbsp;&nbsp;2009-09-14 16:29:18 -0500&nbsp;&nbsp;(7444).</li>
+<li>[trunk] Exception when editing "Ayn Timusanat" in Geography Tree.&nbsp;&nbsp;2009-09-16 14:14:05 -0500&nbsp;&nbsp;(7583).</li>
+<li>[trunk] Even though an accession authorization is not added, it says its added.&nbsp;&nbsp;2009-09-16 14:15:22 -0500&nbsp;&nbsp;(7573).</li>
+<li>[trunk] Exception in resource Import/export in davinci & localhost.&nbsp;&nbsp;2009-09-16 14:16:24 -0500&nbsp;&nbsp;(7565).</li>
+
+<li>Exception when deleting user defined picklist in schema config.&nbsp;&nbsp;2009-09-16 14:24:19 -0500&nbsp;&nbsp;(7547).</li>
+<li>[br/tr] Deleted users in Security still show up in existing user list.&nbsp;&nbsp;2009-09-16 14:28:58 -0500&nbsp;&nbsp;(7520).</li>
+<li>[Br/Tr] Attachments tools are enabled for Manager, but are restricted after logging in as Manager.&nbsp;&nbsp;2009-09-16 14:43:08 -0500&nbsp;&nbsp;(7484).</li>
+<li>Error when opening Help in Security&nbsp;&nbsp;2009-09-16 14:47:37 -0500&nbsp;&nbsp;(7648).</li>
+<li>[trunk] Export mapper button does not have icon in security tools.&nbsp;&nbsp;2009-09-16 14:48:32 -0500&nbsp;&nbsp;(7477).</li>
+
+<li>Carry forward - Partial date label needs more to explain WHICH is partial date&nbsp;&nbsp;2009-09-17 10:05:48 -0500&nbsp;&nbsp;(7638).</li>
+<li>Botany labels is not working - get no pages&nbsp;&nbsp;2009-09-17 13:28:31 -0500&nbsp;&nbsp;(6638).</li>
+<li>Problems with availability of fields&nbsp;&nbsp;2009-09-17 13:34:55 -0500&nbsp;&nbsp;(6882).</li>
+<li>Trunk and Branch Loan Invoice generates error.&nbsp;&nbsp;2009-09-17 13:46:33 -0500&nbsp;&nbsp;(7469).</li>
+<li>Mammal loan invoice comes back with error.&nbsp;&nbsp;2009-09-17 13:46:52 -0500&nbsp;&nbsp;(7344).</li>
+
+<li>Trunk - suspected bad data causing an error message&nbsp;&nbsp;2009-09-17 14:33:07 -0500&nbsp;&nbsp;(7541).</li>
+<li>Trunk - clicking cancel on the preview produces different results&nbsp;&nbsp;2009-09-17 14:33:47 -0500&nbsp;&nbsp;(7543).</li>
+<li>Trunk and brank - The help is not linking to the correct help&nbsp;&nbsp;2009-09-17 14:45:21 -0500&nbsp;&nbsp;(7556).</li>
+<li>[trunk] The default help isn't going to the correct location.&nbsp;&nbsp;2009-09-17 14:51:47 -0500&nbsp;&nbsp;(7558).</li>
+<li>Trunk - External backup and restore&nbsp;&nbsp;2009-09-17 14:52:42 -0500&nbsp;&nbsp;(7559).</li>
+
+<li>[trunk] It would be WONDERFUL if for the external backup and restore function, if it said IT user&nbsp;&nbsp;2009-09-17 14:53:10 -0500&nbsp;&nbsp;(7560).</li>
+<li>[Trunk and branch] Workbench sample label popup has no captions.&nbsp;&nbsp;2009-09-17 14:54:32 -0500&nbsp;&nbsp;(7569).</li>
+<li>For plants - the botany label is not working at all.&nbsp;&nbsp;2009-09-17 15:17:23 -0500&nbsp;&nbsp;(7596).</li>
+<li>Cannot delete prior mappings and change them&nbsp;&nbsp;2009-09-17 15:22:28 -0500&nbsp;&nbsp;(7620).</li>
+<li>Taxon tree is only getting top level and you cannot add anything&nbsp;&nbsp;2009-09-17 15:24:41 -0500&nbsp;&nbsp;(7652).</li>
+
+<li>Adding two instances of a user in Security and then deleting one of them deletes both&nbsp;&nbsp;2009-09-25 09:38:50 -0500&nbsp;&nbsp;(7646).</li>
+<li>Adding a user to two different user groups in security and them removing them causes exception.&nbsp;&nbsp;2009-09-25 14:18:20 -0500&nbsp;&nbsp;(7645).</li>
+<li>[Trunk] Attempting to open two linux copies of internal Specify causes an error message.&nbsp;&nbsp;2009-09-28 09:44:14 -0500&nbsp;&nbsp;(7550).</li>
+<li>[branch] In nonglobally accessioned databases, creating a new division does not allow you to pick your accession number format&nbsp;&nbsp;2009-10-06 16:29:18 -0500&nbsp;&nbsp;(7690).</li>
+<li>]Branch] The LSID authority field is missing on the Institution form.&nbsp;&nbsp;2009-10-06 16:34:15 -0500&nbsp;&nbsp;(7677).</li>
+
+<li>[Branch] Discrepancy concerning the level above which nonglobally accessioned databases share accession data objects.&nbsp;&nbsp;2009-10-07 17:05:25 -0500&nbsp;&nbsp;(7686).</li>
+<li>[Tr] (embed) Cannot log into an embedded database with SpiReport (unless Specify is open and logged in already)&nbsp;&nbsp;2009-10-07 17:06:24 -0500&nbsp;&nbsp;(7578).</li>
+<li>[branch] Exception upon creating a new division.&nbsp;&nbsp;2009-10-08 14:59:50 -0500&nbsp;&nbsp;(7689).</li>
+<li>All Date + (Day, Month, or Year) fields in querybuilder cause exception upon search.&nbsp;&nbsp;2009-10-15 15:38:35 -0500&nbsp;&nbsp;(7678).</li>
+<li>[Branch] Upon logging into a database and opening a new query, an exception results.&nbsp;&nbsp;2009-10-19 15:36:01 -0500&nbsp;&nbsp;(7709).</li>
+
+<li>[Branch] Creating a new mapping results in exception.&nbsp;&nbsp;2009-10-19 15:37:04 -0500&nbsp;&nbsp;(7710).</li>
+<li>Cannot create a new database 6.2b.01&nbsp;&nbsp;2009-10-21 12:51:39 -0500&nbsp;&nbsp;(7667).</li>
+<li>[trunk]Email tool in Agent should not ask for email address again&nbsp;&nbsp;2009-10-21 12:57:27 -0500&nbsp;&nbsp;(5505).</li>
+<li>Simple Search does not find DNA Sequence results&nbsp;&nbsp;2009-10-21 12:59:46 -0500&nbsp;&nbsp;(5608).</li>
+<li>[trunk]Should not have duplicate agents for Groups subform&nbsp;&nbsp;2009-10-21 13:05:16 -0500&nbsp;&nbsp;(5855).</li>
+
+<li>[trunk]Duplicate Authors allowed in Reference Work&nbsp;&nbsp;2009-10-21 13:06:45 -0500&nbsp;&nbsp;(6003).</li>
+<li>In Exchange In/Out, the Exchange Date field clears when the Address of Record subform is enabled&nbsp;&nbsp;2009-10-21 13:11:53 -0500&nbsp;&nbsp;(6121).</li>
+<li>(tr & br)In Field Formatting Editor, cannot accept changes once the Name has been deleted and typed again&nbsp;&nbsp;2009-10-21 13:17:01 -0500&nbsp;&nbsp;(7551).</li>
+<li>Cannot edit a newly added picklist&nbsp;&nbsp;2009-10-21 15:17:14 -0500&nbsp;&nbsp;(7571).</li>
+
+<li>Exception when you try to delete the original collection that you built with&nbsp;&nbsp;2009-10-21 15:33:35 -0500&nbsp;&nbsp;(7575).</li>
+<li>Cannot search by Collecting Information Start date in Collecting Trip form&nbsp;&nbsp;2009-10-21 15:47:52 -0500&nbsp;&nbsp;(7585).</li>
+<li>Exception when adding Accession to CO&nbsp;&nbsp;2009-10-21 15:55:43 -0500&nbsp;&nbsp;(7591).</li>
+<li>Exception when saving a Reference Work without a title&nbsp;&nbsp;2009-10-21 15:56:53 -0500&nbsp;&nbsp;(7622).</li>
+<li>Adding an Attachment in Icon or Grid view for FieldNotebook Page or Set gives exception&nbsp;&nbsp;2009-10-21 15:59:34 -0500&nbsp;&nbsp;(7634).</li>
+
+<li>[Branch] The "Ask for collection at startup" pref causes refresh button in Reports to prompt for collection.&nbsp;&nbsp;2009-10-22 14:50:20 -0500&nbsp;&nbsp;(7711).</li>
+<li>Changing Permissions in Security causes exception&nbsp;&nbsp;2009-10-22 15:04:42 -0500&nbsp;&nbsp;(7647).</li>
+<li>Specify Wizard hangs on start-up pane&nbsp;&nbsp;2009-10-22 15:22:25 -0500&nbsp;&nbsp;(7693).</li>
+<li>Specify freezes if the field formatter editor window is closed before all changes are saved to a Cat#&nbsp;&nbsp;2009-10-22 15:23:08 -0500&nbsp;&nbsp;(7695).</li>
+<li>Cannot use search tool for Storage querycbx in Preparations&nbsp;&nbsp;2009-10-22 15:24:32 -0500&nbsp;&nbsp;(7700).</li>
+
+<li>(Trunk) Catalog Numbers are not being auto-incremented that should be&nbsp;&nbsp;2009-10-23 14:23:39 -0500&nbsp;&nbsp;(7519).</li>
+<li>WB mapping service throws error when lat2/lon2 are empty&nbsp;&nbsp;2009-10-26 14:30:39 -0500&nbsp;&nbsp;(7713).</li>
+<li>Can't save Reports with USER scope&nbsp;&nbsp;2009-10-26 14:33:48 -0500&nbsp;&nbsp;(7706).</li>
+<li>Sometimes hidden fields are displayed in queries&nbsp;&nbsp;2009-10-26 14:36:54 -0500&nbsp;&nbsp;(7703).</li>
+<li>Tree locks based on the 'Usage Count' - form lock are not handled by 'Unlock Tree' items.&nbsp;&nbsp;2009-10-26 14:43:56 -0500&nbsp;&nbsp;(7696).</li>
+
+<li>Geography tree not un-locked after form edits&nbsp;&nbsp;2009-10-26 14:47:07 -0500&nbsp;&nbsp;(7691).</li>
+<li>Cannot add a Manager user because cannot add an agent.&nbsp;&nbsp;2009-10-26 14:48:52 -0500&nbsp;&nbsp;(7669).</li>
+<li>When I added a field to the query and then went to export tool, it showed that it needed to be updated BUT did not create any records.&nbsp;&nbsp;2009-10-26 15:14:42 -0500&nbsp;&nbsp;(7664).</li>
+<li>Cannot add an administrator user&nbsp;&nbsp;2009-10-26 15:18:08 -0500&nbsp;&nbsp;(7662).</li>
+<li>AutoNumberSchema for Accession need to be shared at the Division&nbsp;&nbsp;2009-10-26 15:18:55 -0500&nbsp;&nbsp;(7659).</li>
+
+<li>Common Form importing doesn't work correctly&nbsp;&nbsp;2009-10-26 15:30:58 -0500&nbsp;&nbsp;(7655).</li>
+<li>Having a taxon with a taxon citation cannot remove it.&nbsp;&nbsp;2009-10-26 15:32:36 -0500&nbsp;&nbsp;(7653).</li>
+<li>[Tr Br]The new Day/Month/Year query builder fields don't work in reports&nbsp;&nbsp;2009-10-26 15:38:13 -0500&nbsp;&nbsp;(7651).</li>
+<li>[Tr + Br]running queries with fields from AgentVariant causes exception dialog&nbsp;&nbsp;2009-10-26 15:40:27 -0500&nbsp;&nbsp;(7642).</li>
+<li>Geography doesn't load on Windows&nbsp;&nbsp;2009-10-26 15:42:14 -0500&nbsp;&nbsp;(7641).</li>
+
+<li>[Tr - Br]Deleting an agent caused an exception&nbsp;&nbsp;2009-10-26 15:52:35 -0500&nbsp;&nbsp;(7636).</li>
+<li>[Br + Tr]Queries won't save after edits.&nbsp;&nbsp;2009-10-26 15:53:21 -0500&nbsp;&nbsp;(7633).</li>
+<li>[Tr Br] Add 'Empty' operator for Tree ranks&nbsp;&nbsp;2009-10-26 15:59:52 -0500&nbsp;&nbsp;(7632).</li>
+<li>Export Tool: clicking the 'Build/Update' button repeatedly can lock up app&nbsp;&nbsp;2009-10-26 16:02:36 -0500&nbsp;&nbsp;(7625).</li>
+<li>Add way to delete Export Schemata&nbsp;&nbsp;2009-10-26 16:05:10 -0500&nbsp;&nbsp;(7624).</li>
+
+<li>When clicking on a field down in a long list - the page jumps to the bottom.&nbsp;&nbsp;2009-10-26 16:09:44 -0500&nbsp;&nbsp;(7619).</li>
+<li>Get an exception if I map and delete mapping too often&nbsp;&nbsp;2009-10-26 16:12:04 -0500&nbsp;&nbsp;(7618).</li>
+<li>Add Day/Month/Year QueryBuilder controls for Dates&nbsp;&nbsp;2009-10-26 16:14:45 -0500&nbsp;&nbsp;(7615).</li>
+<li>If you go Back to Preload Taxon, the Next button becomes disabled&nbsp;&nbsp;2009-10-26 16:16:56 -0500&nbsp;&nbsp;(7654).</li>
+<li>Uploader incorrectly finds geo coord data invalid&nbsp;&nbsp;2009-10-26 16:18:10 -0500&nbsp;&nbsp;(7611).</li>
+
+<li>Cannot search for Chronos Strat in Paleo Context&nbsp;&nbsp;2009-10-26 16:19:56 -0500&nbsp;&nbsp;(7663).</li>
+<li>Searching for an agent with multiple addresses returns with multiple agents&nbsp;&nbsp;2009-10-26 16:22:42 -0500&nbsp;&nbsp;(7671).</li>
+<li>Loan invoice throws error and cannot generate report&nbsp;&nbsp;2009-10-26 16:23:06 -0500&nbsp;&nbsp;(7610).</li>
+<li>[trunk][NoDup]Searching Locality fields in a Collecting Trip Query causes error&nbsp;&nbsp;2009-10-26 16:41:55 -0500&nbsp;&nbsp;(5906).</li>
+<li>Changes to reports are not refreshing in Specify&nbsp;&nbsp;2009-10-26 16:45:00 -0500&nbsp;&nbsp;(7554).</li>
+
+<li>Pausing an Upload and Viewing uploaded records disables the Upload button&nbsp;&nbsp;2009-10-26 16:48:56 -0500&nbsp;&nbsp;(7621).</li>
+<li>A manager with all permissions updating trees causes exception&nbsp;&nbsp;2009-10-26 16:59:01 -0500&nbsp;&nbsp;(7712).</li>
+<li>Error when adding more than one FieldNotebookPage&nbsp;&nbsp;2009-10-27 11:07:17 -0500&nbsp;&nbsp;(5488).</li>
+<li>Exception when deleting a row that has a picture attached to it&nbsp;&nbsp;2009-10-27 11:27:48 -0500&nbsp;&nbsp;(7721).</li>
+<li>"Next Empty" button does not function in Schema Localizer&nbsp;&nbsp;2009-10-27 15:21:47 -0500&nbsp;&nbsp;(5850).</li>
+
+<li>Wizard Catalog number field formatting editor lockup problem&nbsp;&nbsp;2009-10-27 16:04:45 -0500&nbsp;&nbsp;(7170).</li>
+<li>Cannot search for Parent in Storage forms.&nbsp;&nbsp;2009-10-27 16:20:05 -0500&nbsp;&nbsp;(5874).</li>
+<li>HoverOver ToolTips&nbsp;&nbsp;2009-10-27 16:21:39 -0500&nbsp;&nbsp;(6476).</li>
+<li>[NO DUP]Geography is loading on Windows, but getting old error message&nbsp;&nbsp;2009-10-27 16:22:04 -0500&nbsp;&nbsp;(7701).</li>
+<li>Mixed case db names causes problems on Windows&nbsp;&nbsp;2009-10-27 16:23:31 -0500&nbsp;&nbsp;(7725).</li>
+
+<li>Can't switch Collections after logging in&nbsp;&nbsp;2009-10-27 16:23:48 -0500&nbsp;&nbsp;(7726).</li>
+<li>Pre-load of botany taxonomy fails to load family common names&nbsp;&nbsp;2009-10-28 14:04:14 -0500&nbsp;&nbsp;(7204).</li>
+<li>[T/B] Wizard: If database name is numeric, wizard cannot continue&nbsp;&nbsp;2009-10-28 14:08:16 -0500&nbsp;&nbsp;(7434).</li>
+<li>[MAJOR WORK]borrow form doesn't display entered in the fields&nbsp;&nbsp;2009-10-28 14:21:53 -0500&nbsp;&nbsp;(7018).</li>
+<li>[TRUNK] Table Format Editor Exception&nbsp;&nbsp;2009-10-28 15:05:12 -0500&nbsp;&nbsp;(7062).</li>
+
+<li>add a choice of 'None' to Catalog Number Pick List&nbsp;&nbsp;2009-10-28 15:12:01 -0500&nbsp;&nbsp;(7071).</li>
+<li>Exception when using magnifying glass to search for storage parent&nbsp;&nbsp;2009-10-28 15:17:12 -0500&nbsp;&nbsp;(7728).</li>
+<li>Email address does not get updated in Outlook express.&nbsp;&nbsp;2009-10-28 15:25:37 -0500&nbsp;&nbsp;(5954).</li>
+<li>This usecase permanently disables OK button when creating a custom catalog numbering format.&nbsp;&nbsp;2009-10-28 15:32:34 -0500&nbsp;&nbsp;(7387).</li>
+<li>Date format gets changed in certain circumstances to be just 2 digits for years&nbsp;&nbsp;2009-10-28 15:41:33 -0500&nbsp;&nbsp;(7555).</li>
+
+<li>For multiple collections, different Catalog Numbers change to match format and incrementing&nbsp;&nbsp;2009-10-28 15:49:51 -0500&nbsp;&nbsp;(7681).</li>
+<li>Address details for Institution that are entered in the Wizard are not displayed in System Config&nbsp;&nbsp;2009-10-28 15:52:09 -0500&nbsp;&nbsp;(7674).</li>
+<li>[trunk/branch] Exporting workbench data set causes exception.&nbsp;&nbsp;2009-10-28 16:12:34 -0500&nbsp;&nbsp;(7440).</li>
+<li>Problems removing fields from a saved query.&nbsp;&nbsp;2009-10-29 10:09:09 -0500&nbsp;&nbsp;(7616).</li>
+<li>[Branch]Exception when editing agent in security&nbsp;&nbsp;2009-10-29 11:45:48 -0500&nbsp;&nbsp;(6983).</li>
+
+<li>[Branch]  LSIDs are failing to generate.&nbsp;&nbsp;2009-10-29 14:16:38 -0500&nbsp;&nbsp;(7733).</li>
+<li>Unrecoverable Error if database name has a space&nbsp;&nbsp;2009-10-29 15:36:44 -0500&nbsp;&nbsp;(7717).</li>
+<li>Exception when creating a new Repository Agreement Agent&nbsp;&nbsp;2009-10-29 15:44:02 -0500&nbsp;&nbsp;(7731).</li>
+<li>Exporting from Search Results to MS Excel while the Excel file is open causes exception&nbsp;&nbsp;2009-10-29 15:45:48 -0500&nbsp;&nbsp;(7553).</li>
+<li>Can select different Accession numbers when creating a new Discipline or Collection&nbsp;&nbsp;2009-10-29 15:47:35 -0500&nbsp;&nbsp;(7729).</li>
+
+</ol>
+
+
+</body>
+</html>

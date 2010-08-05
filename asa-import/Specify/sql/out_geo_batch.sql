@@ -1,0 +1,15 @@
+select ogb.id,
+       ogb.herb_transaction_id,
+       (select name from st_lookup where id=t.type_id) as transaction_type,
+       (select name from st_lookup where id=t.request_type_id) as request_type,
+       (select acronym from organization where id=t.local_unit_id) as collection_code,
+       ogb.item_count,
+       ogb.type_count,
+       ogb.non_specimen_count,
+       ogb.geo_region_id
+       
+from out_geo_batch ogb left join herb_transaction t on ogb.herb_transaction_id=t.id
+
+where (select name from st_lookup where id=t.type_id) in ('outgoing gift','outgoing exchange','outgoing special exch')
+
+order by ogb.id

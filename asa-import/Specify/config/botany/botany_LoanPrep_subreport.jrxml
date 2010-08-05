@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jasperReport PUBLIC "//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+<jasperReport
+		 name="ShipmentInvoice"
+		 columnCount="1"
+		 printOrder="Vertical"
+		 orientation="Portrait"
+		 pageWidth="612"
+		 pageHeight="792"
+		 columnWidth="576"
+		 columnSpacing="0"
+		 leftMargin="0"
+		 rightMargin="0"
+		 topMargin="0"
+		 bottomMargin="0"
+		 whenNoDataType="NoPages"
+		 scriptletClass="edu.harvard.huh.specify.config.HUHScriptlet"
+		 isTitleNewPage="false"
+		 isSummaryNewPage="false">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="itemnum" class="java.lang.Long" isForPrompting="false"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+       if (loanprep.PreparationID is null, loan.Text2, "HUH") as herbarium,
+
+       "012345" as barcode,
+
+       loanprep.HigherTaxon as higherTaxon,
+
+       loanprep.SrcTaxonomy as taxon,
+
+       if (loanprep.PreparationID is null,
+           loanprep.Quantity - loanprep.TypeCount - loanprep.NonSpecimenCount,
+           if(types.FragmentID is null, 1, 0)
+          ) as items,
+
+       if(loanprep.NonSpecimenCount is null, 0, loanprep.NonSpecimenCount) as nonSpecimens,
+
+       if (loanprep.PreparationID is null,
+           loanprep.TypeCount,
+           if(types.FragmentID is null, 0, 1)
+          ) as types,
+
+       loanprep.DescriptionOfMaterial as description
+
+     from loan
+     left join loanpreparation loanprep on loan.LoanID=loanprep.LoanID
+     left join preparation prep on loanprep.PreparationID=prep.PreparationID
+     left join fragment f on prep.PreparationID=f.PreparationID
+     left join (select distinct FragmentID from determination where TypeStatusName is not null) types on f.FragmentID=types.FragmentID
+
+    where loan.LoanID = $P!{itemnum} order by higherTaxon, barcode]]>
+	</queryString>
+	<field name="herbarium" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
+	<field name="higherTaxon" class="java.lang.String"/>
+	<field name="taxon" class="java.lang.String"/>
+	<field name="items" class="java.lang.Integer"/>
+	<field name="nonSpecimens" class="java.lang.Integer"/>
+	<field name="types" class="java.lang.Integer"/>
+	<field name="description" class="java.lang.String"/>
+	<variable name="itemCount" class="java.lang.Integer" incrementType="Report">
+		<variableExpression><![CDATA[new Integer($F{items}.intValue())]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="nonSpecimenCount" class="java.lang.Integer">
+		<variableExpression><![CDATA[new java.lang.Integer(  $F{nonSpecimens}.intValue() )]]></variableExpression>
+		<initialValueExpression><![CDATA[new Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="typeCount" class="java.lang.Integer">
+		<variableExpression><![CDATA[new Integer ( $F{types}.intValue() )]]></variableExpression>
+	</variable>
+	<background>
+		<band isSplitAllowed="true"/>
+	</background>
+	<detail>
+		<band height="47" isSplitAllowed="true">
+			<textField isBlankWhenNull="true">
+				<reportElement x="156" y="3" width="204" height="43"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="74" y="3" width="48" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{higherTaxon}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="103" y="3" width="53" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxon}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="365" y="3" width="46" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{items}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="412" y="3" width="67" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{nonSpecimens}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="450" y="3" width="51" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{types}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="4" y="3" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{barcode}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="515" y="3" width="15" height="15"/>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="57" y="3" width="16" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{herbarium}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>
