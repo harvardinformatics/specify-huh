@@ -721,7 +721,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
         preparation.setStorage(storage);
         
-        if (locationStr.contains("burt slide collection") && subcollectionId != null)
+        if (locationStr.contains("burt slide collection") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.BURT_SLIDE_SUBCOLL);
             preparation.setStorage(storage);
@@ -757,6 +757,12 @@ public class SpecimenItemLoader extends AuditedObjectLoader
             preparation.setStorage(storage);
             getLogger().warn(rec() + "Moving to hymenomycete collection based on location field: (" + location + ")");
         }
+        else if (locationStr.contains("theissen") && subcollectionId == null)
+        {
+            storage = lookupStorage(SubcollectionLoader.THEISSEN_SUBCOLL);
+            preparation.setStorage(storage);
+            getLogger().warn(rec() + "Moving to theissen collection based on location field: (" + location + ")");
+        }
         else if (locationStr.contains("trichomycete") && locationStr.contains("type") && subcollectionId == null)
         {
             storage = lookupStorage(SubcollectionLoader.TRICHO_TYPE_SUBCOLL);
@@ -771,7 +777,7 @@ public class SpecimenItemLoader extends AuditedObjectLoader
         }
         
 	    // StorageLocation (location/temp location)
-        location = truncate(location, 50, "location");
+        location = truncate(location, 100, "location");
         preparation.setStorageLocation(location);
         
         // Text1 (specimen_item id TODO: temporary, remove after load
