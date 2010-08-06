@@ -1186,12 +1186,20 @@ Good: <cell type="field" name="FieldNum" ...>
             <enableRules/>
             
             <columnDef>p,3dlu,p</columnDef>
-            <rowDef>p,2dlu,p</rowDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p</rowDef>
             
             <rows>
                 <row>
-                    <cell type="label" labelfor="FullName" label="Full Name"/>
-                    <cell type="field" id="FullName" name="FullName" isrequired="true" uitype="text"/>
+                    <cell type="label" labelfor="FullName"/>
+                    <cell type="field" id="FullName" name="FullName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Text1"/>
+                    <cell type="field" id="Text1" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Text2"/>
+                    <cell type="field" id="Text2" name="Text2" isrequired="false" uitype="text"/>
                 </row>
             </rows>
         </viewdef>

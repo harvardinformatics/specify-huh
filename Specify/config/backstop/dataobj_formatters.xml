@@ -784,6 +784,7 @@
         <switch single="true">
             <fields>
                 <field>fullName</field>
+                <field sep=", ">text1</field>
             </fields>
         </switch>
     </format>

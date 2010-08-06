@@ -1397,11 +1397,13 @@
         <table id="109" tableid="58" name="StorageSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT lcn.StorageID, lcn.FullName, lcn.Text2, lcn.Text1 FROM storage lcn  WHERE lcn.StorageTreeDefID = STORTREEDEFID AND (%s) ORDER BY lcn.FullName]]>
+                    <![CDATA[SELECT lcn.StorageID, lcn.FullName, lcn.Text1, lcn.Text2 FROM storage lcn  WHERE lcn.StorageTreeDefID = STORTREEDEFID AND (%s) ORDER BY lcn.FullName]]>
                 </sql>
                 <captions>
                     <caption tableid="58" col="StorageID" visible="false"/>
                     <caption tableid="58" col="FullName" key="StorageName"/>
+                    <caption tableid="58" col="Text1"/>
+                    <caption tableid="58" col="Text2"/>
                 </captions>
             </detailView>
         </table>
