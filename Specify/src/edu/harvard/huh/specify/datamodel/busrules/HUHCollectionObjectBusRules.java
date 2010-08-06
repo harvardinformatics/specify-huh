@@ -205,7 +205,7 @@ public class HUHCollectionObjectBusRules extends CollectionObjectBusRules
                 reasonList.clear();
 
                 CollectionObject collObj = (CollectionObject) dataObj;
-                if (collObj.getFragments().size() > 0)
+                if (collObj.getFragments().size() > 1)
                 {
                     reasonList.add(getResourceString("CollectionObjectBusRules.ATTACHED_ITEMS"));
                     return false;

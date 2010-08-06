@@ -135,7 +135,7 @@ public class HUHPreparationBusRules extends PreparationBusRules
                 reasonList.clear();
 
                 Preparation prep = (Preparation) dataObj;
-                if (prep.getFragments().size() > 0)
+                if (prep.getFragments().size() > 1)
                 {
                     reasonList.add(getResourceString("PreparationBusRules.ATTACHED_ITEMS"));
                     return false;
