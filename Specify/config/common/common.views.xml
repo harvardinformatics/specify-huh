@@ -3620,8 +3620,8 @@
                 <row>
                     <cell type="label" labelfor="minElev"/>
                     <cell type="field" id="minElev" name="minElevation" uitype="text" cols="20"/>
-                    <cell type="label" labelfor="11"/>
-                    <cell type="field" id="11" name="elevationMethod" uitype="combobox" picklist="HUH Elevation Method"/>
+                    <cell type="label" labelfor="elevationMethod"/>
+                    <cell type="field" id="elevationMethod" name="elevationMethod" uitype="combobox" picklist="HUH Elevation Method"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="elevationAccuracy" uitype="text" cols="20"/>
                 </row>

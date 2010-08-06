@@ -21682,7 +21682,7 @@
           </str>
         </descs>
       </item>
-      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Elev Method" isRequired="false">
+      <item name="elevationMethod" type="java.lang.String" isUIFormatter="false" pickListName="HUH Elevation Method" isRequired="false">
         <version>0</version>
         <isHidden>false</isHidden>
         <names>
