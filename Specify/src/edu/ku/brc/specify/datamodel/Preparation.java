@@ -527,11 +527,11 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         this.isOnLoan = isOnLoan;
     }
 
-    
+    // HUH mmk: increased length of StorageLocation to 100
     /**
      * 
      */
-    @Column(name = "StorageLocation", unique = false, nullable = true, insertable = true, updatable = true, length = 50)
+    @Column(name = "StorageLocation", unique = false, nullable = true, insertable = true, updatable = true, length = 100)
     public String getStorageLocation() {
         return this.storageLocation;
     }
