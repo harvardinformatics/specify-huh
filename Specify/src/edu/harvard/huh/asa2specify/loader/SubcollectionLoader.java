@@ -37,11 +37,11 @@ public class SubcollectionLoader extends TreeLoader
     public static Integer TRICHO_SUBCOLL   = 3671;
     public static Integer TUCKER_SUBCOLL   = 3596;
     
-    public static Integer BURT_SLIDE_SUBCOLL   = 9000; // burt slide collection"
-    public static Integer FARLOW_SLIDE_SUBCOLL = 9001; // farlow (microscope) slide collection"
+    public static Integer BURT_SLIDE_SUBCOLL   = 9000; // "burt slide collection"
+    public static Integer FARLOW_SLIDE_SUBCOLL = 9001; // "farlow (microscope) slide collection"
     public static Integer GEN_FUN_SUBCOLL      = 9002; // "general fungus herbarium type collection"
     public static Integer GLYCERINE_SUBCOLL    = 9003; // "in glycerine collection"
-    public static Integer HYMENO_SUBCOLL       = 9004; // "hymenomycetes) boxed type(s)"
+    public static Integer HYMENO_SUBCOLL       = 9004; // "hymenomycetes boxed type(s)"
     public static Integer THEISSEN_SUBCOLL     = 9005; // "theissen collection"
     public static Integer TRICHO_TYPE_SUBCOLL  = 9006; // "trichomycete type slide collection"
     
