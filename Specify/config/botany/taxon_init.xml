@@ -8,7 +8,7 @@
         <level name="Division"                          enforced="false" infullname="false" rank="30"/>
         <level name="Class"                             enforced="false" infullname="false" rank="60"/>
         <level name="Order"                             enforced="false" infullname="false" rank="100"/>
-        <level name="Family"                            enforced="true"  infullname="false" rank="140"/>
+        <level name="Family"                            enforced="false" infullname="false" rank="140"/>
         <level name="Tribe"                             enforced="false" infullname="false" rank="160"/>
         <level name="Genus"                             enforced="true"  infullname="true"  rank="180"/>
         <level name="Subgenus"                          enforced="false" infullname="false" rank="190"/>
