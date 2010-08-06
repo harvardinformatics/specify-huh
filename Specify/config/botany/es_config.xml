@@ -2,7 +2,7 @@
   <tables>
     <searchtable>
       <tableName>Agent</tableName>
-      <displayOrder>9</displayOrder>
+      <displayOrder>0</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>lastName</fieldName>
@@ -10,8 +10,21 @@
           <isAscending>true</isAscending>
           <order>0</order>
         </searchfield>
+        <searchfield>
+          <fieldName>abbreviation</fieldName>
+          <isSortable>false</isSortable>
+          <isAscending>true</isAscending>
+          <order>1</order>
+        </searchfield>
       </searchFields>
       <displayFields>
+        <displayfield>
+          <fieldName>abbreviation</fieldName>
+          <formatter></formatter>
+          <order>2147483647</order>
+          <isWebServiceField>false</isWebServiceField>
+          <isInitialInUse>false</isInitialInUse>
+        </displayfield>
         <displayfield>
           <fieldName>firstName</fieldName>
           <formatter></formatter>
@@ -29,7 +42,7 @@
     </searchtable>
     <searchtable>
       <tableName>AgentVariant</tableName>
-      <displayOrder>5</displayOrder>
+      <displayOrder>12</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>name</fieldName>
@@ -56,13 +69,13 @@
     </searchtable>
     <searchtable>
       <tableName>CollectionObject</tableName>
-      <displayOrder>0</displayOrder>
+      <displayOrder>2</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>fieldNumber</fieldName>
           <isSortable>false</isSortable>
           <isAscending>true</isAscending>
-          <order>1</order>
+          <order>0</order>
         </searchfield>
       </searchFields>
       <displayFields>
@@ -78,7 +91,7 @@
     </searchtable>
     <searchtable>
       <tableName>Geography</tableName>
-      <displayOrder>7</displayOrder>
+      <displayOrder>4</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>fullName</fieldName>
@@ -99,7 +112,7 @@
     </searchtable>
     <searchtable>
       <tableName>Fragment</tableName>
-      <displayOrder>6</displayOrder>
+      <displayOrder>5</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>identifier</fieldName>
@@ -120,7 +133,7 @@
     </searchtable>
     <searchtable>
       <tableName>Preparation</tableName>
-      <displayOrder>3</displayOrder>
+      <displayOrder>7</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>identifier</fieldName>
@@ -142,19 +155,19 @@
     </searchtable>
     <searchtable>
       <tableName>ReferenceWork</tableName>
-      <displayOrder>1</displayOrder>
+      <displayOrder>9</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>text1</fieldName>
           <isSortable>false</isSortable>
           <isAscending>true</isAscending>
-          <order>2</order>
+          <order>0</order>
         </searchfield>
         <searchfield>
           <fieldName>title</fieldName>
           <isSortable>false</isSortable>
           <isAscending>true</isAscending>
-          <order>3</order>
+          <order>1</order>
         </searchfield>
       </searchFields>
       <displayFields>
@@ -177,7 +190,7 @@
     </searchtable>
     <searchtable>
       <tableName>Storage</tableName>
-      <displayOrder>2</displayOrder>
+      <displayOrder>10</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>fullName</fieldName>
@@ -219,7 +232,7 @@
     </searchtable>
     <searchtable>
       <tableName>Taxon</tableName>
-      <displayOrder>8</displayOrder>
+      <displayOrder>11</displayOrder>
       <searchFields>
         <searchfield>
           <fieldName>fullName</fieldName>
@@ -242,75 +255,75 @@
   <relatedQueries>
     <relatedquery isactive="true">
       <id>9</id>
-      <displayOrder>4</displayOrder>
+      <displayOrder>6</displayOrder>
     </relatedquery>
-    <relatedquery>
+    <relatedquery isactive="true">
       <id>1</id>
-      <displayOrder>10</displayOrder>
+      <displayOrder>1</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>2</id>
-      <displayOrder>17</displayOrder>
+      <displayOrder>19</displayOrder>
     </relatedquery>
     <relatedquery isactive="true">
       <id>3</id>
-      <displayOrder>11</displayOrder>
+      <displayOrder>3</displayOrder>
     </relatedquery>
     <relatedquery>
       <id>4</id>
-      <displayOrder>12</displayOrder>
-    </relatedquery>
-    <relatedquery isactive="false">
-      <id>5</id>
       <displayOrder>13</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>11</id>
+      <id>5</id>
       <displayOrder>14</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>7</id>
-      <displayOrder>20</displayOrder>
-    </relatedquery>
-    <relatedquery isactive="false">
-      <id>8</id>
-      <displayOrder>24</displayOrder>
-    </relatedquery>
-    <relatedquery isactive="false">
-      <id>10</id>
+      <id>11</id>
       <displayOrder>15</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>12</id>
+      <id>7</id>
+      <displayOrder>24</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>8</id>
+      <displayOrder>27</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>10</id>
       <displayOrder>16</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>6</id>
+      <id>12</id>
       <displayOrder>17</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>32</id>
+      <id>6</id>
       <displayOrder>18</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>33</id>
+      <id>32</id>
       <displayOrder>19</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>34</id>
-      <displayOrder>31</displayOrder>
-    </relatedquery>
-    <relatedquery isactive="false">
-      <id>36</id>
+      <id>33</id>
       <displayOrder>20</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
-      <id>38</id>
+      <id>34</id>
+      <displayOrder>35</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
+      <id>36</id>
       <displayOrder>21</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
+      <id>38</id>
+      <displayOrder>22</displayOrder>
+    </relatedquery>
+    <relatedquery isactive="false">
       <id>39</id>
-      <displayOrder>29</displayOrder>
+      <displayOrder>36</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>43</id>
@@ -342,7 +355,7 @@
     </relatedquery>
     <relatedquery isactive="false">
       <id>15</id>
-      <displayOrder>22</displayOrder>
+      <displayOrder>23</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>13</id>
@@ -350,7 +363,7 @@
     </relatedquery>
     <relatedquery isactive="false">
       <id>37</id>
-      <displayOrder>23</displayOrder>
+      <displayOrder>24</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>40</id>
@@ -402,7 +415,7 @@
     </relatedquery>
     <relatedquery isactive="false">
       <id>30</id>
-      <displayOrder>24</displayOrder>
+      <displayOrder>25</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>24</id>
@@ -410,19 +423,19 @@
     </relatedquery>
     <relatedquery isactive="false">
       <id>28</id>
-      <displayOrder>25</displayOrder>
+      <displayOrder>26</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>31</id>
-      <displayOrder>26</displayOrder>
+      <displayOrder>27</displayOrder>
     </relatedquery>
     <relatedquery isactive="true">
       <id>35</id>
-      <displayOrder>27</displayOrder>
+      <displayOrder>8</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>14</id>
-      <displayOrder>41</displayOrder>
+      <displayOrder>39</displayOrder>
     </relatedquery>
     <relatedquery isactive="false">
       <id>26</id>
