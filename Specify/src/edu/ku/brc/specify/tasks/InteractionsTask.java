@@ -96,9 +96,11 @@ import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.ExchangeIn;
 import edu.ku.brc.specify.datamodel.ExchangeOut;
+import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Gift;
 import edu.ku.brc.specify.datamodel.GiftPreparation;
 import edu.ku.brc.specify.datamodel.InfoRequest;
@@ -949,23 +951,31 @@ public class InteractionsTask extends BaseTask
             for (Integer prepId : prepsHash.keySet())
             {
                 Preparation prep  = session.get(Preparation.class, prepId);
-                Integer     count = prepsHash.get(prepId);
-                if (prepToLoanPrepHash != null)
+                
+                Integer itemCount        = prep.getCountAmt();
+                Integer typeCount        = 0;
+                Integer nonSpecimenCount = 0;
+                
+                for (Fragment f : prep.getFragments())
                 {
-                    LoanPreparation lp = prepToLoanPrepHash.get(prep.getId());
-                    if (lp != null)
+                    for (Determination d : f.getDeterminations())
                     {
-                        int lpCnt = lp.getItemCount();
-                        lpCnt += count;
-                        lp.setItemCount(lpCnt);
-                        continue;
+                        if (d.getTypeStatusName() != null &&
+                                !d.getTypeStatusName().toLowerCase().startsWith("not"))
+                        {
+                            typeCount = itemCount;
+                            itemCount = 0;
+                            break;
+                        }                                
                     }
                 }
                 
                 LoanPreparation lpo = new LoanPreparation();
                 lpo.initialize();
                 lpo.setPreparation(prep);
-                lpo.setItemCount(count);
+                lpo.setItemCount(itemCount);
+                lpo.setTypeCount(typeCount);
+                lpo.setNonSpecimenCount(nonSpecimenCount);
                 lpo.setLoan(loan);
                 loan.getLoanPreparations().add(lpo);
             }
