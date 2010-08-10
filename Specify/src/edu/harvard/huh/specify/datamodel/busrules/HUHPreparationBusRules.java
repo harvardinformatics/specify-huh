@@ -32,6 +32,7 @@ import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.busrules.PreparationBusRules;
 
@@ -151,20 +152,32 @@ public class HUHPreparationBusRules extends PreparationBusRules
         if (dataObj instanceof Preparation)
         {
             Preparation prep = (Preparation) dataObj;
+            
+            boolean hasCycle = hasCycle(prep);
             boolean hasFragment = hasFragment(prep);
-
-            if (hasFragment)
+            boolean isLot = isLot(prep);
+            
+            if (hasCycle)
             {
-                return true;
+                reasonList.add(getLocalizedMessage("PreparationBusRules.ANCESTOR_ERR"));
+                return false;
             }
-            else
+
+            if (!hasFragment && StringUtils.isEmpty(prep.getIdentifier()) && !isLot)
             {
-                if (StringUtils.isEmpty(prep.getIdentifier()))
+                reasonList.add(getLocalizedMessage("PreparationBusRules.NO_ITEMS"));
+                return false;
+            }
+            
+            if (hasFragment || !StringUtils.isEmpty(prep.getIdentifier()))
+            {
+                String barcodeError = HUHFragmentBusRules.checkForBarcodeError(prep);
+
+                if (barcodeError != null)
                 {
-                    reasonList.add(getLocalizedMessage("PreparationBusRules.NO_ITEMS"));
+                    reasonList.add(barcodeError);
                     return false;
                 }
-                else return true;
             }
         }
         return true;
@@ -192,21 +205,25 @@ public class HUHPreparationBusRules extends PreparationBusRules
         if (!STATUS.OK.equals(status)) return status;
         
         boolean hasFragment = hasFragment(prep);
+        boolean isLot = isLot(prep);
         
-        if (!hasFragment && StringUtils.isEmpty(prep.getIdentifier()))
+        if (!hasFragment && StringUtils.isEmpty(prep.getIdentifier()) && !isLot)
         {
             reasonList.add(getLocalizedMessage("PreparationBusRules.NO_ITEMS"));
             status = STATUS.Error;
         }
         if (!STATUS.OK.equals(status)) return status;
         
-        String barcodeError = HUHFragmentBusRules.checkForBarcodeError(prep);
-        
-        if (barcodeError != null)
+        if (hasFragment || !StringUtils.isEmpty(prep.getIdentifier()))
         {
-            reasonList.add(barcodeError);
-            status = STATUS.Error;
-        }        
+            String barcodeError = HUHFragmentBusRules.checkForBarcodeError(prep);
+
+            if (barcodeError != null)
+            {
+                reasonList.add(barcodeError);
+                status = STATUS.Error;
+            }        
+        }
         return status;
     }
     
@@ -237,5 +254,15 @@ public class HUHPreparationBusRules extends PreparationBusRules
             if (prep.getFragments() == null || prep.getFragments().size() < 1) return false;
         }
         return true;
+    }
+    
+    protected boolean isLot(Preparation prep)
+    {
+        PrepType prepType = prep.getPrepType();
+        if (prepType != null && "lot".equalsIgnoreCase(prepType.getName()))
+        {
+            return true;
+        }
+        return false;
     }
 }
