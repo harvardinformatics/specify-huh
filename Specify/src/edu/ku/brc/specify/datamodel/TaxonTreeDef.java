@@ -195,7 +195,7 @@ public class TaxonTreeDef extends BaseTreeDef<Taxon, TaxonTreeDef, TaxonTreeDefI
             || levelRank == PHYLUM
             || levelRank == CLASS
             || levelRank == ORDER
-            || levelRank == FAMILY
+            //|| levelRank == FAMILY HUH mmk: this can't be required, causes problems with cryptogams
             || levelRank == GENUS
             || levelRank == SPECIES;
     }
