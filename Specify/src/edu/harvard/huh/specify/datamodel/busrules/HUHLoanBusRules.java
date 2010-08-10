@@ -25,6 +25,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
+import java.util.HashSet;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -44,6 +45,7 @@ import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
+import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules;
 import edu.ku.brc.ui.DateWrapper;
@@ -240,6 +242,27 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
                                                                     "loanId");
             
             return duplicateNumberStatus;
+        }
+        
+        HashSet<Integer> prepIds = new HashSet<Integer>();
+        
+        for (LoanPreparation loanPrep : loan.getLoanPreparations())
+        {
+
+            Preparation prep = loanPrep.getPreparation();
+            Integer prepId = prep.getPreparationId();
+            if (prepId != null)
+            {
+                if (prepIds.contains(prepId))
+                {
+                    reasonList.add(UIRegistry.getResourceString("LOAN_PREP_DUP_PREP"));
+                    return STATUS.Error;
+                }
+                else
+                {
+                    prepIds.add(prepId);
+                }
+            }
         }
         return STATUS.OK;
     }
