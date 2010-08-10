@@ -245,7 +245,8 @@ public class LoanLoader extends TaxonBatchTransactionLoader
         
         // Text2 (local unit)
         String localUnit = asaLoan.getLocalUnit();
-        loan.setText2(localUnit);
+        String account = "A".equals(localUnit) ? "GC" : "FH".equals(localUnit) ? "FC" : localUnit;
+        loan.setText2(account);
         
         // Text3 (user type: staff/student/visitor/unknown)
         USER_TYPE userType = asaLoan.getUserType();

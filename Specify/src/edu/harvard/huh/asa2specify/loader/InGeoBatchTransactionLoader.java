@@ -49,14 +49,13 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
                 @Override
                 public Accession getById(Integer transactionId) throws LocalException
                 {
-                    Accession loan = new Accession();
+                    Accession accession = new Accession();
                     
-                    // if this changes, you will have to change getLoanPrepLookup as well.
                     Integer accessionId = getInt("accession", "AccessionID", "Number1", transactionId);
                     
-                    loan.setAccessionId(accessionId);
+                    accession.setAccessionId(accessionId);
                     
-                    return loan;
+                    return accession;
                 }
             };
         }
