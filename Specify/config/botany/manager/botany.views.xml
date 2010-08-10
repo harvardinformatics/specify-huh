@@ -311,8 +311,9 @@
                 <row>
                     <cell type="label" labelfor="7"/>
                     <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" default="On sheet" isrequired="true"/> 
+                	<cell type="label" labelfor="countAmt"/>
+                	<cell type="field" id="countAmt" name="countAmt" uitype="spinner" initialize="max=5000"/>
                 	<cell type="field" id="isOversize" uitype="checkbox" name="yesNo1"/>
-                	<cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
 				<row>
 					<cell type="label" labelfor="taxon"/>
