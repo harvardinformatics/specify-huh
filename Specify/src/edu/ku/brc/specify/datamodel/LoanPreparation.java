@@ -33,18 +33,20 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
+// HUH mmk: added uniqueness constraint (LoanID, PreparationID)
 /**
 
  */
 @Entity
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
-@Table(name = "loanpreparation")
+@Table(name = "loanpreparation", uniqueConstraints = { @UniqueConstraint(columnNames = { "LoanID", "PreparationID"}) })
 @org.hibernate.annotations.Table(appliesTo="loanpreparation", indexes =
     {   @Index (name="LoanPrepDspMemIDX", columnNames={"DisciplineID"})
     })
