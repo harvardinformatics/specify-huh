@@ -35,6 +35,7 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.StaleObjectException;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
@@ -58,6 +59,8 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     private final String HIGHER_TAXON = "higherTaxon";
     private final String SRC_TAXONOMY = "srcTaxonomy";
     private final String TYPE_COUNT   = "typeCount";
+    private final String ITEM_COUNT   = "itemCount";
+    
     /**
      * Constructor.
      */
@@ -100,12 +103,14 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                 final Component srcTaxonComp    = formViewObj.getControlById(SRC_TAXONOMY);
                 final Component higherTaxonComp = formViewObj.getControlById(HIGHER_TAXON);
                 final Component typeCountComp   = formViewObj.getControlById(TYPE_COUNT);
+                final Component itemCountComp   = formViewObj.getControlById(ITEM_COUNT);
 
                 if (srcTaxonComp != null && higherTaxonComp != null && srcTaxonComp instanceof JTextField && higherTaxonComp instanceof JTextField)
                 {
                     final JTextField srcTaxonTextField = (JTextField) srcTaxonComp;
                     final JTextField higherTaxonTextField = (JTextField) higherTaxonComp;
                     final ValSpinner  typeCount = (ValSpinner) typeCountComp; 
+                    final ValSpinner  itemCount = (ValSpinner) itemCountComp; 
                     
                     if (srcTaxonTextField != null && higherTaxonTextField != null && typeCount != null)
                     {
@@ -120,7 +125,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                                             Preparation prep  = (Preparation) prepComboBox.getValue();
                                             if (prep != null)
                                             {
-                                                adjustTaxonFields(prep, srcTaxonTextField, higherTaxonTextField, typeCount);
+                                                adjustTaxonFields(prep, srcTaxonTextField, higherTaxonTextField, typeCount, itemCount);
                                             }
                                         }
                                     }
@@ -131,20 +136,60 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         }
     }
     
-    private void adjustTaxonFields(Preparation prep, JTextField srcTaxonTextField, JTextField higherTaxonTextField, ValSpinner typeCount)
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#isOkToAssociateSearchObject(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean isOkToAssociateSearchObject(Object newParentDataObj, Object dataObjectFromSearch)
+    {
+        boolean isOK = super.isOkToAssociateSearchObject(newParentDataObj, dataObjectFromSearch);
+        
+        if (!isOK) return false;
+        
+        reasonList.clear();
+
+        if (newParentDataObj instanceof LoanPreparation && dataObjectFromSearch instanceof Preparation)
+        {
+            LoanPreparation loanPrep = (LoanPreparation) newParentDataObj;
+            Preparation prep = (Preparation) dataObjectFromSearch;
+            
+            Integer thisLoanPrepId = loanPrep.getLoanPreparationId();
+            Integer thisPrepId = prep.getPreparationId();
+            
+            for (LoanPreparation lpo : loanPrep.getLoan().getLoanPreparations())
+            {
+                Preparation pp = lpo.getPreparation();
+                
+                Integer thatLoanPrepId = lpo.getLoanPreparationId();
+                Integer thatPrepId = pp.getPreparationId();
+                
+                if (thisPrepId != null && thatPrepId != null && thisPrepId.equals(thatPrepId) &&
+                        thisLoanPrepId != null && thatLoanPrepId != null && thisLoanPrepId.equals(thatLoanPrepId))
+                {
+                    reasonList.add(UIRegistry.getResourceString("LOAN_PREP_DUP_PREP"));
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    private void adjustTaxonFields(Preparation prep, JTextField srcTaxonTextField, JTextField higherTaxonTextField, ValSpinner typeCount, ValSpinner itemCount)
     {
         try
         {
             DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
             prep = session.merge(prep);
-
+            Integer countAmt = prep.getCountAmt();
+            
             Determination det = null;
 
             for (Fragment f : prep.getFragments())
             {
                 for (Determination d : f.getDeterminations())
                 {
-                    if (d.getTypeStatusName() != null)
+                    if (isType(d))
                     {
                         det = d;
                         break;
@@ -175,7 +220,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                         }
                     }
                 }
-                if (det.getTypeStatusName() != null)
+                if (isType(det))
                 {
                     if (typeCount != null)
                     {
@@ -184,6 +229,12 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                     }
                 }
             }
+            
+            if (itemCount != null && det != null && !isType(det))
+            {
+                itemCount.setValue(countAmt);
+            }
+
             session.close();
         }
         catch (StaleObjectException soe)
@@ -191,5 +242,10 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHLoanPreparationBusRules.class, soe);
             soe.printStackTrace();
         }
+    }
+    
+    protected boolean isType(Determination d)
+    {
+        return d.getTypeStatusName() != null && !d.getTypeStatusName().toLowerCase().startsWith("not");
     }
 }
