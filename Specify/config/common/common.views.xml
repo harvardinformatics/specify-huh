@@ -3496,7 +3496,7 @@
             <rows>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
-					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;displaydlg=BatchPreparation;editoncreate=true" formatname="BatchPrepDetail" colspan="5"/>
+					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;displaydlg=BatchPreparation;editoncreate=true" formatname="BatchPrepDetail" colspan="5" isrequired="true"/>
 					<cell type="label" label=" "/>
 					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
 					<!-- <cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/> -->	
