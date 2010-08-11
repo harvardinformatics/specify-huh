@@ -250,7 +250,7 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
         {
 
             Preparation prep = loanPrep.getPreparation();
-            Integer prepId = prep.getPreparationId();
+            Integer prepId = prep == null ? null : prep.getPreparationId();
             if (prepId != null)
             {
                 if (prepIds.contains(prepId))
