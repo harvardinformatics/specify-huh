@@ -1,4 +1,4 @@
-package edu.harvard.huh.specify.utilapps;
+package edu.harvard.huh.asa2specify;
 
 import java.io.File;
 import java.sql.Connection;
@@ -10,7 +10,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.AffiliateLoader;
 import edu.harvard.huh.asa2specify.loader.AgentLoader;
 import edu.harvard.huh.asa2specify.loader.BasionymLoader;

@@ -2,6 +2,7 @@ package edu.harvard.huh.specify.config;
 
 import edu.ku.brc.specify.config.Scriptlet;
 
+// this class may be called in  iReport jrxml
 public class HUHScriptlet extends Scriptlet {
 
     /**

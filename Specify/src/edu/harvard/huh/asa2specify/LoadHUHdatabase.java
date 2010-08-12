@@ -12,7 +12,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package edu.harvard.huh.specify.utilapps;
+package edu.harvard.huh.asa2specify;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -29,7 +29,6 @@ import javax.swing.WindowConstants;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
-import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.loader.*;
 import edu.harvard.huh.asa2specify.lookup.*;
 import edu.ku.brc.dbsupport.DBConnection;
