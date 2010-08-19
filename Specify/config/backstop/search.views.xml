@@ -1153,6 +1153,10 @@ Good: <cell type="field" name="FieldNum" ...>
                     <cell type="label" labelfor="Author" label="Author"/>
                     <cell type="field" id="Author" name="taxon.Author" isrequired="false" uitype="text"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="Group" label="Group"/>
+                    <cell type="field" id="Group" name="taxon.GroupNumber" isrequired="false" uitype="text"/>
+                </row>
             </rows>
         </viewdef>
         

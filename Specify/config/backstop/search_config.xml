@@ -1369,13 +1369,14 @@
         <table id="107" tableid="4" name="TaxonSearch" priority="1" color="30, 144, 255">
             <detailView icon="">
                 <sql>
-                    <![CDATA[SELECT tx.TaxonID, tx.RankID, tx.FullName, tx.Author FROM taxon tx WHERE tx.TaxonTreeDefID = TAXTREEDEFID AND (%s) ORDER BY tx.RankID, tx.Name]]>
+                    <![CDATA[SELECT tx.TaxonID, tx.RankID, tx.FullName, tx.Author, tx.GroupNumber FROM taxon tx WHERE tx.TaxonTreeDefID = TAXTREEDEFID AND (%s) ORDER BY tx.RankID, tx.Name]]>
                 </sql>
                 <captions>
                     <caption tableid="4" col="taxon.TaxonID" visible="false"/>
                     <caption tableid="4" col="taxon.RankID" visible="false"/>
                     <caption tableid="4" col="taxon.FullName"/>
                     <caption tableid="4" col="taxon.Author"/>
+                    <caption tableid="4" col="taxon.GroupNumber"/>
                 </captions>
             </detailView>
         </table>
