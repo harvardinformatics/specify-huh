@@ -28,7 +28,8 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="fragment", indexes =
     {   @Index (name="FragColMemIDX", columnNames={"CollectionMemberID"}),
         @Index (name="FragGuidIDX", columnNames={"GUID"}),
-        @Index (name="IdentifierIDX", columnNames={"Identifier"}) })
+        @Index (name="IdentifierIDX", columnNames={"Identifier"}),
+        @Index (name="ProvenanceIDX", columnNames={"Provenance"})})
 public class Fragment extends CollectionMember implements AttachmentOwnerIFace<FragmentAttachment>,
                                                           Serializable,
                                                           Comparable<Fragment>,
