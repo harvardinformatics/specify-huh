@@ -258,7 +258,7 @@ public class TextFieldWithQuery extends JPanel implements CustomQueryListener
         for (String k : keyColumns)
         {
             String title = k;
-            if (k != null && k.contains(tablePrefix)) k = k.substring(tablePrefix.length()); // TODO: kludge
+            if (k != null && k.contains(tablePrefix)) k = k.substring(tablePrefix.length()); // TODO: kludge to remove table prefixes from mouseover display text
             
             DBFieldInfo fi = tableInfo.getFieldByName(k);
             if (fi != null)
