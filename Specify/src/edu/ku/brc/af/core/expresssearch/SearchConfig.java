@@ -107,6 +107,9 @@ public class SearchConfig
         xstream.alias("searchfield",  SearchFieldConfig.class); //$NON-NLS-1$
         xstream.alias("displayfield", DisplayFieldConfig.class); //$NON-NLS-1$
         xstream.alias("relatedquery", RelatedQuery.class); //$NON-NLS-1$
+        
+        // HUH mmk: added formatter element so that formatting can be applied to searches
+        // defined in es_config.xml
         xstream.alias("formatter",    String.class); //$NON-NLS-1$
         
         xstream.aliasAttribute(RelatedQuery.class, "isActive", "isactive"); //$NON-NLS-1$ //$NON-NLS-2$

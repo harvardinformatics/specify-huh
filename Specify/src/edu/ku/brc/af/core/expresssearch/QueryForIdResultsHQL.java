@@ -302,7 +302,7 @@ public class QueryForIdResultsHQL implements QueryForIdResultsIFace
         int i = 0;
         for (DisplayFieldConfig dfc : searchTableConfig.getDisplayFields())
         {
-            // look for formatter on display field config; if not found, look for it on display field config's field info
+            // HUH mmk: look for formatter on dfc (i.e. from search_config.xml); if not found, look for it on dfc's field info (i.e. from specify_datamodel.xml)
             UIFieldFormatterIFace uiFieldFormatter = null;
             String formatterName = dfc.getFormatter();
             if (formatterName != null) uiFieldFormatter = UIFieldFormatterMgr.getInstance().getFormatter(formatterName);

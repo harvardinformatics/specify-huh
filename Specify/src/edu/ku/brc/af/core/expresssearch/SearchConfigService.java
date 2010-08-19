@@ -229,7 +229,7 @@ public class SearchConfigService
         XStream xstream = new XStream();
         SearchConfig.configXStream(xstream);
 
-        // TODO: MMK: if you uncomment the following try/catch, then run Specify
+        // HUH mmk: TODO: if you uncomment the following try/catch, then run Specify
         // and use the simple search configuration tool, this block will print the
         // configuration in an xml file called "config.xml" in the main config
         // directory.  This file can be used for config/{discipline}/es_config.xml.
