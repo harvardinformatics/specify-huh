@@ -104,7 +104,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
 
         String dbName   = "specify";
         String userName = "Specify";
-        String password = "Tmd#4el8d8";
+        String password = "*******";
         String hostname = "localhost";
 
         String connStr = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Create, 
