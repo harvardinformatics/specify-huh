@@ -681,7 +681,7 @@
                 </row>
                 <row>
                 	<cell type="label" labelfor="designator"/>
-                	<cell type="field" id="designator" uitype="querycbx" initialize="name=Agent;title=Neo/Lecto/Epitype Designator;displaydlg=Botanist;searchdlg=BotanistSearch" name="designator" colspan="5"/>
+                	<cell type="field" id="designator" uitype="querycbx" initialize="name=CollectorAgentByAgentVar;title=Neo/Lecto/Epitype Designator;displaydlg=Botanist;searchdlg=BotanistSearch" name="designator" colspan="5"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="text1"/>
