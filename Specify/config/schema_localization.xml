@@ -20400,7 +20400,7 @@
       </item>
       <item name="createdByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -20570,7 +20570,7 @@
       </item>
       <item name="modifiedByAgent">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
@@ -20773,7 +20773,7 @@
       </item>
       <item name="timestampCreated" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>
@@ -20789,7 +20789,7 @@
       </item>
       <item name="timestampModified" type="java.sql.Timestamp">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en" country="" variant="">
             <version>0</version>

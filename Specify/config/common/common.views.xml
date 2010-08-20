@@ -3401,6 +3401,18 @@
                 <row>
                      <cell type="subview" viewname="LoanItems" id="10" name="loanPreparations" colspan="15" rows="4"/>
                 </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=AffiliateAgent" colspan="5"/>
+					<cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=AffiliateAgent" colspan="5"/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20"/>
+                </row>
                 <!-- <row>
                     <cell type="panel" id="17" name="srcPanel" coldef="130px,2px,p:g,5px,130px,2px,p:g" rowdef="p" colspan="14">
                         <rows>
