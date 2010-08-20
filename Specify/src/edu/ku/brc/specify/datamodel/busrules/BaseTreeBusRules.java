@@ -24,8 +24,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -498,11 +503,14 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
         
         log.debug("lowest valid tree level:  " + bottomItem);
 
+        // HUH mmk: sort tree def items by name
+        HashMap<String, I> ranksByName = new HashMap<String, I>();
+        
         I item = topItem;
         boolean done = false;
         while (!done)
         {
-            model.addElement(item);
+            ranksByName.put(item.getName(), item);
 
             if (item.getChild()==null || item.getIsEnforced()==Boolean.TRUE || (bottomItem != null && item.getRankId().intValue()==bottomItem.getRankId().intValue()) )
             {
@@ -511,6 +519,15 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             item = item.getChild();
         }
         
+        ArrayList<String> rankNames = new ArrayList<String>(ranksByName.keySet().size());
+        rankNames.addAll(ranksByName.keySet());
+        Collections.sort(rankNames);
+        
+        for (String rankName : rankNames)
+        {
+            model.addElement(ranksByName.get(rankName));
+        }
+
         if (nodeInForm.getDefinitionItem() != null)
         {
             I defItem = nodeInForm.getDefinitionItem();
