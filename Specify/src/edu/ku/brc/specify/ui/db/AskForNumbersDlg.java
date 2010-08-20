@@ -87,7 +87,7 @@ public class AskForNumbersDlg extends CustomDialog
     protected StringBuilder   errorList = new StringBuilder();
     
     private char listSep  = ',';           // dialog for catalog numbers uses this char to separate entries
-    private int  entryLen = 9;             // catalog numbers have this length
+    private int  entryLen = 8;             // catalog numbers have this length
     private String entryRegex = "^\\d+$";  // catalog numbers are numeric
     /**
      * @param dialog
