@@ -859,10 +859,10 @@
                 <row>
                 	<cell type="label" labelfor="19" />
                 	<cell type="field" id="19" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfBirth;pd=Year" />
-                	<cell type="field" id="startPrec" name="dateOfBirthPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
+                	<cell type="field" id="startPrec" name="dateOfBirthConfidence" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="20" />
                 	<cell type="field" id="20" name="this" uitype="plugin" initialize="name=FixedPartialDateUI;df=dateOfDeath;pd=Year"/>
-                	<cell type="field" id="endPrec" name="dateOfDeathPrecision" uitype="combobox" picklist="HUH Date Confidence"/>
+                	<cell type="field" id="endPrec" name="dateOfDeathConfidence" uitype="combobox" picklist="HUH Date Confidence"/>
                 	<cell type="label" labelfor="datesType"/>
                 	<cell type="field" id="datesType" name="datesType" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
                 </row>
