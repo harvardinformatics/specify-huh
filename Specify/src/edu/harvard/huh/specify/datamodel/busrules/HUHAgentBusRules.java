@@ -255,16 +255,12 @@ public class HUHAgentBusRules extends AgentBusRules
         boolean isGroup = agent.getAgentType() != null && agent.getAgentType() == Agent.GROUP;
         boolean isOrganization = agent.getAgentType() != null && agent.getAgentType() == Agent.ORG;
         
-        if (!isPerson)
-        {
-            agent.setFirstName(null);
-            agent.setDatesType(null);
-        }
+
         enableFieldAndLabel(ABBREV, isOrganization, doSetOtherValues ? agent.getAbbreviation() : null);
         // address is handled in fixUpTypeCBX
         enableFieldAndLabel(FIRST_NAME, isPerson, doSetOtherValues ? agent.getFirstName() : null);
         setVisible(GROUP_PERSONS, isGroup);
-        enableFieldAndLabel(DATES_TYPE, isPerson, doSetOtherValues ? agent.getMiddleInitial() : null);
+        enableFieldAndLabel(DATES_TYPE, true, doSetOtherValues ? agent.getMiddleInitial() : null);
         enableFieldAndLabel(INITIALS, isPerson, doSetOtherValues ? agent.getInitials() : null);
         enableFieldAndLabel(INTERESTS, isPerson, doSetOtherValues ? agent.getInterests() : null);
         enableFieldAndLabel(JOB_TITLE, isPerson, doSetOtherValues ? agent.getJobTitle() : null);
