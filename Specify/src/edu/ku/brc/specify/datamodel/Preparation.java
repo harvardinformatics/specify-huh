@@ -62,7 +62,7 @@ import edu.ku.brc.dbsupport.DBConnection;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "preparation", uniqueConstraints = {
-        @UniqueConstraint(columnNames={"Identifier"} )
+	@UniqueConstraint(columnNames={"Identifier"} )
 } )
 @org.hibernate.annotations.Table(appliesTo="preparation", indexes =
     {   @Index (name="PreparedDateIDX", columnNames={"preparedDate"}),
@@ -230,16 +230,39 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         return this.preparationId;
     }
     
-    /**
-    *
-    */
-   @Column(name = "Identifier", unique = false, nullable = true, insertable = true, updatable = true, length = 32)
-   public String getIdentifier() {
-       return this.identifier;
-   }
 
-   public void setIdentifier(String identifier) {
-       this.identifier = identifier;
+    /** The if statement inserted in setIdentifier addresses issues regarding multiple
+     *  preparations per loan that are lots which have an identifier that is an empty string
+     *  and which throw a ConstraintViolation due to "duplicate keys". This workaround 
+     *  replaces that empty string with a null value. Note: There is a unique constraint in both
+     *  the hibernate mapping and in the database table on the identifier field. Additionally, 
+     *  all lots have an identifier value assigned as an empty string.
+     */
+    public void setIdentifier(String identifier) {
+
+ 	   if (identifier != null && identifier.equals(""))
+ 		   this.identifier = null;
+ 	   else
+ 		   this.identifier = identifier;
+    }
+    
+    /** The if statement has been inserted in getIdentifier due to changes made in setIdentifier 
+     * regarding multiple lot preparations per loan and duplicate key errors due to lots being 
+     * assigned an identifier which is an empty string. The database value of null is different 
+     * than the original empty string value of identifier as a side consequence of converting the 
+     * strings in setIdentifier. The if statement in the get method will convert the null value 
+     * retrieved from the database back into an empty string. What is unclear is whether or not a 
+     * null identifier assigned to a preparation holds any meaning in specify code. A concern is 
+     * that an identifier which is originally assigned a null value could mistakenly be converted 
+     * to an empty string by the alterations to this getter method. 
+     */
+   @Column(name = "Identifier", unique = true, nullable = true, insertable = true, updatable = true, length = 32)
+   public String getIdentifier() {
+	   /*
+	   if (this.identifier == null)
+		   return "";
+	   else */
+		   return this.identifier;
    }
 
     /**
