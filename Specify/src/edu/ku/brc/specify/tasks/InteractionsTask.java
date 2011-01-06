@@ -50,6 +50,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.thoughtworks.xstream.XStream;
 
+import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.ku.brc.af.auth.BasicPermisionPanel;
 import edu.ku.brc.af.auth.PermissionEditorIFace;
 import edu.ku.brc.af.auth.PermissionSettings;
@@ -875,10 +876,13 @@ public class InteractionsTask extends BaseTask
     protected Vector<RecordSetIFace> getInfoReqRecordSetsFromSideBar()
     {
         Vector<RecordSetIFace> rsList = new Vector<RecordSetIFace>();
-        for (NavBoxItemIFace nbi : infoRequestNavBox.getItems())
-        {
-            rsList.add((RecordSet)nbi.getData());
-        }
+        //dl: sometimes this throws a null pointer exception so I added a check 
+    	if (infoRequestNavBox != null && infoRequestNavBox.getItems().size() != 0) {
+	        for (NavBoxItemIFace nbi : infoRequestNavBox.getItems())
+	        {
+	            rsList.add((RecordSet)nbi.getData());
+	        }
+    	}
         return rsList;
     }
     /**
@@ -891,7 +895,8 @@ public class InteractionsTask extends BaseTask
                                   final Hashtable<Integer, Integer> prepsHash,
                                   final Viewable                    srcViewable)
     {
-        Loan existingLoan = (Loan)existingLoanArg;
+    	
+    	Loan existingLoan = (Loan)existingLoanArg;
         Loan loan;
         
         if (existingLoan == null)
@@ -939,7 +944,7 @@ public class InteractionsTask extends BaseTask
             prepToLoanPrepHash = new Hashtable<Integer, LoanPreparation>();
             for (LoanPreparation lp : existingLoan.getLoanPreparations())
             {
-                prepToLoanPrepHash.put(lp.getPreparation().getId(), lp);
+            		prepToLoanPrepHash.put(lp.getPreparation().getId(), lp);
             }
         }
         
@@ -951,7 +956,7 @@ public class InteractionsTask extends BaseTask
             for (Integer prepId : prepsHash.keySet())
             {
                 Preparation prep  = session.get(Preparation.class, prepId);
-                
+            
                 Integer itemCount        = prep.getCountAmt();
                 Integer typeCount        = 0;
                 Integer nonSpecimenCount = 0;
@@ -966,9 +971,10 @@ public class InteractionsTask extends BaseTask
                             typeCount = itemCount;
                             itemCount = 0;
                             break;
-                        }                                
+                        }
                     }
                 }
+                
                 
                 LoanPreparation lpo = new LoanPreparation();
                 lpo.initialize();
@@ -1011,7 +1017,7 @@ public class InteractionsTask extends BaseTask
             }
         } else 
         {
-            CommandDispatcher.dispatch(new CommandAction(INTERACTIONS, "REFRESH_LOAN_PREPS", loan));
+        	CommandDispatcher.dispatch(new CommandAction(INTERACTIONS, "REFRESH_LOAN_PREPS", loan));
         }
     }
     
@@ -1770,6 +1776,10 @@ public class InteractionsTask extends BaseTask
                         
                         loanRetPrep.setRemarks(loanRetInfo.getRemarks());
                         
+                        loanRetPrep.setItemCount(loanRetInfo.getItemCount());
+                        loanRetPrep.setTypeCount(loanRetInfo.getTypeCount());
+                        loanRetPrep.setNonSpecimenCount(loanRetInfo.getNonSpecimenCount());
+                        
                         loanPrep.setIsResolved(loanRetInfo.isResolved());
                         loanPrep.setQuantityResolved(loanRetInfo.getResolvedQty());
                         loanPrep.setQuantityReturned(loanRetInfo.getReturnedQty());
@@ -2402,7 +2412,8 @@ public class InteractionsTask extends BaseTask
      *
      *Stores info about reports.
      */
-    private class InvoiceInfo extends Pair<SpAppResource, SpReport> implements Comparable<InvoiceInfo>
+    @SuppressWarnings("serial")
+	private class InvoiceInfo extends Pair<SpAppResource, SpReport> implements Comparable<InvoiceInfo>
     {
         /**
          * @param appResource
