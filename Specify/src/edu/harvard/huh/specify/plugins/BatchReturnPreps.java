@@ -26,37 +26,34 @@ import java.util.Properties;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
-
-import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.UIPluginable;
-import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.datamodel.Loan;
-import edu.ku.brc.specify.tasks.InteractionsProcessor;
 import edu.ku.brc.specify.tasks.InteractionsTask;
+import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIRegistry;
 
 @SuppressWarnings("serial")
-public class BatchAddPreps extends JButton implements UIPluginable, GetSetValueIFace
+public class BatchReturnPreps extends JButton implements UIPluginable, GetSetValueIFace
 {
     private String title = null;
 
-    private FormViewObj parent = null;
-    
+    @SuppressWarnings("unused")
+	private FormViewObj parent = null;
     private Loan loan;
     
-
-    public BatchAddPreps()
+    public BatchReturnPreps()
     {
+    	
         loadAndPushResourceBundle("specify_plugins");
         
-        title = UIRegistry.getResourceString("BatchAddPrepsPlugin");
-        String tooltip = getResourceString("BatchAddPrepsTooltip");
+        title = UIRegistry.getResourceString("BatchReturnPrepsPlugin");
+        String tooltip = getResourceString("BatchReturnPrepsTooltip");
         
         popResourceBundle();
         
-        //setIcon(IconManager.getIcon("BatchAddPreps", IconManager.IconSize.Std16));
+        //setIcon(IconManager.getIcon("BatchReturnPreps", IconManager.IconSize.Std16));
         setText(title);
         this.setToolTipText(tooltip);
         
@@ -64,6 +61,7 @@ public class BatchAddPreps extends JButton implements UIPluginable, GetSetValueI
             public void actionPerformed(ActionEvent arg0)
             {
                 doButtonAction();
+                
             }
         });
     }
@@ -72,15 +70,12 @@ public class BatchAddPreps extends JButton implements UIPluginable, GetSetValueI
      */
     protected void doButtonAction()
     {
-    	System.out.println(parent);
-        loan = (Loan)SubPaneMgr.getInstance().getCurrentSubPane().getMultiView().getData();
-        
     	InteractionsTask task = new InteractionsTask();
-    	RecordSetIFace recordSet = task.askForCatNumbersRecordSet();
-    	
-    	if (recordSet != null)
-    		new InteractionsProcessor<Loan>(task, true, 52).createOrAdd(loan, null, recordSet);
+    	CommandAction cmdAction = new CommandAction(InteractionsTask.INTERACTIONS, "ReturnLoan");
+    	task.doCommand(cmdAction);
+       
     }
+
     
     @Override
     public void addChangeListener(ChangeListener listener)
@@ -163,5 +158,4 @@ public class BatchAddPreps extends JButton implements UIPluginable, GetSetValueI
     {   
         setEnabled(true);
     }
-
 }

@@ -52,6 +52,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -311,6 +312,10 @@ public class LoanReturnDlg extends JDialog
             // Error Dialog
             ex.printStackTrace();
             
+            if (loan.getLoanNumber() == null) {
+            	JOptionPane.showMessageDialog(null, getResourceString("UNSAVED_LOAN_ERROR"), getResourceString("Error"), JOptionPane.ERROR_MESSAGE);
+            }
+            
         } finally 
         {
             if (session != null)
@@ -330,10 +335,11 @@ public class LoanReturnDlg extends JDialog
         int resCnt = 0;
         for (ColObjPanel colObjPanel : colObjPanels)
         {
-            retCnt += colObjPanel.getReturnedCount();
-            resCnt += colObjPanel.getResolvedCount();
+            retCnt += colObjPanel.getItemReturnedCount() + colObjPanel.getTypeReturnedCount() + colObjPanel.getNonSpecimenReturnedCount();
+            //resCnt += colObjPanel.getItemResolvedCount() + colObjPanel.getTypeResolvedCount();
         }
-        okBtn.setEnabled((retCnt > 0 || resCnt > 0) && agentCBX.getValue() != null && dateClosed.getValue() != null);
+        //okBtn.setEnabled((retCnt > 0 || resCnt > 0) && agentCBX.getValue() != null && dateClosed.getValue() != null);
+        okBtn.setEnabled((retCnt > 0) && agentCBX.getValue() != null && dateClosed.getValue() != null);
 
         summaryLabel.setText(String.format(getResourceString("LOANRET_NUM_ITEMS_2B_RET_FMT"), retCnt, resCnt));
     }
@@ -401,7 +407,8 @@ public class LoanReturnDlg extends JDialog
         {
             for (PrepPanel pp : colObjPanel.getPanels())
             {
-                if (pp.getReturnedCount() > 0 || pp.getResolvedCount() > 0)
+                //if ((pp.getItemReturnedCount() + pp.getTypeReturnedCount()) > 0 || (pp.getItemResolvedCount() + pp.getTypeResolvedCount()) > 0)
+            	if (pp.getItemReturnedCount() > 0 || pp.getTypeReturnedCount() > 0 || pp.getNonSpecimenReturnedCount() > 0)
                 {
                     returns.add(pp.getLoanReturnInfo());
                 }
@@ -446,11 +453,14 @@ public class LoanReturnDlg extends JDialog
             CellConstraints cc      = new CellConstraints();
      
             String taxonName = "";
+            String identifier = "";
             
             Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
+            
         	for (Fragment frag : colObj.getFragments())
         	{
         		determinations.addAll(frag.getDeterminations());
+        		identifier = frag.getIdentifier();
         	}                                                                 // mmk fragment
         	
             for (Determination deter : determinations)
@@ -472,7 +482,7 @@ public class LoanReturnDlg extends JDialog
                 }
             }
             
-            String descr = String.format("%s - %s", colObj.getIdentityTitle(), taxonName);
+            String descr = String.format("%s: %s - %s", identifier, colObj.getIdentityTitle(), taxonName);
             descr = StringUtils.stripToEmpty(descr);
             
             checkBox = createCheckBox(descr);
@@ -528,31 +538,70 @@ public class LoanReturnDlg extends JDialog
             return checkBox;
         }
         
-        public int getReturnedCount()
+        public int getItemReturnedCount()
         {
             int count = 0;
             if (checkBox.isSelected())
             {
                 for (PrepPanel pp : panels)
                 {
-                    count += pp.getReturnedCount();
+                    count += pp.getItemReturnedCount();
+                }
+            }
+            return count;
+        }
+        
+        public int getTypeReturnedCount()
+        {
+            int count = 0;
+            if (checkBox.isSelected())
+            {
+                for (PrepPanel pp : panels)
+                {
+                    count += pp.getTypeReturnedCount();
+                }
+            }
+            return count;
+        }
+        
+        public int getNonSpecimenReturnedCount()
+        {
+            int count = 0;
+            if (checkBox.isSelected())
+            {
+                for (PrepPanel pp : panels)
+                {
+                    count += pp.getNonSpecimenReturnedCount();
                 }
             }
             return count;
         }
 
-        public int getResolvedCount()
+        /*public int getItemResolvedCount()
         {
             int count = 0;
             if (checkBox.isSelected())
             {
                 for (PrepPanel pp : panels)
                 {
-                    count += pp.getResolvedCount();
+                    count += pp.getItemResolvedCount();
                 }
             }
             return count;
         }
+        
+        public int getTypeResolvedCount()
+        {
+            int count = 0;
+            if (checkBox.isSelected())
+            {
+                for (PrepPanel pp : panels)
+                {
+                    count += pp.getTypeResolvedCount();
+                }
+            }
+            return count;
+        }*/
 
         public Vector<PrepPanel> getPanels()
         {
@@ -571,16 +620,33 @@ public class LoanReturnDlg extends JDialog
         protected LoanPreparation lpo;
         protected JLabel      label       = null;
         protected JLabel      retLabel    = null;
-        protected JLabel      resLabel    = null;
+        //protected JLabel      resLabel    = null;
         protected JComponent  prepInfoBtn = null;
-        protected JSpinner    returnedSpinner; 
-        protected JSpinner    resolvedSpinner; 
+        protected JSpinner    itemReturnedSpinner; 
+        //protected JSpinner    itemresolvedSpinner; 
+        
+        protected JSpinner    typeReturnedSpinner; 
+        //protected JSpinner    typeResolvedSpinner; 
+        
+        protected JSpinner    nonSpecimenReturnedSpinner; 
+        //protected JSpinner    nonSpecimenResolvedSpinner; 
+        
         protected JDialog     parent;
         protected JTextField  remarks;
         
-        protected int         quantityReturned;
-        protected int         quantityResolved;
-        protected int         quantityLoaned;
+        protected int         itemQuantityReturned = 0;
+        //protected int         itemQuantityResolved;
+        protected int         itemQuantityLoaned;
+        
+        protected int         typeQuantityReturned = 0;
+        //protected int         typeQuantityResolved;
+        protected int         typeQuantityLoaned;
+        
+        protected int         nonSpecimenQuantityReturned = 0;
+        //protected int         nonSpecimenQuantityResolved;
+        protected int         nonSpecimenQuantityLoaned;
+        
+        
         protected int         maxValue = 0;
         protected boolean     unknownQuantity;
 
@@ -597,6 +663,7 @@ public class LoanReturnDlg extends JDialog
             this.lpo    = lpo;
             this.parent = parent;
             
+            
             Color color = new Color(192, 192, 192);
             Color bg = color.darker();
             Color fg = color.brighter();
@@ -605,60 +672,66 @@ public class LoanReturnDlg extends JDialog
             //setBorder(BorderFactory.createCompoundBorder(new CurvedBorder(new Color(160,160,160)), getBorder()));
      
             FormLayout fl = new FormLayout("max(120px;p),p," +
-                                           "max(50px;p),2px,p,p," + // 3,4,5,6
-                                           "max(50px;p),2px,p,p," + // 7,8,9,10
-                                           "f:p:g", //"p,0px,p:g", 
-                                           "f:p:g,2px,p");
+                                           "50px,2px,f:p:g", // 3,4,5
+                                           //"50px,2px,p,p," + // 7,8,9,10
+                                           //"f:p:g", //"p,0px,p:g", 
+                                           "f:p:g,2px,f:p:g,2px,f:p:g,2px,p");
             PanelBuilder    pbuilder = new PanelBuilder(fl, this);
             CellConstraints cc       = new CellConstraints();
             
             int x = 1;
+            int y = -1;
+            
             pbuilder.add(label = createLabel(prep.getPrepType().getName()), cc.xy(x,1)); x += 1;  // 1
             label.setOpaque(false);
             
-            pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,1)); x += 1; // 2
-            
-            boolean allReturned = false;
+            boolean allItemReturned = false;
+            boolean allTypeReturned = false;
+            boolean allNonSpecimenReturned = false;
             
             if (prep.getCountAmt() !=  null)
             {
-                quantityLoaned    = lpo.getItemCount();
-                quantityReturned  = lpo.getQuantityReturned();
-                quantityResolved  = lpo.getQuantityResolved();
+            	itemQuantityLoaned    = lpo.getItemCount();
+            	for (LoanReturnPreparation lrpo : lpo.getLoanReturnPreparations())
+            		if (lrpo.getItemCount() != null) itemQuantityReturned += lrpo.getItemCount();
+                //itemQuantityResolved  = lpo.getQuantityResolved();
                 
-                int quantityResOut   = quantityLoaned - quantityResolved;
-                int quantityRetOut   = quantityLoaned - quantityReturned;
+                //int quantityResOut   = itemQuantityLoaned - itemQuantityResolved;
+                int quantityRetOut   = itemQuantityLoaned - itemQuantityReturned;
                 
-                if ((quantityResOut > 0 || quantityRetOut > 0) && !lpo.getIsResolved())
+                //if ((quantityResOut > 0 || quantityRetOut > 0) && !lpo.getIsResolved())
+                if ((quantityRetOut > 0) && !lpo.getIsResolved())
                 {
-                    maxValue = quantityLoaned;
+                    maxValue = itemQuantityLoaned;
+                    y += 2;
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
                     
-                    SpinnerModel retModel = new SpinnerNumberModel(quantityReturned, //initial value
-                                               quantityReturned, //min
-                                               quantityLoaned,   //max
+                    SpinnerModel retModel = new SpinnerNumberModel(itemQuantityReturned, //initial value
+                                               itemQuantityReturned, //min
+                                               itemQuantityLoaned,   //max
                                                1);               //step
-                    returnedSpinner = new JSpinner(retModel);
-                    fixBGOfJSpinner(returnedSpinner);
-                    pbuilder.add(returnedSpinner, cc.xy(x, 1)); x += 2; // 3
-                    setControlSize(returnedSpinner);
+                    itemReturnedSpinner = new JSpinner(retModel);
+                    fixBGOfJSpinner(itemReturnedSpinner);
+                    pbuilder.add(itemReturnedSpinner, cc.xy(x, y)); x += 2; // 3
+                    setControlSize(itemReturnedSpinner);
                     
-                    String fmtStr = String.format(getResourceString("LOANRET_OF_FORMAT_RET"), quantityLoaned);
-                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, 1)); x += 1; // 5
+                    String fmtStr = String.format(getResourceString("LOANRET_OF_ITEM_FORMAT_RET"), itemQuantityLoaned);
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, y)); x += 2; // 5
                     
-                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,1)); x += 1; // 6
+                    //pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,1)); x += 1; // 6
                     
-                    SpinnerModel resModel = new SpinnerNumberModel(quantityResolved, //initial value
-                            quantityResolved, //min
-                            quantityLoaned,   //max
+                    /* SpinnerModel resModel = new SpinnerNumberModel(itemQuantityResolved, //initial value
+                            itemQuantityResolved, //min
+                            itemQuantityLoaned,   //max
                             1);               //step
                     resolvedSpinner = new JSpinner(resModel);
                     fixBGOfJSpinner(resolvedSpinner);
                     pbuilder.add(resolvedSpinner, cc.xy(x, 1)); x += 2; // 7
                     setControlSize(resolvedSpinner);
                     
-                    fmtStr = String.format(getResourceString("LOANRET_OF_FORMAT_RES"), quantityLoaned);
+                    fmtStr = String.format(getResourceString("LOANRET_OF_ITEM_FORMAT_RES"), itemQuantityLoaned);
                     pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, 1)); x += 1; // 9
-                    
+
                     ChangeListener cl = new ChangeListener()
                     {
                         @Override
@@ -702,7 +775,7 @@ public class LoanReturnDlg extends JDialog
                         }
                     };
                     returnedSpinner.addChangeListener(cl);
-                    resolvedSpinner.addChangeListener(cl);
+                    resolvedSpinner.addChangeListener(cl);*/
                     
                 } else
                 {
@@ -722,25 +795,292 @@ public class LoanReturnDlg extends JDialog
                             }
                         }
                     }
-                        
-                    String fmtStr = lastReturnDate == null ? getResourceString("LOANRET_ALL_RETURNED") :
-                                 String.format(getResourceString("LOANRET_ALL_RETURNED_ON_FMT"), 
+                    
+                    allItemReturned = true;
+                    
+                    if (itemQuantityLoaned > 0) {
+                    y += 2;
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
+                    String fmtStr = lastReturnDate == null ? getResourceString("LOANRET_ALL_ITEM_RETURNED") :
+                                 String.format(getResourceString("LOANRET_ALL_ITEM_RETURNED_ON_FMT"), 
                                                scrDateFormat.format(lastReturnDate));
-                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, 1));
-                    allReturned = true;
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xywh(x, y, 3, 1));
+                    }
                 }
 
                 
             } else
             {
-                pbuilder.add(retLabel = createLabel(" " + getResourceString("LOANRET_UNKNOWN_NUM_AVAIL")), cc.xywh(1, 1, 4, 1));
+                pbuilder.add(retLabel = createLabel(" " + getResourceString("LOANRET_UNKNOWN_NUM_ITEMS_AVAIL")), cc.xywh(1, y, 4, 1));
+                unknownQuantity = true;
+            }
+            
+            x = 2; //dl
+            
+
+            
+            if (prep.getCountAmt() !=  null)
+            {
+                typeQuantityLoaned = lpo.getTypeCount();
+            	for (LoanReturnPreparation lrpo : lpo.getLoanReturnPreparations())
+            		if (lrpo.getTypeCount() != null) typeQuantityReturned += lrpo.getTypeCount();
+                //typeQuantityResolved = lpo.getQuantityResolved();
+                
+                //int quantityResOut   = typeQuantityLoaned - typeQuantityResolved;
+                int quantityRetOut   = typeQuantityLoaned - typeQuantityReturned;
+                
+                //if ((quantityResOut > 0 || quantityRetOut > 0) && !lpo.getIsResolved())
+                if ((quantityRetOut > 0) && !lpo.getIsResolved())
+                {
+                	y += 2;
+                    maxValue = typeQuantityLoaned;
+                    
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
+                    
+                    SpinnerModel retModel = new SpinnerNumberModel(typeQuantityReturned, //initial value
+                                               typeQuantityReturned, //min
+                                               typeQuantityLoaned,   //max
+                                               1);               //step
+
+                    typeReturnedSpinner = new JSpinner(retModel);//dl
+                    fixBGOfJSpinner(typeReturnedSpinner);
+                    pbuilder.add(typeReturnedSpinner, cc.xy(x, y)); x += 2; // 3
+                    setControlSize(typeReturnedSpinner);
+                    
+                    String fmtStr = String.format(getResourceString("LOANRET_OF_TYPE_FORMAT_RET"), typeQuantityLoaned);
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, y)); x += 1; // 5
+                    
+                    //pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,3)); x += 1; // 6
+                    /*
+                    SpinnerModel resModel = new SpinnerNumberModel(typeQuantityResolved, //initial value
+                            typeQuantityResolved, //min
+                            typeQuantityLoaned,   //max
+                            1);               //step
+                    resolvedSpinner2 = new JSpinner(resModel);
+                    fixBGOfJSpinner(resolvedSpinner2);
+                    pbuilder.add(resolvedSpinner2, cc.xy(x, 3)); x += 2; // 7
+                    setControlSize(resolvedSpinner2);
+                    
+                    fmtStr = String.format(getResourceString("LOANRET_OF_TYPE_FORMAT_RES"), typeQuantityLoaned);
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, 3)); x += 1; // 9
+                    
+                    ChangeListener cl = new ChangeListener()
+                    {
+                        @Override
+                        public void stateChanged(ChangeEvent e)
+                        {
+                            //int lrpResolvedQty = (Integer)resolvedSpinner2.getValue();
+                            int lrpReturnedQty = (Integer)returnedSpinner2.getValue();
+                            
+                            if (e != null)
+                            {
+                                if (e.getSource() == resolvedSpinner2)
+                                {
+                                    if (lrpResolvedQty < lrpReturnedQty)
+                                    {
+                                        lrpReturnedQty = lrpResolvedQty;
+                                        final int qty = lrpReturnedQty;
+                                        SwingUtilities.invokeLater(new Runnable() {
+                                            @Override
+                                            public void run()
+                                            {
+                                                returnedSpinner2.setValue(qty);
+                                            }
+                                        });
+                                    }
+                                } else if (e.getSource() == returnedSpinner2)
+                                {
+                                    if (lrpReturnedQty > lrpResolvedQty)
+                                    {
+                                        lrpResolvedQty = lrpReturnedQty;
+                                        final int qty = lrpReturnedQty;
+                                        SwingUtilities.invokeLater(new Runnable() {
+                                            @Override
+                                            public void run()
+                                            {
+                                                resolvedSpinner2.setValue(qty);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    returnedSpinner2.addChangeListener(cl);
+                    resolvedSpinner2.addChangeListener(cl);*/
+                    
+                } else
+                {
+                    Calendar lastReturnDate = null;
+                    for (LoanReturnPreparation lrpo : lpo.getLoanReturnPreparations())
+                    {
+                        Calendar retDate = lrpo.getReturnedDate();
+                        if (retDate != null)
+                        {
+                            if (lastReturnDate == null)
+                            {
+                                lastReturnDate = lrpo.getReturnedDate();
+                                
+                            } else if (retDate.after(lastReturnDate))
+                            {
+                                lastReturnDate = retDate;
+                            }
+                        }
+                    }
+                    
+                    allTypeReturned = true;
+                    
+                    if (typeQuantityLoaned > 0) {
+                    y += 2;
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
+                    String fmtStr = lastReturnDate == null ? getResourceString("LOANRET_ALL_TYPE_RETURNED") :
+                                 String.format(getResourceString("LOANRET_ALL_TYPE_RETURNED_ON_FMT"), 
+                                               scrDateFormat.format(lastReturnDate));
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xywh(x, y, 3, 1));
+                    }
+                }
+
+                
+            } else
+            {
+                pbuilder.add(retLabel = createLabel(" " + getResourceString("LOANRET_UNKNOWN_NUM_TYPE_AVAIL")), cc.xywh(1, y, 4, 1));
+                unknownQuantity = true;
+            }
+            
+            x = 2;
+            
+            if (prep.getCountAmt() !=  null)
+            {
+                nonSpecimenQuantityLoaned = lpo.getNonSpecimenCount() != null ? lpo.getNonSpecimenCount() : 0;
+            	for (LoanReturnPreparation lrpo : lpo.getLoanReturnPreparations())
+            		if (lrpo.getNonSpecimenCount() != null) nonSpecimenQuantityReturned += lrpo.getNonSpecimenCount();
+                //typeQuantityResolved = lpo.getQuantityResolved();
+                
+                //int quantityResOut   = typeQuantityLoaned - typeQuantityResolved;
+                int quantityRetOut   = nonSpecimenQuantityLoaned - nonSpecimenQuantityReturned;
+                
+                //if ((quantityResOut > 0 || quantityRetOut > 0) && !lpo.getIsResolved())
+                if ((quantityRetOut > 0) && !lpo.getIsResolved())
+                {
+                	y += 2;
+                    maxValue = nonSpecimenQuantityLoaned;
+                    
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
+                    
+                    SpinnerModel retModel = new SpinnerNumberModel(nonSpecimenQuantityReturned, //initial value
+                                               nonSpecimenQuantityReturned, //min
+                                               nonSpecimenQuantityLoaned,   //max
+                                               1);               //step
+
+                    nonSpecimenReturnedSpinner = new JSpinner(retModel);//dl
+                    fixBGOfJSpinner(nonSpecimenReturnedSpinner);
+                    pbuilder.add(nonSpecimenReturnedSpinner, cc.xy(x, y)); x += 2; // 3
+                    setControlSize(nonSpecimenReturnedSpinner);
+                    
+                    String fmtStr = String.format(getResourceString("LOANRET_OF_NON_SPECIMEN_FORMAT_RET"), nonSpecimenQuantityLoaned);
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, y)); x += 1; // 5
+                    
+                    //pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,3)); x += 1; // 6
+                    /*
+                    SpinnerModel resModel = new SpinnerNumberModel(typeQuantityResolved, //initial value
+                            typeQuantityResolved, //min
+                            typeQuantityLoaned,   //max
+                            1);               //step
+                    resolvedSpinner2 = new JSpinner(resModel);
+                    fixBGOfJSpinner(resolvedSpinner2);
+                    pbuilder.add(resolvedSpinner2, cc.xy(x, 3)); x += 2; // 7
+                    setControlSize(resolvedSpinner2);
+                    
+                    fmtStr = String.format(getResourceString("LOANRET_OF_TYPE_FORMAT_RES"), typeQuantityLoaned);
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xy(x, 3)); x += 1; // 9
+                    
+                    ChangeListener cl = new ChangeListener()
+                    {
+                        @Override
+                        public void stateChanged(ChangeEvent e)
+                        {
+                            //int lrpResolvedQty = (Integer)resolvedSpinner2.getValue();
+                            int lrpReturnedQty = (Integer)returnedSpinner2.getValue();
+                            
+                            if (e != null)
+                            {
+                                if (e.getSource() == resolvedSpinner2)
+                                {
+                                    if (lrpResolvedQty < lrpReturnedQty)
+                                    {
+                                        lrpReturnedQty = lrpResolvedQty;
+                                        final int qty = lrpReturnedQty;
+                                        SwingUtilities.invokeLater(new Runnable() {
+                                            @Override
+                                            public void run()
+                                            {
+                                                returnedSpinner2.setValue(qty);
+                                            }
+                                        });
+                                    }
+                                } else if (e.getSource() == returnedSpinner2)
+                                {
+                                    if (lrpReturnedQty > lrpResolvedQty)
+                                    {
+                                        lrpResolvedQty = lrpReturnedQty;
+                                        final int qty = lrpReturnedQty;
+                                        SwingUtilities.invokeLater(new Runnable() {
+                                            @Override
+                                            public void run()
+                                            {
+                                                resolvedSpinner2.setValue(qty);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    returnedSpinner2.addChangeListener(cl);
+                    resolvedSpinner2.addChangeListener(cl);*/
+                    
+                } else
+                {
+                    Calendar lastReturnDate = null;
+                    for (LoanReturnPreparation lrpo : lpo.getLoanReturnPreparations())
+                    {
+                        Calendar retDate = lrpo.getReturnedDate();
+                        if (retDate != null)
+                        {
+                            if (lastReturnDate == null)
+                            {
+                                lastReturnDate = lrpo.getReturnedDate();
+                                
+                            } else if (retDate.after(lastReturnDate))
+                            {
+                                lastReturnDate = retDate;
+                            }
+                        }
+                    }
+                    
+                    allNonSpecimenReturned = true;
+                    
+                    if (nonSpecimenQuantityLoaned > 0) {
+                    y += 2;
+                    pbuilder.add(new VerticalSeparator(fg, bg, 20), cc.xy(x,y)); x += 1; // 2
+                    String fmtStr = lastReturnDate == null ? getResourceString("LOANRET_ALL_NON_SPECIMEN_RETURNED") :
+                                 String.format(getResourceString("LOANRET_ALL_NON_SPECIMEN_RETURNED_ON_FMT"), 
+                                               scrDateFormat.format(lastReturnDate));
+                    pbuilder.add(retLabel = createLabel(fmtStr), cc.xywh(x, y, 3, 1));
+                    }
+                }
+
+                
+            } else
+            {
+                pbuilder.add(retLabel = createLabel(" " + getResourceString("LOANRET_UNKNOWN_NUM_NON_SPECIMEN_AVAIL")), cc.xywh(1, 5, y, 1));
                 unknownQuantity = true;
             }
 
-            if (!allReturned)
+            if (!allItemReturned || !allTypeReturned || !allNonSpecimenReturned)
             {
                 remarks = new RemarksText();
-                pbuilder.add(remarks, cc.xywh(1, 3, 11, 1));
+                pbuilder.add(remarks, cc.xywh(1, y+2, 5, 1)); //dl changed 3 to 5
             }
             
             /*if (returnedSpinner != null)
@@ -755,7 +1095,10 @@ public class LoanReturnDlg extends JDialog
             }*/
         }
         
-        /**
+        
+		
+
+		/**
          * Changes the BG color fo the text field in the spinner to the required color.
          * @param spin the spinner to be changed
          */
@@ -786,14 +1129,31 @@ public class LoanReturnDlg extends JDialog
          */
         public void selectAllItems()
         {
-            if (returnedSpinner != null)
+            if (itemReturnedSpinner != null)
             {
-                returnedSpinner.setValue(quantityLoaned);
+                itemReturnedSpinner.setValue(itemQuantityLoaned);
             }
-            if (resolvedSpinner != null)
+            if (typeReturnedSpinner != null)
             {
-                resolvedSpinner.setValue(quantityLoaned);
+            typeReturnedSpinner.setValue(typeQuantityLoaned);
             }
+            if (nonSpecimenReturnedSpinner != null)
+            {
+            nonSpecimenReturnedSpinner.setValue(nonSpecimenQuantityLoaned);
+            }
+            /*if (itemResolvedSpinner != null)
+            {
+                itemResolvedSpinner.setValue(itemQuantityLoaned);
+                typeResolvedSpinner.setValue(typeQuantityLoaned);
+            }*/
+            /*if (itemResolvedSpinner != null)
+            {
+                itemResolvedSpinner.setValue(itemQuantityLoaned);
+            }*/
+            /*if (nonSpecimenResolvedSpinner != null)
+            {
+                nonSpecimenResolvedSpinner.setValue(nonSpecimenQuantityLoaned);
+            }*/
         }
 
         /**
@@ -818,17 +1178,25 @@ public class LoanReturnDlg extends JDialog
             {
                 retLabel.setEnabled(enabled);
             }
-            if (resLabel != null)
+            /*if (resLabel != null)
             {
                 resLabel.setEnabled(enabled);
-            }
+            }*/
             if (prepInfoBtn != null)
             {
                 prepInfoBtn.setEnabled(enabled);
             }
-            if (returnedSpinner != null)
+            if (itemReturnedSpinner != null)
             {
-                returnedSpinner.setEnabled(enabled);
+                itemReturnedSpinner.setEnabled(enabled);
+            }
+            if (typeReturnedSpinner != null)
+            {
+                typeReturnedSpinner.setEnabled(enabled);
+            }
+            if (nonSpecimenReturnedSpinner != null)
+            {
+                nonSpecimenReturnedSpinner.setEnabled(enabled);
             }
         }
         
@@ -838,33 +1206,57 @@ public class LoanReturnDlg extends JDialog
          */
         public void addChangeListener(final ChangeListener cl)
         {
-            if (returnedSpinner != null)
+            if (itemReturnedSpinner != null)
             {
-                returnedSpinner.addChangeListener(cl);
+                itemReturnedSpinner.addChangeListener(cl);
             }
-            if (resolvedSpinner != null)
+            /*if (resolvedSpinner != null)
             {
                 resolvedSpinner.addChangeListener(cl);
-            }
+            }*/
         }
         
         /**
          * Returns the count from the spinner, the count of items being returning.
          * @return the count from the spinner, the count of items being returning.
          */
-        public int getReturnedCount()
+        public int getItemReturnedCount()
         {
-            if (returnedSpinner != null)
+            if (itemReturnedSpinner != null)
             {
-                Object valObj = returnedSpinner.getValue();
-               return valObj == null ? 0 : ((Integer)valObj).intValue();
+                Object valObj = itemReturnedSpinner.getValue();
+               return valObj == null ? 0 : ((Integer)valObj).intValue() - itemQuantityReturned;
                 
             }
             // else
             return 0;
         }
         
-        public int getResolvedCount()
+        public int getTypeReturnedCount()
+        {
+            if (typeReturnedSpinner != null)
+            {
+                Object valObj = typeReturnedSpinner.getValue();
+               return valObj == null ? 0 : ((Integer)valObj).intValue() - typeQuantityReturned;
+                
+            }
+            // else
+            return 0;
+        }
+        
+        public int getNonSpecimenReturnedCount()
+        {
+            if (nonSpecimenReturnedSpinner != null)
+            {
+                Object valObj = nonSpecimenReturnedSpinner.getValue();
+               return valObj == null ? 0 : ((Integer)valObj).intValue() - nonSpecimenQuantityReturned;
+                
+            }
+            // else
+            return 0;
+        }
+        
+        /*public int getItemResolvedCount()
         {
             if (resolvedSpinner != null)
             {
@@ -876,17 +1268,28 @@ public class LoanReturnDlg extends JDialog
             return 0;
         }
         
+        public int getTypeResolvedCount()
+        {
+            if (resolvedSpinner2 != null)
+            {
+                Object valObj = resolvedSpinner2.getValue();
+               return valObj == null ? 0 : ((Integer)valObj).intValue();
+                
+            }
+            // else
+            return 0;
+        }*/
+        
         /**
          * Returns the LoanReturnInfo describing the user input for the loan return.
          * @return the LoanReturnInfo describing the user input for the loan return
          */
         public LoanReturnInfo getLoanReturnInfo()
-        {
+        {	
             return new LoanReturnInfo(lpo, 
                                       remarks != null ? remarks.getText() : null,
-                                      getReturnedCount(),
-                                      getResolvedCount(),
-                                      getResolvedCount() == quantityLoaned);
+                                      getItemReturnedCount(), getTypeReturnedCount(), getNonSpecimenReturnedCount(),
+                                      false);
         }
         
         /* (non-Javadoc)
@@ -962,19 +1365,30 @@ public class LoanReturnDlg extends JDialog
         protected String          remarks;
         protected int             returnedQty;
         protected int             resolvedQty;
+		protected int itemCount;
+		protected int typeCount;
+		protected int nonSpecimenCount;
         
         public LoanReturnInfo(LoanPreparation lpo, 
                               String remarks, 
-                              int returnedQty, 
-                              int resolvedQty,
+                              //int returnedQty,
+                              //int resolvedQty,
+                              int itemCount,
+                              int typeCount,
+                              int nonSpecimenCount,
                               boolean isResolved)
         {
             super();
             this.lpo = lpo;
             this.remarks = remarks;
-            this.returnedQty = returnedQty;
-            this.resolvedQty = resolvedQty;
+            ///this.returnedQty = returnedQty;
+            //this.resolvedQty = resolvedQty;
+            this.returnedQty = 0;
+            this.resolvedQty = 0;
             this.isResolved  = isResolved;
+            this.itemCount = itemCount;
+            this.typeCount = typeCount;
+            this.nonSpecimenCount = nonSpecimenCount;
         }
         public LoanPreparation getLoanPreparation()
         {
@@ -999,6 +1413,16 @@ public class LoanReturnDlg extends JDialog
         {
             return isResolved;
         }
+		public int getItemCount() {
+			return itemCount;
+		}
+		public int getTypeCount() {
+			return typeCount;
+		}
+		public int getNonSpecimenCount() {
+			return nonSpecimenCount;
+		}
+		
         
     }
     

@@ -3402,6 +3402,9 @@
                      <cell type="subview" viewname="LoanItems" id="10" name="loanPreparations" colspan="15" rows="4"/>
                 </row>
                 <row>
+                	<cell type="label" label=""/>
+                </row> 
+                <row>
                     <cell type="label" labelfor="createdByAgent"/>
                     <cell type="field" id="createdByAgent" name="createdByAgent" uitype="querycbx" initialize="name=Agent;title=Agent;displaydlg=AffiliateAgent" colspan="5"/>
 					<cell type="label" labelfor="timestampCreated"/>
@@ -3490,6 +3493,7 @@
             <desc><![CDATA[Preparation subform table for Collection Object form.]]></desc>
             <definition>LoanItems</definition>
         </viewdef>
+      
         
         <viewdef
             name="LoanItems"
@@ -3499,13 +3503,17 @@
             settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
             <desc><![CDATA[Loan viewing form.]]></desc>
             
-            <columnDef>         105px, 2px, 152px, 5px, 130px, 2px, 105px, 5px, 105px, 2px, 115px, 2px, p:g</columnDef>
-            <columnDef os="lnx">115px, 2px, 190px, 5px, 115px, 2px, 137px, 5px, 150px, 2px, 147px, 2px, p:g</columnDef>
-            <columnDef os="mac">130px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 165px, 2px, 155px, 2px, p:g</columnDef>
+            <columnDef>         125px, 2px, 152px, 5px, 130px, 2px, 105px, 5px, 105px, 2px, 115px, 2px, p:g</columnDef>
+            <columnDef os="lnx">135px, 2px, 190px, 5px, 115px, 2px, 137px, 5px, 150px, 2px, 147px, 2px, p:g</columnDef>
+            <columnDef os="mac">150px, 2px, 192px, 5px, 130px, 2px, 145px, 5px, 165px, 2px, 155px, 2px, p:g</columnDef>
             <columnDef os="exp">    p, 2px, 152px, 5px:g,   p, 2px,     p, 5px:g,   p, 2px, 115px, 2px, p:g</columnDef>
             <rowDef auto="true" cell="p" sep="2dlu"/>
             
             <rows>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="batchaddpreps" name="this" uitype="plugin" initialize="name=BatchAddPreps;title=Batch Add Preparations to Loan;Loan=loan" colspan="1"/>
+                </row>
                 <row>
                 	<cell type="label" labelfor="preparation"/>
 					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=Preparation;displaydlg=BatchPreparation;editoncreate=true" formatname="BatchPrepDetail" colspan="5" isrequired="true"/>
@@ -3524,6 +3532,10 @@
                     <cell type="field" id="outComments" name="outComments" uitype="text" colspan="3"/>
                 </row>
                 <row>
+					<cell type="label" labelfor="receivedComments"/>
+                    <cell type="field" id="receivedComments" name="receivedComments" uitype="text" colspan="5"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="itemCount"/>
                     <cell type="field" id="itemCount" name="itemCount" uitype="spinner" initialize="max=5000" />
                     <cell type="label" labelfor="typeCount"/>
@@ -3533,6 +3545,13 @@
                 </row>
                 <row>
                 	<cell type="subview" id="loanReturnPreparations" name="loanReturnPreparations" viewname="LoanReturnPreparation" colspan="13"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="itemcountslabel" name="this" uitype="plugin" initialize="name=ItemCountsLabel;title=Item Counts Label" colspan="11"/>
                 </row>
             </rows>
         </viewdef>
@@ -3551,6 +3570,10 @@
             <columnDef os="exp">140px, 2px, 100px, 5px, 140px, 2px, 100px, 5px, 140px, 2px, 100px, 0px:g, f:p:g</columnDef>
             <rowDef auto="true" cell="p" sep="1dlu"/>
             <rows>
+                <row>
+                    <cell type="label" label=""/>
+                    <cell type="field" id="batchreturnpreps" name="this" uitype="plugin" initialize="name=BatchReturnPreps;title=Batch Return Preparations in Loan;Loan=loan" colspan="3"/>
+                </row>
                 <row>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="receivedBy" uitype="querycbx" initialize="name=Agent;displaydlg=AffiliateAgent" colspan="5"/>
@@ -4322,7 +4345,7 @@
                 	<cell type="field" id="oz" name="number3" uitype="text" uifieldformatter="NumericFloat"/>
                 	<cell type="label" label="oz."/>
                 	<cell type="label" labelfor="asaTransactionId"/>
-                	<cell type="field" id="asaTransactionId" name="text2" uitype="dsptextfield"/>
+                	<cell type="field" id="asaTransactionId" name="text2" uitype="text"/>
                 </row>
                 <row>
                 	<cell type="label" labelfor="customsNo"/>

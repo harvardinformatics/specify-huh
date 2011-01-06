@@ -19,4 +19,6 @@
     
     <icon name="DiGIR"             file="DigirShovel.png"/>
     <icon name="FeetToMeters"      file="specify32White.png" sizes="16"/>
+    <icon name="BatchAddPreps"     file="specify32White.png" sizes="16"/>
+    <icon name="BatchReturnPreps"     file="specify32White.png" sizes="16"/>
 </icons>
