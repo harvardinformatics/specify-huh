@@ -33,11 +33,16 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.specify.plugins.ItemCountsLabel;
+import edu.ku.brc.af.core.SubPaneIFace;
+import edu.ku.brc.af.core.SubPaneMgr;
 import edu.ku.brc.af.core.TaskMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.tasks.BaseTask.ASK_TYPE;
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
@@ -45,15 +50,13 @@ import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.InfoRequest;
+import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.PreparationsProviderIFace;
 import edu.ku.brc.specify.ui.ColObjInfo;
 import edu.ku.brc.specify.ui.PrepInfo;
-import edu.ku.brc.specify.ui.SelectPrepsDlg;
 import edu.ku.brc.ui.JStatusBar;
-import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -176,7 +179,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
     {
         RecordSetIFace recordSet = recordSetArg;
         if (infoRequest == null && recordSet == null)
-        {
+        {	
             // Get a List of InfoRequest RecordSets
             Vector<RecordSetIFace> rsList         = task.getInfoReqRecordSetsFromSideBar();
             RecordSetTask          rsTask         = (RecordSetTask)TaskMgr.getTask(RecordSetTask.RECORD_SET);
@@ -209,6 +212,14 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
         if (recordSet == null)
         {
             return;
+        }
+        
+        if (currPrepProvider != null) {
+        	SubPaneIFace subPane = SubPaneMgr.getInstance().getCurrentSubPane();
+        	MultiView mv = subPane.getMultiView();
+        	
+ 			viewable = mv.getCurrentViewAsFormViewObj();
+            viewable.setHasNewData(true);
         }
         
         DBTableIdMgr.getInstance().getInClause(recordSet);
@@ -263,7 +274,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 final JStatusBar statusBar = UIRegistry.getStatusBar();
                 statusBar.setIndeterminate(LOAN_LOADR, true);
                 
-                if (recordSet != null && recordSet.getNumItems() > 2)
+                if (recordSet != null) //&& recordSet.getNumItems() > 2) this is commented so that the simple glass pane msg is displayed every time
                 {
                     UIRegistry.writeSimpleGlassPaneMsg(getResourceString("NEW_INTER_LOADING_PREP"), 24);
                 }
@@ -306,6 +317,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                                final T                              prepProvider,
                                final InfoRequest                    infoRequest)
     {
+        
         if (frToPrepHash.size() == 0 || prepTypeHash.size() == 0)
         {
             UIRegistry.showLocalizedMsg("NEW_INTER_NO_PREPS_TITLE", "NEW_INTER_NO_PREPS");
@@ -359,6 +371,13 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                     JStatusBar statusBar = UIRegistry.getStatusBar();
                     statusBar.setProgressDone("INTERACTIONS");
                     statusBar.setText("");
+                    UIRegistry.clearSimpleGlassPaneMsg();
+                	MultiView mv = (MultiView)((FormViewObj)viewable).getControlByName("loanPreparations");
+                	FormViewObj formViewObj = mv.getCurrentViewAsFormViewObj();
+                	System.out.println(formViewObj);
+                	
+                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
+                    itemCountsLabel.doAccounting(formViewObj);
                 }
             };
             worker.start();
@@ -475,7 +494,10 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             {
                 sql = "SELECT FragmentID, Identifier FROM fragment WHERE CollectionMemberID = COLMEMID " + 
                       "AND FragmentID " + DBTableIdMgr.getInstance().getInClause(recordSet);
+                      
                 Vector<Object[]> partialItems = BasicSQLUtils.query(QueryAdjusterForDomain.getInstance().adjustSQL(sql));
+                
+                
                 partialItems.addAll(fullItems);
                 return partialItems;
             }
@@ -747,7 +769,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             
             UIRegistry.getStatusBar().setProgressDone(LOAN_LOADR);
             
-            if (recordSet != null && recordSet.getNumItems() > 2)
+            if (recordSet != null) //&& recordSet.getNumItems() > 2)
             {
                 UIRegistry.clearSimpleGlassPaneMsg();
             }
