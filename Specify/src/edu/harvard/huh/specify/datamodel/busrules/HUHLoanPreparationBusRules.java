@@ -20,21 +20,36 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+
+import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import edu.ku.brc.af.ui.db.TextFieldWithInfo;
+import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
 import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.ResultSetController;
+import edu.ku.brc.af.ui.forms.ResultSetControllerListener;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
+import edu.ku.brc.af.ui.forms.validation.ValTextAreaBrief;
+import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.StaleObjectException;
+import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
@@ -56,6 +71,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     private SubViewBtn loanRetBtn       = null;
     
     private final String PREPARATION  = "preparation";
+    private final String DESCRIPTION  = "descriptionOfMaterial";
     private final String HIGHER_TAXON = "higherTaxon";
     private final String SRC_TAXONOMY = "srcTaxonomy";
     private final String TYPE_COUNT   = "typeCount";
@@ -75,6 +91,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     @Override
     public void initialize(Viewable viewableArg)
     {
+
         viewable = viewableArg;
         if (viewable instanceof FormViewObj)
         {
@@ -83,6 +100,74 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         
         if (formViewObj != null)
         {
+        	
+        	final ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
+        	final ResultSetControllerListener rsListener = new ResultSetControllerListener() {
+    		@Override
+        	public void indexChanged(int newIndex) {
+        		System.out.println("index changed");
+        		itemCountsLabel.doAccounting(formViewObj);
+        		
+        	}
+        	
+			@Override
+        	public void newRecordAdded() {
+        		//System.out.println("new record added");
+        		//doAccounting();
+        		
+        	}
+
+			@Override
+			public boolean indexAboutToChange(int oldIndex, int newIndex) {
+				//System.out.println("index about to change");
+				// TODO Auto-generated method stub
+				return true;
+			} 
+        	};
+        	
+		    ResultSetController rsController = formViewObj.getRsController();
+		    rsController.addListener(rsListener);
+        	
+        	final SwingWorker worker = new SwingWorker() {
+				//This code must wait for the formViewObj to be updated before executing the update on item counts
+				@Override
+				public Object construct() {
+					while (formViewObj.getDataObj() == null || formViewObj.getParentDataObj() == null) { try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} }
+					itemCountsLabel.doAccounting(formViewObj);
+					return null;
+				}};
+				worker.start();
+        	
+            Component itemCnt = formViewObj.getControlByName("itemCount");
+            Component typeCnt = formViewObj.getControlByName("typeCount");
+            
+            Component nonSpecimenCnt = formViewObj.getControlByName("nonSpecimenCount");
+        	//MultiView mv = (MultiView)formViewObj.getControlByName("loanPreparations");
+        	//FormViewObj formViewObj = mv.getCurrentViewAsFormViewObj();
+            //FormViewObj loanForm = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
+            //if (loanForm != null) {
+	            
+	            ChangeListener countChangeListener = new ChangeListener() {
+	                @Override
+	                public void stateChanged(ChangeEvent e)
+	                {
+	                    itemCountsLabel.doAccounting(formViewObj);
+	                }
+	            };
+	            
+	            
+	            if (itemCnt instanceof ValSpinner)
+	            	((ValSpinner)itemCnt).addChangeListener(countChangeListener);
+	            if (typeCnt instanceof ValSpinner)
+	            	((ValSpinner)typeCnt).addChangeListener(countChangeListener);
+	            if (nonSpecimenCnt instanceof ValSpinner)
+	            	((ValSpinner)nonSpecimenCnt).addChangeListener(countChangeListener);
+            //}
             formViewObj.setSkippingAttach(true);
 
             Component comp = formViewObj.getControlById("loanReturnPreparations");
@@ -96,38 +181,85 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             // listen for changes to preparation to auto-fill higher taxon and src taxonomy fields
             Component prepComp = formViewObj.getControlById(PREPARATION);
             
-            if (prepComp != null && prepComp instanceof ValComboBoxFromQuery)
-            {
-                final ValComboBoxFromQuery prepComboBox = (ValComboBoxFromQuery) prepComp;
+            
+            //if (prepComp != null && prepComp instanceof ValComboBoxFromQuery)
+            if (prepComp != null && prepComp instanceof EditViewCompSwitcherPanel)
+            {	
+                Component[] prepComps = ((EditViewCompSwitcherPanel)prepComp).getComponents();
+                
+            	ValComboBoxFromQuery comboBox = null;
+            	TextFieldWithInfo textField = null;
+            	
+                for (Component c : prepComps) {
+                	if (c != null && c instanceof ValComboBoxFromQuery)
+                		comboBox = (ValComboBoxFromQuery)c;
+                	if (c != null && c instanceof TextFieldWithInfo)
+                		textField = (TextFieldWithInfo)c;
+                }
+                
+            	final ValComboBoxFromQuery prepComboBox = comboBox;
+            	final TextFieldWithInfo prepTextField = textField;
+               // if (prepComp != null && prepComp instanceof ValComboBoxFromQuery) {
+              //  	final ValComboBoxFromQuery prepComboBox = (ValComboBoxFromQuery) prepComp;
+                //} else if (prepComp != null && prepComp instanceof TextFieldWithInfo) {
+                //	final TextFieldWithInfo prepComboBox = (TextFieldWithInfo)prepComp;
+               // }
+            	//final EditViewCompSwitcherPanel prepComboBox = (EditViewCompSwitcherPanel) prepComp;
                 
                 final Component srcTaxonComp    = formViewObj.getControlById(SRC_TAXONOMY);
-                final Component higherTaxonComp = formViewObj.getControlById(HIGHER_TAXON);
+                //final Component higherTaxonComp = formViewObj.getControlById(HIGHER_TAXON);
                 final Component typeCountComp   = formViewObj.getControlById(TYPE_COUNT);
                 final Component itemCountComp   = formViewObj.getControlById(ITEM_COUNT);
+                final Component descriptionComp   = formViewObj.getControlByName(DESCRIPTION);
 
-                if (srcTaxonComp != null && higherTaxonComp != null && srcTaxonComp instanceof JTextField && higherTaxonComp instanceof JTextField)
+                //if (srcTaxonComp != null && higherTaxonComp != null && srcTaxonComp instanceof JTextField && higherTaxonComp instanceof JTextField)
+               // if (srcTaxonComp != null && srcTaxonComp instanceof JTextField)
+                if (srcTaxonComp != null && srcTaxonComp instanceof ValTextField)
                 {
-                    final JTextField srcTaxonTextField = (JTextField) srcTaxonComp;
-                    final JTextField higherTaxonTextField = (JTextField) higherTaxonComp;
+                    final ValTextField srcTaxonTextField = (ValTextField) srcTaxonComp;
+                   // final JTextField higherTaxonTextField = (JTextField) higherTaxonComp;
                     final ValSpinner  typeCount = (ValSpinner) typeCountComp; 
-                    final ValSpinner  itemCount = (ValSpinner) itemCountComp; 
+                    final ValSpinner  itemCount = (ValSpinner) itemCountComp;
+                    final ValTextAreaBrief    description = (ValTextAreaBrief) descriptionComp;
                     
-                    if (srcTaxonTextField != null && higherTaxonTextField != null && typeCount != null)
+                    //if (srcTaxonTextField != null && higherTaxonTextField != null && typeCount != null)
+                    if (srcTaxonTextField != null && typeCount != null)
                     {
-                        prepComboBox.addListSelectionListener(
+                        prepComboBox.addFocusListener(new FocusListener() {
+
+					@Override
+					public void focusGained(FocusEvent arg0) {
+			            LoanPreparation loanPreparation = (LoanPreparation)formViewObj.getDataObj();
+			            itemCountsLabel.initLabels(loanPreparation, null);
+						
+					}
+
+					@Override
+					public void focusLost(FocusEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					} });
+                    	prepComboBox.addListSelectionListener(
                                 new ListSelectionListener()
                                 {
                                     @Override
                                     public void valueChanged(ListSelectionEvent e)
                                     {
-                                        if (e != null && !e.getValueIsAdjusting())  // Specify sometimes sends a null event for updating the display
-                                        {
+                                        //if (e != null && !e.getValueIsAdjusting())  // Specify sometimes sends a null event for updating the display
+                                        //{
                                             Preparation prep  = (Preparation) prepComboBox.getValue();
                                             if (prep != null)
                                             {
-                                                adjustTaxonFields(prep, srcTaxonTextField, higherTaxonTextField, typeCount, itemCount);
+                                                //adjustTaxonFields(prep, srcTaxonTextField, higherTaxonTextField, typeCount, itemCount);
+                                            	//adjustTaxonFields(prep, srcTaxonTextField, description, typeCount, itemCount);
                                             }
-                                        }
+                                            prep  = (Preparation) prepTextField.getValue();
+                                            if (prep != null)
+                                            {
+                                                //adjustTaxonFields(prep, srcTaxonTextField, higherTaxonTextField, typeCount, itemCount);
+                                            	//adjustTaxonFields(prep, srcTaxonTextField, typeCount, itemCount);
+                                            }
+                                        //}
                                     }
                                 });
                     }
@@ -175,13 +307,15 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         return true;
     }
     
-    private void adjustTaxonFields(Preparation prep, JTextField srcTaxonTextField, JTextField higherTaxonTextField, ValSpinner typeCount, ValSpinner itemCount)
+    //private void adjustTaxonFields(Preparation prep, JTextField srcTaxonTextField, JTextField higherTaxonTextField, ValSpinner typeCount, ValSpinner itemCount)
+    private void adjustTaxonFields(Preparation prep, JTextField srcTaxonTextField, ValTextAreaBrief description, ValSpinner typeCount, ValSpinner itemCount)
     {
         try
         {
             DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
             prep = session.merge(prep);
             Integer countAmt = prep.getCountAmt();
+            String descriptionStr = "test description";//prep.getDescription();
             
             Determination det = null;
 
@@ -216,7 +350,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                         if (higherTaxon != null)
                         {
                             String higherTaxonName = higherTaxon.getFullName();
-                            higherTaxonTextField.setText(higherTaxonName);
+               //             higherTaxonTextField.setText(higherTaxonName);
                         }
                     }
                 }
@@ -233,6 +367,10 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             if (itemCount != null && det != null && !isType(det))
             {
                 itemCount.setValue(countAmt);
+            }
+            
+            if (description != null && descriptionStr != null) {
+            	description.setValue(descriptionStr, null);
             }
 
             session.close();

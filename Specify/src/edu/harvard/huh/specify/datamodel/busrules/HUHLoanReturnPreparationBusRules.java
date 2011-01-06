@@ -19,10 +19,27 @@
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
+import java.awt.Component;
+import java.util.Set;
+
+import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.TableViewObj;
+import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.ValSpinner;
+import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
+import edu.ku.brc.specify.datamodel.busrules.LoanBusRules;
+import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.Triple;
 
 /**
  * This class duplicates the logic in HUHBorrowReturnMaterialBusRules; it should be merged
@@ -44,6 +61,46 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
         super(LoanReturnPreparation.class);
     }
 
+    @Override
+    public void initialize(Viewable viewableArg)
+    {
+    	viewable = viewableArg;
+        if (viewable instanceof FormViewObj)
+        {
+            formViewObj = (FormViewObj)viewable;
+        }
+        
+        if (formViewObj != null)
+        {
+        	
+            Component itemCnt = formViewObj.getControlByName("itemCount");
+            Component typeCnt = formViewObj.getControlByName("typeCount");
+            Component nonSpecimenCnt = formViewObj.getControlByName("nonSpecimenCount");
+            
+            //if (loanForm != null) {
+	            //final ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj().getControlById("itemcountslabel");
+	            
+	            ChangeListener countChangeListener = new ChangeListener() {
+	                @Override
+	                public void stateChanged(ChangeEvent e)
+	                {
+	                    FormViewObj prepForm = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
+	                    if (prepForm != null) {
+		                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)prepForm.getControlById("itemcountslabel");
+		                    itemCountsLabel.doAccounting(prepForm);
+	                    }
+	                }
+	            };
+	            
+	            if (itemCnt instanceof ValSpinner)
+	            	((ValSpinner)itemCnt).addChangeListener(countChangeListener);
+	            if (typeCnt instanceof ValSpinner)
+	            	((ValSpinner)typeCnt).addChangeListener(countChangeListener);
+	            if (nonSpecimenCnt instanceof ValSpinner)
+	            	((ValSpinner)nonSpecimenCnt).addChangeListener(countChangeListener);
+        }
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#processBusiessRules(java.lang.Object)
      */
