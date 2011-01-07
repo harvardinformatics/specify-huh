@@ -20650,7 +20650,7 @@
       </item>
       <item name="receivedComments">
         <version>0</version>
-        <isHidden>true</isHidden>
+        <isHidden>false</isHidden>
         <names>
           <str language="en">
             <version>0</version>
