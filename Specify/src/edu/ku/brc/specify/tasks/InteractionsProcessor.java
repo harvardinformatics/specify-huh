@@ -378,12 +378,14 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                     statusBar.setText("");
                     UIRegistry.clearSimpleGlassPaneMsg();
                     
-                	MultiView mv = (MultiView)((FormViewObj)viewable).getControlByName("loanPreparations");
-                	FormViewObj formViewObj = mv.getCurrentViewAsFormViewObj();
-              
-                	//dl: update the itemcountslabel plugin when batch add preps is performed
-                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
-                    itemCountsLabel.doAccounting(formViewObj);
+                    if (viewable != null) {
+	                	MultiView mv = (MultiView)((FormViewObj)viewable).getControlByName("loanPreparations");
+	                	FormViewObj formViewObj = mv.getCurrentViewAsFormViewObj();
+	              
+	                	//dl: update the itemcountslabel plugin when batch add preps is performed
+	                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
+	                    itemCountsLabel.doAccounting(formViewObj);
+                    }
                 }
             };
             worker.start();
