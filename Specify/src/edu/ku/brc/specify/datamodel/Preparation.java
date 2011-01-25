@@ -231,7 +231,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     }
     
 
-    /** The if statement inserted in setIdentifier addresses issues regarding multiple
+    /** dl: The if statement inserted in setIdentifier addresses issues regarding multiple
      *  preparations per loan that are lots which have an identifier that is an empty string
      *  and which throw a ConstraintViolation due to "duplicate keys". This workaround 
      *  replaces that empty string with a null value. Note: There is a unique constraint in both
@@ -246,7 +246,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
  		   this.identifier = identifier;
     }
     
-    /** The if statement has been inserted in getIdentifier due to changes made in setIdentifier 
+    /** dl: The if statement has been inserted in getIdentifier due to changes made in setIdentifier 
      * regarding multiple lot preparations per loan and duplicate key errors due to lots being 
      * assigned an identifier which is an empty string. The database value of null is different 
      * than the original empty string value of identifier as a side consequence of converting the 

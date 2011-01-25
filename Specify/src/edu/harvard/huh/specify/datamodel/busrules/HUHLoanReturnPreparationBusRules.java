@@ -45,6 +45,7 @@ import edu.ku.brc.util.Triple;
  * This class duplicates the logic in HUHBorrowReturnMaterialBusRules; it should be merged
  * 
  * @author mmk
+ * @author david lowery
  * 
  * @code_status Alpha
  *
@@ -61,6 +62,12 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
         super(LoanReturnPreparation.class);
     }
 
+   /**
+    * Initialize the busrules for LoanReturnPreparation and add listeners to the item, type and non
+    * specimen counts on the loanReturnPreparation form to update the item counts plugin.
+    * @param viewableArg
+    */
+    
     @Override
     public void initialize(Viewable viewableArg)
     {
@@ -80,6 +87,7 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
             //if (loanForm != null) {
 	            //final ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj().getControlById("itemcountslabel");
 	            
+	            //dl: detect changes made to the counts fields on the return form and update itemcounts plugin
 	            ChangeListener countChangeListener = new ChangeListener() {
 	                @Override
 	                public void stateChanged(ChangeEvent e)

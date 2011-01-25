@@ -142,6 +142,7 @@ import edu.ku.brc.util.Pair;
  * @code_status Beta
  *
  * @author rods
+ * @author david lowery
  *
  */
 public class InteractionsTask extends BaseTask

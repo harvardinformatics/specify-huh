@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 
 */
 package edu.harvard.huh.specify.datamodel.busrules;
 
@@ -60,6 +61,7 @@ import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
+ * @author david lowery
  *
  * @code_status Alpha
  *
@@ -71,7 +73,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     private SubViewBtn loanRetBtn       = null;
     
     private final String PREPARATION  = "preparation";
-    private final String DESCRIPTION  = "descriptionOfMaterial";
+    private final String DESCRIPTION  = "descriptionOfMaterial"; //dl: added for auto-populate
     private final String HIGHER_TAXON = "higherTaxon";
     private final String SRC_TAXONOMY = "srcTaxonomy";
     private final String TYPE_COUNT   = "typeCount";
@@ -87,6 +89,9 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#initialize(edu.ku.brc.af.ui.forms.Viewable)
+     * 
+     * dl: initialize the busrules, add listeners to check for changes to any of the preparation item, type or non specimen
+     * counts, and add listeners to auto populate the fields on the preparation form.
      */
     @Override
     public void initialize(Viewable viewableArg)
@@ -100,7 +105,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         
         if (formViewObj != null)
         {
-        	
+        	//dl: listens for an index change and performs an update to itemcountlabel plugin
         	final ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
         	final ResultSetControllerListener rsListener = new ResultSetControllerListener() {
     		@Override
@@ -129,11 +134,11 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 		    rsController.addListener(rsListener);
         	
         	final SwingWorker worker = new SwingWorker() {
-				//This code must wait for the formViewObj to be updated before executing the update on item counts
+				//dl: This code must wait for the formViewObj to be updated before executing the update on item counts
 				@Override
 				public Object construct() {
 					while (formViewObj.getDataObj() == null || formViewObj.getParentDataObj() == null) { try {
-						Thread.sleep(100);
+						Thread.sleep(100); // wait 100 ms and try again
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -152,6 +157,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             //FormViewObj loanForm = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
             //if (loanForm != null) {
 	            
+	            //dl: listener for the count value spinner components
 	            ChangeListener countChangeListener = new ChangeListener() {
 	                @Override
 	                public void stateChanged(ChangeEvent e)
@@ -183,6 +189,9 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             
             
             //if (prepComp != null && prepComp instanceof ValComboBoxFromQuery)
+            
+            /*dl: an EditViewCompSwitcherPanel that contains a ValComboBoxFromQuery (displayed before preps
+            are saved to a loan and  a TextFieldWithInfo, the uneditable field displayed after preps are saved */
             if (prepComp != null && prepComp instanceof EditViewCompSwitcherPanel)
             {	
                 Component[] prepComps = ((EditViewCompSwitcherPanel)prepComp).getComponents();
@@ -223,7 +232,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                     final ValTextAreaBrief    description = (ValTextAreaBrief) descriptionComp;
                     
                     //if (srcTaxonTextField != null && higherTaxonTextField != null && typeCount != null)
-                    if (srcTaxonTextField != null && typeCount != null)
+                    /*if (srcTaxonTextField != null && typeCount != null)
                     {
                         prepComboBox.addFocusListener(new FocusListener() {
 
@@ -232,13 +241,14 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 			            LoanPreparation loanPreparation = (LoanPreparation)formViewObj.getDataObj();
 			            itemCountsLabel.initLabels(loanPreparation, null);
 						
-					}
+					} 
 
 					@Override
 					public void focusLost(FocusEvent arg0) {
 						// TODO Auto-generated method stub
 						
-					} });
+					} });*/
+					
                     	prepComboBox.addListSelectionListener(
                                 new ListSelectionListener()
                                 {
@@ -246,7 +256,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                                     public void valueChanged(ListSelectionEvent e)
                                     {
                                         //if (e != null && !e.getValueIsAdjusting())  // Specify sometimes sends a null event for updating the display
-                                        //{
+                                        //{ dl: for some reason the event is always null now.
                                             Preparation prep  = (Preparation) prepComboBox.getValue();
                                             if (prep != null)
                                             {
@@ -266,7 +276,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                 }
             }
         }
-    }
+    
     
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#isOkToAssociateSearchObject(java.lang.Object, java.lang.Object)

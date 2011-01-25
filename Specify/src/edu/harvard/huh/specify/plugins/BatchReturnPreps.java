@@ -1,16 +1,23 @@
-/* This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+/*
+ * Created on 2011 January 6
  *
- * This library is distributed in the hope that it will be useful,
+ * Copyright © 2011 President and Fellows of Harvard College
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * @Author: David B. Lowery  lowery@cs.umb.edu
  */
 package edu.harvard.huh.specify.plugins;
 
@@ -34,6 +41,10 @@ import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIRegistry;
 
+/**
+ * This class is a plugin implemented as a JButton component for the Batch return preparations
+ * functionality on the loan form for performing multiple returns at once.
+ */
 @SuppressWarnings("serial")
 public class BatchReturnPreps extends JButton implements UIPluginable, GetSetValueIFace
 {
@@ -43,6 +54,9 @@ public class BatchReturnPreps extends JButton implements UIPluginable, GetSetVal
 	private FormViewObj parent = null;
     private Loan loan;
     
+    /** Constructor method for plugin sets the title and tooltip text and adds an 
+     * action listener that will call doButtonAction() when the button is clicked.
+     */
     public BatchReturnPreps()
     {
     	
@@ -66,7 +80,8 @@ public class BatchReturnPreps extends JButton implements UIPluginable, GetSetVal
         });
     }
     /**
-     * 
+     * Creates a new InteractionsTask object and passes a commandAction for ReturnLoan to the task's
+     * doCommand() method.
      */
     protected void doButtonAction()
     {

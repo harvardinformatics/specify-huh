@@ -111,6 +111,7 @@ import edu.ku.brc.ui.VerticalSeparator;
  * TODO: Convert to use CustomDialog
  * 
  * @author rods
+ * @author dl
  *
  * @code_status Beta
  *
@@ -131,7 +132,9 @@ public class LoanReturnDlg extends JDialog
     protected ValFormattedTextFieldSingle dateClosed;
     
     /**
-     * Constructor.
+     * Constructor for the loan return dialog
+     * 
+     * dl: I added components for Type and Non-specimen counts. Took out the unused "resolved" fields.
      * @param loan the loan
      */
     public LoanReturnDlg(final Loan loan)
@@ -148,6 +151,8 @@ public class LoanReturnDlg extends JDialog
     }
     
     /**
+     * Creates the UI for the dialog.
+     * 
      * @return
      */
     public boolean createUI()
@@ -420,6 +425,10 @@ public class LoanReturnDlg extends JDialog
     //------------------------------------------------------------------------------------------
     //
     //------------------------------------------------------------------------------------------
+    
+    /**
+     * The panel that contains the components for collection objects.
+     */
     class ColObjPanel extends JPanel
     {
         protected CollectionObject  colObj;
@@ -457,12 +466,15 @@ public class LoanReturnDlg extends JDialog
             
             Set<Determination> determinations = new HashSet<Determination>(); // mmk fragment
             
+            
         	for (Fragment frag : colObj.getFragments())
         	{
         		determinations.addAll(frag.getDeterminations());
         		identifier = frag.getIdentifier();
         	}                                                                 // mmk fragment
         	
+        	
+        	// dl: get the taxon name for display (the original dialog displayed only the identifier)
             for (Determination deter : determinations)
             {
                 if (deter.isCurrentDet())
@@ -614,6 +626,9 @@ public class LoanReturnDlg extends JDialog
     //------------------------------------------------------------------------------------------
     // Return panel for each LoanPreparation.
     //------------------------------------------------------------------------------------------
+    /**
+     * Panel that contains all the components for selecting preparations for return in each loan.
+     */
     class PrepPanel extends JPanel implements ActionListener
     {
         protected Preparation prep;
@@ -688,6 +703,8 @@ public class LoanReturnDlg extends JDialog
             boolean allItemReturned = false;
             boolean allTypeReturned = false;
             boolean allNonSpecimenReturned = false;
+            
+            //dl: beginning of code for components specific to the selection of items.
             
             if (prep.getCountAmt() !=  null)
             {
@@ -817,7 +834,7 @@ public class LoanReturnDlg extends JDialog
             
             x = 2; //dl
             
-
+            //dl: beginning of code for components specific to the selection of type specimens.
             
             if (prep.getCountAmt() !=  null)
             {
@@ -948,6 +965,8 @@ public class LoanReturnDlg extends JDialog
             }
             
             x = 2;
+            
+            //dl: beginning of code for components specific to the selection of non specimens.
             
             if (prep.getCountAmt() !=  null)
             {
@@ -1358,6 +1377,9 @@ public class LoanReturnDlg extends JDialog
     //------------------------------------------------------------------------------------------
     //
     //------------------------------------------------------------------------------------------
+    /**
+     * Contains information about the loan return for use when creating a loanReturnPreparation obj.
+     */
     public class LoanReturnInfo
     {
         protected LoanPreparation lpo;

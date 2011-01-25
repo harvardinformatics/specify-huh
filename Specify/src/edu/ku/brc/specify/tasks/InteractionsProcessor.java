@@ -61,6 +61,7 @@ import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rod
+ * @author david lowery
  *
  * @code_status Alpha
  *
@@ -169,6 +170,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
     
     /**
      * Creates a new loan from a RecordSet.
+     * dl: this is used when you create a new loan and is also used by the batchaddpreps plugin.
      * @param currPrepProvider an existing loan that needs additional Preps
      * @param infoRequest a info request
      * @param recordSetArg the recordset to use to create the loan
@@ -214,6 +216,8 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             return;
         }
         
+        
+        // dl: get current multiview object from the subpane and setHasNewData in the formviewobj as true.
         if (currPrepProvider != null) {
         	SubPaneIFace subPane = SubPaneMgr.getInstance().getCurrentSubPane();
         	MultiView mv = subPane.getMultiView();
@@ -274,7 +278,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                 final JStatusBar statusBar = UIRegistry.getStatusBar();
                 statusBar.setIndeterminate(LOAN_LOADR, true);
                 
-                if (recordSet != null) //&& recordSet.getNumItems() > 2) this is commented so that the simple glass pane msg is displayed every time
+                if (recordSet != null) //&& recordSet.getNumItems() > 2) dl: this is commented so that the simple glass pane msg is displayed every time
                 {
                     UIRegistry.writeSimpleGlassPaneMsg(getResourceString("NEW_INTER_LOADING_PREP"), 24);
                 }
@@ -306,6 +310,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
     }
 
     /**
+     * After loading the prepas from the db, run this method to stat the swing worker with calls to addPrepsToGift and addPrepsToLoan
      * @param frToPrepHash
      * @param prepTypeHash
      * @param prepProvider
@@ -372,10 +377,11 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                     statusBar.setProgressDone("INTERACTIONS");
                     statusBar.setText("");
                     UIRegistry.clearSimpleGlassPaneMsg();
+                    
                 	MultiView mv = (MultiView)((FormViewObj)viewable).getControlByName("loanPreparations");
                 	FormViewObj formViewObj = mv.getCurrentViewAsFormViewObj();
-                	System.out.println(formViewObj);
-                	
+              
+                	//dl: update the itemcountslabel plugin when batch add preps is performed
                     ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
                     itemCountsLabel.doAccounting(formViewObj);
                 }
@@ -496,8 +502,6 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
                       "AND FragmentID " + DBTableIdMgr.getInstance().getInClause(recordSet);
                       
                 Vector<Object[]> partialItems = BasicSQLUtils.query(QueryAdjusterForDomain.getInstance().adjustSQL(sql));
-                
-                
                 partialItems.addAll(fullItems);
                 return partialItems;
             }
@@ -769,7 +773,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
             
             UIRegistry.getStatusBar().setProgressDone(LOAN_LOADR);
             
-            if (recordSet != null) //&& recordSet.getNumItems() > 2)
+            if (recordSet != null) //&& recordSet.getNumItems() > 2) dl: this is commented so that the simple glass pane msg is displayed every time
             {
                 UIRegistry.clearSimpleGlassPaneMsg();
             }

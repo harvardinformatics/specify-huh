@@ -1,17 +1,25 @@
-/* This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+/*
+ * Created on 2011 January 6
  *
- * This library is distributed in the hope that it will be useful,
+ * Copyright © 2011 President and Fellows of Harvard College
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * @Author: David B. Lowery  lowery@cs.umb.edu
  */
+
 package edu.harvard.huh.specify.plugins;
 
 import static edu.ku.brc.ui.UIHelper.createLabel;
@@ -67,19 +75,18 @@ import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.VerticalSeparator;
 
+/**
+ * plugin class for the Item counts labels displayed on the loan form. Extends a JPanel object
+ * which contains multiple JLabels that display counts.
+ * @author lowery
+ *
+ */
 @SuppressWarnings("serial")
-
 public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValueIFace
 {
     private String title = null;
 
     private FormViewObj parent = null;
-    
-    private RecordSetIFace recordSet;
-    private Loan           prepsProvider;
-
-    private Hashtable<Integer, String>     prepTypeHash = new Hashtable<Integer, String>();
-    private Hashtable<Integer, ColObjInfo> frToPrepHash = new Hashtable<Integer, ColObjInfo>();
     
     private Loan loan;
     
@@ -95,6 +102,10 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
     private JLabel returnedTotalLabel = new JLabel();
     private JLabel outstandingTotalLabel = new JLabel();
     
+    /**
+     * Constructor method for plugin sets title and tooltip text and initializes the
+     * form layout and all the labels that will be used to display counts.
+     */
     public ItemCountsLabel()
     {	
     	
@@ -149,6 +160,11 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
      
     }
     
+    /**
+     * This method takes a FormViewObj as a parameter and pulls the loan from it. From the loan
+     * the method will get the counts needed for tallying and updating all the labels
+     * @param formViewObj
+     */
     public void doAccounting(FormViewObj formViewObj) {
     	//if (SubPaneMgr.getInstance().getCurrentSubPane().getMultiView() != null)
     	//loan = (Loan)SubPaneMgr.getInstance().getCurrentSubPane().getMultiView().getData();
@@ -190,56 +206,7 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
     }
     }
 
-public void initLabels(LoanPreparation prep, LoanReturnPreparation retPrep) {
-	
-	int itemCnt = 0, typeCnt = 0, nonSpecimenCnt = 0;
-	int itemCntRet = 0, typeCntRet = 0, nonSpecimenCntRet = 0;
-	
-	System.out.println(prep);
-	System.out.println(retPrep);
-	
-	itemCountLabels[TOTAL].setText(Integer.toString(itemCnt));
-	itemCountLabels[RETURNED].setText(Integer.toString(itemCntRet));
-	itemCountLabels[OUTSTANDING].setText(Integer.toString(itemCnt - itemCntRet));
-	
-	typeCountLabels[TOTAL].setText(Integer.toString(typeCnt));
-	typeCountLabels[RETURNED].setText(Integer.toString(typeCntRet));
-	typeCountLabels[OUTSTANDING].setText(Integer.toString(typeCnt - typeCntRet));
-	
-	nonSpecimenCountLabels[TOTAL].setText(Integer.toString(nonSpecimenCnt));
-	nonSpecimenCountLabels[RETURNED].setText(Integer.toString(nonSpecimenCntRet));
-	nonSpecimenCountLabels[OUTSTANDING].setText(Integer.toString(nonSpecimenCnt - nonSpecimenCntRet));
-	
-	totalTotalLabel.setText(Integer.toString(itemCnt + typeCnt + nonSpecimenCnt));
-	returnedTotalLabel.setText(Integer.toString(itemCntRet + typeCntRet + nonSpecimenCntRet));
-	outstandingTotalLabel.setText(Integer.toString((itemCnt - itemCntRet) + (typeCnt - typeCntRet) + (nonSpecimenCnt - nonSpecimenCntRet)));
-}
-
-    private void updateComponent(String componentId)
-    {
-    	/*
-        Object obj = parent.getCompById(componentId);
-        if (obj instanceof ValFormattedTextFieldSingle)
-        {
-            ValFormattedTextFieldSingle txt = (ValFormattedTextFieldSingle) obj;
-            String feet = (String)txt.getValue();
-
-            String meters = feetToMeters(feet);
-            txt.setValue(meters, null);
-
-        }
-        else if (obj instanceof JTextField)
-        {
-            JTextField txt = (JTextField) obj;
-            String feet = txt.getText();
-            
-            String meters = feetToMeters(feet);
-            txt.setText(meters);
-        }
-        */
-    }
-    
-    @Override
+@Override
     public void addChangeListener(ChangeListener listener)
     {
         // TODO Auto-generated method stub
@@ -319,18 +286,6 @@ public void initLabels(LoanPreparation prep, LoanReturnPreparation retPrep) {
     public void setValue(Object value, String defaultValue)
     {   
         boolean enable = true;
-        if (value != null && value instanceof LoanPreparation)
-        {
-            loan = ((LoanPreparation)value).getLoan();
-            
-        }
-        
-
-        
-        if (loan != null)
-        {
-            enable = true;
-        }
         setEnabled(enable);
     }
 
