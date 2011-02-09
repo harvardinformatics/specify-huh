@@ -232,6 +232,7 @@ import edu.ku.brc.util.thumbnails.Thumbnailer;
  * @code_status Beta
  * 
  * @author rods
+ * @version $Id$
  */
 @SuppressWarnings("serial") //$NON-NLS-1$
 public class Specify extends JPanel implements DatabaseLoginListener, CommandListener, FrameworkAppIFace
@@ -1851,31 +1852,32 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
      */
     public void doAbout()
     {
-        if (false)
-        {
-            if (GenericLSIDGeneratorFactory.getInstance().isReady())
-            {
-                System.err.println("["+
-                        GenericLSIDGeneratorFactory.getInstance().createLSID(GenericLSIDGeneratorFactory.CATEGORY_TYPE.Specimen, "1001") + "]");
-                return;
-            } else
-            {
-                System.err.println(GenericLSIDGeneratorFactory.getInstance().getErrorMsg());
-                GenericLSIDGeneratorFactory.getInstance().reset();
-            }
-        }
-        
-        if (false)
-        {
-            StatsTrackerTask statsTrackerTask = (StatsTrackerTask)TaskMgr.getTask(StatsTrackerTask.STATS_TRACKER);
-            statsTrackerTask.sendStats(false, false); // false means don't do it silently
-            return;
-        }
-        
-        if (false)
-        {
-            ViewToSchemaReview.checkViews();
-        }
+    	//TODO: Add ability to see release notes.
+//        if (false)
+//        {
+//            if (GenericLSIDGeneratorFactory.getInstance().isReady())
+//            {
+//                System.err.println("["+
+//                        GenericLSIDGeneratorFactory.getInstance().createLSID(GenericLSIDGeneratorFactory.CATEGORY_TYPE.Specimen, "1001") + "]");
+//                return;
+//            } else
+//            {
+//                System.err.println(GenericLSIDGeneratorFactory.getInstance().getErrorMsg());
+//                GenericLSIDGeneratorFactory.getInstance().reset();
+//            }
+//        }
+//        
+//        if (false)
+//        {
+//            StatsTrackerTask statsTrackerTask = (StatsTrackerTask)TaskMgr.getTask(StatsTrackerTask.STATS_TRACKER);
+//            statsTrackerTask.sendStats(false, false); // false means don't do it silently
+//            return;
+//        }
+//        
+//        if (false)
+//        {
+//            ViewToSchemaReview.checkViews();
+//        }
         
         AppContextMgr acm        = AppContextMgr.getInstance();
         boolean       hasContext = acm.hasContext();
@@ -2034,7 +2036,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     {
         return "<html><font face=\"sans-serif\" size=\"11pt\">"+appNameArg+" " + appVersionArg +  //$NON-NLS-1$ //$NON-NLS-2$
         "<p>This software is based on the Specify Software Project by the Biodiversity Institute " +
-        " at the University of Kansas.  It was modified somewhat by the Harvard University Herbaria to accommodate their requirements.</p>" +
+        " at the University of Kansas.<br>" +
+        "With modifications by the Harvard University Herbaria.<br>"+ //$NON-NLS-1$
+        "<a href=\"http://watson.huh.harvard.edu\">watson.huh.harvard.edu</a>"+ //$NON-NLS-1$
         "<br><br>Specify Software Project<br>" +//$NON-NLS-1$
         "Biodiversity Institute<br>University of Kansas<br>1345 Jayhawk Blvd.<br>Lawrence, KS  USA 66045<br><br>" +  //$NON-NLS-1$
         "<a href=\"http://www.specifysoftware .org\">www.specifysoftware.org</a>"+ //$NON-NLS-1$
@@ -2042,9 +2046,11 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         "<p>The Specify Software Project is "+ //$NON-NLS-1$
         "funded by the Advances in Biological Informatics Program, " + //$NON-NLS-1$
         "U.S. National Science Foundation  (Award DBI-0446544 and earlier awards).<br><br>" + //$NON-NLS-1$
-        "Specify 6.0 Copyright \u00A9 2009 University of Kansas Center for Research. " + 
+        "Specify 6.0 Copyright \u00A9 2009 University of Kansas Center for Research. <br>" + 
+        "Parts Copyright \u00A9 2009-2011 President and Fellows of Harvard College. <br>" + 
         "Specify comes with ABSOLUTELY NO WARRANTY.<br><br>" + //$NON-NLS-1$
-        "This is free software licensed under GNU General Public License 2 (GPL2).</P></font></html>"; //$NON-NLS-1$
+        "This is free software licensed under GNU General Public License 2 (GPL2).</P>" +
+        "<br>$Id$</font></html>"; //$NON-NLS-1$
 
     }
 
