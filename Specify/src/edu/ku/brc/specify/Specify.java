@@ -270,9 +270,9 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
 
     private boolean              isWorkbenchOnly     = false;
     
-    private String               appName             = "Specify-HUH"; //$NON-NLS-1$
-    private String               appVersion          = "6.0"; //$NON-NLS-1$
-    private String               appBuildVersion     = "19"; //$NON-NLS-1$
+    private static String               appName             = "Specify-HUH"; //$NON-NLS-1$
+    private static String               appVersion          = "6.1.1"; //$NON-NLS-1$
+    private static String               appBuildVersion     = "20"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
 
@@ -2211,7 +2211,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     /**
      * (To be replaced by method in AppBase)
      */
-    protected String getTitle()
+    public static String getTitle()
     {
         String install4JStr = UIHelper.getInstall4JInstallString();
         if (StringUtils.isNotEmpty(install4JStr))

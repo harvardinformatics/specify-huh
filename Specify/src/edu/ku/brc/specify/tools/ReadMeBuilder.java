@@ -29,14 +29,25 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.Specify;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
  * @author rods
+ * @author Paul J. Morris
  *
- * @code_status Alpha
+ * @code_status Beta
  *
  * Created Date: Jul 8, 2009
+ * 
+ * Produce a release notes readme.html file listing bugs from an xml view of bugzilla bugs.
+ * 
+ * Placed in packaging/readme.html, the release notes will be included by install4j.
+ * 
+ * File bugs in bugzilla under a version number of the software, then, when ready to release 
+ * the next version, search for bugs under the version number, and save the search results
+ * as xml from bugzilla.  Point this application at the bugzilla xml file, and it will generate
+ * a short list of the resolved bugs as a release notes document. 
  *
  */
 public class ReadMeBuilder
@@ -49,7 +60,10 @@ public class ReadMeBuilder
         super();
     }
 
-    
+    /**
+     * Brings up a dialog for user to pick an xml file that contains a list of bugzilla bugs, 
+     * processes this file, and writes a list of the resolved bugs in readme.html
+     */
     public void process()
     {
         JFileChooser chooser    = new JFileChooser();
@@ -71,14 +85,27 @@ public class ReadMeBuilder
                             Element node = (Element)bugObj;
                             
                             String bugId = ((Node)node.selectObject("bug_id")).getText();
-                            list.add(new BugInfo(((Node)node.selectObject("short_desc")).getText(), ((Node)node.selectObject("delta_ts")).getText(), bugId));
-                            System.out.println(bugId);
+                            String bug_status = ((Node)node.selectObject("bug_status")).getText();
+                            // Exclude bugs that haven't been resolved.
+                            if (bug_status.equals("RESOLVED")) { 
+                                list.add(new BugInfo(
+                                		((Node)node.selectObject("short_desc")).getText(), 
+                                		((Node)node.selectObject("delta_ts")).getText(), 
+                                		bugId,
+                                		((Node)node.selectObject("resolution")).getText(),
+                                		((Node)node.selectObject("assigned_to")).getText()
+                                		));
+                                System.out.println(bugId);
+                            } else { 
+                            	System.out.println("Excluding " + bugId + " " + bug_status);
+                            }
                         }
                     }
                     
                     Collections.sort(list);
                     
                     PrintWriter pw = new PrintWriter(new File("readme.html"));
+                    //TODO: Why start by closing the document?  Is this for install4j? 
                     pw.append("</body>\n</html>\n");
                     pw.append("<html>\n");
                     pw.append("<head>\n");
@@ -87,20 +114,24 @@ public class ReadMeBuilder
                     pw.append("</head>\n");
     
                     pw.append("<body>\n");
-                    pw.append("<h3>Release Notes<br />\n");
-                    pw.append("  Specify 6.0.xx<br />\n");
-                    pw.append("  08 July 2009<br />\n");
-                    pw.append("  Specify Software Project</h3>\n");
+                    pw.append("<h3>Release Notes</h3>\n");
+                    pw.append("<h3>"+Specify.getTitle()+"</h3>\n");
+                    pw.append("<br />\n");
+                    pw.append("<h3>Resolved Issues</h3>\n");
                     pw.append("<ol>\n");
                     
                     for (BugInfo bi : list)
                     {
                         pw.append("<li>");
+                        pw.append(bi.getResolution());
+                        pw.append("&nbsp;&nbsp;");
                         pw.append(bi.getText());
                         pw.append("&nbsp;&nbsp;");
                         pw.append(bi.getDate());
                         pw.append("&nbsp;&nbsp;(");
                         pw.append(bi.getNum());
+                        pw.append("&nbsp;&nbsp;");
+                        pw.append(bi.getAssigned_to());
                         pw.append(").</li>\n");
                     }
                     pw.append("</ol>\n");
@@ -141,19 +172,26 @@ public class ReadMeBuilder
 
     }
 
-    
+    /**
+     * Proxy object for a subset of bugzilla bug concepts.
+     *
+     */
     class BugInfo implements Comparable<BugInfo>
     {
         protected String text;
         protected String date;
         protected String num;
+        protected String resolution;
+		protected String assigned_to;
         
-        public BugInfo(String text, String date, String num)
+        public BugInfo(String text, String date, String num, String resolution, String assigned_to)
         {
             super();
             this.text = text;
             this.date = date;
             this.num = num;
+            this.resolution = resolution;
+            this.assigned_to = assigned_to;
         }
         /**
          * @return the text
@@ -176,6 +214,19 @@ public class ReadMeBuilder
         {
             return num;
         }
+        /**
+		 * @return the resolution
+		 */
+		public String getResolution() {
+			return resolution;
+		}
+		/**
+		 * @return the assigned_to
+		 */
+		public String getAssigned_to() {
+			return assigned_to;
+		}
+        
         /* (non-Javadoc)
          * @see java.lang.Comparable#compareTo(java.lang.Object)
          */
