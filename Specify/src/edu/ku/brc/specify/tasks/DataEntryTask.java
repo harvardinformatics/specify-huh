@@ -923,7 +923,7 @@ public class DataEntryTask extends BaseTask
                 }
                 
                 // FOR DEBUGGING - Verify View Names
-                /*
+                
                 List<ViewIFace> views = ((SpecifyAppContextMgr)AppContextMgr.getInstance()).getEntirelyAllViews();
                 Hashtable<String, Object> hash = new Hashtable<String, Object>();
                 for (ViewIFace view : views)
@@ -936,7 +936,7 @@ public class DataEntryTask extends BaseTask
                 {
                     if (hash.get(dev.getView()) == null)
                     {
-                        log.error("STD - For DEV Name["+dev.getName()+"] the view named ["+dev.getView()+"] doesn't exist!");
+                        log.error("STD - For DEV Name["+dev.getTitle()+"] the view named ["+dev.getView()+"] doesn't exist!");
                     }
                 }
                 
@@ -944,10 +944,10 @@ public class DataEntryTask extends BaseTask
                 {
                     if (hash.get(dev.getView()) == null)
                     {
-                        log.error("MSC - For DEV Name["+dev.getName()+"] the view named ["+dev.getView()+"] doesn't exist!");
+                        log.error("MSC - For DEV Name["+dev.getTitle()+"] the view named ["+dev.getView()+"] doesn't exist!");
                     }
                 }
-                */
+                
                 //initDataEntryViews(stdViews);
                 //initDataEntryViews(miscViews);
                 
@@ -1006,6 +1006,9 @@ public class DataEntryTask extends BaseTask
                 NavBoxButton roc = (NavBoxButton)nbi;
                 for (DataEntryView dev : availMiscViews)
                 {
+                	log.debug(dev);
+                	log.debug(dev.getTableInfo());
+                	log.debug(dev.getTableInfo().getTableId());
                     roc.addDropDataFlavor(new DataFlavorTableExt(DataEntryTask.class, RecordSetTask.RECORD_SET, dev.getTableInfo().getTableId()));
                 }
                 viewsNavBox.add(nbi);
