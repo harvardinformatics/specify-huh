@@ -456,6 +456,14 @@
   		<picklistitem title="S" value="S"/>
   	</items>
   </picklist>
+    <picklist name="HUH Loan Purpose" issystem="true" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="for id" value="ForID"/>
+      <picklistitem title="for study" value="ForStudy"/>
+      <picklistitem title="for dna Sampling" value="ForDnaSampling"/>
+      <picklistitem title="for exhibition" value="ForExhibition"/>
+    </items>
+  </picklist>
   <picklist name="HUH Transaction Purpose" issystem="true" type="0" readonly="true" sizelimit="5">
     <items>
       <picklistitem title="for id" value="ForID"/>
