@@ -95,7 +95,9 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
 	                    FormViewObj prepForm = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
 	                    if (prepForm != null) {
 		                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)prepForm.getControlById("itemcountslabel");
-		                    itemCountsLabel.doAccounting(prepForm);
+		                    if ((LoanPreparation)formViewObj.getParentDataObj() != null) {
+		                    	HUHLoanPreparationBusRules.doAccounting(itemCountsLabel, ((LoanPreparation)formViewObj.getParentDataObj()).getLoan());
+		                    }
 	                    }
 	                }
 	            };
@@ -175,4 +177,5 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
         }
         return true;
     }
+    
 }
