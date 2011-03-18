@@ -448,7 +448,6 @@ public class LoanReturnDlg extends JDialog
                            final List<LoanPreparation> lpoList)
         {
             super();
-            
             this.dlgParent = dlgParent;
             this.colObj    = colObj;
             
@@ -1275,29 +1274,27 @@ public class LoanReturnDlg extends JDialog
             return 0;
         }
         
-        /*public int getItemResolvedCount()
+        public boolean getIsResolved() {
+        	int returnedCount = getItemResolvedCount() + getTypeResolvedCount() + getNonSpecimenResolvedCount();
+        	int loanedCount = itemQuantityLoaned + typeQuantityLoaned + nonSpecimenQuantityLoaned;
+        	
+        	return returnedCount == loanedCount;
+        }
+        
+        public int getItemResolvedCount()
         {
-            if (resolvedSpinner != null)
-            {
-                Object valObj = resolvedSpinner.getValue();
-               return valObj == null ? 0 : ((Integer)valObj).intValue();
-                
-            }
-            // else
-            return 0;
+        	return getItemReturnedCount() + itemQuantityReturned;
         }
         
         public int getTypeResolvedCount()
         {
-            if (resolvedSpinner2 != null)
-            {
-                Object valObj = resolvedSpinner2.getValue();
-               return valObj == null ? 0 : ((Integer)valObj).intValue();
-                
-            }
-            // else
-            return 0;
-        }*/
+        	return getTypeReturnedCount() + typeQuantityReturned;
+        }
+        
+        public int getNonSpecimenResolvedCount()
+        {
+        	return getNonSpecimenReturnedCount() + nonSpecimenQuantityReturned;
+        }
         
         /**
          * Returns the LoanReturnInfo describing the user input for the loan return.
@@ -1308,7 +1305,7 @@ public class LoanReturnDlg extends JDialog
             return new LoanReturnInfo(lpo, 
                                       remarks != null ? remarks.getText() : null,
                                       getItemReturnedCount(), getTypeReturnedCount(), getNonSpecimenReturnedCount(),
-                                      false);
+                                      (Calendar) dateClosed.getValue(), getIsResolved());
         }
         
         /* (non-Javadoc)
@@ -1390,6 +1387,7 @@ public class LoanReturnDlg extends JDialog
 		protected int itemCount;
 		protected int typeCount;
 		protected int nonSpecimenCount;
+		protected Calendar returnedDate;
         
         public LoanReturnInfo(LoanPreparation lpo, 
                               String remarks, 
@@ -1398,6 +1396,7 @@ public class LoanReturnDlg extends JDialog
                               int itemCount,
                               int typeCount,
                               int nonSpecimenCount,
+                              Calendar returnedDate,
                               boolean isResolved)
         {
             super();
@@ -1411,6 +1410,7 @@ public class LoanReturnDlg extends JDialog
             this.itemCount = itemCount;
             this.typeCount = typeCount;
             this.nonSpecimenCount = nonSpecimenCount;
+            this.returnedDate = returnedDate;
         }
         public LoanPreparation getLoanPreparation()
         {
@@ -1443,6 +1443,9 @@ public class LoanReturnDlg extends JDialog
 		}
 		public int getNonSpecimenCount() {
 			return nonSpecimenCount;
+		}
+		public Calendar getReturnedDate() {
+			return returnedDate;
 		}
 		
         

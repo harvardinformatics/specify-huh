@@ -956,7 +956,7 @@ public class InteractionsTask extends BaseTask
             
             for (Integer prepId : prepsHash.keySet())
             {
-                Preparation prep  = session.get(Preparation.class, prepId);
+                Preparation prep  = session.get(Preparation.class, prepId); 
             
                 Integer itemCount        = prep.getCountAmt();
                 Integer typeCount        = 0;
@@ -1710,7 +1710,8 @@ public class InteractionsTask extends BaseTask
     }
     
     /**
-     * Starts process to return a loan.
+     * Starts process to return a loan. This is an HUH implementation of a previously unused method.
+     * 
      * @param multiView the current form doing the return
      * @param loan the loan being returned
      * @param agent the agent doing the return
@@ -1771,9 +1772,11 @@ public class InteractionsTask extends BaseTask
                         loanRetPrep.initialize();
                         loanRetPrep.setReceivedBy(agent);
                         loanRetPrep.setModifiedByAgent(Agent.getUserAgent());
-                        loanRetPrep.setReturnedDate(Calendar.getInstance());
+                        //loanRetPrep.setReturnedDate(Calendar.getInstance()); May be desirable for this to be set by a property
                         loanRetPrep.setQuantityResolved(loanRetInfo.getResolvedQty() - qtyRes);
                         loanRetPrep.setQuantityReturned(loanRetInfo.getReturnedQty() - qtyRet);
+                        
+                        loanRetPrep.setReturnedDate(loanRetInfo.getReturnedDate());
                         
                         loanRetPrep.setRemarks(loanRetInfo.getRemarks());
                         
