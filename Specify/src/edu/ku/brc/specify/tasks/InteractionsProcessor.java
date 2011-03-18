@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.harvard.huh.specify.datamodel.busrules.HUHLoanPreparationBusRules;
 import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
@@ -384,7 +385,7 @@ public class InteractionsProcessor<T extends PreparationsProviderIFace>
 	              
 	                	//dl: update the itemcountslabel plugin when batch add preps is performed
 	                    ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById("itemcountslabel");
-	                    itemCountsLabel.doAccounting(formViewObj);
+	                    HUHLoanPreparationBusRules.doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
                     }
                 }
             };
