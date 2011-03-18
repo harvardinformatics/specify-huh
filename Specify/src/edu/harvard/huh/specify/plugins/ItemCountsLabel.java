@@ -165,45 +165,28 @@ public class ItemCountsLabel extends JPanel implements UIPluginable, GetSetValue
      * the method will get the counts needed for tallying and updating all the labels
      * @param formViewObj
      */
-    public void doAccounting(FormViewObj formViewObj) {
-    	//if (SubPaneMgr.getInstance().getCurrentSubPane().getMultiView() != null)
-    	//loan = (Loan)SubPaneMgr.getInstance().getCurrentSubPane().getMultiView().getData();
-    	if (formViewObj != null) {
-    		loan = (Loan) formViewObj.getParentDataObj();
-    	}
+    public void updateLabels(int itemTotal, int typeTotal, int nonSpecimenTotal,
+    		                 int itemReturned, int typeReturned, int nonSpecimenReturned) {
     	
-    	int itemCnt = 0, typeCnt = 0, nonSpecimenCnt = 0;
-    	int itemCntRet = 0, typeCntRet = 0, nonSpecimenCntRet = 0;
+    	int itemOutstanding = itemTotal - itemReturned;
+    	int typeOutstanding = typeTotal - typeReturned;
+    	int nonSpecimenOutstanding = nonSpecimenTotal - nonSpecimenReturned;
     	
-    	if (loan != null) {
-        	for (LoanPreparation lp : loan.getLoanPreparations()) {
-        		itemCnt += lp.getItemCount() != null ? lp.getItemCount() : 0;
-        		typeCnt += lp.getTypeCount() != null ? lp.getTypeCount() : 0;
-        		nonSpecimenCnt += lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0;
-        		for (LoanReturnPreparation lrp : lp.getLoanReturnPreparations()) {
-        			itemCntRet += lrp.getItemCount() != null ? lrp.getItemCount() : 0;
-        			typeCntRet += lrp.getTypeCount() != null ? lrp.getTypeCount() : 0;
-        			nonSpecimenCntRet += lrp.getNonSpecimenCount() != null ? lrp.getNonSpecimenCount() : 0;
-        		}
-        	}
+        	itemCountLabels[TOTAL].setText(Integer.toString(itemTotal));
+        	itemCountLabels[RETURNED].setText(Integer.toString(itemReturned));
+        	itemCountLabels[OUTSTANDING].setText(Integer.toString(itemOutstanding));
         	
+        	typeCountLabels[TOTAL].setText(Integer.toString(typeTotal));
+        	typeCountLabels[RETURNED].setText(Integer.toString(typeReturned));
+        	typeCountLabels[OUTSTANDING].setText(Integer.toString(typeOutstanding));
         	
-        	itemCountLabels[TOTAL].setText(Integer.toString(itemCnt));
-        	itemCountLabels[RETURNED].setText(Integer.toString(itemCntRet));
-        	itemCountLabels[OUTSTANDING].setText(Integer.toString(itemCnt - itemCntRet));
+        	nonSpecimenCountLabels[TOTAL].setText(Integer.toString(nonSpecimenTotal));
+        	nonSpecimenCountLabels[RETURNED].setText(Integer.toString(nonSpecimenReturned));
+        	nonSpecimenCountLabels[OUTSTANDING].setText(Integer.toString(nonSpecimenOutstanding));
         	
-        	typeCountLabels[TOTAL].setText(Integer.toString(typeCnt));
-        	typeCountLabels[RETURNED].setText(Integer.toString(typeCntRet));
-        	typeCountLabels[OUTSTANDING].setText(Integer.toString(typeCnt - typeCntRet));
-        	
-        	nonSpecimenCountLabels[TOTAL].setText(Integer.toString(nonSpecimenCnt));
-        	nonSpecimenCountLabels[RETURNED].setText(Integer.toString(nonSpecimenCntRet));
-        	nonSpecimenCountLabels[OUTSTANDING].setText(Integer.toString(nonSpecimenCnt - nonSpecimenCntRet));
-        	
-        	totalTotalLabel.setText(Integer.toString(itemCnt + typeCnt + nonSpecimenCnt));
-        	returnedTotalLabel.setText(Integer.toString(itemCntRet + typeCntRet + nonSpecimenCntRet));
-        	outstandingTotalLabel.setText(Integer.toString((itemCnt - itemCntRet) + (typeCnt - typeCntRet) + (nonSpecimenCnt - nonSpecimenCntRet)));
-    }
+        	totalTotalLabel.setText(Integer.toString(itemTotal + typeTotal + nonSpecimenTotal));
+        	returnedTotalLabel.setText(Integer.toString(itemReturned + typeReturned + nonSpecimenReturned));
+        	outstandingTotalLabel.setText(Integer.toString(itemOutstanding + typeOutstanding + nonSpecimenOutstanding));
     }
 
 @Override
