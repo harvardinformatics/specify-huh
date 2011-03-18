@@ -85,8 +85,13 @@ public class HUHPreparationBusRules extends PreparationBusRules
             {
                 Preparation prep = (Preparation) dataObj;
                 
-                if (prep.getCountAmt() == null || prep.getCountAmt() == 0)
-                {
+                /* dl: if the preparation is of type "Lot" and it has a value of null, default to 0 for a count
+                   otherwise use the count specified. If it is not a lot, it should contain at least one item,
+                   set the count to default to 1 if 0 or null is found. */
+                if (prep.getPrepType().getName().equals("Lot")) {
+                	if (prep.getCountAmt() == null)
+                		prep.setCountAmt(0);
+                } else if (prep.getCountAmt() == null || prep.getCountAmt() == 0) {
                     prep.setCountAmt(1);
                 }
             }
