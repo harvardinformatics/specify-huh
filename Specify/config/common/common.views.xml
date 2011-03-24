@@ -3407,7 +3407,7 @@
                     <cell type="subview" viewname="LoanAgent" id="8" name="loanAgents" colspan="15" rows="3"/>
                 </row>
                 <row>
-                    <cell type="subview" viewname="LoanShipment" id="11" name="shipments" colspan="15"/>
+                    <cell type="subview" viewname="Shipment" id="11" name="shipments" colspan="15"/>
                 </row>
                 <row>
                      <cell type="subview" viewname="LoanItems" id="10" name="loanPreparations" colspan="15" rows="4"/>
