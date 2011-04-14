@@ -346,15 +346,16 @@ U.S.A.]]></text>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{PurposeOfLoan}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
+			<textField isBlankWhenNull="true" isStretchWithOverflow="true">
 				<reportElement key="staticText-15" x="4" y="410" width="572" height="31"/>
+				<box bottomPadding="10"/>
 				<textElement markup="none">
 					<font size="9"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{SpecialConditions}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement key="line-3" x="2" y="440" width="573" height="1"/>
+				<reportElement key="line-3" positionType="FixRelativeToBottom" x="2" y="440" width="573" height="1"/>
 			</line>
 			<textField isBlankWhenNull="true">
 				<reportElement key="textField" mode="Transparent" x="22" y="122" width="200" height="12" forecolor="#000000" backcolor="#FFFFFF"/>
