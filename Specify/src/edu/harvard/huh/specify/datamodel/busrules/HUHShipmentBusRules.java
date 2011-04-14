@@ -20,12 +20,15 @@ import java.util.GregorianCalendar;
 import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.specify.datamodel.busrules.LoanGiftShipmentBusRules;
 import edu.ku.brc.ui.UIRegistry;
 
 public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
 {
+    private final String ISACKNOWLEDGED  = "isAcknowledged";
+	
     public HUHShipmentBusRules()
     {
         super();
@@ -58,6 +61,9 @@ public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
                     
                     shipment.setShipmentDate(shipmentDate);
                 }
+            }
+            if (formViewObj.getParentDataObj() != null && formViewObj.getParentDataObj() instanceof Loan) {
+            	formViewObj.getControlById(ISACKNOWLEDGED).setVisible(false);
             }
         }
     }
