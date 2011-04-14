@@ -296,6 +296,8 @@
 			</fileset>
 		</copy>
 		
+		<copy file="packaging/readme.html" todir="${installer.dir}/${help.dir}" />
+		
 		<copy file="${jar.name}.jar" todir="${installer.dir}" />
 		
 		<!-- LINUX icons
