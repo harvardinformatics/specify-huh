@@ -462,12 +462,66 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     }
     
     /**
-     * @return
+     * Runs a query that sets isOnLoan to true if the preparation is associated with a 
+     * loan that is open and the preparation is not resolved. Otherwise, set it to false.
      */
     @Transient
     public Boolean getIsOnLoan()
-    {
-        if (isOnLoan == null)
+    {	
+    	Connection conn = null;
+        Statement  stmt = null;
+        try
+        {
+            conn = DBConnection.getInstance().createConnection();
+            if (conn != null)
+            {
+                stmt = conn.createStatement();
+                String sql = "SELECT l.isClosed, lp.IsResolved FROM preparation p " +
+                "INNER JOIN loanpreparation lp ON p.PreparationID = lp.PreparationID " +
+                "INNER JOIN loan l ON lp.LoanID = l.LoanID WHERE p.PreparationID = " + getId();
+                ResultSet rs = stmt.executeQuery(sql);
+                
+                while (rs.next())
+                {
+	                System.out.println(rs.getObject(1));
+	                System.out.println(rs.getObject(2));
+	                
+	                boolean isClosed = (Boolean)rs.getObject(1);
+	                boolean isResolved = (Boolean)rs.getObject(2);
+	                
+	                if (!isClosed && !isResolved)
+	                	isOnLoan = true;
+	                
+                }
+                rs.close();
+            }
+        } catch (SQLException ex)
+        {
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(Preparation.class, ex);
+            UsageTracker.incrSQLUsageCount();
+            ex.printStackTrace();
+            
+        } finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                } catch (SQLException ex) {}
+            }
+            if (conn != null)
+            {
+                try
+                {
+                    conn.close();
+                } catch (SQLException ex) {}
+            }
+        }
+        
+        return isOnLoan == null ? false : true;
+                
+        /*if (isOnLoan == null)
         {
             Connection conn = null;
             Statement  stmt = null;
@@ -539,7 +593,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
                 }
             }
         }
-        return isOnLoan == null ? false : true;
+        return isOnLoan == null ? false : true;*/
     }
     
     /**
