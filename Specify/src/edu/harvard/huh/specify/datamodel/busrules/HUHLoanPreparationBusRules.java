@@ -43,6 +43,7 @@ import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.ResultSetControllerListener;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
 import edu.ku.brc.af.ui.forms.validation.ValTextAreaBrief;
@@ -155,7 +156,9 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 						e.printStackTrace();
 					}
 				}
-				
+				/* when the prep subform is first loaded, update the loan prepration object and the form
+				components and then update the counts. */
+				adjustTaxonFields(((LoanPreparation)formViewObj.getDataObj()).getPreparation(), taxonComp, descriptionComp, typeCountComp, itemCountComp);
 				doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
 				return null;
 			}};
@@ -280,6 +283,14 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                 }
             }
     
+    @Override
+    public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj instanceof LoanPreparation) {
+        	formViewObj.getDataFromUI();
+        }
+        return true;
+    }
     
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BusinessRulesIFace#isOkToAssociateSearchObject(java.lang.Object, java.lang.Object)
@@ -374,6 +385,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 	        if (typeCountComp != null) {
 	        	if (!prepInfo.isLot) {
 	        		typeCountComp.setValue(prepInfo.getTypeCount());
+	        		((LoanPreparation)formViewObj.getDataObj()).setTypeCount(prepInfo.getTypeCount());
 	        	} else {
 	        		Integer typeCnt = ((LoanPreparation)formViewObj.getDataObj()).getTypeCount();
 	        		typeCountComp.setValue(typeCnt == null ? 0 : typeCnt);
@@ -383,6 +395,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 	        if (itemCountComp != null) {
 	        	if (!prepInfo.isLot) {
 	        		itemCountComp.setValue(prepInfo.getItemCount());
+	        		((LoanPreparation)formViewObj.getDataObj()).setItemCount(prepInfo.getItemCount());
 	        	} else {
 	        		Integer itemCnt = ((LoanPreparation)formViewObj.getDataObj()).getItemCount();
 	        		itemCountComp.setValue(itemCnt == null ? 0 : itemCnt);
@@ -396,6 +409,8 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 	        if (taxonComp != null) {
 	        	taxonComp.setText(prepInfo.getTaxon());
 	        }
+	        
+	        formViewObj.getDataFromUI();
 	        
 	        session.close();
         
@@ -416,7 +431,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         	itemCountComp.setEnabled(false);
             typeCountComp.setEnabled(false);
         }
-    }
+    } 
     
     /** Inner class that processes a preparation obj and stores its fields within the 
      * class instance variables for use when adjusting preparation form fields,

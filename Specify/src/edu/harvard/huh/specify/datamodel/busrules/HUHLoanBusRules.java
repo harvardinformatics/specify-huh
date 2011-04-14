@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -45,6 +46,7 @@ import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
+import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules;
@@ -314,4 +316,82 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
             }
         }
      }
+    /** Overrides the BaseBusRules isOkToSave. When the save button is clicked on the loan form
+	 *  this code checks the isResolved and isClosed fields of the loan and preps for validity
+     *  against the loan preparations and loan preparation returns.
+	 */
+    @Override
+    public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj instanceof Loan) {
+        	formViewObj.getDataFromUI();
+        	Loan loan = (Loan) dataObj;
+        	Set<LoanPreparation> loanPreparations = loan.getLoanPreparations();
+        	boolean isResolvedError = false;
+        	boolean allPrepsResolved = true;
+        	
+        	/* Check each loan preparation to see if it is resolved. If not, all the preps arent resolved
+               otherwise, all preps are resolved (value of allPrepsResolved remains true */
+        	for (LoanPreparation lp : loanPreparations) {
+        		Set<LoanReturnPreparation> loanReturnPreparations = lp.getLoanReturnPreparations();
+        		System.out.println(loanReturnPreparations);
+        		if (!lp.getIsResolved())
+        			allPrepsResolved = false;
+        		
+        		/* If the prep is marked as resolved but the loan is empty, saving the loan should
+			       display an error message, otherwise, check each loan return preparation and compare
+                   the counts returned to the counts loaned. */
+        		if (lp.getIsResolved() && loanReturnPreparations.isEmpty()) {
+        			isResolvedError = true;
+        		} else {
+        			for (LoanReturnPreparation lrp : loanReturnPreparations) {
+        	        	int returnedCount = 0, loanedCount = 0;
+        				returnedCount += (lrp.getItemCount() != null ? lrp.getItemCount() : 0) +
+            				            (lrp.getTypeCount() != null ? lp.getTypeCount() : 0) +
+            				            (lrp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
+        				loanedCount += (lp.getItemCount() != null ? lp.getItemCount() : 0) +
+  		                              (lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
+  		                              (lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
+        				
+        				// If the qty returned and qty loaned are equal, automatically set isResolved.
+        		    	if (loanedCount == returnedCount)
+        		    		lp.setIsResolved(true);
+        		    	
+        		    	/* If the preparation is marked isResolved, the qty returned is less than qty
+        		    	loaned and the prepartion does not contain a return with 0 for all counts
+        		    	(in the case that items on preparation are lost or destroyed, an empty return with 0
+        		    	for all counts with a description in the remarks field with serve as a dummy placeholder
+        		    	return) an error should be displayed when the user attempts to save */
+        				if (lp.getIsResolved() && returnedCount < loanedCount && returnedCount != 0) {
+        					isResolvedError = true;
+        				}
+        			}
+        		}
+
+        		}
+        	
+	        	/* if (false) {
+	        		reasonList.add(getLocalizedMessage("PreparationBusRules.LOAN_RETURNED_GET_LOANED"));//barcodes));
+	                return false;
+	        	} */
+	        	
+	            reasonList.clear();
+	            
+	        	if (isResolvedError) {
+	        		reasonList.add(getLocalizedMessage("LOAN_ISRESOLVED_ERROR"));
+	                return false;
+	        	}
+	        	
+	        	/* If the loan is marked closed and all the preparations arent resolved, display an error.
+	        	   otherwise, mark the loan as closed automatically and save. */ 
+	        	if (loan.getIsClosed() && !allPrepsResolved) {
+	        		reasonList.add(getLocalizedMessage("LOAN_CLOSED_ERROR"));
+	                return false;
+	        	} else if (allPrepsResolved) {
+	        		loan.setIsClosed(true);
+	        	}
+        }
+        	
+    	return true;
+    }
 }

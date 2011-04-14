@@ -33,6 +33,7 @@ import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.TableViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
+import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
@@ -157,6 +158,15 @@ public class HUHLoanReturnPreparationBusRules extends BaseBusRules
             }
         }
         return STATUS.OK;
+    }
+    
+    @Override
+    public boolean isOkToSave(Object dataObj, DataProviderSessionIFace session)
+    {
+        if (dataObj instanceof LoanPreparation) {
+        	formViewObj.getDataFromUI();
+        }
+        return true;
     }
 
     private boolean countIsOK(Integer borrowCount, Integer returnCount)
