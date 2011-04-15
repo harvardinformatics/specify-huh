@@ -272,7 +272,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     private boolean              isWorkbenchOnly     = false;
     
     private static String               appName             = "Specify-HUH"; //$NON-NLS-1$
-    private static String               appVersion          = "6.1.1"; //$NON-NLS-1$
+    private static String               appVersion          = "6.1.4"; //$NON-NLS-1$
     private static String               appBuildVersion     = "20"; //$NON-NLS-1$
     
     protected static CacheManager cacheManager        = new CacheManager();
