@@ -42,6 +42,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import javax.swing.JTextPane;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -57,6 +58,7 @@ import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 import java.util.prefs.BackingStoreException;
@@ -158,7 +160,6 @@ import edu.ku.brc.services.gpx.GPXPanel;
 import edu.ku.brc.specify.config.CollectingEventsAndAttrsMaint;
 import edu.ku.brc.specify.config.DebugLoggerDialog;
 import edu.ku.brc.specify.config.DisciplineType;
-import edu.ku.brc.specify.config.FeedBackDlg;
 import edu.ku.brc.specify.config.LoggerDialog;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
@@ -241,6 +242,7 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
     private static final Logger  log                = Logger.getLogger(Specify.class);
     
     public static final boolean IS_DEVELOPMENT       = true;
+    public static final String RELEASE_NOTES_FILE	 = "help/readme.html";
     private static final String sendStatsPrefName    = "usage_tracking.send_stats";
     private static final String sendISAStatsPrefName = "usage_tracking.send_isa_stats";
     private static final String ATTACHMENT_PATH_PREF = "attachment.path";
@@ -1388,6 +1390,19 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
             }
         });
         
+        
+        ttle = "Specify.RELEASE_NOTES";//$NON-NLS-1$ 
+        mneu = "Specify.RELEASE_M+_MNEU";//$NON-NLS-1$ 
+        desc = "Specify.CHECK_UPDATE_DESC";//$NON-NLS-1$      
+        mi = UIHelper.createLocalizedMenuItem(helpMenu, ttle , mneu, desc,  true, null);
+        mi.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                doReleaseNotes();
+            }
+        });
         /*ttle = "Specify.AUTO_REG";//$NON-NLS-1$ 
         mneu = "Specify.AUTO_REG_MNEU";//$NON-NLS-1$ 
         desc = "Specify.AUTO_REG_DESC";//$NON-NLS-1$      
@@ -2026,6 +2041,59 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         UIHelper.centerAndShow(aboutDlg);
     }
     
+    public void doReleaseNotes() {
+        
+        //AppContextMgr acm        = AppContextMgr.getInstance();
+        //boolean       hasContext = acm.hasContext();
+        
+        CellConstraints cc     = new CellConstraints();
+        //PanelBuilder    infoPB = new PanelBuilder(new FormLayout("p,6px,f:p:g", "p,4px,p,4px,"));
+        
+      //  JLabel       iconLabel = new JLabel(IconManager.getIcon("SpecifyLargeIcon"), SwingConstants.CENTER); //$NON-NLS-1$
+        //PanelBuilder iconPB    = new PanelBuilder(new FormLayout("p", "20px,t:p,f:p:g"));
+        //iconPB.add(iconLabel, cc.xy(1, 2));
+
+        String txt = getReleaseNotes();
+        //JTextPane txtLbl = createLabel(txt);
+        //txtLbl.setFont(UIRegistry.getDefaultFont());
+        
+        final JEditorPane txtPane = new JEditorPane();
+        txtPane.setEditable( false );
+        //txtPane.getDocument().putProperty( "Ignore-Charset", "true" );  // this line makes no difference either way
+        txtPane.setContentType( "text/html" );
+        txtPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
+        txtPane.setText(txt);
+        //txtPane.setBackground(new JPanel().getBackground());
+        txtPane.setCaretPosition(0);
+        JScrollPane txtScrollPane = new JScrollPane(txtPane);
+        //txtScrollPane.setVerticalScrollBarPolicy(
+                //JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+      
+       
+        PanelBuilder pb = new PanelBuilder(new FormLayout("680px", "500px"));
+
+        //pb.add(iconPB.getPanel(), cc.xy(1, 1));
+        pb.add(txtScrollPane,           cc.xy(1, 1));
+        //Color bg = getBackground();
+        
+        pb.setDefaultDialogBorder();
+        
+        String       title    = getResourceString("Specify.ABOUT");//$NON-NLS-1$
+        CustomDialog aboutDlg = new CustomDialog(topFrame,  title + " " +appName, true, CustomDialog.OK_BTN, pb.getPanel()); //$NON-NLS-1$ 
+        String       okLabel  = getResourceString("Specify.CLOSE");//$NON-NLS-1$
+        aboutDlg.setOkLabel(okLabel); 
+        
+        aboutDlg.createUI();
+        aboutDlg.pack();
+        
+        // for some strange reason I can't get the dialog to size itself correctly
+        //Dimension size = aboutDlg.getSize();
+        //size.height += 120;
+        //aboutDlg.setSize(size);
+        
+        UIHelper.centerAndShow(aboutDlg);
+    }
+    
     /**
      * Returns a standard String for the about box
      * @param appNameArg the application name  
@@ -2052,6 +2120,21 @@ public class Specify extends JPanel implements DatabaseLoginListener, CommandLis
         "This is free software licensed under GNU General Public License 2 (GPL2).</P>" +
         "<br>$Id$</font></html>"; //$NON-NLS-1$
 
+    }
+    
+    public static String getReleaseNotes() {
+    	StringBuilder releaseNotes = new StringBuilder();
+    	
+    	try {
+    		Scanner in = new Scanner(new FileInputStream(RELEASE_NOTES_FILE));
+    		while (in.hasNextLine()) {
+    			releaseNotes.append(in.nextLine());
+    		}
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    	//System.out.println(releaseNotes);
+    	return releaseNotes.toString();
     }
 
     /**
