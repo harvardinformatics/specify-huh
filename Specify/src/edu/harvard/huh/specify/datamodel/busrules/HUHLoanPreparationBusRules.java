@@ -112,12 +112,11 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         	final ItemCountsLabel itemCountsLabel = (ItemCountsLabel)formViewObj.getControlById(ITEM_COUNTS_LABEL);
             final Component prepComp = formViewObj.getControlById(PREPARATION);
             final PrepItemTable prepItemTable = (PrepItemTable)formViewObj.getControlById(PREP_ITEM_TABLE);
-            
-            final ValTextField taxonComp = (ValTextField) formViewObj.getControlById(SRC_TAXONOMY);
-            final JTextField higherTaxonComp = (JTextField) formViewObj.getControlById(HIGHER_TAXON);
-            final ValSpinner  typeCountComp = (ValSpinner) formViewObj.getControlById(TYPE_COUNT);
-            final ValSpinner  itemCountComp = (ValSpinner) formViewObj.getControlById(ITEM_COUNT);
-            final ValTextAreaBrief descriptionComp = (ValTextAreaBrief) formViewObj.getControlByName(DESCRIPTION);
+            final Component taxonComp = formViewObj.getControlById(SRC_TAXONOMY);
+            final Component higherTaxonComp = formViewObj.getControlById(HIGHER_TAXON);
+            final Component  typeCountComp = formViewObj.getControlById(TYPE_COUNT);
+            final Component  itemCountComp = formViewObj.getControlById(ITEM_COUNT);
+            final Component descriptionComp = formViewObj.getControlByName(DESCRIPTION);
             
         	//dl: listens for an index change and performs an update to itemcountlabel plugin
         	final ResultSetControllerListener rsListener = new ResultSetControllerListener() {
@@ -148,7 +147,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         	final SwingWorker worker = new SwingWorker() {
 				@Override
 				public Object construct() {
-					while (formViewObj.getDataObj() == null || formViewObj.getParentDataObj() == null) {
+					while (formViewObj == null || formViewObj.getDataObj() == null || formViewObj.getParentDataObj() == null) {
 					try {
 						Thread.sleep(100); // wait 100 ms and try again
 					} catch (InterruptedException e) {
@@ -331,14 +330,20 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         return true;
     }
 
-    private void clearTaxonFields(JTextField srcTaxonTextField, ValTextAreaBrief description, ValSpinner typeCount, ValSpinner itemCount)
+    private void clearTaxonFields(Component srcTaxonTextField, Component description, Component typeCount, Component itemCount)
     {
-		srcTaxonTextField.setText(null);
-		description.setText(null);
-		typeCount.setValue(0);
-		itemCount.setValue(0);
-		typeCount.setEnabled(true);
-		itemCount.setEnabled(true);
+		if (srcTaxonTextField instanceof JTextField)
+			((JTextField)srcTaxonTextField).setText(null);
+		if (description instanceof ValTextAreaBrief)
+			((ValTextAreaBrief)description).setText(null);
+		if (typeCount instanceof ValSpinner) {
+			((ValSpinner)typeCount).setValue(0);
+			typeCount.setEnabled(true);
+		}
+		if (itemCount instanceof ValSpinner) {
+			((ValSpinner)itemCount).setValue(0);
+			itemCount.setEnabled(true);
+		}
     }
     
     public static void doAccounting(ItemCountsLabel itemCountsLabel, Loan loan) {
@@ -367,7 +372,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
      * is a type, the preparation countAmt variable is included in the type count field. Otherwise, the countAmt is
      * set as the item count field value. Uses inner class PrepInfo to obtain the values used in the fields.
      */
-    private void adjustTaxonFields(Preparation prep, JTextField taxonComp, ValTextAreaBrief descriptionComp, ValSpinner typeCountComp, ValSpinner itemCountComp)
+    private void adjustTaxonFields(Preparation prep, Component taxonComp, Component descriptionComp, Component typeCountComp, Component itemCountComp)
     {
     	clearTaxonFields(taxonComp, descriptionComp, typeCountComp, itemCountComp);
     	LoanPrepInfo prepInfo = null;
@@ -382,32 +387,32 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             /* If the preparation not of type "Lot" then get the counts for types and items from prepInfo
                otherwise, get the value from the LoanPreparation object. */
             
-	        if (typeCountComp != null) {
+	        if (typeCountComp != null && typeCountComp instanceof ValSpinner) {
 	        	if (!prepInfo.isLot) {
-	        		typeCountComp.setValue(prepInfo.getTypeCount());
+	        		((ValSpinner)typeCountComp).setValue(prepInfo.getTypeCount());
 	        		((LoanPreparation)formViewObj.getDataObj()).setTypeCount(prepInfo.getTypeCount());
 	        	} else {
 	        		Integer typeCnt = ((LoanPreparation)formViewObj.getDataObj()).getTypeCount();
-	        		typeCountComp.setValue(typeCnt == null ? 0 : typeCnt);
+	        		((ValSpinner)typeCountComp).setValue(typeCnt == null ? 0 : typeCnt);
 	        	}
 	        }
 	        
-	        if (itemCountComp != null) {
+	        if (itemCountComp != null && itemCountComp instanceof ValSpinner) {
 	        	if (!prepInfo.isLot) {
-	        		itemCountComp.setValue(prepInfo.getItemCount());
+	        		((ValSpinner)itemCountComp).setValue(prepInfo.getItemCount());
 	        		((LoanPreparation)formViewObj.getDataObj()).setItemCount(prepInfo.getItemCount());
 	        	} else {
 	        		Integer itemCnt = ((LoanPreparation)formViewObj.getDataObj()).getItemCount();
-	        		itemCountComp.setValue(itemCnt == null ? 0 : itemCnt);
+	        		((ValSpinner)itemCountComp).setValue(itemCnt == null ? 0 : itemCnt);
 	        	}
 	        }
 	        
-	        if (descriptionComp != null) {
-	        	descriptionComp.setText(prepInfo.getDescription());
+	        if (descriptionComp != null && descriptionComp instanceof ValTextAreaBrief) {
+	        	((ValTextAreaBrief)descriptionComp).setText(prepInfo.getDescription());
 	        }
 	        
-	        if (taxonComp != null) {
-	        	taxonComp.setText(prepInfo.getTaxon());
+	        if (taxonComp != null && taxonComp instanceof JTextField) {
+	        	((JTextField)taxonComp).setText(prepInfo.getTaxon());
 	        }
 	        
 	        formViewObj.getDataFromUI();
