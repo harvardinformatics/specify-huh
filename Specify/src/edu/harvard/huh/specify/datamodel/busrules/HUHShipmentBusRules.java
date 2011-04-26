@@ -63,7 +63,10 @@ public class HUHShipmentBusRules extends LoanGiftShipmentBusRules
                 }
             }
             if (formViewObj.getParentDataObj() != null && formViewObj.getParentDataObj() instanceof Loan) {
-            	formViewObj.getControlById(ISACKNOWLEDGED).setVisible(false);
+             // Make sure that the component is not null, avoid null pointer error
+            	if (formViewObj.getControlById(ISACKNOWLEDGED) != null) { 
+            	    formViewObj.getControlById(ISACKNOWLEDGED).setVisible(false);
+            	}
             }
         }
     }
