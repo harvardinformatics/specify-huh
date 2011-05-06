@@ -491,14 +491,16 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                  // Obtain taxon and higher taxon name from the determination
                 if (det != null) {
                     Taxon t = det.getTaxon();
-                    taxonName = t.getFullName();
-
-                    if (t.getRankId() >= TaxonTreeDef.SUBGENUS) {
-                        Taxon parent = t.getParent();
-                        if (parent != null) {
-                            Taxon higherTaxon = parent.getParent();
-                            if (higherTaxon != null) {
-                                higherTaxonName = higherTaxon.getFullName();
+                    if (t != null) {
+                        taxonName = t.getFullName();
+    
+                        if (t.getRankId() >= TaxonTreeDef.SUBGENUS) {
+                            Taxon parent = t.getParent();
+                            if (parent != null) {
+                                Taxon higherTaxon = parent.getParent();
+                                if (higherTaxon != null) {
+                                    higherTaxonName = higherTaxon.getFullName();
+                                }
                             }
                         }
                     }
