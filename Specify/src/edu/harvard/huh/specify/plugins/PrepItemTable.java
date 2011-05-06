@@ -116,8 +116,10 @@ public class PrepItemTable extends JPanel implements UIPluginable, GetSetValueIF
 			String collector = "";
 			for ( Determination d : f.getDeterminations()) {
 				if (d.isCurrentDet()) {
-					taxonName = d.getTaxon().getFullName();
-					status = d.getTypeStatusName();
+				    if (d.getTaxon() != null) {
+    					taxonName = d.getTaxon().getFullName();
+    					status = d.getTypeStatusName();
+				    }
 				}
 			}
 			
