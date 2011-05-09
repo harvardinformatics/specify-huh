@@ -59,6 +59,9 @@
       <picklistitem title="Pressed" value="Pressed"/>
       <picklistitem title="Dried" value="Dried"/>
       <picklistitem title="Wood" value="Wood"/>
+      <picklistitem title="Bark" value="Bark"/>
+      <picklistitem title="Rhizome" value="Rhizome"/>
+      <picklistitem title="Dried Fruit" value="DriedFruit"/>
       <picklistitem title="Drawing" value="Drawing"/>
       <picklistitem title="Spirit medium" value="SpiritMedium"/>
       <picklistitem title="Protolog" value="Protolog"/>
