@@ -168,7 +168,7 @@ public class Storage extends DataModelObjBase implements Serializable, Comparabl
         this.storageId = storageId;
     }
 
-    @Column(name = "Name", nullable=false, length = 64)
+    @Column(name = "Name", nullable=false, length = 255)
     public String getName()
     {
         return this.name;

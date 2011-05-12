@@ -546,7 +546,7 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
      *
      */
     @Lob
-    @Column(name = "Remarks", length = 4096)
+    @Column(name = "Remarks", length = 30000)
     public String getRemarks() {
         return this.remarks;
     }
