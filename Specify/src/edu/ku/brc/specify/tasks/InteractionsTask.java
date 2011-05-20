@@ -50,6 +50,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.thoughtworks.xstream.XStream;
 
+import edu.harvard.huh.binding.DataModelObjectMarshaller;
 import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.ku.brc.af.auth.BasicPermisionPanel;
 import edu.ku.brc.af.auth.PermissionEditorIFace;
@@ -1242,7 +1243,7 @@ public class InteractionsTask extends BaseTask
             
             if (printLoan == null)
             {
-                Object[] options = {getResourceString("CreateLoanInvoice"), getResourceString("CANCEL")};
+              /*  Object[] options = {getResourceString("CreateLoanInvoice"), getResourceString("CANCEL")};
                 int n = JOptionPane.showOptionDialog(UIRegistry.get(UIRegistry.FRAME),
                                                     String.format(getResourceString("CreateLoanInvoiceForNum"), new Object[] {(loan.getLoanNumber())}),
                                                     getResourceString("CreateLoanInvoice"),
@@ -1251,13 +1252,20 @@ public class InteractionsTask extends BaseTask
                                                     null,     //don't use a custom Icon
                                                     options,  //the titles of buttons
                                                     options[0]); //default button title
-                printLoan = n == 0;
+                printLoan = n == 0; */
+            	
+            	// UNCOMMENT LATER JOptionPane.showMessageDialog(null, "Generated report.xml for loan.");
+            	// UNCOMMENT LATER printLoan = true;
             }
             
             // XXX DEBUG
             //printLoan = false;
-            if (printLoan)
+            /* UNCOMMENT LATER if (printLoan)
             {
+            	DataModelObjectMarshaller<Loan> marshaller = new DataModelObjectMarshaller<Loan>(loan);
+            	marshaller.marshal();
+			*/
+            	/*
                 InvoiceInfo invoice = getLoanReport();
                 
                 if (invoice == null)
@@ -1319,8 +1327,8 @@ public class InteractionsTask extends BaseTask
                     {
                         session.close();
                     }
-                }
-            }
+                }*/
+           // }
         }
     }
     
@@ -1762,39 +1770,45 @@ public class InteractionsTask extends BaseTask
                         // to get the remaining difference for this last LoanReturnPrep
                         int qtyRes = 0;
                         int qtyRet = 0;
+                        int numLoanRetPreps = 0;
+                       
                         for (LoanReturnPreparation lrp : loanPrep.getLoanReturnPreparations())
                         {
                             qtyRes += lrp.getQuantityResolved();
                             qtyRet += lrp.getQuantityReturned();
+                            numLoanRetPreps++;
                         }
                         
-                        LoanReturnPreparation loanRetPrep = new LoanReturnPreparation();
-                        loanRetPrep.initialize();
-                        loanRetPrep.setReceivedBy(agent);
-                        loanRetPrep.setModifiedByAgent(Agent.getUserAgent());
-                        //loanRetPrep.setReturnedDate(Calendar.getInstance()); May be desirable for this to be set by a property
-                        loanRetPrep.setQuantityResolved(loanRetInfo.getResolvedQty() - qtyRes);
-                        loanRetPrep.setQuantityReturned(loanRetInfo.getReturnedQty() - qtyRet);
+                        if ((loanRetInfo.getItemCount() != 0 && loanRetInfo.getTypeCount() != 0 && loanRetInfo.getNonSpecimenCount() != 0) || numLoanRetPreps > 0) {
                         
-                        loanRetPrep.setReturnedDate(loanRetInfo.getReturnedDate());
-                        
-                        loanRetPrep.setRemarks(loanRetInfo.getRemarks());
-                        
-                        loanRetPrep.setItemCount(loanRetInfo.getItemCount());
-                        loanRetPrep.setTypeCount(loanRetInfo.getTypeCount());
-                        loanRetPrep.setNonSpecimenCount(loanRetInfo.getNonSpecimenCount());
-                        
-                        loanPrep.setIsResolved(loanRetInfo.isResolved());
-                        loanPrep.setQuantityResolved(loanRetInfo.getResolvedQty());
-                        loanPrep.setQuantityReturned(loanRetInfo.getReturnedQty());
-                        loanPrep.addReference(loanRetPrep, "loanReturnPreparations");
-                        
-                        session.save(loanRetPrep);
-                        session.saveOrUpdate(loanPrep);
-                        session.saveOrUpdate(loan);
+	                        LoanReturnPreparation loanRetPrep = new LoanReturnPreparation();
+	                        loanRetPrep.initialize();
+	                        loanRetPrep.setReceivedBy(agent);
+	                        loanRetPrep.setModifiedByAgent(Agent.getUserAgent());
+	                        //loanRetPrep.setReturnedDate(Calendar.getInstance()); May be desirable for this to be set by a property
+	                        loanRetPrep.setQuantityResolved(loanRetInfo.getResolvedQty() - qtyRes);
+	                        loanRetPrep.setQuantityReturned(loanRetInfo.getReturnedQty() - qtyRet);
+	                        
+	                        loanRetPrep.setReturnedDate(loanRetInfo.getReturnedDate());
+	                        
+	                        loanRetPrep.setRemarks(loanRetInfo.getRemarks());
+	                        
+	                        loanRetPrep.setItemCount(loanRetInfo.getItemCount());
+	                        loanRetPrep.setTypeCount(loanRetInfo.getTypeCount());
+	                        loanRetPrep.setNonSpecimenCount(loanRetInfo.getNonSpecimenCount());
+	                        
+	                        loanPrep.setIsResolved(loanRetInfo.isResolved());
+	                        loanPrep.setQuantityResolved(loanRetInfo.getReturnedQty());
+	                        loanPrep.setQuantityReturned(loanRetInfo.getReturnedQty());
+	                        loanPrep.addReference(loanRetPrep, "loanReturnPreparations");
+	                        
+	                        session.save(loanRetPrep);
+	                        session.save(loanPrep);
+	                        session.saveOrUpdate(loan);
+                        }
                     }
                     
-                    boolean isClosed = true;
+                    /*boolean isClosed = true;
                     for (LoanPreparation lp : loan.getLoanPreparations())
                     {
                         if (lp.getQuantityResolved().equals(lp.getItemCount()))
@@ -1808,7 +1822,7 @@ public class InteractionsTask extends BaseTask
                             isClosed = false;
                         }
                     }
-                    loan.setIsClosed(isClosed);
+                    loan.setIsClosed(isClosed);*/
                     session.saveOrUpdate(loan);
                     
                     session.commit();
@@ -1842,7 +1856,6 @@ public class InteractionsTask extends BaseTask
                 multiView.setData(null);
                 multiView.setData(loan);
                 UIRegistry.clearSimpleGlassPaneMsg();
-                
                 UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "InteractionsTask.LN_RET_TITLE", "InteractionsTask.RET_LN_SV", numLPR);
             }
         };
@@ -1863,6 +1876,7 @@ public class InteractionsTask extends BaseTask
             mv = subPane.getMultiView();
             if (mv != null)
             {
+            	mv.getCurrentViewAsFormViewObj().getDataFromUI();
                 if (mv.getData() instanceof Loan)
                 {
                     loan = (Loan)mv.getData();
@@ -1882,7 +1896,6 @@ public class InteractionsTask extends BaseTask
                 if (!dlg.isCancelled())
                 {
                     FormViewObj fvp = mv.getCurrentViewAsFormViewObj();
-                    fvp.setHasNewData(true);
                     // 03/04/09 Commented out the two lines below so the form doesn't get enabled for saving.
                     //fvp.getValidator().setHasChanged(true);
                     //fvp.validationWasOK(fvp.getValidator().getState() == UIValidatable.ErrorType.Valid);
@@ -1892,6 +1905,8 @@ public class InteractionsTask extends BaseTask
                     {
                         doReturnLoan(mv, loan, dlg.getAgent(), returns);
                     }
+                    fvp.setHasNewData(true);
+                    fvp.setDataIntoUI();
                 }
             }
             
