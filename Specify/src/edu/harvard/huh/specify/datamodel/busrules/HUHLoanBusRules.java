@@ -344,27 +344,26 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
         		if (lp.getIsResolved() && loanReturnPreparations.isEmpty()) {
         			isResolvedError = true;
         		} else {
+    	        	int returnedCount = 0, loanedCount = 0;
+    				loanedCount += (lp.getItemCount() != null ? lp.getItemCount() : 0) +
+                    	(lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
+                    	(lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
         			for (LoanReturnPreparation lrp : loanReturnPreparations) {
-        	        	int returnedCount = 0, loanedCount = 0;
         				returnedCount += (lrp.getItemCount() != null ? lrp.getItemCount() : 0) +
             				            (lrp.getTypeCount() != null ? lp.getTypeCount() : 0) +
             				            (lrp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
-        				loanedCount += (lp.getItemCount() != null ? lp.getItemCount() : 0) +
-  		                              (lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
-  		                              (lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
-        				
-        				// If the qty returned and qty loaned are equal, automatically set isResolved.
-        		    	if (loanedCount == returnedCount)
-        		    		lp.setIsResolved(true);
-        		    	
-        		    	/* If the preparation is marked isResolved, the qty returned is less than qty
-        		    	loaned and the prepartion does not contain a return with 0 for all counts
-        		    	(in the case that items on preparation are lost or destroyed, an empty return with 0
-        		    	for all counts with a description in the remarks field with serve as a dummy placeholder
-        		    	return) an error should be displayed when the user attempts to save */
-        				if (lp.getIsResolved() && returnedCount < loanedCount && returnedCount != 0) {
-        					isResolvedError = true;
         				}
+	    		    	/* If the preparation is marked isResolved, the qty returned is less than qty
+	    		    	loaned and the prepartion does not contain a return with 0 for all counts
+	    		    	(in the case that items on preparation are lost or destroyed, an empty return with 0
+	    		    	for all counts with a description in the remarks field with serve as a dummy placeholder
+	    		    	return) an error should be displayed when the user attempts to save */
+	    				if (lp.getIsResolved() && returnedCount < loanedCount && returnedCount != 0) {
+	    					System.out.println("ERROR: " + lp.getPreparation().getIdentifier());
+	    					System.out.println("ERROR: " + lp.getIsResolved());
+	    					System.out.println("ERROR: " + returnedCount);
+	    					System.out.println("ERROR: " + loanedCount);
+	    					isResolvedError = true;
         			}
         		}
 
@@ -382,13 +381,10 @@ public class HUHLoanBusRules extends AttachmentOwnerBaseBusRules
 	                return false;
 	        	}
 	        	
-	        	/* If the loan is marked closed and all the preparations arent resolved, display an error.
-	        	   otherwise, mark the loan as closed automatically and save. */ 
+	        	///If the loan is marked closed and all the preparations arent resolved, display an error.
 	        	if (loan.getIsClosed() && !allPrepsResolved) {
 	        		reasonList.add(getLocalizedMessage("LOAN_CLOSED_ERROR"));
 	                return false;
-	        	} else if (allPrepsResolved) {
-	        		loan.setIsClosed(true);
 	        	}
         }
         	
