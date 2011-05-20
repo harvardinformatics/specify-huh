@@ -50,7 +50,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.thoughtworks.xstream.XStream;
 
-import edu.harvard.huh.binding.DataModelObjectMarshaller;
+//import edu.harvard.huh.binding.DataModelObjectMarshaller;
 import edu.harvard.huh.specify.plugins.ItemCountsLabel;
 import edu.ku.brc.af.auth.BasicPermisionPanel;
 import edu.ku.brc.af.auth.PermissionEditorIFace;
