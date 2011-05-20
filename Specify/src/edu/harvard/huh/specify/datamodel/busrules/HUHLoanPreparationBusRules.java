@@ -21,33 +21,28 @@
 package edu.harvard.huh.specify.datamodel.busrules;
 
 import java.awt.Component;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import edu.harvard.huh.specify.plugins.ItemCountsLabel;
-import edu.harvard.huh.specify.plugins.PrepItemTable;
-
+import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
+import edu.harvard.huh.specify.plugins.ItemCountsLabel;
+import edu.harvard.huh.specify.plugins.PrepItemTable;
 import edu.ku.brc.af.ui.db.TextFieldWithInfo;
 import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
 import edu.ku.brc.af.ui.forms.FormViewObj;
-import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.ResultSetControllerListener;
 import edu.ku.brc.af.ui.forms.SubViewBtn;
 import edu.ku.brc.af.ui.forms.Viewable;
-import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
 import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.af.ui.forms.validation.ValSpinner;
 import edu.ku.brc.af.ui.forms.validation.ValTextAreaBrief;
-import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.StaleObjectException;
@@ -85,6 +80,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
     private final String ITEM_COUNT   = "itemCount";
     private final String PREP_ITEM_TABLE = "prepitemtable";
     private final String ITEM_COUNTS_LABEL = "itemcountslabel";
+    private final String IS_RESOLVED = "isResolved";
     
     /**
      * Constructor.
@@ -117,24 +113,50 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             final Component  typeCountComp = formViewObj.getControlById(TYPE_COUNT);
             final Component  itemCountComp = formViewObj.getControlById(ITEM_COUNT);
             final Component descriptionComp = formViewObj.getControlByName(DESCRIPTION);
+            final Component isResolvedComp = formViewObj.getControlByName(IS_RESOLVED);
+            
+            /*dl: an EditViewCompSwitcherPanel that contains a ValComboBoxFromQuery (displayed before preps
+            are saved to a loan and  a TextFieldWithInfo, the uneditable field displayed after preps are saved */
+            if (prepComp != null && prepComp instanceof EditViewCompSwitcherPanel)
+            {	
+                Component[] prepComps = ((EditViewCompSwitcherPanel)prepComp).getComponents();
+                
+            	ValComboBoxFromQuery comboBox = null;
+            	TextFieldWithInfo textField = null;
+            	
+                for (Component c : prepComps) {
+                	if (c != null && c instanceof ValComboBoxFromQuery)
+                		comboBox = (ValComboBoxFromQuery)c;
+                	if (c != null && c instanceof TextFieldWithInfo)
+                		textField = (TextFieldWithInfo)c;
+                }
+                
+            	final ValComboBoxFromQuery prepComboBox = comboBox;
+            	final TextFieldWithInfo prepTextField = textField;
             
         	//dl: listens for an index change and performs an update to itemcountlabel plugin
         	final ResultSetControllerListener rsListener = new ResultSetControllerListener() {
 	    		@Override
 	        	public void indexChanged(int newIndex) {
+	    			Preparation prep  = (Preparation) prepComboBox.getValue();
+					if (prep != null) {
+						adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);				
+					}
 	        		doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
 	        		
 	        	}
 
 				@Override
 				public boolean indexAboutToChange(int oldIndex, int newIndex) {
-					// TODO Auto-generated method stub
 					return true;
 				}
 
 				@Override
 				public void newRecordAdded() {
-					// TODO Auto-generated method stub
+					Preparation prep  = (Preparation) prepComboBox.getValue();
+					if (prep != null) {
+						adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);				
+					}
 				}
         	};
         	
@@ -157,7 +179,10 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 				}
 				/* when the prep subform is first loaded, update the loan prepration object and the form
 				components and then update the counts. */
-				adjustTaxonFields(((LoanPreparation)formViewObj.getDataObj()).getPreparation(), taxonComp, descriptionComp, typeCountComp, itemCountComp);
+					Preparation prep  = (Preparation) prepComboBox.getValue();
+					if (prep != null) {
+						adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);				
+					}
 				doAccounting(itemCountsLabel, (Loan)formViewObj.getParentDataObj());
 				return null;
 			}};
@@ -196,25 +221,6 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
             }
             
             // listen for changes to preparation to auto-fill higher taxon and src taxonomy fields
-
-            /*dl: an EditViewCompSwitcherPanel that contains a ValComboBoxFromQuery (displayed before preps
-            are saved to a loan and  a TextFieldWithInfo, the uneditable field displayed after preps are saved */
-            if (prepComp != null && prepComp instanceof EditViewCompSwitcherPanel)
-            {	
-                Component[] prepComps = ((EditViewCompSwitcherPanel)prepComp).getComponents();
-                
-            	ValComboBoxFromQuery comboBox = null;
-            	TextFieldWithInfo textField = null;
-            	
-                for (Component c : prepComps) {
-                	if (c != null && c instanceof ValComboBoxFromQuery)
-                		comboBox = (ValComboBoxFromQuery)c;
-                	if (c != null && c instanceof TextFieldWithInfo)
-                		textField = (TextFieldWithInfo)c;
-                }
-                
-            	final ValComboBoxFromQuery prepComboBox = comboBox;
-            	final TextFieldWithInfo prepTextField = textField;
     
                     /* The document listener below will adjust taxon fields and auto-populate
                        when a change or update is made. */
@@ -224,7 +230,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 									public void changedUpdate(DocumentEvent arg0) {
 										Preparation prep  = (Preparation) prepComboBox.getValue();
 										if (prep != null) {
-											adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp);
+											adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);
 											prepItemTable.updateItems(prep);
 										}
 									}
@@ -234,22 +240,23 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
 
 										Preparation prep  = (Preparation) prepComboBox.getValue();
 										if (prep != null) {
-											adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp);
-										    prepItemTable.updateItems(prep);
+											adjustTaxonFields(prep, taxonComp, descriptionComp, typeCountComp, itemCountComp, isResolvedComp);
+											prepItemTable.updateItems(prep);
 										}
 									}
 
 									@Override
 									public void removeUpdate(DocumentEvent arg0) {
 									    prepItemTable.clearItems();
-										clearTaxonFields(taxonComp, descriptionComp, typeCountComp, itemCountComp);
+										//clearTaxonFields(taxonComp, descriptionComp, typeCountComp, itemCountComp);
 										
 									}
 									
 								};
-								
-		            			//prepTextField.getTextField().getDocument().addDocumentListener(listener);
+
+		            			prepTextField.getTextField().getDocument().addDocumentListener(listener);
 								prepComboBox.getTextWithQuery().getTextField().getDocument().addDocumentListener(listener);
+
 						
 						/* dl: Using Document listener above instead of this code now. It is more appropriate (the ListSelectionListener
 						   doesnt get triggered when using batch add preps.
@@ -372,58 +379,57 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
      * is a type, the preparation countAmt variable is included in the type count field. Otherwise, the countAmt is
      * set as the item count field value. Uses inner class PrepInfo to obtain the values used in the fields.
      */
-    private void adjustTaxonFields(Preparation prep, Component taxonComp, Component descriptionComp, Component typeCountComp, Component itemCountComp)
+    private void adjustTaxonFields(Preparation prep, Component taxonComp, Component descriptionComp, Component typeCountComp, Component itemCountComp, Component isResolvedComp)
     {
-    	clearTaxonFields(taxonComp, descriptionComp, typeCountComp, itemCountComp);
-    	LoanPrepInfo prepInfo = null;
+    	if (!prep.getPrepType().getName().equals("Lot")) {
+    		clearTaxonFields(taxonComp, descriptionComp, typeCountComp, itemCountComp);
+    		
+    		LoanPrepInfo prepInfo = null;
+        	itemCountComp.setEnabled(false);
+            typeCountComp.setEnabled(false);
     	
-        try
-        {
-            DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
-            prep = session.merge(prep);
-            prepInfo = new LoanPrepInfo(prep);
+	        try
+	        {
+	            DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+	            prep = session.merge(prep);
+	            prepInfo = new LoanPrepInfo(prep);
+	    	
+	            
+	            /* If the preparation not of type "Lot" then get the counts for types and items from prepInfo
+	               otherwise, get the value from the LoanPreparation object. */
+	            
+		        if (typeCountComp != null && typeCountComp instanceof ValSpinner) {
+		        		((ValSpinner)typeCountComp).setValue(prepInfo.getTypeCount());
+		        		((LoanPreparation)formViewObj.getDataObj()).setTypeCount(prepInfo.getTypeCount());
+		   	    }
+		        
+		        if (itemCountComp != null && itemCountComp instanceof ValSpinner) {
+		        		((ValSpinner)itemCountComp).setValue(prepInfo.getItemCount());
+		        		((LoanPreparation)formViewObj.getDataObj()).setItemCount(prepInfo.getItemCount());
+		        }
+		        
+		        /*if (descriptionComp != null && descriptionComp instanceof ValTextAreaBrief) {
+		        	((ValTextAreaBrief)descriptionComp).setText(prepInfo.getDescription());
+		        }*/
+		        
+		        if (taxonComp != null && taxonComp instanceof JTextField) {
+		        	((JTextField)taxonComp).setText(prepInfo.getTaxon());
+		        }
+		        
+		        if (isResolvedComp != null && isResolvedComp instanceof JCheckBox) {
+		        	((JCheckBox)isResolvedComp).setSelected(((LoanPreparation)formViewObj.getDataObj()).getIsResolved());
+		        }
+		        formViewObj.getDataFromUI();
+		        
+		        session.close();
+	        
+	        } catch (StaleObjectException soe) {
+	        	edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHLoanPreparationBusRules.class, soe);
+	        	soe.printStackTrace();
+	        }  
+    	}
+    }
     	
-            
-            /* If the preparation not of type "Lot" then get the counts for types and items from prepInfo
-               otherwise, get the value from the LoanPreparation object. */
-            
-	        if (typeCountComp != null && typeCountComp instanceof ValSpinner) {
-	        	if (!prepInfo.isLot) {
-	        		((ValSpinner)typeCountComp).setValue(prepInfo.getTypeCount());
-	        		((LoanPreparation)formViewObj.getDataObj()).setTypeCount(prepInfo.getTypeCount());
-	        	} else {
-	        		Integer typeCnt = ((LoanPreparation)formViewObj.getDataObj()).getTypeCount();
-	        		((ValSpinner)typeCountComp).setValue(typeCnt == null ? 0 : typeCnt);
-	        	}
-	        }
-	        
-	        if (itemCountComp != null && itemCountComp instanceof ValSpinner) {
-	        	if (!prepInfo.isLot) {
-	        		((ValSpinner)itemCountComp).setValue(prepInfo.getItemCount());
-	        		((LoanPreparation)formViewObj.getDataObj()).setItemCount(prepInfo.getItemCount());
-	        	} else {
-	        		Integer itemCnt = ((LoanPreparation)formViewObj.getDataObj()).getItemCount();
-	        		((ValSpinner)itemCountComp).setValue(itemCnt == null ? 0 : itemCnt);
-	        	}
-	        }
-	        
-	        if (descriptionComp != null && descriptionComp instanceof ValTextAreaBrief) {
-	        	((ValTextAreaBrief)descriptionComp).setText(prepInfo.getDescription());
-	        }
-	        
-	        if (taxonComp != null && taxonComp instanceof JTextField) {
-	        	((JTextField)taxonComp).setText(prepInfo.getTaxon());
-	        }
-	        
-	        formViewObj.getDataFromUI();
-	        
-	        session.close();
-        
-        } catch (StaleObjectException soe) {
-        	edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(HUHLoanPreparationBusRules.class, soe);
-        	soe.printStackTrace();
-        }  
-        
         /* dl: after discussion with paul we determined that item count and type count should not be 
         editable on the loan form directly. If changes are made to fields on the loan form
         they will alter the associated LoanPreparation object and not progagate these changes to the
@@ -432,11 +438,6 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
         however, in the case of lots, allow edits to the counts since the loan preparation values
         rather than the preparation CountAmt values are to be used */
         
-        if (!prepInfo.isLot()) {
-        	itemCountComp.setEnabled(false);
-            typeCountComp.setEnabled(false);
-        }
-    } 
     
     /** Inner class that processes a preparation obj and stores its fields within the 
      * class instance variables for use when adjusting preparation form fields,
@@ -489,7 +490,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                 }
 
                  // Obtain taxon and higher taxon name from the determination
-                if (det != null) {
+                if (det != null && det.getTaxon() != null) {
                     Taxon t = det.getTaxon();
                     if (t != null) {
                         taxonName = t.getFullName();
@@ -506,7 +507,7 @@ public class HUHLoanPreparationBusRules extends LoanPreparationBusRules implemen
                     }
                 }
                 
-                description = prep.getDescription(); // Obtain description string from prep   
+                description = prep.getDescription(); // Obtain description string from loan prep   
     	}
     	
     	public int getTypeCount() {
