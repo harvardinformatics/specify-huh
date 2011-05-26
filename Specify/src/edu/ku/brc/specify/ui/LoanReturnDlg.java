@@ -232,18 +232,19 @@ public class LoanReturnDlg extends JDialog
             //Collections.sort(keysList);
             for (LoanPreparation co : loanPrepList)
             {
-                if (i > 0)
-                {
-                    pbuilder.addSeparator("", cc.xy(1,y));
-                    y += 2;
-                }
-                // TODO: Return to this spot
-                ColObjPanel panel = new ColObjPanel(session, this, co);
-                colObjPanels.add(panel);
-                panel.addActionListener(al, cl);
-                pbuilder.add(panel, cc.xy(1,y));
-                y += 2;
-                i++;
+            	if (co.getPreparation() != null) {
+	                if (i > 0)
+	                {
+	                    pbuilder.addSeparator("", cc.xy(1,y));
+	                    y += 2;
+	                }
+	                ColObjPanel panel = new ColObjPanel(session, this, co);
+	                colObjPanels.add(panel);
+	                panel.addActionListener(al, cl);
+	                pbuilder.add(panel, cc.xy(1,y));
+	                y += 2;
+	                i++;
+            	}
             }
             
             JButton selectAllBtn = createButton(getResourceString("SELECTALL"));
