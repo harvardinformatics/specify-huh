@@ -19,12 +19,40 @@
 */
 package edu.ku.brc.specify.datamodel.busrules;
 
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
+
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
+import edu.ku.brc.af.ui.forms.EditViewCompSwitcherPanel;
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
+import edu.ku.brc.af.ui.forms.validation.ValBrowseBtnPanel;
+import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Attachment;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
+import edu.ku.brc.ui.DocumentAdaptor;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.util.AttachmentManagerIface;
 import edu.ku.brc.util.AttachmentUtils;
 import edu.ku.brc.util.thumbnails.Thumbnailer;
@@ -35,12 +63,21 @@ import edu.ku.brc.util.thumbnails.Thumbnailer;
  */
 public class AttachmentBusRules extends BaseBusRules
 {
-    String[] tableNames = {"accessionattachment",          "agentattachment",             "collectingeventattachment",
+    protected Logger log = Logger.getLogger(AttachmentBusRules.class);
+
+	String[] tableNames = {"accessionattachment",          "agentattachment",             "collectingeventattachment",
                           "collectionobjectattachment",    "conservdescriptionattachment","conserveventattachment",
                           "dnasequenceattachment",         "fieldnotebookattachment",     "fieldnotebookpageattachment",
                           "fieldnotebookpagesetattachment","loanattachment",              "localityattachment",
                           "permitattachment",              "preparationattachment",       "repositoryagreementattachment",
                           "taxonattachment"};
+    
+    static private String BROWSE_DIR_PREF = "AttachmentBrowseDir";
+    private ValBrowseBtnPanel browser = null;
+    private Component morphbankPanel = null;
+    private Component origComp = null;
+    private MultiView imageAttributeMultiView = null;
+    
     /**
      * 
      */
@@ -49,6 +86,102 @@ public class AttachmentBusRules extends BaseBusRules
         super(Attachment.class);
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#initialize(edu.ku.brc.af.ui.forms.Viewable)
+     */
+    @Override
+    public void initialize(Viewable viewableArg)
+    {
+        super.initialize(viewableArg);
+        
+        if (formViewObj != null)
+        {
+            morphbankPanel = formViewObj.getCompById("morphbankpanel");
+
+            imageAttributeMultiView = formViewObj.getKids() != null && formViewObj.getKids().size() > 0 
+            	? formViewObj.getKids().get(0) : null;
+
+            origComp  = formViewObj.getCompById("origFilename");
+            final Component titleComp = formViewObj.getCompById("title");
+            
+            if (origComp instanceof EditViewCompSwitcherPanel)
+            {
+                EditViewCompSwitcherPanel evcsp = (EditViewCompSwitcherPanel)origComp;
+                browser = (ValBrowseBtnPanel)evcsp.getComp(true);
+    			String dir = AppPreferences.getLocalPrefs().get(BROWSE_DIR_PREF, null);
+    			if (dir != null)
+    			{
+    				browser.setCurrentDir(dir);
+    			}
+           }
+            
+            if (browser != null)
+            {
+                if (titleComp instanceof ValTextField)
+                {
+                    final ValTextField  titleTF = (ValTextField)titleComp;
+                    final ValTextField browserTF = browser.getValTextField();
+                    
+                    browserTF.getDocument().addDocumentListener(new DocumentAdaptor() {
+                        @Override
+                        protected void changed(DocumentEvent e)
+                        {
+                            if (formViewObj.getDataObj() != null && ((DataModelObjBase )formViewObj.getDataObj()).getId() == null)
+                            {
+                            	String filePath = browserTF.getText();
+                            	if (!filePath.isEmpty())
+                            	{
+                            		titleTF.setText(FilenameUtils.getBaseName(browserTF.getText()));
+                            		addImageAttributeIfNecessary();
+                            
+                            	} else
+                            	{
+                            		if (!titleTF.getText().isEmpty())
+                            		{
+                            			titleTF.setText(null);
+                            		}
+                            	}
+                            }
+                        }
+                    });
+                    
+                    browserTF.addFocusListener(new FocusAdapter() {
+                        @Override
+                        public void focusLost(FocusEvent e)
+                        {
+                            super.focusLost(e);
+                            if (formViewObj.getDataObj() != null && ((DataModelObjBase )formViewObj.getDataObj()).getId() == null)
+                            {
+                            	String filePath = browserTF.getText();
+                            	if (titleTF.getText().isEmpty() && !filePath.isEmpty())
+                            	{
+                            		titleTF.setText(FilenameUtils.getBaseName(filePath));
+                            	}
+                            }
+                        }
+                    });
+                }
+                
+                if (formViewObj.getRsController() != null && formViewObj.getRsController().getNewRecBtn() != null)
+                {
+                    formViewObj.getRsController().getNewRecBtn().addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e)
+                        {
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    browser.getBrowseBtn().doClick();
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.BaseBusRules#okToDelete(java.lang.Object)
      */
@@ -77,6 +210,80 @@ public class AttachmentBusRules extends BaseBusRules
         return true;
     }
     
+    protected void addImageAttributeIfNecessary()
+    {
+    	if (browser != null)
+    	{
+    		Integer width = null;
+    		Integer height = null;
+            File file = new File(browser.getValue().toString());
+        	String mimeType = file == null ? null : AttachmentUtils.getMimeType(file.getName());
+            boolean isImage = mimeType != null && mimeType.startsWith("image");
+        	if (isImage)
+            {
+            	try 
+            	{
+            		ImageInputStream iis = ImageIO.createImageInputStream(file);
+            		Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            
+            		if (readers.hasNext()) 
+            		{
+           				// pick the first available ImageReader
+           				ImageReader reader = readers.next();
+           				// attach source to the reader
+           				reader.setInput(iis, true);
+
+           				// read metadata of first image
+           				//                		IIOMetadata metadata = reader.getImageMetadata(0);
+                
+           				width = reader.getWidth(0);
+           				height = reader.getHeight(0);
+           			}
+           		} catch (IOException ex)
+           		{
+           			//XXX does this execption necessarily mean the file is bad?
+           			//XXX throw or log this exception
+           			ex.printStackTrace();
+           		}
+           	}
+           	//MultiView mvobj = formViewObj.getKids().get(0);
+            FormViewObj aiafv = imageAttributeMultiView == null ? null
+            		: imageAttributeMultiView.getCurrentViewAsFormViewObj();
+            if (aiafv != null)
+            {
+                //hide add/delete buttons. 
+            	aiafv.getNewRecBtn().setVisible(false);
+                aiafv.getDelRecBtn().setVisible(false);
+            	if (isImage)
+            	{
+            		if (aiafv.getDataObj() == null)
+            		{
+            			aiafv.getNewRecBtn().doClick();
+            		}
+            		System.out.println(browser.getValue() + "height " + height + " width " + width);
+            		try
+            		{
+            			aiafv.setDataIntoUIComp("height", height);
+            			aiafv.setControlChanged("height");
+            			aiafv.setDataIntoUIComp("width", width);
+            			aiafv.setControlChanged("width");
+            		} catch (Exception e)
+            		{
+            			log.error("Unable set image attribute data. Controls may be missing from form definition");
+            		}
+            	} else
+            	{
+            		if (aiafv.getDataObj() != null)
+            		{
+            			//delete the imageAttribute rec
+            			//XXX suppress "confirm delete" dlg?
+            			aiafv.getDelRecBtn().doClick(); 
+            		}
+            	}
+            }
+            setupImageAttributeView();
+        }
+    }
     /**
      * Returns a count of how many times this attachment is attached.
      * @param ids the id of the attachment(s)
@@ -150,4 +357,64 @@ public class AttachmentBusRules extends BaseBusRules
         
         // TODO: delete the attachment from the storage system
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterFillForm(java.lang.Object)
+	 */
+	@Override
+	public void afterFillForm(Object dataObj)
+	{
+		super.afterFillForm(dataObj);
+        if (morphbankPanel != null)
+        {
+        	morphbankPanel.setEnabled(formViewObj.getAltView().getMode() != CreationMode.EDIT);
+        }
+        setupImageAttributeView();
+	}
+
+	/**
+	 * shows/hides image attribute view based on type of attachment 
+	 */
+	private void setupImageAttributeView()
+	{
+        if (origComp != null) 
+        {
+           	String fileName = origComp instanceof JTextField ? ((JTextField )origComp).getText() :
+           		 browser.getValue().toString();
+           	if (fileName != null && !fileName.isEmpty())
+           	{
+           		String mimeType = fileName == null ? null : AttachmentUtils.getMimeType(fileName);
+           		boolean isImage = mimeType != null && mimeType.startsWith("image");
+           		if (imageAttributeMultiView != null)
+           		{
+           			imageAttributeMultiView.setVisible(isImage);
+           			Dialog dlg = UIHelper.getDialog(imageAttributeMultiView);
+           			if (dlg != null)
+           			{
+           				dlg.pack();
+           			}
+           		}
+           	}
+        }
+
+	}
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.BaseBusRules#aboutToShutdown()
+	 */
+	@Override
+	public void aboutToShutdown() 
+	{
+		super.aboutToShutdown();
+		if (browser != null)
+		{
+			String dir = browser.getCurrentDir();
+			if (dir != null)
+			{
+				AppPreferences.getLocalPrefs().put(BROWSE_DIR_PREF, dir);
+			}
+			System.out.println(browser.getCurrentDir());
+		}
+	}
+    
+    
 }

@@ -21,6 +21,7 @@ package edu.ku.brc.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +30,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -36,20 +38,22 @@ import javax.swing.SwingWorker;
 import org.hibernate.Session;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.tasks.BaseTask;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.BusinessRulesOkDeleteIFace;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.ResultSetController;
 import edu.ku.brc.af.ui.forms.Viewable;
+import edu.ku.brc.af.ui.forms.validation.ValTextField;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.DataType;
 import edu.ku.brc.specify.datamodel.Discipline;
@@ -143,6 +147,42 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
         }
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeFormFill()
+     */
+    @Override
+    public void beforeFormFill()
+    {
+        super.beforeFormFill();
+
+        if (formViewObj != null && formViewObj.getDataObj() != null && formViewObj.getMVParent().isTopLevel())
+        {
+            DataProviderSessionIFace session = null;
+            try
+            {
+                session = DataProviderFactory.getInstance().createSession();
+    
+                Division div = (Division)formViewObj.getDataObj();
+                session.attach(div);
+                for (Discipline disp : div.getDisciplines())
+                {
+                    disp.getCollections().size();
+                }
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+                
+            } finally
+            {
+                if (session != null)
+                {
+                    session.close();
+                }
+            }
+        }
+    }
+    
     /**
      * @return
      */
@@ -163,10 +203,70 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
     }
     
     /**
+     * @param name
+     * @return
+     */
+    private int getNameCount(final String name)
+    {
+        return BasicSQLUtils.getCountAsInt(String.format("SELECT COUNT(*) FROM division WHERE Name = '%s'", name));
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#isOkToSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
+     */
+    @Override
+    public boolean isOkToSave(final Object dataObj, final DataProviderSessionIFace session)
+    {
+        if (formViewObj != null)
+        {
+            Component comp = formViewObj.getControlByName("name");
+            if (comp instanceof ValTextField)
+            {
+                String name = ((ValTextField)comp).getText();
+                int cnt = getNameCount(name);
+                if (cnt == 0)
+                {
+                    return true;
+                }
+               reasonList.add(UIRegistry.getLocalizedMessage("DIVNAME_DUP", name));
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * @param formViewObj
+     * @param tblId
+     * @return
+     */
+    public static boolean checkForParentSave(final FormViewObj formViewObj, final int tblId)
+    {
+        if (formViewObj != null && formViewObj.getMVParent() != null)
+        {
+            MultiView mv = formViewObj.getMVParent();
+            if (mv.getTopLevel() != null)
+            {
+                if (mv.getTopLevel().getCurrentValidator().hasChanged())
+                {
+                    UIRegistry.showLocalizedError(JOptionPane.WARNING_MESSAGE, "TOP_MV_SAVE", DBTableIdMgr.getInstance().getTitleForId(Institution.getClassTableId()));
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 
      */
     private void addNewDivision()
     {
+        if (!checkForParentSave(formViewObj, Institution.getClassTableId()))
+        {
+            return;
+        }
+        
         if (!askForExitonChange("ASK_TO_ADD_DIV"))
         {
             return;
@@ -264,10 +364,9 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
                     session = HibernateUtil.getNewSession();
                     DataProviderSessionIFace hSession = new HibernateDataProviderSession(session);
                     
-                    Institution    inst           = (Institution)formViewObj.getMVParent().getMultiViewParent().getData(); 
-                    Institution    institution         = hSession.get(Institution.class, inst.getId());
+                    Institution    inst             = (Institution)formViewObj.getMVParent().getMultiViewParent().getData(); 
+                    Institution    institution      = hSession.get(Institution.class, inst.getId());
                     SpecifyUser    specifyAdminUser = (SpecifyUser)acm.getClassObject(SpecifyUser.class);
-                    Agent          userAgent        = (Agent)hSession.getData("FROM Agent WHERE id = "+Agent.getUserAgent().getId());
                     Properties     props            = wizardPanel.getProps();
                     
                     institution      = (Institution)session.merge(institution);
@@ -275,23 +374,8 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
                     
                     bldSampleDB.setSession(session);
                     
-                    
-                    Agent newUserAgent = null;
-                    try
-                    {
-                        newUserAgent = (Agent)userAgent.clone();
-                        specifyAdminUser.getAgents().add(newUserAgent);
-                        newUserAgent.setSpecifyUser(specifyAdminUser);
-                        session.saveOrUpdate(newUserAgent);
-                        session.saveOrUpdate(specifyAdminUser);
-                        
-                    } catch (CloneNotSupportedException ex)
-                    {
-                        ex.printStackTrace();
-                    }
-                    
                     DisciplineType dispType = (DisciplineType)props.get("disciplineType");
-                    newDivision = bldSampleDB.createEmptyDivision(institution, dispType, specifyAdminUser, props, true, true);
+                    newDivision = bldSampleDB.createEmptyDivision(institution, dispType, specifyAdminUser, props, true, false, true);
                     
                     acm.setClassObject(Division.class, curDivCached);
                     acm.setClassObject(Discipline.class, curDispCached);
@@ -441,73 +525,106 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
         
         if (deletable != null)
         {
-            Institution division = (Institution)dataObj;
+            Division division = (Division)dataObj;
             
             Integer id = division.getId();
             if (id != null)
             {
-                Institution currInstitution = AppContextMgr.getInstance().getClassObject(Institution.class);
-                if (currInstitution.getId().equals(division.getId()))
+                boolean  cont    = false;
+                Division currDiv = AppContextMgr.getInstance().getClassObject(Division.class);
+                if (currDiv.getId().equals(division.getId()))
                 {
-                    UIRegistry.showError("You cannot delete the current Institution."); // I18N
+                    UIRegistry.showError("You cannot delete the current Division."); // I18N
                     
                 } else
                 {
-                    String sql = "SELECT count(*) FROM agent a WHERE a.InstitutionID = " + division.getId();
+                    String sql = "SELECT count(*) FROM agent WHERE DivisionID = " + division.getId();
                     int count = BasicSQLUtils.getCount(sql);
                     if (count > 0)
                     {
-                        UIRegistry.showError(String.format("There are too many agents associated with this the `%s` Institution.", division.getName())); // I18N
+                        String msg = String.format("There are too many agents associated with this the `%s` Division.\nDo you wish to delete them?", division.getName());
+                        //UIRegistry.showError(); // I18N
+                        if (UIRegistry.askYesNoLocalized("DELETE", "CANCEL", msg, "DELETE") == JOptionPane.YES_OPTION)
+                        {
+                            cont = true;
+                        }
                     } else
                     {
-                        try
+                        cont = true;
+                    }
+                }
+                    
+                if (cont)
+                {
+                    final Integer divId = division.getId();
+                    final SpecifyDeleteHelper delHelper = new SpecifyDeleteHelper();
+                    
+                    SwingWorker<Integer, Integer> worker = new SwingWorker<Integer, Integer>()
+                    {
+                        /* (non-Javadoc)
+                         * @see javax.swing.SwingWorker#doInBackground()
+                         */
+                        @Override
+                        protected Integer doInBackground() throws Exception
                         {
-                            SpecifyDeleteHelper delHelper = new SpecifyDeleteHelper(true);
-                            delHelper.delRecordFromTable(Institution.class, division.getId(), true);
-                            delHelper.done();
+                            try
+                            {
+                                delHelper.delRecordFromTable(Division.class, divId, true);
+                                delHelper.done(false);
+                                
+                            } catch (Exception ex)
+                            {
+                                ex.printStackTrace();
+                                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DivisionBusRules.class, ex);
+                            }
+                            return null;
+                        }
+
+                        /* (non-Javadoc)
+                         * @see javax.swing.SwingWorker#done()
+                         */
+                        @Override
+                        protected void done()
+                        {
+                            super.done();
                             
-                            SwingUtilities.invokeLater(new Runnable() {
+                            SwingUtilities.invokeLater(new Runnable()
+                            {
                                 @Override
                                 public void run()
                                 {
-                                    // This is called instead of calling 'okToDelete' because we had the SpecifyDeleteHelper
+                                 // This is called instead of calling 'okToDelete' because we had the SpecifyDeleteHelper
                                     // delete the actual dataObj and now we tell the form to remove the dataObj from
                                     // the form's list and them update the controller appropriately
+                                    if (formViewObj != null)
+                                    {
+                                        formViewObj.updateAfterRemove(true); // true removes item from list and/or set
+                                    }
                                     
-                                    formViewObj.updateAfterRemove(true); // true removes item from list and/or set
+                                    UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+                                    CommandDispatcher.dispatch(new CommandAction(BaseTask.APP_CMD_TYPE, BaseTask.APP_REQ_EXIT));
                                 }
                             });
-                            
-                        } catch (Exception ex)
-                        {
-                            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DivisionBusRules.class, ex);
-                            ex.printStackTrace();
                         }
-                    }
+                    };
+                    String title = String.format("%s %s", getResourceString("DELETING"), DBTableIdMgr.getInstance().getTitleForId(Division.getClassTableId()));
+                    JDialog dlg = delHelper.initProgress(worker, title);
+
+                    worker.execute();
+                    
+                    UIHelper.centerAndShow(dlg);
                 }
             } else
             {
                 super.okToDelete(dataObj, session, deletable);
             }
-            
         } else
         {
             super.okToDelete(dataObj, session, deletable);
         }
     }
 
-    
-    /* (non-Javadoc)
-     * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
-     */
-    @Override
-    public void beforeDelete(Object dataObj, DataProviderSessionIFace session)
-    {
-        super.beforeDelete(dataObj, session);
-        
-    }
-    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
@@ -525,12 +642,12 @@ public class DivisionBusRules extends BaseBusRules implements CommandListener
     @Override
     public void doCommand(final CommandAction cmdAction)
     {
-        if (cmdAction.isAction("InstitutionSaved"))
+        if (cmdAction.isAction("DivisionSaved"))
         {
-            Division divsion = (Division)cmdAction.getData();
-            formViewObj.getMVParent().getMultiViewParent().setData(divsion);
+            Division division = (Division)cmdAction.getData();
+            formViewObj.getMVParent().getMultiViewParent().setData(division);
             
-        } else if (cmdAction.isAction("InstitutionError"))
+        } else if (cmdAction.isAction("DivisionError"))
         {
         }
         

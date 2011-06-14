@@ -47,6 +47,8 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Index;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
+import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.AttributeIFace;
 import edu.ku.brc.dbsupport.AttributeProviderIFace;
@@ -123,8 +125,8 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     protected Collection                    collection;
     protected Accession                     accession;
     protected Agent                         cataloger;
-    protected Container                     container;        // The container it belongs to
-    protected Container                     containerOwner;   // The container it is a part of
+    protected Container                     container;        // The container it belongs to   (Associated with)
+    protected Container                     containerOwner;   // The container it is a part of (Parent Container)
     protected Appraisal                     appraisal;
     protected CollectionObjectAttribute     collectionObjectAttribute; // Specify 5 Attributes table
     protected Set<CollectionObjectAttr>     collectionObjectAttrs;      // Generic Expandable Attributes
@@ -1010,28 +1012,30 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
 
     /**
-     *      * Preparation, Container
+     *      Container
      */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = { }, fetch = FetchType.LAZY)
+    @Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     @JoinColumn(name = "ContainerID", unique = false, nullable = true, insertable = true, updatable = true)
     public Container getContainer() {
         return this.container;
     }
 
-    public void setContainer(Container container) {
+    public void setContainer(final Container container) {
         this.container = container;
     }
     
     /**
      *      * Preparation, Container
      */
-    @ManyToOne(cascade = { javax.persistence.CascadeType.ALL }, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = { }, fetch = FetchType.LAZY)
+    @Cascade({ CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
     @JoinColumn(name = "ContainerOwnerID", unique = false, nullable = true, insertable = true, updatable = true)
     public Container getContainerOwner() {
         return this.containerOwner;
     }
 
-    public void setContainerOwner(Container containerOwner) {
+    public void setContainerOwner(final Container containerOwner) {
         this.containerOwner = containerOwner;
     }
 
@@ -1039,7 +1043,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
      * 
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "leftSide")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<CollectionRelationship> getLeftSideRels() 
     {
         return this.leftSideRels;
@@ -1054,7 +1058,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
      * 
      */
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "rightSide")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK })
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
     public Set<CollectionRelationship> getRightSideRels() 
     {
         return this.rightSideRels;
@@ -1129,6 +1133,15 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return getIdentityTitle();
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
      */
     @Override
@@ -1180,12 +1193,62 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
     {
         determinations.size();
         preparations.size();
+        for (Preparation prep : preparations)
+        {
+            prep.forceLoad();
+        }
+        collectionObjectAttachments.size();
+        collectionObjectCitations.size();
         projects.size();
         if (collection != null)
         {
             collection.getId();
         }
+        
+        DBTableInfo ti = DBTableIdMgr.getInstance().getInfoById(OtherIdentifier.getClassTableId());
+        if (ti != null && !ti.isHidden())
+        {
+            otherIdentifiers.size();
+        }
+        
+        CollectingEvent ce = getCollectingEvent();
+        if (ce != null)// && AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent())
+        {
+            ce.forceLoad();
+        }
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    /*@Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        CollectionObject obj = (CollectionObject)super.clone();
+        obj.init();
+        
+        obj.collectionObjectId = null;
+        obj.collectionObjectAttribute     = null;
+        obj.collectionObjectAttrs         = new HashSet<CollectionObjectAttr>();
+        obj.collectionObjectAttachments   = new HashSet<CollectionObjectAttachment>();
+        
+        for (Collector collector : collectors)
+        {
+            Collector newCollector = (Collector)collector.clone();
+            newCollector.setCollectionObject(obj);
+            obj.collectors.add(newCollector);
+        }
+        
+        // Clone Attributes
+        obj.collectionObjectAttribute    = collectionObjectAttribute != null ? (CollectionObjectAttribute)collectionObjectAttribute.clone() : null;
+        obj.collectionObjectAttrs        = new HashSet<CollectionObjectAttr>();
+        for (CollectionObjectAttr cea : collectionObjectAttrs)
+        {
+            obj.collectionObjectAttrs.add((CollectionObjectAttr)cea.clone());
+        }
+         
+        return obj;
+    }*/
     
     //----------------------------------------------------------------------
     //-- Comparable Interface
@@ -1203,7 +1266,7 @@ public class CollectionObject extends CollectionMember implements AttachmentOwne
             return catalogNumber.compareTo(obj.catalogNumber);
         }
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 
 }

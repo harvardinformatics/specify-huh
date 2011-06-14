@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.datamodel.busrules;
 
+import edu.ku.brc.specify.datamodel.FieldNotebookPage;
 import edu.ku.brc.specify.datamodel.FieldNotebookPageSet;
 
 public class FieldNotebookPageSetBusRules extends AttachmentOwnerBaseBusRules
@@ -26,6 +27,20 @@ public class FieldNotebookPageSetBusRules extends AttachmentOwnerBaseBusRules
     public FieldNotebookPageSetBusRules()
     {
         super(FieldNotebookPageSet.class);
+    }
+
+    /**
+     * @param attOwner
+     */
+    @Override
+    protected void addExtraObjectForProcessing(final Object dObjAtt)
+    {
+        super.addExtraObjectForProcessing(dObjAtt);
+        
+        for (FieldNotebookPage page : ((FieldNotebookPageSet)dObjAtt).getPages())
+        {
+            super.addExtraObjectForProcessing(page);
+        }
     }
 
 }

@@ -20,7 +20,10 @@
 package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +38,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 @SuppressWarnings("serial")
 @Entity
@@ -189,8 +192,10 @@ public class GeologicTimePeriodTreeDef extends BaseTreeDef<GeologicTimePeriod, G
 	/**
 	 * 
 	 */
-    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "definition")
-    @Cascade( { CascadeType.SAVE_UPDATE, CascadeType.LOCK, CascadeType.MERGE })
+    //@OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "definition")
+    //@Cascade( { CascadeType.SAVE_UPDATE, CascadeType.LOCK, CascadeType.MERGE })
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "definition") //$NON-NLS-1$
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
 	public Set<GeologicTimePeriod> getTreeEntries()
 	{
 		return this.treeEntries;
@@ -375,9 +380,10 @@ public class GeologicTimePeriodTreeDef extends BaseTreeDef<GeologicTimePeriod, G
     @Transient
     public Integer getParentId()
     {
-        if (disciplines != null && disciplines.size() == 1)
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT DisciplineID FROM discipline WHERE GeologicTimePeriodTreeDefID = "+ geologicTimePeriodTreeDefId);
+        if (ids.size() == 1)
         {
-            return ((FormDataObjIFace)disciplines.toArray()[0]).getId();
+            return (Integer)ids.get(0);
         }
         return null;
     }
@@ -407,6 +413,21 @@ public class GeologicTimePeriodTreeDef extends BaseTreeDef<GeologicTimePeriod, G
     public String toString()
     {
         return getIdentityTitle();
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.BaseTreeDef#getStandardLevels()
+     */
+    @Override
+    @Transient
+    public List<TreeDefItemStandardEntry> getStandardLevels()
+    {
+        List<TreeDefItemStandardEntry> result = new LinkedList<TreeDefItemStandardEntry>();    
+        result.add(new TreeDefItemStandardEntry("GeologicTimePeriodTreeDef.Era", 100)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("GeologicTimePeriodTreeDef.Period", 200)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("GeologicTimePeriodTreeDef.Epoch", 300)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("GeologicTimePeriodTreeDef.Age", 400)); //$NON-NLS-1$
+        return result;
     }
 
 }

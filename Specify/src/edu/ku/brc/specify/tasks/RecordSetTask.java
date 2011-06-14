@@ -49,6 +49,8 @@ import javax.swing.JPopupMenu;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.auth.SecurityMgr;
+import edu.ku.brc.af.auth.specify.permission.BasicSpPermission;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.ContextMgr;
 import edu.ku.brc.af.core.NavBox;
@@ -106,6 +108,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
     // Static Data Members
     public static final String RECORD_SET     = "Record_Set";
     public static final String SAVE_RECORDSET = "Save";
+    public static final String ADD_TO_NAV_BOX = "AddToNavBox";
     
     public static final DataFlavor RECORDSET_FLAVOR = new DataFlavor(RecordSetTask.class, RECORD_SET);
     
@@ -411,36 +414,58 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
      */
     public void saveNewRecordSet(final RecordSet recordSet)
     {
-        UsageTracker.incrUsageCount("RS.SAVENEW");
-         
-        recordSet.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        recordSet.setOwner(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
-        
-        if (persistRecordSet(recordSet))
+        boolean isOKToAdd = true;
+        /*
+         * This Don't work for some reason, and it should
+        if (AppContextMgr.isSecurityOn())
         {
-            RecordSetProxy rsProxy   = new RecordSetProxy(recordSet.getId(),
-                                                          recordSet.getType(),
-                                                          recordSet.getName(),
-                                                          recordSet.getDbTableId(),
-                                                          recordSet.getRemarks(),
-                                                          recordSet.getDataClass());
-
-            NavBoxItemIFace nbi = addToNavBox(rsProxy);
-            
-            NavBoxMgr.getInstance().addBox(navBox);
-
-            // XXX this is pathetic and needs to be generisized
-            navBox.invalidate();
-            navBox.setSize(navBox.getPreferredSize());
-            navBox.doLayout();
-            navBox.repaint();
-            NavBoxMgr.getInstance().invalidate();
-            NavBoxMgr.getInstance().doLayout();
-            NavBoxMgr.getInstance().repaint();
-            UIRegistry.forceTopFrameRepaint();
-
-            CommandDispatcher.dispatch(new CommandAction("Labels", "NewRecordSet", nbi));
+            isOKToAdd = SecurityMgr.getInstance().checkPermission("Task.Record_Set", BasicSpPermission.add);
         }
+         */
+        
+        if (isOKToAdd)
+        {
+            UsageTracker.incrUsageCount("RS.SAVENEW");
+            
+            recordSet.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
+            recordSet.setOwner(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
+            
+            if (persistRecordSet(recordSet))
+            {
+                addRecordSetToNavBox(recordSet);
+            }
+        }
+    }
+    
+    /**
+     * Adds recordSet to the Recordset navbox list. And notifies the Labels task.
+     * 
+     * @param recordSet
+     */
+    public void addRecordSetToNavBox(final RecordSet recordSet)
+    {
+        RecordSetProxy rsProxy   = new RecordSetProxy(recordSet.getId(),
+                recordSet.getType(),
+                recordSet.getName(),
+                recordSet.getDbTableId(),
+                recordSet.getRemarks(),
+                recordSet.getDataClass());
+
+        NavBoxItemIFace nbi = addToNavBox(rsProxy);
+
+        NavBoxMgr.getInstance().addBox(navBox);
+
+        // XXX this is pathetic and needs to be generisized
+        navBox.invalidate();
+        navBox.setSize(navBox.getPreferredSize());
+        navBox.doLayout();
+        navBox.repaint();
+        NavBoxMgr.getInstance().invalidate();
+        NavBoxMgr.getInstance().doLayout();
+        NavBoxMgr.getInstance().repaint();
+        UIRegistry.forceTopFrameRepaint();
+
+        CommandDispatcher.dispatch(new CommandAction("Labels", "NewRecordSet", nbi));
 
     }
     
@@ -916,9 +941,9 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                                     ex2.printStackTrace();
                                 }
                             }
-                        } else
-                        {
-                            success = persistRecordSet(dstRecordSet);
+                        //} else
+                        //{
+                        //    success = persistRecordSet(dstRecordSet);
                         }
                         //System.err.println("Time: "+(System.currentTimeMillis() - start));
                         
@@ -1222,6 +1247,9 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
         } else if (cmdAction.isAction("DELETEITEMS"))
         {
             processDeleteRSItems(cmdAction);
+        } else if (cmdAction.isAction(ADD_TO_NAV_BOX)) 
+        {
+        	addToNavBox((RecordSet )cmdAction.getData());
         }
         
 
@@ -1426,7 +1454,7 @@ public class RecordSetTask extends BaseTask implements PropertyChangeListener
                 return dlg.getRecordSets().get(0);
             }*/
             // else
-            dlg.setVisible(true); // modal (waits for answer here)
+            UIHelper.centerAndShow(dlg);  // modal (waits for answer here)
             return dlg.isCancelled() ? null : dlg.getSelectedRecordSet();
         }
         

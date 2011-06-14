@@ -34,6 +34,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
@@ -69,6 +73,7 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
+import edu.ku.brc.specify.tools.schemalocale.SchemaLocalizerXMLHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -81,6 +86,8 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class ERDVisualizer extends JFrame
 {
+    protected static Locale currLang  = new Locale("en");
+    
     protected static boolean doShadow = true;
     
     protected String contentTag = "<!-- Content -->";
@@ -98,26 +105,32 @@ public class ERDVisualizer extends JFrame
     protected Timer   timer;
     protected boolean doPNG = true;
     
+    protected HashSet<String> pngNameHash = new HashSet<String>();
+    
     // For Trees
     
         
     public ERDVisualizer()
     {
         boolean showTreeHierarchy = false;
-        boolean doGerman          = false;
         
-        if (doGerman)
-        {
-            Locale german = new Locale("de", "", "");
-            Locale.setDefault(german);
-            UIRegistry.setResourceLocale(german);
-        }
+        Locale.setDefault(currLang);
+        UIRegistry.setResourceLocale(currLang);
+        
+        Vector<DBTableInfo> tables = DBTableIdMgr.getInstance().getTables();
+        Collections.sort(tables);
+        
+        SchemaLocalizerXMLHelper schemaXMLHelper = new SchemaLocalizerXMLHelper(SpLocaleContainer.CORE_SCHEMA, DBTableIdMgr.getInstance());
+        schemaXMLHelper.load(true);
+        schemaXMLHelper.setTitlesIntoSchema();
         
         ERDTable.setDisplayType(showTreeHierarchy ? ERDTable.DisplayType.Title : ERDTable.DisplayType.All);
         
         tblTracker = new TableTracker();
         
-        final File localSchemaDir = new File("schema");
+        String schemDirName = adjustFileNameForLocale("schema%s");
+        
+        final File localSchemaDir = new File(schemDirName);
         if (!localSchemaDir.exists())
         {
             localSchemaDir.mkdir();
@@ -146,7 +159,7 @@ public class ERDVisualizer extends JFrame
         
         try
         {
-            File templateFile = new File(UIRegistry.getDefaultWorkingPath() + File.separator + "site/schema_template.html");
+            File templateFile = new File(UIRegistry.getDefaultWorkingPath() + File.separator + "site/template.html");
             mapTemplate = FileUtils.readFileToString(templateFile);
             
         } catch (IOException ex)
@@ -168,7 +181,7 @@ public class ERDVisualizer extends JFrame
             {
                 if (!f.getName().startsWith("."))
                 {
-                    File dst = new File(UIRegistry.getDefaultWorkingPath() + File.separator + "schema" + File.separator + f.getName());
+                    File dst = new File(UIRegistry.getDefaultWorkingPath() + File.separator + schemDirName + File.separator + f.getName());
                     if (!FilenameUtils.getExtension(f.getName()).toLowerCase().equals("html"))
                     {
                         FileUtils.copyFile(f, dst);
@@ -496,11 +509,24 @@ public class ERDVisualizer extends JFrame
         createIndexFile();
     }
     
+    
+    private String adjustFileNameForLocale(final String fileName)
+    {
+        if (currLang.getLanguage().equals("en"))
+        {
+            return String.format(fileName, "");
+        } 
+        
+        return String.format(fileName, "_" + currLang.getLanguage());
+    }
+    
     /**
      * 
      */
     protected void createIndexFile()
     {
+        HashSet<String> nameHash = new HashSet<String>();
+        
         String fName = schemaDir.getAbsolutePath() + File.separator + "index.html";
         try
         {
@@ -509,14 +535,26 @@ public class ERDVisualizer extends JFrame
             
             int index = mapTemplate.indexOf(contentTag);
             String subContent = mapTemplate.substring(0, index);
+            subContent = StringUtils.replace(subContent, "<!-- Updated -->", (new SimpleDateFormat("yyyy-MM-dd")).format(Calendar.getInstance().getTime()));
             output.write(StringUtils.replace(subContent, "<!-- Title -->", "Schema Index"));
         
             output.write("<UL>");
-            output.write("<LI><a href=\"CollectionOverview.html\">Schema Overview</a></LI>");
+            output.write("<LI><a href=\"CollectionOverview.html\">Schema Overview</a></LI>\n");
             for (ERDTable t : tblTracker.getList())
             {
                 DBTableInfo ti = t.getTable();
-                output.write("<LI><a href=\""+ti.getShortClassName()+".html\">"+StringEscapeUtils.escapeHtml(ti.getTitle())+"</a></LI>");
+                
+                // Make Unique file name
+                String outFileName = ti.getShortClassName();
+                int i = 1;
+                while (nameHash.contains(outFileName))
+                {
+                    outFileName = ti.getShortClassName() + i;
+                    i++;
+                }
+                nameHash.add(outFileName);
+                
+                output.write("<LI><a href=\""+outFileName+".html\">"+StringEscapeUtils.escapeHtml(ti.getTitle())+"</a></LI>\n");
             }
             output.write("</UL>");
             output.write(mapTemplate.substring(index+contentTag.length()+1, mapTemplate.length()));
@@ -668,6 +706,14 @@ public class ERDVisualizer extends JFrame
         String fName = schemaDir.getAbsolutePath() + File.separator + name;
         try
         {
+            String origName = fName;
+            int i = 1;
+            while (pngNameHash.contains(fName))
+            {
+                fName = origName + i;
+            }
+            pngNameHash.add(fName);
+            
             File           html   = new File(fName + ".html");
             BufferedWriter output = new BufferedWriter( new FileWriter(html) );
             
@@ -808,7 +854,7 @@ public class ERDVisualizer extends JFrame
      * @param align
      * @return
      */
-    protected static JLabel mkLabel(final Font font, final String name, int align)
+    public static JLabel mkLabel(final Font font, final String name, int align)
     {
         JLabel lbl = new JLabel(name, align);
         lbl.setFont(font);
@@ -816,7 +862,7 @@ public class ERDVisualizer extends JFrame
         return lbl;
     }
     
-    protected void calcLoc(final Point p, final Component src, final Component stop)
+    public void calcLoc(final Point p, final Component src, final Component stop)
     {
         if (src != stop)
         {
@@ -923,14 +969,8 @@ public class ERDVisualizer extends JFrame
                 
                 if (kidOK && (override || r.getType() == DBRelationshipInfo.RelationshipType.OneToMany))
                 {
-                    System.out.println("    ["+rTable.getClassName()+"]");
+                    //System.out.println("    ["+rTable.getClassName()+"]");
                     
-                    if (rTable.getClassName().indexOf("FieldNote") > -1)
-                    {
-                        int x= 0;
-                        x++;
-                    }
-
                     if (table.addKid(rTable))
                     {
                         rTable.setTreeParent(table);

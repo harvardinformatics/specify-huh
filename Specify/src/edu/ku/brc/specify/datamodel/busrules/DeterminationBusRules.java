@@ -24,9 +24,12 @@ import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Set;
 
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -41,6 +44,7 @@ import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
 import edu.ku.brc.af.ui.forms.BaseBusRules;
+import edu.ku.brc.af.ui.forms.MultiView;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
 import edu.ku.brc.af.ui.forms.validation.ValCheckBox;
@@ -74,12 +78,18 @@ import edu.ku.brc.ui.UIRegistry;
 public class DeterminationBusRules extends BaseBusRules
 {
     private static final Logger  log   = Logger.getLogger(DeterminationBusRules.class);
+    private static final String DT_ALREADY_DETERMINATION = "DT_ALREADY_DETERMINATION";
     
     protected Determination  determination         = null;
 
-    protected KeyListener    nameChangeKL         = null;
+    protected KeyListener    nameChangeKL          = null;
     protected boolean        ignoreSelection       = false;
     protected boolean        checkedBlankUsageItem = false;
+    protected boolean        isNewObject           = false;
+    protected boolean        isBlockingChange      = false;
+    
+    protected ChangeListener chkbxCL               = null;
+    protected ValCheckBox    isCurrentCheckbox     = null;
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BaseBusRules#beforeFormFill()
@@ -96,27 +106,32 @@ public class DeterminationBusRules extends BaseBusRules
     @Override
     public void afterFillForm(final Object dataObj)
     {
-        determination = null;
+        isBlockingChange = false;
+        determination    = null;
         
-        if (formViewObj.getDataObj() instanceof Determination)
+        if (formViewObj != null && formViewObj.getDataObj() instanceof Determination)
         {
             determination = (Determination)formViewObj.getDataObj();
-
-            //if determination exists and is new (no key) then set current true if CO has no other dets
+            
+            // if determination exists and is new (no key) then set current true if CO has no other dets
             Component currentComp = formViewObj.getControlByName("isCurrent");
             if (determination != null && currentComp != null)
             {
-                if (determination.getDeterminationId() == null)
+                if (isNewObject)
                 {
-                    if (determination.getCollectionObject() != null) //It should never be non null, but, currently, it does happen.
+                    // It should never be null, but, currently, it does happen.
+                    // Also, now with Batch ReIdentify is will always be NULL
+                    if (determination.getCollectionObject() != null) 
                     {
-                    	if (determination.getCollectionObject().getDeterminations().size() == 1)
-                    	{
-                    		if (currentComp instanceof ValCheckBox)
-                    		{
+                		if (currentComp instanceof ValCheckBox)
+                		{
+                            if (formViewObj.isCreatingNewObject())
+                            {
                     		    // Do this instead of setSelected because
                     		    // this activates the DataChangeListener
+                    		    isBlockingChange = true;
                     			((ValCheckBox)currentComp).doClick();
+                    			isBlockingChange = false;
                     			
                     			// Well, if it is already checked then we just checked it to the 'off' state,
                     			// so we need to re-check it so it is in the "checked state"
@@ -128,31 +143,41 @@ public class DeterminationBusRules extends BaseBusRules
                     			{
                     			    ((ValCheckBox)currentComp).doClick(); 
                     			}
-                    			
-                    		} else
-                    		{
-                    			log.error("IsCurrent not set to true because form control is of unexpected type: " + currentComp.getClass().getName());
-                    		}
-                    	}
+                			    
+                    			Set<Determination> detSet = determination.getCollectionObject().getDeterminations();
+                                for (Determination d : detSet)
+                                {
+                                    if (d != determination)
+                                    {
+                                        d.setIsCurrent(false);
+                                    }
+                                }
+                			}
+                            
+                		} else
+                		{
+                			log.error("IsCurrent not set to true because form control is of unexpected type: " + currentComp.getClass().getName());
+                		}
                     }
                 } else
                 {
                     ((ValCheckBox)currentComp).setValue(determination.getIsCurrent(), null);
                 }
             }
+            
             Component activeTax = formViewObj.getControlByName("preferredTaxon");
             if (activeTax != null)
             {
-                activeTax.setFocusable(false);
+                JTextField activeTaxTF = (JTextField)activeTax;
+                activeTaxTF.setFocusable(false);
                 if (determination != null && determination.getPreferredTaxon() != null)
                 {
-                    ((JTextField )activeTax).setText(determination.getPreferredTaxon().getFullName());
+                    activeTaxTF.setText(determination.getPreferredTaxon().getFullName());
                 } else
                 {
-                    ((JTextField )activeTax).setText("");
+                    activeTaxTF.setText("");
                 }
             }
-
             
             if (formViewObj.getAltView().getMode() != CreationMode.EDIT)
             {
@@ -165,31 +190,38 @@ public class DeterminationBusRules extends BaseBusRules
             Component nameUsageComp = formViewObj.getControlByName("nameUsage");
             if (nameUsageComp instanceof ValComboBox)
             {
-                //XXX this is probably not necessary anymore...
+                // XXX this is probably not necessary anymore...
                 if (!checkedBlankUsageItem)
                 {
                     boolean fnd = false;
-                    PickListDBAdapterIFace items = (PickListDBAdapterIFace) ((ValComboBox) nameUsageComp)
-                            .getComboBox().getModel();
-                    for (PickListItemIFace item : items.getPickList().getItems())
+                    
+                    if (nameUsageComp instanceof ValComboBox)
                     {
-                        if (StringUtils.isBlank(item.getValue()))
+                        ValComboBox cbx = (ValComboBox)nameUsageComp;
+                        if (cbx.getComboBox().getModel() instanceof PickListDBAdapterIFace)
                         {
-                            fnd = true;
-                            break;
-                        }
-                    }
-                    if (!fnd)
-                    {
-                        boolean readOnly = items.getPickList().getReadOnly();
-                        if (readOnly)
-                        {
-                            items.getPickList().setReadOnly(false);
-                        }
-                        items.addItem("", null);
-                        if (readOnly)
-                        {
-                            items.getPickList().setReadOnly(true);
+                            PickListDBAdapterIFace items = (PickListDBAdapterIFace) cbx.getComboBox().getModel();
+                            for (PickListItemIFace item : items.getPickList().getItems())
+                            {
+                                if (StringUtils.isBlank(item.getValue()))
+                                {
+                                    fnd = true;
+                                    break;
+                                }
+                            }
+                            if (!fnd)
+                            {
+                                boolean readOnly = items.getPickList().getReadOnly();
+                                if (readOnly)
+                                {
+                                    items.getPickList().setReadOnly(false);
+                                }
+                                items.addItem("", null);
+                                if (readOnly)
+                                {
+                                    items.getPickList().setReadOnly(true);
+                                }
+                            }
                         }
                     }
                     checkedBlankUsageItem = true;
@@ -198,18 +230,55 @@ public class DeterminationBusRules extends BaseBusRules
             }
 
             final Component altNameComp = formViewObj.getControlByName("alternateName");
-           
-            if (altNameComp != null)
+            if (altNameComp != null && determination != null)
             {
-                if (determination != null)
+                altNameComp.setEnabled(determination.getTaxon() == null);
+            }
+            
+            if (currentComp != null && chkbxCL == null)
+            {
+                chkbxCL = new ChangeListener()
                 {
-                    //((JTextField) altNameComp).setEditable(determination.getTaxon() == null);
-                    altNameComp.setEnabled(determination.getTaxon() == null);
+                    @Override
+                    public void stateChanged(ChangeEvent e)
+                    {
+                        adjustIsCurrentCheckbox();
+                    }
+                };
+            
+                isCurrentCheckbox = (ValCheckBox)currentComp;
+                isCurrentCheckbox.addChangeListener(chkbxCL);
+            }
+        }
+        isNewObject = false;
+    }
+    
+    /**
+     * 
+     */
+    private void adjustIsCurrentCheckbox()
+    {
+        if (!isBlockingChange && formViewObj != null && isCurrentCheckbox != null)
+        {
+            determination = (Determination)formViewObj.getDataObj();
+            if (determination != null && 
+                isCurrentCheckbox.isSelected())
+            {
+                //log.debug("Current: "+determination.getId());
+                if (determination.getCollectionObject() != null) //co can be null for batch-re-identify
+                {
+                	for (Determination d : determination.getCollectionObject().getDeterminations())
+                	{
+                		if (d != determination)
+                		{
+                			d.setIsCurrent(false);
+                		}
+                	}
                 }
             }
         }
     }
-    
+
     /**
      * @param kl
      * @param comp
@@ -258,11 +327,32 @@ public class DeterminationBusRules extends BaseBusRules
     }
     
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#afterCreateNewObj(java.lang.Object)
+     */
+    @Override
+    public void afterCreateNewObj(Object newDataObj)
+    {
+        isNewObject = true;
+        /*Determination    deter  = (Determination)newDataObj;
+        CollectionObject colObj = deter.getCollectionObject();
+        if (colObj != null && deter.isCurrentDet())
+        {
+            for (Determination det : colObj.getDeterminations())
+            {
+                if (det != deter && det.isCurrentDet())
+                {
+                    det.setIsCurrent(false);
+                }
+            }
+        }*/
+    }
+
     /**
      * Checks to make sure there is a single 'current' determination.
      * @param colObj the Collection Object
      * @param deter the determination for the CO
-     * @return true is ok
+     * @return false if there is more than one determination set to current
      */
     protected boolean checkDeterminationStatus(final CollectionObject colObj, final Determination deter)
     {
@@ -270,7 +360,16 @@ public class DeterminationBusRules extends BaseBusRules
         {
             for (Determination det : colObj.getDeterminations())
             {
-                if (det != deter && det.isCurrentDet())
+                boolean isSameDet;
+                if (det.getId() != null && deter.getId() != null)
+                {
+                    isSameDet = det.getId().equals(deter.getId());
+                } else
+                {
+                    isSameDet = det == deter;
+                }
+                
+                if (!isSameDet && det.isCurrentDet())
                 {
                     return false;
                 }
@@ -283,9 +382,9 @@ public class DeterminationBusRules extends BaseBusRules
      * @see edu.ku.brc.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object, java.lang.Object, boolean)
      */
     @Override
-    public STATUS processBusinessRules(Object parentDataObj,
-                                       Object dataObj,
-                                       boolean isExistingObject)
+    public STATUS processBusinessRules(final Object parentDataObj,
+                                       final Object dataObj,
+                                       final boolean isExistingObject)
     {
         STATUS status = super.processBusinessRules(parentDataObj, dataObj, isExistingObject);
         
@@ -293,8 +392,34 @@ public class DeterminationBusRules extends BaseBusRules
         {
             if (!checkDeterminationStatus((CollectionObject)parentDataObj, (Determination)dataObj))
             {
-                reasonList.add(UIRegistry.getResourceString("DT_ALREADY_DETERMINATION"));
+                reasonList.add(UIRegistry.getResourceString(DT_ALREADY_DETERMINATION));
                 status = STATUS.Error;
+            }
+        }
+        return status;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.BaseBusRules#processBusinessRules(java.lang.Object)
+     */
+    @Override
+    public STATUS processBusinessRules(final Object dataObj)
+    {
+        STATUS status = super.processBusinessRules(dataObj);
+        if (status == STATUS.OK)
+        {
+            if (formViewObj != null && formViewObj.getMVParent() != null)
+            {
+                MultiView mv = formViewObj.getMVParent();
+                if (!mv.isTopLevel())
+                {
+                    Object parentDataObj = mv.getMultiViewParent().getData();
+                    if (!checkDeterminationStatus((CollectionObject)parentDataObj, (Determination)dataObj))
+                    {
+                        reasonList.add(UIRegistry.getResourceString(DT_ALREADY_DETERMINATION));
+                        status = STATUS.Error;
+                    }
+                }
             }
         }
         return status;
@@ -325,7 +450,10 @@ public class DeterminationBusRules extends BaseBusRules
     @Override
     public void formShutdown()
     {
+        super.formShutdown();
+        
         determination = null;
+        chkbxCL       = null;
     }
 
     /* (non-Javadoc)

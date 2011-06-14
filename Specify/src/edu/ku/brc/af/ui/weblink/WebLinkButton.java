@@ -36,6 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -44,6 +45,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 
@@ -105,7 +107,6 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
     
     // UIPluginable
     protected String                        cellName       = null;
-    protected ChangeListener                changeListener = null;
     
     // UIValidatable && UIPluginable
     protected UIValidatable.ErrorType       valState  = UIValidatable.ErrorType.Valid;
@@ -168,21 +169,34 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
         if (!isTableSpecific && !usingThisData)
         {
             textField = new ValTextField(10);
-            pb.add(textField, cc.xy(3,1));
+            if (!isViewModeArg)
+            {
+                pb.add(textField, cc.xy(3,1));
+            }
             
             textField.setRequired(isRequired);
             
-            DataChangeNotifier dcn = new DataChangeNotifier(null, textField, null);
-            dcn.addDataChangeListener(this);
-            textField.getDocument().addDocumentListener(dcn);
-            
-            if (isViewMode)
+            if (!isViewMode)
+            {
+                DataChangeNotifier dcn = new DataChangeNotifier(null, textField, null);
+                dcn.addDataChangeListener(this);
+                textField.getDocument().addDocumentListener(dcn);
+                
+            } else
             {
                 ViewFactory.changeTextFieldUIForDisplay(textField, false);
             }
         } else
         {
             watchId = properties.getProperty("watch");
+        }
+        
+        if (textField != null)
+        {
+            textField.setEnabled(true);
+        } else
+        {
+            log.error("Error");
         }
     }
 
@@ -415,7 +429,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
             
             if (possibleValues != numValues)
             {
-                if (!forToolTip)
+                /*if (!forToolTip)
                 {
                     StringBuilder sb = new StringBuilder();
                     for (String name : missingList)
@@ -424,7 +438,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
                         sb.append("\n");
                     }
                     UIRegistry.showLocalizedError("WEBLNK_MIS_FLD", "\n"+sb.toString());
-                }
+                }*/
                 return null;
             }
             
@@ -497,7 +511,8 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
     {
         super.setEnabled(enabled);
         
-        boolean enbl = (webLinkDef != null || StringUtils.isNotEmpty(urlStr)) && enabled;
+        String urlToLaunch = buildURL(false);
+        boolean enbl = (webLinkDef != null || StringUtils.isNotEmpty(urlToLaunch)) && enabled;
         
         launchBtn.setEnabled(enbl);
         if (editBtn != null)
@@ -555,7 +570,6 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
         
         if (value == null)
         {
-            this.setEnabled(false);
             dataObj  = null;
             provider = null;
             
@@ -566,18 +580,19 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
             if (value instanceof WebLinkDataProviderIFace)
             {
                 provider = (WebLinkDataProviderIFace)value;
+                
+            } else if (dataObj instanceof String && textField != null)
+            {
+                textField.setText((String)dataObj);
+                this.setEnabled(true);
             }
+            
             String url = buildURL(true);
             if (StringUtils.isNotEmpty(url))
             {
                 setToolTips();
             }
             setEnabled(isEnabled());
-        }
-        
-        if (dataObj instanceof String && textField != null)
-        {
-            textField.setText((String)dataObj);
         }
     }
 
@@ -691,6 +706,31 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#getFieldNames()
+     */
+    @Override
+    public String[] getFieldNames()
+    {
+        ArrayList<String> names = new ArrayList<String>();
+        if (webLinkDef != null)
+        {
+            for (WebLinkDefArg arg : webLinkDef.getArgs())
+            {
+                if (!arg.isPrompt())
+                {
+                    names.add(arg.getName());
+                }
+            }
+        }
+        String[] nms = new String[names.size()];
+        for (int i=0;i<nms.length;i++)
+        {
+            nms[i] = names.get(i);
+        }
+        return nms;
+    }
+    
     //--------------------------------------------------------
     // DataChangedListener Interface
     //--------------------------------------------------------
@@ -703,10 +743,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
         validateState();
         
         isChanged = true;
-        if (changeListener != null)
-        {
-            changeListener.stateChanged(null);
-        }
+        notifyChangeListeners(new ChangeEvent(this));
         
         String text = textField.getText();
         if (dataObj == null && text != null)
@@ -714,7 +751,7 @@ public class WebLinkButton extends UIPluginBase implements ActionListener,
             launchBtn.setEnabled(true);
             dataObj = text;
             
-        } else if (dataObj != null && text.length() == 0)
+        } else if (dataObj != null && text != null && text.length() == 0)
         {
             launchBtn.setEnabled(false);
             dataObj = null;

@@ -79,6 +79,8 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.af.core.FrameworkAppIFace;
+import edu.ku.brc.af.core.MacOSAppHandler;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DBConnection;
@@ -91,6 +93,7 @@ import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.CustomFrame;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -101,14 +104,13 @@ import edu.ku.brc.util.Pair;
  * Nov 27, 2008
  *
  */
-public class RegisterApp extends JPanel
+public class RegisterApp extends JPanel implements FrameworkAppIFace
 {
     private enum CountType {Divs, Disps, Cols}
     private enum DateType  {None, Date, Monthly, Yearly, Time}
     
     protected static boolean INCL_ANON = false;
     
-    //protected String                    connectStr = "jdbc:mysql://specify6-test.nhm.ku.edu/stats";
     protected String                    connectStr = "jdbc:mysql://localhost/stats";
     protected String                    username   = "root";
     protected String                    password   = "root";
@@ -141,6 +143,8 @@ public class RegisterApp extends JPanel
     public RegisterApp()
     {
         super(new BorderLayout());
+        
+        new MacOSAppHandler(this);
         
         DBConnection dbConn = DBConnection.getInstance();
         dbConn.setConnectionStr(connectStr);
@@ -428,6 +432,34 @@ public class RegisterApp extends JPanel
         }
     }
     
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doAbout()
+     */
+    @Override
+    public void doAbout()
+    {
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doExit(boolean)
+     */
+    @Override
+    public boolean doExit(boolean doAppExit)
+    {
+        RegProcEntry.cleanUp();
+        System.exit(0);
+        
+        return true;
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.FrameworkAppIFace#doPreferences()
+     */
+    @Override
+    public void doPreferences()
+    {
+    }
+
     /**
      * @param entries
      * @return
@@ -916,11 +948,10 @@ public class RegisterApp extends JPanel
         TreePath path = tree.getSelectionPath();
         if (path != null)
         {
-            RegProcEntry rpe   = (RegProcEntry)path.getLastPathComponent();
-            Properties   props = rpe.getProps();
+            RegProcEntry rpe= (RegProcEntry)path.getLastPathComponent();
          
             Vector<String> keys = new Vector<String>();
-            for (Object obj : props.keySet())
+            for (Object obj : rpe.keySet())
             {
                 keys.add(obj.toString());
             }
@@ -942,7 +973,7 @@ public class RegisterApp extends JPanel
                 }
                 rows[inx][0] = titleStr;
                 
-                rows[inx][1] = props.get(key);
+                rows[inx][1] = rpe.get(key.toString());
                 inx++;
             }
             propsTable.setModel(new DefaultTableModel(rows, new String[] {"Property", "Value"}));
@@ -1069,10 +1100,10 @@ public class RegisterApp extends JPanel
                             String       dateStr      = colEntry.get("date");
                             Date         lastUsedDate = new Date(rp.getDate(dateStr));
                             dateStr = rp.getDateFmt().format(lastUsedDate);
-                            col.getProps().put("last_used_date", dateStr);
+                            col.put("last_used_date", dateStr);
                         } else
                         {
-                            col.getProps().put("last_used_date", "&nbsp;");
+                            col.put("last_used_date", "&nbsp;");
                         }
 
                         if (colsCnt > 0) sb.append("<tr>\n");
@@ -1107,7 +1138,7 @@ public class RegisterApp extends JPanel
         
         StringBuilder sb = new StringBuilder();
         sb.append("<html><head>\n<title>Registrations</title>\n");
-        //sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"http://specify6-test.nhm.ku.edu/css/report.css\">\n");
+        //sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/css/report.css\">\n");
         sb.append("<style>");
         sb.append("body { font-family: sans-serif; font-size:10pt; }");
         sb.append("td, th { font-family: sans-serif; font-size:10pt; }");
@@ -1115,7 +1146,7 @@ public class RegisterApp extends JPanel
         sb.append("table td { border-bottom: 1px gray solid; border-right: 1px gray solid; }");
         sb.append("table th { border-bottom: 1px gray solid; border-right: 1px gray solid; }");
         sb.append("</style>");
-        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\"http://specify6-test.nhm.ku.edu/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
+        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
 
         StringBuilder tsb = new StringBuilder();
         int cnt = createTable(tsb, "ISA Registrations - "+sdf.format(Calendar.getInstance().getTime()), rp.getRoot(INCL_ANON).getKids(), true);
@@ -1207,8 +1238,8 @@ public class RegisterApp extends JPanel
         
         StringBuilder sb = new StringBuilder();
         sb.append("<html><head>\n<title>Statistics</title>\n");
-        sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"http://specify6-test.nhm.ku.edu/css/report.css\">\n");
-        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\"http://specify6-test.nhm.ku.edu/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
+        sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/css/report.css\">\n");
+        sb.append("</head><body>\n<div style=\"text-align: left;\"><img src=\""+UIRegistry.getResourceString("CGI_BASE_URL") + "/images/logosmaller.png\" height=\"42\" width=\"117\"></div>\n");
         sb.append("<center\n<table class=\"brd\" border=\"0\" cellspacing=\"0\">\n");
         sb.append("<tr>");
         sb.append("<th colspan=\"2\">");
@@ -1295,7 +1326,7 @@ public class RegisterApp extends JPanel
         {
             SimpleDateFormat mmddyyyy = new SimpleDateFormat("MM/dd/yyyy");
             SimpleDateFormat yyyymmdd = new SimpleDateFormat("yyyy/MM/dd");
-            List<String> lines = FileUtils.readLines(rp.getDataFromWeb("http://specify6-test.nhm.ku.edu/specifydownloads/specify6/alpha/versions.txt", false));
+            List<String> lines = FileUtils.readLines(rp.getDataFromWeb(UIRegistry.getResourceString("CGI_BASE_URL") + "/specifydownloads/specify6/alpha/versions.txt", false));
             for (String line : lines)
             {
                 String[] toks = line.split(",");
@@ -1423,7 +1454,7 @@ public class RegisterApp extends JPanel
                 @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    System.exit(0);
+                    doExit(true);
                 }
             });
         }

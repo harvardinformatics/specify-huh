@@ -273,7 +273,13 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
          * Everything seems OK now.
          * 
          */
-        return Object.class; //whatever getValueAt(?, column) returns.
+        Class<?> cls = getColumnClass2(column);
+        if (cls == java.util.Calendar.class)
+        {
+            return String.class; //whatever getValueAt(?, column) returns.
+        }
+        return cls;
+        //return Object.class; //whatever getValueAt(?, column) returns.
     }
     
     protected Class<?> getColumnClass2(int column)
@@ -612,10 +618,18 @@ public class ResultSetTableModel extends AbstractTableModel implements SQLExecut
                      colNames.addElement(caption.getColLabel());
                      
                      int      inx = caption.getPosIndex() + 1;
-                     Class<?> cls = Class.forName(metaData.getColumnClassName(inx));
-                     if (cls == Calendar.class ||  cls == java.sql.Date.class || cls == Date.class)
+                     //log.debug(metaData.getColumnClassName(inx));
+                     Class<?> cls = null;
+                     try
                      {
-                         cls = String.class;
+                         cls = Class.forName(metaData.getColumnClassName(inx));
+                         if (cls == Calendar.class ||  cls == java.sql.Date.class || cls == Date.class)
+                         {
+                             cls = String.class;
+                         }
+                     } catch (SQLException ex)
+                     {
+                         cls = String.class; 
                      }
                      classNames.addElement(cls);
                      caption.setColClass(cls);

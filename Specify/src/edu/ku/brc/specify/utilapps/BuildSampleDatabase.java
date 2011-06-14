@@ -54,10 +54,6 @@ import static edu.ku.brc.specify.config.init.DataBuilder.createInstitution;
 import static edu.ku.brc.specify.config.init.DataBuilder.createJournal;
 import static edu.ku.brc.specify.config.init.DataBuilder.createLithoStratTreeDef;
 import static edu.ku.brc.specify.config.init.DataBuilder.createLithoStratTreeDefItem;
-import static edu.ku.brc.specify.config.init.DataBuilder.createLoan;
-import static edu.ku.brc.specify.config.init.DataBuilder.createLoanAgent;
-import static edu.ku.brc.specify.config.init.DataBuilder.createLoanPreparation;
-import static edu.ku.brc.specify.config.init.DataBuilder.createLoanReturnPreparation;
 import static edu.ku.brc.specify.config.init.DataBuilder.createLocality;
 import static edu.ku.brc.specify.config.init.DataBuilder.createPermit;
 import static edu.ku.brc.specify.config.init.DataBuilder.createPickList;
@@ -66,7 +62,6 @@ import static edu.ku.brc.specify.config.init.DataBuilder.createPreparation;
 import static edu.ku.brc.specify.config.init.DataBuilder.createQuery;
 import static edu.ku.brc.specify.config.init.DataBuilder.createQueryField;
 import static edu.ku.brc.specify.config.init.DataBuilder.createReferenceWork;
-import static edu.ku.brc.specify.config.init.DataBuilder.createShipment;
 import static edu.ku.brc.specify.config.init.DataBuilder.createStorage;
 import static edu.ku.brc.specify.config.init.DataBuilder.createStorageTreeDef;
 import static edu.ku.brc.specify.config.init.DataBuilder.createStorageTreeDefItem;
@@ -77,6 +72,22 @@ import static edu.ku.brc.specify.config.init.DataBuilder.createWorkbench;
 import static edu.ku.brc.specify.config.init.DataBuilder.createWorkbenchDataItem;
 import static edu.ku.brc.specify.config.init.DataBuilder.createWorkbenchMappingItem;
 import static edu.ku.brc.specify.config.init.DataBuilder.createWorkbenchTemplate;
+import static edu.ku.brc.ui.UIRegistry.getAppDataDir;
+import static edu.ku.brc.ui.UIRegistry.getAppDataSubDir;
+import static edu.ku.brc.ui.UIRegistry.getAppName;
+import static edu.ku.brc.ui.UIRegistry.getDefaultEmbeddedDBPath;
+import static edu.ku.brc.ui.UIRegistry.getDefaultMobileEmbeddedDBPath;
+import static edu.ku.brc.ui.UIRegistry.getDefaultWorkingPath;
+import static edu.ku.brc.ui.UIRegistry.getEmbeddedDBPath;
+import static edu.ku.brc.ui.UIRegistry.getResourceString;
+import static edu.ku.brc.ui.UIRegistry.getStatusBar;
+import static edu.ku.brc.ui.UIRegistry.getTopWindow;
+import static edu.ku.brc.ui.UIRegistry.setAppName;
+import static edu.ku.brc.ui.UIRegistry.setBaseAppDataDir;
+import static edu.ku.brc.ui.UIRegistry.setDefaultWorkingPath;
+import static edu.ku.brc.ui.UIRegistry.setEmbeddedDBPath;
+import static edu.ku.brc.ui.UIRegistry.setResourceLocale;
+import static edu.ku.brc.ui.UIRegistry.showError;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -85,17 +96,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -122,6 +136,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -137,12 +152,14 @@ import com.thoughtworks.xstream.XStream;
 
 import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.SchemaI18NService;
 import edu.ku.brc.af.core.db.BackupServiceFactory;
-import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
+import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.dbsupport.AttributeIFace;
@@ -152,7 +169,6 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
-import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.helpers.XMLHelper;
@@ -163,6 +179,7 @@ import edu.ku.brc.specify.config.init.BldrPickList;
 import edu.ku.brc.specify.config.init.BldrPickListItem;
 import edu.ku.brc.specify.config.init.DataBuilder;
 import edu.ku.brc.specify.config.init.HiddenTableMgr;
+import edu.ku.brc.specify.config.init.TaxonLoadSetupPanel;
 import edu.ku.brc.specify.config.init.TreeDefRow;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Accession;
@@ -203,10 +220,6 @@ import edu.ku.brc.specify.datamodel.Journal;
 import edu.ku.brc.specify.datamodel.LithoStrat;
 import edu.ku.brc.specify.datamodel.LithoStratTreeDef;
 import edu.ku.brc.specify.datamodel.LithoStratTreeDefItem;
-import edu.ku.brc.specify.datamodel.Loan;
-import edu.ku.brc.specify.datamodel.LoanAgent;
-import edu.ku.brc.specify.datamodel.LoanPreparation;
-import edu.ku.brc.specify.datamodel.LoanReturnPreparation;
 import edu.ku.brc.specify.datamodel.Locality;
 import edu.ku.brc.specify.datamodel.LocalityCitation;
 import edu.ku.brc.specify.datamodel.Permit;
@@ -215,7 +228,7 @@ import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.RepositoryAgreement;
-import edu.ku.brc.specify.datamodel.Shipment;
+import edu.ku.brc.specify.datamodel.SpLocaleBase;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.datamodel.SpLocaleContainerItem;
 import edu.ku.brc.specify.datamodel.SpLocaleItemStr;
@@ -230,6 +243,7 @@ import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TaxonCitation;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
+import edu.ku.brc.specify.datamodel.TreeDefItemStandardEntry;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.datamodel.WorkbenchDataItem;
@@ -246,10 +260,12 @@ import edu.ku.brc.specify.tools.schemalocale.SchemaLocalizerXMLHelper;
 import edu.ku.brc.specify.treeutils.NodeNumberer;
 import edu.ku.brc.specify.treeutils.TreeFactory;
 import edu.ku.brc.specify.treeutils.TreeHelper;
+import edu.ku.brc.ui.DateWrapper;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ProgressFrame;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.dnd.SimpleGlassPane;
 import edu.ku.brc.util.AttachmentManagerIface;
 import edu.ku.brc.util.AttachmentUtils;
 import edu.ku.brc.util.FileStoreAttachmentManager;
@@ -265,6 +281,7 @@ import edu.ku.brc.util.thumbnails.Thumbnailer;
 public class BuildSampleDatabase
 {
     private static final Logger  log      = Logger.getLogger(BuildSampleDatabase.class);
+    public enum UpdateType {eBuildNew, eImport, eMerge, eLocalize}
     
     //                                                  0                   1                  2                 3                   4                     5                   6                   7                     8
     private static String[] TaxonIndexNames = {"family common name", "species author", "species source", "species lsid", "species common name", "subspecies author", "subspecies source", "subspecies lsid", "subspecies common name"};
@@ -279,6 +296,10 @@ public class BuildSampleDatabase
     private static int SUBSPECIES_SOURCE      = 6;
     private static int SUBSPECIES_LSID        = 7;
     private static int SUBSPECIES_COMMON_NAME = 8;
+    
+    private static String SHOW                = "show";
+    private static String NAME                = "name";
+    private static String RANK                = "rank";
     
     protected Hashtable<String, Integer> taxonExtraColsIndexes = new Hashtable<String, Integer>();
     protected Hashtable<String, Integer> taxonIndexes          = new Hashtable<String, Integer>();
@@ -332,6 +353,11 @@ public class BuildSampleDatabase
     
     protected LinkedList<Pair<String, Integer>> recycler = new LinkedList<Pair<String, Integer>>();
     protected StringBuilder gSQLStr = new StringBuilder();
+    
+    protected NumberFormat     numFmt = NumberFormat.getInstance();
+    protected SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    
+    protected int recCnt = 0;
 
     
     /**
@@ -342,6 +368,10 @@ public class BuildSampleDatabase
         dateTimeFormatter  = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         dateFormatter      = new SimpleDateFormat("yyyy-MM-dd");
         nowStr              = "'" + dateTimeFormatter.format(now) + "'";
+        
+        numFmt.setMinimumFractionDigits(0);
+        numFmt.setMaximumFractionDigits(20);
+        numFmt.setGroupingUsed(false); //gets rid of commas
     }
     
     /**
@@ -451,7 +481,7 @@ public class BuildSampleDatabase
             Locale prefLocale = new Locale(language, country, variant);
             
             Locale.setDefault(prefLocale);
-            UIRegistry.setResourceLocale(prefLocale);
+            setResourceLocale(prefLocale);
         }
         
         try
@@ -461,7 +491,7 @@ public class BuildSampleDatabase
         } catch (MissingResourceException ex)
         {
             Locale.setDefault(Locale.ENGLISH);
-            UIRegistry.setResourceLocale(Locale.ENGLISH);
+            setResourceLocale(Locale.ENGLISH);
         }
         
     }
@@ -472,7 +502,10 @@ public class BuildSampleDatabase
      * @param disciplineName the disciplineType name
      * @return the entire list of DB object to be persisted
      */
-    public boolean createEmptyInstitution(final Properties props, final boolean doCreateDiv, final boolean doCreateDisp)
+    public boolean createEmptyInstitution(final Properties props, 
+                                          final boolean doCreateDiv, 
+                                          final boolean doCreateDisp,
+                                          final boolean doFromWizard)
     {
         AppContextMgr.getInstance().setHasContext(true);
         
@@ -531,7 +564,7 @@ public class BuildSampleDatabase
         String userType = props.getProperty("userType");
 
         String encrypted = Encryption.encrypt(password, password);
-        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution, username, email, encrypted, userType);
+        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution, null, username, email, encrypted, userType);
         
         ////////////////////////////////
         // Create the really high-level stuff
@@ -553,7 +586,7 @@ public class BuildSampleDatabase
         if (doCreateDiv)
         {
             DisciplineType disciplineType = (DisciplineType)props.get("disciplineType");   
-            return createEmptyDivision(institution, disciplineType, specifyAdminUser, props, doCreateDisp, false) != null;
+            return createEmptyDivision(institution, disciplineType, specifyAdminUser, props, doCreateDisp, doFromWizard, false) != null;
         }
         return true;
     }
@@ -577,6 +610,7 @@ public class BuildSampleDatabase
                                         final SpecifyUser    specifyAdminUser, 
                                         final Properties     props,
                                         final boolean        doCreateDisp,
+                                        final boolean        doFromWizard,
                                         final boolean        doSetProgressRange)
     {
         if (doSetProgressRange && frame != null)
@@ -596,7 +630,7 @@ public class BuildSampleDatabase
         
         persist(division);
         
-        String title     = props.getProperty("title",     "");
+        String title     = props.getProperty("title",     "mr");
         String firstName = props.getProperty("firstName", "Test");
         String lastName  = props.getProperty("lastName",  "User");
         String midInit   = props.getProperty("middleInitial", "A");
@@ -616,11 +650,56 @@ public class BuildSampleDatabase
         
         frame.incOverall();
         
-        Agent userAgent = createAgent(title, firstName, midInit, lastName, abbrev, email, division, null);
+        Agent userAgent    = AppContextMgr.getInstance().getClassObject(Agent.class);
+        Agent newUserAgent = null;
+        boolean fromWiz    = UIHelper.getProperty(props, "fromwizard", false);
+        if (userAgent == null || (doFromWizard && fromWiz))
+        {
+            userAgent  = createAgent(title, firstName, midInit, lastName, abbrev, email, division, null);
+            
+        } else
+        {
+            try
+            {
+                HibernateUtil.attach(specifyAdminUser, session);
+                //HibernateUtil.attach(userAgent, session); // rods - this doesn't work 8/17/10
+                
+                List<?> agentList = session.createQuery("FROM Agent WHERE id = "+userAgent.getId()).list();
+                
+                Agent cloneableAgent = (Agent)agentList.get(0);
+                
+                newUserAgent = (Agent)cloneableAgent.clone();
+                Agent.initializeSets(newUserAgent);
+                
+                specifyAdminUser.getAgents().add(newUserAgent);
+                newUserAgent.setSpecifyUser(specifyAdminUser);
+                
+                newUserAgent.setDivision(division); // Set the new Division
+                
+                session.saveOrUpdate(newUserAgent);
+                session.saveOrUpdate(specifyAdminUser);
+                
+                userAgent = newUserAgent;
+                
+            } catch (CloneNotSupportedException ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+        
+        try
+        {
+            userAgent = (Agent)session.merge(userAgent);
+            AppContextMgr.getInstance().setClassObject(Agent.class, userAgent);
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
         
         specifyAdminUser.addReference(userAgent, "agents");
         persist(specifyAdminUser);
-        
+
         commitTx();
         
         if (doCreateDisp)
@@ -674,14 +753,14 @@ public class BuildSampleDatabase
         String taxonFileName = props.getProperty("taxonfilename");
         String geoXML        = props.getProperty("GeographyTreeDef.treedefs");
         
-        Boolean usingOtherTxnFile = (Boolean)props.get("othertaxonfile");
+        Boolean doUserProvidedFile = (Boolean)props.get("othertaxonfile");
         
         frame.incOverall();
         
         Discipline discipline = createEmptyDiscipline(division, dispName, disciplineType, userAgent,
                                                       preLoadTaxon, 
                                                       taxonFileName, 
-                                                      usingOtherTxnFile != null ? usingOtherTxnFile : false,
+                                                      doUserProvidedFile != null ? doUserProvidedFile : false,
                                                       taxonXML, geoXML, props);
         if (discipline != null)
         {
@@ -704,8 +783,14 @@ public class BuildSampleDatabase
             Pair<AutoNumberingScheme, AutoNumberingScheme> ansPair = localizeDisciplineSchema(division, discipline, props, isAccGlobal);
             
             // These create a new session and persist records in the Schema tables (SpLocaleContainerItem)
-            makeFieldVisible(null, discipline);
-            makeFieldVisible(disciplineType.getName(), discipline);
+            boolean fromWiz = UIHelper.getProperty(props, "fromwizard", false);
+            if (fromWiz) // means a new database
+            {
+                doShowHideTablesAndFields(null, discipline);
+            }
+            // Since we the Localization is at the Discipline level it is OK
+            // to always run this here.
+            doShowHideTablesAndFields(disciplineType.getName(), discipline);
             
             frame.setProcess(0, 17);
             frame.setProcess(++createStep);
@@ -750,8 +835,8 @@ public class BuildSampleDatabase
      * @param disciplineType
      * @param userAgent
      * @param preLoadTaxon
-     * @param taxonDefXML
-     * @param geoDefXML
+     * @param taxonFileName
+     * @param doUserProvidedFile
      * @return
      */
     public Discipline createEmptyDiscipline(final Division       division,
@@ -760,7 +845,7 @@ public class BuildSampleDatabase
                                             final Agent          userAgent,
                                             final boolean        preLoadTaxon, 
                                             final String         taxonFileName,
-                                            final boolean        usingOtherTxnFile, 
+                                            final boolean        doUserProvidedFile,
                                             final String         taxonDefXML, 
                                             final String         geoDefXML, 
                                             final Properties     props)
@@ -786,9 +871,6 @@ public class BuildSampleDatabase
                                                  gtpTreeDef, 
                                                  lithoStratTreeDef);
         
-        userAgent.getDisciplines().add(discipline);
-        discipline.getAgents().add(userAgent);
-
         persist(division);
         persist(discipline);
         persist(userAgent);
@@ -829,15 +911,18 @@ public class BuildSampleDatabase
             LithoStratTreeDefItem lithoGrp  = createLithoStratTreeDefItem(superGrp,  "Litho Group", 200, false);
             LithoStratTreeDefItem formation = createLithoStratTreeDefItem(lithoGrp,  "Formation",   300, false);
             LithoStratTreeDefItem member    = createLithoStratTreeDefItem(formation, "Member",      400, false);
-            @SuppressWarnings("unused")
             LithoStratTreeDefItem bed       = createLithoStratTreeDefItem(member,    "Bed",         500, true);
+            
+            member.setIsInFullName(true);
+            bed.setIsInFullName(true);
+            
             persist(earth);
             
             // setup the root Geography record (planet Earth)
             LithoStrat earthNode = new LithoStrat();
             earthNode.initialize();
-            earthNode.setName("Earth");
-            earthNode.setFullName("Earth");
+            earthNode.setName(getResourceString("Earth"));
+            earthNode.setFullName(earthNode.getName());
             earthNode.setNodeNumber(1);
             earthNode.setHighestChildNodeNumber(1);
             earthNode.setRankId(0);
@@ -848,7 +933,7 @@ public class BuildSampleDatabase
             
             commitTx();
             
-            convertChronoStratFromXLS(gtpTreeDef); // does commits
+            convertChronoStratFromXLS(gtpTreeDef, userAgent); // does commits
         }
         
         frame.incOverall();
@@ -858,10 +943,10 @@ public class BuildSampleDatabase
         
         startTx();
         
-        Hashtable<String, Boolean> colNameHash   = null;
+        HashSet<String> colNameHash   = null;
         if (StringUtils.isNotEmpty(taxonFileName))
         {
-            colNameHash = getColumnNamesFromXLS(taxonFileName, usingOtherTxnFile);
+            colNameHash = getColumnNamesFromXLS(taxonFileName, doUserProvidedFile);
         }
         
         boolean taxonWasBuilt = createTaxonDefFromXML(taxa, colNameHash, taxonTreeDef, taxonDefXML);
@@ -875,7 +960,7 @@ public class BuildSampleDatabase
             ttdi.initialize();
             ttdi.setTreeDef(taxonTreeDef);
             taxonTreeDef.getTreeDefItems().add(ttdi);
-            ttdi.setName("Root");
+            ttdi.setName(getResourceString("Root"));
             ttdi.setRankId(0);
             ttdi.setParent(null);
             ttdi.setFullNameSeparator(null);
@@ -887,7 +972,7 @@ public class BuildSampleDatabase
             tx.setDefinition(taxonTreeDef);
             tx.setDefinitionItem(ttdi);
             ttdi.getTreeEntries().add(tx);
-            tx.setName("Life"); // I18N
+            tx.setName(getResourceString("Life"));
             tx.setFullName(tx.getName());
             tx.setNodeNumber(1);
             tx.setHighestChildNodeNumber(1);
@@ -915,7 +1000,7 @@ public class BuildSampleDatabase
         log.debug(" fileName     ["+taxonFileName+"]");
         if (preLoadTaxon && taxonFileName != null)
         {
-            convertTaxonFromXLS(taxonTreeDef, taxonFileName, usingOtherTxnFile); // this does a startTx() / commitTx()
+            convertTaxonFromXLS(taxonTreeDef, taxonFileName, doUserProvidedFile); // this does a startTx() / commitTx()
         }
         
         frame.setProcess(++createStep);
@@ -941,7 +1026,7 @@ public class BuildSampleDatabase
         {
             frame.setVisible(false);
             
-            Pair<String, String> usrPwd = SchemaUpdateService.getITUsernamePwd();
+            Pair<String, String> usrPwd = DatabaseLoginPanel.getITUsernamePwd();
             frame.setVisible(true);
             if (usrPwd != null)
             {
@@ -964,47 +1049,6 @@ public class BuildSampleDatabase
         log.debug("Out createEmptyDiscipline - createStep: "+createStep);
         
         return discipline;
-    }
-    
-    /**
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public static Vector<TaxonFileDesc> readTaxonLoadFiles()
-    {
-        try
-        {
-            String fileName = "taxonfiles.xml";
-            
-            File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
-            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-            if (!file.exists())
-            {
-                log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
-                file = XMLHelper.getConfigDir(fileName);
-                log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-                if (!file.exists())
-                {
-                    file = new File("Specify/demo_files/"+fileName);
-                }
-            }
-    
-            if (file == null || !file.exists() || file.isDirectory())
-            {
-                log.error("Couldn't file[" + file.getAbsolutePath() + "]");
-                return null;
-            }
-            
-            XStream xstream = new XStream();
-            TaxonFileDesc.configXStream(xstream);
-            
-            return (Vector<TaxonFileDesc>)xstream.fromXML(FileUtils.readFileToString(file));
-            
-        } catch (IOException ex)
-        {
-            ex.printStackTrace();
-        }
-        return null;
     }
     
     /**
@@ -1062,6 +1106,11 @@ public class BuildSampleDatabase
 
         // create the standard user groups for this collection
         Map<String, SpPrincipal> groupMap = DataBuilder.createStandardGroups(session, collection);
+        
+        SpPrincipal userPrin = DataBuilder.createUserPrincipal(specifyAdminUser, collection);
+        
+        persist(userPrin);
+        persist(specifyAdminUser);
 
         // add the administrator as a Collections Manager in this group
         specifyAdminUser.addUserToSpPrincipalGroup(groupMap.get(SpecifyUserTypes.UserType.Manager.toString()));
@@ -1153,7 +1202,8 @@ public class BuildSampleDatabase
         boolean isFromScratch = props.getProperty("instName") != null;
         
         
-        String postFix = "FROM autonumberingscheme ans INNER JOIN autonumsch_div ad ON ans.AutoNumberingSchemeID = ad.AutoNumberingSchemeID INNER JOIN division d ON ad.DivisionID = d.UserGroupScopeId WHERE d.UserGroupScopeId = " + division.getId();
+        String postFix = "FROM autonumberingscheme ans INNER JOIN autonumsch_div ad ON ans.AutoNumberingSchemeID = ad.AutoNumberingSchemeID " +
+        	             "INNER JOIN division d ON ad.DivisionID = d.UserGroupScopeId WHERE d.UserGroupScopeId = " + division.getId();
         String sql = "SELECT COUNT(*) " + postFix;
         log.debug(sql);
         int numOfDivAns = BasicSQLUtils.getCountAsInt(sql);
@@ -1208,6 +1258,12 @@ public class BuildSampleDatabase
                                catNumScheme.getFormatName(),
                                accNumScheme != null ? accNumScheme.getFormatName() : null);
         
+        DBTableIdMgr wbTableMgr = new DBTableIdMgr(false);
+        wbTableMgr.initialize(new File(XMLHelper.getConfigDirPath("specify_workbench_datamodel.xml"))); //$NON-NLS-1$
+        
+        //DataProviderSessionIFace hSession = new HibernateDataProviderSession(session);
+        loadSchemaLocalization(discipline, SpLocaleContainer.WORKBENCH_SCHEMA, wbTableMgr, null, null, UpdateType.eBuildNew, null);//hSession);
+        
         frame.setProcess(++createStep);
         
         persist(discipline);
@@ -1246,6 +1302,7 @@ public class BuildSampleDatabase
                 gtdi.setTreeDef(geoTreeDef);
                 geoTreeDef.getTreeDefItems().add(gtdi);
                 gtdi.setName(row.getDefName());
+                gtdi.setTitle(row.getTitle());
                 gtdi.setRankId(row.getRank());
                 gtdi.setParent(parent);
                 gtdi.setFullNameSeparator(row.getSeparator());
@@ -1272,10 +1329,10 @@ public class BuildSampleDatabase
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static boolean createTaxonDefFromXML(final List<Object>               taxonList, 
-                                                final Hashtable<String, Boolean> colNameHash,
-                                                final TaxonTreeDef               taxonTreeDef, 
-                                                final String                     taxonDefXML)
+    public boolean createTaxonDefFromXML(final List<Object>    taxonList, 
+                                                final HashSet<String> colNameHash,
+                                                final TaxonTreeDef    taxonTreeDef, 
+                                                final String          taxonDefXML)
     {
         if (StringUtils.isNotEmpty(taxonDefXML))
         {
@@ -1283,18 +1340,82 @@ public class BuildSampleDatabase
             TreeDefRow.configXStream(xstream);
             
             Vector<TreeDefRow> treeDefList = (Vector<TreeDefRow>)xstream.fromXML(taxonDefXML);
+            
+            if (colNameHash != null)
+            {
+                Hashtable<String, TreeDefItemStandardEntry> stdTreeLevelsHash = new Hashtable<String, TreeDefItemStandardEntry>();
+                for (TreeDefItemStandardEntry entry : TaxonTreeDef.getStandardLevelsStatic())
+                {
+                    stdTreeLevelsHash.put(entry.getName().toLowerCase(), entry);
+                }
+                
+                Hashtable<String, TreeDefRow> xmlTreeLevelsHash = new Hashtable<String, TreeDefRow>();
+                for (TreeDefRow row : treeDefList)
+                {
+                    xmlTreeLevelsHash.put(row.getDefName().toLowerCase(), row);
+                }
+                
+                for (String columnName : colNameHash)
+                {
+                    String colName = columnName.toLowerCase();
+                    
+                    TreeDefRow treeDefRow = xmlTreeLevelsHash.get(colName);
+                    if (treeDefRow == null)
+                    {
+                        log.debug(colName+" NOT found in XML, checking std.");
+                        TreeDefItemStandardEntry entry = stdTreeLevelsHash.get(colName);
+                        if (entry != null)
+                        {
+                            for (int i=0;i<treeDefList.size();i++)
+                            {
+                                if (i < treeDefList.size() && entry.getRank() < treeDefList.get(i).getRank())
+                                {
+                                    log.debug(String.format("Adding '%s' as rank %d.", colName, entry.getRank()));
+                                    TreeDefRow newRow = new TreeDefRow(entry.getName(), 
+                                                                       entry.getTitle(), 
+                                                                       entry.getRank(),
+                                                                       true,   // included
+                                                                       false,  // enforced
+                                                                       false,  // is in Full Name 
+                                                                       false,  // is required 
+                                                                       ",");
+                                    treeDefList.insertElementAt(newRow, i);
+                                    break;
+                                }
+                            }
+                        } else 
+                        {
+                            //showLocalizedError("The wizard was unable to find '%s' as a standard Taxonomy level.", colName);
+                            log.debug(String.format("The wizard was unable to find '%s' as a standard Taxonomy level.", colName));
+                        }
+                    } else
+                    {
+                        log.debug(colName+" found in XML");
+                    }
+                }
+                
+                for (TreeDefRow row : treeDefList)
+                {
+                    log.debug(row.getDefName()+"  "+ row.getTitle()+"  "+ row.getRank());
+                }
+            }
+            
+            TaxonTreeDefItem ttdiRoot = null;
+            Taxon            txRoot   = null;
+            
             TaxonTreeDefItem   parent      = null;
             int                cnt         = 0;
             for (TreeDefRow row : treeDefList)
             {
                 if (row.isIncluded() || 
-                    (row.getDefName() != null && (colNameHash == null || colNameHash.get(row.getDefName().toLowerCase()) != null)))
+                    (row.getDefName() != null && (colNameHash == null || colNameHash.contains(row.getDefName().toLowerCase()))))
                 {
                     TaxonTreeDefItem ttdi = new TaxonTreeDefItem();
                     ttdi.initialize();
                     ttdi.setTreeDef(taxonTreeDef);
                     taxonTreeDef.getTreeDefItems().add(ttdi);
                     ttdi.setName(row.getDefName());
+                    ttdi.setTitle(row.getTitle());
                     ttdi.setRankId(row.getRank());
                     ttdi.setParent(parent);
                     ttdi.setFullNameSeparator(row.getSeparator());
@@ -1305,15 +1426,19 @@ public class BuildSampleDatabase
                     
                     if (cnt == 0)
                     {
+                        ttdiRoot = ttdi;
+                        
                         Taxon tx = new Taxon();
                         tx.initialize();
                         tx.setDefinition(taxonTreeDef);
                         tx.setDefinitionItem(ttdi);
                         ttdi.getTreeEntries().add(tx);
-                        tx.setName("Life"); // I18N
-                        tx.setFullName("Life"); //I18N
+                        tx.setName(getResourceString("Life"));
+                        tx.setFullName(tx.getName());
                         tx.setNodeNumber(1);
                         tx.setHighestChildNodeNumber(1);
+                        
+                        txRoot = tx;
                     }
                    
                     if (parent != null)
@@ -1324,6 +1449,10 @@ public class BuildSampleDatabase
                     cnt++;
                 }
             }
+            
+            if (ttdiRoot != null) persist(ttdiRoot);
+            if (txRoot != null) persist(txRoot);
+            
         }
         return true;
     }
@@ -1355,6 +1484,7 @@ public class BuildSampleDatabase
                     stdi.setTreeDef(storageTreeDef);
                     storageTreeDef.getTreeDefItems().add(stdi);
                     stdi.setName(row.getDefName());
+                    stdi.setTitle(row.getTitle());
                     stdi.setRankId(row.getRank());
                     stdi.setParent(parent);
                     stdi.setFullNameSeparator(row.getSeparator());
@@ -1370,8 +1500,8 @@ public class BuildSampleDatabase
                         stg.setDefinition(storageTreeDef);
                         stg.setDefinitionItem(stdi);
                         stdi.getTreeEntries().add(stg);
-                        stg.setName("Site");
-                        stg.setFullName("Site");
+                        stg.setName(getResourceString("Site"));
+                        stg.setFullName(stg.getName());
                         stg.setNodeNumber(1);
                         stg.setHighestChildNodeNumber(1);
                     }
@@ -1605,7 +1735,7 @@ public class BuildSampleDatabase
                                       List<Agent>       agents,
                                       Vector<Object>    dataObjects)
     {
-        if (true) return;
+        /*
         
         ////////////////////////////////
         // loans (loan agents, shipments)
@@ -1785,6 +1915,7 @@ public class BuildSampleDatabase
         overdueLoan.getShipments().add(loan2Ship);
         dataObjects.add(loan1Ship);
         dataObjects.add(loan2Ship);   
+        */
 
     }
     
@@ -1903,7 +2034,7 @@ public class BuildSampleDatabase
 
         // Tester
         createAndAddTesterToCollection(session, "botanyuser", "botanyuser@ku.edu", "botanyuser", "mr", "Bob", "", "Botony", "",  
-                                        discipline, division, groupMap, "Guest");
+                                        discipline, division, collection, groupMap, "Guest");
 
         persist(discipline);
 
@@ -1916,8 +2047,8 @@ public class BuildSampleDatabase
 
         commitTx();
         
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
+        doShowHideTablesAndFields(null, discipline);
+        doShowHideTablesAndFields(disciplineType.getName(), discipline);
 
         frame.setProcess(++createStep);
         
@@ -2070,8 +2201,6 @@ public class BuildSampleDatabase
         ku.setLastName("University of Kansas");
         ku.setEmail("webadmin@ku.edu");
         ku.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        ku.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(ku);
         ku.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
         
         agents.add(ku);
@@ -2088,8 +2217,6 @@ public class BuildSampleDatabase
         otherAgent.setLastName("The Other Guys");
         otherAgent.setEmail("other@other.com");
         otherAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        otherAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(otherAgent);
         otherAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(otherAgent);
@@ -2113,8 +2240,6 @@ public class BuildSampleDatabase
             groupAgent.setLastName("The Group");
             groupAgent.setEmail("group@group.com");
             groupAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            groupAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(groupAgent);
             groupAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
             agents.add(groupAgent);
@@ -2483,10 +2608,10 @@ public class BuildSampleDatabase
 
 
         loadSchemaLocalization(discipline, 
-                SpLocaleContainer.CORE_SCHEMA, 
-                DBTableIdMgr.getInstance(),
-                choice.getCatalogNumberingFmtName(),
-                choice.getAccessionNumberingFmtName());
+                               SpLocaleContainer.CORE_SCHEMA, 
+                               DBTableIdMgr.getInstance(),
+                               choice.getCatalogNumberingFmtName(),
+                               choice.getAccessionNumberingFmtName());
 
         ////////////////////////////////
         // Create the really high-level stuff
@@ -2545,8 +2670,8 @@ public class BuildSampleDatabase
 
         commitTx();
         
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
+        doShowHideTablesAndFields(null, discipline);
+        doShowHideTablesAndFields(disciplineType.getName(), discipline);
 
         frame.setProcess(++createStep);
         
@@ -2684,8 +2809,6 @@ public class BuildSampleDatabase
         ku.setLastName("University of Kansas");
         ku.setEmail("webadmin@ku.edu");
         ku.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        ku.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(ku);
         ku.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(ku);
@@ -2702,8 +2825,6 @@ public class BuildSampleDatabase
         otherAgent.setLastName("The Other Guys");
         otherAgent.setEmail("other@other.com");
         otherAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        otherAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(otherAgent);
         otherAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(otherAgent);
@@ -2727,8 +2848,6 @@ public class BuildSampleDatabase
             groupAgent.setLastName("The Group");
             groupAgent.setEmail("group@group.com");
             groupAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            groupAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(groupAgent);
             groupAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
             agents.add(groupAgent);
@@ -3006,7 +3125,7 @@ public class BuildSampleDatabase
 
         // Tester
         createAndAddTesterToCollection(session, "ivpuser", "InvertPaleo@ku.edu", "ivpuser", "mr", "Joe", "", "InvertPaleo", "",
-                                       discipline, division, groupMap, "Guest");
+                                       discipline, division, collection, groupMap, "Guest");
 
         AppContextMgr.getInstance().setClassObject(Collection.class, collection);
 
@@ -3015,8 +3134,8 @@ public class BuildSampleDatabase
 
         commitTx();
         
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
+        doShowHideTablesAndFields(null, discipline);
+        doShowHideTablesAndFields(disciplineType.getName(), discipline);
 
         frame.setProcess(++createStep);
         
@@ -3179,8 +3298,6 @@ public class BuildSampleDatabase
         ku.setLastName("University of Kansas");
         ku.setEmail("webadmin@ku.edu");
         ku.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        ku.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(ku);
         ku.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(ku);
@@ -3197,8 +3314,6 @@ public class BuildSampleDatabase
         otherAgent.setLastName("The Other Guys");
         otherAgent.setEmail("other@other.com");
         otherAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        otherAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(otherAgent);
         otherAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(otherAgent);
@@ -3222,8 +3337,6 @@ public class BuildSampleDatabase
             groupAgent.setLastName("The Group");
             groupAgent.setEmail("group@group.com");
             groupAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            groupAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(groupAgent);
             groupAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
             
@@ -3578,8 +3691,8 @@ public class BuildSampleDatabase
         // setup the root Geography record (planet Earth)
         LithoStrat earth = new LithoStrat();
         earth.initialize();
-        earth.setName("Earth");
-        earth.setFullName("Earth");
+        earth.setName(getResourceString("Earth"));
+        earth.setFullName(earth.getName());
         earth.setNodeNumber(1);
         earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
@@ -3671,7 +3784,7 @@ public class BuildSampleDatabase
         Geography earth = null;
         try
         {
-            BuildFromGeonames bldGeoNames = new BuildFromGeonames(discipline.getGeographyTreeDef(), dateFormatter.format(now), agent, itUsername, itPassword, frame);
+            BuildFromGeonames bldGeoNames = new BuildFromGeonames(discipline.getGeographyTreeDef(), now, agent, itUsername, itPassword, frame);
             
             try
             {
@@ -3688,7 +3801,13 @@ public class BuildSampleDatabase
 
                 return null;
             }
-             
+            
+            //System.err.println(DBConnection.getInstance().getDatabaseName());
+            for (String nm : BasicSQLUtils.getTableNames(DBConnection.getInstance().getConnection()))
+            {
+                System.err.println(nm);
+            }
+            
             if (bldGeoNames.loadGeoNamesDB())
             {
                 bldGeoNames.build(earth.getId());
@@ -3748,8 +3867,8 @@ public class BuildSampleDatabase
         // setup the root Geography record (planet Earth)
         Geography earth = new Geography();
         earth.initialize();
-        earth.setName("Earth");
-        earth.setFullName("Earth");
+        earth.setName(getResourceString("Earth"));
+        earth.setFullName(earth.getName());
         earth.setNodeNumber(1);
         earth.setHighestChildNodeNumber(1);
         earth.setRankId(0);
@@ -4187,7 +4306,7 @@ public class BuildSampleDatabase
         // Tester
         String dspAbbrev = disciplineType.getAbbrev();
         createAndAddTesterToCollection(session, dspAbbrev+"Tester", dspAbbrev+"tester@brc.ku.edu", dspAbbrev+"Tester", 
-                "", dspAbbrev, "", "Tester", "", discipline, division, groupMap, "Guest");
+                "", dspAbbrev, "", "Tester", "", discipline, division, collection, groupMap, "Guest");
 
         AppContextMgr.getInstance().setClassObject(Collection.class, collection);
         
@@ -4196,8 +4315,8 @@ public class BuildSampleDatabase
 
         commitTx();
         
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
+        doShowHideTablesAndFields(null, discipline);
+        doShowHideTablesAndFields(disciplineType.getName(), discipline);
 
         frame.setProcess(++createStep);
         
@@ -4388,8 +4507,6 @@ public class BuildSampleDatabase
         ku.setLastName("University of Kansas");
         ku.setEmail("webadmin@ku.edu");
         ku.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        ku.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(ku);
         ku.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(ku);
@@ -4406,8 +4523,6 @@ public class BuildSampleDatabase
         otherAgent.setLastName("The Other Guys");
         otherAgent.setEmail("other@other.com");
         otherAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-        otherAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-        AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(otherAgent);
         otherAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
         agents.add(otherAgent);
@@ -4432,8 +4547,6 @@ public class BuildSampleDatabase
             groupAgent.setLastName("The Group");
             groupAgent.setEmail("group@group.com");
             groupAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            groupAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(groupAgent);
             groupAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
             agents.add(groupAgent);
@@ -4768,8 +4881,8 @@ public class BuildSampleDatabase
         Element root = XMLHelper.readFileToDOM4J(domFile);
         for (Element node : (List<Element>)root.selectNodes("/tree/treedef/level"))
         {
-            String  name       = getAttr(node, "name", null);
-            int     rankId     = getAttr(node, "rank", 0);
+            String  name       = getAttr(node, NAME, null);
+            int     rankId     = getAttr(node, RANK, 0);
             boolean infullname = getAttr(node, "infullname", false);
             boolean isEnforced = getAttr(node,  "enforced", false);
             
@@ -4815,8 +4928,8 @@ public class BuildSampleDatabase
         storage.initialize();
         
         storage.setRankId(0);
-        storage.setName("Storage Root");
-        storage.setFullName("Storage Root");
+        storage.setName(getResourceString("Root"));
+        storage.setFullName(storage.getName());
         storage.setNodeNumber(1);
         storage.setHighestChildNodeNumber(1);
         storage.setDefinition(treeDef);
@@ -4846,8 +4959,8 @@ public class BuildSampleDatabase
                                 final Element root,
                                 final Storage parent)
     {
-        String name   = getAttr(root, "name", null);
-        int    rankId = getAttr(root, "rank", 0);
+        String name   = getAttr(root, NAME, null);
+        int    rankId = getAttr(root, RANK, 0);
         
         Storage storage = new Storage();
         storage.initialize();
@@ -4883,8 +4996,8 @@ public class BuildSampleDatabase
         {
             for (Element node : (List<Element>)root.selectNodes("/tree/treedef/level"))
             {
-                String  name       = getAttr(node, "name", null);
-                int     rankId     = getAttr(node, "rank", 0);
+                String  name       = getAttr(node, NAME, null);
+                int     rankId     = getAttr(node, RANK, 0);
                 boolean infullname = getAttr(node, "infullname", false);
                 boolean isEnforced = getAttr(node,  "enforced", false);
                 
@@ -4926,8 +5039,8 @@ public class BuildSampleDatabase
         taxon.initialize();
         
         taxon.setRankId(0);
-        taxon.setName("Taxonomy Root");
-        taxon.setFullName("Taxonomy Root");
+        taxon.setName(getResourceString("Root"));
+        taxon.setFullName(taxon.getName());
         taxon.setNodeNumber(1);
         taxon.setHighestChildNodeNumber(1);
         taxon.setDefinition(treeDef);
@@ -4955,9 +5068,9 @@ public class BuildSampleDatabase
                                 final Element          root,
                                 final Taxon            parent)
     {
-        String name   = getAttr(root, "name",   null);
+        String name   = getAttr(root, NAME,   null);
         String common = getAttr(root, "common", null);
-        int    rankId = getAttr(root, "rank",   0);
+        int    rankId = getAttr(root, RANK,   0);
         
         Taxon taxon = new Taxon();
         taxon.initialize();
@@ -5076,8 +5189,8 @@ public class BuildSampleDatabase
                                collChoice.getAccessionNumberingFmtName());
         commitTx();
         
-        makeFieldVisible(null, discipline);
-        makeFieldVisible(disciplineType.getName(), discipline);
+        doShowHideTablesAndFields(null, discipline);
+        doShowHideTablesAndFields(disciplineType.getName(), discipline);
 
         frame.setDesc("Creating Fish Trees...");
         
@@ -5105,10 +5218,8 @@ public class BuildSampleDatabase
         Collection voucher = null;
         if (isChoosen(DisciplineType.STD_DISCIPLINES.fish, false))
         {
-            voucher = createFishCollection(disciplineType, discipline, user, userAgent, division,
-                                            taxonTreeDef, geoTreeDef, gtpTreeDef,
-                                            lithoStratTreeDef,
-                                            journal, taxa, geos, gtps, lithoStrats,
+            voucher = createFishCollection(discipline, user, userAgent, division,
+                                            journal, taxa, geos,
                                             "KUFSH", "Fish", true, false, collChoice);
         }
         
@@ -5118,10 +5229,8 @@ public class BuildSampleDatabase
         Collection tissue = null;
         if (isChoosen(DisciplineType.STD_DISCIPLINES.fish, true))
         {
-            tissue = createFishCollection(disciplineType, discipline, user, userAgent, division,
-                                            taxonTreeDef, geoTreeDef, gtpTreeDef,
-                                            lithoStratTreeDef,
-                                            journal, taxa, geos, gtps, lithoStrats,
+            tissue = createFishCollection(discipline, user, userAgent, division,
+                                            journal, taxa, geos,
                                             "KUTIS", "Fish Tissue", false, true, collChoice);
         }
         
@@ -5201,7 +5310,7 @@ public class BuildSampleDatabase
         xstream.omitField(PrepType.class, "preparations");
         xstream.omitField(PrepType.class, "attributeDefs");
         
-        xstream.useAttributeFor(PrepType.class, "name");
+        xstream.useAttributeFor(PrepType.class, NAME);
         xstream.useAttributeFor(PrepType.class, "isLoanable");
         
         xstream.aliasAttribute("isloanable",  "isLoanable");
@@ -5364,20 +5473,13 @@ public class BuildSampleDatabase
      * @return the entire list of DB object to be persisted
      */
     @SuppressWarnings("unchecked")
-    public Collection createFishCollection(final DisciplineType            disciplineType,
-                                           final Discipline                discipline,
+    public Collection createFishCollection(final Discipline                discipline,
                                            final SpecifyUser               user,
                                            final Agent                     userAgent,
                                            final Division                  division,                  
-                                           final TaxonTreeDef              taxonTreeDef,
-                                           final GeographyTreeDef          geoTreeDef,
-                                           final GeologicTimePeriodTreeDef gtpTreeDef,
-                                           final LithoStratTreeDef         lithoStratTreeDef,
                                            final Journal                   journal,
                                            final List<Object>              taxa,
                                            final List<Object>              geos,
-                                           final List<Object>              gtps,
-                                           final List<Object>              lithoStrats,
                                            final String                    colPrefix,
                                            final String                    colName,
                                            final boolean                   isVoucherCol,
@@ -5426,7 +5528,7 @@ public class BuildSampleDatabase
         // Tester
         String userPrefix = (isVoucherCol)? "" : "Tis";
         createAndAddTesterToCollection(session, userPrefix + "FishTester", "fishtester@brc.ku.edu", userPrefix + "FishTester", 
-                "", "Fish", "", "Tester", "", discipline, division, groupMap, "Guest");
+                "", "Fish", "", "Tester", "", discipline, division, collection, groupMap, "Guest");
         
         commitTx();
         
@@ -5587,8 +5689,6 @@ public class BuildSampleDatabase
             ku.setLastName("University of Kansas");
             ku.setEmail("webadmin@ku.edu");
             ku.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            ku.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(ku);
             ku.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
 
             agents.add(ku);
@@ -5605,8 +5705,6 @@ public class BuildSampleDatabase
             otherAgent.setLastName("The Other Guys");
             otherAgent.setEmail("other@other.com");
             otherAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-            otherAgent.getDisciplines().add(AppContextMgr.getInstance().getClassObject(Discipline.class));
-            AppContextMgr.getInstance().getClassObject(Discipline.class).getAgents().add(otherAgent);
             otherAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
             agents.add(otherAgent);
 
@@ -5620,7 +5718,7 @@ public class BuildSampleDatabase
                 persist(gm2);
                 commitTx();
                 
-                Discipline dsp = AppContextMgr.getInstance().getClassObject(Discipline.class);
+                //Discipline dsp = AppContextMgr.getInstance().getClassObject(Discipline.class);
                 
                 Agent groupAgent = new Agent();
                 groupAgent.initialize();
@@ -5629,9 +5727,7 @@ public class BuildSampleDatabase
                 groupAgent.setLastName("The Group");
                 groupAgent.setEmail("group@group.com");
                 groupAgent.setTimestampCreated(new Timestamp(System.currentTimeMillis()));
-                groupAgent.getDisciplines().add(dsp);
                 groupAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
-                dsp.getAgents().add(groupAgent);
                 
                 agents.add(groupAgent);
                 
@@ -6153,7 +6249,7 @@ public class BuildSampleDatabase
             WorkbenchRowImage wbRowImage = null;
             
             
-            File f = new File(UIRegistry.getDefaultWorkingPath() +File.separator + "demo_files" + File.separator + "card" + i + (i == 2 ? ".png" : ".jpg"));
+            File f = new File(getDefaultWorkingPath() +File.separator + "demo_files" + File.separator + "card" + i + (i == 2 ? ".png" : ".jpg"));
             if (f.exists())
             {
                 try
@@ -6166,8 +6262,8 @@ public class BuildSampleDatabase
                 }
                 catch (IOException e)
                 {
-                    String msg = UIRegistry.getResourceString("WB_IMG_ERR_LOAD");
-                    UIRegistry.getStatusBar().setErrorMessage(msg, e);
+                    String msg = getResourceString("WB_IMG_ERR_LOAD");
+                    getStatusBar().setErrorMessage(msg, e);
                     log.error(msg, e);
                 }
             }
@@ -6277,7 +6373,7 @@ public class BuildSampleDatabase
             log.info("Creating attachments and attachment metadata");
             try
             {
-                String attachmentFilesLoc = UIRegistry.getDefaultWorkingPath() + File.separator + "demo_files" + File.separator;
+                String attachmentFilesLoc = getDefaultWorkingPath() + File.separator + "demo_files" + File.separator;
 
 //                String bigEyeFilePath = attachmentFilesLoc + "bigeye.jpg";
 //                Attachment bigEye = createAttachment(bigEyeFilePath, "image/jpeg", 0);
@@ -6329,8 +6425,8 @@ public class BuildSampleDatabase
                             dataObjects.add(defPhotoIndicator);
                             
                             // store the actual file into the attachment storage system
-                            AttachmentUtils.getAttachmentManager().setStorageLocationIntoAttachment(photoAttachment);
-                            photoAttachment.storeFile();
+                            AttachmentUtils.getAttachmentManager().setStorageLocationIntoAttachment(photoAttachment, true);
+                            photoAttachment.storeFile(false); // false means do not display an error dialog
                         }
                     }
                 }
@@ -6442,7 +6538,7 @@ public class BuildSampleDatabase
         
         startTx();
         
-        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution,  username, email, password, userType);
+        SpecifyUser specifyAdminUser = DataBuilder.createAdminGroupAndUser(session, institution,  null, username, email, password, userType);
         
         dataType = createDataType("Biota");
         
@@ -6539,41 +6635,41 @@ public class BuildSampleDatabase
 
         LithoStratTreeDefItem planet = new LithoStratTreeDefItem();
         planet.initialize();
-        planet.setName("Surface");
+        planet.setName(getResourceString("Surface"));
         planet.setRankId(0);
         planet.setIsEnforced(true);
         planet.setFullNameSeparator(", ");
 
         LithoStratTreeDefItem superLitho = new LithoStratTreeDefItem();
         superLitho.initialize();
-        superLitho.setName("SuperLitho");
+        superLitho.setName(getResourceString("SuperLitho"));
         superLitho.setRankId(100);
         superLitho.setFullNameSeparator(", ");
 
         LithoStratTreeDefItem group = new LithoStratTreeDefItem();
         group.initialize();
-        group.setName("Group");
+        group.setName(getResourceString("Group"));
         group.setRankId(200);
         group.setIsInFullName(true);
         group.setFullNameSeparator(", ");
 
         LithoStratTreeDefItem formation = new LithoStratTreeDefItem();
         formation.initialize();
-        formation.setName("Formation");
+        formation.setName(getResourceString("Formation"));
         formation.setRankId(300);
         formation.setIsInFullName(true);
         formation.setFullNameSeparator(", ");
 
         LithoStratTreeDefItem member = new LithoStratTreeDefItem();
         member.initialize();
-        member.setName("Member");
+        member.setName(getResourceString("Member"));
         member.setRankId(400);
         member.setIsInFullName(true);
         member.setFullNameSeparator(", ");
 
         LithoStratTreeDefItem bed = new LithoStratTreeDefItem();
         bed.initialize();
-        bed.setName("Bed");
+        bed.setName(getResourceString("Bed"));
         bed.setRankId(500);
         bed.setIsInFullName(true);
         bed.setFullNameSeparator(", ");
@@ -6613,8 +6709,8 @@ public class BuildSampleDatabase
             
             LithoStrat earth = new LithoStrat();
             earth.initialize();
-            earth.setName("Earth");
-            earth.setFullName("Earth");
+            earth.setName(getResourceString("Earth"));
+            earth.setFullName(earth.getName());
             earth.setDefinition(def);
             earth.setDefinitionItem(planet);
             earth.setNodeNumber(1);
@@ -6729,18 +6825,19 @@ public class BuildSampleDatabase
         List<Object> newObjs = new Vector<Object>();
 
         // Create a geologic time period tree definition
-        GeologicTimePeriodTreeDefItem defItemLevel0 = createGeologicTimePeriodTreeDefItem(
-                null, treeDef, "Level 0", 0);
-        GeologicTimePeriodTreeDefItem defItemLevel1 = createGeologicTimePeriodTreeDefItem(
-                defItemLevel0, treeDef, "Level 1", 100);
-        GeologicTimePeriodTreeDefItem defItemLevel2 = createGeologicTimePeriodTreeDefItem(
-                defItemLevel1, treeDef, "Level 2", 200);
-        GeologicTimePeriodTreeDefItem defItemLevel3 = createGeologicTimePeriodTreeDefItem(
-                defItemLevel2, treeDef, "Level 3", 300);
+        GeologicTimePeriodTreeDefItem defItemLevel0 = createGeologicTimePeriodTreeDefItem(null, treeDef, "Level 0", 0);
+        GeologicTimePeriodTreeDefItem defItemLevel1 = createGeologicTimePeriodTreeDefItem(defItemLevel0, treeDef, "Level 1", 100);
+        GeologicTimePeriodTreeDefItem defItemLevel2 = createGeologicTimePeriodTreeDefItem(defItemLevel1, treeDef, "Level 2", 200);
+        GeologicTimePeriodTreeDefItem defItemLevel3 = createGeologicTimePeriodTreeDefItem(defItemLevel2, treeDef, "Level 3", 300);
         newObjs.add(defItemLevel0);
         newObjs.add(defItemLevel1);
         newObjs.add(defItemLevel2);
         newObjs.add(defItemLevel3);
+
+        defItemLevel0.setIsInFullName(false);
+        defItemLevel1.setIsInFullName(false);
+        defItemLevel2.setIsInFullName(true);
+        defItemLevel3.setIsInFullName(true);
 
         // Create the defItemLevel0
         GeologicTimePeriod level0 = createGeologicTimePeriod(treeDef, null,
@@ -7158,7 +7255,7 @@ public class BuildSampleDatabase
                 
             } catch (Exception ex)
             {
-                UIRegistry.showError(ex.toString());
+                showError(ex.toString());
                 ex.printStackTrace();
                 throw new RuntimeException(ex);
             }
@@ -7223,7 +7320,7 @@ public class BuildSampleDatabase
             rollbackTx();
             
             trans = null;
-            UIRegistry.showError(ex.toString());
+            showError(ex.toString());
             ex.printStackTrace();
             throw new RuntimeException(ex);
         }
@@ -7314,7 +7411,7 @@ public class BuildSampleDatabase
     {
         boolean doEmptyBuild   = false;
         
-        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        setEmbeddedDBPath(getDefaultEmbeddedDBPath()); // on the local machine
         
         if (args != null && args.length > 0)
         {
@@ -7328,32 +7425,32 @@ public class BuildSampleDatabase
                     
                     if (option.equals("-Dappdir"))
                     {
-                        UIRegistry.setDefaultWorkingPath(value);
+                        setDefaultWorkingPath(value);
                         
                     } else if (option.equals("-Dappdatadir"))
                     {
-                        UIRegistry.setBaseAppDataDir(value);
+                        setBaseAppDataDir(value);
                         
                     } else if (option.equals("-Dembeddeddbdir"))
                     {
-                        UIRegistry.setEmbeddedDBDir(value);
+                        setEmbeddedDBPath(value);
                         
                     } else if (option.equals("-Dmobile"))
                     {
-                        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultMobileEmbeddedDBPath());
+                        setEmbeddedDBPath(getDefaultMobileEmbeddedDBPath());
                     }
                 }
             }
         }
         
-        if (StringUtils.isEmpty(UIRegistry.getAppName()))
+        if (StringUtils.isEmpty(getAppName()))
         {
-            UIRegistry.setAppName("Specify");
+            setAppName("Specify");
         }
         
         if (hideFrame)
         {
-            System.out.println("Embedded DB Path [ "+UIRegistry.getEmbeddedDBPath()+" ]");
+            System.out.println("Embedded DB Path [ "+getEmbeddedDBPath()+" ]");
         }
         
         // Then set this
@@ -7370,7 +7467,7 @@ public class BuildSampleDatabase
 
         AppPrefsCache.setUseLocalOnly(true);
         AppPreferences localPrefs = AppPreferences.getLocalPrefs();
-        localPrefs.setDirPath(UIRegistry.getAppDataDir());
+        localPrefs.setDirPath(getAppDataDir());
         localPrefs.load();
         
         backstopPrefs = getInitializePrefs(null);
@@ -7493,7 +7590,7 @@ public class BuildSampleDatabase
         {
             if (!mgr.doesUserExists(saUsername))
             {
-                isOK = mgr.createUser(saUsername, saPassword, databaseName, DBMSUserMgr.PERM_BASIC);
+                isOK = mgr.createUser(saUsername, saPassword, databaseName, DBMSUserMgr.PERM_ALL_BASIC);
             } else
             {
                 isOK = true;
@@ -7513,7 +7610,8 @@ public class BuildSampleDatabase
      * @throws SQLException
      * @throws IOException
      */
-    public boolean buildEmptyDatabase(final Properties props)
+    public boolean buildEmptyDatabase(final Properties props,
+                                      final boolean doFromWizard)
     {
         createProgressFrame("Building Specify Database");
 
@@ -7641,7 +7739,7 @@ public class BuildSampleDatabase
             thumb.setMaxHeight(128);
             thumb.setMaxWidth(128);
 
-            File attLoc = UIRegistry.getAppDataSubDir("AttachmentStorage", true);
+            File attLoc = getAppDataSubDir("AttachmentStorage", true);
             FileUtils.cleanDirectory(attLoc);
             AttachmentManagerIface attachMgr = new FileStoreAttachmentManager(attLoc);
             AttachmentUtils.setAttachmentManager(attachMgr);
@@ -7649,7 +7747,7 @@ public class BuildSampleDatabase
             
             if (hideFrame) System.out.println("Creating Empty Database");
             
-            createEmptyInstitution(props, true, true);
+            createEmptyInstitution(props, true, true, doFromWizard);
 
             SwingUtilities.invokeLater(new Runnable()
             {
@@ -7763,7 +7861,7 @@ public class BuildSampleDatabase
         if (driverInfo == null)
         {
             String msg = "Couldn't find driver by name ["+driverInfo+"] in driver list.";
-            UIRegistry.showError(msg);
+            showError(msg);
             throw new RuntimeException(msg);
         }
         
@@ -7831,7 +7929,7 @@ public class BuildSampleDatabase
                     frame.setDesc("Cleaning Attachment Cache...");
                     frame.setOverall(steps++);
                     
-                    File attLoc = UIRegistry.getAppDataSubDir("AttachmentStorage", true);
+                    File attLoc = getAppDataSubDir("AttachmentStorage", true);
                     try {
                         FileUtils.cleanDirectory(attLoc);
                     }
@@ -7839,7 +7937,7 @@ public class BuildSampleDatabase
                     {
                         String msg = "failed to connect to directory location to delete directory: " + attLoc;
                         log.warn(msg);
-                        UIRegistry.showError(msg);
+                        showError(msg);
                     }
                     AttachmentManagerIface attachMgr = new FileStoreAttachmentManager(attLoc);
                     
@@ -7887,13 +7985,13 @@ public class BuildSampleDatabase
                     {
                         rollbackTx();
                         log.error("Failed to persist DB objects", e);
-                        UIRegistry.showError("Failed to persist DB objects");
+                        showError("Failed to persist DB objects");
                         return;
                     }
                     catch(Exception e2)
                     {
                         log.error("Failed to persist DB objects.  Rollback failed.  DB may be in inconsistent state.", e2);
-                        UIRegistry.showError("Failed to persist DB objects. Rollback failed.");
+                        showError("Failed to persist DB objects. Rollback failed.");
                         return;
                     }
                 }
@@ -7902,7 +8000,7 @@ public class BuildSampleDatabase
         else
         {
             log.error("Login failed");
-            UIRegistry.showError("Login failed");
+            showError("Login failed");
             return;
         }
         
@@ -7923,7 +8021,7 @@ public class BuildSampleDatabase
             AppPreferences.getLocalPrefs().putInt(schemaKey, schemaFileSize);
         }
         
-        JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
+        JOptionPane.showMessageDialog(getTopWindow(), 
                 "The build completed successfully.", 
                 "Complete", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -7959,7 +8057,7 @@ public class BuildSampleDatabase
         Properties properties = new Properties();
         try
         {
-            String base = UIRegistry.getDefaultWorkingPath();
+            String base = getDefaultWorkingPath();
             File initFile = new File(base + File.separator + (databaseName != null ? (databaseName + "_") : "") + "init.prefs");
             if (initFile.exists())
             {
@@ -7976,12 +8074,13 @@ public class BuildSampleDatabase
         return new Properties();
     }
     
-   
     /**
      * @param tableName
-     * @param memoryItem
+     * @param memoryItemArg
      * @param newItem
+     * @param dispItem
      * @param hideGenericFields
+     * @param isFish
      */
     public static void loadLocalization(final String                tableName, 
                                         final SpLocaleContainerItem memoryItemArg, 
@@ -8002,17 +8101,115 @@ public class BuildSampleDatabase
         newItem.setWebLinkName(memoryItem.getWebLinkName());
         newItem.setIsHidden(memoryItem.getIsHidden());
         newItem.setIsRequired(memoryItem.getIsRequired());
-
-        for (SpLocaleItemStr nm : memoryItem.getNames())
+        
+        mergeOrCreateStr(memoryItem, newItem, isFish);
+        if (newItem.getId() == null)
         {
-            SpLocaleItemStr str = new SpLocaleItemStr();
-            str.initialize();
+            setParentForItemStrs(newItem.getNames(), newItem, true);
+            setParentForItemStrs(newItem.getDescs(), newItem, false);
+        }
+    }
+    
+    /**
+     * @param strItems
+     * @param item
+     * @param isForNames
+     * @param updateType
+     */
+    protected static void setParentForItemStrs(final Set<SpLocaleItemStr>  strItems,
+                                               final SpLocaleContainerItem item,
+                                               final boolean isForNames)
+    {
+        for (SpLocaleItemStr str : strItems)
+        {
+            if (isForNames)
+            {
+                str.setItemName(item);
+            } else
+            {
+                str.setItemDesc(item);
+            }
+        }
+    }
+    
+    /**
+     * @param hash
+     * @param baseName
+     * @param strItems
+     */
+    protected static void setParentForContainerStrs(final Set<SpLocaleItemStr>  strItems,
+                                               final SpLocaleContainer container,
+                                               final boolean isForNames)
+    {
+        for (SpLocaleItemStr str : strItems)
+        {
+            if (isForNames)
+            {
+                str.setContainerName(container);
+            } else
+            {
+                str.setContainerDesc(container);
+            }
+        }
+    }
+    
+    /**
+     * @param hash
+     * @param baseName
+     * @param strItems
+     */
+    protected static HashMap<String, SpLocaleItemStr> makeHash(final Set<SpLocaleItemStr> strItems)
+    {
+        HashMap<String, SpLocaleItemStr> strHash = new HashMap<String, SpLocaleItemStr>();
+        for (SpLocaleItemStr nm : strItems)
+        {
+            strHash.put(nm.getLanguage(), nm);
+        }
+        return strHash;
+    }
+    
+    /**
+     * @param memBase
+     * @param dbBase
+     * @param session
+     */
+    protected static void mergeOrCreateStr(final SpLocaleBase memBase, 
+                                           final SpLocaleBase dbBase,
+                                           final boolean isFish)
+    {
+        HashMap<String, SpLocaleItemStr> namesHash = null;
+        HashMap<String, SpLocaleItemStr> descsHash = null;
+        if (dbBase != null && dbBase.getId() != null)
+        {
+            namesHash = makeHash(dbBase.getNamesSet());
+            descsHash = makeHash(dbBase.getDescsSet());
+        }
+        
+        for (SpLocaleItemStr nm : memBase.getNamesSet())
+        {
+            String lang = nm.getLanguage();
+            
+            SpLocaleItemStr str = null;
+            if (namesHash != null)
+            {
+                str = namesHash.get(lang);
+            } 
+            
+            if (str == null)
+            {
+                str = new SpLocaleItemStr();
+                str.initialize();
+            }
             
             String title = nm.getText();
             if (!isFish && title.equals("Collecting Event"))
             {
                 title = "Collecting Information";
+            } else if (memBase.getName().equals("taxononly") /*&& title.equals("Taxon")*/)
+            {
+            	title = UIRegistry.getResourceString("WB_TAXONIMPORT_ONLY");
             }
+            
             str.setText(title);
             
             if (debugOn) System.out.println(nm.getText());
@@ -8020,47 +8217,77 @@ public class BuildSampleDatabase
             str.setCountry(nm.getCountry());
             str.setVariant(nm.getVariant());
             
-            newItem.getNames().add(str);
-            str.setItemName(newItem);
+            if (dbBase != null && str.getId() == null)
+            {   
+                dbBase.getNamesSet().add(str);
+                if (dbBase instanceof SpLocaleContainer)
+                {
+                    str.setContainerName((SpLocaleContainer)dbBase);
+                } else
+                {
+                    str.setItemName((SpLocaleContainerItem)dbBase);
+                }
+            }
         }
         
-        for (SpLocaleItemStr desc : memoryItem.getDescs())
+        for (SpLocaleItemStr desc : memBase.getDescsSet())
         {
-            SpLocaleItemStr str = new SpLocaleItemStr();
-            str.initialize();
+            String lang = desc.getLanguage();
+            
+            SpLocaleItemStr str = null;
+            if (descsHash != null)
+            {
+                str = descsHash.get(lang);
+            } 
+            
+            if (str == null)
+            {
+                str = new SpLocaleItemStr();
+                str.initialize();
+            }
             
             str.setText(desc.getText());
-            if (debugOn) System.out.println(desc.getText());
             str.setLanguage(desc.getLanguage());
             str.setCountry(desc.getCountry());
             str.setVariant(desc.getVariant());
             
-            newItem.getDescs().add(str);
-            str.setItemDesc(newItem);
+            if (dbBase != null && str.getId() == null)
+            {
+                dbBase.getDescsSet().add(str);
+                if (dbBase instanceof SpLocaleContainer)
+                {
+                    str.setContainerDesc((SpLocaleContainer)dbBase);
+                } else
+                {
+                    str.setItemDesc((SpLocaleContainerItem)dbBase);
+                }
+            }
         }
-
     }
     
     /**
      * @param memoryContainer
      * @param newContainer
      */
-    public static void loadLocalization(final Integer           disciplineId,
+    private static void loadLocalization(final Integer           disciplineId,
                                         final String            disciplineName,
                                         final SpLocaleContainer memoryContainer, 
                                         final SpLocaleContainer newContainer,
                                         final boolean           hideGenericFields,
                                         final String            catFmtName,
                                         final String            accFmtName,
-                                        final boolean           isDoingUpdate,
+                                        final UpdateType        updateType,
                                         final DataProviderSessionIFace session)
     {
         
         boolean isColObj          = memoryContainer.getName().equals("collectionobject");
         boolean isAccession       = memoryContainer.getName().equals("accession");
-        boolean isCollectingEvent = memoryContainer.getName().equals("collectingevent");
         boolean isFish            = disciplineName.equals("fish");
-
+        boolean isImport          = updateType == UpdateType.eImport;
+        boolean isMerge           = updateType == UpdateType.eMerge;
+        boolean isLocalize        = updateType == UpdateType.eLocalize;
+        boolean doDBUpdate        = isLocalize || isImport;
+        
         if (newContainer.getId() == null)
         {
             newContainer.setName(memoryContainer.getName());
@@ -8082,67 +8309,63 @@ public class BuildSampleDatabase
                     ex.printStackTrace();
                 }
             }
-           
-            for (SpLocaleItemStr nm : memoryContainer.getNames())
-            {
-                SpLocaleItemStr str = new SpLocaleItemStr();
-                str.initialize();
-                
-                String title = nm.getText();
-                if (isCollectingEvent && !isFish)
-                {
-                    title = "Collecting Information"; // I18N
-                }
-                str.setText(title);
-                str.setLanguage(nm.getLanguage());
-                str.setCountry(nm.getCountry());
-                str.setVariant(nm.getVariant());
-                
-                newContainer.getNames().add(str);
-                str.setContainerName(newContainer);
-            }
-            
-            for (SpLocaleItemStr desc : memoryContainer.getDescs())
-            {
-                SpLocaleItemStr str = new SpLocaleItemStr();
-                str.initialize();
-                
-                str.setText(desc.getText());
-                str.setLanguage(desc.getLanguage());
-                str.setCountry(desc.getCountry());
-                str.setVariant(desc.getVariant());
-                
-                newContainer.getDescs().add(str);
-                str.setContainerDesc(newContainer);
-            }
         }
         
-        Hashtable<String, SpLocaleContainerItem> dispItemHash = new Hashtable<String, SpLocaleContainerItem>();
-        if (memoryContainer instanceof DisciplineBasedContainer)
+        mergeOrCreateStr(memoryContainer, newContainer, isFish);
+        if (newContainer.getId() == null)
         {
-            DisciplineBasedContainer dbc = (DisciplineBasedContainer)memoryContainer;
-            
-            Set<SpLocaleContainerItem> itemsSet = dbc.getDisciplineItems(disciplineName);
-            for (SpLocaleContainerItem item : itemsSet)
+            setParentForContainerStrs(newContainer.getNames(), newContainer, true);
+            setParentForContainerStrs(newContainer.getDescs(), newContainer, false);
+        }
+        if (session != null)
+        {
+            try
             {
-                dispItemHash.put(item.getName(), item);
+                session.saveOrUpdate(newContainer);
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+
+        
+        Hashtable<String, SpLocaleContainerItem> dispItemHash = new Hashtable<String, SpLocaleContainerItem>();
+        if (SchemaI18NService.getCurrentLocale().getLanguage().equals("en"))
+        {
+            if (memoryContainer instanceof DisciplineBasedContainer)
+            {
+                DisciplineBasedContainer dbc = (DisciplineBasedContainer)memoryContainer;
+                
+                Set<SpLocaleContainerItem> itemsSet = dbc.getDisciplineItems(disciplineName);
+                for (SpLocaleContainerItem item : itemsSet)
+                {
+                    dispItemHash.put(item.getName(), item);
+                }
             }
         }
         
         for (SpLocaleContainerItem item : memoryContainer.getItems())
         {
+            //if (isColObj) System.err.println(item.getName());
+            
+            String itemSQL     = null;
             boolean okToCreate = true;
-            if (isDoingUpdate)
+            if (isImport || isMerge || isLocalize)
             {
-                String sql = String.format(" FROM splocalecontainer c INNER JOIN splocalecontaineritem ci ON c.SpLocaleContainerID = ci.SpLocaleContainerID WHERE ci.Name = '%s' AND c.DisciplineID = %d", item.getName(), disciplineId);
+                String sql = String.format(" FROM splocalecontainer c INNER JOIN splocalecontaineritem ci ON c.SpLocaleContainerID = ci.SpLocaleContainerID " +
+                		                   "WHERE ci.Name = '%s' AND c.DisciplineID = %d AND c.SpLocaleContainerID = %d", 
+                		                   item.getName(), disciplineId, newContainer.getId());
                 String fullSQL = "SELECT COUNT(*)" + sql;
-                //log.debug(fullSQL);
+                //if (isColObj) log.debug(fullSQL);
                 int cnt = BasicSQLUtils.getCountAsInt(fullSQL);
                 if (cnt > 0)
                 {
                     okToCreate = false;
-                    fullSQL = "SELECT ci.SpLocaleContainerItemID" + sql;
-                    //log.debug(fullSQL);
+                    if (cnt == 1)
+                    {
+                        itemSQL = "SELECT ci.SpLocaleContainerItemID" + sql;
+                        //if (isColObj) log.debug(itemSQL);
+                    }
                 }
             }
             
@@ -8159,17 +8382,21 @@ public class BuildSampleDatabase
             
                 loadLocalization(memoryContainer.getName(), item, newItem, dispItem, hideGenericFields, isFish);
             
-                if (isColObj && catFmtName != null && item.getName().equals("catalogNumber"))
+                if (!isLocalize)
                 {
-                    newItem.setFormat(catFmtName);
-                    newItem.setIsUIFormatter(true);
+                    if (isColObj && catFmtName != null && item.getName().equals("catalogNumber"))
+                    {
+                        newItem.setFormat(catFmtName);
+                        newItem.setIsUIFormatter(true);
+                    }
+                    
+                    if (isAccession && accFmtName != null && item.getName().equals("accessionNumber"))
+                    {
+                        newItem.setFormat(accFmtName);
+                        newItem.setIsUIFormatter(true);
+                    }
                 }
                 
-                if (isAccession && accFmtName != null && item.getName().equals("accessionNumber"))
-                {
-                    newItem.setFormat(accFmtName);
-                    newItem.setIsUIFormatter(true);
-                }
                 if (session != null)
                 {
                     try
@@ -8180,7 +8407,104 @@ public class BuildSampleDatabase
                         ex.printStackTrace();
                     }
                 }
+            } else if (itemSQL != null && !isMerge)
+            {
+                Integer id = BasicSQLUtils.getCount(itemSQL);
+                if (id != null)
+                {
+                    SpLocaleContainerItem dbItem = session.get(SpLocaleContainerItem.class, id);
+                    
+                    if (!isLocalize)
+                    {
+                        //dbItem.setType(item.getType());
+                        dbItem.setFormat(item.getFormat());
+                        dbItem.setIsUIFormatter(item.getIsUIFormatter());
+                        dbItem.setPickListName(item.getPickListName());
+                        dbItem.setWebLinkName(item.getWebLinkName());
+                        dbItem.setIsHidden(item.getIsHidden());
+                        dbItem.setIsRequired(item.getIsRequired());
+                    }
+                    
+                    try
+                    {
+                        if (!doDBUpdate) session.beginTransaction();
+                        
+                        setItemStrs(dbItem, true,  dbItem.getNames(), item.getNames(), session);
+                        setItemStrs(dbItem, false, dbItem.getDescs(), item.getDescs(), session);
+                        session.saveOrUpdate(dbItem);
+                        
+                        if (!doDBUpdate) session.commit();
+                        
+                    } catch (Exception e)
+                    {
+                        if (!isImport) session.rollback();
+                        
+                        e.printStackTrace();
+                    }
+                }
             }
+        }
+    }
+    
+    /**
+     * @param item
+     * @return
+     */
+    private static String mkKey(final SpLocaleItemStr item)
+    {
+        return String.format("%s %s %s", item.getLanguage(), item.getCountry() != null ? item.getCountry() : "", item.getVariant() != null ? item.getVariant() : "");
+    }
+    
+    /**
+     * @param dbSet
+     * @param memSet
+     * @param session
+     * @throws Exception
+     */
+    private static void setItemStrs(final SpLocaleContainerItem    dbItem,
+                                    final boolean                  isName,
+                                    final Set<SpLocaleItemStr>     dbSet, 
+                                    final Set<SpLocaleItemStr>     memSet,
+                                    final DataProviderSessionIFace session) throws Exception
+    {
+        HashMap<String, SpLocaleItemStr> hash = new HashMap<String, SpLocaleItemStr>();
+        for (SpLocaleItemStr dbItemStr : dbSet)
+        {
+            hash.put(mkKey(dbItemStr), dbItemStr);
+        }
+        
+        for (SpLocaleItemStr memItem : memSet)
+        {
+            SpLocaleItemStr dbItmStr = hash.get(mkKey(memItem));
+            if (dbItmStr == null)
+            {
+                dbItmStr = new SpLocaleItemStr();
+                dbItmStr.initialize();
+                dbSet.add(dbItmStr);
+                if (isName)
+                {
+                    dbItmStr.setItemName(dbItem);
+                } else
+                {
+                    dbItmStr.setItemDesc(dbItem);
+                }
+            }
+            
+            String memText   = memItem.getText();
+            String dbText    = dbItmStr.getText();
+            boolean doUpdate = dbItmStr.getId() == null || (memText == null && dbText != null) || (memText != null && dbText == null) || (memText != null && dbText != null && !memText.equals(dbText)); 
+            
+            String txt = doUpdate ? memText : dbText;
+            if (txt == null)
+            {
+                txt = "";
+            }
+            dbItmStr.setText(txt);
+            dbItmStr.setLanguage(memItem.getLanguage());
+            dbItmStr.setCountry(memItem.getCountry());
+            dbItmStr.setVariant(memItem.getVariant());
+            
+            if (doUpdate) session.saveOrUpdate(dbItmStr);
         }
     }
     
@@ -8197,7 +8521,7 @@ public class BuildSampleDatabase
                                        final String       catFmtName,
                                        final String       accFmtName)
     {
-        loadSchemaLocalization(discipline, schemaType, tableMgr, catFmtName, accFmtName, false, null);
+        loadSchemaLocalization(discipline, schemaType, tableMgr, catFmtName, accFmtName, UpdateType.eBuildNew, null, null, null);
     }
     
     /**
@@ -8206,33 +8530,84 @@ public class BuildSampleDatabase
      * @param tableMgr
      * @param catFmtName
      * @param accFmtName
+     * @param isDoingUpdate
+     * @param externalFile
+     * @param sessionArg
      */
     public void loadSchemaLocalization(final Discipline   discipline, 
                                        final Byte         schemaType, 
                                        final DBTableIdMgr tableMgr,
                                        final String       catFmtName,
                                        final String       accFmtName,
-                                       final boolean      isDoingUpdate,
+                                       final UpdateType   updateType,
                                        final DataProviderSessionIFace sessionArg)
     {
+        loadSchemaLocalization(discipline, schemaType, tableMgr, catFmtName, accFmtName, updateType, null, null, sessionArg);
+    }
+    
+    /**
+     * @param discipline
+     * @param schemaType
+     * @param tableMgr
+     * @param catFmtName
+     * @param accFmtName
+     * @param isDoingUpdate
+     * @param externalFile
+     * @param sessionArg
+     */
+    public boolean loadSchemaLocalization(final Discipline   discipline, 
+                                          final Byte         schemaType, 
+                                          final DBTableIdMgr tableMgr,
+                                          final String       catFmtName,
+                                          final String       accFmtName,
+                                          final UpdateType   updateType,
+                                          final File         externalFile,
+                                          final SimpleGlassPane glassPane,
+                                          final DataProviderSessionIFace sessionArg)
+    {
+        boolean isUpdate   = updateType == UpdateType.eImport || updateType == UpdateType.eMerge;
+        boolean isLocalize = updateType == UpdateType.eLocalize;
+        boolean isImportOrLocalize = updateType == UpdateType.eImport || updateType == UpdateType.eLocalize;
+        
         HiddenTableMgr hiddenTableMgr = new HiddenTableMgr();
 
         SchemaLocalizerXMLHelper schemaLocalizer = new SchemaLocalizerXMLHelper(schemaType, tableMgr);
-        schemaLocalizer.load();
+        
+        // NOTE: For localization 'false' is passed in 
+        if (!schemaLocalizer.loadWithExternalFile(externalFile, !isImportOrLocalize))
+        {
+            return false;
+        }
         
         boolean hideGenericFields = true;
         
-        //loadFieldsToHideHash();
-        
         String dispName = discipline.getType().toString();
         
+        if (isLocalize)
+        {
+            List<Locale> availLocales = schemaLocalizer.getAvailLocales();
+            if (availLocales.size() > 1)
+            {
+                UIRegistry.displayErrorDlgLocalized("BSD.TOOMANYLOCALES");
+                return false;
+            }
+        }
+        
+        float progressCnt = 0.0f;
+        float len = (float)schemaLocalizer.getSpLocaleContainers().size();
         for (SpLocaleContainer table : schemaLocalizer.getSpLocaleContainers())
         {
+            progressCnt++;
+            if (glassPane != null)
+            {
+                glassPane.setProgress((int)(progressCnt / len * 100.0));
+            }
+            
             Integer spcId      = null;
             boolean okToCreate = true;
-            if (isDoingUpdate)
+            if (isUpdate || isLocalize)
             {
-                String sql     = String.format(" FROM splocalecontainer WHERE Name = '%s' AND DisciplineID = %d", table.getName(), discipline.getId());
+                String sql     = String.format(" FROM splocalecontainer WHERE Name = '%s' AND SchemaType = %d AND DisciplineID = %d", table.getName(), schemaType, discipline.getId());
                 String fullSQL = "SELECT COUNT(*)"+sql;
                 //log.debug(fullSQL);
                 int cnt = BasicSQLUtils.getCountAsInt(fullSQL);
@@ -8246,7 +8621,7 @@ public class BuildSampleDatabase
             }
             
             SpLocaleContainer container = null;
-            if (okToCreate)
+            if (okToCreate) // && !isLocalize)
             {
                 container = new SpLocaleContainer();
                 container.initialize();
@@ -8265,6 +8640,7 @@ public class BuildSampleDatabase
                     } catch (Exception ex)
                     {
                         ex.printStackTrace();
+                        return false;
                     }
                 }
                 
@@ -8273,7 +8649,7 @@ public class BuildSampleDatabase
                 container = (SpLocaleContainer)sessionArg.getData("FROM SpLocaleContainer WHERE id = "+spcId);
             }
             
-            loadLocalization(discipline.getId(), dispName, table, container, hideGenericFields, catFmtName, accFmtName, isDoingUpdate, sessionArg);
+            loadLocalization(discipline.getId(), dispName, table, container, hideGenericFields, catFmtName, accFmtName, updateType, sessionArg);
             
             if (okToCreate)
             {
@@ -8281,6 +8657,7 @@ public class BuildSampleDatabase
                 container.setDiscipline(discipline);
             }
         }
+        return true;
     }
     
     /**
@@ -8312,106 +8689,109 @@ public class BuildSampleDatabase
      * @param disciplineDirName the name of the directory for the Discipline
      * @param discipline the Discipline itself
      */
-    public static void makeFieldVisible(final String disciplineDirName,
-                                        final Discipline discipline)
+    public static void doShowHideTablesAndFields(final String disciplineDirName,
+                                                 final Discipline discipline)
     {
+        final String showFieldsFileName = "show_fields.xml";
+        
         String dirName        = disciplineDirName != null ? disciplineDirName + File.separator : "";
-        String filePath       = XMLHelper.getConfigDirPath(dirName + "show_fields.xml");
+        String filePath       = XMLHelper.getConfigDirPath(dirName + showFieldsFileName);
         File   showFieldsFile = new File(filePath);
         
         if (showFieldsFile.exists())
         {
-            /*try
-            {
-                System.out.println(FileUtils.readFileToString(showFieldsFile));
-            } catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }*/
+            Connection conn = DBConnection.getInstance().getConnection();
+            PreparedStatement tblStmt = null;
+            PreparedStatement fldStmt = null;
             
-            Element root = XMLHelper.readDOMFromConfigDir(dirName + "show_fields.xml");
-            if (root != null)
+            try
             {
-                List<?> tables = root.selectNodes("/tables/table");
-                for (Iterator<?> iter = tables.iterator(); iter.hasNext(); )
+                tblStmt = conn.prepareStatement("UPDATE splocalecontainer SET IsHidden=? WHERE DisciplineID = ? AND Name = ?");
+                fldStmt = conn.prepareStatement("UPDATE splocalecontaineritem SET IsHidden=? WHERE SpLocaleContainerItemID = ?");
+                
+                Element root = XMLHelper.readDOMFromConfigDir(dirName + showFieldsFileName);
+                if (root != null)
                 {
-                    Element table = (Element)iter.next();
-                    String  tName = XMLHelper.getAttr(table, "name", null);
-                    if (StringUtils.isNotEmpty(tName))
+                    StringBuilder sb    = new StringBuilder("In show_fields.xml there were the following errors:\n");
+                    boolean       isErr = false;
+                    
+                    List<?> tables = root.selectNodes("/tables/table");
+                    for (Iterator<?> iter = tables.iterator(); iter.hasNext(); )
                     {
-                        DBTableInfo tbl = DBTableIdMgr.getInstance().getInfoByTableName(tName.toLowerCase());
-                        if (tbl != null)
+                        Element table    = (Element)iter.next();
+                        String  tName    = XMLHelper.getAttr(table, NAME, null);
+                        boolean isShwTbl = XMLHelper.getAttr(table, SHOW, true);
+                        String  doSetTbl = XMLHelper.getAttr(table, SHOW, null);
+                        
+                        if (StringUtils.isNotEmpty(tName))
                         {
-                            List<?> fields = table.selectNodes("field");
-                            for (Iterator<?> fIter = fields.iterator(); fIter.hasNext(); )
+                            DBTableInfo tbl = DBTableIdMgr.getInstance().getInfoByTableName(tName.toLowerCase());
+                            if (tbl != null)
                             {
-                                Element fieldEl = (Element)fIter.next();
-                                String  fName   = XMLHelper.getAttr(fieldEl, "name", null);
-                                if (StringUtils.isNotEmpty(fName))
+                                if (StringUtils.isNotEmpty(doSetTbl))
                                 {
-                                    DBFieldInfo fld = tbl.getFieldByName(fName);
-                                    if (fld != null)
+                                    tblStmt.setBoolean(1, !isShwTbl);
+                                    tblStmt.setInt(2, discipline.getId());
+                                    tblStmt.setString(3, tName);
+                                    tblStmt.executeUpdate();
+                                }
+                                
+                                List<?> fields = table.selectNodes("field");
+                                for (Iterator<?> fIter = fields.iterator(); fIter.hasNext(); )
+                                {
+                                    Element fieldEl = (Element)fIter.next();
+                                    String  fName   = XMLHelper.getAttr(fieldEl, NAME, null);
+                                    boolean isShown = XMLHelper.getAttr(fieldEl, SHOW, true);
+                                    if (StringUtils.isNotEmpty(fName))
                                     {
-                                        setFieldVisible(tbl.getName(), fld.getName(), discipline);
-                                    } else
-                                    {
-                                        UIRegistry.showError("show_list.xml in ["+disciplineDirName+"] for table name ["+tName+"] has bad field name["+fName+"]");
+                                        DBTableChildIFace childInfo = tbl.getItemByName(fName);
+                                        if (childInfo != null)
+                                        {
+                                            String sql = String.format("SELECT ci.SpLocaleContainerItemID FROM splocalecontainer AS c " +
+                                            		                   "INNER Join splocalecontaineritem AS ci ON c.SpLocaleContainerID = ci.SpLocaleContainerID " +
+                                            		                   "WHERE ci.Name = '%s' AND c.Name = '%s' AND c.DisciplineID = %d", fName, tName, discipline.getId());
+                                            Integer id = BasicSQLUtils.getCount(sql);
+                                            if (id != null)
+                                            {
+                                                fldStmt.setBoolean(1, !isShown);
+                                                fldStmt.setInt(2, id);
+                                                fldStmt.executeUpdate();
+                                            } else
+                                            {
+                                                sb.append("Unable to find ["+disciplineDirName+"] for table name ["+tName+"] has bad field name["+fName+"]\n"); 
+                                            }
+                                        } else
+                                        {
+                                            sb.append("["+disciplineDirName+"] for table name ["+tName+"] has bad field name["+fName+"]\n");
+                                            isErr = true;
+                                        }
                                     }
                                 }
+                            } else
+                            {
+                                sb.append("["+disciplineDirName+"] has bad table name ["+tName+"]\n");
+                                isErr = true;
                             }
-                        } else
-                        {
-                            UIRegistry.showError("show_list.xml in ["+disciplineDirName+"] has bad table name ["+tName+"]");
                         }
                     }
-                }   
-            }
-        }
-    }
-    
-    /**
-     * Looks up a table/field and sets it to be visible.
-     * @param tableName the table name
-     * @param fieldName the field name
-     */
-    protected static void setFieldVisible(final String     tableName, 
-                                          final String     fieldName,
-                                          final Discipline discipline)
-    {
-        DataProviderSessionIFace localSession = null;
-        try
-        {
-            localSession = DataProviderFactory.getInstance().createSession();
-            String sql = "FROM SpLocaleContainer as sp INNER JOIN sp.discipline as d WHERE sp.name = '" + tableName + "' AND d.id = "+discipline.getId();
-            System.err.println(sql);
-            Object[] cols = (Object[])localSession.getData(sql);
-            SpLocaleContainer container = (SpLocaleContainer)cols[0];
-            if (container != null)
-            {
-                for (SpLocaleContainerItem item : container.getItems())
-                {
-                    //System.out.println(fieldName+" "+ item.getName());
-                    if (item.getName().equals(fieldName))
+                    
+                    if (isErr)
                     {
-                        item.setIsHidden(false);
-                        localSession.beginTransaction();
-                        localSession.save(item);
-                        localSession.commit();
-                        localSession.flush();
-                        return;
+                        showError(sb.toString());
                     }
                 }
-            }
-        } catch (Exception ex)
-        {
-            ex.printStackTrace();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildSampleDatabase.class, ex);
-            
-        } finally 
-        {
-            if (localSession != null)
+            } catch (Exception ex)
             {
-                localSession.close();
+                ex.printStackTrace();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildSampleDatabase.class, ex);
+                
+            } finally 
+            {
+                try
+                {
+                    if (tblStmt != null) tblStmt.close();
+                    if (fldStmt != null) fldStmt.close();
+                } catch (Exception ex) {}
             }
         }
     }
@@ -8429,7 +8809,7 @@ public class BuildSampleDatabase
         } catch (MissingResourceException ex)
         {
             Locale.setDefault(Locale.ENGLISH);
-            UIRegistry.setResourceLocale(Locale.ENGLISH);
+            setResourceLocale(Locale.ENGLISH);
         }
         
         new HiddenTableMgr();
@@ -8446,9 +8826,9 @@ public class BuildSampleDatabase
             e.printStackTrace();
         }
         
-        if (StringUtils.isEmpty(UIRegistry.getAppName()))
+        if (StringUtils.isEmpty(getAppName()))
         {
-            UIRegistry.setAppName("Specify");
+            setAppName("Specify");
         }
         
         SwingUtilities.invokeLater(new Runnable()
@@ -8461,48 +8841,21 @@ public class BuildSampleDatabase
         });
     }
     
-    private File getFileForTaxon(final String fileName, final boolean usingOtherTxnFile)
-    {
-        if (!usingOtherTxnFile)
-        {
-            File file = XMLHelper.getConfigDir("../demo_files/taxonomy/"+fileName);
-            log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-            if (!file.exists())
-            {
-                log.error("Couldn't file[" + file.getAbsolutePath() + "] checking the config dir");
-                file = XMLHelper.getConfigDir(fileName);
-                log.debug(" file "+file.getAbsolutePath() +"  "+file.exists());
-                if (!file.exists())
-                {
-                    return new File("Specify/demo_files/"+fileName);
-                }
-            }
-    
-            if (file == null || !file.exists() || file.isDirectory())
-            {
-                log.error("Couldn't file[" + file.getAbsolutePath() + "]");
-                return null;
-            }
-            return file;
-        } 
-        
-        File file = new File(fileName);
-        return file.exists() ? file : null;
-    }
+
     
     /**
      * @param fileName
      * @return
      */
-    public Hashtable<String, Boolean> getColumnNamesFromXLS(final String fileName, final boolean usingOtherTxnFile)
+    public HashSet<String> getColumnNamesFromXLS(final String fileName, final boolean doUserProvidedFile)
     {
-        File file = getFileForTaxon(fileName, usingOtherTxnFile);
+        File file = TaxonLoadSetupPanel.getFileForTaxon(fileName, doUserProvidedFile);
         if (file == null)
         {
             return null;
         }
         
-        Hashtable<String, Boolean> nameHash = new Hashtable<String, Boolean>();
+        HashSet<String> nameHash = new HashSet<String>();
         try
         {
             String[]        cells    = new String[35];
@@ -8527,7 +8880,7 @@ public class BuildSampleDatabase
                     HSSFCell cell = (HSSFCell)cellsIter.next();
                     if (cell != null)
                     {
-                        nameHash.put(StringUtils.trim(cell.getRichStringCellValue().getString()), true);
+                        nameHash.add(StringUtils.trim(cell.getRichStringCellValue().getString()));
                     }
                 }
             }
@@ -8539,19 +8892,88 @@ public class BuildSampleDatabase
         return nameHash;
     }
     
+    /**
+     * @param cell
+     * @return
+     */
+    public String getXLSCellValueAsStr(final HSSFCell cell)
+    {
+        String value = null;
+        // if cell is blank, set value to ""
+        if (cell == null)
+        {
+            value = "";
+        }
+        else
+        {
+            switch (cell.getCellType())
+            {
+                case HSSFCell.CELL_TYPE_NUMERIC:
+                    // The best I can do at this point in the app is to guess if a
+                    // cell is a date.
+                    // Handle dates carefully while using HSSF. Excel stores all
+                    // dates as numbers, internally.
+                    // The only way to distinguish a date is by the formatting of
+                    // the cell. (If you
+                    // have ever formatted a cell containing a date in Excel, you
+                    // will know what I mean.)
+                    // Therefore, for a cell containing a date, cell.getCellType()
+                    // will return
+                    // HSSFCell.CELL_TYPE_NUMERIC. However, you can use a utility
+                    // function,
+                    // HSSFDateUtil.isCellDateFormatted(cell), to check if the cell
+                    // can be a date.
+                    // This function checks the format against a few internal
+                    // formats to decide the issue,
+                    // but by its very nature it is prone to false negatives.
+                    if (HSSFDateUtil.isCellDateFormatted(cell))
+                    {
+                        DateWrapper      scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
+                        SimpleDateFormat simpDateFmt   = scrDateFormat != null && scrDateFormat.getSimpleDateFormat() != null ? scrDateFormat.getSimpleDateFormat() : sdf;
+                        value = simpDateFmt.format(cell.getDateCellValue());
+                    }
+                    else
+                    {
+                        double numeric = cell.getNumericCellValue();
+                        value = numFmt.format(numeric);
+                    }
+                    break;
+
+                case HSSFCell.CELL_TYPE_STRING:
+                    value = cell.getRichStringCellValue().getString();
+                    break;
+
+                case HSSFCell.CELL_TYPE_BLANK:
+                    value = "";
+                    break;
+
+                case HSSFCell.CELL_TYPE_BOOLEAN:
+                    value = Boolean.toString(cell.getBooleanCellValue());
+                    break;
+
+                default:
+                    value = "";
+                    log.error("unsuported cell type["+cell.getCellType()+"]");
+                    break;
+            }
+        }
+        return value;
+    }
+    
 
     /**
      * @param treeDef
      * @param fileName
+     * @param doUserProvidedFile
      * @return
      */
-    public Taxon convertTaxonFromXLS(final TaxonTreeDef treeDef, final String fileName, final boolean usingOtherTxnFile)
+    public Taxon convertTaxonFromXLS(final TaxonTreeDef treeDef, final String fileName, final boolean doUserProvidedFile)
     {
         Hashtable<String, Taxon> taxonHash = new Hashtable<String, Taxon>();
         
         taxonHash.clear();
 
-        File file = getFileForTaxon(fileName, usingOtherTxnFile);
+        File file = TaxonLoadSetupPanel.getFileForTaxon(fileName, doUserProvidedFile);
         if (file == null)
         {
             return null;
@@ -8624,9 +9046,13 @@ public class BuildSampleDatabase
             //conn.setAutoCommit(false);
             stmt = conn.createStatement();
             
+            int rowCnt = 0;
             rows = sheet.rowIterator();
             while (rows.hasNext())
             {
+                //System.out.println(rowCnt);
+                rowCnt++;
+                
                 for (int i=0;i<cells.length;i++)
                 {
                     cells[i] = null;
@@ -8642,7 +9068,7 @@ public class BuildSampleDatabase
                         HSSFCell cell = (HSSFCell)cellsIter.next();
                         if (cell != null)
                         {
-                            cells[i] = StringUtils.trim(cell.getRichStringCellValue().getString());
+                            cells[i] = getXLSCellValueAsStr(cell);
                             header[i] = cells[i];
                             i++;
                         }
@@ -8676,8 +9102,13 @@ public class BuildSampleDatabase
                         {
                             if (hdr.equalsIgnoreCase(item.getName()))
                             {
-                                System.err.println(hdr+" -> "+inx);
+                                log.debug("Header: "+hdr+" -> "+inx);
                                 taxonIndexes.put(hdr, inx);
+                                item.setIsInFullName(item.getRankId() >= TaxonTreeDef.GENUS);
+                                
+                            } else
+                            {
+                                log.debug("Header: "+hdr+" -> skipped.");
                             }
                             inx++;
                         }
@@ -8699,12 +9130,7 @@ public class BuildSampleDatabase
                     HSSFCell cell = (HSSFCell)cellsIter.next();
                     if (cell != null)
                     {
-                        cells[i] = StringUtils.trim(cell.getRichStringCellValue().getString());
-                        if (i == 12 && StringUtils.isNotEmpty(cells[i]))
-                        {
-                            int x = 0;
-                            x++;
-                        }
+                        cells[i] = getXLSCellValueAsStr(cell);
                         i++;
                     }
                 }
@@ -8892,12 +9318,12 @@ public class BuildSampleDatabase
         gSQLStr.append("INSERT INTO taxon (Name, TaxonTreeDefID, FullName, TaxonTreeDefItemID, RankID, ParentID, TimestampCreated, Version");
         addExtraColumns(gSQLStr, tdi.getRankId(), levelNames, true);
         gSQLStr.append(") VALUES (");
-        gSQLStr.append("'");
+        gSQLStr.append("\"");
         gSQLStr.append(name);
-        gSQLStr.append("',");
+        gSQLStr.append("\",");
         gSQLStr.append(txTreeDefId);
         gSQLStr.append(",");
-        gSQLStr.append('\'');
+        gSQLStr.append("\"");
         if (StringUtils.isNotEmpty(fullName))
         {
             gSQLStr.append(fullName);
@@ -8906,7 +9332,7 @@ public class BuildSampleDatabase
         {
             gSQLStr.append(name);
         }
-        gSQLStr.append('\'');        
+        gSQLStr.append("\"");        
         gSQLStr.append(",");
         gSQLStr.append(tdi.getId());
         gSQLStr.append(',');
@@ -8928,6 +9354,9 @@ public class BuildSampleDatabase
         {
             throw new RuntimeException("Couldn't get the Taxon's inserted ID");
         }
+        
+        recCnt++;
+        //System.out.println("rec: "+recCnt);
         
         if (recycler.size() > 0)
         {
@@ -9012,7 +9441,8 @@ public class BuildSampleDatabase
      * @param treeDef
      * @return
      */
-    public GeologicTimePeriod convertChronoStratFromXLS(final GeologicTimePeriodTreeDef treeDef)
+    public GeologicTimePeriod convertChronoStratFromXLS(final GeologicTimePeriodTreeDef treeDef, 
+                                                        final Agent userAgent)
     {
         startTx();
 
@@ -9024,6 +9454,8 @@ public class BuildSampleDatabase
         GeologicTimePeriodTreeDefItem member = createGeologicTimePeriodTreeDefItem(series, treeDef, "Stage/Age",      400);
         persist(root);
         commitTx();
+        
+        series.setIsInFullName(true);
 
         frame.setDesc("Building ChronoStratigraphy Tree...");
         
@@ -9053,11 +9485,12 @@ public class BuildSampleDatabase
         // setup the root ChronoStrat record (planet Earth)
         GeologicTimePeriod rootNode = new GeologicTimePeriod();
         rootNode.initialize();
-        rootNode.setName("Root");
-        rootNode.setFullName("Root");
+        rootNode.setName(getResourceString("Root"));
+        rootNode.setFullName(rootNode.getName());
         rootNode.setRankId(0);
         rootNode.setDefinition(treeDef);
         rootNode.setDefinitionItem(root);
+        rootNode.setCreatedByAgent(userAgent);
 
         int counter = 0;
         
@@ -9118,7 +9551,7 @@ public class BuildSampleDatabase
                 }
                 //System.out.println();
                 @SuppressWarnings("unused")
-                GeologicTimePeriod newGeo = convertChronoStratRecord(cells[0], cells[1], cells[2], cells[3], rootNode);
+                GeologicTimePeriod newGeo = convertChronoStratRecord(cells[0], cells[1], cells[2], cells[3], rootNode, userAgent);
     
                 counter++;
             }
@@ -9161,7 +9594,8 @@ public class BuildSampleDatabase
                                                           final String    country,
                                                           final String    state,
                                                           final String    county,
-                                                          final GeologicTimePeriod geoRoot)
+                                                          final GeologicTimePeriod geoRoot, 
+                                                          final Agent userAgent)
     {
         String levelNames[] = { continent, country, state, county };
         int levelsToBuild = 0;
@@ -9185,7 +9619,7 @@ public class BuildSampleDatabase
         GeologicTimePeriod prevLevelGeo = geoRoot;
         for (int i = 0; i < levelsToBuild; ++i)
         {
-            GeologicTimePeriod newLevelGeo = buildChronoStratLevel(levelNames[i], prevLevelGeo);
+            GeologicTimePeriod newLevelGeo = buildChronoStratLevel(levelNames[i], prevLevelGeo, userAgent);
             prevLevelGeo = newLevelGeo;
         }
 
@@ -9198,7 +9632,8 @@ public class BuildSampleDatabase
      * @return
      */
     protected GeologicTimePeriod buildChronoStratLevel(final String    nameArg,
-                                                       final GeologicTimePeriod parentArg)
+                                                       final GeologicTimePeriod parentArg, 
+                                                       final Agent userAgent)
     {
         String name = nameArg;
         if (name == null)
@@ -9226,6 +9661,8 @@ public class BuildSampleDatabase
         newGeo.setParent(parentArg);
         parentArg.addChild(newGeo);
         newGeo.setDefinition(parentArg.getDefinition());
+        newGeo.setCreatedByAgent(userAgent);
+        
         int newGeoRank = parentArg.getRankId() + 100;
         
         GeologicTimePeriodTreeDefItem defItem = parentArg.getDefinition().getDefItemByRank(newGeoRank);

@@ -22,6 +22,7 @@ package edu.ku.brc.specify.datamodel;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,7 +40,7 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.util.Orderable;
 
 /**
@@ -51,7 +52,8 @@ import edu.ku.brc.util.Orderable;
 @Table(name = "address")
 public class Address extends DataModelObjBase implements Orderable,
                                                          Comparable<Address>,
-                                                         java.io.Serializable 
+                                                         java.io.Serializable,
+                                                         Cloneable
 {
 
     // Fields
@@ -59,6 +61,9 @@ public class Address extends DataModelObjBase implements Orderable,
     protected Integer           addressId;
     protected String            address;
     protected String            address2;
+    protected String            address3;
+    protected String            address4;
+    protected String            address5;
     protected String            city;
     protected String            state;
     protected String            country;
@@ -106,6 +111,9 @@ public class Address extends DataModelObjBase implements Orderable,
         addressId = null;
         address = null;
         address2 = null;
+        address3 = null;
+        address4 = null;
+        address5 = null;
         city = null;
         state = null;
         country = null;
@@ -174,7 +182,7 @@ public class Address extends DataModelObjBase implements Orderable,
     /**
      *      * Address as it should appear on mailing labels
      */
-    @Column(name = "Address", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Address", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getAddress() {
         return this.address;
     }
@@ -186,13 +194,49 @@ public class Address extends DataModelObjBase implements Orderable,
     /**
      *
      */
-    @Column(name = "Address2", unique = false, nullable = true, insertable = true, updatable = true)
+    @Column(name = "Address2", unique = false, nullable = true, insertable = true, updatable = true, length = 255)
     public String getAddress2() {
         return this.address2;
     }
 
     public void setAddress2(String address2) {
         this.address2 = address2;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address3", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress3() {
+        return this.address3;
+    }
+
+    public void setAddress3(String address3) {
+        this.address3 = address3;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address4", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress4() {
+        return this.address4;
+    }
+
+    public void setAddress4(String address4) {
+        this.address4 = address4;
+    }
+
+    /**
+     *
+     */
+    @Column(name = "Address5", unique = false, nullable = true, insertable = true, updatable = true, length = 64)
+    public String getAddress5() {
+        return this.address5;
+    }
+
+    public void setAddress5(String address5) {
+        this.address5 = address5;
     }
 
     /**
@@ -516,27 +560,7 @@ public class Address extends DataModelObjBase implements Orderable,
     {
         this.divisions = divisions;
     }
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
-     */
-    @Override
-    @Transient
-    public Integer getParentTableId()
-    {
-        if (agent != null)
-        {
-            return Agent.getClassTableId();
-        }
-        if (insitutions != null && insitutions.size() == 1)
-        {
-            return Institution.getClassTableId();
-        }
-        if (divisions != null && divisions.size() == 1)
-        {
-            return Division.getClassTableId();
-        }
-        return null;
-    }
+
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
@@ -547,16 +571,24 @@ public class Address extends DataModelObjBase implements Orderable,
     {
         if (agent != null)
         {
+            parentTblId = Agent.getClassTableId();
             return agent.getId();
         }
-        if (insitutions != null && insitutions.size() == 1)
+        
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT InstitutionID FROM institution WHERE AddressID = "+ addressId);
+        if (ids.size() == 1)
         {
-            return ((FormDataObjIFace)insitutions.toArray()[0]).getId();
+            parentTblId = Institution.getClassTableId();
+            return (Integer)ids.get(0);
         }
-        if (divisions != null && divisions.size() == 1)
+        
+        ids = BasicSQLUtils.querySingleCol("SELECT DivisionID FROM division WHERE AddressID = "+ addressId);
+        if (ids.size() == 1)
         {
-            return ((FormDataObjIFace)divisions.toArray()[0]).getId();
+            parentTblId = Division.getClassTableId();
+            return (Integer)ids.get(0);
         }
+        parentTblId = null;
         return null;
     }
     
@@ -604,6 +636,26 @@ public class Address extends DataModelObjBase implements Orderable,
      */
     public int compareTo(Address obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        Address obj = (Address)super.clone();
+        
+        obj.addressId            = null;
+        obj.agent                = null;
+        obj.insitutions          = new HashSet<Institution>();
+        obj.divisions            = new HashSet<Division>();
+       
+        return obj;
     }
 }

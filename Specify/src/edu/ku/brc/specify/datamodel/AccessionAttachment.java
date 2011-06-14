@@ -107,7 +107,7 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
     }
 
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -249,6 +249,10 @@ public class AccessionAttachment extends DataModelObjBase implements ObjectAttac
      */
     public int compareTo(AccessionAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 }

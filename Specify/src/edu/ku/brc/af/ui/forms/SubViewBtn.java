@@ -28,6 +28,7 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -55,6 +56,7 @@ import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayIFace;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace;
 import edu.ku.brc.af.ui.forms.persist.FormCellSubViewIFace;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.af.ui.forms.persist.ViewIFace;
 import edu.ku.brc.af.ui.forms.validation.FormValidator;
 import edu.ku.brc.af.ui.forms.validation.UIValidatable;
@@ -64,7 +66,9 @@ import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.GetSetValueIFace;
+import edu.ku.brc.ui.IconEntry;
 import edu.ku.brc.ui.IconManager;
+import edu.ku.brc.ui.IconManager.IconSize;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
@@ -107,6 +111,8 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
     protected Object                newDataObj;
     protected Class<?>              classObj;
     protected FormDataObjIFace      parentObj;
+    
+    protected HashSet<Object>       cachedSet = null;
     
     // Security
     private PermissionSettings      perm = null;
@@ -154,13 +160,14 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
             if (tableInfo != null)
             {
                 baseLabel = tableInfo.getTitle();
-                if (StringUtils.isNotEmpty(iconName))
+                
+                String    icNam = StringUtils.isNotEmpty(iconName) ? iconName : tableInfo.getName();
+                IconEntry entry = IconManager.getIconEntryByName(icNam);
+                if (entry != null)
                 {
-                    icon = IconManager.getIcon(iconName, IconManager.IconSize.NonStd);
-                } else
-                {
-                    icon = IconManager.getIcon(tableInfo.getName(), IconManager.IconSize.Std24);   
+                    icon = IconManager.getIcon(icNam, entry.getSize() == IconSize.NonStd ? IconSize.NonStd : IconSize.Std24);
                 }
+                
                 if (frameTitle == null)
                 {
                     frameTitle = baseLabel;
@@ -221,11 +228,11 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
 
         } catch (ClassNotFoundException ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(SubViewBtn.class, ex);
            log.error(ex);
-           throw new RuntimeException(ex);
+           FormDevHelper.showFormDevError(ex);
         }
+        
+        setOpaque(false);
     }
     
     /**
@@ -343,7 +350,6 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
     /**
      * 
      */
-    @SuppressWarnings("unchecked")
     protected void showForm()
     {
         //boolean isParentNew = parentObj instanceof FormDataObjIFace ? ((FormDataObjIFace)parentObj).getId() == null : false;
@@ -410,16 +416,20 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
         
         
         // Only get the data from the parent the first time.
-        if (parentObj != null && parentObj.getId() != null && dataObj == null)
+        if (parentObj != null && dataObj == null)
         {
             DataProviderSessionIFace sessionLocal = null;
             try
             {
                 DataObjectGettable getter = DataObjectGettableFactory.get(parentObj.getClass().getName(), FormHelper.DATA_OBJ_GETTER);
-                sessionLocal = DataProviderFactory.getInstance().createSession();
+                sessionLocal = parentObj.getId() != null ? DataProviderFactory.getInstance().createSession() : null;
+                
                 // rods - 07/22/08 - Apparently Merge just doesn't work the way it seems it should
                 // so instead we will just go get the parent again.
-                parentObj = (FormDataObjIFace)sessionLocal.get(parentObj.getDataClass(), parentObj.getId());
+                if (parentObj.getId() != null)
+                {
+                    parentObj = (FormDataObjIFace)sessionLocal.get(parentObj.getDataClass(), parentObj.getId());
+                }
                 
                 Object[] objs = UIHelper.getFieldValues(subviewDef, parentObj, getter);
                 if (objs == null)
@@ -640,7 +650,12 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
             sessionLocal = hasSession ? null : DataProviderFactory.getInstance().createSession();
             if (!isSkippingAttach && sessionLocal != null && parentObj != null && parentObj.getId() != null)
             {
-                sessionLocal.attach(parentObj);
+                // I really really hate doing this: Catch an exception (dirty exception)
+                // and doing nothing, but Hibernate just isn't my friend - 03/26/10
+                try
+                {
+                    sessionLocal.attach(parentObj);
+                } catch (Exception ex) {}
             }
             
             // Retrieve lazy object while in the context of a session (just like a subform would do)
@@ -650,6 +665,15 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
             }
             
             updateBtnText(); // note: that by calling this, 'size' gets called and that loads the Set (this must be done).
+            
+            if (dataObj instanceof Set)
+            {
+                cachedSet = new HashSet<Object>();
+                for (Object obj : (Set<?>)dataObj)
+                {
+                    cachedSet.add(obj);
+                }
+            }
             
         } catch (Exception ex)
         {
@@ -663,6 +687,20 @@ public class SubViewBtn extends JPanel implements GetSetValueIFace
             {
                 sessionLocal.close();
             }
+        }
+    }
+    
+    /**
+     * 
+     */
+    @SuppressWarnings("unchecked")
+    public void wasCancelled()
+    {
+        if (cachedSet != null && cachedSet.size() != ((Set<?>)dataObj).size())
+        {
+            Set<Object> dataSet = (Set<Object>)dataObj;
+            dataSet.clear();
+            dataSet.addAll(cachedSet);
         }
     }
 

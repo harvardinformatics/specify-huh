@@ -47,7 +47,8 @@ import edu.ku.brc.util.Orderable;
        })
 public class GroupPerson extends DataModelObjBase implements java.io.Serializable,
                                                              Orderable,
-                                                             Comparable<GroupPerson>
+                                                             Comparable<GroupPerson>,
+                                                             Cloneable
                                                              
 {
 
@@ -86,6 +87,7 @@ public class GroupPerson extends DataModelObjBase implements java.io.Serializabl
         member        = null;
         
         division = AppContextMgr.getInstance().hasContext() ? AppContextMgr.getInstance().getClassObject(Division.class) : null;
+        
     }
     // End Initializer
 
@@ -286,7 +288,19 @@ public class GroupPerson extends DataModelObjBase implements java.io.Serializabl
      */
     public int compareTo(GroupPerson obj)
     {
-        return orderNumber.compareTo(obj.orderNumber);
+        return orderNumber != null && obj != null && obj.orderNumber != null ? orderNumber.compareTo(obj.orderNumber) : 0;
     }
 
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        GroupPerson obj = (GroupPerson)super.clone();
+        obj.init();
+        obj.setGroupPersonId(null);
+        return obj;
+    }
 }

@@ -19,8 +19,6 @@
 */
 package edu.ku.brc.ui;
 
-import static edu.ku.brc.ui.UIHelper.getInstall4JInstallString;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -30,6 +28,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.helpers.SwingWorker;
@@ -47,6 +46,7 @@ import edu.ku.brc.helpers.SwingWorker;
  */
 public abstract class FeedBackSender
 {
+    private static final Logger log = Logger.getLogger(FeedBackSender.class);
     
     /**
      * 
@@ -66,6 +66,17 @@ public abstract class FeedBackSender
     }
     
     /**
+     * @param cls
+     * @param exception
+     */
+    public void capture(final Class<?> cls, 
+                        final String message,
+                        final Exception exception)
+    {
+        connectToServerNow(getFeedBackSenderItem(cls, message, exception));
+    }
+    
+    /**
      * 
      */
     public void sendFeedback()
@@ -80,9 +91,20 @@ public abstract class FeedBackSender
      */
     protected FeedBackSenderItem getFeedBackSenderItem(final Class<?> cls, final Exception exception)
     {
+        return getFeedBackSenderItem(cls, null, exception);
+    }
+    
+    /**
+     * @param cls
+     * @param exception
+     * @return
+     */
+    protected FeedBackSenderItem getFeedBackSenderItem(final Class<?> cls, final String comments, final Exception exception)
+    {
         FeedBackSenderItem item = new FeedBackSenderItem();
         item.setStackTrace(exception != null ? exception.getMessage() : null);
         item.setClassName(cls != null ? cls.getName() : null);
+        item.setComments(comments);
         return item;
     }
     
@@ -115,13 +137,17 @@ public abstract class FeedBackSender
                 httpClient.executeMethod(postMethod);
                 
                 // get the server response
-                /*String responseString = postMethod.getResponseBodyAsString();
+                String responseString = postMethod.getResponseBodyAsString();
                 
                 if (StringUtils.isNotEmpty(responseString))
                 {
                     System.err.println(responseString);
-                }*/
+                }
     
+            }
+            catch (java.net.UnknownHostException uex)
+            {
+                log.error(uex.getMessage());
             }
             catch (Exception e)
             {
@@ -173,7 +199,7 @@ public abstract class FeedBackSender
                 }
             }
             
-            if (!UIRegistry.isRelease()) // For Testing Only
+            //if (!UIRegistry.isRelease()) // For Testing Only
             {
                 postParams.add(new NameValuePair("user_name", System.getProperty("user.name"))); //$NON-NLS-1$
                 try 
@@ -182,12 +208,12 @@ public abstract class FeedBackSender
                 } catch (UnknownHostException e) {}
             }
             
-            String install4JStr = getInstall4JInstallString();
-            if (StringUtils.isEmpty(install4JStr))
+            String resAppVersion = UIRegistry.getAppVersion();
+            if (StringUtils.isEmpty(resAppVersion))
             {
-                install4JStr = "Unknown"; 
+                resAppVersion = "Unknown"; 
             }
-            postParams.add(new NameValuePair("app_version", install4JStr)); //$NON-NLS-1$
+            postParams.add(new NameValuePair("app_version", resAppVersion)); //$NON-NLS-1$
             
             Vector<NameValuePair> extraStats = collectionSecondaryInfo();
             if (extraStats != null)

@@ -20,7 +20,6 @@
 package edu.ku.brc.specify.prefs;
 
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
-import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -45,10 +44,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.core.AppContextMgr;
@@ -166,6 +163,7 @@ public class SystemPrefs extends GenericPrefsPanel
                 
                 Locale prefLocale = new Locale(language, country, variant);
                 
+                int justLangIndex = -1;
                 Locale cachedLocale = Locale.getDefault();
                 for (Locale l : locales)
                 {
@@ -173,8 +171,16 @@ public class SystemPrefs extends GenericPrefsPanel
                     {
                         Locale.setDefault(l);
                         ResourceBundle rb = ResourceBundle.getBundle("resources", l);
-                        if (rb.getKeys().hasMoreElements())
+                        
+                        boolean isOK = (l.getLanguage().equals("en") && StringUtils.isEmpty(l.getCountry())) ||
+                                       (l.getLanguage().equals("pt") && l.getCountry().equals("PT"));
+
+                        if (isOK && rb.getKeys().hasMoreElements())
                         {
+                            if (l.getLanguage().equals(prefLocale.getLanguage()))
+                            {
+                                justLangIndex = i;
+                            }
                             if (l.equals(prefLocale))
                             {
                                 inx = i;
@@ -186,6 +192,11 @@ public class SystemPrefs extends GenericPrefsPanel
                     } catch (MissingResourceException ex)
                     {
                     }
+                }
+                
+                if (inx == -1 && justLangIndex > -1)
+                {
+                    inx = justLangIndex;
                 }
                 Locale.setDefault(cachedLocale);
                 
@@ -243,9 +254,11 @@ public class SystemPrefs extends GenericPrefsPanel
         
         //ValCheckBox askCollChk = form.getCompById(ALWAYS_ASK_COLL);
         //askCollChk.setValue(localPrefs.getBoolean(ALWAYS_ASK_COLL, false), null);
-
     }
     
+    /**
+     * 
+     */
     protected void clearCache()
     {
         final String CLEAR_CACHE = "CLEAR_CACHE";
@@ -401,7 +414,7 @@ public class SystemPrefs extends GenericPrefsPanel
             localPrefs.putBoolean(SYSTEM_HasOpenGL, (Boolean)chk.getValue());
             
             chk = form.getCompById(USE_WORLDWIND);
-            localPrefs.putBoolean(USE_WORLDWIND, (Boolean)chk.getValue());
+            localPrefs.putBoolean(USE_WORLDWIND, (Boolean)chk.getValue());  
             
             //chk = form.getCompById(ALWAYS_ASK_COLL);
             //localPrefs.putBoolean(ALWAYS_ASK_COLL, (Boolean)chk.getValue());
@@ -483,7 +496,7 @@ public class SystemPrefs extends GenericPrefsPanel
      */
     protected boolean okChangeAttachmentPath(final String oldPath, final String newPath)
     {
-        if (false)
+        /*if (false)
         {
             File  oldDir = new File(oldPath);
             if (oldDir.exists())
@@ -553,11 +566,11 @@ public class SystemPrefs extends GenericPrefsPanel
                 }
             }
         } else
-        {
+        {*/
             return AttachmentUtils.isAttachmentDirMounted(new File(newPath));
-        }
+        //}
         
-        return true;
+        //return true;
     }
     
     /**

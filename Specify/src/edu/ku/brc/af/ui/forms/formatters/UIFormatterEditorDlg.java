@@ -287,7 +287,7 @@ public class UIFormatterEditorDlg extends CustomDialog
                 fieldInfo.getLength(),   //max
                 1);               //step
         sizeSpinner = new JSpinner(retModel);
-        isIncChk    = new JCheckBox("Is Incrementer");
+        isIncChk    = new JCheckBox("Is Incrementer"); // I18N
         
         String colDefs = "f:p:g,p,2px,"+width+"px,2px,p";
         
@@ -454,6 +454,23 @@ public class UIFormatterEditorDlg extends CustomDialog
         btn.setRolloverIcon(IconManager.getIcon("CloseHover"));
         btn.setEnabled(true);
         return btn;
+    }
+    
+    /**
+     * @return whether there is an incrementor
+     */
+    private boolean hasIncrementor()
+    {
+        for (UIFieldFormatterField fld : fields)
+        {
+            if (fld != currentField && fld.isIncrementer())
+            {
+                System.out.println("TRUE");
+                return true;
+            }
+        }
+        System.out.println("FALSE");
+        return false;
     }
     
     /**
@@ -627,7 +644,7 @@ public class UIFormatterEditorDlg extends CustomDialog
         
         int     size     = (Integer)sizeSpinner.getValue();
         boolean isByYear = fieldType == FieldType.year;
-        boolean isIncr   = isIncChk.isSelected();
+        boolean isIncr   = isIncChk.isSelected() && fieldType == FieldType.numeric;
         
         switch (fieldType)
         {
@@ -726,6 +743,7 @@ public class UIFormatterEditorDlg extends CustomDialog
                 updateUIEnabled();
                 hookFieldsTblSelectionListener();
                 fieldsPanel.getEditBtn().setEnabled(false);
+                fieldsPanel.getDelBtn().setEnabled(false);
             }
         };
     }
@@ -920,6 +938,7 @@ public class UIFormatterEditorDlg extends CustomDialog
                 if (StringUtils.isEmpty(txtFld.getText()))
                 {
                     setError(getResourceString(errMsgKey), false); 
+                    updateUIEnabled(); 
                     
                 } else if (selectedFormat == null)
                 {
@@ -994,9 +1013,11 @@ public class UIFormatterEditorDlg extends CustomDialog
     {
         boolean txtFldHasError = false;
         
+        isIncChk.setEnabled(!hasIncrementor());
+        
         // If we have a field formatter sampler, then we can check if current format 
         // invalidates an existing value in database.
-        if (fieldFormatterSampler != null && selectedFormat != null) 
+        if (fieldFormatterSampler != null && selectedFormat != null && selectedFormat.getFields().size() > 0) 
         {
             try 
             {

@@ -3,6 +3,11 @@
  */
 package edu.ku.brc.specify.tasks;
 
+import static edu.ku.brc.ui.UIHelper.centerAndShow;
+import static edu.ku.brc.ui.UIHelper.createI18NFormLabel;
+import static edu.ku.brc.ui.UIHelper.createLabel;
+import static edu.ku.brc.ui.UIHelper.createLocalizedMenuItem;
+import static edu.ku.brc.ui.UIHelper.createTextField;
 import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
@@ -20,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -28,8 +32,11 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.XPathException;
 
@@ -46,12 +53,15 @@ import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.prefs.AppPreferences;
+import edu.ku.brc.af.prefs.AppPrefsCache;
+import edu.ku.brc.af.ui.forms.ViewFactory;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.helpers.UIFileFilter;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpExportSchema;
@@ -64,9 +74,10 @@ import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgrCallerIFace;
 import edu.ku.brc.specify.dbsupport.TaskSemaphoreMgr.USER_ACTION;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
 import edu.ku.brc.ui.ChooseFromListDlg;
+import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.DocumentAdaptor;
 import edu.ku.brc.ui.IconManager;
-import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -75,6 +86,8 @@ import edu.ku.brc.ui.UIRegistry;
  */
 public class ExportMappingTask extends QueryTask
 {
+    private static final Logger log  = Logger.getLogger(ExportMappingTask.class);
+    
 	protected SpExportSchema		exportSchema	= null;
 	protected SpExportSchemaMapping	schemaMapping	= null;
 	protected final AtomicBoolean	addingMapping	= new AtomicBoolean(false);
@@ -88,12 +101,27 @@ public class ExportMappingTask extends QueryTask
 	 */
 	public ExportMappingTask()
 	{
-		super("ExportMappingTask",
-				getResourceString("ExportMappingTask.TaskTitle"));
+		super("ExportMappingTask", getResStr("TaskTitle"));
 	}
 
-	
-	
+    /**
+     * @param key
+     * @return
+     */
+    private static String getI18N(final String key)
+    {
+        return "ExportMappingTask." + key; 
+    }
+    
+    /**
+     * @param key
+     * @return
+     */
+    private static String getResStr(final String key)
+    {
+        return UIRegistry.getResourceString(getI18N(key));
+    }
+    
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getToolBarItems()
 	 */
@@ -117,19 +145,20 @@ public class ExportMappingTask extends QueryTask
 	        
 	        if (permissions == null || permissions.canView())
 	        {
-	            String    menuTitle = "ExportMappingTask.ExMapMenu"; //$NON-NLS-1$
-	            String    mneu      = "ExportMappingTask.ExMapMneu"; //$NON-NLS-1$
-	            String    desc      = "ExportMappingTask.ExMapDesc"; //$NON-NLS-1$
-	            JMenuItem mi        = UIHelper.createLocalizedMenuItem(menuTitle, mneu, desc, true, null);
+	            String    menuTitle = getI18N("ExMapMenu"); //$NON-NLS-1$
+	            String    mneu      = getI18N("ExMapMneu"); //$NON-NLS-1$
+	            String    desc      = getI18N("ExMapDesc"); //$NON-NLS-1$
+	            JMenuItem mi        = createLocalizedMenuItem(menuTitle, mneu, desc, true, null);
 	            mi.addActionListener(new ActionListener()
 	            {
+	                @Override
 	                public void actionPerformed(ActionEvent ae)
 	                {
 	                    ExportMappingTask.this.requestContext();
 	                }
 	            });
 	            MenuItemDesc rsMI = new MenuItemDesc(mi, menuDesc);
-	            rsMI.setPosition(MenuItemDesc.Position.After);
+	            rsMI.setPosition(MenuItemDesc.Position.Bottom);
 	            menuItems.add(rsMI);
 	        }
 	        return menuItems;
@@ -163,7 +192,7 @@ public class ExportMappingTask extends QueryTask
                                                          };
 					int userChoice = JOptionPane.showOptionDialog(UIRegistry.getTopWindow(), 
                             getLocalizedMessage("ExportMappingTask.LockedMsg", map.getMappingName(), prevLockBy),
-                            getResourceString("ExportMappingTask.LockedDlgTitle"),  //$NON-NLS-1$
+                            getResStr("LockedDlgTitle"),  //$NON-NLS-1$
                             options,
                             JOptionPane.QUESTION_MESSAGE, null, optionLabels, 0);
 					if (userChoice == JOptionPane.YES_OPTION)
@@ -215,7 +244,7 @@ public class ExportMappingTask extends QueryTask
 	 */
 	public static boolean unlockMapping(SpExportSchemaMapping map)
 	{
-		if (map != null)
+		if (map != null && map.getId() != null)
 		{
 			return TaskSemaphoreMgr.unlock(getLockTitle(map), "ExportMapping" + map.getId().toString(), TaskSemaphoreMgr.SCOPE.Global);
 		}
@@ -267,8 +296,8 @@ public class ExportMappingTask extends QueryTask
 	protected void addNewQCreators()
 	{
 		actionNavBox.add(NavBox.createBtnWithTT(
-				getResourceString("ExportMappingTask.NewMapping"), "Query",
-				getResourceString("ExportMappingTask.NewMappigTT"),
+				getResStr("NewMapping"), "Query",
+				getResStr("NewMappigTT"),
 				IconManager.STD_ICON_SIZE, new ActionListener() {
 					public void actionPerformed(ActionEvent e)
 					{
@@ -276,8 +305,8 @@ public class ExportMappingTask extends QueryTask
 					}
 				}));
 		actionNavBox.add(NavBox.createBtnWithTT(
-				getResourceString("ExportMappingTask.ImportSchema"), "Query",
-				getResourceString("ExportMappingTask.ImportSchemaTT"),
+				getResStr("ImportSchema"), "Query",
+				getResStr("ImportSchemaTT"),
 				IconManager.STD_ICON_SIZE, new ActionListener() {
 					public void actionPerformed(ActionEvent e)
 					{
@@ -327,7 +356,7 @@ public class ExportMappingTask extends QueryTask
 				UIRegistry
 						.getResourceString("ExportSchemaMapEditor.ChooseSchemaTitle"),
 				getExportSchemas());
-		UIHelper.centerAndShow(dlg);
+		centerAndShow(dlg);
 		if (dlg.isCancelled()) return null;
 		return dlg.getSelectedObject();
 	}
@@ -402,7 +431,7 @@ public class ExportMappingTask extends QueryTask
 	@Override
 	protected String getActionNavBoxTitle()
 	{
-		return getResourceString("ExportMappingTask.ActionNavBoxTitle");
+		return getResStr("ActionNavBoxTitle");
 	}
 
 	
@@ -412,7 +441,7 @@ public class ExportMappingTask extends QueryTask
 	@Override
 	protected String getQueryNavBoxTitle()
 	{
-		return getResourceString("ExportMappingTask.MappingNavBoxTitle");
+		return getResStr("MappingNavBoxTitle");
 	}
 
 	/* (non-Javadoc)
@@ -422,6 +451,17 @@ public class ExportMappingTask extends QueryTask
 	protected QueryBldrPane getNewQbPane(SpQuery query)
 	{
 		return buildQb(query);
+	}
+
+	
+	
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.af.tasks.BaseTask#getHelpTarget()
+	 */
+	@Override
+	public String getHelpTarget() 
+	{
+		return "export_data";
 	}
 
 	/**
@@ -488,10 +528,10 @@ public class ExportMappingTask extends QueryTask
 	protected void importSchema()
 	{
         JFileChooser chooser = new JFileChooser(getDefaultSchemaImportDir());
-        chooser.setDialogTitle(getResourceString("ExportMappingTask.IMPORT_SCHEMADEF_TITLE"));
+        chooser.setDialogTitle(getResStr("IMPORT_SCHEMADEF_TITLE"));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setMultiSelectionEnabled(false);
-        chooser.setFileFilter(new UIFileFilter("xsd", getResourceString("ExportMappingTask.SCHEMA_DEFS")));
+        chooser.setFileFilter(new UIFileFilter("xsd", getResStr("SCHEMA_DEFS")));
         
         if (chooser.showOpenDialog(UIRegistry.get(UIRegistry.FRAME)) != JFileChooser.APPROVE_OPTION)
         {
@@ -502,7 +542,7 @@ public class ExportMappingTask extends QueryTask
         File file = chooser.getSelectedFile();
         if (file == null)
         {
-            UIRegistry.getStatusBar().setText(getResourceString("ExportMappingTask.NO_FILE"));
+            UIRegistry.getStatusBar().setText(getResStr("NO_FILE"));
             return;
         }
         
@@ -516,11 +556,11 @@ public class ExportMappingTask extends QueryTask
         
 		if (importSchemaDefinition(file, null, null))
 		{
-			UIRegistry.displayInfoMsgDlgLocalized("ExportMappingTask.SchemaImportSuccess", (Object[] )null);
+			UIRegistry.displayInfoMsgDlgLocalized(getI18N("SchemaImportSuccess"));
 		}
 		else
 		{
-			UIRegistry.displayInfoMsgDlgLocalized("ExportMappingTask.SchemaImportFailure", (Object[] )null);
+			UIRegistry.displayInfoMsgDlgLocalized(getI18N("SchemaImportFailure"));
 		}
 		//importSchemaDefinition(new File("C:/darwincoreWithDiGIRv1.3.xsd"));
 	}
@@ -547,17 +587,48 @@ public class ExportMappingTask extends QueryTask
 	@Override
 	protected List<?> getQueriesForLoading(DataProviderSessionIFace session)
 	{
-		List<SpExportSchema> exportSchemas = getExportSchemas(session);
-		Vector<SpQuery> result = new Vector<SpQuery>();
-		for (SpExportSchema exportSchema : exportSchemas)
-		{
-			for (SpExportSchemaMapping mapping : exportSchema
-					.getSpExportSchemaMappings())
-			{
-				result.add(mapping.getMappings().iterator().next()
-						.getQueryField().getQuery());
-			}
-		}
+	    Vector<SpQuery> result = new Vector<SpQuery>();
+
+	    AppContextMgr appConMgr = AppContextMgr.getInstance();
+	    if (appConMgr != null)
+	    {
+	        Collection currentCollection = appConMgr.getClassObject(Collection.class);
+	        if (currentCollection != null)
+	        {
+	            Integer collId = currentCollection.getId();
+	            if (collId != null)
+	            {
+	                List<SpExportSchema> exportSchemas = getExportSchemas(session);
+	                if (exportSchemas != null)
+	                {
+                		for (SpExportSchema spExportSchema : exportSchemas)
+                		{
+                			for (SpExportSchemaMapping mapping : spExportSchema.getSpExportSchemaMappings())
+                			{
+                				//XXX add condition after SpExportMapping is scoped to Collection
+                				if (mapping.getCollectionMemberId().equals(collId))
+                				{
+                					result.add(mapping.getMappings().iterator().next()
+                						.getQueryField().getQuery());
+                				}
+                			}
+                		}
+	                } else
+	                {
+	                    log.error("exportSchemas list is null");
+	                }
+	            } else
+	            {
+	                log.error("Collection Id is null");
+	            }
+	        } else
+	        {
+	            log.error("Collection is null");
+	        }
+	    } else
+	    {
+	        log.error("AppContextMgr is null");
+	    }
 		return result;
 	}
 
@@ -626,18 +697,26 @@ public class ExportMappingTask extends QueryTask
 			{
 				theSession = DataProviderFactory.getInstance().createSession();
 			}
-			String hql = "from SpExportSchemaMapping sesm inner join sesm.mappings maps inner join maps.queryField qf inner join qf.query q where q.id = " + query.getId();
-			QueryIFace q = theSession.createQuery(hql, false);
-			if (q.list().size() == 0)
+			
+			if (theSession != null)
 			{
-				return null;
+    			//XXX use query sith collectionMemberId condition after spexportmapping is scoped to Collection
+				String hql = "from SpExportSchemaMapping sesm inner join sesm.mappings maps inner join maps.queryField qf inner join qf.query q where q.id = " + query.getId()
+    				+ " and sesm.collectionMemberId = " + AppContextMgr.getInstance().getClassObject(Collection.class).getId();
+    			//String hql = "from SpExportSchemaMapping sesm inner join sesm.mappings maps inner join maps.queryField qf inner join qf.query q where q.id = " + query.getId();
+    			QueryIFace q = theSession.createQuery(hql, false);
+    			if (q.list().size() == 0)
+    			{
+    				return null;
+    			}
+    			Object x = q.list().get(0);
+    			return (SpExportSchemaMapping )((Object[] )x)[0];
 			}
-			Object x = q.list().get(0);
-			return (SpExportSchemaMapping )((Object[] )x)[0];
+			return null;
 		}
 		finally
 		{
-			if (createSession)
+			if (createSession && theSession != null)
 			{
 				theSession.close();
 			}
@@ -670,55 +749,51 @@ public class ExportMappingTask extends QueryTask
 		{
 			if (titleText == null && versionText == null)
 			{
-				PanelBuilder pb = new PanelBuilder(new FormLayout(
-						"5dlu, p, 2dlu, p, 5dlu", "p, 2dlu, p, 2dlu, p"));
+			    ColorWrapper requiredFieldColor = AppPrefsCache.getColorWrapper("ui", "formatting", "requiredfieldcolor");
+			    
+				PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, p, 2dlu, f:p:g", "p, 2dlu, p, 2dlu, p"));
 				CellConstraints cc = new CellConstraints();
-				JLabel lbl = new JLabel(
-						getResourceString("ExportMappingTask.SchemaDescTitle"));
-				lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-				pb.add(lbl, cc.xy(2, 1));
-				lbl = new JLabel(
-						getResourceString("ExportMappingTask.SchemaTitleTitle"));
-				lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-				pb.add(lbl, cc.xy(2, 3));
-				lbl = new JLabel(
-						getResourceString("ExportMappingTask.SchemaVersionTitle"));
-				lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-				pb.add(lbl, cc.xy(2, 5));
-				JTextField namespace = new JTextField(xsd
-						.attributeValue("targetNamespace"));
+				pb.add(createI18NFormLabel(getI18N("SchemaDescTitle")),    cc.xy(2, 1));
+				pb.add(createI18NFormLabel(getI18N("SchemaTitleTitle")),   cc.xy(2, 3));
+				pb.add(createI18NFormLabel(getI18N("SchemaVersionTitle")), cc.xy(2, 5));
+				
+				JTextField namespace = createTextField(xsd.attributeValue("targetNamespace"));
 				namespace.setEditable(false);
 				pb.add(namespace, cc.xy(4, 1));
-				JTextField title = new JTextField();
+				
+				final JTextField title = createTextField(40);
+				title.setBackground(requiredFieldColor.getColor());
 				pb.add(title, cc.xy(4, 3));
-				JTextField version = new JTextField();
+				
+				final JTextField version = createTextField();
+				version.setBackground(requiredFieldColor.getColor());
 				pb.add(version, cc.xy(4, 5));
-				CustomDialog cd = new CustomDialog(
+				
+				pb.setDefaultDialogBorder();
+				
+				final CustomDialog dlg = new CustomDialog(
 						(Frame) UIRegistry.get(UIRegistry.FRAME),
-						UIRegistry
-								.getResourceString("ExportMappingTask.SchemaInfoTitle"),
+						getResStr("SchemaInfoTitle"),
 						true, CustomDialog.OKCANCEL, pb.getPanel());
 
-				boolean tryAgain = true;
-				while (tryAgain)
+				DocumentListener dl = new DocumentAdaptor()
+		        {
+		            @Override
+		            protected void changed(DocumentEvent e)
+		            {
+		                dlg.getOkBtn().setEnabled(!title.getText().isEmpty() || !version.getText().isEmpty());
+		            }
+		        };
+		        title.getDocument().addDocumentListener(dl);
+		        version.getDocument().addDocumentListener(dl);
+		        
+				centerAndShow(dlg);
+				if (dlg.isCancelled())
 				{
-					UIHelper.centerAndShow(cd);
-					if (!cd.isCancelled())
-					{
-						tryAgain = StringUtils.isBlank(title.getText())
-								|| StringUtils.isBlank(version.getText());
-						if (tryAgain)
-						{
-							UIRegistry.displayInfoMsgDlgLocalized(
-									"ExportMappingTask.FillAllFlds",
-									(Object[]) null);
-						}
-					} else
-					{
-						return false;
-					}
+				    return false;
 				}
-				theTitle = title.getText();
+				
+				theTitle  = title.getText();
 				theVersion = version.getText();
 			}
 			boolean doRollback = false;
@@ -730,7 +805,8 @@ public class ExportMappingTask extends QueryTask
 				//XXX possibly need ui here for user to set version or remarks???
 				schema.setSchemaName(theTitle);
 				schema.setSchemaVersion(theVersion);
-				schema.setDescription(xsd.attributeValue("targetNamespace"));
+				String desc = xsd.attributeValue("targetNamespace");
+				schema.setDescription(desc.substring(0, Math.min(255, desc.length())));
 				schema.setDiscipline(AppContextMgr.getInstance().getClassObject(Discipline.class));
 				for (Object itemObj : getNodesForDef(xsd))
 				{
@@ -748,7 +824,7 @@ public class ExportMappingTask extends QueryTask
 			}
 			catch (Exception ex)
 			{
-				if (doRollback)
+				if (doRollback && session != null)
 				{
 					session.rollback();
 				}
@@ -762,11 +838,11 @@ public class ExportMappingTask extends QueryTask
 				}
 			}
 		}
-		UIRegistry.displayErrorDlg("Unable to import schema"); //XXX i18n
+		UIRegistry.displayErrorDlgLocalized(getI18N("MAPPING_ERR"));
 		return false;
 	}
 	
-	protected boolean includeGroup(String substitutionGroupName)
+	protected boolean includeGroup(@SuppressWarnings("unused") String substitutionGroupName)
 	{
 		return true;
 	}
@@ -814,29 +890,32 @@ public class ExportMappingTask extends QueryTask
 	public JPopupMenu getPopupMenu() 
 	{
 		JPopupMenu popupMenu = new JPopupMenu();
-		JMenuItem mi = new JMenuItem(UIRegistry
-				.getResourceString("ExportMappingTask.XML_IMPORT_MAPPINGS"));
+		JMenuItem mi = new JMenuItem(getResStr("XML_IMPORT_MAPPINGS"));
 		popupMenu.add(mi);
 
-		mi.addActionListener(new ActionListener() {
+		mi.addActionListener(new ActionListener() 
+		{
+		    @Override
 			public void actionPerformed(ActionEvent e) {
 				importQueries();
 			}
 		});
 
-		mi = new JMenuItem(UIRegistry.getResourceString("ExportMappingTask.XML_EXPORT_MAPPINGS"));
+		mi = new JMenuItem(getResStr("XML_EXPORT_MAPPINGS"));
 		popupMenu.add(mi);
 
 		mi.addActionListener(new ActionListener() {
+            @Override
 			public void actionPerformed(ActionEvent e) {
 				exportQueries();
 			}
 		});
 		
-		mi = new JMenuItem(UIRegistry.getResourceString("ExportMappingTask.DELETE_SCHEMATA"));
+		mi = new JMenuItem(getResStr("DELETE_SCHEMATA"));
 		popupMenu.add(mi);
 
 		mi.addActionListener(new ActionListener() {
+            @Override
 			public void actionPerformed(ActionEvent e) {
 				deleteSchemata();
 			}
@@ -861,17 +940,17 @@ public class ExportMappingTask extends QueryTask
 				List<SpExportSchema> schemas =  session.getDataList(SpExportSchema.class, "discipline",	
 						AppContextMgr.getInstance().getClassObject(Discipline.class), DataProviderSessionIFace.CompareType.Equals);
 				ChooseFromListDlg<SpExportSchema> dlg = new ChooseFromListDlg<SpExportSchema>((Frame )UIRegistry.getTopWindow(),
-						getResourceString("ExportMappingTask.DELETE_DLG_TITLE"), 
-						getResourceString("ExportMappingTask.DELETE_DLG_MSG"), -1, schemas);
-				UIHelper.centerAndShow(dlg);
+						getResStr("DELETE_DLG_TITLE"), 
+						getResStr("DELETE_DLG_MSG"), -1, schemas);
+				centerAndShow(dlg);
 				if (!dlg.isCancelled() && dlg.getSelectedObject() != null)
 				{
 					SpExportSchema selected = dlg.getSelectedObject();
 					if (selected.getSpExportSchemaMappings().size() > 0)
 					{
 						displayMappings(dlg.getSelectedObject(), selected.getSpExportSchemaMappings().size() > 1 ?
-								getResourceString("ExportMappingTask.MAPPINGS_PREVENT_DELETE") :
-									getResourceString("ExportMappingTask.MAPPING_PREVENTS_DELETE"));
+								getResStr("MAPPINGS_PREVENT_DELETE") :
+									getResStr("MAPPING_PREVENTS_DELETE"));
 					}
 					else
 					{
@@ -881,7 +960,7 @@ public class ExportMappingTask extends QueryTask
 							session.beginTransaction();
 							session.delete(selected);
 							session.commit();
-							UIRegistry.displayLocalizedStatusBarText("ExportMappingTask.SchemaDeleted");
+							UIRegistry.displayLocalizedStatusBarText(getI18N("SchemaDeleted"));
 						}
 						catch (Exception ex)
 						{
@@ -891,7 +970,7 @@ public class ExportMappingTask extends QueryTask
 				            }
 							UsageTracker.incrHandledUsageCount();
 				            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ExportMappingTask.class, ex);
-							UIRegistry.displayStatusBarErrMsg(UIRegistry.getResourceString("ExportMappingTask.SchemaDeleteError"));
+							UIRegistry.displayStatusBarErrMsg(getResStr("SchemaDeleteError"));
 						}
 					}
 				}
@@ -915,18 +994,22 @@ public class ExportMappingTask extends QueryTask
 		int i = 0;
 		for (SpExportSchemaMapping mapping : schema.getSpExportSchemaMappings())
 		{
-			model.add(i++, mapping.getMappingName());
+			//XXX add condition after SpExportMapping is scoped to Collection
+			//if (mapping.getCollectionMemberId().equals(AppContextMgr.getInstance().getClassObject(Collection.class).getId()))
+			{
+				model.add(i++, mapping.getMappingName());
+			}
 		}
 		JList list = new JList(model);
 		PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, p:g, 5dlu", "5dlu, p, 3dlu"));
 		CellConstraints cc = new CellConstraints();
-		pb.add(new JLabel(msg), cc.xy(2, 2));
+		pb.add(createLabel(msg), cc.xy(2, 2));
 		JPanel pane = new JPanel(new BorderLayout());
 		pane.add(pb.getPanel(), BorderLayout.NORTH);
 		pane.add(list, BorderLayout.CENTER);
-		CustomDialog cd = new CustomDialog((Frame )UIRegistry.getTopWindow(), UIRegistry.getResourceString("ExportMappingTask.MAPPINGS_TITLE"),
+		CustomDialog cd = new CustomDialog((Frame )UIRegistry.getTopWindow(), getResStr("MAPPINGS_TITLE"),
 				true, CustomDialog.OK_BTN, pane);
-		UIHelper.centerAndShow(cd);
+		centerAndShow(cd);
 	}
 	
 	/* (non-Javadoc)
@@ -940,26 +1023,23 @@ public class ExportMappingTask extends QueryTask
 
 
 
-	protected JPanel bldSchemaImportPane(String schemaNamespace)
+	protected JPanel bldSchemaImportPane(String schemaNamespace) // I18N
 	{
-		PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, p, 2dlu, p, 5dlu", "p, 2dlu, p, 2dlu, p"));
+		PanelBuilder    pb = new PanelBuilder(new FormLayout("5dlu, p, 2dlu, p, 5dlu", "p, 2dlu, p, 2dlu, p"));
 		CellConstraints cc = new CellConstraints();
-		JLabel lbl = new JLabel("Schema:");
-		lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		pb.add(lbl, cc.xy(2, 1));
-		lbl = new JLabel("Schema Title:");
-		lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		pb.add(lbl, cc.xy(2, 3));
-		lbl = new JLabel("Schema Version:");
-		lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		pb.add(lbl, cc.xy(2, 5));
-		JTextField namespace = new JTextField(schemaNamespace);
-		namespace.setEditable(false);
+		
+		pb.add(createLabel("Schema:", SwingConstants.RIGHT), cc.xy(2, 1));
+		pb.add(createLabel("Schema Title:", SwingConstants.RIGHT), cc.xy(2, 3));
+		pb.add(createLabel("Schema Version:", SwingConstants.RIGHT), cc.xy(2, 5));
+		
+		JTextField namespace = createTextField(schemaNamespace);
+		ViewFactory.changeTextFieldUIForDisplay(namespace, false);
 		pb.add(namespace, cc.xy(4, 1));
-		JTextField title = new JTextField();
-		pb.add(title, cc.xy(4, 3));
-		JTextField version = new JTextField();
-		pb.add(version, cc.xy(4, 5));
+		
+		pb.add(createTextField(), cc.xy(4, 3));
+		
+		pb.add(createTextField(), cc.xy(4, 5));
+		
 		return pb.getPanel();
 	}
 	
@@ -976,7 +1056,8 @@ public class ExportMappingTask extends QueryTask
 				//so if there is more than one docObj earlier objects 
 				//are overwritten by later objects
 				Element docElem = (Element )docObj;
-				result.setDescription(docElem.getText());
+				String desc = docElem.getText();
+				result.setDescription(desc.substring(0, Math.min(255, desc.length())));
 			}
 		} catch (XPathException ex)
 		{
@@ -992,8 +1073,9 @@ public class ExportMappingTask extends QueryTask
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getExportDlgMsgi18nKey()
 	 */
 	@Override
-	protected String getExportDlgMsgi18nKey() {
-		return "ExportMappingTask.NothingToExport";
+	protected String getExportDlgMsgi18nKey() 
+	{
+		return getI18N("ChooseMappings");
 	}
 
 
@@ -1002,59 +1084,53 @@ public class ExportMappingTask extends QueryTask
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getExportDlgTitlei18nKey()
 	 */
 	@Override
-	protected String getExportDlgTitlei18nKey() {
-		return "ExportMappingTask.EXPORT_QUERIES";
+	protected String getExportDlgTitlei18nKey() 
+	{
+		return getI18N("EXPORT_QUERIES");
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getExportHelpContext()
 	 */
 	@Override
-	protected String getExportHelpContext() {
-		// TODO Auto-generated method stub
-		//XXX help for mapper???
+	protected String getExportHelpContext() 
+	{
 		return super.getExportHelpContext();
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getExportUsageKey()
 	 */
 	@Override
-	protected String getExportUsageKey() {
+	protected String getExportUsageKey() 
+	{
 		return "ExportMapper.Export";
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getXMLExportFirstLine()
 	 */
 	@Override
-	protected String getXMLExportFirstLine() {
+	protected String getXMLExportFirstLine() 
+	{
 		return "<spexportschemamappings>\n";
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#getXMLExportLastLine()
 	 */
 	@Override
-	protected String getXMLExportLastLine() {
+	protected String getXMLExportLastLine() 
+	{
 		return "</spexportschemamappings>";
 	}
-
-
 
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.specify.tasks.QueryTask#toXML(edu.ku.brc.specify.datamodel.SpQuery, java.lang.StringBuilder)
 	 */
 	@Override
-	protected void toXML(SpQuery query, StringBuilder sb) {
+	protected void toXML(SpQuery query, StringBuilder sb) 
+	{
 		//XXX Don't seem to need this method anymore...
 		super.toXML(query, sb);
 	}
@@ -1069,12 +1145,12 @@ public class ExportMappingTask extends QueryTask
 	{
 		Vector<Object[]> names = BasicSQLUtils.query(sql);
 		HashSet<String> nameSet = new HashSet<String>();
-		for (Object[] name : names)
+		for (Object[] nm : names)
 		{
-			nameSet.add((String )name[0]);
+			nameSet.add((String )nm[0]);
 		}
         int    cnt      = 0;
-        String objName    = currentName;
+        String objName  = currentName;
         while (nameSet.contains(objName))
         {
             cnt++;
@@ -1119,11 +1195,8 @@ public class ExportMappingTask extends QueryTask
 			{
 				return false;
 			}
-			
 		}
 		return true;
 	}
-	
-	
 }
 

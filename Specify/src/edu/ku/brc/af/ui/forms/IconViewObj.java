@@ -188,6 +188,15 @@ public class IconViewObj implements Viewable
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#getMVParent()
+     */
+    @Override
+    public MultiView getMVParent()
+    {
+        return mvParent;
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#setClassToCreate(java.lang.String)
      */
     public void setClassToCreate(final Class<?> classToCreate)
@@ -210,7 +219,7 @@ public class IconViewObj implements Viewable
     {
         if (isEditing)
         {
-            String delTTStr = ResultSetController.createTooltip("RemoveRecordTT", view.getObjTitle());
+            String delTTStr = ResultSetController.createTooltip("DeleteRecordTT", view.getObjTitle());
             String edtTTStr = ResultSetController.createTooltip("EditRecordTT",   view.getObjTitle());
             String newTTStr = ResultSetController.createTooltip("NewRecordTT",    view.getObjTitle());
 
@@ -358,8 +367,8 @@ public class IconViewObj implements Viewable
     {
         try
         {
-            Class<?> dataClass = Class.forName(dataClassName != null ? dataClassName : view.getClassName());
-            if (Orderable.class.isAssignableFrom(dataClass))
+            Class<?> dataClss = Class.forName(dataClassName != null ? dataClassName : view.getClassName());
+            if (Orderable.class.isAssignableFrom(dataClss))
             {
                 // this IconViewObj is showing Orderable objects
                 // so we should use an OrderedIconTray
@@ -768,7 +777,7 @@ public class IconViewObj implements Viewable
                         shortClassName = classToCreate.getSimpleName();
                     }
                 }
-                perm = SecurityMgr.getInstance().getPermission("DO."+shortClassName);            
+                perm = SecurityMgr.getInstance().getPermission("DO."+shortClassName.toLowerCase());            
             }
             
             if ((isEditing && perm.isViewOnly()) || (!isEditing && !perm.canView()))
@@ -1021,7 +1030,18 @@ public class IconViewObj implements Viewable
     {
         // do nothing
     }
-
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.Viewable#enableMultiViewSwitch(boolean)
+     */
+    public void enableMultiViewSwitch(boolean enabled)
+    {
+        if (switcherUI != null)
+        {
+            switcherUI.setEnabled(enabled);   
+        }
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.ui.forms.Viewable#dataHasChanged()
      */

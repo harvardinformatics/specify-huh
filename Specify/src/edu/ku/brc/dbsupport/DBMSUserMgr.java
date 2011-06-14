@@ -22,6 +22,8 @@ package edu.ku.brc.dbsupport;
 import java.io.File;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.sql.Connection;
+import java.util.List;
 
 import edu.ku.brc.specify.config.init.SpecifyDBSetupWizard;
 import edu.ku.brc.ui.UIHelper;
@@ -46,15 +48,20 @@ public abstract class DBMSUserMgr
                            error,
                            cancelled }
     
-    public static final int PERM_NONE        = 0;
-    public static final int PERM_SELECT      = 1;
-    public static final int PERM_UPDATE      = 2;
-    public static final int PERM_DELETE      = 4;
-    public static final int PERM_INSERT      = 8;
-    public static final int PERM_LOCK_TABLES = 16;
-    public static final int PERM_BASIC       = 31;
+    public static final int PERM_NONE         =    0;
+    public static final int PERM_SELECT       =    1;
+    public static final int PERM_UPDATE       =    2;
+    public static final int PERM_DELETE       =    4;
+    public static final int PERM_INSERT       =    8;
+    public static final int PERM_LOCK_TABLES  =   16;
     
-    public static final int PERM_ALL         = 32; // Literally 'all' the permissions
+    public static final int PERM_ALL_BASIC    =   31; // Literally 'all' the basic permissions
+    
+    public static final int PERM_ALTER_TABLE  =   64;
+    public static final int PERM_CREATE_TABLE =  128;
+    public static final int PERM_DROP_TABLE   =  512;
+    
+    public static final int PERM_ALL          = 1023;
     
     private static DBMSUserMgr instance = null;
    
@@ -74,6 +81,13 @@ public abstract class DBMSUserMgr
      * @return true on success
      */
     public abstract boolean dropDatabase(String dbName);
+    
+    /**
+     * Drops a database table with a given name.
+     * @param tableName the name of the table
+     * @return true on success
+     */
+    public abstract boolean dropTable(String tableName);
     
     /**
      * Drops a user with a given name.
@@ -129,6 +143,34 @@ public abstract class DBMSUserMgr
      * @return true if the IT user got logged in
      */
     public abstract boolean connect(String username, String password, String databaseHost, String dbName);
+    
+    /**
+     * Enables the Mgr to use an existing connection. Assumes it has permissions to whatever
+     * the other calls that are made.
+     * @param connection and existing JDBC connection
+     */
+    public abstract void setConnection(Connection connection);
+    
+    /**
+     * @return the current connection (do not close).
+     */
+    public abstract Connection getConnection();
+    
+    /**
+     * Checks to see if a field exists for a table.
+     * @param tableName the name of the table to be checked
+     * @param fieldName the name of the field to be checked
+     * @return false if table or field doesn't exist
+     */
+    public abstract boolean doesFieldExistInTable(String tableName, String fieldName);
+    
+    /*
+     * Returns the length of a field if there is one or null.
+     * @param tableName the table name
+     * @param fieldName the field in the table
+     * @return length of field or null if field does not exist.
+     */
+    public abstract Integer getFieldLength(final String tableName, final String fieldName);
 
 	/**
 	 * Creates a user and assigns permissions.
@@ -148,11 +190,19 @@ public abstract class DBMSUserMgr
     public abstract boolean doesDBHaveTables();
     
     /**
-     * Check to see if the table is in the schema
+     * Check to see if the table is in the current schema
      * @param dbName the database name
      * @return true if the table exists, false if not.
      */
     public abstract boolean doesDBHaveTable(final String tableName);
+    
+    /**
+     * Check to see if the table is in the database schema
+     * @param databaseName the database in question (not the current connection)
+     * @param dbName the database name
+     * @return true if the table exists, false if not.
+     */
+    public abstract boolean doesDBHaveTable(final String databaseName, final String tableName);
     
     /**
      * Some databases require a specific engine and also the charset needs to be checked (UTF-8).
@@ -182,7 +232,7 @@ public abstract class DBMSUserMgr
 	 * @return the mask of bits indicating the permissions setting
 	 */
 	public abstract int getPermissions(String username, String dbName);
-
+	
 	/**
 	 * Sets permissions for a user on a database 
 	 * @param username the user
@@ -192,6 +242,25 @@ public abstract class DBMSUserMgr
 	 */
 	public abstract boolean setPermissions(String username, String dbName, int permissions);
 	
+    /**
+     * @return list of databases.
+     */
+    public abstract List<String> getDatabaseList();
+    
+    /**
+     * @param username the user to check
+     * @return list of databases that this user has permissions to access.
+     */
+    public abstract List<String> getDatabaseListForUser(String username);
+    
+    /**
+     * Checks to see if a user has permissions to grant permissions.
+     * @param hostMachineName
+     * @param username
+     * @return
+     */
+    public abstract boolean canGrantPemissions(String hostMachineName, String username);
+    
     /**
      * @param hostName the host name to connect to
      */
@@ -216,7 +285,7 @@ public abstract class DBMSUserMgr
                                          final String itPassword)
     {
         DBSTATUS status = checkForDB(dbName, hostName, itUsername,itPassword);
-        if (status == status.hasTables || status == status.emptyDB)
+        if (status == DBSTATUS.hasTables || status == DBSTATUS.emptyDB)
         {
             status = UIHelper.promptForAction("PROCEED", "CANCEL", "DEL_CUR_DB_TITLE", UIRegistry.getLocalizedMessage("DEL_CUR_DB", dbName)) ? DBSTATUS.ok : DBSTATUS.cancelled;
         }

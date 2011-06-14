@@ -20,10 +20,16 @@
 package edu.ku.brc.specify.config.init;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,25 +40,31 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.dom4j.Element;
 import org.hibernate.Session;
 
 import com.thoughtworks.xstream.XStream;
 
+import edu.ku.brc.af.auth.SecurityOptionIFace;
+import edu.ku.brc.af.auth.specify.permission.PermissionService;
+import edu.ku.brc.af.auth.specify.policy.DatabaseService;
 import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
 import edu.ku.brc.af.auth.specify.principal.GroupPrincipal;
 import edu.ku.brc.af.auth.specify.principal.UserPrincipal;
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.PermissionIFace;
+import edu.ku.brc.af.core.TaskMgr;
+import edu.ku.brc.af.core.Taskable;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.db.PickListIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.dbsupport.AttributeIFace;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.RecordSetIFace;
-import edu.ku.brc.helpers.HTTPGetter;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.SpecifyUserTypes;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.AccessionAgent;
 import edu.ku.brc.specify.datamodel.AccessionAuthorization;
@@ -77,7 +89,6 @@ import edu.ku.brc.specify.datamodel.CollectionObjectCitation;
 import edu.ku.brc.specify.datamodel.CollectionRelType;
 import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Container;
-import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.DataType;
 import edu.ku.brc.specify.datamodel.Deaccession;
 import edu.ku.brc.specify.datamodel.DeaccessionAgent;
@@ -108,7 +119,6 @@ import edu.ku.brc.specify.datamodel.LocalityDetail;
 import edu.ku.brc.specify.datamodel.OtherIdentifier;
 import edu.ku.brc.specify.datamodel.Permit;
 import edu.ku.brc.specify.datamodel.PickList;
-import edu.ku.brc.specify.datamodel.PickListItem;
 import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.PreparationAttr;
@@ -117,9 +127,6 @@ import edu.ku.brc.specify.datamodel.RecordSet;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.RepositoryAgreement;
 import edu.ku.brc.specify.datamodel.Shipment;
-import edu.ku.brc.specify.datamodel.SpExportSchema;
-import edu.ku.brc.specify.datamodel.SpExportSchemaItem;
-import edu.ku.brc.specify.datamodel.SpLocaleContainerItem;
 import edu.ku.brc.specify.datamodel.SpPermission;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpQuery;
@@ -234,6 +241,7 @@ public class DataBuilder
         groupPerson.setOrderIndex(order);
         
         groupPerson.setDivision(division);
+        
         if (true)
         {
             groupPerson.setMember(agent);
@@ -247,7 +255,7 @@ public class DataBuilder
             agent.addReference(groupPerson, "members");
         }
         
-        System.out.println("Agent '"+agent.getLastName()+"' is in groups:");
+        /*System.out.println("Agent '"+agent.getLastName()+"' is in groups:");
         for (GroupPerson gp : agent.getGroups())
         {
             System.out.println("  Mem '"+gp.getGroup().getLastName()+"'  "+gp.getOrderIndex());
@@ -256,7 +264,7 @@ public class DataBuilder
         for (GroupPerson gp : group.getMembers())
         {
             System.out.println("  Mem '"+gp.getMember().getLastName()+"'  "+gp.getOrderIndex());
-        }
+        }*/
         return groupPerson;
     }
     
@@ -309,20 +317,6 @@ public class DataBuilder
         agent.setAbbreviation(abbreviation);
         agent.setTitle(title);
         agent.setEmail(email);
-        
-        if (discipline == null)
-        {
-            Discipline disp = AppContextMgr.getInstance().getClassObject(Discipline.class);
-            if (disp != null)
-            {   
-                agent.getDisciplines().add(disp);
-                disp.getAgents().add(agent);
-            }
-        } else
-        {
-            agent.getDisciplines().add(discipline);
-            discipline.getAgents().add(agent);
-        }
         
         if (division == null)
         {
@@ -440,6 +434,17 @@ public class DataBuilder
         return attrDef;
     }
 
+    /**
+     * @param division
+     * @param type
+     * @param name
+     * @param dataType
+     * @param taxonTreeDef
+     * @param geographyTreeDef
+     * @param geologicTimePeriodTreeDef
+     * @param lithoStratTreeDef
+     * @return
+     */
     public static Discipline createDiscipline(final Division         division,
                                               final String           type,
                                               final String           name,
@@ -818,6 +823,8 @@ public class DataBuilder
         gtdi.setName(name);
         gtdi.setParent(parent);
         gtdi.setRankId(rankId);
+        gtdi.setIsInFullName(false);
+        gtdi.setIsEnforced(false);
         gtdi.setTreeDef(gtd);
         gtdi.setFullNameSeparator(", ");
         if (gtd != null)
@@ -924,6 +931,8 @@ public class DataBuilder
         ltdi.setParent(parent);
         ltdi.setRankId(rankId);
         ltdi.setTreeDef(ltd);
+        ltdi.setIsInFullName(false);
+        ltdi.setIsEnforced(false);
         ltdi.setFullNameSeparator(", ");
         if (ltd != null)
         {
@@ -1059,7 +1068,9 @@ public class DataBuilder
         gtdi.setParent(parent);
         gtdi.setRankId(rankId);
         gtdi.setTreeDef(gtptd);
-        gtdi.setFullNameSeparator(", ");
+        gtdi.setIsInFullName(false);
+        gtdi.setIsEnforced(false);
+         gtdi.setFullNameSeparator(", ");
         if (gtptd != null)
         {
             gtptd.getTreeDefItems().add(gtdi);
@@ -1150,6 +1161,8 @@ public class DataBuilder
         ttdi.setName(name);
         ttdi.setParent(parent);
         ttdi.setRankId(rankId);
+        ttdi.setIsInFullName(false);
+        ttdi.setIsEnforced(false);
         ttdi.setTreeDef(ttd);
         ttdi.setFullNameSeparator(" ");
         if (ttd != null)
@@ -1192,7 +1205,8 @@ public class DataBuilder
                 lstdi.setName(name);
                 lstdi.setRankId(rankId);
                 lstdi.setIsInFullName(inFullName);
-                
+                lstdi.setIsEnforced(false);
+
                 lstdi.setTreeDef(treeDef);
                 treeDef.getTreeDefItems().add(lstdi);
                 
@@ -1218,6 +1232,7 @@ public class DataBuilder
             lstdi.setName(name);
             lstdi.setRankId(rankId);
             lstdi.setIsInFullName(inFullName);
+            lstdi.setIsEnforced(false);
             lstdi.setTreeDef(treeDef);
             treeDef.getTreeDefItems().add(lstdi);
             return lstdi;
@@ -2380,6 +2395,7 @@ public class DataBuilder
                                                              final String             abbrev,
                                                              final Discipline         discipline, 
                                                              final Division           division, 
+                                                             final Collection         collection,
                                                              final Map<String, SpPrincipal> groupMap, 
                                                              final String             userType) 
     {
@@ -2391,7 +2407,7 @@ public class DataBuilder
         SpecifyUser testerUser = createSpecifyUser(name, email, pwd, groupMap, userType);
         sessionArg.saveOrUpdate(testerUser);
         
-        SpPrincipal testerUserPrincipal = DataBuilder.createUserPrincipal(testerUser);
+        SpPrincipal testerUserPrincipal = DataBuilder.createUserPrincipal(testerUser, collection);
         sessionArg.saveOrUpdate(testerUserPrincipal);
         
         testerUser.addUserToSpPrincipalGroup(testerUserPrincipal);
@@ -2452,12 +2468,13 @@ public class DataBuilder
         return groupPrincipal;
     }
     
-    public static SpPrincipal createUserPrincipal(final SpecifyUser user)
+    public static SpPrincipal createUserPrincipal(final SpecifyUser user, final Collection scope)
     {
         SpPrincipal userPrincipal = new SpPrincipal();
         userPrincipal.initialize();
         userPrincipal.setName(user.getName());
         userPrincipal.setPriority(80);
+        userPrincipal.setScope(scope);
         userPrincipal.setGroupSubClass(UserPrincipal.class.getCanonicalName());
         user.getSpPrincipals().add(userPrincipal);
         return userPrincipal;   
@@ -2538,9 +2555,9 @@ public class DataBuilder
      */
     public static void createDefaultPermissions(final Session sessionArg, final Map<String, SpPrincipal> groupMap)
     {
-        createDefaultPermissions(sessionArg, "dataobjs.xml",   "DO.",    groupMap);
-        createDefaultPermissions(sessionArg, "prefsperms.xml", "Prefs.", groupMap);
-        createDefaultPermissions(sessionArg, "tasks.xml",      "Task.",  groupMap);
+        createDefaultPermissions(sessionArg, "dataobjs.xml",   "DO.",    groupMap, null);
+        createDefaultPermissions(sessionArg, "prefsperms.xml", "Prefs.", groupMap, null);
+        createDefaultPermissions(sessionArg, "tasks.xml",      "Task.",  groupMap, getTasksAdditionalSecOpts());
     }
     
     /**
@@ -2550,15 +2567,19 @@ public class DataBuilder
     public static void writePerms(final Hashtable<String, Hashtable<String, PermissionOptionPersist>> hash,
                                   final String fileName)
     {
-        XStream xstream = new XStream();
-        PermissionOptionPersist.config(xstream);
-        try
+        AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+        if (localPrefs != null && localPrefs.getBoolean("perms.write.xml", false))
         {
-            FileUtils.writeStringToFile(new File(fileName), xstream.toXML(hash)); //$NON-NLS-1$
-            
-        } catch (IOException ex)
-        {
-            ex.printStackTrace();
+            XStream xstream = new XStream();
+            PermissionOptionPersist.config(xstream);
+            try
+            {
+                FileUtils.writeStringToFile(new File(fileName), xstream.toXML(hash)); //$NON-NLS-1$
+                
+            } catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
         }
     }
     
@@ -2570,33 +2591,53 @@ public class DataBuilder
     public static void createDefaultPermissions(final Session     sessionArg,
                                                 final String      filename,
                                                 final String      prefix,
-                                                final Map<String, SpPrincipal> groupMap)
+                                                final Map<String, SpPrincipal> groupMap,
+                                                final List<SecurityOptionIFace> additionalSecOpts)
     {
         Hashtable<String, Hashtable<String, PermissionOptionPersist>> mainHash = BaseTask.readDefaultPermsFromXML(filename);
-        if (true)
+        for (String permName : mainHash.keySet())
         {
-            for (String permName : mainHash.keySet())
+            String userType = "LimitedAccess";
+            Hashtable<String, PermissionOptionPersist> hash = mainHash.get(permName);
+            if (hash.get(userType) == null)
             {
-                String userType = "LimitedAccess";
-                Hashtable<String, PermissionOptionPersist> hash = mainHash.get(permName);
-                if (hash.get(userType) == null)
+                PermissionOptionPersist permOpts = hash.get("Manager");
+                PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
+                hash.put(userType, newPermOpts);
+            }
+            
+            userType = "FullAccess";
+            hash = mainHash.get(permName);
+            if (hash.get(userType) == null)
+            {
+                PermissionOptionPersist permOpts = hash.get("Manager");
+                PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
+                hash.put(userType, newPermOpts);
+            }
+        }
+        
+        if (additionalSecOpts != null)
+        {
+            for (SecurityOptionIFace aso : additionalSecOpts)
+            {
+                Hashtable<String, PermissionOptionPersist> hash = mainHash.get(aso.getPermissionName());
+                if (hash == null)
                 {
-                    PermissionOptionPersist permOpts = hash.get("Manager");
-                    PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
-                    hash.put(userType, newPermOpts);
+                    hash = new Hashtable<String, PermissionOptionPersist>();
+                    mainHash.put(aso.getPermissionName(), hash);
                 }
-                
-                userType = "FullAccess";
-                hash = mainHash.get(permName);
-                if (hash.get(userType) == null)
+                for (SpecifyUserTypes.UserType userType : SpecifyUserTypes.UserType.values())
                 {
-                    PermissionOptionPersist permOpts = hash.get("Manager");
-                    PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
-                    hash.put(userType, newPermOpts);
+                    PermissionIFace asoPerm = aso.getDefaultPermissions(userType.toString());
+                    if (asoPerm != null)
+                    {
+                        PermissionOptionPersist newPermOpts = new PermissionOptionPersist(aso.getPermissionName(), userType.toString(), asoPerm.canView(), asoPerm.canModify(), asoPerm.canDelete(), asoPerm.canAdd());
+                        hash.put(userType.toString(), newPermOpts);
+                    }
                 }
             }
-            writePerms(mainHash, filename);
         }
+        writePerms(mainHash, filename);
 
         for (SpPrincipal p : groupMap.values())
         {
@@ -2619,7 +2660,234 @@ public class DataBuilder
             }
         }
     }
+    
+    //-------------------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Create default groups under the given scope.
+     *
+     */
+    public static Map<String, List<Integer>> mergeStandardGroups(final Collection scope)
+    {
+        loadDefaultGroupDefinitions();
+        
+        Map<String, List<Integer>> groupMap = new HashMap<String, List<Integer>>();
 
+        for (String usertype : usertypeToDefaultGroup.keySet()) 
+        {
+            Pair<String, Byte> grpInfo = usertypeToDefaultGroup.get(usertype);
+            List<Integer> principleIds = getGroup(grpInfo.first, usertype, scope);
+            groupMap.put(usertype, principleIds);
+        }
+        mergeDefaultPermissions(groupMap);
+
+        return groupMap;
+    }
+    
+    /**
+     * @return
+     */
+    private static List<SecurityOptionIFace> getTasksAdditionalSecOpts()
+    {
+        List<SecurityOptionIFace> additionalTaskSecOpts = new ArrayList<SecurityOptionIFace>();
+        for (Taskable task : TaskMgr.getInstance().getAllTasks())
+        {
+            List<SecurityOptionIFace> list = task.getAdditionalSecurityOptions();
+            if (list != null)
+            {
+                additionalTaskSecOpts.addAll(list);
+            }
+        }
+        return additionalTaskSecOpts;
+    }
+    
+    /**
+     * @param groupMap
+     */
+    private static void mergeDefaultPermissions(final Map<String, List<Integer>> groupMap)
+    {
+
+        mergeDefaultPermissions("dataobjs.xml",   "DO.",    groupMap);
+        mergeDefaultPermissions("prefsperms.xml", "Prefs.", groupMap);
+        mergeDefaultPermissions("tasks.xml",      "Task.",  groupMap);
+    }
+    
+    /**
+     * @param name
+     * @param type
+     * @param scope
+     * @return
+     */
+    private static List<Integer> getGroup(final String name, 
+                                          final String type, 
+                                          final Collection scope)
+    {   
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+        String sql = " SELECT SpPrincipalID FROM spprincipal WHERE Name=? AND groupType=? AND GroupSubClass=? AND userGroupScopeID=?"; 
+        String grpTypeStr = GroupPrincipal.class.getCanonicalName();
+        
+        Connection conn = DBConnection.getInstance().getConnection();
+        PreparedStatement pStmt = null;
+        try
+        {
+            pStmt = conn.prepareStatement(sql);
+            pStmt.setString(1, name);
+            pStmt.setString(2, type);
+            pStmt.setString(3, grpTypeStr);
+            pStmt.setInt(4, scope.getId());
+            
+            ResultSet rs = pStmt.executeQuery();
+            while (rs.next())
+            {
+                ids.add(rs.getInt(1));
+            }
+            rs.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            
+        } finally
+        {
+            try
+            {
+                if (pStmt != null) pStmt.close();
+            } catch (SQLException e) {}
+        }
+        
+        return ids;
+    }
+    
+    /**
+     * @param filename
+     * @param prefix
+     * @param groupMap
+     */
+    public static void mergeDefaultPermissions(final String      filename,
+                                               final String      prefix,
+                                               final Map<String, List<Integer>> groupMap)
+    {
+        Hashtable<String, Hashtable<String, PermissionOptionPersist>> mainHash = BaseTask.readDefaultPermsFromXML(filename);
+        for (String permName : mainHash.keySet())
+        {
+            String userType = "LimitedAccess";
+            Hashtable<String, PermissionOptionPersist> hash = mainHash.get(permName);
+            if (hash.get(userType) == null)
+            {
+                PermissionOptionPersist permOpts = hash.get("Manager");
+                PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
+                hash.put(userType, newPermOpts);
+            }
+            
+            userType = "FullAccess";
+            hash = mainHash.get(permName);
+            if (hash.get(userType) == null)
+            {
+                PermissionOptionPersist permOpts = hash.get("Manager");
+                PermissionOptionPersist newPermOpts = new PermissionOptionPersist(permOpts.getTaskName(), userType, permOpts.isCanView(), permOpts.isCanModify(), permOpts.isCanDel(), permOpts.isCanAdd());
+                hash.put(userType, newPermOpts);
+            }
+        }
+        
+        /*if (additionalSecOpts != null)
+        {
+            for (SpecifyUserTypes.UserType userType : SpecifyUserTypes.UserType.values())
+            {
+                System.out.println(userType.toString()+" --------------------------------------");
+                for (SecurityOptionIFace aso : additionalSecOpts)
+                {
+                    PermissionIFace asoPerm = aso.getDefaultPermissions(userType.toString());
+                    if (asoPerm != null)
+                    {
+                        System.out.println("  "+prefix+aso.getPermissionName()+"  "+asoPerm.getOptions());
+                    }
+                }
+            }
+        }*/
+        
+        
+        HashMap<SpPermission, List<Integer>> prinPermHash = new HashMap<SpPermission, List<Integer>>();
+        for (String permName : mainHash.keySet())
+        {
+            String fullPermName = prefix + permName;
+            
+            Hashtable<String, PermissionOptionPersist> hash = mainHash.get(permName);
+            for (String userType : hash.keySet()) 
+            {
+                PermissionOptionPersist tp   = hash.get(userType);
+                SpPermission            perm = tp.getSpPermission();
+                
+                for (Integer id : groupMap.get(userType))
+                {
+                    String str = "SELECT p.SpPermissionID FROM sppermission AS p Inner Join spprincipal_sppermission AS pp ON p.SpPermissionID = pp.SpPermissionID " +
+                    		     "WHERE p.Name = '%s' AND pp.SpPrincipalID = %d";
+                    String sql = String.format(str, fullPermName, id);
+                    Integer permId = BasicSQLUtils.getCount(sql);
+                    if (permId == null)
+                    {
+                        System.out.println(String.format("Going to create %s for Prin: %d", fullPermName, id));
+                        List<Integer> list = prinPermHash.get(perm);
+                        if (list == null)
+                        {
+                            perm.setName(fullPermName);
+                            list = new ArrayList<Integer>();
+                            prinPermHash.put(perm, list);
+                        }
+                        list.add(id);
+                    }
+                }
+            }
+        }
+        
+        if (prinPermHash.size() > 0)
+        {
+            Connection        conn   = null;
+            PreparedStatement pstmt1 = null; 
+            PreparedStatement pstmt2 = null; 
+            try
+            {
+                conn = DatabaseService.getInstance().getConnection();            
+                pstmt1 = conn.prepareStatement("INSERT INTO sppermission (Actions, Name, PermissionClass) VALUES (?, ?, ?)");         //$NON-NLS-1$
+                pstmt2 = conn.prepareStatement("INSERT INTO spprincipal_sppermission (SpPermissionID, SpPrincipalID) VALUES (?, ?)"); //$NON-NLS-1$
+                for (SpPermission spPerm : prinPermHash.keySet())
+                {
+                    for (Integer prinId : prinPermHash.get(spPerm))
+                    {
+                        pstmt1.setString(1, spPerm.getActions());
+                        pstmt1.setString(2, spPerm.getName());
+                        pstmt1.setString(3, spPerm.getClass().getName());
+                        pstmt1.executeUpdate();
+                        
+                        Integer newPermId = BasicSQLUtils.getInsertedId(pstmt1);
+                        pstmt2.setInt(1, newPermId);
+                        pstmt2.setInt(2, prinId);
+                        pstmt2.executeUpdate();
+                    }
+                }
+            }
+            catch (SQLException e)
+            {
+                e.printStackTrace();
+                edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
+                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PermissionService.class, e);
+            } finally
+            {
+                try
+                {
+                    if (pstmt1 != null)  pstmt1.close(); 
+                    if (pstmt2 != null)  pstmt2.close(); 
+                    if (conn != null)  conn.close();
+                    
+                } catch (SQLException e)
+                {
+                    e.printStackTrace();
+                    edu.ku.brc.af.core.UsageTracker.incrSQLUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PermissionService.class, e);
+                }
+            } 
+        }
+    }
+    
+    //------------------------------------------------------------------------
     
     public static Workbench createWorkbench(final SpecifyUser user,
                                             final String name, 
@@ -2720,40 +2988,18 @@ public class DataBuilder
     }
     
     /**
-     * @return
+     * Configures both BldrPickList and BldrPickListItem
+     * @param xstream the stream
+     * @param doPartial not all the fields
      */
-    @SuppressWarnings("unchecked")
-    public static List<BldrPickList> getBldrPickLists(final String disciplineDirName)
+    public static void configXStream(final XStream xstream, 
+                                     final boolean doExportImport)
     {
-        XStream xstream = new XStream();
-        
-        //xstream.alias("picklist",     BldrPickList.class);
-        //xstream.alias("picklistitem", BldrPickListItem.class);
-        
-        /*
-        xstream.aliasAttribute(BldrPickList.class, "readonly", "readOnly");
-        xstream.aliasAttribute(BldrPickList.class, "tablename", "tableName");
-        xstream.aliasAttribute(BldrPickList.class, "sizelimit", "sizeLimit");
-        
-        xstream.aliasAttribute(BldrPickList.class, "readOnly", "readonly");
-        xstream.aliasAttribute(BldrPickList.class, "tableName", "tablename");
-        xstream.aliasAttribute(BldrPickList.class, "sizeLimit", "sizelimit");
-        
-        xstream.aliasField("readonly", BldrPickList.class, "readonly");
-        xstream.aliasField("tablename", BldrPickList.class, "tableName");
-        xstream.aliasField("sizelimit", BldrPickList.class, "sizeLimit");
-        
-        xstream.aliasAttribute("readonly", "readonly");
-        xstream.aliasAttribute("tablename", "tableName");
-        xstream.aliasAttribute("sizelimit", "sizeLimit");
-        */
-        //xstream.aliasAttribute(RelatedQuery.class, "isActive", "isactive");
-        
         xstream.alias("picklist",     BldrPickList.class);
         xstream.alias("picklistitem", BldrPickListItem.class);
         
         xstream.omitField(BldrPickList.class, "pickListId");
-        xstream.omitField(BldrPickList.class, "items");
+        //xstream.omitField(BldrPickList.class, "items");
         xstream.omitField(BldrPickList.class, "pickListItems");
         
         xstream.useAttributeFor(BldrPickList.class, "fieldName");
@@ -2777,19 +3023,67 @@ public class DataBuilder
         xstream.aliasAttribute("issystem",  "isSystem");
         xstream.aliasAttribute("sort",      "sortType");
         
-        String[] omit = {"changes","timestampCreated","timestampModified","createdByAgent","modifiedByAgent","version","valueObject",};
+        if (doExportImport)
+        {
+            xstream.useAttributeFor(BldrPickList.class, "filterFieldName");
+            xstream.useAttributeFor(BldrPickList.class, "filterValue");
+        }
+        
+        String[] omit = {"timestampCreated", "timestampModified", "version", };
         for (String fld : omit)
         {
-            xstream.omitField(DataModelObjBase.class, fld); 
+            if (doExportImport)
+            {
+                xstream.useAttributeFor(BldrPickList.class, fld);
+                xstream.useAttributeFor(BldrPickListItem.class, fld);
+
+            } else
+            {
+                xstream.omitField(BldrPickList.class, fld); 
+                xstream.omitField(BldrPickListItem.class, fld);
+            }
         }
-        xstream.omitField(PickListItem.class,       "pickListItemId");
-        xstream.omitField(PickListItem.class,       "timestampCreated");
-        xstream.omitField(PickListItem.class,       "pickList");
+        
+        xstream.omitField(BldrPickListItem.class, "pickListItemId");
+        xstream.omitField(BldrPickListItem.class, "pickList");
+    }
+
+    
+    /**
+     * @param disciplineDirName
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static List<BldrPickList> getBldrPickLists(final String disciplineDirName)
+    {
+        return getBldrPickLists(disciplineDirName, null);
+    }
+    
+    /**
+     * @param disciplineDirName
+     * @param plFile
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static List<BldrPickList> getBldrPickLists(final String disciplineDirName, 
+                                                      final File plFile)
+    {
+        XStream xstream = new XStream();
 
         try
         {
-            String dirName = disciplineDirName != null ? disciplineDirName + File.separator : "";
-            File pickListFile = new File(XMLHelper.getConfigDirPath(dirName + "picklist.xml"));
+            File pickListFile;
+            if (plFile == null)
+            {
+                String dirName = disciplineDirName != null ? disciplineDirName + File.separator : "";
+                pickListFile = new File(XMLHelper.getConfigDirPath(dirName + "picklist.xml"));
+                configXStream(xstream, false);
+            } else
+            {
+                pickListFile = plFile;
+                configXStream(xstream, true);
+            }
+            
             if (pickListFile.exists())
             {
                 //System.out.println(FileUtils.readFileToString(pickListFile));
@@ -2825,47 +3119,27 @@ public class DataBuilder
     }
     
     /**
-     * 
+     * @param file
+     * @param pickLists
      */
-    /*public static void buildPickListFromXML(List<BldrPickList> list)
+    public static void writePickListsAsXML(final File file, List<BldrPickList> pickLists)
     {
-        if (list != null)
+        XStream xstream = new XStream();
+        configXStream(xstream, true);
+        
+        try
         {
-            for (BldrPickList pl : list)
-            {
-                PickList pickList = createPickList(pl.getName(), pl.getType(), pl.getTableName(), pl.getFieldName(), 
-                                                   pl.getFormatter(), pl.getReadOnly(), pl.getSizeLimit(), 
-                                                   pl.getIsSystem(), pl.getSortType());
-                for (BldrPickListItem item : pl.getItems())
-                {
-                    pickList.addItem(item.getTitle(), item.getValue());
-                }
-                persist(pickList);
-            }
+            FileOutputStream fos = new FileOutputStream(file);
+            xstream.toXML(pickLists, fos);
             
-        } else
+        } catch (IOException ex)
         {
-            try
-            {
-                System.err.println("Couldn't find file["+(new File("picklist.xml")).getCanonicalPath()+"]");
-                
-            } catch (IOException ex)
-            {
-                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataBuilder.class, ex);
-                ex.printStackTrace();
-            }
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataBuilder.class, ex);
+            ex.printStackTrace();
         }
-    }*/
+    }
     
-    /**
-     * 
-     */
-    /*public static void buildPickListFromXML(final String dirName)
-    {
-        buildPickListFromXML(getBldrPickLists(dirName));
-    }*/
-
     /**
      * Helper method for saving when there is a session.
      * @param transientObject the object to be saved.
@@ -2878,7 +3152,6 @@ public class DataBuilder
             session.persist(transientObject);
         }
     }
-
     
     /**
      * 
@@ -2887,166 +3160,166 @@ public class DataBuilder
     public static void buildDarwinCoreSchema(final Discipline disciplineArg)
     {
         
-        XStream xstream = new XStream();
-        xstream.alias("field",     FieldMap.class);
-        
-        xstream.useAttributeFor(FieldMap.class, "name");
-        xstream.useAttributeFor(FieldMap.class, "table");
-        xstream.useAttributeFor(FieldMap.class, "field");
-        xstream.useAttributeFor(FieldMap.class, "formatter");
-        
-        DataProviderSessionIFace localSession = null;
-        
+//        XStream xstream = new XStream();
+//        xstream.alias("field",     FieldMap.class);
+//        
+//        xstream.useAttributeFor(FieldMap.class, "name");
+//        xstream.useAttributeFor(FieldMap.class, "table");
+//        xstream.useAttributeFor(FieldMap.class, "field");
+//        xstream.useAttributeFor(FieldMap.class, "formatter");
+//        
+//        DataProviderSessionIFace localSession = null;
+//        
         try
         {
-            localSession = DataProviderFactory.getInstance().createSession();
-            
-            if (false)
-            {
-                localSession.beginTransaction();
-                
-                List<SpExportSchema> schemaList = localSession.getDataList(SpExportSchema.class);
-                if (schemaList != null)
-                {
-                    for (SpExportSchema s : schemaList)
-                    {
-                        for (SpExportSchemaItem item : s.getSpExportSchemaItems())
-                        {
-                            if (item.getSpLocaleContainerItem() != null)
-                            {
-                                item.getSpLocaleContainerItem().removeReference(item, "spExportSchemaItems");
-                            }
-                        }
-                        localSession.delete(s);
-                    }
-                }
-                localSession.commit();
-                localSession.flush();
-            }
-            
-            
-            File           mapFile   = new File(XMLHelper.getConfigDirPath("darwin_core_map.xml"));
-            List<FieldMap> fieldList = (List<FieldMap>)xstream.fromXML(FileUtils.readFileToString(mapFile));
-            Hashtable<String, FieldMap> fieldMap = new Hashtable<String, FieldMap>();
-            for (FieldMap fm : fieldList)
-            {
-                fieldMap.put(fm.getName(), fm);
-            }
-            Element root = null;
-            if (true)
-            {
-                root = XMLHelper.readDOMFromConfigDir("darwin2_core.xsd");
-                
-            } else
-            {
-                String url = "http://www.digir.net/schema/conceptual/darwin/2003/1.0/darwin2.xsd";
-                HTTPGetter getter = new HTTPGetter();
-                byte[] bytes = getter.doHTTPRequest(url);
-                if (getter.getStatus() == HTTPGetter.ErrorCode.NoError)
-                {
-                    String xml = new String(bytes);
-                    //System.out.println(xml);
-                    root = XMLHelper.readStrToDOM4J(xml);
-                }
-            }
-            
-            Discipline disciplineTmp;
-            if (disciplineArg == null)
-            {
-                disciplineTmp = AppContextMgr.getInstance().getClassObject(Discipline.class);
-            } else
-            {
-                disciplineTmp = disciplineArg; 
-            }
-            
-            Discipline discipline = (Discipline)localSession.getData("FROM Discipline WHERE disciplineId = " + disciplineTmp.getId());
-            
-            SpExportSchema schema = new SpExportSchema();
-            schema.initialize();
-            schema.setSchemaName("Darwin Core");
-            //Maybe the version for this should be 1.21 to be consistent with the
-            //VertNet darwin schema? Which Laura says is 1.21. 
-            //The darwin2_core.xsd and darwinCoreVertNet.xsd
-            //files seem to point to the same source.            
-            schema.setSchemaVersion("2.0");
-            
-            discipline.addReference(schema, "spExportSchemas");
-            
-            StringBuilder sb = new StringBuilder();
-            for (Object obj : root.selectNodes("/xsd:schema/xsd:annotation/xsd:documentation"))
-            {
-                Element e = (Element)obj;
-                sb.append(e.getTextTrim());
-            }
-            schema.setDescription(sb.toString().substring(0, Math.min(sb.length(), 255)));
-            
-            localSession.beginTransaction();
-            
-            localSession.saveOrUpdate(discipline);
-            localSession.save(schema);
-            
-            for (Object obj : root.selectNodes("/xsd:schema/xsd:element"))
-            {
-                Element e = (Element)obj;
-                String  name      = XMLHelper.getAttr(e, "name", null);
-                String  type      = XMLHelper.getAttr(e, "type", null);
-                
-                FieldMap fm = fieldMap.get(name);
-                
-                if (name != null && type != null && fm != null && StringUtils.isNotEmpty(fm.getField()))
-                {
-                    SpExportSchemaItem item = new SpExportSchemaItem();
-                    item.initialize();
-                    item.setFieldName(name);
-                    item.setDataType(type.substring(4));
-                    item.setFormatter(fm.getFormatter());
-                    
-                    schema.addReference(item, "spExportSchemaItems");
-                    
-                    //System.out.println(type.substring(4)+"  "+type.substring(4).length());
-                    
-                    localSession.save(item);
-                    
-                    String sql = "FROM SpLocaleContainerItem spi INNER JOIN spi.container spc INNER JOIN spc.discipline dsp WHERE spc.name='%s' AND spi.name='%s' AND dsp.disciplineId = %s";
-                    sql = String.format(sql, fm.getTable(), fm.getField(), discipline.getDisciplineId().toString());
-                    Object[] cols = (Object[])localSession.getData(sql);
-                    if (cols != null)
-                    {
-                        System.out.println(name);
-                        SpLocaleContainerItem spItem = (SpLocaleContainerItem)cols[0];
-                        if (spItem != null)
-                        {
-                            item.setSpLocaleContainerItem(spItem);
-                            spItem.getSpExportSchemaItems().add(item);
-                            
-                            localSession.saveOrUpdate(item);
-                            localSession.saveOrUpdate(spItem);
-                            
-                        } else
-                        {
-                            System.err.println("Couldn't find ["+sql+"]");
-                        }
-                    }
-                }
-                
-                /*if (name != null && type != null)
-                {
-                    System.out.println("    <field name=\""+name+"\" table=\"\" field=\"\" formatter=\"\"/>");
-                    //System.out.println("<field name=\""+name+"\" type=\""+ type.substring(4)+"\" table=\"\" field=\"\"/>");
-                    Object node = e.selectObject("xsd:annotation/xsd:documentation");
-                    if (node instanceof Element)
-                    {
-                        Element descEl = (Element)node;
-                        if (descEl != null)
-                        {
-                            String  desc = descEl.getTextTrim();
-                            //System.out.println(desc+"\n");
-                        }
-                    }
-                }*/
-            }
-            localSession.commit();
-            localSession.flush();
+//            localSession = DataProviderFactory.getInstance().createSession();
+//            
+//            if (false)
+//            {
+//                localSession.beginTransaction();
+//                
+//                List<SpExportSchema> schemaList = localSession.getDataList(SpExportSchema.class);
+//                if (schemaList != null)
+//                {
+//                    for (SpExportSchema s : schemaList)
+//                    {
+//                        for (SpExportSchemaItem item : s.getSpExportSchemaItems())
+//                        {
+//                            if (item.getSpLocaleContainerItem() != null)
+//                            {
+//                                item.getSpLocaleContainerItem().removeReference(item, "spExportSchemaItems");
+//                            }
+//                        }
+//                        localSession.delete(s);
+//                    }
+//                }
+//                localSession.commit();
+//                localSession.flush();
+//            }
+//            
+//            
+//            File           mapFile   = new File(XMLHelper.getConfigDirPath("darwin_core_map.xml"));
+//            List<FieldMap> fieldList = (List<FieldMap>)xstream.fromXML(FileUtils.readFileToString(mapFile));
+//            Hashtable<String, FieldMap> fieldMap = new Hashtable<String, FieldMap>();
+//            for (FieldMap fm : fieldList)
+//            {
+//                fieldMap.put(fm.getName(), fm);
+//            }
+//            Element root = null;
+//            if (true)
+//            {
+//                root = XMLHelper.readDOMFromConfigDir("darwin2_core.xsd");
+//                
+//            } else
+//            {
+//                String url = "http://www.digir.net/schema/conceptual/darwin/2003/1.0/darwin2.xsd";
+//                HTTPGetter getter = new HTTPGetter();
+//                byte[] bytes = getter.doHTTPRequest(url);
+//                if (getter.getStatus() == HTTPGetter.ErrorCode.NoError)
+//                {
+//                    String xml = new String(bytes);
+//                    //System.out.println(xml);
+//                    root = XMLHelper.readStrToDOM4J(xml);
+//                }
+//            }
+//            
+//            Discipline disciplineTmp;
+//            if (disciplineArg == null)
+//            {
+//                disciplineTmp = AppContextMgr.getInstance().getClassObject(Discipline.class);
+//            } else
+//            {
+//                disciplineTmp = disciplineArg; 
+//            }
+//            
+//            Discipline discipline = (Discipline)localSession.getData("FROM Discipline WHERE disciplineId = " + disciplineTmp.getId());
+//            
+//            SpExportSchema schema = new SpExportSchema();
+//            schema.initialize();
+//            schema.setSchemaName("Darwin Core");
+//            //Maybe the version for this should be 1.21 to be consistent with the
+//            //VertNet darwin schema? Which Laura says is 1.21. 
+//            //The darwin2_core.xsd and darwinCoreVertNet.xsd
+//            //files seem to point to the same source.            
+//            schema.setSchemaVersion("2.0");
+//            
+//            discipline.addReference(schema, "spExportSchemas");
+//            
+//            StringBuilder sb = new StringBuilder();
+//            for (Object obj : root.selectNodes("/xsd:schema/xsd:annotation/xsd:documentation"))
+//            {
+//                Element e = (Element)obj;
+//                sb.append(e.getTextTrim());
+//            }
+//            schema.setDescription(sb.toString().substring(0, Math.min(sb.length(), 255)));
+//            
+//            localSession.beginTransaction();
+//            
+//            localSession.saveOrUpdate(discipline);
+//            localSession.save(schema);
+//            
+//            for (Object obj : root.selectNodes("/xsd:schema/xsd:element"))
+//            {
+//                Element e = (Element)obj;
+//                String  name      = XMLHelper.getAttr(e, "name", null);
+//                String  type      = XMLHelper.getAttr(e, "type", null);
+//                
+//                FieldMap fm = fieldMap.get(name);
+//                
+//                if (name != null && type != null && fm != null && StringUtils.isNotEmpty(fm.getField()))
+//                {
+//                    SpExportSchemaItem item = new SpExportSchemaItem();
+//                    item.initialize();
+//                    item.setFieldName(name);
+//                    item.setDataType(type.substring(4));
+//                    item.setFormatter(fm.getFormatter());
+//                    
+//                    schema.addReference(item, "spExportSchemaItems");
+//                    
+//                    //System.out.println(type.substring(4)+"  "+type.substring(4).length());
+//                    
+//                    localSession.save(item);
+//                    
+//                    String sql = "FROM SpLocaleContainerItem spi INNER JOIN spi.container spc INNER JOIN spc.discipline dsp WHERE spc.name='%s' AND spi.name='%s' AND dsp.disciplineId = %s";
+//                    sql = String.format(sql, fm.getTable(), fm.getField(), discipline.getDisciplineId().toString());
+//                    Object[] cols = (Object[])localSession.getData(sql);
+//                    if (cols != null)
+//                    {
+//                        System.out.println(name);
+//                        SpLocaleContainerItem spItem = (SpLocaleContainerItem)cols[0];
+//                        if (spItem != null)
+//                        {
+//                            item.setSpLocaleContainerItem(spItem);
+//                            spItem.getSpExportSchemaItems().add(item);
+//                            
+//                            localSession.saveOrUpdate(item);
+//                            localSession.saveOrUpdate(spItem);
+//                            
+//                        } else
+//                        {
+//                            System.err.println("Couldn't find ["+sql+"]");
+//                        }
+//                    }
+//                }
+//                
+//                /*if (name != null && type != null)
+//                {
+//                    System.out.println("    <field name=\""+name+"\" table=\"\" field=\"\" formatter=\"\"/>");
+//                    //System.out.println("<field name=\""+name+"\" type=\""+ type.substring(4)+"\" table=\"\" field=\"\"/>");
+//                    Object node = e.selectObject("xsd:annotation/xsd:documentation");
+//                    if (node instanceof Element)
+//                    {
+//                        Element descEl = (Element)node;
+//                        if (descEl != null)
+//                        {
+//                            String  desc = descEl.getTextTrim();
+//                            //System.out.println(desc+"\n");
+//                        }
+//                    }
+//                }*/
+//            }
+//            localSession.commit();
+//            localSession.flush();
             
             //ExportMappingTask imports don't update the schemaLocale tables
             ExportMappingTask.importSchemaDefinition(new File(XMLHelper.getConfigDirPath("darwinCoreVertNet.xsd")), "VertNetDarwinCore", "1.21");
@@ -3058,13 +3331,14 @@ public class DataBuilder
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataBuilder.class, ex);
             ex.printStackTrace();
             
-        } finally
-        {
-            if (localSession != null)
-            {
-                localSession.close();
-            }
-        }
+        } 
+//        finally
+//        {
+//            if (localSession != null)
+//            {
+//                localSession.close();
+//            }
+//        }
     }
     
     // USed for Mapping from Export Schema to the Specify Schema
@@ -3159,6 +3433,7 @@ public class DataBuilder
      */
     public static SpecifyUser createAdminGroupAndUser(final Session     sessionArg,
                                                       final Institution institution, 
+                                                      final Collection  collection,
                                                       final String      username,
                                                       final String      email, 
                                                       final String      password, 
@@ -3167,7 +3442,7 @@ public class DataBuilder
         
         SpecifyUser specifyAdminUser = createSpecifyUser(username, email, password, userType);
         sessionArg.saveOrUpdate(specifyAdminUser);
-        SpecifyUser spUser = createAdminGroupWithSpUser(sessionArg, institution, specifyAdminUser);
+        SpecifyUser spUser = createAdminGroupWithSpUser(sessionArg, institution, collection, specifyAdminUser);
         sessionArg.saveOrUpdate(spUser);
         return spUser;
     }
@@ -3179,14 +3454,18 @@ public class DataBuilder
      */
     public static SpecifyUser createAdminGroupWithSpUser(final Session sessionArg,
                                                          final Institution institution, 
+                                                         final Collection collection, 
                                                          final SpecifyUser specifyAdminUser) 
     {
         SpPrincipal adminGroup = createAdminGroup("Administrator", institution);
         sessionArg.saveOrUpdate(adminGroup);
         specifyAdminUser.addUserToSpPrincipalGroup(adminGroup);
         
-        SpPrincipal spPrin = createUserPrincipal(specifyAdminUser);
-        sessionArg.saveOrUpdate(spPrin);
+        if (collection != null)
+        {
+            SpPrincipal spPrin = createUserPrincipal(specifyAdminUser, collection);
+            sessionArg.saveOrUpdate(spPrin);
+        }
         
         return specifyAdminUser;
     }

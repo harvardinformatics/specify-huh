@@ -378,7 +378,7 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
                 {
                     doc.insertString(doc.getLength(), field.getSep(), null);
                     
-                    System.err.println("["+field.getName()+"]["+field.getSep()+"]["+field.getFormat()+"]["+field.toString()+"]");
+                    //System.err.println("["+field.getName()+"]["+field.getSep()+"]["+field.getFormat()+"]["+field.toString()+"]");
                     insertFieldIntoTextEditor(new DataObjDataFieldWrapper(field));
                 }
                 catch (BadLocationException ble) {}
@@ -411,7 +411,7 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
         {
             this.dataObjFieldWrapper = dataObjFieldWrapper;
             
-            System.err.println("-------> ["+dataObjFieldWrapper.toString()+"]");
+            //System.err.println("-------> ["+dataObjFieldWrapper.toString()+"]");
             setText(dataObjFieldWrapper.toString());
             setCursor(Cursor.getDefaultCursor());
             setFont(new Font("Arial", Font.PLAIN, 11));
@@ -607,7 +607,7 @@ public class DataObjFieldFormatSinglePanel extends DataObjFieldFormatPanel
             int cnt = 0;
             if (obj instanceof FieldDefinitionComp)
             {
-                System.out.println(cnt+"  "+obj);
+                //System.out.println(cnt+"  "+obj);
                 // found button at the current position
                 // create corresponding field
                 String sepStr = (lastFieldPos < i - 1) ? text.substring(lastFieldPos, i) : "";

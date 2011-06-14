@@ -136,25 +136,34 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
             return pathWasSet ? XMLHelper.readFileToDOM4J(new File(getLocalPath())) : XMLHelper.readDOMFromConfigDir(getLocalPath());
         }
 
-        return getDisciplineDOMFromResource(UIFORMATTERS, getLocalPath());
+        return getDisciplineDOMFromResource(getAppContextMgr(), UIFORMATTERS, getLocalPath());
     }
     
     /**
-     * MEthod for getting a Resource for a Discipline from the Database or disk.
+     * @param contextMgr
+     * @return
+     */
+    protected Discipline getDiscipline(final AppContextMgr contextMgr)
+    {
+        return contextMgr.getClassObject(Discipline.class);
+    }
+    
+    /**
+     * Method for getting a Resource for a Discipline from the Database or disk.
      * @param name
      * @param localPath
      * @return
      */
-    public static Element getDisciplineDOMFromResource(final String name, final String localPath)
+    public Element getDisciplineDOMFromResource(final AppContextMgr contextMgr, final String name, final String localPath)
     {
-        SpecifyAppContextMgr acMgr = (SpecifyAppContextMgr)AppContextMgr.getInstance();
+        SpecifyAppContextMgr acMgr = (SpecifyAppContextMgr)contextMgr;
         DataProviderSessionIFace session = null;
         try
         {
             session = DataProviderFactory.getInstance().createSession();
             
-            SpecifyUser user       = acMgr.getClassObject(SpecifyUser.class);
-            Discipline  discipline = acMgr.getClassObject(Discipline.class);
+            SpecifyUser user       = contextMgr.getClassObject(SpecifyUser.class);
+            Discipline  discipline = getDiscipline(contextMgr);
             
             SpAppResourceDir appResDir = acMgr.getAppResDir(session, user, discipline, null, null, false, name, false);
             if (appResDir != null)
@@ -165,7 +174,7 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
                     session.close();
                     session = null;
                     
-                    return AppContextMgr.getInstance().getResourceAsDOM(appRes);
+                    return acMgr.getResourceAsDOM(appRes);
                 }
             }
             
@@ -197,7 +206,7 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
             return XMLHelper.readDOMFromConfigDir("backstop/uistrformatters.xml"); //$NON-NLS-1$
         }
 
-        return getDisciplineDOMFromResource(UIFORMATTERS+"_STRS", "backstop/uistrformatters.xml");
+        return getDisciplineDOMFromResource(getAppContextMgr(), UIFORMATTERS+"_STRS", "backstop/uistrformatters.xml");
     }
     
     /**
@@ -295,7 +304,7 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
             }
         } else
         {
-            saveDisciplineResource(UIFORMATTERS, xml);
+            saveDisciplineResource(getAppContextMgr(), UIFORMATTERS, xml);
         }
     }
     
@@ -304,9 +313,9 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
      * @param resName the name of the resource
      * @param xml the XML to be saved.
      */
-    public static void saveDisciplineResource(final String resName, final String xml)
+    public static void saveDisciplineResource(final AppContextMgr contextMgr, final String resName, final String xml)
     {
-        SpecifyAppContextMgr acMgr = (SpecifyAppContextMgr)AppContextMgr.getInstance();
+        SpecifyAppContextMgr acMgr = (SpecifyAppContextMgr)contextMgr;
         DataProviderSessionIFace session = null;
         try
         {
@@ -327,7 +336,7 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
                     session = null;
                     
                     appRes.setDataAsString(xml);
-                    AppContextMgr.getInstance().saveResource(appRes);
+                    contextMgr.saveResource(appRes);
                     found = true;
                 }
             }
@@ -356,7 +365,7 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
                         newAppRes.setMimeType("text/xml");
                     }
                     
-                    Agent agent = AppContextMgr.getInstance().getClassObject(Agent.class);
+                    Agent agent = contextMgr.getClassObject(Agent.class);
                     newAppRes.setCreatedByAgent(agent);
                     newAppRes.setSpecifyUser(user);
                     
@@ -364,13 +373,16 @@ public class SpecifyUIFieldFormatterMgr extends UIFieldFormatterMgr implements C
                     appResDir.getSpAppResources().add(newAppRes);
                     newAppRes.setDataAsString(xml);
                     
-                    session.close();
-                    session = null;
-                    ((SpecifyAppContextMgr) AppContextMgr.getInstance()).saveResource(newAppRes);
+                    if (session != null) 
+                    {
+                        session.close();
+                        session = null;
+                    }
+                    ((SpecifyAppContextMgr) contextMgr).saveResource(newAppRes);
                     
                 } else
                 {
-                    AppContextMgr.getInstance().putResourceAsXML(resName, xml); //$NON-NLS-1$
+                    contextMgr.putResourceAsXML(resName, xml); //$NON-NLS-1$
                 }
             }
 

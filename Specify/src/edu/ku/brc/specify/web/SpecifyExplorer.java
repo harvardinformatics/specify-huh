@@ -455,7 +455,7 @@ public class SpecifyExplorer extends HttpServlet
                     AppContextMgr.getInstance().setClassObject(Division.class, discipline.getDivision());
                     AppContextMgr.getInstance().setClassObject(Institution.class, institution);
                     
-                	Agent.setUserAgent(user, discipline);
+                	Agent.setUserAgent(user, discipline.getDivision());
                 	
                 	AppContextMgr am = AppContextMgr.getInstance();
                     am.setClassObject(TaxonTreeDef.class, discipline.getTaxonTreeDef());
@@ -4194,6 +4194,11 @@ public class SpecifyExplorer extends HttpServlet
     
     class MyFmtMgr extends SpecifyUIFieldFormatterMgr
     {
+        public MyFmtMgr()
+        {
+            super();
+            load();
+        }
         /**
          * Returns the DOM it is suppose to load the formatters from.
          * @return Returns the DOM it is suppose to load the formatters from.

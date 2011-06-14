@@ -187,7 +187,14 @@ public class XLSExport implements DataExport
         CustomProperties cps = new CustomProperties();
         for (WorkbenchTemplateMappingItem wbmi : wbt.getWorkbenchTemplateMappingItems())
         {
-            cps.put(wbmi.getCaption(), wbmi.getTableName() + "\t" + wbmi.getFieldName());
+            cps.put(wbmi.getCaption(), wbmi.getTableName() 
+            		+ "\t" + wbmi.getFieldName()
+            		+ "\t" + wbmi.getXCoord() 
+            		+ "\t" + wbmi.getYCoord()
+            		+ "\t" + wbmi.getCaption()
+            		+ "\t" + wbmi.getFieldType()
+            		+ "\t" + wbmi.getMetaData()
+            );
         }
         dsi.setCustomProperties(cps);
         return dsi;
@@ -289,7 +296,13 @@ public class XLSExport implements DataExport
 						}
 						HSSFCell cell = hssfRow.createCell(colNum++);
 						cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-						setCellValue(cell, img.getCardImageFullPath());
+						String cellValue = img.getCardImageFullPath();
+						String attachToTbl = img.getAttachToTableName();
+						if (attachToTbl != null)
+						{
+							cellValue += "\t" + attachToTbl;
+						}
+						setCellValue(cell, cellValue);
 						img = row.getRowImage(imgIdx++);
 					}
 				}

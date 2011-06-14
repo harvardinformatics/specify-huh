@@ -24,18 +24,19 @@ import static edu.ku.brc.specify.conversion.BasicSQLUtils.getFieldNamesFromSchem
 import static edu.ku.brc.ui.UIRegistry.showError;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -44,10 +45,13 @@ import org.hibernate.Transaction;
 import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.specify.datamodel.AddressOfRecord;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
 import edu.ku.brc.specify.datamodel.Collector;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.util.Pair;
@@ -85,7 +89,7 @@ public class AgentConverter
     protected Pair<String, String>                          namePair   = new Pair<String, String>();
     protected Triple<String, String, String>                nameTriple = new Triple<String, String, String>();
 
-    protected ConversionLogger.TableWriter                  tblWriter;
+    protected TableWriter                  tblWriter;
     
     // For Name Parsing
     protected List<AgentNameInfo>                           names    = new Vector<AgentNameInfo>();
@@ -107,12 +111,16 @@ public class AgentConverter
         this.oldDBConn   = conv.getOldDBConn();
         this.newDBConn   = conv.getNewDBConn();
         
-        this.gStmt       = newDBConn.createStatement();
+        this.gStmt           = oldDBConn.createStatement();
         this.updateStmtNewDB = newDBConn.createStatement();
         
         tblWriter = conv.getConvLogger().getWriter("AgentConv.html", "Agents");
     }
 
+    public AgentConverter()
+    {
+        
+    }
 
     /**
      * Specify 5.x points at AgentAdress instead of an Agent. The idea was that to point at an Agent
@@ -192,14 +200,6 @@ public class AgentConverter
                                   "agent.TimestampCreated",// User/Security changes
                                   "agent.ParentOrganizationID" };
 
-        // See comments for agent Columns
-        String[] addressColumns = { "address.AddressID", "address.TimestampModified",
-                                    "address.Address", "address.Address2", "address.City", "address.State",
-                                    "address.Country", "address.Postalcode", "address.Remarks",
-                                    "address.TimestampCreated", "agentaddress.IsCurrent", "agentaddress.Phone1",
-                                    "agentaddress.Phone2", "agentaddress.Fax", "agentaddress.RoomOrBuilding",
-                                    "address.AgentID" };
-
         Hashtable<Integer, AddressInfo> addressHash = new Hashtable<Integer, AddressInfo>();
 
         // Create a Hashtable to track which IDs have been handled during the conversion process
@@ -261,7 +261,7 @@ public class AgentConverter
             // Now we map all the Agents to their Addresses AND
             // All the Addresses to their Agents.
             //
-            // NOTE: A single Address Record Mat be used by more than one Agent so
+            // NOTE: A single Address Record May be used by more than one Agent so
             // we will need to Duplicate the Address records later
             //
             log.info("Cross Mapping Agents and Addresses");
@@ -285,7 +285,7 @@ public class AgentConverter
                 AgentInfo agentInfo = agentHash.get(agentId);
                 if (agentInfo == null) 
                 { 
-                    throw new RuntimeException("The AgentID [" + agentId + "]in AgentAddress table id[" + agentAddrId + "] desn't exist");
+                    throw new RuntimeException("The AgentID [" + agentId + "] in AgentAddress table id[" + agentAddrId + "] desn't exist");
                 }
                 agentInfo.getAddrs().put(addrId, true);
 
@@ -359,8 +359,10 @@ public class AgentConverter
 
             Statement stmt = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
+            log.debug("AgentAddress: "+sql.toString());
+            
             ResultSet rs = stmt.executeQuery(sql.toString());
-
+            
             // Create Map of column name to column index number
             int inx = 1;
             for (String fldName : oldFieldNames)
@@ -369,7 +371,22 @@ public class AgentConverter
                 indexFromNameMap.put(fldName, inx++);
             }
 
-            // Figure out certain icolumn indexes we will need ater
+            StringBuilder sqlStr1 = new StringBuilder("INSERT INTO address ");
+            sqlStr1.append("(TimestampModified, Address, Address2, City, State, Country, PostalCode, Remarks, TimestampCreated, ");
+            sqlStr1.append("IsPrimary, IsCurrent, Phone1, Phone2, Fax, RoomOrBuilding, AgentID, CreatedByAgentID, ModifiedByAgentID, Version, Ordinal, AddressID)");
+            sqlStr1.append(" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            
+            StringBuilder sqlStr2 = new StringBuilder("INSERT INTO address ");
+            sqlStr2.append("(TimestampModified, Address, Address2, City, State, Country, PostalCode, Remarks, TimestampCreated, ");
+            sqlStr2.append("IsPrimary, IsCurrent, Phone1, Phone2, Fax, RoomOrBuilding, AgentID, CreatedByAgentID, ModifiedByAgentID, Version, Ordinal)");
+            sqlStr2.append(" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            
+            Statement         updateStatement = newDBConn.createStatement();
+            PreparedStatement addrPrepStmt1    = newDBConn.prepareStatement(sqlStr1.toString());
+            PreparedStatement addrPrepStmt2    = newDBConn.prepareStatement(sqlStr2.toString());
+            
+
+            // Figure out certain column indexes we will need ater
             int agentIdInx   = indexFromNameMap.get("agent.AgentID");
             int addrIdInx    = indexFromNameMap.get("address.AddressID");
             int agentTypeInx = indexFromNameMap.get("agent.AgentType");
@@ -383,7 +400,7 @@ public class AgentConverter
             int recordCnt = 0;
             while (rs.next())
             {
-                byte agentType      = rs.getByte(agentTypeInx);
+                //byte agentType      = rs.getByte(agentTypeInx);
                 int agentAddressId  = rs.getInt(1);
                 int agentId         = rs.getInt(agentIdInx);
                 int addrId          = rs.getInt(addrIdInx);
@@ -392,9 +409,11 @@ public class AgentConverter
                 AddressInfo addrInfo  = addressHash.get(addrId);
                 AgentInfo   agentInfo = agentHash.get(agentId);
 
-                // Deal with Agent FirstName, LastName and Name
-                int    srcColInx = agentType != 1 ? nameInx : lastNameInx;
-                namePair.second  = rs.getString(srcColInx);
+                // Deal with Agent FirstName, LastName and Name]
+                String lastName = rs.getString(lastNameInx);
+                String name     = rs.getString(nameInx);
+                
+                namePair.second  = StringUtils.isNotEmpty(name) && StringUtils.isEmpty(lastName) ? name : lastName;
                 namePair.first   = rs.getString(firstNameInx);
 
                 // Now tell the AgentAddress Mapper the New ID to the Old AgentAddressID
@@ -456,10 +475,10 @@ public class AgentConverter
                         } else if (agentColumns[i].equals("agent.LastName") || agentColumns[i].equals("LastName"))
                         {
                             
-                            int    lastNameLen = 50;
-                            String lastName    = namePair.second;
-                            lastName = lastName == null ? "" : lastName.length() <= lastNameLen ? lastName : lastName.substring(0, lastNameLen);
-                            sqlStr.append(BasicSQLUtils.getStrValue(lastName));
+                            int    lastNameLen = 120;
+                            String lstName    = namePair.second;
+                            lstName = lstName == null ? null : lstName.length() <= lastNameLen ? lstName : lstName.substring(0, lastNameLen);
+                            sqlStr.append(BasicSQLUtils.getStrValue(lstName));
 
                         } else if (agentColumns[i].equals("agent.FirstName") || agentColumns[i].equals("FirstName"))
                         {
@@ -475,7 +494,7 @@ public class AgentConverter
                             sqlStr.append(BasicSQLUtils.getStrValue(rs.getObject(inx)));
                         }
                     }
-                    sqlStr.append("," + conv.getCreatorAgentId(lastEditedBy) + "," + conv.getModifiedByAgentId(lastEditedBy) + ",0");
+                    sqlStr.append("," + conv.getCreatorAgentIdForAgent(lastEditedBy) + "," + conv.getModifiedByAgentIdForAgent(lastEditedBy) + ",0");
                     sqlStr.append(")");
                     
                     //AddressID, TimestampModified,    Address,    Address2,     City, State, Country, PostalCode, Remarks, TimestampCreated, IsPrimary, Phone1, Phone2, Fax, RoomOrBuilding, AgentID, CreatedByAgentID, ModifiedByAgentID, Version) VALUES 
@@ -483,8 +502,6 @@ public class AgentConverter
 
                     try
                     {
-                        Statement updateStatement = newDBConn.createStatement();
-                        // updateStatement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
                         if (debugAgents)
                         {
                             log.info(sqlStr.toString());
@@ -496,11 +513,8 @@ public class AgentConverter
                         {
                             throw new RuntimeException("Couldn't get the Agent's inserted ID");
                         }
-                        updateStatement.clearBatch();
-                        updateStatement.close();
-                        updateStatement = null;
                         
-                        conv.addAgentDisciplineJoin(newAgentId, conv.getDisciplineId());
+                        //conv.addAgentDisciplineJoin(newAgentId, conv.getDisciplineId());
 
                     } catch (SQLException e)
                     {
@@ -521,89 +535,124 @@ public class AgentConverter
                 }
                 
                 BasicSQLUtils.setIdentityInsertOFFCommandForSQLServer(newDBConn, "agent", BasicSQLUtils.myDestinationServerType);
+                
                 // Now make sure we only add an address in one
                 if (!addrInfo.wasAdded())
                 {
-                    addrInfo.setWasAdded(true);
                     BasicSQLUtils.setIdentityInsertONCommandForSQLServer(newDBConn, "address", BasicSQLUtils.myDestinationServerType);
-                    StringBuilder sqlStr = new StringBuilder("INSERT INTO address ");
-                    sqlStr.append("(AddressID, TimestampModified, Address, Address2, City, State, Country, PostalCode, Remarks, TimestampCreated, ");
-                    sqlStr.append("IsPrimary, IsCurrent, Phone1, Phone2, Fax, RoomOrBuilding, AgentID, CreatedByAgentID, ModifiedByAgentID, Version)");
-                    sqlStr.append(" VALUES (");
                     
-                    for (int i = 0; i < addressColumns.length; i++)
+                    
+                    /*
+                     * select 
+                     * 1 agentaddress.AgentAddressID, 
+                     * 2 agentaddress.TypeOfAgentAddressed, 
+                     * 3 agentaddress.AddressID, 
+                     * 4 agentaddress.AgentID, 
+                     * 5 agentaddress.OrganizationID, 
+                     * 6 agentaddress.JobTitle, 
+                     * 7 agentaddress.Phone1, 
+                     * 8 agentaddress.Phone2, 
+                     * 9 agentaddress.Fax, 
+                     * 10 agentaddress.RoomOrBuilding, 
+                     * 11 agentaddress.Email, 
+                     * 12 agentaddress.URL, 
+                     * 13 agentaddress.Remarks, 
+                     * 14 agentaddress.TimestampModified, 
+                     * 15 agentaddress.TimestampCreated, 
+                     * 16 agentaddress.LastEditedBy, 
+                     * 17 agentaddress.IsCurrent, 
+                     * 18 agent.AgentID, 
+                     * 19 agent.AgentType, 
+                     * 20 agent.FirstName, 
+                     * 21 agent.LastName, 
+                     * 22 agent.MiddleInitial, 
+                     * 23 agent.Title, 
+                     * 24 agent.Interests, 
+                     * 25 agent.Abbreviation, 
+                     * 26 agent.Name, 
+                     * 27 agent.ParentOrganizationID, 
+                     * 28 agent.Remarks, 
+                     * 29 agent.TimestampModified, 
+                     * 30 agent.TimestampCreated, 
+                     * 31 agent.LastEditedBy, 
+                     * 32 address.AddressID, 
+                     * 33 address.Address, 
+                     * 34 address.City, 
+                     * 35 address.State, 
+                     * 36 address.Country, 
+                     * 37 address.Postalcode, 
+                     * 38 address.Remarks, 
+                     * 39 address.TimestampModified, 
+                     * 40 address.TimestampCreated,
+                     * 41 address.LastEditedBy
+                     */
+                    
+                    //  1-TimestampModified, 2-Address, 3-Address2, 4-City, 5-State, 6-Country, 6-PostalCode, 8-Remarks, 9-TimestampCreated,
+                    //  10-IsPrimary, 11-IsCurrent, 12-Phone1, 13-Phone2, 14-Fax, 15-RoomOrBuilding, 16-AgentID, 17-CreatedByAgentID, 
+                    //  18-ModifiedByAgentID, 19-Version, 20-Ordinal, AddressID
+                    
+                    /*for (int i=1;i<=rs.getMetaData().getColumnCount();i++)
                     {
-                        if (i > 0)
-                        {
-                            sqlStr.append(",");
-                        }
-
-                        if (i == addressColumns.length - 1)
-                        {
-                            if (debugAgents)log.info("Adding: "+addressColumns[i]);
-                            sqlStr.append(agentInfo.getNewAgentId());
-
-                        } else
-                        {
-                            Integer inxInt = indexFromNameMap.get(addressColumns[i]);
-                            String value;
-                            if (i == 0)
-                            {
-                                value = addrInfo.getNewAddrId().toString();
-
-                            } else if (inxInt == null && addressColumns[i].equals("address.Address2"))
-                            {
-                                value = "''";
-
-                            } else if (addressColumns[i].equals("agentaddress.IsCurrent"))
-                            {
-                                value = rs.getInt(inxInt) == 0 ? "0" : "1"; // mapping a boolean
-                                
-                                sqlStr.append(value); // this is 'IsPrimary' (gets same value as 'IsCurrent'
-                                sqlStr.append(",");
-                                
-                                // Note: 'value' will be for 'IsCurrent'
-
-                            } else if (addressColumns[i].equals("address.Address"))
-                            {
-                                value = BasicSQLUtils.getStrValue(StringEscapeUtils.escapeJava(rs.getString(inxInt)));
-
-                            } else
-                            {
-                                // log.info(addressColumns[i]);
-                                value = BasicSQLUtils.getStrValue(rs.getObject(inxInt));
-                            }
-                            if (debugAgents)log.info("Adding: "+addressColumns[i]);
-                            sqlStr.append(value);
-                        }
+                        System.out.println(i+"   "+rs.getObject(i));
+                    }*/
+                    
+                    PreparedStatement pStmt = addrInfo.wasAdded() ? addrPrepStmt2 : addrPrepStmt1;
+                    pStmt.setTimestamp(1, rs.getTimestamp(39));
+                    pStmt.setString(2,    rs.getString(33));
+                    pStmt.setString(3,    null);//rs.getString(4)); Address 2
+                    pStmt.setString(4,    rs.getString(34));
+                    pStmt.setString(5,    rs.getString(35));
+                    pStmt.setString(6,    rs.getString(36));
+                    pStmt.setString(7,    rs.getString(37));
+                    pStmt.setString(8,    rs.getString(38));
+                    pStmt.setTimestamp(9, rs.getTimestamp(40));
+                    pStmt.setBoolean(10,  rs.getByte(17) != 0);
+                    pStmt.setBoolean(11,  rs.getByte(17) != 0);
+                    pStmt.setString(12,   rs.getString(7));
+                    pStmt.setString(13,   rs.getString(8));
+                    pStmt.setString(14,   rs.getString(9));
+                    pStmt.setString(15,   rs.getString(10));
+                    pStmt.setInt(16,      agentInfo.getNewAgentId());
+                    pStmt.setInt(17,      conv.getCreatorAgentIdForAgent(lastEditedBy));
+                    pStmt.setInt(18,      conv.getModifiedByAgentIdForAgent(lastEditedBy));
+                    pStmt.setInt(19,      0);
+                    pStmt.setInt(20,      agentInfo.addrOrd);
+                    
+                    if (!addrInfo.wasAdded())
+                    {
+                        System.out.println(String.format("Inserting Old: %d  NewId: %d", addrInfo.getOldAddrId(), addrInfo.getNewAddrId()));
+                        pStmt.setInt(21, addrInfo.getNewAddrId());
                     }
-                    sqlStr.append("," + conv.getCreatorAgentId(lastEditedBy) + "," + conv.getModifiedByAgentId(lastEditedBy) + ", 0");
-                    sqlStr.append(")");
+                    
+                    agentInfo.addrOrd++;
 
                     try
                     {
-                        Statement updateStatement = newDBConn.createStatement();
-                        // updateStatement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
                         if (debugAgents)
                         {
-                            log.info(sqlStr.toString());
+                            log.info(sqlStr1.toString());
                         }
-                        updateStatement.executeUpdate(sqlStr.toString());
-                        updateStatement.clearBatch();
-                        updateStatement.close();
-                        updateStatement = null;
+                        log.info(pStmt == addrPrepStmt1);
+                        if (pStmt.executeUpdate() != 1)
+                        {
+                            log.error("Error inserting address.)");
+                        }
+                        addrInfo.setWasAdded(true);
 
                     } catch (SQLException e)
                     {
-                        log.error(sqlStr.toString());
+                        log.error(sqlStr1.toString());
                         log.error("Count: " + recordCnt);
                         e.printStackTrace();
                         log.error(e);
                         throw new RuntimeException(e);
                     }
+                } else
+                {
+                    addrInfo.addAgent(agentInfo.getNewAgentId());
                 }
-                BasicSQLUtils.setIdentityInsertOFFCommandForSQLServer(newDBConn, "address",
-                        BasicSQLUtils.myDestinationServerType);
+                
+                
 
                 if (recordCnt % 250 == 0)
                 {
@@ -611,19 +660,24 @@ public class AgentConverter
                 }
                 recordCnt++;
             } // while
-
+            
+            BasicSQLUtils.setIdentityInsertOFFCommandForSQLServer(newDBConn, "address", BasicSQLUtils.myDestinationServerType);
+            
             log.info("AgentAddress Records: " + recordCnt);
             rs.close();
             stmt.close();
+
+            addrPrepStmt1.close();
+            addrPrepStmt2.close();
 
             // Now duplicate the Address Records
             for (Integer oldAddrId : addressHash.keySet())
             {
                 AddressInfo addrInfo = addressHash.get(oldAddrId);
 
-                for (Integer newAddrId : addrInfo.getNewIdsToDuplicate())
+                for (Integer newAgentId : addrInfo.getNewIdsToDuplicate())
                 {
-                    duplicateAddress(newDBConn, addrInfo.getNewAddrId(), newAddrId);
+                    duplicateAddress(newDBConn, addrInfo.getNewAddrId(), newAgentId);
                 }
             }
 
@@ -756,13 +810,11 @@ public class AgentConverter
                             sqlStr.append(BasicSQLUtils.getStrValue(rs.getObject(inx)));
                         }
                     }
-                    sqlStr.append("," + conv.getCreatorAgentId(lastEditedBy) + "," + conv.getModifiedByAgentId(lastEditedBy) + ", 0"); // '0' is Version
+                    sqlStr.append("," + conv.getCreatorAgentIdForAgent(lastEditedBy) + "," + conv.getModifiedByAgentIdForAgent(lastEditedBy) + ", 0"); // '0' is Version
                     sqlStr.append(")");
 
                     try
                     {
-                        Statement updateStatement = newDBConn.createStatement();
-                        // updateStatement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
                         if (debugAgents)
                         {
                             log.info(sqlStr.toString());
@@ -774,12 +826,7 @@ public class AgentConverter
                         {
                             throw new RuntimeException("Couldn't get the Agent's inserted ID");
                         }
-                        updateStatement.clearBatch();
-                        updateStatement.close();
-                        updateStatement = null;
                         
-                        conv.addAgentDisciplineJoin(newAgentId, conv.getDisciplineId());
-
                         newRecordsAdded++;
 
                     } catch (SQLException e)
@@ -803,6 +850,7 @@ public class AgentConverter
             rs.close();
             stmt.close();
             
+            updateStatement.close();
 
             conv.setProcess(0, BasicSQLUtils.getNumRecords(oldDBConn, "agent"));
             conv.setDesc("Adding Agents");
@@ -903,7 +951,7 @@ public class AgentConverter
              * String[] ignoredFields = {"JobTitle", "Email", "URL", "Visibility",
              * "VisibilitySetBy"};//User/Security changes
              * BasicSQLUtils.setFieldsToIgnoreWhenMappingNames(ignoredFields); copyTable(oldDBConn,
-             * newDBConn, sqlStr.toString(), "agent", "agent", null, null);
+             * newDBConn, sqlStragentId.toString(), "agent", "agent", null, null);
              * BasicSQLUtils.setFieldsToIgnoreWhenMappingNames(null);
              * 
              *  } log.info("Agent Address SQL recordCnt "+recordCnt);
@@ -955,84 +1003,35 @@ public class AgentConverter
     }
     
 
+   
     /**
      * @param newDBConnArg
      * @param oldId
      * @param newId
+     * @throws SQLException 
      */
     protected void duplicateAddress(final Connection newDBConnArg,
-                                    final Integer oldId,
-                                    final Integer newId)
+                                    final Integer newAddrId,
+                                    final Integer newAgentId) throws SQLException
     {
-        log.info("Duplicating [" + oldId + "] to [" + newId + "]");
+        log.info("Duplicating newAddrId[" + newAddrId + "] to newAgentId[" + newAgentId + "]");
 
-        List<String> agentAddrFieldNames = getFieldNamesFromSchema(newDBConnArg, "address");
-        String       fieldList           = buildSelectFieldList(agentAddrFieldNames, "address");
-        log.info(fieldList);
-
-        StringBuilder sqlStr = new StringBuilder();
-        sqlStr.append("SELECT ");
-        sqlStr.append(fieldList);
-        sqlStr.append(" from address where AddressID = " + oldId);
-
-        if (true)
-        {
-            log.info(sqlStr.toString());
-        }
-
+        String addFieldNames = DisciplineDuplicator.getFieldNameList(newDBConn, "address");
+        String insertSQL = String.format("INSERT INTO address (%s) (SELECT %s FROM address WHERE AddressID = %d)", addFieldNames, addFieldNames, newAddrId);
         try
         {
-            Statement stmt = newDBConnArg.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs = stmt.executeQuery(sqlStr.toString());
-
-            if (rs.last())
-            {
-                conv.setProcess(0, rs.getRow());
-                rs.first();
-            }
-
-            sqlStr.setLength(0);
-            sqlStr.append("INSERT INTO address ");
-            sqlStr.append("(" + fieldList + ")");
-            sqlStr.append(" VALUES (");
-
-            ResultSetMetaData metaData = rs.getMetaData();
-            int cols = metaData.getColumnCount();
-            for (int i = 1; i <= cols; i++)
-            {
-                if (i == 1)
-                {
-                    sqlStr.append(newId);
-
-                } else
-                {
-                    sqlStr.append(",");
-                    sqlStr.append(BasicSQLUtils.getStrValue(rs.getObject(i)));
-                }
-            }
-            sqlStr.append(") ");
-
-            rs.close();
-            stmt.close();
-
             Statement updateStatement = newDBConnArg.createStatement();
-            BasicSQLUtils.removeForeignKeyConstraints(newDBConn,
-                    BasicSQLUtils.myDestinationServerType);
-            // updateStatement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
-            if (true)
-            {
-                log.info(sqlStr.toString());
-            }
-            updateStatement.executeUpdate(sqlStr.toString());
-            updateStatement.clearBatch();
+            updateStatement.executeUpdate(insertSQL);
+            
+            int insertedAddrID = BasicSQLUtils.getInsertedId(updateStatement);
+            String sql = String.format("UPDATE address SET AgentID=%d WHERE AddressID = %d", newAgentId, insertedAddrID);
+            updateStatement.executeUpdate(sql);
             updateStatement.close();
-            updateStatement = null;
 
         } catch (Exception ex)
         {
-            throw new RuntimeException(ex);
+           ex.printStackTrace();
         }
-
     }
  
     /**
@@ -1068,6 +1067,8 @@ public class AgentConverter
         String newFieldListStr = buildSelectFieldList(newAgentFieldNames, "agent");
 
         //log.info(newFieldListStr);
+        
+        int lastNameLen = 120;
 
         Hashtable<String, Integer> oldIndexFromNameMap = new Hashtable<String, Integer>();
         int inx = 1;
@@ -1131,8 +1132,14 @@ public class AgentConverter
                         
                     } else if (StringUtils.contains(fieldName, "LastName"))
                     {
-                        int    srcColInx = rsX.getInt(agentTypeInx) != 1 ? nameInx : lastNameInx;
+                        int    oldType   = rsX.getInt(agentTypeInx);
+                        int    srcColInx = oldType != 1 ? nameInx : lastNameInx;
                         String lName     = rsX.getString(srcColInx);
+                        
+                        if (lName == null && oldType != 1)
+                        {
+                            lName = rsX.getString(lastNameInx);
+                        }
                         
                         if (lName != null && lName.length() > lastNameField.getLength())
                         {
@@ -1140,12 +1147,25 @@ public class AgentConverter
                             tblWriter.logError("Agent id: "+rsX.getString(agentIDInx)+" - Concatinating Last Name from ["+lName+"] to ["+str+"]");
                             lName = str;
                         }
+                        
+                        String lstName = lName;
+                        lName = lstName == null ? null : lstName.length() <= lastNameLen ? lstName : lstName.substring(0, lastNameLen);
+                        
                         sqlStr.append(BasicSQLUtils.getStrValue(lName));
                         
                     } else
                     {
                         String value = "";
-                        Integer index = oldIndexFromNameMap.get(fieldName);
+                        Integer index;
+                        
+                        if (fieldName.equals("ModifiedByAgentID"))
+                        {
+                            index = oldIndexFromNameMap.get("LastEditedBy");
+                        } else 
+                        {
+                            index = oldIndexFromNameMap.get(fieldName);
+                        }
+                        
                         if (index == null)
                         {
                             // log.debug(fieldName);
@@ -1188,7 +1208,7 @@ public class AgentConverter
                 updateStatement.close();
                 updateStatement = null;
                 
-                conv.addAgentDisciplineJoin(newAgentId, conv.getDisciplineId());
+                //conv.addAgentDisciplineJoin(newAgentId, conv.getDisciplineId());
 
                 cnt++;
                 BasicSQLUtils.setIdentityInsertOFFCommandForSQLServer(newDBConn, "agent", BasicSQLUtils.myDestinationServerType);
@@ -1389,7 +1409,7 @@ public class AgentConverter
         {
             Division   division       = (Division)session.createQuery("FROM Division WHERE id = " + divisionArg.getId()).list().iterator().next();
             Discipline discipline     = (Discipline)session.createQuery("FROM Discipline WHERE id = " + disciplineArg.getId()).list().iterator().next();
-            Agent      createdByAgent = (Agent)session.createQuery("FROM Agent WHERE id = " + conv.getCreatorAgentId(null)).list().iterator().next();
+            Agent      createdByAgent = (Agent)session.createQuery("FROM Agent WHERE id = " + conv.getCreatorAgentIdForAgent(null)).list().iterator().next();
             
             tblWriter.log("<H4>Splitting Mutliple Collectors names into Multiple Agents</H4>");
             tblWriter.startTable();
@@ -1514,8 +1534,6 @@ public class AgentConverter
                                         agent.setMiddleInitial(nameTriple.second);
                                         agent.setLastName(nameTriple.third);
                                         division.getMembers().add(agent);
-                                        agent.getDisciplines().add(discipline);
-                                        discipline.getAgents().add(agent);
                                         
                                         tblWriter.log(agentInfo.getNewAgentId().toString(), firstName+", "+lastName, "new agent, new collector");
 
@@ -1566,7 +1584,6 @@ public class AgentConverter
                 tblWriter.log(id.toString(), (row[1] == null ? "&nbsp;" : row[1].toString()) + (row[2] == null ? "" : " "+row[2].toString()), 
                                              row[3] == null ? "&nbsp;" : row[3].toString());
                 
-                updateStmtNewDB.executeUpdate("DELETE FROM agent_discipline WHERE AgentID = " + id);
                 updateStmtNewDB.executeUpdate("DELETE FROM agent WHERE AgentID = " + id);
                 
             }
@@ -1585,6 +1602,246 @@ public class AgentConverter
         {
             session.close();
         }
+    }
+
+    
+    
+    /**
+     * 
+     */
+    public void fixAddressOfRecord()
+    {
+        String oldAcc = "SELECT ac.AccessionID, aa.AgentID, adr.Address, adr.City, adr.State, adr.Country, adr.Postalcode, adr.Remarks, adr.TimestampModified, adr.TimestampCreated " +
+                        "FROM accession AS ac " +
+                        "Inner Join accessionagents AS aca ON ac.AccessionID = aca.AccessionID " +
+                        "Inner Join agentaddress AS aa ON aca.AgentAddressID = aa.AgentAddressID " +
+                        "Inner Join address AS adr ON aa.AddressID = adr.AddressID " +
+                        "ORDER BY ac.Number ASC";
+        
+        String oldCntAcc = "SELECT COUNT(*) " +
+                        "FROM accession AS ac " +
+                        "Inner Join accessionagents AS aca ON ac.AccessionID = aca.AccessionID " +
+                        "Inner Join agentaddress AS aa ON aca.AgentAddressID = aa.AgentAddressID " +
+                        "Inner Join address AS adr ON aa.AddressID = adr.AddressID " +
+                        "ORDER BY ac.Number ASC";
+        
+        String oldLoan = "SELECT l.LoanID, aa.AgentID, adr.Address, adr.City, adr.State, adr.Country, adr.Postalcode, adr.Remarks, adr.TimestampModified, adr.TimestampCreated " +
+                        "FROM loan AS l " +
+                        "Inner Join loanagents AS la ON l.LoanID = la.LoanID " +
+                        "Inner Join agentaddress AS aa ON la.AgentAddressID = aa.AgentAddressID " +
+                        "Inner Join address AS adr ON aa.AddressID = adr.AddressID " +
+                        "WHERE Category = 0 ORDER BY l.LoanNumber ASC";
+
+        String oldCntLoan = "SELECT COUNT(*) FROM loan AS l " +
+                            "Inner Join loanagents AS la ON l.LoanID = la.LoanID " +
+                            "Inner Join agentaddress AS aa ON la.AgentAddressID = aa.AgentAddressID " +
+                            "Inner Join address AS adr ON aa.AddressID = adr.AddressID " +
+                            "WHERE Category = 0 ORDER BY l.LoanNumber ASC";
+        
+        String oldGift    = StringUtils.replace(oldLoan, "0", "1");
+        String oldCntGift = StringUtils.replace(oldCntLoan, "0", "1");
+        
+        conv.setDesc("Fixing Accession Address Of Record");
+        doAddressOfRecord(oldCntAcc, oldAcc, "Accession", "accession_AccessionID");
+        
+        conv.setDesc("Fixing Loan Address Of Record");
+        doAddressOfRecord(oldCntLoan, oldLoan, "Loan", "loan_LoanID");
+        
+        conv.setDesc("Fixing Gift Address Of Record");
+        doAddressOfRecord(oldCntGift, oldGift, "Gift", "loan_LoanID");
+
+    }
+    
+    /**
+     * @param cntSQL
+     * @param sql
+     * @param tableName
+     * @param mapperName
+     */
+    private void doAddressOfRecord(final String cntSQL, 
+                                   final String sql, 
+                                   final String tableName, 
+                                   final String mapperName)
+    {
+        IdMapperIFace agentMapper = IdMapperMgr.getInstance().get("agent_AgentID");
+        
+        Session     session = HibernateUtil.getNewSession();
+        Transaction trans   = null;
+        try
+        { 
+            conv.setProcess(0, BasicSQLUtils.getCountAsInt(oldDBConn, cntSQL));
+        
+            IdMapperIFace loanMapper  = IdMapperMgr.getInstance().get(mapperName);
+
+            Statement stmt = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs   = stmt.executeQuery(sql);
+
+            int cnt = 0;
+            while (rs.next())
+            {
+                int col = 1;
+                Integer loanID       = rs.getInt(col++);
+                Integer agentID      = rs.getInt(col++); 
+                String address       = rs.getString(col++); 
+                String city          = rs.getString(col++); 
+                String state         = rs.getString(col++); 
+                String country       = rs.getString(col++);
+                String postalCode    = rs.getString(col++); 
+                String remarks       = rs.getString(col++); 
+                Timestamp timestampModified = rs.getTimestamp(col++);
+                Timestamp timestampCreated  = rs.getTimestamp(col++);
+                
+                Integer newAgentId = agentMapper.get(agentID);
+                
+                if (newAgentId != null)
+                {
+                    List<?> list = session.createQuery("FROM Agent WHERE id = " + newAgentId).list();
+                    if (list != null && list.size() == 1)
+                    {
+                        Agent agent = (Agent)list.get(0);
+                        
+                        Integer newLoanId = loanMapper.get(loanID);
+                        
+                        if (newLoanId != null)
+                        {
+                            list = session.createQuery("FROM "+tableName+" WHERE id = " + newLoanId).list();
+                            if (list != null && list.size() == 1)
+                            {
+                                trans = session.beginTransaction();
+                                AddressOfRecord aor = new AddressOfRecord();
+                                aor.initialize();
+                                aor.setAddress(address);
+                                aor.setAgent(agent);
+                                aor.setCity(city);
+                                aor.setCountry(country);
+                                aor.setPostalCode(postalCode);
+                                aor.setRemarks(remarks);
+                                aor.setState(state);
+                                aor.setTimestampCreated(timestampCreated);
+                                aor.setTimestampModified(timestampModified);
+                               
+                                FormDataObjIFace parentObj = (FormDataObjIFace)list.get(0);
+                                DataModelObjBase.setDataMember(parentObj, "addressOfRecord", aor);
+                                
+                                session.saveOrUpdate(parentObj);
+                                //session.saveOrUpdate(aor);
+                                trans.commit();
+                            }
+                        }
+                    }
+                }
+                
+                if (cnt % 100 == 0)
+                {
+                    conv.setProcess(0, cnt);
+                }
+                cnt++;
+            }
+            rs.close();
+            stmt.close();
+            
+        } catch (Exception ex)
+        {
+            try
+            {
+                if (trans != null) trans.rollback();
+            } catch (Exception ex1) {}
+            ex.printStackTrace();
+            log.error(ex);
+            
+        } finally
+        {
+            session.close();
+        }
+    }
+    
+    
+    protected void fixMissingAddrsFromConv()
+    {
+        IdTableMapper agentIDMapper     = idMapperMgr.addTableMapper("agent",        "AgentID", false);
+        IdTableMapper addrIDMapper      = idMapperMgr.addTableMapper("address",      "AddressID", false);
+        //IdTableMapper agentAddrIDMapper = idMapperMgr.addTableMapper("agentaddress", "AgentAddressID", false);
+
+        String sql = "SELECT ag.AgentID, aa.AgentAddressID, ad.AddressID FROM agent ag INNER JOIN agentaddress aa ON ag.AgentID = aa.AgentID " +
+                     "INNER JOIN address ad ON aa.AddressID = ad.AddressID ";
+        
+        sql = "SELECT AddressID FROM (SELECT aa.AddressID, COUNT(aa.AddressID) as cnt FROM agentaddress aa INNER JOIN address ON aa.AddressID = address.AddressID " +
+              "GROUP BY aa.AddressID) T1 WHERE cnt > 1 ";
+        
+        int numFixed = 0;
+        for (Integer oldAddrId : BasicSQLUtils.queryForInts(oldDBConn, sql))
+        {
+            
+            sql = "SELECT a.AgentID FROM address ad INNER JOIN agentaddress aa ON ad.AddressID = aa.AddressID " +
+                   "INNER JOIN agent a ON aa.AgentID = a.AgentID WHERE ad.AddressID = " + oldAddrId;
+            
+            Integer newAddrID  = addrIDMapper.get(oldAddrId);
+            
+            for (Integer oldAgentId : BasicSQLUtils.queryForInts(oldDBConn, sql))
+            {
+                Integer newAgentID = agentIDMapper.get(oldAgentId);
+                
+                sql = "SELECT ad.AddressID FROM agent a LEFT JOIN address ad ON a.AgentID = ad.AgentID WHERE a.AgentID = " + newAgentID;
+                Integer addrID = BasicSQLUtils.getCount(newDBConn, sql);
+                if (addrID == null)
+                {
+                    System.out.println("newAgentID: "+newAgentID+"  addrID: "+addrID + "  newAddrID: "+newAddrID);  
+                    try
+                    {
+                        duplicateAddress(newDBConn, newAddrID, newAgentID);
+                        numFixed++;
+                        
+                    } catch (SQLException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        
+        System.out.println("---------------------------------------------");
+        System.out.println("Number of Addresses Duplicated: "+numFixed);
+        System.out.println("---------------------------------------------");
+    }
+    
+    protected void parseAndFixMultiLineAddresses()
+    {
+        String whereStr = " FROM address a WHERE Address like '%\r\n%'";
+        String sql = "SELECT count(*)" + whereStr;
+        if (BasicSQLUtils.getCountAsInt(sql) < 1)
+        {
+            return;
+        }
+        
+        sql = "SELECT AddressID, Address" + whereStr;
+        
+        Statement         stmt  = null;
+        //PreparedStatement pStmt = null; 
+        try
+        {
+           // pStmt = newDBConn.prepareStatement("UPDATE address SET Address=?, Address2=?, City=?, State=?, PostalCode=? WHERE AddressID = ?");
+            stmt = newDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            HashSet<Integer> hashSet = new HashSet<Integer>();
+            while (rs.next())
+            {
+                String[] toks = StringUtils.split(rs.getString(2), "\r\n");
+                hashSet.add(toks.length);
+            }
+            rs.close();
+            
+            for (Integer i : (Integer[])hashSet.toArray())
+            {
+                System.out.println(i);
+            }
+            System.out.println();
+            
+        } catch (Exception ex)
+        {
+            
+        }
+        
     }
     
     //-------------------------------------------------------------------------
@@ -1637,7 +1894,7 @@ public class AgentConverter
             this.isUsed = isUsed;
         }
 
-        public Integer addAgent(Integer agentId)
+        public Integer addAgent(final Integer agentId)
         {
             agtHash.put(agentId, true);
 
@@ -1666,6 +1923,16 @@ public class AgentConverter
         }
     }
     
+    /**
+     * @param firstName
+     * @param lastName
+     * @param innerSep
+     * @param nameSep
+     * @param isLastNameFieldFirst
+     * @param isLastNameFirst
+     * @param trimAfterComma
+     * @return
+     */
     public List<AgentNameInfo> parseName(final String    firstName, 
                                          final String    lastName,
                                          @SuppressWarnings("unused") final char      innerSep,
@@ -1774,6 +2041,7 @@ public class AgentConverter
         String                      lastName;
         String                      firstName;
         String                      name;
+        int                         addrOrd = 0;
 
         public AgentInfo(Integer oldAgentId, 
                          Integer newAgentId,

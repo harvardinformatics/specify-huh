@@ -23,16 +23,22 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 
+import org.apache.log4j.Logger;
+
 import edu.ku.brc.af.ui.IllustrativeBarCodeUI;
+import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.specify.datamodel.DNASequence;
+import edu.ku.brc.specify.datamodel.DNASequencingRun;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.DocumentAdaptor;
 
-public class DNASequenceBusRules extends AttachmentOwnerBaseBusRules implements CommandListener
+public class DNASequenceBusRules extends BaseBusRules implements CommandListener
 {
+    private static final Logger log = Logger.getLogger(DNASequenceBusRules.class);
+    
     protected IllustrativeBarCodeUI  barCodeUI = null;
     
     /**
@@ -133,14 +139,35 @@ public class DNASequenceBusRules extends AttachmentOwnerBaseBusRules implements 
      */
     private void adjustTotals()
     {
-        if (formViewObj != null&& barCodeUI != null)
+        JTextArea ta = (JTextArea)formViewObj.getCompById("4");
+        if (formViewObj != null&& barCodeUI != null && ta != null)
         {
-            setValue("residues", barCodeUI.getTotal('A')+barCodeUI.getTotal('G')+barCodeUI.getTotal('C')+barCodeUI.getTotal('T')+barCodeUI.getTotal('X'));
-            setValue("compA", barCodeUI.getTotal('A'));
-            setValue("compG", barCodeUI.getTotal('G'));
-            setValue("compT", barCodeUI.getTotal('T'));
-            setValue("compC", barCodeUI.getTotal('C'));
-            setValue("ambiguous", barCodeUI.getTotal('X'));
+            barCodeUI.setSequence(ta.getText());
+            
+            int compA = barCodeUI.getTotal('A');
+            int compG = barCodeUI.getTotal('G');
+            int compT = barCodeUI.getTotal('T');
+            int compC = barCodeUI.getTotal('C');
+            int compX = barCodeUI.getTotal('X');
+            int total = compA + compG + compC + compT + compX;
+            
+            setValue("residues", total);
+            setValue("compA", compA);
+            setValue("compG", compG);
+            setValue("compT", compT);
+            setValue("compC", compC);
+            setValue("ambiguous", compX);
+            
+            DNASequence dnaSeq = (DNASequence)formViewObj.getDataObj();
+            if (dnaSeq != null)
+            {
+                dnaSeq.setCompA(compA);
+                dnaSeq.setCompG(compG);
+                dnaSeq.setCompT(compT);
+                dnaSeq.setCompC(compC);
+                dnaSeq.setTotalResidues(total);
+                dnaSeq.setAmbiguousResidues(compX);
+            }
         }
     }
     
@@ -173,7 +200,6 @@ public class DNASequenceBusRules extends AttachmentOwnerBaseBusRules implements 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.CommandListener#doCommand(edu.ku.brc.ui.CommandAction)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void doCommand(final CommandAction cmdAction)
     {
@@ -208,5 +234,20 @@ public class DNASequenceBusRules extends AttachmentOwnerBaseBusRules implements 
             }
         }*/
     }
-
+    
+    /**
+     * @param attOwner
+     */
+    @Override
+    protected void addExtraObjectForProcessing(final Object dObjAtt)
+    {
+        super.addExtraObjectForProcessing(dObjAtt);
+        
+        DNASequence dnaseq = (DNASequence)dObjAtt;
+        
+        for (DNASequencingRun dnasr : dnaseq.getDnaSequencingRuns())
+        {
+            super.addExtraObjectForProcessing(dnasr);
+        }
+    }
 }

@@ -214,6 +214,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
         rankId                        = null;
         groupNumber                   = null;
         visibility                    = null;
+        visibilitySetBy               = null;
         hybridParent1                 = null;
         hybridParent2                 = null;
         hybridChildren1               = new HashSet<Taxon>();
@@ -231,6 +232,11 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
 
         isAccepted                    = true; // null for isAccepted means the same as true.  true is more clear.  So, I put true in here.
         acceptedTaxon                 = null;
+        number1						  = null;
+        number2                       = null;
+        text1                         = null;
+        text2                         = null;
+        
         acceptedChildren              = new HashSet<Taxon>();
 
 	}
@@ -947,7 +953,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
      * @return the collectingEventAttributes
      */
     @OneToMany(mappedBy = "hostTaxon")
-    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
     public Set<CollectingEventAttribute> getCollectingEventAttributes()
     {
         return collectingEventAttributes;

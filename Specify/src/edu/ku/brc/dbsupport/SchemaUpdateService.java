@@ -19,24 +19,9 @@
 */
 package edu.ku.brc.dbsupport;
 
-import java.awt.Frame;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.sql.SQLException;
 import java.util.Vector;
-
-import javax.swing.JLabel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
-import edu.ku.brc.ui.CustomDialog;
-import edu.ku.brc.ui.UIHelper;
-import edu.ku.brc.ui.UIRegistry;
-import edu.ku.brc.util.Pair;
 
 /**
  * Abstract class for setting application context. It is designed that each application should implement its own.<br>
@@ -55,11 +40,19 @@ import edu.ku.brc.util.Pair;
  * @author rods
  *
  */
+/**
+ * @author rods
+ *
+ * @code_status Alpha
+ *
+ * Created Date: Nov 24, 2009
+ *
+ */
 public abstract class SchemaUpdateService
 {
     public static final String factoryName = "edu.ku.brc.af.core.db.SchmeaUpdateService"; //$NON-NLS-1$
     
-    public enum SchemaUpdateTpe {Success, Error, NotNeeded}
+    public enum SchemaUpdateType {Success, SuccessAppVer, SuccessSilent, Error, NotNeeded}
     
     public enum CONTEXT_STATUS {OK, Error, Ignore, Initial}
     
@@ -84,71 +77,18 @@ public abstract class SchemaUpdateService
     }
     
     /**
-     * @return a username/password pair if valid or null if canceled
-     * @throws SQLException
-     */
-    public static Pair<String, String> getITUsernamePwd()
-    {
-        JTextField     userNameTF = UIHelper.createTextField(15);
-        JPasswordField passwordTF = UIHelper.createPasswordField();
-        JLabel         statusLbl  = UIHelper.createLabel("");
-        
-        CellConstraints cc = new CellConstraints();
-        PanelBuilder    pb = new PanelBuilder(new FormLayout("p,2px,f:p:g", "p,4px,p,10px,p"));
-        
-        pb.add(UIHelper.createI18NFormLabel("IT_Username"), cc.xy(1, 1));
-        pb.add(userNameTF, cc.xy(3, 1));
-        
-        pb.add(UIHelper.createI18NFormLabel("IT_Password"), cc.xy(1, 3));
-        pb.add(passwordTF, cc.xy(3, 3));
-        
-        pb.add(statusLbl, cc.xyw(1, 5, 3));
-        
-        pb.setDefaultDialogBorder();
-        
-        while (true)
-        {
-            CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getMostRecentWindow(), UIRegistry.getResourceString("IT_LOGIN"), true, pb.getPanel());
-            dlg.setVisible(true);
-            if (!dlg.isCancelled())
-            {
-                String uName = userNameTF.getText();
-                String pwd   = new String(passwordTF.getPassword());
-    
-                DBConnection dbc    = DBConnection.getInstance();
-                DBConnection dbConn = DBConnection.createInstance(dbc.getDriver(), 
-                                                                  dbc.getDialect(), 
-                                                                  dbc.getDatabaseName(), 
-                                                                  dbc.getConnectionStr(), 
-                                                                  uName, 
-                                                                  pwd);
-                if (dbConn != null)
-                {
-                    DBMSUserMgr dbMgr = DBMSUserMgr.getInstance();
-                    dbMgr.close();
-                    
-                    if (dbMgr.connect(uName, pwd, dbc.getServerName(), dbc.getDatabaseName()))
-                    {
-                        dbMgr.close();
-                        return new Pair<String, String>(uName, pwd);
-                    }
-                    dbMgr.close();
-                    statusLbl.setText("<HTML><font color=\"red\">"+UIRegistry.getResourceString("IT_LOGIN_ERROR")+"</font></HTML>");
-                }
-            } else
-            {
-                return null;
-            }
-        }
-    }
-    
-    /**
      * Returns a View by name, meaning a ViewSet name and a View name inside the ViewSet.
      * @param viewName the name of the view (cannot be null)
      * @param versionNumber the current version number of the application
      * @return the view
      */
-    public abstract SchemaUpdateTpe updateSchema(String versionNumber);
+    public abstract SchemaUpdateType updateSchema(String versionNumber);
+    
+    
+    /**
+     * @return a string with the version number for the database schema
+     */
+    public abstract String getDBSchemaVersionFromXML();
     
     /**
      * Returns the instance of the AppContextMgr.

@@ -58,7 +58,7 @@ import org.hibernate.annotations.Index;
     {   @Index (name="FNBPPageNumberIDX", columnNames={"PageNumber"}),
         @Index (name="FNBPScanDateIDX", columnNames={"ScanDate"})
     })
-public class FieldNotebookPage extends DisciplineMember
+public class FieldNotebookPage extends DisciplineMember implements AttachmentOwnerIFace<FieldNotebookPageAttachment>
 {
     protected Integer  fieldNotebookPageId;
     protected String   pageNumber;
@@ -157,7 +157,7 @@ public class FieldNotebookPage extends DisciplineMember
     /**
      * @return the pageNumber
      */
-    @Column(name = "PageNumber", unique = false, nullable = false, insertable = true, updatable = true, length = 16)
+    @Column(name = "PageNumber", unique = false, nullable = false, insertable = true, updatable = true, length = 32)
     public String getPageNumber()
     {
         return pageNumber;
@@ -167,7 +167,7 @@ public class FieldNotebookPage extends DisciplineMember
      * @return the scanDate
      */
     @Temporal(TemporalType.DATE)
-    @Column(name = "ScanDate", unique = false, nullable = false, insertable = true, updatable = true)
+    @Column(name = "ScanDate", unique = false, nullable = true, insertable = true, updatable = true)
     public Calendar getScanDate()
     {
         return scanDate;
@@ -214,11 +214,21 @@ public class FieldNotebookPage extends DisciplineMember
     {
         return collectionObjects;
     }
-
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.AttachmentOwnerIFace#getAttachmentReferences()
+     */
+    @Override
+    @Transient
+    public Set<FieldNotebookPageAttachment> getAttachmentReferences()
+    {
+        return attachments;
+    }
+    
     //---------------------------------------------------------------------------
     // Overrides DataModelObjBase
     //---------------------------------------------------------------------------
-    
+
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentTableId()
      */

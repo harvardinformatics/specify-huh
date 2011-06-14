@@ -45,6 +45,7 @@ public class TreeLevelQRI extends FieldQRI
 {
     protected final int rankId;
     protected final int treeDefId;
+    protected final String realFldName;
 
     protected String    tableAlias = null;
     
@@ -54,12 +55,25 @@ public class TreeLevelQRI extends FieldQRI
      * @param rankId
      * @throws Exception
      */
+    public TreeLevelQRI(final TableQRI parent, final DBFieldInfo fi, final int rankId) throws Exception
+    {
+    	this(parent, fi, rankId, "name");
+    }
+
+    /**
+     * @param parent
+     * @param fi
+     * @param rankId
+     * @param realFldName
+     * @throws Exception
+     */
     @SuppressWarnings("unchecked")
-    public TreeLevelQRI(final TableQRI parent, final DBFieldInfo fi, final int rankId)
+    public TreeLevelQRI(final TableQRI parent, final DBFieldInfo fi, final int rankId, final String realFldName)
             throws Exception
     {
         super(parent, fi);
         this.rankId = rankId;
+        this.realFldName = realFldName;
         SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
         TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
         treeDefId = treeDef.getTreeDefId();
@@ -67,7 +81,11 @@ public class TreeLevelQRI extends FieldQRI
         treeDefItem = treeDef.getDefItemByRank(rankId);
         if (treeDefItem != null)
         {
-            title = treeDefItem.getName();
+            title = treeDefItem.getDisplayText();
+            if (!"name".equals(realFldName))
+            {
+            	title += " " + realFldName.substring(0, 1).toUpperCase() + realFldName.substring(1);
+            }
         }
         else
         {
@@ -90,6 +108,14 @@ public class TreeLevelQRI extends FieldQRI
     public String getFieldName()
     {
         return title;
+    }
+    
+    /**
+     * @return the real field name.
+     */
+    public String getRealFieldName()
+    {
+    	return realFldName;
     }
     
     /* (non-Javadoc)
@@ -233,7 +259,7 @@ public class TreeLevelQRI extends FieldQRI
             TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )getTableInfo().getClassObj());
 
             String className = getTableInfo().getClassObj().getSimpleName();
-            List<?> matches = session.getDataList("from " + className + " where name " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
+            List<?> matches = session.getDataList("from " + className + " where " + realFldName + " " + operStr + " " +  criteria + " and " + className + "TreeDefId = " + treeDef.getTreeDefId()
                     + " and rankId =" + String.valueOf(rankId));
             List<Pair<Integer, Integer>> nodeInfo = new LinkedList<Pair<Integer, Integer>>();
             if (matches.size() == 0)

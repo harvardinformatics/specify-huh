@@ -112,7 +112,7 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
     }
 
     @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -252,6 +252,10 @@ public class CollectingEventAttachment extends CollectionMember implements Objec
      */
     public int compareTo(CollectingEventAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 }

@@ -77,8 +77,11 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     protected int       version;
     
     // Transient
+    protected Integer   parentTblId = null;
+   
+    // Transient Static
     protected static String errMsg = null;
-    
+     
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.FormDataObjIFace#initialize()
      */
@@ -619,7 +622,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     @Transient
     public Integer getParentId()
     {
-        return null;
+        return parentTblId;
     }
 
     /* (non-Javadoc)
@@ -788,9 +791,7 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
     public Object clone() throws CloneNotSupportedException
     {
         DataModelObjBase obj  = (DataModelObjBase)super.clone();
-        obj.timestampCreated  = timestampCreated;
-        obj.timestampModified = timestampModified;
-        obj.modifiedByAgent   = modifiedByAgent;
+        obj.init();
         return obj;
     }
     
@@ -893,10 +894,10 @@ public abstract class DataModelObjBase implements FormDataObjIFace,
             transOpen = false;
         } catch (Exception ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             ex.printStackTrace();
             log.error(ex);
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(DataModelObjBase.class, ex);
             errMsg = ex.toString();
             
             if (doShowError)

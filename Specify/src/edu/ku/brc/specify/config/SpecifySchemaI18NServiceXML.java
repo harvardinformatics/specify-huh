@@ -19,12 +19,16 @@
 */
 package edu.ku.brc.specify.config;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.SchemaI18NService;
@@ -50,10 +54,9 @@ import edu.ku.brc.specify.tools.schemalocale.SchemaLocalizerXMLHelper;
  */
 public class SpecifySchemaI18NServiceXML extends SchemaI18NService
 {
-    private static final Logger      log      = Logger.getLogger(SpecifySchemaI18NServiceXML.class);
+    private static final Logger        log      = Logger.getLogger(SpecifySchemaI18NServiceXML.class);
     
     protected SchemaLocalizerXMLHelper schemaIO = null;
-    
     
     /**
      * 
@@ -103,7 +106,7 @@ public class SpecifySchemaI18NServiceXML extends SchemaI18NService
                                final Locale       locale)
     {
         schemaIO = new SchemaLocalizerXMLHelper(schemaType, tableMgr);
-        schemaIO.load();
+        schemaIO.load(true);
         
         Vector<DisciplineBasedContainer> containers = schemaIO.getSpLocaleContainers();
         
@@ -139,4 +142,49 @@ public class SpecifySchemaI18NServiceXML extends SchemaI18NService
             }
         }
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.core.SchemaI18NService#getLocalesFromData(java.lang.Byte, int)
+     */
+    @Override
+    public List<Locale> getLocalesFromData(final Byte schemaType, final int disciplineId)
+    {
+        List<Locale> locales = new ArrayList<Locale>();
+        
+        HashSet<String> hash = new HashSet<String>();
+        for (DisciplineBasedContainer container : schemaIO.getSpLocaleContainers())
+        {
+            for (SpLocaleItemStr str : container.getNames())
+            {
+                String language = str.getLanguage();
+                String country  = str.getCountry();
+                String variant  = str.getVariant();
+                
+                String key = String.format("%s_%s_%s", language, country != null ? country : "", variant != null ? variant : "");
+                if (!hash.contains(key))
+                {
+                    hash.add(key);
+                    Locale locale = null;
+                    if (StringUtils.isNotBlank(language) && StringUtils.isNotBlank(country) && StringUtils.isNotBlank(variant))
+                    {
+                        locale = new Locale(language, country, variant);
+                        
+                    } else if (StringUtils.isNotBlank(language) && StringUtils.isNotBlank(country))
+                    {
+                        locale = new Locale(language, country);
+                        
+                    } else if (StringUtils.isNotBlank(language))
+                    {
+                        locale = new Locale(language);
+                    }
+                    if (locale != null)
+                    {
+                        locales.add(locale);
+                    }
+                }
+            }
+        }
+        return locales;
+    }
+
 }

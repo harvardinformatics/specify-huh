@@ -63,15 +63,7 @@ public class CollectingEventsAndAttrsMaint
      */
     public CollectingEventsAndAttrsMaint()
     {
-        try
-        {
-            connection = DBConnection.getInstance().createConnection();
-            session    = DataProviderFactory.getInstance().createSession();
-        
-        } catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
+
     }
     
     /**
@@ -79,14 +71,20 @@ public class CollectingEventsAndAttrsMaint
      */
     public void shutdown()
     {
-        try
+        if (!AppPreferences.getGlobalPrefs().getBoolean("CollectingEventsAndAttrsMaint1", false))
         {
-            connection.close();
-            session.close();
-            
-        } catch (Exception ex)
-        {
-            ex.printStackTrace();
+            AppPreferences.getGlobalPrefs().putBoolean("CollectingEventsAndAttrsMaint1", true);
+            try
+            {
+                AppPreferences.getGlobalPrefs().flush();
+                
+                if (connection != null) connection.close();
+                if (session != null) session.close();
+                
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
         }
     }
     
@@ -146,6 +144,7 @@ public class CollectingEventsAndAttrsMaint
         
     }
     
+    
     /**
      * @throws Exception
      * 
@@ -163,6 +162,16 @@ public class CollectingEventsAndAttrsMaint
             return;
         }
         
+        try
+        {
+            connection = DBConnection.getInstance().createConnection();
+            session    = DataProviderFactory.getInstance().createSession();
+        
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        
         // Skip converted databases
         Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
         String      remarks     = institution.getRemarks();
@@ -177,6 +186,7 @@ public class CollectingEventsAndAttrsMaint
                 
                 AppContextMgr.getInstance().setClassObject(Institution.class, institution);
                 remotePrefs.getBoolean(convPrefName, true);
+                shutdown();
                 return;
                 
             } catch (Exception ex1)
@@ -198,6 +208,7 @@ public class CollectingEventsAndAttrsMaint
         
         if (collectionsIds.size() == 0)
         {
+            shutdown();
             return;
         }
         
@@ -209,6 +220,7 @@ public class CollectingEventsAndAttrsMaint
         
         if (totCnt == 0)
         {
+            shutdown();
             return;
         }
         
@@ -243,6 +255,8 @@ public class CollectingEventsAndAttrsMaint
             protected void done()
             {
                 super.done();
+                
+                shutdown();
                 
                 glassPane.setProgress(100);
                 

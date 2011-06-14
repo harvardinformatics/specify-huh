@@ -45,7 +45,10 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.specify.config.DisciplineType;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -165,7 +168,19 @@ public class DisciplinePanel extends BaseSetupPanel
      */
     public boolean isUIValid()
     {
-        return StringUtils.isNotEmpty(disciplineName.getText()) && disciplines.getSelectedIndex() > -1;
+        String name = disciplineName.getText();
+        if (DBConnection.getInstance().getConnection() != null && StringUtils.isNotEmpty(name) && disciplines.getSelectedIndex() > -1)
+        {
+            int cnt = BasicSQLUtils.getCountAsInt(String.format("SELECT COUNT(*) FROM discipline WHERE Name = '%s'", name));
+            if (cnt > 0)
+            {
+                UIRegistry.showLocalizedError("DISPNAME_DUP", name);
+                return false;
+            }
+            return true;
+        }
+        
+        return false;
     }
     
     // Getters 
@@ -197,6 +212,4 @@ public class DisciplinePanel extends BaseSetupPanel
         list.add(new Pair<String, String>(getResourceString("DSP_NAME"), disciplineName.getText()));
         return list;
     }
-    
-    
 }

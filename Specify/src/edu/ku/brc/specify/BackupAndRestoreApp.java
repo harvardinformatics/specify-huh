@@ -25,7 +25,6 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
@@ -38,7 +37,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -70,11 +68,11 @@ import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.prefs.AppPrefsCache;
 import edu.ku.brc.af.tasks.BaseTask;
-import edu.ku.brc.af.ui.db.DatabaseLoginDlg;
 import edu.ku.brc.af.ui.db.DatabaseLoginListener;
 import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.db.DatabaseLoginPanel.MasterPasswordProviderIFace;
 import edu.ku.brc.af.ui.forms.FormHelper;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
@@ -443,7 +441,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
     protected String getTitle()
     {
         String title        = "";
-        String install4JStr = UIHelper.getInstall4JInstallString();
+        String resAppVersion = UIRegistry.getAppVersion();
         
         String postFix = "";
         if (UIRegistry.isEmbedded())
@@ -455,9 +453,9 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
             postFix = " (Mobile)";
         }
         
-        if (StringUtils.isNotEmpty(install4JStr))
+        if (StringUtils.isNotEmpty(resAppVersion))
         {
-            appVersion = install4JStr;
+            appVersion = resAppVersion;
             title = appName + postFix + " " + appVersion; //$NON-NLS-1$
         } else
         {
@@ -662,6 +660,8 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
         
         showApp();
         
+        statusField.setText(DBConnection.getInstance().getDatabaseName());
+        
         if (dbLoginPanel != null)
         {
             dbLoginPanel.getWindow().setVisible(false);
@@ -749,7 +749,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
                                              final String  helpContext) //frame's icon name
     {  
         
-        ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std16);
+        ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std32);
         if (StringUtils.isNotEmpty(appIconName))
         {
             ImageIcon imgIcon = IconManager.getIcon(appIconName);
@@ -876,6 +876,7 @@ public class BackupAndRestoreApp extends JPanel implements DatabaseLoginListener
    public static void main(String[] args)
    {
        AppBase.processArgs(args);
+       AppBase.setupTeeForStdErrStdOut(true, false);
        
        SwingUtilities.invokeLater(new Runnable() {
            @SuppressWarnings("synthetic-access") //$NON-NLS-1$

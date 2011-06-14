@@ -20,7 +20,10 @@
 package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +38,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 @SuppressWarnings("serial")
 @Entity
@@ -337,10 +340,12 @@ public class StorageTreeDef extends BaseTreeDef<Storage, StorageTreeDef, Storage
     @Transient
     public Integer getParentId()
     {
-        if (institutions != null && institutions.size() == 1)
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT InstitutionID FROM institution WHERE StorageTreeDefID = "+ storageTreeDefId);
+        if (ids.size() == 1)
         {
-            return ((FormDataObjIFace)institutions.toArray()[0]).getId();
+            return (Integer)ids.get(0);
         }
+        
         return null;
     }
     
@@ -381,4 +386,36 @@ public class StorageTreeDef extends BaseTreeDef<Storage, StorageTreeDef, Storage
     {
         return getIdentityTitle();
     }
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.BaseTreeDef#getRankIncrement()
+	 */
+	@Override
+    @Transient	
+	public int getRankIncrement()
+	{
+		return 50;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.datamodel.BaseTreeDef#getStandardLevels()
+	 */
+	@Override
+    @Transient
+	public List<TreeDefItemStandardEntry> getStandardLevels()
+	{
+        List<TreeDefItemStandardEntry> result = new LinkedList<TreeDefItemStandardEntry>();    
+        result.add(new TreeDefItemStandardEntry("Building", 100)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Collection", 150)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Room", 200)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Aisle", 250)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Cabinet", 300)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Shelf", 350)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Box", 400)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Rack", 450)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("Vial", 500)); //$NON-NLS-1$
+       return result;
+	}
+    
+    
 }

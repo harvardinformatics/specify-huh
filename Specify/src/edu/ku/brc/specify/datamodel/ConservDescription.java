@@ -54,7 +54,7 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Table(appliesTo="conservdescription", indexes =
     {   @Index (name="ConservDescShortDescIDX", columnNames={"ShortDesc"})
     })
-public class ConservDescription extends DataModelObjBase implements AttachmentOwnerIFace<ConservDescriptionAttachment>, java.io.Serializable
+public class ConservDescription extends DataModelObjBase implements AttachmentOwnerIFace<ConservDescriptionAttachment>, java.io.Serializable, Cloneable
 {
     // Fields    
     protected Integer            conservDescriptionId;
@@ -478,4 +478,21 @@ public class ConservDescription extends DataModelObjBase implements AttachmentOw
         return conservDescriptionAttachments;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        ConservDescription obj = (ConservDescription)super.clone();
+        
+        obj.conservDescriptionId = null;
+        obj.collectionObject     = null;
+        obj.division             = null;
+        
+        obj.events = new HashSet<ConservEvent>();
+        obj.conservDescriptionAttachments = new HashSet<ConservDescriptionAttachment>();
+        
+        return obj;
+    }
 }

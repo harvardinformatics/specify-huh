@@ -30,6 +30,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
@@ -53,7 +54,7 @@ public class GridTableModel extends SpreadSheetModel
 {
     private static final Logger log = Logger.getLogger(GridTableModel.class);
             
-    protected Workbench          workbench;
+    protected WorkbenchPaneSS	 workbenchPaneSS;
     protected boolean            batchMode        = false;
     protected boolean            isInImageMode    = false;
     protected boolean            isUserEdit       = true;
@@ -64,22 +65,21 @@ public class GridTableModel extends SpreadSheetModel
     protected WorkbenchTemplateMappingItem         imageMappingItem = null;
 
     /**
-     * @param workbench
+     * @param workbenchPaneSS
      */
-    public GridTableModel(final Workbench workbench)
+    public GridTableModel(final WorkbenchPaneSS workbenchPaneSS)
     {
         super();
-        setWorkbench(workbench);
+        this.workbenchPaneSS = workbenchPaneSS;
+        setWorkbench(workbenchPaneSS.getWorkbench());
     }
     
     /**
      * Sets in a new Workbench.
      * @param workbench the new wb
      */
-    public void setWorkbench(final Workbench workbench)
+    protected void setWorkbench(final Workbench workbench)
     {
-        this.workbench = workbench;
-        
         // Make the new Header List
         headers.clear();
         headers.addAll(workbench.getWorkbenchTemplate().getWorkbenchTemplateMappingItems());
@@ -89,6 +89,18 @@ public class GridTableModel extends SpreadSheetModel
         {
             headers.add(imageMappingItem);
         }
+    }
+    
+    /**
+     * @return the workbench
+     */
+    protected Workbench getWorkbench()
+    {
+    	if (workbenchPaneSS != null)
+    	{
+    		return workbenchPaneSS.getWorkbench();
+    	}
+    	return null;
     }
     
     /**
@@ -168,7 +180,7 @@ public class GridTableModel extends SpreadSheetModel
      */
     public int getRowCount()
     {
-        return workbench != null ? workbench.getWorkbenchRows().size() : 0;
+        return getWorkbench() != null ? getWorkbench().getWorkbenchRows().size() : 0;
     }
 
     /* (non-Javadoc)
@@ -179,7 +191,7 @@ public class GridTableModel extends SpreadSheetModel
         // if this is the image column...
         if (isInImageMode && column == headers.size() - 1)
         {
-            WorkbenchRow rowObj = workbench.getRow(row);
+            WorkbenchRow rowObj = getWorkbench().getRow(row);
             Set<WorkbenchRowImage> images = rowObj.getWorkbenchRowImages();
             if (images != null && images.size() > 0)
             {
@@ -200,7 +212,7 @@ public class GridTableModel extends SpreadSheetModel
         // otherwise...
         if (getRowCount() > row)
         {
-            return workbench.getWorkbenchRowsAsList().get(row).getData(column);
+            return getWorkbench().getWorkbenchRowsAsList().get(row).getData(column);
         }
         return null;
     }
@@ -252,11 +264,11 @@ public class GridTableModel extends SpreadSheetModel
         
         if (getRowCount() >= 0)
         {
-            String currentValue = workbench.getWorkbenchRowsAsList().get(row).getData(column);
+            String currentValue = getWorkbench().getWorkbenchRowsAsList().get(row).getData(column);
             boolean changed = !StringUtils.equals(currentValue, value.toString());
             if (changed)
             {
-            	workbench.getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
+            	getWorkbench().getWorkbenchRowsAsList().get(row).setData(value.toString(), (short)column, isUserEdit);
             	if (!batchMode)
             	{
             		fireTableCellUpdated(row, column);
@@ -309,14 +321,14 @@ public class GridTableModel extends SpreadSheetModel
     {
         for (int rowInx : rows)
         {
-            WorkbenchRow wbRow = workbench.getRow(rowInx);
+            WorkbenchRow wbRow = getWorkbench().getRow(rowInx);
             for (int col : cols)
             {
                 wbRow.setData("", (short)col, true);
             }
         }
+        workbenchPaneSS.validateRows(rows);
         fireDataChanged();
-        
     }
 
     /* (non-Javadoc)
@@ -329,7 +341,7 @@ public class GridTableModel extends SpreadSheetModel
         for (int i=rows.length-1;i>-1;i--)
         {
             log.info("Deleting Row Index "+rows[i]+" Row Count["+getRowCount()+"]");
-            workbench.deleteRow(rows[i]);
+            getWorkbench().deleteRow(rows[i]);
             if (spreadSheet != null)
             {
                 spreadSheet.removeRow(rows[i], rows.length == 1);
@@ -346,13 +358,56 @@ public class GridTableModel extends SpreadSheetModel
     public void fill(int colInx, int valueRowInx, int[] rowInxs)
     {
         Object value = getValueAt(valueRowInx, colInx);
-        for (int rowInx : rowInxs)
+        try
         {
-            setValueAt(value, rowInx, colInx);
-        }
-        
+        	setBatchMode(rowInxs.length > 50); 
+        	for (int rowInx : rowInxs)
+        	{
+        		setValueAt(value, rowInx, colInx);
+        	}
+        	if (!workbenchPaneSS.validateRows(rowInxs) && isBatchMode())
+        	{
+        		fireDataChanged();
+        	}
+        } finally
+        {
+        	if (isBatchMode())
+        	{
+        		setBatchMode(false);
+        	}
+        }        
     }
 
+    /**
+     * @param colInx
+     * @param valueRowInx
+     * @param rowInxs
+     * @param incrementer
+     */
+    public void fillAndIncrement(int colInx, int valueRowInx, int[] rowInxs, final UIFieldFormatterIFace incrementer)
+    {
+        Object value = getValueAt(valueRowInx, colInx);
+        try
+        {
+        	setBatchMode(rowInxs.length > 50); 
+        	for (int rowInx : rowInxs)
+        	{
+        		setValueAt(value, rowInx, colInx);
+        		value = incrementer.formatToUI(incrementer.getNextNumber(incrementer.formatFromUI(value).toString(), true).toString());
+        	}
+        	if (!workbenchPaneSS.validateRows(rowInxs) && isBatchMode())
+        	{
+        		fireDataChanged();
+        	}
+        } finally
+        {
+        	if (isBatchMode())
+        	{
+        		setBatchMode(false);
+        	}
+        }        
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.tmanfe.SpreadSheetModel#insertRow(int)
      */
@@ -407,23 +462,23 @@ public class GridTableModel extends SpreadSheetModel
         WorkbenchRow wbRow  = null;
         if (oldRowIndex > -1 && getRowCount() > 0)
         {
-            wbRow  = workbench.getWorkbenchRowsAsList().get(oldRowIndex);
+            wbRow  = getWorkbench().getWorkbenchRowsAsList().get(oldRowIndex);
         }
         
         WorkbenchRow newRow;
         if (rowIndex == -1 || rowIndex == getRowCount())
         {
-            newRow = workbench.addRow();
+            newRow = getWorkbench().addRow();
             
         } else
         {
-            newRow = workbench.insertRow((short)rowIndex);
+            newRow = getWorkbench().insertRow((short)rowIndex);
         }
         
         // Do Carry Forward
         if (wbRow != null)
         {
-            for (WorkbenchTemplateMappingItem wbdmi : workbench.getWorkbenchTemplate().getWorkbenchTemplateMappingItems())
+            for (WorkbenchTemplateMappingItem wbdmi : getWorkbench().getWorkbenchTemplate().getWorkbenchTemplateMappingItems())
             {
                 if (wbdmi.getCarryForward())
                 {
@@ -462,7 +517,7 @@ public class GridTableModel extends SpreadSheetModel
             headers.clear();
         }
         
-        workbench        = null;
+        workbenchPaneSS  = null;
         headers          = null;
         imageMappingItem = null;
     }

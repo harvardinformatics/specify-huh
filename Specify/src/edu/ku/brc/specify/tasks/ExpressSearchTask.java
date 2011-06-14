@@ -42,11 +42,13 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -95,7 +97,12 @@ import edu.ku.brc.dbsupport.JPAQuery;
 import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.SQLExecutionListener;
 import edu.ku.brc.dbsupport.SQLExecutionProcessor;
+import edu.ku.brc.specify.SpecifyUserTypes.UserType;
+import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.dbsupport.SpecifyQueryAdjusterForDomain;
 import edu.ku.brc.specify.tasks.subpane.ESResultsSubPane;
 import edu.ku.brc.specify.tasks.subpane.ESResultsTablePanelIFace;
 import edu.ku.brc.specify.tasks.subpane.ExpressSearchResultsPaneIFace;
@@ -109,6 +116,7 @@ import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CommandListener;
 import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.IconEntry;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.RolloverCommand;
@@ -126,8 +134,11 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
 {
     // Static Data Members
     private static final Logger log = Logger.getLogger(ExpressSearchTask.class);
+    public static final  String GLOBAL_SEARCH_AVAIL = "GLOBAL_SEARCH_AVAIL";
+    public static final  String GLOBAL_SEARCH       = "GLOBAL_SEARCH";
+    
 
-    public static final int RESULTS_THRESHOLD   = 5000;
+    public static final int    RESULTS_THRESHOLD  = 20000;
     public static final String EXPRESSSEARCH      = "Express_Search";
     public static final String CHECK_INDEXER_PATH = "CheckIndexerPath";
     
@@ -142,6 +153,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
     protected SearchBox                     searchBox;
     protected JAutoCompTextField            searchText;
     protected JButton                       searchBtn;
+    protected JCheckBoxMenuItem             globalSearchCheckBoxMI;
     protected Color                         textBGColor      = null;
     protected Color                         badSearchColor   = new Color(255,235,235);
     
@@ -693,27 +705,37 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
      */
     public void displayRecordSet(final RecordSetIFace recordSet, final boolean isEditable)
     {
-        SearchConfig      config            = SearchConfigService.getInstance().getSearchConfig();
-        SearchTableConfig searchTableConfig = config.getSearchTableConfigById(recordSet.getDbTableId());
-        if (searchTableConfig != null)
+        if (recordSet.getNumItems() > 0)
         {
-            String rsName = UIRegistry.getLocalizedMessage("ES_RS_TAB_NM", recordSet.getName());
-            
-            SubPaneIFace sp = SubPaneMgr.getInstance().getSubPaneByName(rsName);
-            if (sp != null)
+            SearchConfig      config            = SearchConfigService.getInstance().getSearchConfig();
+            SearchTableConfig searchTableConfig = config.getSearchTableConfigById(recordSet.getDbTableId());
+            if (searchTableConfig != null)
             {
-                SubPaneMgr.getInstance().showPane(sp);
+                String rsName = UIRegistry.getLocalizedMessage("ES_RS_TAB_NM", recordSet.getName());
+                
+                SubPaneIFace sp = SubPaneMgr.getInstance().getSubPaneByName(rsName);
+                if (sp != null)
+                {
+                    SubPaneMgr.getInstance().showPane(sp);
+                } else
+                {
+                    ESResultsSubPane esrPane = new ESResultsSubPane(rsName, this, true);
+                    esrPane.setIcon(IconManager.getIcon("Record_Set", IconManager.IconSize.Std16));
+                    Hashtable<String, QueryForIdResultsSQL> resultsForJoinsHash = new Hashtable<String, QueryForIdResultsSQL>();
+                    QueryForIdResultsHQL results = new QueryForIdResultsHQL(searchTableConfig, new Color(255, 158, 6), recordSet);
+                    results.setEditable(isEditable);
+                    results.setExpanded(true);
+                    displayResults(esrPane, results, resultsForJoinsHash);
+                    addSubPaneToMgr(esrPane);
+                }
             } else
             {
-                ESResultsSubPane esrPane = new ESResultsSubPane(rsName, this, true);
-                esrPane.setIcon(IconManager.getIcon("Record_Set", IconManager.IconSize.Std16));
-                Hashtable<String, QueryForIdResultsSQL> resultsForJoinsHash = new Hashtable<String, QueryForIdResultsSQL>();
-                QueryForIdResultsHQL results = new QueryForIdResultsHQL(searchTableConfig, new Color(255, 158, 6), recordSet);
-                results.setEditable(isEditable);
-                results.setExpanded(true);
-                displayResults(esrPane, results, resultsForJoinsHash);
-                addSubPaneToMgr(esrPane);
+                String tblTitle = DBTableIdMgr.getInstance().getTitleForId(recordSet.getDbTableId());
+                UIRegistry.showLocalizedError("RS_CONFIG_SEARCH", tblTitle);
             }
+        } else
+        {
+            UIRegistry.showLocalizedError("RS_HAS_NO_ITEMS", recordSet.getName());
         }
     }
 
@@ -1389,7 +1411,7 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
         {
             if (menus == null)
             {
-                menus = new Vector<JComponent>();
+                menus       = new Vector<JComponent>();
                 allMenuItem = new JMenuItem(getResourceString("ALL"), SearchBox.getSearchIcon());
                 allMenuItem.addActionListener(action);
                 menus.add(allMenuItem);
@@ -1406,11 +1428,52 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
                         }
                     }
                     
-                    JMenuItem menu = new JMenuItem(stc.getTitle(), IconManager.getIcon(stc.getIconName(), IconManager.IconSize.Std16));
-                    menu.addActionListener(action);
-                    menus.add(menu);
+                    JMenuItem menuItem = new JMenuItem(stc.getTitle(), IconManager.getIcon(stc.getIconName(), IconManager.IconSize.Std16));
+                    menuItem.addActionListener(action);
+                    menus.add(menuItem);
+                    
+                    if (stc.getTableInfo().getTableId() == CollectingEvent.getClassTableId())
+                    {
+                        boolean isEmbedded = AppContextMgr.getInstance().getClassObject(Collection.class).getIsEmbeddedCollectingEvent();
+                        IconEntry ciEntry = IconManager.getIconEntryByName(isEmbedded ? "collectinginformation" : "ce_restore");
+                        menuItem.setIcon(ciEntry.getIcon(IconManager.IconSize.Std16));
+                    }
                 }
                 
+                if (!AppContextMgr.isSecurityOn() || SpecifyUser.isCurrentUserType(UserType.Manager))
+                {
+                    boolean permsOKForGlobalSearch = ((SpecifyQueryAdjusterForDomain)QueryAdjusterForDomain.getInstance()).isPermsOKForGlobalSearch();
+                    boolean isGlobalSearchAvail    = permsOKForGlobalSearch && AppPreferences.getLocalPrefs().getBoolean("GLOBAL_SEARCH_AVAIL", false);
+                    if (isGlobalSearchAvail)
+                    {
+                        boolean isGSOn = AppPreferences.getLocalPrefs().getBoolean("GLOBAL_SEARCH", false);
+                        
+                        ActionListener globalSearchAL = new ActionListener()
+                        {
+                            @Override
+                            public void actionPerformed(ActionEvent e)
+                            {
+                                doGlobalSearchSetup();
+                            }
+                        };
+                        
+                        globalSearchCheckBoxMI = new JCheckBoxMenuItem(getResourceString(GLOBAL_SEARCH), 
+                                                                       IconManager.getIcon("GlobalSearch", IconManager.IconSize.Std16),
+                                                                       isGSOn);
+                        globalSearchCheckBoxMI.addActionListener(globalSearchAL);
+                        
+                        menus.add(new JSeparator());
+                        menus.add(globalSearchCheckBoxMI);
+                    }
+                } else
+                {
+                    AppPreferences.getLocalPrefs().remove(GLOBAL_SEARCH);
+                }
+
+                if (globalSearchCheckBoxMI == null)
+                {
+                    menus.add(new JSeparator());
+                }
                 configMenuItem = new JMenuItem(getResourceString("ESConfig"), IconManager.getIcon("SystemSetup", IconManager.IconSize.Std16));
                 configMenuItem.addActionListener(action);
                 menus.add(configMenuItem);
@@ -1425,6 +1488,21 @@ public class ExpressSearchTask extends BaseTask implements CommandListener, SQLE
         public void reset()
         {
             this.menus = null;
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void doGlobalSearchSetup()
+    {
+        if (globalSearchCheckBoxMI.isSelected())
+        {
+            AppPreferences.getLocalPrefs().putBoolean(GLOBAL_SEARCH, true);
+        } else
+        {
+            AppPreferences.getLocalPrefs().remove(GLOBAL_SEARCH);
+            searchBox.resetSearchIcon();
         }
     }
     

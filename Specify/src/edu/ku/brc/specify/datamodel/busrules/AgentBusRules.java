@@ -25,12 +25,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
@@ -44,12 +46,15 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.validation.ValComboBox;
+import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.config.DisciplineType;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
+import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.plugins.PartialDateUI;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -75,6 +80,8 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
     
     protected String[]     typeTitles;
     
+    protected ArrayList<Agent> cachedAgents = new ArrayList<Agent>();
+    
     /**
      * Constructor.
      */
@@ -82,7 +89,7 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
     {
         super(Agent.class);
         
-        String[] typeTitleKeys = {"AG_ORG", "AG_PERSON", "AG_OTHER", "AG_GROUP"};
+        String[] typeTitleKeys = {"Agent_ORG", "Agent_PERSON", "Agent_OTHER", "Agent_GROUP"};
         typeTitles = new String[typeTitleKeys.length];
         int i = 0;
         for (String key : typeTitleKeys)
@@ -148,10 +155,12 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
      * @param id the id of the control
      * @param enabled enable it
      * @param value the value it should set
+     * @param thisObj the main data object
      */
     protected void enableFieldAndLabel(final String      id, 
                                        final boolean     enabled,
-                                       final String      value)
+                                       final String      value,
+                                       final Agent       agent)
     {
         Component field  = formViewObj.getCompById(id);
         if (field != null)
@@ -209,9 +218,14 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
                 //System.err.println("AgentBusRules - id "+id+" setting to "+inx);
                 cbx.setSelectedIndex(inx);
                 
-            } else if (field instanceof JTextField)
+            } else if (field instanceof JTextComponent)
             {
-                ((JTextField)field).setText(value != null ? value : "");
+                ((JTextComponent)field).setText(value != null ? value : "");
+                
+            }  else if (field instanceof PartialDateUI)
+            {
+                PartialDateUI plugin = (PartialDateUI)field;
+                plugin.setValue(agent, null);
                 
             } else
             {
@@ -239,9 +253,20 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
             agent.setFirstName(null);
             agent.setMiddleInitial(null);
         }
-        enableFieldAndLabel("1", isPerson, doSetOtherValues ? agent.getTitle() : null);           // Title
-        enableFieldAndLabel("5", isPerson, doSetOtherValues ? agent.getFirstName() : null);       // First Name
-        enableFieldAndLabel("4", isPerson, doSetOtherValues ? agent.getMiddleInitial() : null);       // First Name
+        enableFieldAndLabel("1", isPerson, doSetOtherValues ? agent.getTitle() : null, agent);              // Title
+        enableFieldAndLabel("5", isPerson, doSetOtherValues ? agent.getFirstName() : null, agent);          // First Name
+        enableFieldAndLabel("4", isPerson, doSetOtherValues ? agent.getMiddleInitial() : null, agent);      // First Name
+        
+        enableFieldAndLabel("19", isPerson, null, agent);                                                   // date Of Birth
+        enableFieldAndLabel("20", isPerson, null, agent);                                                   // date Of Death
+        enableFieldAndLabel("11", isPerson, doSetOtherValues ? agent.getGuid() :        null, agent);       // guid
+        enableFieldAndLabel("12", isPerson, doSetOtherValues ? agent.getInitials() :    null, agent);       // initials
+        enableFieldAndLabel("13", isPerson, doSetOtherValues ? agent.getInterests() :   null, agent);       // interests
+        enableFieldAndLabel("14", isPerson, doSetOtherValues ? agent.getJobTitle() :    null, agent);       // jobTitle
+        
+        enableFieldAndLabel("16", true, doSetOtherValues ? agent.getMiddleInitial() :   null, agent);       // remarks
+        enableFieldAndLabel("17", true, doSetOtherValues ? agent.getMiddleInitial() :   null, agent);       // url
+        
         
         // Last Name
         String lbl = UIRegistry.getResourceString(isPerson ? "AG_LASTNAME" : "AG_NAME");
@@ -271,7 +296,7 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
     }
     
     /**
-     * Clears the values and hides some UI depending on what type is selected
+     * Clears the values and hides somAttachmentOwnere UI depending on what type is selected
      * @param cbx the type cbx
      */
     protected void fixUpTypeCBX(final JComboBox cbx)
@@ -326,6 +351,29 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
     public boolean afterSaveCommit(final Object dataObj, final DataProviderSessionIFace session)
     {
         setLSID((FormDataObjIFace)dataObj);
+        
+
+        if (cachedAgents.size() > 0)
+        {
+            try
+            {
+                session.beginTransaction();
+                for (Agent agent : cachedAgents)
+                {
+                    agent = session.merge(agent);
+                    session.saveOrUpdate(agent);
+                }
+                session.commit();
+                
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+                session.rollback();
+            } finally
+            {
+                cachedAgents.clear();
+            }
+        }
 
         return super.afterSaveCommit(dataObj, session);
     }
@@ -435,6 +483,12 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
                 DBTableInfo tableInfo      = DBTableIdMgr.getInstance().getInfoById(Agent.getClassTableId());
                 String[]    tableFieldList = gatherTableFieldsForDelete(new String[] {"agent", "address", "agentvariant"}, tableInfo);
                 isOK = okToDelete(tableFieldList, dbObj.getId());
+                if (isOK && ((Agent)dbObj).getSpecifyUser() != null)
+                {
+                    DBTableInfo ti = DBTableIdMgr.getInstance().getInfoById(SpecifyUser.getClassTableId());
+                    reasonList.add(ti.getTitle());
+                    isOK = false;
+                }
             }
             deletable.doDeleteDataObj(dataObj, session, isOK);
             
@@ -447,11 +501,11 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeSave(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public void beforeSave(final Object dataObj, final DataProviderSessionIFace session)
     {
         super.beforeSave(dataObj, session);
-        
         
         if (AppContextMgr.getInstance().getClassObject(Discipline.class) != null)
         {
@@ -460,36 +514,45 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
             Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
             discipline = session.get(Discipline.class, discipline.getId());
             
-            if (!contains(agent, discipline))
+            if (agent.getId() != null && agent.getSpecifyUser() != null)
             {
-                agent.getDisciplines().add(discipline);
-                
-                // this next line is not needed in order for the relationship to be saved
-                // and it is problematic when there are a lot of agents
-                //discipline.getAgents().add(agent);
+                DataProviderSessionIFace tmpSession = null;
+                try
+                {
+                    cachedAgents.clear();
+                    tmpSession = DataProviderFactory.getInstance().createSession();
+                    
+                    String hql = String.format("SELECT a FROM Agent AS a INNER JOIN a.specifyUser AS su WHERE su.id = %d AND a.id <> %d", agent.getSpecifyUser().getId(), agent.getId());
+                    log.debug(hql);
+                    List<?> agents = tmpSession.getDataList(hql);
+                    for (Object agtObj : agents)
+                    {
+                        Agent agt = (Agent)agtObj;
+                        
+                        Agent dupAgent = (Agent)agent.clone();
+                        
+                        dupAgent.setAgentId(agt.getId());
+                        dupAgent.setVersion(agt.getVersion());
+                        dupAgent.setDivision(agt.getDivision());
+                        
+                        cachedAgents.add(dupAgent);
+                        
+                        System.out.println(agt.getId() + agt.getLastName());
+                    }
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                    ex.printStackTrace();
+                } finally
+                {
+                    if (tmpSession != null)
+                    {
+                        tmpSession.close();
+                    }
+                }
             }
         }
     }
-    
-    /**
-     * Checks to see if the agent has already been added to the Discipline.
-     * @param agent the agent being saved
-     * @param discipline the discipline it is being saved into
-     * @return true if it is already associated with the Discipline
-     */
-    protected boolean contains(final Agent agent, final Discipline discipline)
-    {
-        
-        for (Discipline d : agent.getDisciplines())
-        {
-            if (d.getDisciplineId().equals(discipline.getDisciplineId()))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    
 
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BaseBusRules#beforeMerge(edu.ku.brc.ui.forms.Viewable, java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
@@ -549,29 +612,5 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
         
         return super.beforeSaveCommit(dataObj, session);
     }
-
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeDeleteCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
-     */
-    @Override
-    public boolean beforeDeleteCommit(Object dataObj, DataProviderSessionIFace session)
-            throws Exception
-    {
-        Agent      agent      = (Agent)dataObj;
-        Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
-        if (discipline != null)
-        {
-            for (Discipline dsp : agent.getDisciplines())
-            {
-                if (dsp.getId().equals(discipline.getId()))
-                {
-                    dsp.removeReference(agent, "agents");
-                    break;
-                }
-            }
-        }
-        
-        return super.beforeDeleteCommit(dataObj, session);
-    }     
 
 }

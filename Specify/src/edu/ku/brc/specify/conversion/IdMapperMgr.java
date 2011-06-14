@@ -82,7 +82,7 @@ public class IdMapperMgr
      * @param sql the SQL used to do the mapping
      * @return the IdHashMapper object
      */
-    public IdTableMapper addTableMapper(final String tableName, final String idName, final String sql)
+    public IdTableMapper addTableMapper(final String tableName, final String idName, final String sql, final boolean doDelete)
     {
         log.debug("addTableMapper called for table: " + tableName);
         log.debug("addTableMapper called for sql: " + sql);
@@ -97,13 +97,22 @@ public class IdMapperMgr
         List<String> fieldNames = BasicSQLUtils.getFieldNamesFromSchema(oldConn, name);
         if (!fieldNames.get(0).equals(idName))
         {
-            throw new RuntimeException("Table["+name+"] doesn't have first column id["+idName+"]");
+            log.error("Table["+name+"] doesn't have first column id["+idName+"]");
         }
 
-        IdTableMapper idMapper = new IdTableMapper(name.toLowerCase(), idName, sql);
+        IdTableMapper idMapper = new IdTableMapper(name.toLowerCase(), idName, sql, doDelete);
         idMappers.put(idMapper.getName(), idMapper);
         idMapper.setFrame(frame);
         return idMapper;
+    }
+    
+    /**
+     * @param idMapper
+     */
+    public void addMapper(final IdTableMapper idMapper)
+    {
+        idMappers.put(idMapper.getName(), idMapper);
+        idMapper.setFrame(frame);
     }
     
     /**
@@ -115,17 +124,31 @@ public class IdMapperMgr
      */
     public IdTableMapper addTableMapper(final String tableName, final String idName)
     {
-        return addTableMapper(tableName, idName, null);
+        return addTableMapper(tableName, idName, null, true);
+    }
+    
+    /**
+     * Creates a mapper with name and id.
+     * @param tableName the name of the table
+     * @param idName the id (primary key)
+     * @param doDelete
+     * @return the same Mapper that was passed in
+     * @throws SQLException
+     */
+    public IdTableMapper addTableMapper(final String tableName, final String idName, final boolean doDelete)
+    {
+        return addTableMapper(tableName, idName, null, doDelete);
     }
     
     /**
      * Creates a Hash mapper with pre-installed SQL.
      * @param tableName the name of the mapper
      * @param sql the sql used to create the map
+     * @param doDelete
      * @return the new mapper
      * @throws SQLException
      */
-    public IdHashMapper addHashMapper(final String tableName, final String sql)
+    public IdHashMapper addHashMapper(final String tableName, final String sql, final boolean doDelete)
     {
         if (oldConn == null || newConn == null)
         {
@@ -133,7 +156,7 @@ public class IdMapperMgr
             
         }
         
-        IdHashMapper idMapper = new IdHashMapper(tableName.toLowerCase(), sql);
+        IdHashMapper idMapper = new IdHashMapper(tableName.toLowerCase(), sql, doDelete);
         idMappers.put(idMapper.getName(), idMapper);
         idMapper.setFrame(frame);
         return idMapper;
@@ -142,11 +165,12 @@ public class IdMapperMgr
     /**
      * Creates a Hash mapper.
      * @param tableName the tableName of the mapper
+     * @param doDelete
      * @return the IdHashMapper object
      */
-    public IdHashMapper addHashMapper(final String tableName)
+    public IdHashMapper addHashMapper(final String tableName, final boolean doDelete)
     {
-        return addHashMapper(tableName, null);
+        return addHashMapper(tableName, null, doDelete);
     }
     
     /**
@@ -175,6 +199,10 @@ public class IdMapperMgr
      */
     public IdMapperIFace get(final String tableName, final String idName)
     {
+        /*for (String nm : idMappers.keySet())
+        {
+            System.out.println(nm);
+        }*/
         return idMappers.get(tableName.toLowerCase()+"_"+idName);
     }
     

@@ -44,6 +44,7 @@ import org.hibernate.annotations.Index;
 
 import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
+import edu.ku.brc.af.ui.forms.validation.ValComboBoxFromQuery;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.services.mapping.LocalityMapper.MapLocationIFace;
@@ -66,7 +67,8 @@ import edu.ku.brc.ui.UIRegistry;
     })
 public class Locality extends DisciplineMember implements AttachmentOwnerIFace<LocalityAttachment>, 
                                                           java.io.Serializable, 
-                                                          MapLocationIFace
+                                                          MapLocationIFace,
+                                                          Cloneable
 {
     // Fields    
     protected Integer               localityId;
@@ -98,6 +100,8 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     protected Byte                  visibility;
     protected SpecifyUser           visibilitySetBy;
     protected String                guid;
+    protected String                text1;
+    protected String                text2;
     
     // Source Data used for formatting
     // XXX.XXXXXXXX N    Decimal Degrees
@@ -157,12 +161,14 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
         datum = null;
         remarks = null;
 
-        lat1text = null;
-        lat2text = null;
-        long1text = null;
-        long2text = null;
+        lat1text   = null;
+        lat2text   = null;
+        long1text  = null;
+        long2text  = null;
         visibility = null;
         guid       = null;
+        text1      = null;
+        text2      = null;
         
         // Source Data for Formatting
         srcLatLongUnit = 0;          // matches LATLON.DDDDDD
@@ -368,6 +374,15 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     public Integer getOriginalLatLongUnit()
     {
         return this.originalLatLongUnit == null ? 0 : this.originalLatLongUnit;
+    }
+    
+    /**
+     * @return
+     */
+    @Transient
+    public boolean isOriginalLatLongUnitEmpty()
+    {
+        return this.originalLatLongUnit == null;
     }
 
     public void setOriginalLatLongUnit(Integer originalLatLongUnit)
@@ -605,6 +620,40 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     }
 
     /**
+     * @return the text1
+     */
+    @Column(name = "Text1", unique = false, nullable = true, insertable = true, updatable = true, length = 300)
+    public String getText1()
+    {
+        return text1;
+    }
+
+    /**
+     * @param text1 the text1 to set
+     */
+    public void setText1(String text1)
+    {
+        this.text1 = text1;
+    }
+
+    /**
+     * @return the text2
+     */
+    @Column(name = "Text2", unique = false, nullable = true, insertable = true, updatable = true, length = 300)
+    public String getText2()
+    {
+        return text2;
+    }
+
+    /**
+     * @param text2 the text2 to set
+     */
+    public void setText2(String text2)
+    {
+        this.text2 = text2;
+    }
+
+    /**
      * * Indicates whether this record can be viewed - by owner, by institution, or by all
      */
     @Column(name = "Visibility", unique = false, nullable = true, insertable = true, updatable = true)
@@ -835,10 +884,111 @@ public class Locality extends DisciplineMember implements AttachmentOwnerIFace<L
     {
         return 2;
     }
+    
+    /**
+     * @param newLocality
+     * @return
+     * @throws CloneNotSupportedException
+     */
+    private Locality doClone(final Locality newLocality) throws CloneNotSupportedException
+    {
+        newLocality.localityDetails = new HashSet<LocalityDetail>();
+        for (LocalityDetail obj : localityDetails)
+        {
+            LocalityDetail ld = (LocalityDetail)obj.clone();
+            newLocality.localityDetails.add(ld);
+            ld.setLocality(newLocality);
+        }
+        
+        newLocality.geoCoordDetails = new HashSet<GeoCoordDetail>();
+        for (GeoCoordDetail obj : geoCoordDetails)
+        {
+            GeoCoordDetail gcd = (GeoCoordDetail)obj.clone();
+            newLocality.geoCoordDetails.add(gcd);
+            gcd.setLocality(newLocality);
+        }        
+        
+        newLocality.localityCitations = new HashSet<LocalityCitation>();
+        for (LocalityCitation obj : localityCitations)
+        {
+            LocalityCitation lc = (LocalityCitation)obj.clone();
+            newLocality.localityCitations.add(lc);
+            lc.setLocality(newLocality);
+        } 
+        
+        newLocality.localityNameAliass  = new HashSet<LocalityNameAlias>();
+        for (LocalityNameAlias obj : localityNameAliass)
+        {
+            LocalityNameAlias lna = (LocalityNameAlias)obj.clone();
+            newLocality.localityNameAliass.add(lna);
+            lna.setLocality(newLocality);
+        } 
+        
+        newLocality.localityAttachments = new HashSet<LocalityAttachment>();
+        
+        newLocality.latLonpolygons = new HashSet<LatLonPolygon>();
+        for (LatLonPolygon obj : latLonpolygons)
+        {
+            LatLonPolygon llp = (LatLonPolygon)obj.clone();
+            newLocality.latLonpolygons.add(llp);
+            llp.setLocality(newLocality);
+        }
+        
+        return newLocality;
+    }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        Locality l = (Locality)super.clone();
+        l.localityId = null;
+        
+        try
+        {
+            try
+            {
+                l = doClone(l);
+                
+            } catch (org.hibernate.LazyInitializationException hex)
+            {
+                DataProviderSessionIFace session = null;
+                try
+                {
+                    session = DataProviderFactory.getInstance().createSession();
+                    session.attach(this);
+                    
+                    l = doClone(l);
+                    
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ValComboBoxFromQuery.class, ex);
+                    
+                } finally
+                {
+                    if (session != null)
+                    {
+                        session.close();
+                    }
+                } 
+            }
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ValComboBoxFromQuery.class, ex);
+        }
+        return l;
+    }
+    
     // //////////////////////////////
     // MapLocationIFace methods
     // //////////////////////////////
+
 
     /*
      * (non-Javadoc)

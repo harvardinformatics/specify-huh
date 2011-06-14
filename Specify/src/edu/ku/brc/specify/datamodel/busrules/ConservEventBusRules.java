@@ -38,5 +38,4 @@ public class ConservEventBusRules extends AttachmentOwnerBaseBusRules
     {
         super(ConservEvent.class);
     }
-
 }

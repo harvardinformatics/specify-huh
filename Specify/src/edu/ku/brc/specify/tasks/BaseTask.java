@@ -30,12 +30,21 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+import edu.ku.brc.af.auth.PermissionSettings;
+import edu.ku.brc.af.auth.SecurityOption;
 import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.core.PermissionIFace;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.SubPaneMgr;
+import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.SpecifyUserTypes;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
+import edu.ku.brc.specify.datamodel.SpAppResource;
+import edu.ku.brc.specify.datamodel.SpReport;
+import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
+import edu.ku.brc.ui.CommandAction;
+import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -77,7 +86,7 @@ public abstract class BaseTask extends edu.ku.brc.af.tasks.BaseTask
         try
         {
             File permFile = new File(XMLHelper.getConfigDirPath("defaultperms" + File.separator + fileName)); //$NON-NLS-1$
-            baseLog.debug(permFile.getAbsoluteFile());
+            //baseLog.debug(permFile.getAbsoluteFile());
             if (permFile.exists())
             {
                 xmlStr = FileUtils.readFileToString(permFile);
@@ -166,6 +175,33 @@ public abstract class BaseTask extends edu.ku.brc.af.tasks.BaseTask
     }
 
     
+    /**
+     * Builds and dispatches command to launch a report.
+     * @param reportInfo information needed to launch the report printing
+     * @param rs the RecordSet containing the ids to be printed
+     * @param titleKey key to a title for display progress
+     */
+    protected void dispatchReport(final InfoForTaskReport reportInfo, 
+                                  final RecordSetIFace rs,
+                                  final String titleKey)
+    {
+        if (reportInfo.getSpReport() != null)
+        {
+            SpReport spRep = reportInfo.getSpReport();
+            QueryBldrPane.runReport(spRep, UIRegistry.getResourceString(titleKey), rs);
+        }
+        else
+        {
+            SpAppResource rep = reportInfo.getSpAppResource();
+            CommandAction cmd = new CommandAction(ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT,  rs);
+            cmd.getProperties().put("title", rep.getName());
+            cmd.getProperties().put("file", rep.getFileName());
+            cmd.getProperties().put("reporttype", "report");
+            cmd.getProperties().put("name", rep.getName());
+            CommandDispatcher.dispatch(cmd);
+        }
+    }
+    
 	//---------------------------------------------------------------------------
     //-- edu.ku.brc.af.tasks.BaseTask
     //---------------------------------------------------------------------------
@@ -197,4 +233,19 @@ public abstract class BaseTask extends edu.ku.brc.af.tasks.BaseTask
      */
     @Override
     public abstract SubPaneIFace getStarterPane();
+    
+    
+    /**
+     * @param secOpt
+     * @param perms
+     */
+    protected void addPerms(final SecurityOption secOpt, final boolean[][] perms)
+    {
+        int i = 0;
+        for (SpecifyUserTypes.UserType userType : SpecifyUserTypes.UserType.values())
+        {
+            boolean[] p = perms[i++];
+            secOpt.addDefaultPerm(userType.toString(), new PermissionSettings(p[0], p[1], p[2], p[3]));
+        }
+    }
 }

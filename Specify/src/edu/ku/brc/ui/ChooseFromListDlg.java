@@ -23,6 +23,7 @@ import static edu.ku.brc.ui.UIHelper.createButton;
 import static edu.ku.brc.ui.UIHelper.createLabel;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
@@ -33,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractListModel;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -41,6 +41,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
@@ -195,7 +196,6 @@ public class ChooseFromListDlg<T> extends JDialog
         {
             setIconImage(appIcon.getImage());
         }
-
     }
 
     /**
@@ -264,6 +264,61 @@ public class ChooseFromListDlg<T> extends JDialog
     }
 
     /**
+     * Constructor.
+     * 
+     * @param frame parent frame
+     * @param title the title of the dialog
+     * @param desc
+     * @param itemList the list to be selected from
+     * @param whichBtns mask describing which buttons to create
+     * @param helpContext  help context identifier
+     * @throws HeadlessException
+     */
+    public ChooseFromListDlg(final Dialog   dlg, 
+                             final String  title, 
+                             final String  desc,
+                             final int     whichBtns,
+                             final List<T> itemList,
+                             final String  helpContext) throws HeadlessException
+    {
+        super(dlg, true);
+
+        this.title       = title;
+        this.desc        = desc;
+        this.items       = itemList;
+        this.whichBtns   = whichBtns;
+        this.helpContext = helpContext;
+
+        setLocationRelativeTo(dlg);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        
+        ImageIcon appIcon = IconManager.getIcon("AppIcon"); //$NON-NLS-1$
+        if (appIcon != null)
+        {
+            setIconImage(appIcon.getImage());
+        }
+    }
+    
+
+    /**
+     * Constructor.
+     * 
+     * @param frame parent frame
+     * @param title the title of the dialog
+     * @param desc
+     * @param itemList the list to be selected from
+     * @param whichBtns mask describing which buttons to create
+     * @param helpContext  help context identifier
+     * @throws HeadlessException
+     */
+    public ChooseFromListDlg(final Dialog   dlg, 
+                             final String  title, 
+                             final List<T> itemList) throws HeadlessException
+    {
+        this(dlg, title, null, OKCANCEL, itemList, null);
+    }
+    
+    /**
      * Create the UI for the dialog.
      * 
      * @param altName title for dialog
@@ -282,7 +337,8 @@ public class ChooseFromListDlg<T> extends JDialog
         boolean hasDesc = StringUtils.isNotEmpty(desc);
         PanelBuilder    builder = new PanelBuilder(new FormLayout("f:max(300px;p):g", "p," + (hasDesc ? "2px,p," : "") + "5px,p"));
         CellConstraints cc      = new CellConstraints();
-        builder.getPanel().setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 10));
+        //builder.getPanel().setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 10));
+        builder.setDefaultDialogBorder();
 
         int y = 1;
         if (hasDesc)
@@ -309,7 +365,7 @@ public class ChooseFromListDlg<T> extends JDialog
             list = new JList(listModel);
             if (icon != null)
             {
-                list.setCellRenderer(new IconListCellRenderer(icon)); // icon comes from the base
+                list.setCellRenderer(getListCellRenderer()); // icon comes from the base
                 // class (it's probably size
                 // 16)
             }
@@ -451,7 +507,14 @@ public class ChooseFromListDlg<T> extends JDialog
         setContentPane(builder.getPanel());
         pack();
         // setLocationRelativeTo(locationComp);
-
+    }
+    
+    /**
+     * @return a ListCellRenderer
+     */
+    protected ListCellRenderer getListCellRenderer()
+    {
+        return new IconListCellRenderer(icon);
     }
     
     /**

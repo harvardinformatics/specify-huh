@@ -105,6 +105,27 @@
     </hashtable>
   </entry>
   <entry>
+    <string>COLRELTSK</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="COLRELTSK" type="Manager" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="COLRELTSK" type="LimitedAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="COLRELTSK" type="Guest" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="COLRELTSK" type="FullAccess" view="true" modify="true" del="true" add="true"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
     <string>BackupTask</string>
     <hashtable>
       <entry>
@@ -168,6 +189,27 @@
     </hashtable>
   </entry>
   <entry>
+    <string>WBSCHEMACONFIG</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="WBSCHEMACONFIG" type="Manager" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="WBSCHEMACONFIG" type="Guest" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="WBSCHEMACONFIG" type="LimitedAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="WBSCHEMACONFIG" type="FullAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
     <string>Startup</string>
     <hashtable>
       <entry>
@@ -206,6 +248,48 @@
       <entry>
         <string>FullAccess</string>
         <tp name="SecurityAdmin" type="FullAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>SCHEMACONFIG</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="SCHEMACONFIG" type="Manager" view="true" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="SCHEMACONFIG" type="Guest" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="SCHEMACONFIG" type="LimitedAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="SCHEMACONFIG" type="FullAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+    </hashtable>
+  </entry>
+  <entry>
+    <string>RESIMPORTEXPORT</string>
+    <hashtable>
+      <entry>
+        <string>Manager</string>
+        <tp name="RESIMPORTEXPORT" type="Manager" view="true" modify="true" del="true" add="false"/>
+      </entry>
+      <entry>
+        <string>Guest</string>
+        <tp name="RESIMPORTEXPORT" type="Guest" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>LimitedAccess</string>
+        <tp name="RESIMPORTEXPORT" type="LimitedAccess" view="false" modify="false" del="false" add="false"/>
+      </entry>
+      <entry>
+        <string>FullAccess</string>
+        <tp name="RESIMPORTEXPORT" type="FullAccess" view="false" modify="false" del="false" add="false"/>
       </entry>
     </hashtable>
   </entry>

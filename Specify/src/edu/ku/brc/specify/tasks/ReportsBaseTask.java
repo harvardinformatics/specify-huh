@@ -25,6 +25,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.Color;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.util.Comparator;
@@ -53,7 +54,6 @@ import org.apache.log4j.Logger;
 
 import ar.com.fdvs.dj.core.DynamicJasperHelper;
 import ar.com.fdvs.dj.core.layout.ClassicLayoutManager;
-import ar.com.fdvs.dj.domain.AutoText;
 import ar.com.fdvs.dj.domain.DynamicReport;
 import ar.com.fdvs.dj.domain.Style;
 import ar.com.fdvs.dj.domain.builders.ColumnBuilder;
@@ -235,6 +235,7 @@ public class ReportsBaseTask extends BaseTask
         List<TaskCommandDef> result = new LinkedList<TaskCommandDef>();
         Vector<Integer> excludedTableIds = new Vector<Integer>();
         excludedTableIds.add(79);
+        Vector<String> subReports = new Vector<String>();
         for (AppResourceIFace ap : AppContextMgr.getInstance().getResourceByMimeType(mimeType))
         {
         	Properties params = ap.getMetaDataMap();
@@ -243,7 +244,16 @@ public class ReportsBaseTask extends BaseTask
             
             if (StringUtils.isNotEmpty(tableid))
 			{
-				String rptType = params.getProperty("reporttype"); //$NON-NLS-1$
+				String subReps = params.getProperty("subreports"); 
+				if (subReps != null)
+				{
+					String[] subRepNames = StringUtils.split(subReps, ",");
+					for (String subRepName : subRepNames)
+					{
+						subReports.add(subRepName.trim());
+					}
+				}
+            	String rptType = params.getProperty("reporttype"); //$NON-NLS-1$
 				Integer tblId = Integer.parseInt(tableid);
 				if (excludedTableIds.indexOf(tblId) == -1
 						&& (classTableId == null || tblId.equals(classTableId))
@@ -277,6 +287,18 @@ public class ReportsBaseTask extends BaseTask
 				}
 			}
 		}
+        if (subReports.size() > 0)
+        {
+        	for (int r = result.size() - 1; r >= 0; r--)
+        	{
+        		TaskCommandDef def = result.get(r);
+        		if (subReports.indexOf(def.getName()) != -1)
+        		{
+        			result.remove(r);
+        		}
+        			
+        	}
+        }
         return result;
     }
     
@@ -575,7 +597,7 @@ public class ReportsBaseTask extends BaseTask
      */
     protected Properties convertDataToMap(final Object data)
     {
-        if (data instanceof Map)
+        if (data instanceof Map<?,?>)
         {
             return (Properties)data; // ok to Cast
         }
@@ -823,6 +845,10 @@ public class ReportsBaseTask extends BaseTask
                 {
                     doLabels(cmdAction.getPropertyAsString("file"), cmdAction.getPropertyAsString("title"), recordSet, params, this, (ImageIcon)cmdAction.getProperty("icon"));
                 }
+                else
+                {
+                	UIRegistry.displayLocalizedStatusBarText("RecordSetTask.NoRecordsets");
+                }
             }
             
         }
@@ -1039,10 +1065,8 @@ public class ReportsBaseTask extends BaseTask
                     {
                         LabelsPane labelsPane = new LabelsPane(name, ReportsBaseTask.this, null);
                         DynamicReport dr = buildReport(table.getModel(), pageSetup);
-
-                        JRDataSource ds = new JRTableModelDataSource(table.getModel());
-                        JasperPrint  jp = DynamicJasperHelper.generateJasperPrint(dr, new ClassicLayoutManager(), ds);
-                        
+                        JRDataSource  ds = new JRTableModelDataSource(table.getModel());
+                        JasperPrint   jp = DynamicJasperHelper.generateJasperPrint(dr, new ClassicLayoutManager(), ds);
                         labelsPane.reportFinished(jp);
                         SubPaneMgr.getInstance().addPane(labelsPane);
                         
@@ -1066,7 +1090,7 @@ public class ReportsBaseTask extends BaseTask
                 
                 if (excpt != null)
                 {
-                    UIRegistry.getStatusBar().setErrorMessage("REP_ERR_GRDRPT", excpt);
+                    UIRegistry.getStatusBar().setErrorMessage(getResourceString("REP_ERR_GRDRPT"), excpt);
                 }
             }
         };
@@ -1087,6 +1111,26 @@ public class ReportsBaseTask extends BaseTask
      */
     public DynamicReport buildReport(final TableModel model, final PageSetupDlg pageSetupDlg) throws Exception
     {
+        // Find a Sans Serif Font on the System
+        String fontName = null;
+        
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for (java.awt.Font font : ge.getAllFonts())
+        {
+            String fName = font.getFamily().toLowerCase();
+            if (StringUtils.contains(fName, "sansserif") || 
+                StringUtils.contains(fName, "arial") || 
+                StringUtils.contains(fName, "verdana"))
+            {
+                fontName = font.getFamily();
+            }
+        }
+        
+        if (fontName == null)
+        {
+            fontName = Font._FONT_TIMES_NEW_ROMAN;
+        }
+        
         /**
          * Creates the DynamicReportBuilder and sets the basic options for the report
          */
@@ -1098,7 +1142,7 @@ public class ReportsBaseTask extends BaseTask
         Style columDetailWhite = new Style();
         columDetailWhite.setBorder(Border.THIN);
         columDetailWhite.setBackgroundColor(Color.WHITE);
-        columDetailWhite.setFont(Font.ARIAL_SMALL);
+        columDetailWhite.setFont(new Font(10, fontName, true));
         columDetailWhite.setHorizontalAlign(HorizontalAlign.CENTER);
         columDetailWhite.setBlankWhenNull(true);
         
@@ -1107,7 +1151,7 @@ public class ReportsBaseTask extends BaseTask
         columDetailWhiteBold.setBackgroundColor(Color.WHITE);
         
         Style titleStyle = new Style();
-        titleStyle.setFont(new Font(14, Font._FONT_VERDANA, true));
+        titleStyle.setFont(new Font(14, fontName, true));
         
         /*Style numberStyle = new Style();
         numberStyle.setHorizontalAlign(HorizontalAlign.RIGHT);
@@ -1145,7 +1189,28 @@ public class ReportsBaseTask extends BaseTask
                 if (model.getRowCount() > 0)
                 {
                     Object data = model.getValueAt(0, i);
-                    dataClass = data.getClass();
+                    if (data != null)
+                    {
+                        dataClass = data.getClass();
+                    } else
+                    {
+                        // Column in first row was null so search down the rows
+                        // for a non-empty cell
+                        for (int j=1;j<model.getRowCount();j++)
+                        {
+                            data = model.getValueAt(j, i);
+                            if (dataClass != null)
+                            {
+                                dataClass = data.getClass();
+                                break;
+                            }
+                        }
+                        
+                        if (dataClass == null)
+                        {
+                            dataClass = String.class;
+                        }
+                    }
                 }
             }
             
@@ -1165,7 +1230,7 @@ public class ReportsBaseTask extends BaseTask
             drb.addColumn(column);
             
             Style headerStyle = new Style();
-            headerStyle.setFont(new Font(12, Font._FONT_ARIAL, true));
+            headerStyle.setFont(new Font(12, fontName, true));
             headerStyle.setBorder(Border.THIN);
             headerStyle.setHorizontalAlign(HorizontalAlign.CENTER);
             headerStyle.setVerticalAlign(VerticalAlign.MIDDLE);
@@ -1192,7 +1257,10 @@ public class ReportsBaseTask extends BaseTask
         drb.setColumnsPerPage(new Integer(1));
         drb.setUseFullPageWidth(true);
         drb.setColumnSpace(new Integer(5));
-        drb.addAutoText(AutoText.AUTOTEXT_PAGE_X_OF_Y, AutoText.POSITION_FOOTER, AutoText.ALIGMENT_CENTER);
+        
+        // This next line causes an exception
+        // Event with DynamicReport 3.0.12 and JasperReposrts 3.7.3
+        //drb.addAutoText(AutoText.AUTOTEXT_PAGE_X_OF_Y, AutoText.POSITION_FOOTER, AutoText.ALIGMENT_CENTER);
         
         Page[] pageSizes = new Page[] {Page.Page_Letter_Portrait(), Page.Page_Legal_Portrait(), Page.Page_A4_Portrait(),
                                        Page.Page_Letter_Landscape(), Page.Page_Legal_Landscape(), Page.Page_A4_Landscape()};
@@ -1223,10 +1291,22 @@ public class ReportsBaseTask extends BaseTask
 			String hql = reportId != null ? "from SpReport where id = "  + reportId : 
 				"from SpReport where appResourceId = " + resourceId;
 			SpReport rep = (SpReport) session.getData(hql);
+			SpAppResource repRes = null;
 			if (rep != null) 
 			{
-	        	((SpecifyAppContextMgr) AppContextMgr.getInstance()).removeAppResourceSp(rep.getAppResource()
-	                    .getSpAppResourceDir(), rep.getAppResource());
+	        	repRes = rep.getAppResource();
+//				((SpecifyAppContextMgr) AppContextMgr.getInstance()).removeAppResourceSp(rep.getAppResource()
+//	                    .getSpAppResourceDir(), rep.getAppResource());
+			}
+			else
+			{
+				hql = "from SpAppResource where id = " + resourceId;
+				repRes = (SpAppResource)session.getData(hql);
+			}
+			if (repRes != null) 
+			{
+				((SpecifyAppContextMgr) AppContextMgr.getInstance()).removeAppResourceSp(repRes
+	                    .getSpAppResourceDir(), repRes);
 			}
 		} catch (Exception e) 
 		{
@@ -1374,7 +1454,7 @@ public class ReportsBaseTask extends BaseTask
 
         if (file.exists())
         {
-            if (MainFrameSpecify.importJasperReport(file, true))
+            if (MainFrameSpecify.importJasperReport(file, true, null))
             {
                 refreshCommands();
             }

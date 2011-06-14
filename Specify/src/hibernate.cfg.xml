@@ -48,6 +48,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.AgentVariant"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Appraisal"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Attachment"/>
+		<mapping class="edu.ku.brc.specify.datamodel.AttachmentImageAttribute"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttachmentMetadata"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttachmentTag"/>
 		<mapping class="edu.ku.brc.specify.datamodel.AttributeDef"/>
@@ -91,8 +92,10 @@
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRun"/>
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRunAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.DNASequencingRunCitation"/>
-		<mapping class="edu.ku.brc.specify.datamodel.ExchangeIn"/>
-		<mapping class="edu.ku.brc.specify.datamodel.ExchangeOut"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeIn"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeInPrep"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeOut"/>
+        <mapping class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Exsiccata"/>
 		<mapping class="edu.ku.brc.specify.datamodel.ExsiccataItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.FieldNotebook"/>
@@ -130,6 +133,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityDetail"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityAttachment"/>
 		<mapping class="edu.ku.brc.specify.datamodel.LocalityNameAlias"/>
+		<mapping class="edu.ku.brc.specify.datamodel.MorphBankView"/>
 		<mapping class="edu.ku.brc.specify.datamodel.OtherIdentifier"/>
 		<mapping class="edu.ku.brc.specify.datamodel.PaleoContext"/>
 		<mapping class="edu.ku.brc.specify.datamodel.Permit"/>
@@ -196,6 +200,7 @@
 		<mapping class="edu.ku.brc.specify.datamodel.Workbench"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchDataItem"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRow"/>
+		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowExportedRelationship"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchRowImage"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchTemplate"/>
 		<mapping class="edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem"/>

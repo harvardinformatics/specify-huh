@@ -4,6 +4,7 @@
 package edu.ku.brc.specify.tools.export;
 
 
+import static edu.ku.brc.ui.UIHelper.createButton;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.BorderLayout;
@@ -25,6 +26,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -89,10 +91,13 @@ import edu.ku.brc.specify.tasks.subpane.qb.QueryParameterPanel;
 import edu.ku.brc.specify.tasks.subpane.qb.TableQRI;
 import edu.ku.brc.specify.tasks.subpane.qb.TableTree;
 import edu.ku.brc.specify.tools.ireportspecify.MainFrameSpecify;
+import edu.ku.brc.specify.ui.AppBase;
+import edu.ku.brc.specify.ui.HelpMgr;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.ui.IconManager.IconSize;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -111,6 +116,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 	protected JButton exportToDbTblBtn;
 	protected JButton exportToTabDelimBtn;
 	protected JButton showIPTSQLBtn;
+	protected JButton helpBtn;
 	protected JLabel status;
 	protected JProgressBar prog;
 	protected JPanel progPane;
@@ -152,6 +158,12 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 		}
 	}
 	
+	public static String getCacheTableName(String mappingName)
+	{
+		//return  ExportToMySQLDB.fixTblNameForMySQL(mappingName + AppContextMgr.getInstance().getClassObject(Collection.class).getCollectionName());
+		return  ExportToMySQLDB.fixTblNameForMySQL(mappingName);
+	}
+	
 	/**
 	 * 
 	 */
@@ -169,7 +181,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
     	tblpb.add(sp, cc.xy(2, 2));
     	
     	add(tblpb.getPanel(), BorderLayout.CENTER);
-    	exportToDbTblBtn = new JButton(UIRegistry.getResourceString("ExportPanel.ExportToDBTbl"));
+    	exportToDbTblBtn = UIHelper.createButton(UIRegistry.getResourceString("ExportPanel.ExportToDBTbl"));
     	exportToDbTblBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0)
@@ -215,7 +227,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 			}
     	});
     	
-    	this.exportToTabDelimBtn = new JButton(UIRegistry.getResourceString("ExportPanel.ExportTabDelimTxt"));
+    	this.exportToTabDelimBtn = UIHelper.createButton(UIRegistry.getResourceString("ExportPanel.ExportTabDelimTxt"));
     	this.exportToTabDelimBtn.setToolTipText(UIRegistry.getResourceString("ExportPanel.ExportTabDelimTxtHint"));
     	this.exportToTabDelimBtn.addActionListener(new ActionListener() {
 			@Override
@@ -250,7 +262,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 					File file = save.getSelectedFile();
 					exportToDbTblBtn.setEnabled(false);
 					exportToTabDelimBtn.setEnabled(false);
-					dumper = ExportToMySQLDB.exportRowsToTabDelimitedText(file, null, ExportToMySQLDB.fixTblNameForMySQL(q.getName()), ls);
+					dumper = ExportToMySQLDB.exportRowsToTabDelimitedText(file, null, getCacheTableName(q.getName()), ls);
 					SwingUtilities.invokeLater(new Runnable() {
 
 						/* (non-Javadoc)
@@ -272,7 +284,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 			}
     	});
 
-    	showIPTSQLBtn = new JButton(UIRegistry.getResourceString("ExportPanel.ShowSQLBtn"));
+    	showIPTSQLBtn = UIHelper.createButton(UIRegistry.getResourceString("ExportPanel.ShowSQLBtn"));
     	showIPTSQLBtn.setToolTipText(UIRegistry.getResourceString("ExportPanel.ShowSQLBtnTT"));
     	showIPTSQLBtn.addActionListener(new ActionListener() {
 			@Override
@@ -289,19 +301,17 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 					{
 						SpExportSchemaMapping map = maps.get(row);
 						String iptSQL = ExportToMySQLDB
-								.getSelectForIPTDBSrc(ExportToMySQLDB
-										.fixTblNameForMySQL(map
-												.getMappingName()));
+								.getSelectForIPTDBSrc(getCacheTableName(map.getMappingName()));
 						JTextArea ta = new JTextArea(iptSQL);
 						ta.setLineWrap(true);
 						ta.setColumns(60);
 						ta.setRows(10);
 						ta.selectAll();
-						JScrollPane sp = new JScrollPane(ta);
+						JScrollPane scrp = new JScrollPane(ta);
 						CustomDialog cd = new CustomDialog((Frame) UIRegistry
 								.getTopWindow(), UIRegistry
 								.getResourceString("ExportPanel.SQLTitle"),
-								true, sp);
+								true, scrp);
 						UIHelper.centerAndShow(cd);
 					}
 				}
@@ -312,7 +322,10 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 			}
     	});
     	
-    	PanelBuilder pbb = new PanelBuilder(new FormLayout("2dlu, f:p:g, p, 2dlu, p, 2dlu, p, 2dlu", "p, p, 7dlu"));
+        helpBtn = createButton(getResourceString("HELP"));
+        HelpMgr.registerComponent(helpBtn, "schema_tool");
+    	
+        PanelBuilder pbb = new PanelBuilder(new FormLayout("2dlu, f:p:g, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu", "p, p, 7dlu"));
     	status = new JLabel(UIRegistry.getResourceString("ExportPanel.InitialStatus")); 
     	status.setFont(status.getFont().deriveFont(Font.ITALIC));
     	Dimension pref = status.getPreferredSize();
@@ -322,6 +335,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
     	pbb.add(this.showIPTSQLBtn, cc.xy(3, 1));
     	pbb.add(exportToTabDelimBtn, cc.xy(7, 1));
     	pbb.add(exportToDbTblBtn, cc.xy(5, 1));
+    	pbb.add(helpBtn, cc.xy(9, 1));
     	
     	progPane = new JPanel(new CardLayout());
     	progPane.add(new JPanel(), "blank");
@@ -330,6 +344,9 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
     	pbb.add(progPane, cc.xyw(2, 2, 6));
     	//prog.setVisible(false);
     	add(pbb.getPanel(), BorderLayout.SOUTH);
+
+        HelpMgr.setAppDefHelpId("schema_tool");
+
 	}
 	
 	/**
@@ -343,15 +360,15 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 	}
 	
 	/**
-	 * @param mapUpdating
+	 * @param mapUpdatingArg
 	 * 
 	 * Unlocks tasksemaphore for map
 	 */
-	protected void unlock(int mapUpdating)
+	protected void unlock(int mapUpdatingArg)
 	{
 		if (mapUpdating != -1)
 		{
-			ExportMappingTask.unlockMapping(maps.get(mapUpdating));
+			ExportMappingTask.unlockMapping(maps.get(mapUpdatingArg));
 		}
 	}
 	
@@ -475,7 +492,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 			try
 			{
 				//XXX "limit" keyword may be mySQL-specific 
-				ResultSet rs = stmt.executeQuery("select * from " + ExportToMySQLDB.fixTblNameForMySQL(map.getMappingName()) + " limit 1");
+				ResultSet rs = stmt.executeQuery("select * from " + getCacheTableName(map.getMappingName()) + " limit 1");
 				int result = rs.getMetaData().getColumnCount();
 				rs.close();
 				return result;
@@ -517,6 +534,14 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
         		}
         	}
         	SpQuery q = map.getMappings().iterator().next().getQueryField().getQuery();
+    		if (q.getTimestampCreated().compareTo(map.getTimestampExported()) > 0)
+    		{
+    			return true;
+    		}
+    		if (q.getTimestampModified() != null && q.getTimestampModified().compareTo(map.getTimestampExported()) > 0)
+    		{
+    			return true;
+    		}
         	for (SpQueryField qf : q.getFields())
         	{
         		if (qf.getTimestampCreated().compareTo(map.getTimestampExported()) > 0)
@@ -572,7 +597,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
             }
         }
         QueryParameterPanel qpp = new QueryParameterPanel();
-        qpp.setQuery(exportQuery, tblTree, ttHash);
+        qpp.setQuery(exportQuery, tblTree, ttHash, false);
         Vector<QueryFieldPanel> qfps = QueryBldrPane.getQueryFieldPanelsForMapping(qpp, exportQuery.getFields(), tblTree, ttHash,
         		null, theMapping, null, null);
 
@@ -600,6 +625,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
         catch (Exception ex)
         {
             UsageTracker.incrHandledUsageCount();
+            ex.printStackTrace();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryBldrPane.class, ex);
             UIRegistry.getStatusBar().setErrorMessage(ex.getLocalizedMessage(), ex);
             return null;
@@ -620,7 +646,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
         Pair<String, String> it = null;
 		if (rebuildExistingTbl)
 		{
-				it = SchemaUpdateService.getITUsernamePwd();
+				it = DatabaseLoginPanel.getITUsernamePwd();
 				if (it == null)
 				{
 					return null;
@@ -732,6 +758,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 					String msg = getResourceString("ExportPanel.UpdateFailMsg");
 					if (killer != null)
 					{
+						killer.printStackTrace();
 						msg += " Error: " + killer.getClass().getSimpleName();
 						if (StringUtils.isNotBlank(killer.getLocalizedMessage()))
 						{
@@ -928,18 +955,18 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 	 * @see edu.ku.brc.specify.tasks.subpane.qb.QBDataSourceListenerIFace#rowCount(int)
 	 */
 	@Override
-	public void rowCount(final long rowCount)
+	public void rowCount(final long rowCountArg)
 	{
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run()
 			{
-				if (rowCount > 0)
+				if (rowCountArg > 0)
 				{
 					prog.setIndeterminate(false);
 					prog.setMinimum(0);
-					prog.setMaximum((int )rowCount - 1);
+					prog.setMaximum((int )rowCountArg - 1);
 				}
-				ExportPanel.this.rowCount = rowCount;
+				ExportPanel.this.rowCount = rowCountArg;
 			}
 		});
 	}
@@ -961,7 +988,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 					try
 					{
 						MappingUpdateStatus result = null;
-						String tbl = ExportToMySQLDB.fixTblNameForMySQL(map.getMappingName());
+						String tbl = getCacheTableName(map.getMappingName());
 						String keyFld = tbl + "Id";
 						SpQuery q = map.getMappings().iterator().next().getQueryField().getQuery();
 						DBTableInfo rootTbl = DBTableIdMgr.getInstance().getInfoById(q.getContextTableId());
@@ -969,11 +996,14 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
 						String spKeyFld = rootTbl.getIdColumnName();
 						String sql = "select count(*) from " + tbl + " where " + keyFld 
 							+ " not in(select " + spKeyFld + " from " + spTbl;
+						
+						//XXX Collection Scoping Issue???
 						if (rootTbl.getFieldByName("collectionMemberId") != null)
 						{
 							sql += " where CollectionMemberId = " 
 								+ AppContextMgr.getInstance().getClassObject(Collection.class).getId();
 						}
+						
 						sql += ")";
 						int deletedRecs = BasicSQLUtils.getCountAsInt(conn, sql);
 						int otherRecs = 0; 
@@ -1099,65 +1129,14 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
     {
         log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // This is for Windows and Exe4J, turn the args into System Properties
-        
+ 
         // Set App Name, MUST be done very first thing!
         //UIRegistry.setAppName("SchemaExporter");  //$NON-NLS-1$
         UIRegistry.setAppName("Specify");  //$NON-NLS-1$
-        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         
-        for (String s : args)
-        {
-            String[] pairs = s.split("="); //$NON-NLS-1$
-            if (pairs.length == 2)
-            {
-                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-                {
-                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-                } 
-            } else
-            {
-                String symbol = pairs[0].substring(2, pairs[0].length());
-                System.setProperty(symbol, symbol);
-            }
-        }
-        
-        // Now check the System Properties
-        String appDir = System.getProperty("appdir");
-        if (StringUtils.isNotEmpty(appDir))
-        {
-            UIRegistry.setDefaultWorkingPath(appDir);
-        }
-        
-        String appdatadir = System.getProperty("appdatadir");
-        if (StringUtils.isNotEmpty(appdatadir))
-        {
-            UIRegistry.setBaseAppDataDir(appdatadir);
-        }
-        
-        // For Debugging Only 
-        //System.setProperty("mobile", "true");
-        //System.setProperty("embedded", "true");
-        
-        String mobile = System.getProperty("mobile");
-        if (StringUtils.isNotEmpty(mobile))
-        {
-            UIRegistry.setMobile(true);
-        }
-        
-        String embeddedStr = System.getProperty("embedded");
-        if (StringUtils.isNotEmpty(embeddedStr))
-        {
-            UIRegistry.setEmbedded(true);
-        }
-        
-        String embeddeddbdir = System.getProperty("embeddeddbdir");
-        if (StringUtils.isNotEmpty(embeddeddbdir))
-        {
-            UIRegistry.setEmbeddedDBDir(embeddeddbdir);
-        } else
-        {
-            UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
-        }
+        AppBase.processArgs(args);
+        AppBase.setupTeeForStdErrStdOut(true, false);
+
         
         // Then set this
         IconManager.setApplicationClass(Specify.class);
@@ -1169,6 +1148,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
         
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr //$NON-NLS-1$
         System.setProperty(AppPreferences.factoryName,                  "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
+        System.setProperty(AppPreferences.factoryGlobalName,            "edu.ku.brc.specify.config.AppPrefsGlobalDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
         System.setProperty("edu.ku.brc.ui.ViewBasedDialogFactoryIFace", "edu.ku.brc.specify.ui.DBObjDialogFactory");            // Needed By UIRegistry //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.ui.forms.DraggableRecordIdentifierFactory", "edu.ku.brc.specify.ui.SpecifyDraggableRecordIdentiferFactory"); // Needed By the Form System //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.dbsupport.AuditInterceptor",     "edu.ku.brc.specify.dbsupport.AuditInterceptor");       // Needed By the Form System for updating Lucene and logging transactions //$NON-NLS-1$ //$NON-NLS-2$
@@ -1192,7 +1172,10 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
         HibernateUtil.setListener("post-commit-update", new edu.ku.brc.specify.dbsupport.PostUpdateEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-insert", new edu.ku.brc.specify.dbsupport.PostInsertEventListener()); //$NON-NLS-1$
         HibernateUtil.setListener("post-commit-delete", new edu.ku.brc.specify.dbsupport.PostDeleteEventListener()); //$NON-NLS-1$
-        
+ 
+        ImageIcon helpIcon = IconManager.getIcon(Specify.getIconName(),IconSize.Std16); //$NON-NLS-1$
+        HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
+
         SwingUtilities.invokeLater(new Runnable() {
             @SuppressWarnings("synthetic-access") //$NON-NLS-1$
           public void run()
@@ -1221,12 +1204,12 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
                 DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
                 {
                     @Override
-                    public boolean hasMasterUserAndPwdInfo(final String username, final String password)
+                    public boolean hasMasterUserAndPwdInfo(final String username, final String password, final String dbName)
                     {
                         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password))
                         {
-                            UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                            UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                            UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
+                            
                             boolean result = false;
                             try
                             {
@@ -1256,10 +1239,9 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
                     }
                     
                     @Override
-                    public Pair<String, String> getUserNamePassword(final String username, final String password)
+                    public Pair<String, String> getUserNamePassword(final String username, final String password, final String dbName)
                     {
-                        UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                        UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                        UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                         Pair<String, String> result = null;
                         try
                         {
@@ -1286,7 +1268,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
                         return result;
                     }
                     @Override
-                    public boolean editMasterInfo(final String username, final boolean askFroCredentials)
+                    public boolean editMasterInfo(final String username, final String dbName, final boolean askFroCredentials)
                     {
                         boolean result = false;
                     	try
@@ -1294,24 +1276,19 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
                         	try
                         	{
                         		AppPreferences.getLocalPrefs().flush();
-                        		AppPreferences.getLocalPrefs()
-									.setDirPath(SpPrefDir);
+                        		AppPreferences.getLocalPrefs().setDirPath(SpPrefDir);
                         		AppPreferences.getLocalPrefs().setProperties(null);
-                        		result =  UserAndMasterPasswordMgr
-									.getInstance()
-									.editMasterInfo(username, askFroCredentials);
+                        		result =  UserAndMasterPasswordMgr.getInstance().editMasterInfo(username, dbName, askFroCredentials);
                         	} finally
                         	{
                         		AppPreferences.getLocalPrefs().flush();
-                        		AppPreferences.getLocalPrefs().setDirPath(
-									iRepPrefDir);
+                        		AppPreferences.getLocalPrefs().setDirPath(iRepPrefDir);
                         		AppPreferences.getLocalPrefs().setProperties(null);
                         	}
                         } catch (Exception e)
                         {
                         	edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                        	edu.ku.brc.exceptions.ExceptionTracker.getInstance()
-								.capture(MainFrameSpecify.class, e);
+                        	edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, e);
                         	result = false;
                         }
                     	return result;
@@ -1319,7 +1296,7 @@ public class ExportPanel extends JPanel implements QBDataSourceListenerIFace
                 };
                 String nameAndTitle = UIRegistry.getResourceString("SchemaExportLauncher.DlgTitle"); // I18N
                 UIRegistry.setRelease(true);
-                UIHelper.doLogin(usrPwdProvider, true, false, false, new SchemaExportLauncher(), "Specify", nameAndTitle, nameAndTitle, "SpecifyWhite32", "login"); // true
+                UIHelper.doLogin(usrPwdProvider, true, false, false, new SchemaExportLauncher(), Specify.getLargeIconName(), nameAndTitle, nameAndTitle, "SpecifyWhite32", "login"); // true
 																																	// means
 																																	// do
 																																	// auto

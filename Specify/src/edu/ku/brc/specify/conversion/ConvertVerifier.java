@@ -22,7 +22,8 @@ package edu.ku.brc.specify.conversion;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -34,12 +35,13 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -63,13 +65,20 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertBlue;
 
+import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.dbsupport.MySQLDMBSUserMgr;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.Specify;
+import edu.ku.brc.specify.dbsupport.PostInsertEventListener;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.utilapps.BuildSampleDatabase;
 import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ProgressFrame;
 import edu.ku.brc.ui.ToggleButtonChooserPanel;
 import edu.ku.brc.ui.UIHelper;
@@ -78,34 +87,46 @@ import edu.ku.brc.ui.ToggleButtonChooserPanel.Type;
 import edu.ku.brc.util.AttachmentUtils;
 import edu.ku.brc.util.Pair;
 
-public class ConvertVerifier
+public class ConvertVerifier extends AppBase
 {
-    protected static final Logger log = Logger.getLogger(ConvertVerifier.class);
+    private static final Logger log = Logger.getLogger(ConvertVerifier.class);
     
-    protected enum StatusType {NO_OLD_REC, NO_NEW_REC, OLD_VAL_NULL, NEW_VAL_NULL, BAD_COMPARE, BAD_DATE, COMPARE_OK, NO_COMPARE, }
+    private enum StatusType {NO_OLD_REC, NO_NEW_REC, OLD_VAL_NULL, NEW_VAL_NULL, BAD_COMPARE, BAD_DATE, COMPARE_OK, NO_COMPARE, }
     
-    protected Pair<String, String> itUsrPwd          = new Pair<String, String>(null, null);
-    protected String               hostName          = "localhost";
-    protected Pair<String, String> namePairToConvert = null;
+    private Pair<String, String> itUsrPwd          = new Pair<String, String>(null, null);
+    private String               hostName          = "localhost";
+    private Pair<String, String> namePairToConvert = null;
+    
+    private boolean              dbgStatus         = false;
+    private boolean              compareTo6DBs     = false;
+    
     
     // These are the configuration Options for a View
-    public static final long NO_OPTIONS             =    0; // Indicates there are no options
-    public static final long DO_CO_PREPARATION      =    1; 
-    public static final long DO_CO_CE               =    2; 
-    public static final long DO_CO_LOCALITY         =    4; 
-    public static final long DO_CO_PREPARER         =    8; 
-    public static final long DO_CO_CATLOGER         =   16; 
-    public static final long DO_CO_DETERMINER       =   32; 
-    public static final long DO_CO_TAXON            =   64; 
-    public static final long DO_CO_GEO              =  128; 
-    public static final long DO_COLLECTORS          =  256; 
-    public static final long DO_COLLEVENTS          =  512; 
-    public static final long DO_CO_ALL              = 1023; 
+    public static final long NO_OPTIONS             =     0; // Indicates there are no options
+    public static final long DO_CO_PREPARATION      =     1; 
+    public static final long DO_CO_CE               =     2; 
+    public static final long DO_CO_LOCALITY         =     4; 
+    public static final long DO_CO_PREPARER         =     8; 
+    public static final long DO_CO_CATLOGER         =    16; 
+    public static final long DO_CO_DETERMINER       =    32; 
+    public static final long DO_CO_TAXON            =    64; 
+    public static final long DO_CO_GEO              =   128; 
+    public static final long DO_COLLECTORS          =   256; 
+    public static final long DO_COLLEVENTS          =   512; 
+    public static final long DO_TAXON_CIT           =  1024; 
+    public static final long DO_SHIPMENTS           =  2048; 
+    public static final long DO_OTHER_IDENT         =  4096; 
+    public static final long DO_CO_COLLECTORS       =  8192; 
+    public static final long DO_AGENTS              = 16384; 
+    public static final long DO_LOANS               = 32768; 
+    public static final long DO_CO_ALL              = 65535;
     
-    protected String[] labels = {"None", "Preparations", "Collecting Events", "Localities", "Preparers", 
-                                 "Catalogers", "Determiners", "Taxon", "Geographies", "Collectors", 
-                                 "Collecting Events", "All"};
-    protected ToggleButtonChooserPanel<String> chkPanel;
+    private String[] labels = {"None", "Preparations", "CO Collecting Events", "Localities", "Preparers", 
+                               "Catalogers", "Determiners", "Taxon", "Geographies", "Collectors", 
+                               "Collecting Events", "Taxon Citations", "Shipments", "Other Ident", "ColObj Collectors", 
+                               "Agents", "Loans", "All"};
+    
+    private ToggleButtonChooserPanel<String> chkPanel;
     
     //public static final long DONT_ADD_ALL_ALTVIEWS  = 256; 
     //public static final long USE_ONLY_CREATION_MODE = 512;
@@ -114,40 +135,46 @@ public class ConvertVerifier
     public static final long DO_AC_AUTHS            =   2; 
     public static final long DO_AC_AGENTS           =   4; 
     public static final long DO_AC_ALL              =   7; 
-
-    protected static long                                   coOptions         = NO_OPTIONS;
-    protected static long                                   acOptions         = NO_OPTIONS;
-    protected static List<String>                           dbNamesToConvert  = null;
-    protected static int                                    currentIndex      = 0;
-    protected static Hashtable<String, String>              old2NewDBNames    = null;
     
-    protected Hashtable<String, Integer>                    catNumsInErrHash  = new Hashtable<String, Integer>();
+    private String[] accLabels = {"None", "Accessions", "Authorizations", "Agents", "All"};
+
+
+    private static long                                   coOptions         = NO_OPTIONS;
+    private static long                                   acOptions         = NO_OPTIONS;
+    //private static List<String>                           dbNamesToConvert  = null;
+    //private static int                                    currentIndex      = 0;
+    //private static Hashtable<String, String>              old2NewDBNames    = null;
+    
+    private Hashtable<String, Integer>                    catNumsInErrHash  = new Hashtable<String, Integer>();
+    private Hashtable<String, String>                     accNumsInErrHash  = new Hashtable<String, String>();
     
     
-    protected String                                        oldDriver         = "";
-    protected String                                        oldDBName         = "";
-    protected String                                        oldUserName       = "rods";
-    protected String                                        oldPassword       = "rods";
+    //private String                                        oldDriver         = "";
+    //private String                                        oldDBName         = "";
+    //private String                                        oldUserName       = "rods";
+    //private String                                        oldPassword       = "rods";
 
-    protected IdMapperMgr                                   idMapperMgr;
+    //private IdMapperMgr                                   idMapperMgr;
 
-    protected Connection                                    oldDBConn;
-    protected Connection                                    newDBConn;
+    private Connection                                    oldDBConn;
+    private Connection                                    newDBConn;
 
-    protected Statement                                     oldDBStmt;
-    protected Statement                                     newDBStmt;
+    private Statement                                     oldDBStmt;
+    private Statement                                     newDBStmt;
 
-    protected ResultSet                                     oldDBRS;
-    protected ResultSet                                     newDBRS;
+    private ResultSet                                     oldDBRS;
+    private ResultSet                                     newDBRS;
     
-    protected String                                        newSQL;
-    protected String                                        oldSQL;
+    private String                                        newSQL;
+    private String                                        oldSQL;
     
-    protected PrintWriter                                   out;
-    protected int                                           numErrors = 0;
-    protected static SimpleDateFormat                       dateFormatter          = new SimpleDateFormat("yyyy-MM-dd");
-    protected boolean                                       debug = false;
-    protected static ProgressFrame                          progressFrame;
+    private int                                           numErrors = 0;
+    private static SimpleDateFormat                       dateFormatter          = new SimpleDateFormat("yyyy-MM-dd");
+    private boolean                                       debug = false;
+    private static ProgressFrame                          progressFrame;
+    
+    private ConversionLogger                              convLogger = new ConversionLogger();
+    private TableWriter                                   tblWriter  = null;
     
     
     /**
@@ -157,7 +184,24 @@ public class ConvertVerifier
     {
         super();
         
-        UIRegistry.setAppName("Specify");
+        PostInsertEventListener.setAuditOn(false);
+        
+        setUpSystemProperties();
+        
+        AppContextMgr.getInstance().setHasContext(true);
+        
+        // Load Local Prefs
+        AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+        localPrefs.setDirPath(UIRegistry.getAppDataDir());
+
+        // Then set this
+        IconManager.setApplicationClass(Specify.class);
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_datamodel.xml")); //$NON-NLS-1$
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
+        
+        appIcon = new JLabel("  "); //$NON-NLS-1$
+        setAppIcon(null); //$NON-NLS-1$
     }
 
     /**
@@ -168,20 +212,13 @@ public class ConvertVerifier
     public void verifyDB(final String databaseNameSource, 
                          final String databaseNameDest) throws Exception
     {
-        
-        File verifyFile = new File("conversions" + File.separator + databaseNameDest + File.separator + "verify.html");
-        out = new PrintWriter(verifyFile);
+        convLogger.initialize("verify", databaseNameDest);
         
         String title = "From "+databaseNameSource+" to "+databaseNameDest;
         System.out.println("************************************************************");
-        System.out.println("From "+databaseNameSource+" to "+databaseNameDest);
+        System.out.println(title);
         System.out.println("************************************************************");
         
-        out.println("<html><head>");
-        writeStyle(out);
-        out.println("<title>"+databaseNameDest+"</title></head><body>");
-        out.println("<h2>"+title+"</h2>");
-
         HibernateUtil.shutdown();    
         
         Properties initPrefs = BuildSampleDatabase.getInitializePrefs(databaseNameDest);
@@ -249,6 +286,8 @@ public class ConvertVerifier
             throw new RuntimeException("Couldn't login into ["+databaseNameDest+"] "+DBConnection.getInstance().getErrorMsg());
         }
         
+        convLogger.setIndexTitle(databaseNameDest + " Verify "+(new SimpleDateFormat("yyy-MM-dd hh:mm:ss")).format(Calendar.getInstance().getTime()));
+        
         //MEG WHY IS THIS COMMENTED OUT???
         //DataBuilder.setSession(HibernateUtil.getNewSession());
         
@@ -278,6 +317,8 @@ public class ConvertVerifier
         newDBStmt = newDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         oldDBStmt = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         
+        long startTime = System.currentTimeMillis();
+
         String[] tableNames = {"CollectingEvent", "CollectingEvent", "Locality", "Locality"};
         for (int i=0;i<tableNames.length;i+=2)
         {
@@ -287,11 +328,14 @@ public class ConvertVerifier
         progressFrame = new ProgressFrame("Checking Catalog Objects....");
         progressFrame.adjustProgressFrame();
         
-        Integer total = BasicSQLUtils.getCount(oldDBConn, "SELECT COUNT(CatalogNumber) FROM collectionobjectcatalog WHERE CollectionObjectTypeID < 20 ORDER BY CatalogNumber ASC");
-        progressFrame.setProcess(0, total);
+        String cntSQL = compareTo6DBs ? "SELECT COUNT(*) FROM collectionobject" :
+                                        "SELECT COUNT(*) FROM collectionobjectcatalog WHERE CollectionObjectTypeID > 8 && CollectionObjectTypeID < 20";
+        Integer numColObjs = BasicSQLUtils.getCount(oldDBConn, cntSQL);
+        
+        progressFrame.setProcess(0, numColObjs);
         //progressFrame.setDesc("Checking Catalog Objects....");
         
-        progressFrame.setOverall(0, total*4);
+        progressFrame.setOverall(0, numColObjs*4);
         progressFrame.setOverall(0);
         progressFrame.setDesc("");
 
@@ -304,61 +348,142 @@ public class ConvertVerifier
             }
         });
         
-        out.println("<H3>Collection Objects</H3>");
-        out.println("<table class=\"o\" cellspacing=\"0\" border=\"0\">");
+        HashMap<Long, TableWriter> tblWriterHash = new HashMap<Long, TableWriter>();
+        for (int i=1;i<labels.length-1;i++)
+        {
+            long id = (long)Math.pow(2, i-1);
+            id = Math.max(id, 1);
+            tblWriter = convLogger.getWriter(labels[i] + ".html", labels[i]);
+            //printVerifyHeader(labels[i]);
+            tblWriter.startTable();
+            tblWriter.logHdr("ID", "Desc");
+            tblWriterHash.put(id, tblWriter);
+            System.out.println(id + " - " + labels[i]);
+        }
         
+        boolean nullCEOk = false;
+        File ceFile = new File(databaseNameDest+".ce_all");
+        if (ceFile.exists())
+        {
+            nullCEOk = true;
+            //ceFile.delete();
+        }
+        
+        nullCEOk = true;
+        
+        // For Debug
         coOptions = DO_CO_ALL;
-        acOptions = DO_AC_ALL;
-
+        
         if (coOptions > NO_OPTIONS)
         {
             int i = 0;
             Statement stmt = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs = stmt.executeQuery("SELECT CatalogNumber FROM collectionobjectcatalog WHERE CollectionObjectTypeID < 20 ORDER BY CatalogNumber ASC");
+            String    sql  = compareTo6DBs ? "SELECT CatalogNumber FROM collectionobject ORDER BY CatalogNumber ASC" :
+                                             "SELECT CatalogNumber FROM collectionobjectcatalog WHERE CollectionObjectTypeID > 8 && CollectionObjectTypeID < 20 AND SubNumber >= 0 ORDER BY CatalogNumber ASC";
+            ResultSet rs   = stmt.executeQuery(sql);
             while (rs.next())
             {
                 int    oldCatNum = rs.getInt(1);
                 String newCatNum = convertCatNum(oldCatNum);
+                //if (oldCatNum < 1643) continue;
                 
-                if (isCOOn(DO_CO_DETERMINER) && !verifyDeterminer(oldCatNum, newCatNum))
+                if (isCOOn(DO_CO_DETERMINER))
                 {
-                    printVerifyHeader("Determiner");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
-                }            
-                if (isCOOn(DO_CO_CATLOGER) && !verifyCataloger(oldCatNum, newCatNum))
+                    tblWriter = tblWriterHash.get(DO_CO_DETERMINER);
+                    if (!verifyDeterminer(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
+                } 
+                
+                if (isCOOn(DO_CO_CATLOGER))
                 {
-                    printVerifyHeader("Cataloger");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_CATLOGER);
+                    if (!verifyCataloger(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_GEO) && !verifyGeography(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_COLLECTORS))
                 {
-                    printVerifyHeader("Geography");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_CATLOGER);
+                    if (!verifyCollector(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_CE) && !verifyCollectingEvent(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_GEO))
                 {
-                    printVerifyHeader("Collecting Event");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_GEO);
+                    if (!verifyGeography(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_TAXON) && !verifyTaxon(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_CE))
                 {
-                    printVerifyHeader("Taxon");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_CE);
+                    if (!verifyCollectingEvent(oldCatNum, newCatNum, nullCEOk))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_LOCALITY) && !verifyCOToLocality(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_TAXON))
                 {
-                    printVerifyHeader("Locality");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_TAXON);
+                    if (!verifyTaxon(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_PREPARATION) && !verifyPreparation(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_LOCALITY))
                 {
-                    printVerifyHeader("Preparations");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_LOCALITY);
+                    if (!verifyCOToLocality(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
-                if (isCOOn(DO_CO_PREPARER) && !verifyPreparer(oldCatNum, newCatNum))
+                
+                if (isCOOn(DO_CO_PREPARATION))
                 {
-                    printVerifyHeader("Preparer");
-                    catNumsInErrHash.put(newCatNum, oldCatNum);
+                    tblWriter = tblWriterHash.get(DO_CO_PREPARATION);
+                    if (!verifyPreparation(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
+                }
+                
+                if (isCOOn(DO_CO_PREPARER))
+                {
+                    tblWriter = tblWriterHash.get(DO_CO_PREPARER);
+                    if (!verifyPreparer(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
+                }
+                
+                if (isCOOn(DO_TAXON_CIT))
+                {
+                    tblWriter = tblWriterHash.get(DO_TAXON_CIT);
+                    if (!verifyTaxonCitations(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
+                }
+                
+                if (isCOOn(DO_OTHER_IDENT))
+                {
+                    tblWriter = tblWriterHash.get(DO_OTHER_IDENT);
+                    if (!verifyOtherIdentifier(oldCatNum, newCatNum))
+                    {
+                        catNumsInErrHash.put(newCatNum, oldCatNum);
+                    }
                 }
                 
                 if ((i % 100) == 0)
@@ -367,6 +492,14 @@ public class ConvertVerifier
                     progressFrame.setProcess(i);
                     progressFrame.setOverall(i);
                 }
+                
+                if ((i % 1000) == 0)
+                {
+                    for (TableWriter tw : tblWriterHash.values())
+                    {
+                        tw.flush();
+                    }
+                }
                 i++;
             }
             
@@ -374,34 +507,84 @@ public class ConvertVerifier
             stmt.close();
         }
         
-        progressFrame.setProcess(total);
+        progressFrame.setProcess(numColObjs);
         
         if (isCOOn(DO_COLLECTORS))
         {
+            tblWriter = tblWriterHash.get(DO_COLLECTORS);
             verifyCollectors();
         }
-        progressFrame.setOverall(total*2);
+        
+        if (isCOOn(DO_AGENTS))
+        {
+            tblWriter = tblWriterHash.get(DO_AGENTS);
+            verifyAgents();
+        }
+        
+        progressFrame.setOverall(numColObjs*2);
         if (isCOOn(DO_COLLEVENTS))
         {
+            tblWriter = tblWriterHash.get(DO_COLLEVENTS);
             verifyCEs();
         }
-        progressFrame.setOverall(total*3);
         
-        printTotal();
-        out.println("</table>");
+        //progressFrame.setOverall(numColObjs*2);
+        if (isCOOn(DO_COLLEVENTS))
+        {
+            tblWriter = tblWriterHash.get(DO_COLLEVENTS);
+            verifyShipments();
+        }
         
-        out.println("<BR>");
-        out.println("Catalog Summary:<BR>");
+        if (isCOOn(DO_LOANS))
+        {
+            tblWriter = tblWriterHash.get(DO_LOANS);
+            verifyLoans();
+            verifyGifts();
+            verifyLoanRetPreps();
+        }
+        
+        for (TableWriter tw : tblWriterHash.values())
+        {
+            tw.endTable();
+        }
+        
+        progressFrame.setOverall(numColObjs*3);
+        
+        
+        tblWriter = convLogger.getWriter("CatalogNumberSummary.html", "Catalog Nummber Summary");
+        tblWriter.startTable();
+        tblWriter.logHdr("Number", "Description");
+        tblWriter.logErrors(Integer.toString(numErrors), "All Errors");
+        tblWriter.logErrors(Integer.toString(catNumsInErrHash.size()), "Catalog Number with Errors");
+        tblWriter.endTable();
+        
+        tblWriter.println("<BR>");
+        tblWriter.println("Catalog Summary:<BR>");
         Vector<String> catNumList = new Vector<String>(catNumsInErrHash.keySet());
         Collections.sort(catNumList);
         for (String catNum : catNumList)
         {
-            out.println(catNum+"<BR>");
+            tblWriter.println(catNum+"<BR>");
         }
-        out.println("<BR>");
+        tblWriter.println("<BR>");
+        numErrors = 0;
+
+        //-----------------------------------------------------------------------------------------------------------
+        // Accessions
+        //-----------------------------------------------------------------------------------------------------------
+        // For Debug
+        acOptions = 0;//DO_AC_ALL;
         
-        out.println("<H3>Accessions</H3>");
-        out.println("<table class=\"o\" cellspacing=\"0\" border=\"0\">");
+        HashMap<Long, TableWriter> accTblWriterHash = new HashMap<Long, TableWriter>();
+        for (int i=1;i<accLabels.length;i++)
+        {
+            long id = (long)Math.pow(2, i-1);
+            id = Math.max(id, 1);
+            tblWriter = convLogger.getWriter("accession_"+accLabels[i] + ".html", "Accession "+accLabels[i]);
+            tblWriter.startTable();
+            tblWriter.logHdr("ID", "Desc");
+            accTblWriterHash.put(id, tblWriter);
+        }
         
         if (acOptions > NO_OPTIONS)
         {
@@ -413,19 +596,27 @@ public class ConvertVerifier
                 String oldAccNum = rs.getString(1);
                 String newAccNum = oldAccNum;
                 
-                if (isACOn(DO_ACCESSIONS) && !verifyAccessions(oldAccNum, newAccNum))
+                if (isACOn(DO_ACCESSIONS))
                 {
-                    printVerifyHeader("Accessions");
-                    log.error("Accession Num: "+oldAccNum);
+                    tblWriter = accTblWriterHash.get(DO_ACCESSIONS);
+                    if (!verifyAccessions(oldAccNum, newAccNum))
+                    {
+                        log.error("Accession Num: "+oldAccNum);
+                        accNumsInErrHash.put(newAccNum, oldAccNum);
+                    }
                     //log.error("New SQL: "+newSQL);
                     //log.error("Old SQL: "+oldSQL);
                     //break;
                 }            
                 
-                if (isACOn(DO_AC_AGENTS) && !verifyAccessionAgents(oldAccNum, newAccNum))
+                if (isACOn(DO_AC_AGENTS))
                 {
-                    printVerifyHeader("Accession Agents");
-                    log.error("Accession Num: "+oldAccNum);
+                    tblWriter = accTblWriterHash.get(DO_AC_AGENTS);
+                    if (!verifyAccessionAgents(oldAccNum, newAccNum))
+                    {
+                        log.error("Accession Num: "+oldAccNum);
+                        accNumsInErrHash.put(newAccNum, oldAccNum);
+                    }
                     //log.error("New SQL: "+newSQL);
                     //log.error("Old SQL: "+oldSQL);
                     //break;
@@ -441,45 +632,55 @@ public class ConvertVerifier
             rs.close();
             stmt.close();
         }
-        progressFrame.setOverall(total*4);
+        progressFrame.setOverall(numColObjs*4);
         newDBConn.close();
         oldDBConn.close();
         
-        printTotal();
-        out.println("</table>");
-        out.println("</body>");
+        for (TableWriter tw : accTblWriterHash.values())
+        {
+            tw.endTable();
+        }
+        
+        printAccessionTotal("Accession");
+        
+        File indexFile = convLogger.closeAll();
+        
+        long endTime = System.currentTimeMillis();
+        
+        int convertTimeInSeconds = (int)((endTime - startTime) / 1000.0);
+        
+        //ConvertStatSender sender = new ConvertStatSender("verify.php");
+        //sender.senConvertInfo(databaseNameDest, numColObjs, convertTimeInSeconds);
         
         log.info("Done.");
         
-        out.flush();
-        out.close();
-        
         progressFrame.setVisible(false);
         
-        AttachmentUtils.openURI(verifyFile.toURI());
+        AttachmentUtils.openURI(indexFile.toURI());
         
         System.exit(0);
     }
     
     /**
-     * @param out
+     * @param compare26DBs the compare26DBs to set
      */
-    protected void writeStyle(final PrintWriter out)
+    public void setCompareTo6DBs(final boolean compareTo6DBs)
     {
-        out.println("<style>");
-        out.println(" table.o { border-top: solid 1px rgb(128, 128, 128); border-left: solid 1px rgb(128, 128, 128); }");
-        out.println(" table.o td { border-bottom: solid 1px rgb(128, 128, 128); border-right: solid 1px rgb(128, 128, 128); }");
-        out.println(" table.i { border-top: solid 1px rgb(192, 192, 192); border-left: solid 1px rgb(192, 192, 192); }");
-        out.println(" table.i td { border-bottom: solid 1px rgb(192, 192, 192); border-right: solid 1px rgb(192, 192, 192); }");
-        out.println("</style>");
+        this.compareTo6DBs = compareTo6DBs;
     }
-    
+
     /**
-     * @param name
+     * @param prefix
+     * @throws FileNotFoundException
      */
-    protected void printVerifyHeader(final String name)
+    private void printAccessionTotal(final String prefix) throws FileNotFoundException
     {
-        out.println("<tr><td colspan=\"2\">"+name+"</td></tr>");
+        tblWriter = convLogger.getWriter(prefix+"Summary.html", prefix + " Summary");
+        tblWriter.startTable();
+        tblWriter.logHdr("Number", "Description");
+        tblWriter.logErrors(Integer.toString(numErrors), "All Errors");
+        tblWriter.logErrors(Integer.toString(accNumsInErrHash.size()), "Accession Numbers with Errors");
+        tblWriter.endTable();
     }
     
     /**
@@ -487,16 +688,16 @@ public class ConvertVerifier
      * @param newCatNum
      * @throws SQLException
      */
-    protected boolean verifyTaxon(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyTaxon(final int oldCatNum, final String newCatNum) throws SQLException
     {
-        newSQL = "SELECT collectionobject.CatalogedDate, collectionobject.CatalogedDatePrecision, determination.DeterminedDate, determination.DeterminedDatePrecision, taxon.FullName " + 
-                        "FROM determination LEFT JOIN collectionobject ON determination.CollectionObjectID = collectionobject.CollectionObjectID "+
-                        "LEFT JOIN taxon ON determination.TaxonID = taxon.TaxonID WHERE CatalogNumber = '"+ newCatNum + "'";
+        newSQL = "SELECT co.CollectionObjectID, co.CatalogedDate, co.CatalogedDatePrecision, determination.DeterminedDate, determination.DeterminedDatePrecision, tx.FullName " + 
+                 "FROM determination LEFT JOIN collectionobject co ON determination.CollectionObjectID = co.CollectionObjectID "+
+                 "LEFT JOIN taxon tx ON determination.TaxonID = tx.TaxonID WHERE CatalogNumber = '"+ newCatNum + "'";
 
-        oldSQL = "SELECT collectionobjectcatalog.CatalogedDate, determination.Date,taxonname.FullTaxonName " + 
-                        "FROM determination LEFT JOIN taxonname ON determination.TaxonNameID = taxonname.TaxonNameID " + 
-                        "LEFT JOIN collectionobjectcatalog ON collectionobjectcatalog.CollectionObjectCatalogID = determination.BiologicalObjectID " + 
-                        "WHERE CatalogNumber = " + oldCatNum;
+        oldSQL = "SELECT cc.CollectionObjectCatalogID, cc.CatalogedDate, determination.Date,taxonname.FullTaxonName " + 
+                 "FROM determination LEFT JOIN taxonname ON determination.TaxonNameID = taxonname.TaxonNameID " + 
+                 "LEFT JOIN collectionobjectcatalog cc ON cc.CollectionObjectCatalogID = determination.BiologicalObjectID " + 
+                 "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
         if (debug)
         {
 	         log.debug("New SQL: "+newSQL);
@@ -508,48 +709,84 @@ public class ConvertVerifier
         return status == StatusType.COMPARE_OK;
     }
     
+    
+    /**
+     * @param oldCatNum
+     * @param newCatNum
+     * @throws SQLException
+     */
+    private boolean verifyOtherIdentifier(final int oldCatNum, final String newCatNum) throws SQLException
+    {
+        newSQL = "SELECT collectionobject.CatalogNumber, otheridentifier.Identifier FROM collectionobject " +
+                 "Inner Join otheridentifier ON collectionobject.CollectionObjectID = otheridentifier.CollectionObjectID " +
+                 "WHERE CatalogNumber = '"+ newCatNum + "'" +
+                 "ORDER BY collectionobject.CatalogNumber ASC, otheridentifier.Identifier ASC";
+
+        oldSQL = "SELECT cc.CatalogNumber, i.Identifier FROM collectionobject AS c " +
+                    "Inner Join collectionobjectcatalog AS cc ON c.CollectionObjectID = cc.CollectionObjectCatalogID " +
+                    "Inner Join otheridentifier AS i ON cc.CollectionObjectCatalogID = i.CollectionObjectID " +    
+                    "WHERE c.CollectionObjectTypeID <  21 AND cc.SubNumber > -1 AND cc.CatalogNumber = " + oldCatNum + " " + 
+                    "ORDER BY " +    " cc.CatalogNumber ASC, i.Identifier ASC";
+        if (debug)
+        {
+             log.debug("New SQL: "+newSQL);
+             log.debug("Old SQL: "+oldSQL);
+        }
+        
+        StatusType status = compareRecords("OtherIdentifier", oldCatNum, newCatNum, oldSQL, newSQL);
+        dumpStatus(status);
+        return status == StatusType.COMPARE_OK;
+    }
+
     /**
      * @param status
      */
-    protected void dumpStatus(final StatusType status)
+    private void dumpStatus(final StatusType status)
     {
-        switch (status)
+        if (dbgStatus)
         {
-            case OLD_VAL_NULL:
-                out.print("<tr><td colspan=\"2\">");
-                out.println(dumpSQL(newDBConn, newSQL));
-                out.println(dumpSQL(oldDBConn, oldSQL));
-                out.println("<BR>");
-                out.println("</td></tr><!-- 4 -->");
-                out.flush();
-                break;
-                
-            case NO_OLD_REC:
-                out.print("<tr><td colspan=\"2\">");
-                out.println(dumpSQL(newDBConn, newSQL));
-                out.println("<BR>");
-                out.println("</td></tr><!-- 4 -->");
-                out.flush();
-                break;
-                
-            case NEW_VAL_NULL:
-                out.print("<tr><td colspan=\"2\">");
-                out.println(dumpSQL(newDBConn, newSQL));
-                out.println(dumpSQL(oldDBConn, oldSQL));
-                out.println("<BR>");
-                out.println("</td></tr><!-- 4 -->");
-                out.flush();
-                break;
-                
-            case NO_NEW_REC:
-                out.print("<tr><td colspan=\"2\">");
-                out.println(dumpSQL(oldDBConn, oldSQL));
-                out.println("<BR>");
-                out.println("</td></tr><!-- 4 -->");
-                out.flush();
-                break;
+            //log.debug(oldSQL);
+            //log.debug(newSQL);
+            //System.err.println(oldSQL);
+            //System.err.println(newSQL);
+            
+            switch (status)
+            {
+                case OLD_VAL_NULL:
+                    tblWriter.print("<tr><td colspan=\"2\">");
+                    tblWriter.println(dumpSQL(newDBConn, newSQL));
+                    tblWriter.println(dumpSQL(oldDBConn, oldSQL));
+                    tblWriter.println("<BR>");
+                    tblWriter.println("</td></tr><!-- 4 -->");
+                    tblWriter.flush();
+                    break;
+                    
+                case NO_OLD_REC:
+                    tblWriter.print("<tr><td colspan=\"2\">");
+                    tblWriter.println(dumpSQL(newDBConn, newSQL));
+                    tblWriter.println("<BR>");
+                    tblWriter.println("</td></tr><!-- 4 -->");
+                    tblWriter.flush();
+                    break;
+                    
+                case NEW_VAL_NULL:
+                    tblWriter.print("<tr><td colspan=\"2\">");
+                    tblWriter.println(dumpSQL(newDBConn, newSQL));
+                    tblWriter.println(dumpSQL(oldDBConn, oldSQL));
+                    tblWriter.println("<BR>");
+                    tblWriter.println("</td></tr><!-- 4 -->");
+                    tblWriter.flush();
+                    break;
+                    
+                case NO_NEW_REC:
+                    tblWriter.print("<tr><td colspan=\"2\">");
+                    tblWriter.println(dumpSQL(oldDBConn, oldSQL));
+                    tblWriter.println("<BR>");
+                    tblWriter.println("</td></tr><!-- 4 -->");
+                    tblWriter.flush();
+                    break;
+            }
         }
-
     }
                          
     /**
@@ -558,20 +795,22 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyGeography(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyGeography(final int oldCatNum, final String newCatNum) throws SQLException
     {
-        newSQL = "SELECT geography.Name " +
-            "FROM collectionobject INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
-            "INNER JOIN locality ON collectingevent.LocalityID = locality.LocalityID " +
-            "INNER JOIN geography ON locality.GeographyID = geography.GeographyID " +
-            "WHERE CatalogNumber = '"+ newCatNum + "'";
+        String[] lbls = new String[] {"ContinentOrOcean", "Country", "State", "County"};
+        
+        newSQL = "SELECT g.GeographyID, g.Name " +
+                    "FROM collectionobject co INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
+                    "INNER JOIN locality l ON ce.LocalityID = l.LocalityID " +
+                    "INNER JOIN geography g ON l.GeographyID = g.GeographyID " +
+                    "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-        oldSQL = "SELECT geography.GeographyID, geography.ContinentOrOcean, geography.Country, geography.State, geography.County " +
-            "FROM collectionobjectcatalog INNER JOIN collectionobject ON collectionobjectcatalog.CollectionObjectCatalogID = collectionobject.CollectionObjectID " +
-            "INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
-            "INNER JOIN locality ON collectingevent.LocalityID = locality.LocalityID " +
-            "INNER JOIN geography ON locality.GeographyID = geography.GeographyID " +
-            "WHERE CatalogNumber = " + oldCatNum;
+        oldSQL = "SELECT g.GeographyID, g.ContinentOrOcean, g.Country, g.State, g.County " +
+                    "FROM collectionobjectcatalog cc INNER JOIN collectionobject co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +
+                    "INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
+                    "INNER JOIN locality l ON ce.LocalityID = l.LocalityID " +
+                    "INNER JOIN geography g ON l.GeographyID = g.GeographyID " +
+                    "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
         
         if (debug)
         {
@@ -602,7 +841,7 @@ public class ConvertVerifier
                 return false;
             }
             
-            String newGeoName = newDBRS.getString(1);
+            String newGeoName = newDBRS.getString(2);
             String[] names = new String[4];
             for (int i=0;i<names.length;i++)
             {
@@ -616,12 +855,31 @@ public class ConvertVerifier
                     return true;
                 }
             }
-            log.error("Couldn't find new Geo Name["+newGeoName+"]");
-            for (int i=names.length-1;i>=0;i--)
+            
+            if (!newGeoName.equals("Undefined"))
             {
-                log.error("  ["+names[i]+"]");
+                StringBuilder sb = new StringBuilder("Couldn't find New Geo Name[");
+                sb.append(newGeoName);
+                sb.append("] Old Id[");
+                sb.append(oldDBRS.getInt(1));
+                sb.append("] New Id[");
+                sb.append(newDBRS.getInt(1));
+                sb.append("]");
+                for (int i=names.length-1;i>=0;i--)
+                {
+                    sb.append(" ");
+                    sb.append(lbls[i]);
+                    sb.append("[");
+                    sb.append(names[i]);
+                    sb.append("]");
+                }
+                String oldNewIdStr = oldCatNum + " / "  + newCatNum+" ";
+                log.error(oldNewIdStr + " - " + sb.toString());
+                tblWriter.logErrors(oldNewIdStr, sb.toString());
+                
+                return false;
             }
-            return false;
+            return true;
             
         } finally
         {
@@ -658,7 +916,7 @@ public class ConvertVerifier
      * @param oldTableName
      * @return
      */
-    protected boolean verifyTableCounts(final String newTableName, final String oldTableName)
+    private boolean verifyTableCounts(final String newTableName, final String oldTableName)
     {
         int newCnt = BasicSQLUtils.getNumRecords(newDBConn, newTableName);
         int oldCnt = BasicSQLUtils.getNumRecords(oldDBConn, oldTableName);
@@ -671,18 +929,18 @@ public class ConvertVerifier
         return true;
     }
 
-    protected boolean verifyCOToLocality(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyCOToLocality(final int oldCatNum, final String newCatNum) throws SQLException
     {
-         newSQL = "SELECT locality.LocalityName " +
-                        "FROM collectionobject INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
-                        "INNER JOIN locality ON collectingevent.LocalityID = locality.LocalityID " +
+         newSQL = "SELECT l.LocalityID, l.LocalityName " +
+                        "FROM collectionobject co INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
+                        "INNER JOIN locality l ON ce.LocalityID = l.LocalityID " +
                         "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-         oldSQL = "SELECT locality.LocalityName  " +
-                        "FROM collectionobjectcatalog INNER JOIN collectionobject ON collectionobjectcatalog.CollectionObjectCatalogID = collectionobject.CollectionObjectID " +
-                        "INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
-                        "INNER JOIN locality ON collectingevent.LocalityID = locality.LocalityID " +
-                        "WHERE CatalogNumber = " + oldCatNum;
+         oldSQL = "SELECT l.LocalityID, l.LocalityName  " +
+                        "FROM collectionobjectcatalog cc INNER JOIN collectionobject co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +
+                        "INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
+                        "INNER JOIN locality l ON ce.LocalityID = l.LocalityID " +
+                        "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
          if (debug)
          {
 	         log.debug("New SQL: "+newSQL);
@@ -701,18 +959,18 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyCataloger(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyCataloger(final int oldCatNum, final String newCatNum) throws SQLException
     {
         //log.debug("New SQL: "+newSQL);
         //log.debug("Old SQL: "+oldSQL);
         
         // address.Address, 
-         newSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName " +
-                  "FROM collectionobject INNER JOIN agent ON collectionobject.CatalogerID = agent.AgentID " +
+         newSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName " +
+                  "FROM collectionobject co INNER JOIN agent a ON co.CatalogerID = a.AgentID " +
                   "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-         oldSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName, agent.Name  " +
-                  "FROM collectionobjectcatalog INNER JOIN agent ON collectionobjectcatalog.CatalogerID = agent.AgentID WHERE CatalogNumber = " + oldCatNum;
+         oldSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName, a.Name  " +
+                  "FROM collectionobjectcatalog cc INNER JOIN agent a ON cc.CatalogerID = a.AgentID WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
          if (debug)
          {
 	         log.debug("New SQL: "+newSQL);
@@ -723,23 +981,58 @@ public class ConvertVerifier
          return status == StatusType.COMPARE_OK;
     }
     
+    
     /**
      * @param oldCatNum
      * @param newCatNum
      * @return
      * @throws SQLException
      */
-    protected boolean verifyDeterminer(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyCollector(final int oldCatNum, final String newCatNum) throws SQLException
     {
-         newSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName " +
-                  "FROM collectionobject INNER JOIN determination ON collectionobject.CollectionObjectID = determination.CollectionObjectID " +
-                  "INNER JOIN agent ON determination.DeterminerID = agent.AgentID " +
+        //log.debug("New SQL: "+newSQL);
+        //log.debug("Old SQL: "+oldSQL);
+        
+         newSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName " +
+         		"FROM collectionobject AS co " +
+         		"INNER Join collectingevent AS ce ON co.CollectingEventID = ce.CollectingEventID " +
+         		"INNER Join collector AS c ON ce.CollectingEventID = c.CollectingEventID " +
+         		"INNER Join agent AS a ON c.AgentID = a.AgentID WHERE co.CatalogNumber =  '"+ newCatNum + "' ORDER BY OrderNumber, a.LastName";
+
+         oldSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName, a.Name " +
+         		"FROM collectionobjectcatalog AS cc " +
+         		"INNER Join collectionobject AS co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +
+         		"INNER Join collectingevent AS ce ON co.CollectingEventID = ce.CollectingEventID " +
+         		"INNER Join collectors AS c ON ce.CollectingEventID = c.CollectingEventID " +
+         		"INNER Join agent AS a ON c.AgentID = a.AgentID WHERE cc.CatalogNumber = " + oldCatNum+ " ORDER BY `Order`, a.LastName, a.Name";
+         if (debug)
+         {
+             log.debug("New SQL: "+newSQL);
+             log.debug("Old SQL: "+oldSQL);
+         }
+         StatusType status = compareRecords("Collector", oldCatNum, newCatNum, oldSQL, newSQL);
+         dumpStatus(status);
+         return status == StatusType.COMPARE_OK;
+    }
+
+    
+    /**
+     * @param oldCatNum
+     * @param newCatNum
+     * @return
+     * @throws SQLException
+     */
+    private boolean verifyDeterminer(final int oldCatNum, final String newCatNum) throws SQLException
+    {
+         newSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName " +
+                  "FROM collectionobject co INNER JOIN determination ON co.CollectionObjectID = determination.CollectionObjectID " +
+                  "INNER JOIN agent a ON determination.DeterminerID = a.AgentID " +
                   "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-         oldSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName, agent.Name  " +
-                  "FROM collectionobjectcatalog INNER JOIN collectionobject ON collectionobjectcatalog.CollectionObjectCatalogID = collectionobject.CollectionObjectID " +
-                  "INNER JOIN determination ON determination.BiologicalObjectID = collectionobject.CollectionObjectID " + 
-                  "INNER JOIN agent ON determination.DeterminerID = agent.AgentID WHERE CatalogNumber = " + oldCatNum;
+         oldSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName, a.Name  " +
+                  "FROM collectionobjectcatalog cc INNER JOIN collectionobject co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +
+                  "INNER JOIN determination ON determination.BiologicalObjectID = co.CollectionObjectID " + 
+                  "INNER JOIN agent a ON determination.DeterminerID = a.AgentID WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
         
          if (debug)
          {
@@ -758,17 +1051,17 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyPreparer(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyPreparer(final int oldCatNum, final String newCatNum) throws SQLException
     {
-         newSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName " +
-                  "FROM collectionobject INNER JOIN preparation ON collectionobject.CollectionObjectID = preparation.CollectionObjectID INNER JOIN agent ON preparation.PreparedByID = agent.AgentID " +
+         newSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName " +
+                  "FROM collectionobject co INNER JOIN preparation p ON co.CollectionObjectID = p.CollectionObjectID INNER JOIN agent a ON p.PreparedByID = a.AgentID " +
                   "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-         oldSQL = "SELECT agent.FirstName, agent.MiddleInitial, agent.LastName, agent.Name  " +
-                  "FROM collectionobjectcatalog INNER JOIN collectionobject ON collectionobjectcatalog.CollectionObjectCatalogID = collectionobject.DerivedFromID " +
-                  "INNER JOIN preparation ON collectionobject.CollectionObjectID = preparation.PhysicalObjectTypeID " +
-                  "INNER JOIN agent ON preparation.PreparedByID = agent.AgentID " +
-                  "WHERE CatalogNumber = " + oldCatNum;
+         oldSQL = "SELECT a.AgentID, a.FirstName, a.MiddleInitial, a.LastName, a.Name  " +
+                  "FROM collectionobjectcatalog cc INNER JOIN collectionobject co ON cc.CollectionObjectCatalogID = co.DerivedFromID " +
+                  "INNER JOIN preparation p ON co.CollectionObjectID = p.PhysicalObjectTypeID " +
+                  "INNER JOIN agent a ON p.PreparedByID = a.AgentID " +
+                  "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
         
          if (debug)
          {
@@ -784,15 +1077,45 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyAllLocalityToGeo() throws SQLException
+    private boolean verifyTaxonCitations(final int oldCatNum, final String newCatNum) throws SQLException
     {
-        newSQL = "SELECT locality.LocalityID, geography.GeographyID, geography.Name " +
-                 "FROM locality " +
-                 "INNER JOIN geography ON locality.GeographyID = geography.GeographyID ";
+        newSQL = "SELECT t.TaxonID, t.Name, tc.Text1, tc.Text2, tc.Number1, tc.Number2, tc.YesNo1, tc.YesNo2, rw.ReferenceWorkType, rw.Title, rw.Publisher, rw.PlaceOfPublication, rw.Volume, rw.Pages, rw.LibraryNumber " +
+                 "FROM collectionobject co INNER JOIN determination d ON co.CollectionObjectID = d.CollectionObjectID " +
+                 "INNER JOIN taxon t ON d.TaxonID = t.TaxonID " +
+                 "INNER JOIN taxoncitation tc ON t.TaxonID = tc.TaxonID " +
+                 "INNER JOIN referencework rw ON tc.ReferenceWorkID = rw.ReferenceWorkID " +
+                 "WHERE CatalogNumber = '"+ newCatNum + "'";
+        
+        oldSQL = "SELECT t.TaxonNameID, t.TaxonName, tc.Text1, tc.Text2, tc.Number1, tc.Number2, tc.YesNo1, tc.YesNo2, rw.ReferenceWorkType, rw.Title, rw.Publisher, rw.PlaceOfPublication, rw.Volume, rw.Pages, rw.LibraryNumber " +
+                    "FROM collectionobjectcatalog cc INNER JOIN determination d ON cc.CollectionObjectCatalogID = d.BiologicalObjectID " +
+                    "INNER JOIN taxonname t ON d.TaxonNameID = t.TaxonNameID " +
+                    "INNER JOIN taxoncitation tc ON t.TaxonNameID = tc.TaxonNameID " +
+                    "INNER JOIN referencework rw ON tc.ReferenceWorkID = rw.ReferenceWorkID " +
+                    "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
 
-        oldSQL = "SELECT locality.LocalityID, geography.GeographyID, geography.GeographyID, geography.ContinentOrOcean, geography.Country, geography.State, geography.County " +
-                 "FROM locality " +
-                 "INNER JOIN geography ON locality.GeographyID = geography.GeographyID ";
+        if (debug)
+        {
+            log.debug("New SQL: "+newSQL);
+            log.debug("Old SQL: "+oldSQL);
+        }
+        StatusType status = compareRecords("TaxonCitation", oldCatNum, newCatNum, oldSQL, newSQL);
+        dumpStatus(status);
+        return status == StatusType.COMPARE_OK;
+    }
+
+    /**
+     * @return
+     * @throws SQLException
+     */
+    private boolean verifyAllLocalityToGeo() throws SQLException
+    {
+        newSQL = "SELECT l.LocalityID, g.GeographyID, g.Name " +
+                 "FROM locality l " +
+                 "INNER JOIN geography g ON l.GeographyID = g.GeographyID ";
+
+        oldSQL = "SELECT l.LocalityID, g.GeographyID, g.GeographyID, g.ContinentOrOcean, g.Country, g.State, g.County " +
+                 "FROM locality l " +
+                 "INNER JOIN geography g ON l.GeographyID = g.GeographyID ";
     
         //System.out.println(newSQL);
         //System.out.println(oldSQL);
@@ -867,18 +1190,18 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyCollectingEvent(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyCollectingEvent(final int oldCatNum, final String newCatNum, final boolean nullsAreOK) throws SQLException
     {
-         newSQL = "SELECT collectingevent.StartDate, collectingevent.StartDatePrecision, collectingevent.StationFieldNumber " +
-                        "FROM collectionobject INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
+         newSQL = "SELECT ce.CollectingEventID, ce.StartDate, ce.StartDatePrecision, ce.StationFieldNumber " +
+                        "FROM collectionobject co INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
                         "WHERE CatalogNumber = '"+ newCatNum + "'";
 
-         oldSQL = "SELECT collectingevent.StartDate, collectingevent.StationFieldNumber  " +
-                        "FROM collectionobjectcatalog INNER JOIN collectionobject ON collectionobjectcatalog.CollectionObjectCatalogID = collectionobject.CollectionObjectID " +
-                        "INNER JOIN collectingevent ON collectionobject.CollectingEventID = collectingevent.CollectingEventID " +
-                        "WHERE CatalogNumber = " + oldCatNum;
+         oldSQL = "SELECT ce.CollectingEventID, ce.StartDate, ce.StationFieldNumber  " +
+                        "FROM collectionobjectcatalog cc INNER JOIN collectionobject co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +
+                        "INNER JOIN collectingevent ce ON co.CollectingEventID = ce.CollectingEventID " +
+                        "WHERE cc.SubNumber > -1 AND CatalogNumber = " + oldCatNum;
         
-         StatusType status = compareRecords("CE To Locality", oldCatNum, newCatNum, oldSQL, newSQL);
+         StatusType status = compareRecords("CE To  Locality", oldCatNum, newCatNum, oldSQL, newSQL);
          dumpStatus(status);
          return status == StatusType.COMPARE_OK;
     }
@@ -889,19 +1212,22 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyPreparation(final int oldCatNum, final String newCatNum) throws SQLException
+    private boolean verifyPreparation(final int oldCatNum, final String newCatNum) throws SQLException
     {
-         newSQL = "SELECT preparation.CountAmt, " +
-                    "preptype.Name, " +
-                    "preparation.Text1, " +
-                    "preparation.Text2 " +
-                    "FROM collectionobject INNER JOIN preparation ON collectionobject.CollectionObjectID = preparation.CollectionObjectID " +
-                    "INNER JOIN preptype ON preparation.PrepTypeID = preptype.PrepTypeID " +
-                    "WHERE CatalogNumber = '"+ newCatNum + "' ORDER BY PreparationID";
+         newSQL = "SELECT co.CollectionObjectID, p.CountAmt, preptype.Name, p.Text1, p.Text2 " +
+                  "FROM collectionobject co INNER JOIN preparation p ON co.CollectionObjectID = p.CollectionObjectID " +
+                  "INNER JOIN preptype ON p.PrepTypeID = preptype.PrepTypeID " +
+                  "WHERE CatalogNumber = '"+ newCatNum + "' ORDER BY preptype.Name, p.TimestampCreated";
 
-         oldSQL = "SELECT co.Count, co.PreparationMethod, co.Text1, co.Text2 FROM collectionobject co " +
+         
+         oldSQL = "SELECT cc.CollectionObjectCatalogID, co.Count, co.PreparationMethod, co.Text1, co.Text2 FROM collectionobject co " +
                   "INNER JOIN collectionobjectcatalog cc ON co.DerivedFromID = cc.CollectionObjectCatalogID " + 
-                  "WHERE co.CollectionObjectTypeID > 20 AND CatalogNumber = " + oldCatNum + " ORDER BY co.CollectionObjectID";
+                  "WHERE cc.SubNumber > -1 AND co.CollectionObjectTypeID > 20 AND CatalogNumber = " + oldCatNum + "  ORDER BY co.PreparationMethod, co.TimestampCreated";
+         
+         
+         /*oldSQL = "SELECT co.Count, co.PreparationMethod, co.Text1, co.Text2 FROM collectionobject co WHERE CollectionObjectID IN " +
+                  "(SELECT CollectionObjectCatalogID AS COCID FROM collectionobjectcatalog WHERE CollectionObjectTypeID > 20 AND CatalogNumber = " + oldCatNum + ")";
+                  */
         
          StatusType status = compareRecords("Preparation", oldCatNum, newCatNum, oldSQL, newSQL);
          dumpStatus(status);
@@ -914,15 +1240,15 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyAccessions(final String oldAccNum, final String newAccNum) throws SQLException
+    private boolean verifyAccessions(final String oldAccNum, final String newAccNum) throws SQLException
     {
-         newSQL = "SELECT AccessionNumber, Status, Type, VerbatimDate, DateAccessioned, DateReceived, Number1, Number2, YesNo1, YesNo2 FROM accession  " +
-                  "WHERE AccessionNumber = '"+ newAccNum + "'";
+         newSQL = "SELECT AccessionID, AccessionNumber, Status, Type, VerbatimDate, DateAccessioned, DateReceived, Number1, Number2, YesNo1, YesNo2 FROM accession  " +
+                  "WHERE AccessionNumber = \"" + newAccNum + "\"";
 
-         oldSQL = "SELECT Number, Status, Type, VerbatimDate, DateAccessioned, DateReceived, Number1, Number2, YesNo1, YesNo2 FROM accession " +
-                  "WHERE Number = '" + oldAccNum + "'";
+         oldSQL = "SELECT AccessionID, Number, Status, Type, VerbatimDate, DateAccessioned, DateReceived, Number1, Number2, YesNo1, YesNo2 FROM accession " +
+                  "WHERE Number = \"" + oldAccNum + "\"";
         
-         StatusType status = compareRecords("Accession", oldAccNum, newAccNum, oldSQL, newSQL);
+         StatusType status = compareRecords("Accession", oldAccNum, newAccNum, oldSQL, newSQL, false);
          dumpStatus(status);
          return status == StatusType.COMPARE_OK;
     }
@@ -933,20 +1259,20 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected boolean verifyAccessionAgents(final String oldAccNum, final String newAccNum) throws SQLException
+    private boolean verifyAccessionAgents(final String oldAccNum, final String newAccNum) throws SQLException
     {
-        newSQL = "SELECT accessionagent.Role, agent.FirstName, agent.MiddleInitial, agent.LastName " +
-                 "FROM accession INNER JOIN accessionagent ON accession.AccessionID = accessionagent.AccessionID "+
-                 "INNER JOIN agent ON accessionagent.AgentID = agent.AgentID  " +
-                 "WHERE AccessionNumber = '" + newAccNum + "' ORDER BY agent.LastName";
+        newSQL = "SELECT ac.AccessionID, aa.Role, a.FirstName, a.MiddleInitial, a.LastName " +
+        "FROM accession ac INNER JOIN accessionagent aa ON ac.AccessionID = aa.AccessionID "+
+        "INNER JOIN agent a ON aa.AgentID = a.AgentID  " +
+        "WHERE ac.AccessionNumber = '" + newAccNum + "' ORDER BY aa.Role, aa.TimestampCreated,  a.LastName";
 
-        oldSQL = "SELECT accessionagents.Role, agent.FirstName, agent.MiddleInitial, agent.LastName, agent.Name " +
-                 "FROM accession INNER JOIN accessionagents ON accession.AccessionID = accessionagents.AccessionID " +
-                 "INNER JOIN agentaddress ON accessionagents.AgentAddressID = agentaddress.AgentAddressID " +
-                 "INNER JOIN agent ON agentaddress.AgentID = agent.AgentID " +
-                 "WHERE Number = '" + oldAccNum + "' ORDER BY agent.LastName";
+        oldSQL = "SELECT ac.AccessionID, aa.Role, a.FirstName, a.MiddleInitial, a.LastName, a.Name " +
+        "FROM accession ac INNER JOIN accessionagents aa ON ac.AccessionID = aa.AccessionID " +
+        "INNER JOIN agentaddress ON aa.AgentAddressID = agentaddress.AgentAddressID " +
+        "INNER JOIN agent a ON agentaddress.AgentID = a.AgentID " +
+        "WHERE ac.Number = '" + oldAccNum + "' ORDER BY aa.Role, aa.TimestampCreated, a.Name, a.LastName";
 
-        StatusType status = compareRecords("Accession", oldAccNum, newAccNum, oldSQL, newSQL);
+        StatusType status = compareRecords("Accession", oldAccNum, newAccNum, oldSQL, newSQL, false);
         dumpStatus(status);
         return status == StatusType.COMPARE_OK;
     }
@@ -958,16 +1284,23 @@ public class ConvertVerifier
      * @param newSQL
      * @throws SQLException
      */
-    protected void getResultSets(final String oldSQLArg, final String newSQLArg)  throws SQLException
+    private void getResultSets(final String oldSQLArg, final String newSQLArg)  throws SQLException
     {
-        newDBRS   = newDBStmt.executeQuery(newSQLArg);  
-        oldDBRS   = oldDBStmt.executeQuery(oldSQLArg);  
+        try
+        {
+            newDBRS   = newDBStmt.executeQuery(newSQLArg);  
+            oldDBRS   = oldDBStmt.executeQuery(compareTo6DBs ? newSQLArg : oldSQLArg);
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
     }
     
     /**
      * @throws SQLException
      */
-    protected void doneWithRS() throws SQLException
+    private void doneWithRS() throws SQLException
     {
         newDBRS.close();
         oldDBRS.close();
@@ -977,7 +1310,7 @@ public class ConvertVerifier
      * @param oldCatNum
      * @return
      */
-    protected String convertCatNum(final int oldCatNum)
+    public static String convertCatNum(final int oldCatNum)
     {
         int size = 9;
         
@@ -991,40 +1324,33 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected StatusType compareRecords(final String desc, 
+    private StatusType compareRecords(final String desc, 
                                         final int    oldCatNum, 
                                         final String newCatNum, 
                                         final String oldSQLArg, 
                                         final String newSQLArg) throws SQLException
     {
-        return compareRecords(desc, Integer.toString(oldCatNum), newCatNum, oldSQLArg, newSQLArg);
+        return compareRecords(desc, Integer.toString(oldCatNum), newCatNum, oldSQLArg, newSQLArg, false);
     }
     
     /**
-     * @param msg
+     * @param desc
+     * @param sql
      */
-    protected void printRowError(final String msg)
+    private void dump(final String desc, final Connection conn, final String sql)
     {
-        out.println("<!-- 1s --> <tr><td>&nbsp;</td><td>"+msg+"</td></tr> <!-- 1e -->");
-        numErrors++;
-    }
-    
-    /**
-     * @param msg
-     */
-    protected void printRowError(final String tbl, final String msg)
-    {
-        out.println("<!-- 2s --><tr><td>" + (tbl != null ? tbl : "&nbsp;") + "</td><td>"+msg+"</td></tr> <!-- 2e -->");
-        numErrors++;
-    }
-    
-    /**
-     * 
-     */
-    protected void printTotal()
-    {
-        out.println("<tr><td>Total Errors</td><td>"+numErrors+"</td></tr> <!-- 3 -->");
-        numErrors = 0;
+        System.out.println("----- "+desc + "-----");
+        System.out.println(sql);
+        for (Object[] rows : BasicSQLUtils.query(conn, sql))
+        {
+            for (Object obj : rows)
+            {
+                System.out.print(obj);
+                System.out.print(", ");
+            }
+            System.out.println();
+        }
+        System.out.println("------------------------------------------");
     }
     
     /**
@@ -1033,20 +1359,34 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected StatusType compareRecords(final String desc, 
-                                        final String oldCatNum, 
-                                        final String newCatNum, 
-                                        final String oldSQLArg, 
-                                        final String newSQLArg) throws SQLException
+    private StatusType compareRecords(final String desc, 
+                                      final String oldCatNumArg, 
+                                      final String newCatNumArg, 
+                                      final String oldSQLArg, 
+                                      final String newSQLArg,
+                                      final boolean nullsAreOK) throws SQLException
     {
         boolean dbg = false;
-        
-        getResultSets(oldSQLArg, newSQLArg);
         if (dbg)
         {
             System.out.println(oldSQLArg);
             System.out.println(newSQLArg);
         }
+        if (dbg)
+        {
+            System.out.println("\n"+desc);
+            dump(desc, oldDBConn, compareTo6DBs ? newSQLArg : oldSQLArg);
+            dump(desc, newDBConn, newSQLArg);
+        } 
+        
+        String oldCatNum = oldCatNumArg;
+        String newCatNum = newCatNumArg;
+        if (compareTo6DBs)
+        {
+            oldCatNum = newCatNumArg;
+        }
+
+        getResultSets(oldSQLArg, newSQLArg);
         
         try
         {
@@ -1060,18 +1400,24 @@ public class ConvertVerifier
             
             if (!hasOldRec)
             {
-                log.error(desc+ " - No Old Record for ["+oldCatNum+"]");
-                printRowError(desc, "No Old Record for ["+oldCatNum+"]");
-                return StatusType.NO_OLD_REC;
+                if (nullsAreOK)
+                {
+                    log.error(desc+ " - No Old Record for ["+oldCatNum+"]");
+                    tblWriter.logErrors(oldCatNum, "No Old Record");
+                    return StatusType.NO_OLD_REC;
+                }
+                return StatusType.COMPARE_OK;
             }
             if (!hasNewRec)
             {
                 log.error(desc+ " - No New Record for ["+newCatNum+"]");
-                printRowError(desc, "No New Record for ["+newCatNum+"]");
+                tblWriter.logErrors(newCatNum, "No New Record");
                 return StatusType.NO_NEW_REC;
             }
             
-            boolean checkForAgent = newSQL.indexOf("agent.LastName") > -1;
+            String oldNewIdStr = oldCatNum + " / "+newCatNum;
+            
+            boolean checkForAgent = newSQL.indexOf("a.LastName") > -1;
             
             ResultSetMetaData oldRsmd = oldDBRS.getMetaData();
             ResultSetMetaData newRsmd = newDBRS.getMetaData();
@@ -1086,6 +1432,7 @@ public class ConvertVerifier
                 
                 int oldColInx = 0;
                 int newColInx = 0;
+                String idMsgStr = "";
                 
                 int numCols = newRsmd.getColumnCount();
                 
@@ -1096,7 +1443,7 @@ public class ConvertVerifier
 
                     if (dbg)
                     {
-                        System.out.println("col       "+col+" / "+oldRsmd.getColumnCount());
+                        System.out.println("\ncol       "+col+" / "+oldRsmd.getColumnCount());
                         System.out.println("newColInx "+newColInx);
                         System.out.println("oldColInx "+oldColInx);
                         System.out.println(oldRsmd.getColumnName(oldColInx));
@@ -1114,19 +1461,27 @@ public class ConvertVerifier
                         {
                             newColInx++;
                             numCols--;
+                            if (compareTo6DBs) oldColInx++;
                         }
                         continue;
                     }
                     
-                    String oldColName = oldRsmd.getColumnName(oldColInx);
-                    if (oldColName.equals("PreparationMethod"))
+                    if (col == 0)
                     {
-                        if ((oldObj == null && newObj != null && !newObj.equals("Misc")) || 
-                            (oldObj != null && newObj != null && !newObj.equals(oldObj)))
+                        idMsgStr = String.format(" - Rec Ids[%s / %s] ", (oldObj != null ? oldObj : -1), (newObj != null ? newObj : -1));
+                        continue;
+                    }
+                    
+                    String oldColName = oldRsmd.getColumnName(oldColInx);
+                    if (oldColName.equals("PreparationMethod") && newObj != null)
+                    {
+                        String newObjStr = newObj.toString();
+                        if ((oldObj == null && !newObjStr.equalsIgnoreCase("Misc")) || 
+                            (oldObj != null && !newObjStr.equalsIgnoreCase(oldObj.toString())))
                         {
-                            String msg = "Old Value was null and shouldn't have been for Old CatNum ["+oldCatNum+"] Field ["+oldColName+"] oldObj["+oldObj+"] newObj ["+newObj+"]";
-                            log.error(desc+ " - "+msg);
-                            printRowError(desc, msg);
+                            String msg = idMsgStr + "Old Value was null and shouldn't have been for Old CatNum ["+oldCatNum+"] Field ["+oldColName+"] oldObj["+oldObj+"] newObj ["+newObj+"]";
+                            log.error(desc + " - " + msg);
+                            tblWriter.logErrors(oldCatNum, msg);
                             return StatusType.OLD_VAL_NULL;
                         }
                         continue;
@@ -1136,9 +1491,9 @@ public class ConvertVerifier
                     {
                         if (!oldColName.equals("PreparationMethod") || !newObj.equals("Misc"))
                         {
-                            String msg = "Old Value was null and shouldn't have been for Old CatNum ["+oldCatNum+"] Field ["+oldColName+"]";
+                            String msg = idMsgStr + "Old Value was null and shouldn't have been for Old CatNum ["+oldCatNum+"] Field ["+oldColName+"]";
                             log.error(desc+ " - "+msg);
-                            printRowError(desc, msg);
+                            tblWriter.logErrors(oldCatNum, msg);
                             return StatusType.OLD_VAL_NULL;
                         }
                     }
@@ -1148,102 +1503,153 @@ public class ConvertVerifier
                         String clsName = newRsmd.getColumnClassName(newColInx);
                         String colName = newRsmd.getColumnName(newColInx);
 
-                        if (!clsName.equals("java.sql.Date") || (!(oldObj instanceof String) && ((Number)oldObj).intValue() != 0))
+                        if (compareTo6DBs)
                         {
-                            String msg = "New Value was null and shouldn't have been for Key Value CatNo["+newCatNum+"] Field ["+colName+"] ["+oldObj+"]";
-                            log.error(desc+ " - "+msg);
-                            printRowError(desc, msg);
-                            return StatusType.NEW_VAL_NULL;
+                            if (!clsName.equals("java.sql.Date") || oldObj != null)
+                            {
+                                String msg = "New Value was null and shouldn't have been for Key Value New CatNo["+newCatNum+"] Field ["+colName+"] ["+oldObj+"]";
+                                log.error(desc+ " - "+msg);
+                                tblWriter.logErrors(newCatNum, msg);
+                                return StatusType.NEW_VAL_NULL;
+                            }
+                            
+                        } else
+                        {
+                            if (!clsName.equals("java.sql.Date") || (!(oldObj instanceof String) && ((Number)oldObj).intValue() != 0))
+                            {
+                                String msg = "New Value was null and shouldn't have been for Key Value New CatNo["+newCatNum+"] Field ["+colName+"] ["+oldObj+"]";
+                                log.error(desc+ " - "+msg);
+                                tblWriter.logErrors(newCatNum, msg);
+                                dbg = true;
+                                return StatusType.NEW_VAL_NULL;
+                            }
                         }
                         
                         if (StringUtils.contains(colName, "Date") && StringUtils.contains(newRsmd.getColumnName(newColInx+1), "DatePrecision"))
                         {
                             newColInx++;
                             numCols--;
+                            if (compareTo6DBs) oldColInx++;
                         }
                         continue;
                     }
                     
+                    //String colName = newRsmd.getColumnName(col);
                     //System.out.println(newObj.getClass().getName()+"  "+oldObj.getClass().getName());
                     
                     if (newObj instanceof java.sql.Date)
                     {
-                        boolean isPartialDate = false;
-                        Byte partialDateType = null;
+                        boolean isPartialDate   = false;
+                        Byte    partialDateType = null;
                         if (StringUtils.contains(newRsmd.getColumnName(newColInx+1), "DatePrecision"))
                         {
                             newColInx++;
                             numCols--;
-                            partialDateType =  newDBRS.getByte(newColInx);
+                            partialDateType = newDBRS.getByte(newColInx);
                             isPartialDate   = true;
                         }
                         
-                        int oldIntDate = oldDBRS.getInt(oldColInx);
-                        if (oldIntDate == 0)
+                        if (compareTo6DBs)
                         {
-                            continue;
-                        }
-                        
-                        BasicSQLUtils.getPartialDate(oldIntDate, datePair, false);
-                        
-                        if (partialDateType != null)
-                        {
-                            if (Byte.parseByte(datePair.second) != partialDateType.byteValue())
+                            Object dateObj = oldDBRS.getObject(oldColInx);
+                            
+                            boolean isPartialDate2   = false;
+                            Byte    partialDateType2 = null;
+                            if (StringUtils.contains(oldRsmd.getColumnName(oldColInx+1), "DatePrecision"))
                             {
-                                errSB.append("Partial Dates Type do not match. Old["+datePair.second+"]  New ["+partialDateType.byteValue()+"]");
-                                // error partial dates don't match
+                                oldColInx++;
+                                partialDateType2 =  newDBRS.getByte(oldColInx);
+                                isPartialDate2   = true;
+                                
+                            } else
+                            {
+                                log.error("Next isn't DatePrecision and can't be!");
+                                tblWriter.logErrors(oldNewIdStr, errSB.toString());
                             }
-                        } 
-                        
-                        cal.setTime((Date)newObj);
-                        
-                        int year = Integer.parseInt(datePair.first.substring(0, 4));
-                        int mon  = Integer.parseInt(datePair.first.substring(5, 7));
-                        int day  = Integer.parseInt(datePair.first.substring(8, 10));
-                        
-                        if (mon > 0) mon--;
-                        
-                        boolean isYearOK = true;
-                        
-                        int yr = cal.get(Calendar.YEAR);
-                        if (year != yr)
+                            
+                            if (!newObj.equals(dateObj) || (isPartialDate2 && !partialDateType2.equals(partialDateType)))
+                            {
+                                errSB.insert(0, oldColName+"  ");
+                                errSB.append("[");
+                                errSB.append(datePair);
+                                errSB.append("][");
+                                errSB.append(dateFormatter.format((Date)newObj));
+                                errSB.append("] oldDate[");
+                                errSB.append(dateFormatter.format((Date)dateObj));
+                                errSB.append("]");
+                                log.error(errSB.toString());
+                                tblWriter.logErrors(oldNewIdStr, errSB.toString());
+                                return StatusType.BAD_DATE;
+                            }
+                            
+                        } else
                         {
-                            errSB.append("Year mismatch Old["+year+"]  New ["+yr+"] ");
-                            isYearOK = false;
-                        }
-                        
-                        if (mon != cal.get(Calendar.MONTH))
-                        {
-                            errSB.append("Month mismatch Old["+mon+"]  New ["+cal.get(Calendar.MONTH)+"] ");
-                        }
-                        
-                        if (day != cal.get(Calendar.DAY_OF_MONTH))
-                        {
-                            errSB.append("Day mismatch Old["+day+"]  New ["+cal.get(Calendar.DAY_OF_MONTH)+"] ");
-                        }
-                        
-                        if (errSB.length() > 0 && (!isYearOK || !isPartialDate))
-                        {
-                            errSB.insert(0, oldColName+"  ");
-                            errSB.append("[");
-                            errSB.append(datePair);
-                            errSB.append("][");
-                            errSB.append(dateFormatter.format((Date)newObj));
-                            errSB.append("]");
-                            log.error(errSB.toString());
-                            printRowError(oldCatNum + " / "+newCatNum, errSB.toString());
-                            return StatusType.BAD_DATE;
-                        }
-                        
+                            int oldIntDate = oldDBRS.getInt(oldColInx);
+                            if (oldIntDate == 0)
+                            {
+                                continue;
+                            }
+                            
+                            BasicSQLUtils.getPartialDate(oldIntDate, datePair, false);
+                            
+                            if (partialDateType != null)
+                            {
+                                if (Byte.parseByte(datePair.second) != partialDateType.byteValue())
+                                {
+                                    errSB.append("Partial Dates Type do not match. Old["+datePair.second+"]  New ["+partialDateType.byteValue()+"]");
+                                    // error partial dates don't match
+                                }
+                            } 
+                            
+                            cal.setTime((Date)newObj);
+                            
+                            int year = Integer.parseInt(datePair.first.substring(0, 4));
+                            int mon  = Integer.parseInt(datePair.first.substring(5, 7));
+                            int day  = Integer.parseInt(datePair.first.substring(8, 10));
+                            
+                            if (mon > 0) mon--;
+                            
+                            boolean isYearOK = true;
+                            
+                            int yr = cal.get(Calendar.YEAR);
+                            if (year != yr)
+                            {
+                                errSB.append("Year mismatch Old["+year+"]  New ["+yr+"] ");
+                                isYearOK = false;
+                            }
+                            
+                            if (mon != cal.get(Calendar.MONTH))
+                            {
+                                errSB.append("Month mismatch Old["+mon+"]  New ["+cal.get(Calendar.MONTH)+"] ");
+                            }
+                            
+                            if (day != cal.get(Calendar.DAY_OF_MONTH))
+                            {
+                                errSB.append("Day mismatch Old["+day+"]  New ["+cal.get(Calendar.DAY_OF_MONTH)+"] ");
+                            }
+                            
+                            if (errSB.length() > 0 && (!isYearOK || !isPartialDate))
+                            {
+                                errSB.insert(0, oldColName+"  ");
+                                errSB.append("[");
+                                errSB.append(datePair);
+                                errSB.append("][");
+                                errSB.append(dateFormatter.format((Date)newObj));
+                                errSB.append("]");
+                                log.error(errSB.toString());
+                                tblWriter.logErrors(oldNewIdStr, errSB.toString());
+                                return StatusType.BAD_DATE;
+                            }
+                        }                        
                     } else if (newObj instanceof Float || newObj instanceof Double)
                     {
                         String s1 = String.format("%10.5f", newObj instanceof Float ? (Float)newObj : (Double)newObj);
                         String s2 = String.format("%10.5f", oldObj instanceof Float ? (Float)oldObj : (Double)oldObj);
                         if (!s1.equals(s2))
                         {
-                            String msg = "Columns don't compare["+s1+"]["+s2+"]  ["+newRsmd.getColumnName(col)+"]["+oldRsmd.getColumnName(oldColInx)+"]";
+                            String msg = idMsgStr + "Columns don't compare["+s1+"]["+s2+"]  ["+newRsmd.getColumnName(col)+"]["+oldRsmd.getColumnName(oldColInx)+"]";
                             log.error(desc+ " - "+msg);
-                            printRowError(desc, msg);
+                            tblWriter.logErrors(oldNewIdStr, msg);
                             return StatusType.NO_COMPARE;
                         }
                         
@@ -1253,21 +1659,35 @@ public class ConvertVerifier
                         if (checkForAgent && StringUtils.contains(newColName, "LastName"))
                         {
                             String lastName    = oldDBRS.getString(oldColInx);
-                            String agentName   = oldDBRS.getString(oldColInx+1); // The 'Name' Column
+                            String agentName   = compareTo6DBs ? "" : oldDBRS.getString(oldColInx+1); // The 'Name' Column
                             String newLastName = newDBRS.getString(newColInx);
-                            if (!newLastName.equals(lastName) &&!newLastName.equals(agentName))
+                            if (!newLastName.equals(lastName) && (compareTo6DBs || !newLastName.equals(agentName)))
                             {
-                                String msg = "Columns don't compare["+newObj+"]["+oldObj+"]  ["+newColName+"]["+oldColName+"]";
+                                String msg = idMsgStr + "Columns don't compare["+newObj+"]["+oldObj+"]  ["+newColName+"]["+oldColName+"]";
                                 log.error(desc+ " - "+msg);
-                                printRowError(desc, msg);
+                                tblWriter.logErrors(oldNewIdStr, msg);
+                                log.error(oldSQLArg+"\n"+newSQLArg);
+                                return StatusType.NO_COMPARE;
+                            }
+                            
+                        } else if (StringUtils.contains(newColName, "YesNo"))
+                        {
+                            boolean yesNoNew = newDBRS.getBoolean(newColInx);
+                            boolean yesNoOld = oldDBRS.getInt(oldColInx) != 0;
+                            
+                            if (yesNoNew != yesNoOld)
+                            {
+                                String msg = idMsgStr + "Columns don't Cat Num["+oldCatNum+"] compare["+yesNoNew+"]["+yesNoOld+"]  ["+newColName+"]["+oldColName+"]";
+                                log.error(desc+ " - "+msg);
+                                tblWriter.logErrors(oldNewIdStr, msg);
                                 return StatusType.NO_COMPARE;
                             }
                             
                         } else if (!newObj.equals(oldObj))
                         {
-                            String msg = "Columns don't Cat Num["+oldCatNum+"] compare["+newObj+"]["+oldObj+"]  ["+newColName+"]["+oldColName+"]";
+                            String msg = idMsgStr + "Columns don't Cat Num["+oldCatNum+"] compare["+newObj+"]["+oldObj+"]  ["+newColName+"]["+oldColName+"]";
                             log.error(desc+ " - "+msg);
-                            printRowError(desc, msg);
+                            tblWriter.logErrors(oldNewIdStr, msg);
                             return StatusType.NO_COMPARE;
 
                             /*boolean isOK = false;
@@ -1305,14 +1725,14 @@ public class ConvertVerifier
                 
                 if (!hasOldRec)
                 {
-                    log.error(desc+ " - No Old Record for ["+oldCatNum+"]");
-                    printRowError("No Old Record for ["+oldCatNum+"]");
+                    log.error(desc+ idMsgStr + " - No Old Record for ["+oldCatNum+"]");
+                    tblWriter.logErrors(oldNewIdStr, "No Old Record for ["+oldCatNum+"]");
                     return StatusType.NO_OLD_REC;
                 }
                 if (!hasNewRec)
                 {
-                    log.error(desc+ "No New Record for ["+newCatNum+"]");
-                    printRowError("No New Record for ["+newCatNum+"]");
+                    log.error(desc+ idMsgStr + " No New Record for ["+newCatNum+"]");
+                    tblWriter.logErrors(oldNewIdStr, "No New Record for ["+newCatNum+"]");
                     return StatusType.NO_NEW_REC;
                 }
             }
@@ -1324,18 +1744,328 @@ public class ConvertVerifier
         return StatusType.COMPARE_OK;
     }
     
-    protected void verifyCollectors()
+    /**
+     * @param oldNewIdStr
+     * @param newColInx
+     * @param oldColInx
+     * @return
+     * @throws SQLException
+     */
+    private StatusType compareDates(final String oldNewIdStr, final int newColInx, final int oldColInx) throws SQLException 
     {
-    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Pair<String, String> datePair = new Pair<String, String>();
+        
+        Object newObj = newDBRS.getObject(newColInx);
+        Object oldObj = oldDBRS.getObject(oldColInx);
+        
+        ResultSetMetaData newRsmd = newDBRS.getMetaData();
+        ResultSetMetaData oldRsmd = oldDBRS.getMetaData();
+        
+        String newColName = newRsmd.getColumnName(newColInx);
+        String oldColName = oldRsmd.getColumnName(oldColInx);
+        
+        if (newObj == null)
+        {
+            String clsName = newRsmd.getColumnClassName(newColInx);
+
+            if (compareTo6DBs)
+            {
+                if (!clsName.equals("java.sql.Date") || oldObj != null)
+                {
+                    String msg = "New Value was null and shouldn't have been for Key Value New  Field ["+newColName+"] ["+oldObj+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(newColName, msg);
+                    return StatusType.NEW_VAL_NULL;
+                }
+                
+            } else if (oldObj != null)
+            {
+                if (oldObj instanceof Number && ((Number)oldObj).intValue() == 0)
+                {
+                    return StatusType.COMPARE_OK;
+                    
+                } else if (!clsName.equals("java.sql.Date") || (!(oldObj instanceof String) && ((Number)oldObj).intValue() != 0))
+                {
+                    String msg = "New Value was null and shouldn't have been for Key Value New Field ["+newColName+"] ["+oldObj+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(newColName, msg);
+                    return StatusType.NEW_VAL_NULL;
+                }
+            } else
+            {
+                return StatusType.COMPARE_OK;
+            }
+        }
+        
+        StringBuilder errSB = new StringBuilder();
+        
+        //System.out.println(newObj.getClass().getName()+"  "+oldObj.getClass().getName());
+        
+        if (newObj instanceof java.sql.Date)
+        {
+            boolean isPartialDate   = false;
+            Byte    partialDateType = null;
+            if (StringUtils.contains(newRsmd.getColumnName(newColInx+1), "DatePrecision"))
+            {
+                partialDateType = newDBRS.getByte(newColInx);
+                isPartialDate   = true;
+            }
+            
+            if (compareTo6DBs)
+            {
+                Object dateObj = oldDBRS.getObject(oldColInx);
+                
+                boolean isPartialDate2   = false;
+                Byte    partialDateType2 = null;
+                if (StringUtils.contains(oldRsmd.getColumnName(oldColInx+1), "DatePrecision"))
+                {
+                    partialDateType2 =  newDBRS.getByte(oldColInx);
+                    isPartialDate2   = true;
+                    
+                } else
+                {
+                    log.error("Next isn't DatePrecision and can't be!");
+                    tblWriter.logErrors(oldNewIdStr, errSB.toString());
+                }
+                
+                if (!newObj.equals(dateObj) || (isPartialDate2 && !partialDateType2.equals(partialDateType)))
+                {
+                    errSB.insert(0, oldColName+"  ");
+                    errSB.append("[");
+                    errSB.append(datePair);
+                    errSB.append("][");
+                    errSB.append(dateFormatter.format((Date)newObj));
+                    errSB.append("] oldDate[");
+                    errSB.append(dateFormatter.format((Date)dateObj));
+                    errSB.append("]");
+                    log.error(errSB.toString());
+                    tblWriter.logErrors(oldNewIdStr, errSB.toString());
+                    return StatusType.BAD_DATE;
+                }
+                
+            } else
+            {
+                int oldIntDate = oldDBRS.getInt(oldColInx);
+                if (oldIntDate == 0)
+                {
+                    return StatusType.NO_OLD_REC;
+                }
+                
+                BasicSQLUtils.getPartialDate(oldIntDate, datePair, false);
+                
+                if (partialDateType != null)
+                {
+                    if (Byte.parseByte(datePair.second) != partialDateType.byteValue())
+                    {
+                        errSB.append("Partial Dates Type do not match. Old["+datePair.second+"]  New ["+partialDateType.byteValue()+"]");
+                        // error partial dates don't match
+                    }
+                } 
+                
+                Calendar cal = Calendar.getInstance();
+                cal.setTime((Date)newObj);
+                
+                int year = Integer.parseInt(datePair.first.substring(0, 4));
+                int mon  = Integer.parseInt(datePair.first.substring(5, 7));
+                int day  = Integer.parseInt(datePair.first.substring(8, 10));
+                
+                if (mon > 0) mon--;
+                
+                boolean isYearOK = true;
+                
+                int yr = cal.get(Calendar.YEAR);
+                if (year != yr)
+                {
+                    errSB.append("Year mismatch Old["+year+"]  New ["+yr+"] ");
+                    isYearOK = false;
+                }
+                
+                if (mon != cal.get(Calendar.MONTH))
+                {
+                    errSB.append("Month mismatch Old["+mon+"]  New ["+cal.get(Calendar.MONTH)+"] ");
+                }
+                
+                if (day != cal.get(Calendar.DAY_OF_MONTH))
+                {
+                    errSB.append("Day mismatch Old["+day+"]  New ["+cal.get(Calendar.DAY_OF_MONTH)+"] ");
+                }
+                
+                if (errSB.length() > 0 && (!isYearOK || !isPartialDate))
+                {
+                    errSB.insert(0, oldColName+"  ");
+                    errSB.append("[");
+                    errSB.append(datePair);
+                    errSB.append("][");
+                    errSB.append(dateFormatter.format((Date)newObj));
+                    errSB.append("]");
+                    log.error(errSB.toString());
+                    tblWriter.logErrors(oldNewIdStr, errSB.toString());
+                    return StatusType.BAD_DATE;
+                }
+            } 
+        }
+        
+        return StatusType.COMPARE_OK;
+    }
+    
+    /**
+     * @param oldNewIdStr
+     * @throws SQLException
+     */
+    private void compareNames(final String oldNewIdStr, final int startInxNewArg, final int startInxOldArg) throws SQLException 
+    {
+        String newFirstName = newDBRS.getString(startInxNewArg);
+        String newLastName  = newDBRS.getString(startInxNewArg+1);
+        
+        String oldFirstName = oldDBRS.getString(startInxOldArg);
+        String oldLastName  = oldDBRS.getString(startInxOldArg+1);
+        String oldName      = oldDBRS.getString(startInxOldArg+2);
+        
+        if (StringUtils.isNotEmpty(oldName) && StringUtils.isEmpty(oldLastName))
+        {
+            oldLastName = oldName;
+        }
+        
+        if (oldFirstName == null && oldLastName == null && oldName != null)
+        {
+            oldLastName = oldName;
+        }
+        
+        // First Name
+        if (oldFirstName == null && newFirstName != null)
+        {
+            String msg = "Old FirstName["+oldFirstName+"] is NULL   New FirstName["+newFirstName+"] is not";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+            
+        } else if (oldFirstName != null && newFirstName == null)
+        {
+            String msg = "Old FirstName["+oldFirstName+"] is not null   New FirstName["+newFirstName+"] is NULL";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+        
+        if (oldFirstName != null && newFirstName != null && !oldFirstName.equals(newFirstName))
+        {
+            String msg = "Old FirstName["+oldFirstName+"] is NOT equals   New FirstName["+newFirstName+"]";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+        
+        // Last Name and old Name
+        if (oldLastName == null && newLastName != null)
+        {
+            String msg = "Old LastName["+oldLastName+"] is NULL   New LastName["+newLastName+"] is not";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+
+        } else if (oldLastName != null && newLastName == null)
+        {
+            String msg = "Old LastName["+oldLastName+"] is not null   New LastName["+newLastName+"] is NULL";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+
+        } else if (oldLastName != null && newLastName != null && !oldLastName.equals(newLastName))
+        {
+            String msg = "Old LastName["+oldLastName+"] is NOT equals   New LastName["+newLastName+"]";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+    }
+    
+    /**
+     * @param oldNewIdStr
+     * @throws SQLException
+     */
+    private void compareStrings(final String oldNewIdStr, final String colName, final int startInxNewArg, final int startInxOldArg) throws SQLException 
+    {
+        String newStr = newDBRS.getString(startInxNewArg);
+        String oldStr = oldDBRS.getString(startInxOldArg);
+        
+        if (oldStr == null && newStr == null) return;
+        
+        if (oldStr == null && newStr != null)
+        {
+            String msg = "Old "+colName+" ["+oldStr+"] is NULL   New "+colName+"["+newStr+"] is not";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+            
+        } else if (oldStr != null && newStr == null)
+        {
+            String msg = "Old "+colName+"["+oldStr+"] is not null   New "+colName+"["+newStr+"] is NULL";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+            
+        } else if (!oldStr.equals(newStr))
+        {
+            String msg = "Old "+colName+"["+oldStr+"] is not equal   New "+colName+"["+newStr+"]";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+    }
+
+    /**
+     * @param oldNewIdStr
+     * @throws SQLException
+     */
+    private void compareBoolean(final String oldNewIdStr, final String colName, final int startInxNewArg, final int startInxOldArg) throws SQLException 
+    {
+        boolean newBool = newDBRS.getBoolean(startInxNewArg);
+        boolean oldBool = oldDBRS.getBoolean(startInxOldArg);
+        
+        if (newBool != oldBool)
+        {
+            String msg = "Old "+colName+"["+oldBool+"] is not null   New "+colName+"["+newBool+"] is NULL";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+    }
+
+    /**
+     * @param oldNewIdStr
+     * @throws SQLException
+     */
+    private void compareNumber(final String oldNewIdStr, final String colName, final int startInxNewArg, final int startInxOldArg) throws SQLException 
+    {
+        Integer newInt = (Integer)newDBRS.getObject(startInxNewArg);
+        Integer oldInt = (Integer)oldDBRS.getObject(startInxOldArg);
+        
+        if (oldInt == null && newInt == null) return;
+        
+        if (oldInt == null && newInt != null)
+        {
+            String msg = "Old "+colName+" ["+oldInt+"] is NULL New "+colName+"["+newInt+"] is not";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+            
+        } else if (oldInt != null && newInt == null)
+        {
+            String msg = "Old "+colName+"["+oldInt+"] is not null New "+colName+"["+newInt+"] is NULL";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+            
+        } else if (!oldInt.equals(newInt))
+        {
+            String msg = "Old "+colName+"["+oldInt+"] is not equal New "+colName+"["+newInt+"]";
+            log.error(oldNewIdStr + " " + msg);
+            tblWriter.logErrors(oldNewIdStr, msg);
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void verifyCollectors()
+    {
     	boolean dbg = false;
     	
-         oldSQL = "SELECT collectingevent.CollectingEventID, collectingevent.StartDate, agent.FirstName,  agent.LastName, agent.Name, collectors.Order  " + 
-         "FROM collectingevent INNER JOIN collectors ON collectingevent.CollectingEventID = collectors.CollectingEventID " + 
-         "INNER JOIN agent ON collectors.AgentID = agent.AgentID ORDER BY collectingevent.CollectingEventID, collectors.Order";
+         oldSQL = "SELECT ce.CollectingEventID, a.FirstName,  a.LastName, a.Name, collectors.Order  " + 
+         "FROM collectingevent ce INNER JOIN collectors ON ce.CollectingEventID = collectors.CollectingEventID " + 
+         "INNER JOIN agent a ON collectors.AgentID = a.AgentID ORDER BY ce.CollectingEventID, collectors.Order";
     	
-    	 newSQL = "SELECT collectingevent.CollectingEventID, collectingevent.StartDate, agent.FirstName, agent.LastName, collector.OrderNumber   " + 
-    	 "FROM collectingevent INNER JOIN collector ON collectingevent.CollectingEventID = collector.CollectingEventID  " + 
-    	 "INNER JOIN agent ON collector.AgentID = agent.AgentID ORDER BY collectingevent.CollectingEventID, collector.OrderNumber";
+    	 newSQL = "SELECT ce.CollectingEventID, a.FirstName, a.LastName, collector.OrderNumber   " + 
+    	 "FROM collectingevent ce INNER JOIN collector ON ce.CollectingEventID = collector.CollectingEventID  " + 
+    	 "INNER JOIN agent a ON collector.AgentID = a.AgentID ORDER BY ce.CollectingEventID, collector.OrderNumber";
     	
     	int prevOldId = Integer.MAX_VALUE;
     	int prevNewId = Integer.MAX_VALUE;
@@ -1356,24 +2086,19 @@ public class ConvertVerifier
 	            boolean hasOldRec = oldDBRS.next();
 	            boolean hasNewRec = newDBRS.next();
 	            
-	            if (!hasOldRec && !hasNewRec)
+	            if (!hasOldRec || !hasNewRec)
 	            {
 	                break;
 	            }
 	            
 	            int    newId        = newDBRS.getInt(1);
-	            String newStartDate = newDBRS.getString(2);
-	            String newFirstName = newDBRS.getString(3);
-	            String newLastName  = newDBRS.getString(4);
-	            int    newOrder     = newDBRS.getInt(5);
+	            int    newOrder     = newDBRS.getInt(4);
 	            
 	            int    oldId        = oldDBRS.getInt(1);
-	            String oldStartDate = oldDBRS.getString(2);
-	            String oldFirstName = oldDBRS.getString(3);
-	            String oldLastName  = oldDBRS.getString(4);
-	            String oldName      = oldDBRS.getString(5);
-	            int    oldOrder     = oldDBRS.getInt(6);
-
+	            int    oldOrder     = oldDBRS.getInt(5);
+	            
+	            String oldNewIdStr = oldId + " / "+newId;
+	            
 	            if (newId == Integer.MAX_VALUE)
 	            {
 	            	prevNewId = newId;
@@ -1391,95 +2116,18 @@ public class ConvertVerifier
 	            {
 	            	String msg = "The is a mismatch in the number of Collectors for Old["+oldId+"]  New ["+newId+"] Old["+isOldNextCE+"]  New ["+isNewNextCE+"] ";
 	            	log.error(msg);
-                    printRowError(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
                     break;
 	            }
 	            
-	            if (oldFirstName == null && oldLastName == null && oldName != null)
-	            {
-	            	oldLastName = oldName;
-	            }
-	            
-            	Object dateObj = oldDBRS.getObject(2);
-            	if (dateObj != null && ((Integer)dateObj) == 0)
-            	{
-            		oldStartDate = null;
-            	}
-            	
-	            // Date
-	            if (oldStartDate == null && newStartDate != null)
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old Date["+oldStartDate+"] is NULL   New Date["+newStartDate+"] is not";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
-	            if (oldStartDate != null && newStartDate == null)
-	            {
-	            	String msg = "Old Date["+oldStartDate+"] is not null   New Date["+newStartDate+"] is NULL";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
-	            if (oldStartDate != null && newStartDate != null)
-	            {
-            		Date date = UIHelper.convertIntToDate(oldDBRS.getInt(2));
-            		
-            		oldStartDate = sdf.format(date);
-	            	if (!oldStartDate.equals(newStartDate))
-	            	{
-		            	String msg = "CE["+oldId + " / "  + newId+"]  Old Date["+oldStartDate+"] is NOT equals   New Date["+newStartDate+"]";
-		            	log.error(msg);
-	                    printRowError(msg);
-	            	}
-	            }
-	            
-	            // First Name
-	            if (oldFirstName == null && newFirstName != null)
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old FirstName["+oldFirstName+"] is NULL   New FirstName["+newFirstName+"] is not";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
-	            if (oldFirstName != null && newFirstName == null)
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old FirstName["+oldFirstName+"] is not null   New FirstName["+newFirstName+"] is NULL";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
-	            if (oldFirstName != null && newFirstName != null && !oldFirstName.equals(newFirstName))
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old FirstName["+oldFirstName+"] is NOT equals   New FirstName["+newFirstName+"]";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
-	            
-	            // Last Name and old Name
-	            if (oldLastName == null && newLastName != null)
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old LastName["+oldLastName+"] is NULL   New LastName["+newLastName+"] is not";
-	            	log.error(msg);
-                    printRowError(msg);
-
-	            }
-	            if (oldLastName != null && newLastName == null)
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old LastName["+oldLastName+"] is not null   New LastName["+newLastName+"] is NULL";
-	            	log.error(msg);
-                    printRowError(msg);
-
-	            }
-	            if (oldLastName != null && newLastName != null && !oldLastName.equals(newLastName))
-	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old LastName["+oldLastName+"] is NOT equals   New LastName["+newLastName+"]";
-	            	log.error(msg);
-                    printRowError(msg);
-	            }
+	            compareNames(oldNewIdStr, 2, 2);
 	            
 	            // Order
 	            if (oldOrder != newOrder)
 	            {
-	            	String msg = "CE["+oldId + " / "  + newId+"]  Old Order["+oldOrder+"] is not equal ["+newOrder+"]";
-	            	log.error(msg);
-                    printRowError(msg);
+	            	String msg = "Old Order["+oldOrder+"] is not equal ["+newOrder+"]";
+	            	log.error(oldNewIdStr + " " + msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
 	            }
 	        }
 	        
@@ -1495,35 +2143,40 @@ public class ConvertVerifier
     /**
      * 
      */
-    protected void verifyCEs()
+    private void verifyCEs()
     {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        
-        newSQL = "SELECT c.CollectingEventID, c.StartDate, c.StartTime, l.LocalityName, l.Latitude1, l.Longitude1, g.Name " + 
+        newSQL = "SELECT c.CollectingEventID, c.StartTime, l.LocalityName, l.Latitude1, l.Longitude1, g.Name " + 
                         "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID " + 
                         "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
 
 
-        oldSQL = "SELECT c.CollectingEventID, c.StartDate, c.StartTime, l.LocalityName, l.Latitude1, l.Longitude1, g.ContinentOrOcean, g.Country, g.State,  g.County, g.IslandGroup, g.Island, g.WaterBody, g.Drainage "+
+        oldSQL = "SELECT c.CollectingEventID, c.StartTime, l.LocalityName, l.Latitude1, l.Longitude1, g.ContinentOrOcean, g.Country, g.State,  g.County, g.IslandGroup, g.Island, g.WaterBody, g.Drainage "+
                         "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID "+
                         "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
         
         String newCntSQL = "SELECT count(*) " + 
-                        "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID " + 
-                        "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
+                           "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID " + 
+                           "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
 
 
         String oldCntSQL = "SELECT count(*) "+
-                        "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID "+
-                        "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
+                           "FROM collectingevent c LEFT JOIN locality l ON c.LocalityID = l.LocalityID "+
+                           "LEFT JOIN geography g ON l.GeographyID = g.GeographyID ORDER BY c.CollectingEventID";
 
+
+        log.info(newCntSQL);
+        log.info(oldCntSQL);
+        log.info(newSQL);
+        log.info(oldSQL);
 
         Integer oldCnt = BasicSQLUtils.getCount(oldCntSQL);
         Integer newCnt = BasicSQLUtils.getCount(newCntSQL);
         String msg2 = "Record Counts ["+oldCnt + " / "  + newCnt+"]";
         log.info(msg2);
-        printRowError(msg2);
-
+        
+        //tblWriter.logErrors("Record Counts", oldCnt + " / "  + newCnt);
+        tblWriter.flush();
+        
         try
         {
             getResultSets(oldSQL, newSQL);
@@ -1533,32 +2186,45 @@ public class ConvertVerifier
                 boolean hasOldRec = oldDBRS.next();
                 boolean hasNewRec = newDBRS.next();
                 
-                if (!hasOldRec && !hasNewRec)
+                if (!hasOldRec || !hasNewRec)
                 {
                     break;
                 }
                 
                 int col = 1;
-                int     newId           = newDBRS.getInt(col++);
-                String  newStartDate    = newDBRS.getString(col++);
-                Integer newStartTime    = newDBRS.getInt(col++);
-                String  newLocalityName = newDBRS.getString(col++);
-                Double  newLatitude     = newDBRS.getDouble(col++);
-                Double  newLongitude    = newDBRS.getDouble(col++);
-                String  newGeoName      = newDBRS.getString(col++);
+                int        newId           = newDBRS.getInt(col++);
+                Integer    newStartTime    = newDBRS.getInt(col++);
+                String     newLocalityName = newDBRS.getString(col++);
+                
+                Object     bigDecObj       = newDBRS.getObject(col); 
+                BigDecimal newLatitude     = bigDecObj == null ? null : newDBRS.getBigDecimal(col);
+                col++;
+                
+                bigDecObj = newDBRS.getObject(col);
+                BigDecimal newLongitude    = bigDecObj == null ? null : newDBRS.getBigDecimal(col);
+                col++;
+                
+                String     newGeoName      = newDBRS.getString(col++);
                 
                 col = 1;
                 int          oldId           = oldDBRS.getInt(col++);
-                String       oldStartDate    = oldDBRS.getString(col++);
                 Integer      oldStartTime    = oldDBRS.getInt(col++);
                 String       oldLocalityName = oldDBRS.getString(col++);
-                Double       oldLatitude     = oldDBRS.getDouble(col++);
-                Double       oldLongitude    = oldDBRS.getDouble(col++);
                 
-                if (newGeoName != null)
+                bigDecObj = newDBRS.getObject(col); 
+                Double       oldLatitude     = bigDecObj == null ? null : oldDBRS.getDouble(col);
+                col++;
+                
+                bigDecObj = newDBRS.getObject(col); 
+                Double       oldLongitude    = bigDecObj == null ? null : oldDBRS.getDouble(col);
+                col++;
+                
+                String oldNewIdStr = oldId + " / "+newId;
+                
+                if (newGeoName != null && !newGeoName.equals("Undefined"))
                 {
                     boolean fnd       = false;
-                    for (int i=7;i<15;i++)
+                    for (int i=6;i<14;i++)
                     {
                         //if (i == 7) System.out.println();
                         String name = oldDBRS.getString(i);
@@ -1572,66 +2238,52 @@ public class ConvertVerifier
                             }
                         }
                     }
+                    
                     if (!fnd)
                     {
-                        String msg = "CE["+oldId + " / "  + newId+"]  no match found for new Geo ["+newGeoName+"]";
+                        String msg = "No match found for new Geo ["+newGeoName+"] ["+oldId + " / "  + newId+"]";
                         log.error(msg);
-                        printRowError(msg);
-                    }
-                }
-                
-                Object dateObj = oldDBRS.getObject(2);
-                if (dateObj != null && ((Integer)dateObj) == 0)
-                {
-                    oldStartDate = null;
-                }
-                
-                // Date
-                if (oldStartDate == null && newStartDate != null)
-                {
-                    String msg = "CE["+oldId + " / "  + newId+"]  Old Date["+oldStartDate+"] is NULL   New Date["+newStartDate+"] is not";
-                    log.error(msg);
-                    printRowError(msg);
-                }
-                
-                if (oldStartDate != null && newStartDate == null)
-                {
-                    String msg = "Old Date["+oldStartDate+"] is not null   New Date["+newStartDate+"] is NULL";
-                    log.error(msg);
-                    printRowError(msg);
-                }
-                
-                if (oldStartDate != null && newStartDate != null)
-                {
-                    Date date = UIHelper.convertIntToDate(oldDBRS.getInt(2));
-                    
-                    oldStartDate = sdf.format(date);
-                    if (!oldStartDate.equals(newStartDate))
-                    {
-                        String msg = "CE["+oldId + " / "  + newId+"]  Old Date["+oldStartDate+"] is NOT equals   New Date["+newStartDate+"]";
-                        log.error(msg);
-                        printRowError(msg);
+                        tblWriter.logErrors(oldNewIdStr, msg);
                     }
                 }
 
+                // StartTime
+                if (oldStartTime == null && newStartTime != null)
+                {
+                    String msg = "LocName["+oldId + " / "  + newId+"]  Old StartTime["+oldStartTime+"] is NULL   New StartTime["+newStartTime+"] is not";
+                    log.error(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                    
+                } else if (oldStartTime != null && newStartTime == null)
+                {
+                    String msg = "LocName["+oldId + " / "  + newId+"]  Old StartTime["+oldStartTime+"] is not null   New StartTime["+newStartTime+"] is NULL";
+                    log.error(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                    
+                } else if (oldStartTime != null && newStartTime != null && !oldStartTime.equals(newStartTime))
+                {
+                    String msg = "LocName["+oldId + " / "  + newId+"]  Old StartTime["+oldStartTime+"] is NOT equals   New StartTime["+newStartTime+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                }
+
+                
                 // LocalityName
                 if (oldLocalityName == null && newLocalityName != null)
                 {
                     String msg = "LocName["+oldId + " / "  + newId+"]  Old LocalityName["+oldLocalityName+"] is NULL   New LocalityName["+newLocalityName+"] is not";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLocalityName != null && newLocalityName == null)
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLocalityName != null && newLocalityName == null)
                 {
                     String msg = "LocName["+oldId + " / "  + newId+"]  Old LocalityName["+oldLocalityName+"] is not null   New LocalityName["+newLocalityName+"] is NULL";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLocalityName != null && newLocalityName != null && !oldLocalityName.equals(newLocalityName))
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLocalityName != null && newLocalityName != null && !oldLocalityName.equals(newLocalityName))
                 {
                     String msg = "LocName["+oldId + " / "  + newId+"]  Old LocalityName["+oldLocalityName+"] is NOT equals   New LocalityName["+newLocalityName+"]";
                     log.error(msg);
-                    printRowError(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
                 }
                 
                 // Latitude
@@ -1639,39 +2291,35 @@ public class ConvertVerifier
                 {
                     String msg = "Latitude["+oldId + " / "  + newId+"]  Old Latitude["+oldLatitude+"] is NULL   New Latitude["+newLatitude+"] is not";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLatitude != null && newLatitude == null)
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLatitude != null && newLatitude == null)
                 {
                     String msg = "Latitude["+oldId + " / "  + newId+"]  Old Latitude["+oldLatitude+"] is not null   New Latitude["+newLatitude+"] is NULL";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLatitude != null && newLatitude != null && !oldLatitude.equals(newLatitude))
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLatitude != null && newLatitude != null && !oldLatitude.equals(newLatitude.doubleValue()))
                 {
                     String msg = "Latitude["+oldId + " / "  + newId+"]  Old Latitude["+oldLatitude+"] is NOT equals   New Latitude["+newLatitude+"]";
                     log.error(msg);
-                    printRowError(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
                 }
                 
-                // Latitude
+                // Longitude
                 if (oldLongitude == null && newLongitude != null)
                 {
                     String msg = "Longitude["+oldId + " / "  + newId+"]  Old Longitude["+oldLongitude+"] is NULL   New Longitude["+newLongitude+"] is not";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLongitude != null && newLongitude == null)
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLongitude != null && newLongitude == null)
                 {
                     String msg = "Longitude["+oldId + " / "  + newId+"]  Old Longitude["+oldLongitude+"] is not null   New Longitude["+newLongitude+"] is NULL";
                     log.error(msg);
-                    printRowError(msg);
-                }
-                if (oldLongitude != null && newLongitude != null && !oldLongitude.equals(newLongitude))
+                    tblWriter.logErrors(oldNewIdStr, msg);
+                } else if (oldLongitude != null && newLongitude != null && !oldLongitude.equals(newLongitude.doubleValue()))
                 {
                     String msg = "Longitude["+oldId + " / "  + newId+"]  Old Longitude["+oldLongitude+"] is NOT equals   New Longitude["+newLongitude+"]";
                     log.error(msg);
-                    printRowError(msg);
+                    tblWriter.logErrors(oldNewIdStr, msg);
                 }
             }
             
@@ -1684,11 +2332,439 @@ public class ConvertVerifier
         }
     }
     
+    private boolean compareStr(final String oldStr, final String newStr)
+    {
+        if (oldStr == null && newStr == null)
+        {
+            return true;
+        }
+        
+        if (oldStr == null || newStr == null)
+        {
+            return false;
+        }
+        
+        return oldStr.equals(newStr);
+    }
+    
+    /**
+     * 
+     */
+    private void verifyAgents()
+    {
+    
+        try
+        {
+            Statement stmt = oldDBConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rs   = stmt.executeQuery("SELECT OldID, NewID FROM agent_AgentID");
+            while (rs.next())
+            {
+                int oldId = rs.getInt(1);
+                int newId = rs.getInt(2);
+                
+                newSQL = "SELECT a.AgentType, a.LastName, a.MiddleInitial,a.FirstName, a.JobTitle, adr.Phone1,adr.Phone2,adr.Address,adr.City,adr.Country,adr.State,adr.PostalCode " +
+                         "FROM agent AS a Left Join address AS adr ON a.AgentID = adr.AgentID WHERE a.AgentID = " + newId;
+            
+                oldSQL = "SELECT a.AgentType, IF (a.LastName IS null OR LENGTH(a.LastName) = 0, a.Name, a.LastName), a.MiddleInitial,a.FirstName,aa.JobTitle,aa.Phone1,aa.Phone2,adr.Address,adr.City,adr.State,adr.Country,adr.State,adr.Postalcode FROM agent AS a " +
+                         "Left Join agentaddress AS aa ON a.AgentID = aa.AgentID " +
+                         "Left Join address AS adr ON aa.AddressID = adr.AddressID WHERE a.AgentID = " + oldId;
+            
+                //log.info(newSQL);
+                //log.info(oldSQL);
+                getResultSets(oldSQL, newSQL);
+                
+                while (true)
+                {
+                    boolean hasOldRec = oldDBRS.next();
+                    boolean hasNewRec = newDBRS.next();
+        
+                    if (!hasOldRec || !hasNewRec)
+                    {
+                        break;
+                    }
+                    
+                    for (int i=1;i<=newDBRS.getMetaData().getColumnCount();i++)
+                    {
+                        String newStr = newDBRS.getString(i);
+                        String oldStr = oldDBRS.getString(i);
+                        if (!compareStr(oldStr, newStr))
+                        {
+                            String fldName = newDBRS.getMetaData().getColumnName(i);
+                            String oldNewIdStr = oldId + " / "+newId;
+                            String msg  = " Fields "+fldName+" don't match. ["+oldStr+"]["+newStr+"]";
+                            tblWriter.logErrors(oldNewIdStr, msg);
+                            log.error(oldNewIdStr+msg);
+                        }
+                    }
+                }
+            }
+            rs.close();
+            stmt.close();
+            
+            oldDBRS.close();
+            newDBRS.close();
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace(); 
+        }
+
+    }
+    
+    /**
+     * 
+     */
+    private void verifyShipments()
+    {
+    
+        newSQL = "SELECT s.ShipmentNumber,s.ShipmentDate, s.ShipmentMethod, s.NumberOfPackages, s.Weight, s.InsuredForAmount, ato.FirstName, ato.LastName, aby.FirstName, aby.LastName " +
+                 "FROM shipment AS s " +
+                 "Inner Join agent AS ato ON s.ShippedToID = ato.AgentID " +
+                 "Inner Join agent AS aby ON s.ShippedByID = aby.AgentID " +
+                 "ORDER BY s.ShipmentNumber ASC";
+    
+        oldSQL = "SELECT s.ShipmentNumber,s.ShipmentDate, s.ShipmentMethod, s.NumberOfPackages, s.Weight, s.InsuredForAmount, ato.FirstName, ato.LastName, ato.Name, aby.FirstName, aby.LastName, aby.Name " +
+                 "FROM shipment AS s " +
+                 "Inner Join agent AS ato ON s.ShippedToID = ato.AgentID " +
+                 "Inner Join agent AS aby ON s.ShippedByID = aby.AgentID " +
+                 "ORDER BY s.ShipmentNumber ASC";
+    
+        log.info(newSQL);
+        log.info(oldSQL);
+        
+        int prevOldId = Integer.MAX_VALUE;
+        int prevNewId = Integer.MAX_VALUE;
+    
+        try
+        {
+            getResultSets(oldSQL, newSQL);
+            
+            
+            ResultSetMetaData rmd = newDBRS.getMetaData();
+            while (true)
+            {
+            
+                boolean hasOldRec = oldDBRS.next();
+                boolean hasNewRec = newDBRS.next();
+                
+                if (!hasOldRec && !hasNewRec)
+                {
+                    break;
+                }
+                
+                int    newId        = newDBRS.getInt(1);
+                System.out.println(newId);
+                int    oldId        = oldDBRS.getInt(1);
+                
+                String oldNewIdStr = oldId + " / "+newId;
+                
+                if (newId == Integer.MAX_VALUE)
+                {
+                    prevNewId = newId;
+                }
+                
+                if (oldId == Integer.MAX_VALUE)
+                {
+                    prevOldId = oldId;
+                }
+                
+                compareStrings(oldNewIdStr, rmd.getColumnName(1), 1, 1);
+                compareStrings(oldNewIdStr, rmd.getColumnName(2), 2, 2);
+                compareDates(oldNewIdStr, 3, 3);
+                compareStrings(oldNewIdStr, rmd.getColumnName(4), 4, 4);
+                compareStrings(oldNewIdStr, rmd.getColumnName(5), 5, 5);
+                compareStrings(oldNewIdStr, rmd.getColumnName(6), 6, 6);
+                
+                compareNames(oldNewIdStr, 7,7);
+                compareNames(oldNewIdStr, 9, 10);
+                               
+            }
+            
+            oldDBRS.close();
+            newDBRS.close();
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace(); 
+        }
+
+    }
+    
+    /**
+     * 
+     */
+    private void verifyLoans()
+    {
+        
+        newSQL = "SELECT l.LoanNumber, l.LoanDate, l.IsClosed, l.CurrentDueDate, l.OriginalDueDate, l.DateClosed, l.Text1, l.Text2, l.Number1, l.Number2, l.YesNo1, l.YesNo2, " +
+                 "lp.Quantity, lp.DescriptionOfMaterial, lp.OutComments, lp.InComments, lp.QuantityResolved, lp.QuantityReturned, LoanPreparationID " +
+                 "FROM loan l Inner Join loanpreparation lp ON l.LoanID = lp.LoanID WHERE LoanNumber = '%s' ORDER BY LoanPreparationID";
+
+    
+        oldSQL = "SELECT l.LoanNumber, l.LoanDate, l.Closed, l.CurrentDueDate, l.OriginalDueDate, l.DateClosed, l.Text1, l.Text2, l.Number1, l.Number2, l.YesNo1, l.YesNo2, " +
+        	     "lp.Quantity, lp.DescriptionOfMaterial, lp.OutComments, lp.InComments, lp.QuantityResolved, lp.QuantityReturned, lp.LoanPhysicalObjectID " +
+        	     "FROM loan AS l Inner Join loanphysicalobject AS lp ON l.LoanID = lp.LoanID Left Join loanphysicalobject_LoanPhysicalObjectID AS lr ON lp.LoanPhysicalObjectID = lr.OldID " +
+                 "WHERE l.Category = 0 AND LoanNumber = '%s' ORDER BY lr.NewID ASC";
+    
+        String newSQLCnt = "SELECT COUNT(*) FROM loan l Inner Join loanpreparation lp ON l.LoanID = lp.LoanID WHERE LoanNumber = '%s'";
+        String oldSQLCnt = "SELECT COUNT(*) FROM loan AS l Inner Join loanphysicalobject AS lp ON l.LoanID = lp.LoanID WHERE l.Category = 0 AND LoanNumber = '%s'";
+
+        log.info(newSQL);
+        log.info(oldSQL);
+        
+        try
+        {
+            Vector<Object> loanNums = BasicSQLUtils.querySingleCol(oldDBConn, "SELECT LoanNumber FROM loan WHERE Category = 0");
+            
+            for (Object loanNum : loanNums)
+            {
+                int oldCnt = BasicSQLUtils.getCountAsInt(oldDBConn, String.format(oldSQLCnt, loanNum));
+                int newCnt = BasicSQLUtils.getCountAsInt(newDBConn, String.format(newSQLCnt, loanNum));
+                
+                if (oldCnt != newCnt)
+                {
+                    String msg = "For Loan Number["+loanNum+" the number of New LoanPreps["+newCnt+"] doesn't match the old["+oldCnt+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(loanNum.toString(), msg);
+                }
+                
+                getResultSets(String.format(oldSQL, loanNum), String.format(newSQL, loanNum));
+                
+                
+                ResultSetMetaData rmd = newDBRS.getMetaData();
+                while (true)
+                {
+                
+                    boolean hasOldRec = oldDBRS.next();
+                    boolean hasNewRec = newDBRS.next();
+                    
+                    if (!hasOldRec && !hasNewRec)
+                    {
+                        break;
+                    }
+                    
+                    int    newId        = newDBRS.getInt(1);
+                    int    oldId        = oldDBRS.getInt(1);
+                    
+                    String oldNewIdStr = oldId + " / "+newId + " ("+oldDBRS.getInt(19)+" / "+newDBRS.getInt(19)+")";
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(1), 1, 1);
+                    
+                    compareDates(oldNewIdStr, 2, 2);
+                    
+                    compareBoolean(oldNewIdStr, rmd.getColumnName(3), 3, 3);
+                    
+                    compareDates(oldNewIdStr, 4, 4);
+                    compareDates(oldNewIdStr, 5, 5);
+                    compareDates(oldNewIdStr, 6, 6);
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(7), 7, 7);
+                    compareStrings(oldNewIdStr, rmd.getColumnName(8), 8, 8);
+                    
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(9), 9, 9);
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(10), 10, 10);
+                    
+                    compareBoolean(oldNewIdStr, rmd.getColumnName(11), 11, 11);
+                    compareBoolean(oldNewIdStr, rmd.getColumnName(12), 12, 12);
+                    
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(13), 13, 13);
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(14), 14, 14);
+                    compareStrings(oldNewIdStr, rmd.getColumnName(15), 15, 15);
+                    compareStrings(oldNewIdStr, rmd.getColumnName(16), 16, 16);
+                    
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(17), 17, 17);
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(18), 18, 18);
+                }
+                
+                oldDBRS.close();
+                newDBRS.close();
+            }
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace(); 
+        }
+
+    }
+    
+    
+    /**
+     * 
+     */
+    private void verifyGifts()
+    {
+        
+        newSQL = "SELECT g.GiftNumber, g.GiftDate, g.Remarks, g.Number1, g.Number2, g.Text1, g.Text2, g.YesNo1, g.YesNo2, gp.Quantity, gp.DescriptionOfMaterial, gp.OutComments, gp.InComments " +
+        		 "FROM gift AS g Inner Join giftpreparation AS gp ON g.GiftID = gp.GiftID WHERE g.GiftNumber = '%s' ORDER BY gp.GiftPreparationID";
+    
+        oldSQL = "SELECT g.LoanNumber, g.LoanDate, g.Remarks, g.Number1, g.Number2, g.Text1, g.Text2, g.YesNo1, g.YesNo2, " +
+                 "gp.Quantity, gp.DescriptionOfMaterial, gp.OutComments, gp.InComments " +
+                 "FROM loan AS g Inner Join loanphysicalobject AS gp ON g.LoanID = gp.LoanID Left Join loanphysicalobject_LoanPhysicalObjectID AS lr ON gp.LoanPhysicalObjectID = lr.OldID " +
+                 "WHERE g.Category = 1 AND g.LoanNumber = '%s' ORDER BY lr.NewID ASC";
+    
+        String newSQLCnt = "SELECT COUNT(*) FROM gift AS g Inner Join giftpreparation AS gp ON g.GiftID = gp.GiftID WHERE GiftNumber = '%s'";
+        String oldSQLCnt = "SELECT COUNT(*) FROM loan AS g Inner Join loanphysicalobject AS gp ON g.LoanID = gp.LoanID WHERE g.Category = 1 AND g.LoanNumber = '%s'";
+
+        log.info(newSQL);
+        log.info(oldSQL);
+        
+        try
+        {
+            Vector<Object> loanNums = BasicSQLUtils.querySingleCol(oldDBConn, "SELECT LoanNumber FROM loan WHERE Category = 1"); // Gifts
+            
+            for (Object loanNum : loanNums)
+            {
+                int oldCnt = BasicSQLUtils.getCountAsInt(oldDBConn, String.format(oldSQLCnt, loanNum));
+                int newCnt = BasicSQLUtils.getCountAsInt(newDBConn, String.format(newSQLCnt, loanNum));
+                
+                if (oldCnt != newCnt)
+                {
+                    String msg = "For Loan Number["+loanNum+" the number of New LoanPreps["+newCnt+"] doesn't match the old["+oldCnt+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(loanNum.toString(), msg);
+                }
+                
+                getResultSets(String.format(oldSQL, loanNum), String.format(newSQL, loanNum));
+                
+                
+                ResultSetMetaData rmd = newDBRS.getMetaData();
+                while (true)
+                {
+                
+                    boolean hasOldRec = oldDBRS.next();
+                    boolean hasNewRec = newDBRS.next();
+                    
+                    if (!hasOldRec && !hasNewRec)
+                    {
+                        break;
+                    }
+                    
+                    int    newId        = newDBRS.getInt(1);
+                    int    oldId        = oldDBRS.getInt(1);
+                    
+                    String oldNewIdStr = oldId + " / "+newId;// + " ("+oldDBRS.getInt(19)+" / "+newDBRS.getInt(19)+")";
+                    
+                    int inx = 1;
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++; // Gift Number
+                    
+                    compareDates(oldNewIdStr, inx, inx); inx++;                           // Gift Date
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // Remarks
+                    
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(inx), inx, inx); inx++;  // Number1
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(inx), inx, inx); inx++;  // Number2
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // Test1
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // Test2
+                    
+                    compareBoolean(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // YesNo1
+                    compareBoolean(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // YesNo2
+                 
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(inx), inx, inx); inx++;  // Qty
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // DescOfMat
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // OutComm
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // InComm
+                }
+                
+                oldDBRS.close();
+                newDBRS.close();
+            }
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace(); 
+        }
+
+    }
+    
+
+    /**
+     * 
+     */
+    private void verifyLoanRetPreps()
+    {
+        
+        newSQL = "SELECT l.LoanNumber, r.ReturnedDate, r.QuantityResolved, r.Remarks " +
+                "FROM loan AS l Inner Join loanpreparation AS lp ON l.LoanID = lp.LoanID " +
+                "LEFT Join loanreturnpreparation AS r ON lp.LoanPreparationID = r.LoanPreparationID " +
+                "WHERE l.LoanNumber = '%s' ORDER BY lp.LoanPreparationID";
+
+        oldSQL = "SELECT l.LoanNumber, r.`Date`, r.Quantity, r.Remarks " +
+        	     "FROM loan AS l Inner Join loanphysicalobject AS lp ON l.LoanID = lp.LoanID " +
+        	     "LEFT Join loanreturnphysicalobject AS r ON lp.LoanPhysicalObjectID = r.LoanPhysicalObjectID Left Join loanphysicalobject_LoanPhysicalObjectID AS lr ON lp.LoanPhysicalObjectID = lr.OldID " +
+                 "WHERE l.Category = 0 AND LoanNumber = '%s' ORDER BY lr.NewID ASC";
+        
+        String newSQLCnt = "SELECT COUNT(ID) FROM (SELECT LoanReturnPreparationID AS ID, LoanNumber FROM loan AS l Inner Join loanpreparation AS lp ON l.LoanID = lp.LoanID Left Join loanreturnpreparation AS r ON lp.LoanPreparationID = r.LoanPreparationID WHERE LoanReturnPreparationID IS NOT NULL AND LoanNumber = '%s') T1";
+        String oldSQLCnt = "SELECT COUNT(ID) FROM (SELECT LoanReturnPhysicalObjectID AS ID, LoanNumber FROM loan AS l Inner Join loanphysicalobject AS lp ON l.LoanID = lp.LoanID Left Join loanreturnphysicalobject AS r ON lp.LoanPhysicalObjectID = r.LoanPhysicalObjectID WHERE LoanReturnPhysicalObjectID IS NOT NULL AND LoanNumber = '%s') T1";
+
+        log.info(newSQL);
+        log.info(oldSQL);
+        
+        try
+        {
+            Vector<Object> loanNums = BasicSQLUtils.querySingleCol(oldDBConn, "SELECT LoanNumber FROM loan WHERE Category = 0");
+            
+            for (Object loanNum : loanNums)
+            {
+                int oldCnt = BasicSQLUtils.getCountAsInt(oldDBConn, String.format(oldSQLCnt, loanNum));
+                int newCnt = BasicSQLUtils.getCountAsInt(newDBConn, String.format(newSQLCnt, loanNum));
+                
+                if (oldCnt != newCnt)
+                {
+                    String msg = "For Loan Number["+loanNum+" the number of New LoanPreps["+newCnt+"] doesn't match the old["+oldCnt+"]";
+                    log.error(msg);
+                    tblWriter.logErrors(loanNum.toString(), msg);
+                }
+                
+                getResultSets(String.format(oldSQL, loanNum), String.format(newSQL, loanNum));
+                
+                
+                ResultSetMetaData rmd = newDBRS.getMetaData();
+                while (true)
+                {
+                
+                    boolean hasOldRec = oldDBRS.next();
+                    boolean hasNewRec = newDBRS.next();
+                    
+                    if (!hasOldRec && !hasNewRec)
+                    {
+                        break;
+                    }
+                    
+                    int    newId        = newDBRS.getInt(1);
+                    int    oldId        = oldDBRS.getInt(1);
+                    
+                    String oldNewIdStr = oldId + " / "+newId;
+                    
+                    int inx = 1;
+                    
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // LoanNumber
+                    compareDates(oldNewIdStr, inx, inx); inx++;                            // Gift Date
+                    compareNumber(oldNewIdStr,  rmd.getColumnName(inx), inx, inx); inx++;  // Quantity
+                    compareStrings(oldNewIdStr, rmd.getColumnName(inx), inx, inx); inx++;  // Remarks
+                }
+                
+                oldDBRS.close();
+                newDBRS.close();
+            }
+
+        } catch (Exception ex)
+        {
+            ex.printStackTrace(); 
+        }
+
+    }
+
     /**
      * @param args
      */
     public static void main(String[] args)
     {
+        
+        UIRegistry.setAppName("Specify");
+
         // Create Specify Application
         SwingUtilities.invokeLater(new Runnable() {
             public void run()
@@ -1724,6 +2800,14 @@ public class ConvertVerifier
 	                            {
 	                                try
 	                                {
+	                                    boolean compareTo6DBS = false;
+	                                    if (compareTo6DBS)
+	                                    {
+	                                        pair.first = "ku_fish";
+	                                        pair.second = "kui_fish_dbo_6";
+	                                        cv.setCompareTo6DBs(compareTo6DBS);
+	                                    }
+	                                    
 	                                    cv.verifyDB( pair.first, pair.second);
 	                                    
 	                                } catch (Exception ex)
@@ -1733,7 +2817,6 @@ public class ConvertVerifier
 	                                return null;
 	                            }
 	                            
-	                            @SuppressWarnings("unchecked") //$NON-NLS-1$
 	                            @Override
 	                            public void finished()
 	                            {
@@ -1780,7 +2863,7 @@ public class ConvertVerifier
      * @param hashNames every other one is the new name
      * @return the list of selected DBs
      */
-    protected boolean selectedDBsToConvert()
+    private boolean selectedDBsToConvert()
     {
         final JTextField     itUserNameTF = UIHelper.createTextField("root", 15);
         final JPasswordField itPasswordTF = UIHelper.createPasswordField("", 15);
@@ -1800,8 +2883,12 @@ public class ConvertVerifier
 
         pb.add(UIHelper.createLabel("Host Name:", SwingConstants.RIGHT), cc.xy(1, y));
         pb.add(hostNameTF, cc.xy(3, y)); y += 2;
+        
+        PanelBuilder panel = new PanelBuilder(new FormLayout("f:p:g,10px,f:p:g", "f:p:g"));
+        panel.add(new JLabel(IconManager.getIcon("SpecifyLargeIcon")), cc.xy(1, 1));
+        panel.add(pb.getPanel(), cc.xy(3, 1));
 
-        CustomDialog dlg = new CustomDialog(null, "Database Info", true, pb.getPanel());
+        CustomDialog dlg = new CustomDialog(null, "Database Info", true, panel.getPanel());
         ((JPanel)dlg.getContentPanel()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         UIHelper.centerAndShow(dlg);
         
@@ -1822,12 +2909,12 @@ public class ConvertVerifier
      * @return
      * @throws SQLException
      */
-    protected Pair<String, String> chooseTable() throws SQLException
+    private Pair<String, String> chooseTable() throws SQLException
     {
         MySQLDMBSUserMgr mgr = new MySQLDMBSUserMgr();
         
-        Vector<DBNamePair> availOldPairs = new Vector<DBNamePair>();
-        Vector<DBNamePair> availNewPairs = new Vector<DBNamePair>();
+        final Vector<DBNamePair> availOldPairs = new Vector<DBNamePair>();
+        final Vector<DBNamePair> availNewPairs = new Vector<DBNamePair>();
         
         try
         {
@@ -1839,7 +2926,7 @@ public class ConvertVerifier
                 Vector<Object[]> dbNames = BasicSQLUtils.query(conn, "show databases");
                 for (Object[] row : dbNames)
                 {
-                    System.err.println("Setting ["+row[0].toString()+"]");
+                    System.err.println("Setting ["+row[0].toString()+"] ");
                     conn.setCatalog(row[0].toString());
                     
                     boolean isSp5 = false;
@@ -1848,6 +2935,10 @@ public class ConvertVerifier
                     Vector<Object[]> tables = BasicSQLUtils.query(conn, "show tables");
                     for (Object[] tblRow : tables)
                     {
+                        if (row[0].toString().equals("debugdb"))
+                        {
+                            System.err.println(tblRow[0].toString());
+                        }
                     	if (tblRow[0].toString().equals("usysversion"))
                         {
                     		isSp5 = true;
@@ -1863,7 +2954,7 @@ public class ConvertVerifier
                     if (isSp5 || isSp6)
                     {
     	            	String collName = null;
-    	                Vector<Object[]> tableDesc = BasicSQLUtils.query(conn, "select CollectionName FROM collection");
+    	                Vector<Object[]> tableDesc = BasicSQLUtils.query(conn, "SELECT CollectionName FROM collection");
     	                if (tableDesc.size() > 0)
     	                {
     	                    collName =  tableDesc.get(0)[0].toString();
@@ -1882,13 +2973,15 @@ public class ConvertVerifier
     	                	availNewPairs.add(new DBNamePair(collName, row[0].toString()));
     	                }
                     }
+                    
+                    System.err.println("isSp5 ["+isSp5+"] isSp6 ["+isSp6+"] ");
                 }
                 
                 Comparator<Pair<String, String>> comparator =  new Comparator<Pair<String, String>>() {
                     @Override
                     public int compare(Pair<String, String> o1, Pair<String, String> o2)
                     {
-                        return o1.first.compareTo(o2.first);
+                        return o1.second.compareTo(o2.second);
                     }
                 };
                 Collections.sort(availOldPairs, comparator);
@@ -1915,7 +3008,7 @@ public class ConvertVerifier
                 chkPanel = new ToggleButtonChooserPanel<String>(list, Type.Checkbox);
                 chkPanel.setUseScrollPane(true);
                 chkPanel.createUI();
-                pb.add(chkPanel, cc.xyw(1, 5, 3));
+                //pb.add(chkPanel, cc.xyw(1, 5, 3));
                 
                 /*ActionListener al = new ActionListener() {
                     @Override
@@ -1936,6 +3029,40 @@ public class ConvertVerifier
                 
                 chkPanel.getButtons().get(0).addActionListener(al);
                 chkPanel.getButtons().get(chkPanel.getButtons().size()-1).addActionListener(al);*/
+                
+                ListSelectionListener oldDBListener = new ListSelectionListener()
+                {
+                    @Override
+                    public void valueChanged(ListSelectionEvent e)
+                    {
+                        if (!e.getValueIsAdjusting())
+                        {
+                            DBNamePair pair = (DBNamePair)oldlist.getSelectedValue();
+                            if (pair != null)
+                            {
+                                int index = 0;
+                                for (DBNamePair p : availNewPairs)
+                                {
+                                    if (p.second.startsWith(pair.second))
+                                    {
+                                        final int inx = index;
+                                        SwingUtilities.invokeLater(new Runnable(){
+                                            @Override
+                                            public void run()
+                                            {
+                                                newList.setSelectedIndex(inx);
+                                                newList.ensureIndexIsVisible(inx);
+                                            }
+                                        });
+                                    }
+                                    index++;
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                oldlist.getSelectionModel().addListSelectionListener(oldDBListener);
     
                 MouseAdapter ma = new MouseAdapter()
                 {
@@ -1997,7 +3124,7 @@ public class ConvertVerifier
                 
                 pb.setDefaultDialogBorder();
                 
-                final CustomDialog dlg = new CustomDialog(null, "Select a DB to Convert", true, pb.getPanel());
+                final CustomDialog dlg = new CustomDialog(null, "Select a DB to Verify", true, pb.getPanel());
                 
                 ListSelectionListener lsl = new ListSelectionListener() {
                     @Override
@@ -2086,7 +3213,7 @@ public class ConvertVerifier
         @Override
         public String toString()
         {
-            return first + "   ("+ second + ")";
+            return second + "   ("+ first + ")";
         }
         
     }

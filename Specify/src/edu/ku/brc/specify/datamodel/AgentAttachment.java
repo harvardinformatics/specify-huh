@@ -107,7 +107,7 @@ public class AgentAttachment extends DataModelObjBase implements ObjectAttachmen
 
     @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "AttachmentID", nullable = false)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     public Attachment getAttachment()
     {
         return attachment;
@@ -240,6 +240,10 @@ public class AgentAttachment extends DataModelObjBase implements ObjectAttachmen
      */
     public int compareTo(AgentAttachment obj)
     {
-        return ordinal.compareTo(obj.ordinal);
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            return ordinal.compareTo(obj.ordinal);
+        }
+        return 0;
     }
 }

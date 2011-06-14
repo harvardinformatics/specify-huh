@@ -46,13 +46,18 @@ import org.hibernate.annotations.Index;
     {   
         @Index (name="DataItemRowNumberIDX", columnNames={"rowNumber"})
     })
+@SuppressWarnings("serial")
 public class WorkbenchDataItem implements java.io.Serializable, Comparable<WorkbenchDataItem>
 {
-    public static final short VAL_NONE       = 0;
-    public static final short VAL_OK         = 1;
-    public static final short VAL_ERROR      = 2;
-    public static final short VAL_ERROR_EDIT = 3;
-        
+    public static final short VAL_NONE       		= 0;
+    public static final short VAL_OK         		= 1;
+    public static final short VAL_ERROR      		= 2;
+    public static final short VAL_ERROR_EDIT 		= 3;
+    public static final short VAL_NEW_DATA   		= 4;
+    public static final short VAL_MULTIPLE_MATCH 	= 5;
+    public static final short VAL_NOT_MATCHED 		= 6; //match not attempted, 
+    													//most likely due to un-matched parent
+       
     // Fields
     protected Integer      workbenchDataItemId;
     protected String       cellData;
@@ -61,6 +66,13 @@ public class WorkbenchDataItem implements java.io.Serializable, Comparable<Workb
     protected WorkbenchRow workbenchRow;
     protected WorkbenchTemplateMappingItem workbenchTemplateMappingItem;
 
+    //Transient
+    protected String	   statusText = null;
+    protected boolean	   required = false;
+    protected int		   editorValidationStatus = VAL_OK;	//the validation status is actually relative to factors
+    														//outside the workbench such as picklist contents. It
+    														//is easier to work with when transient
+    
     // Constructors
 
     /** default constructor */
@@ -191,7 +203,24 @@ public class WorkbenchDataItem implements java.io.Serializable, Comparable<Workb
     {
         this.validationStatus = validationStatus;
     }
+    
+    /**
+     * @return transient validation status
+     */
+    @Transient
+    public int getEditorValidationStatus()
+    {
+    	return editorValidationStatus;
+    }
 
+    /**
+     * @param editorValidationStatus the transient validation status to set
+     */
+    public void setEditorValidationStatus(int editorValidationStatus)
+    {
+    	this.editorValidationStatus = editorValidationStatus;
+    }
+    
     /**
      * 
      */
@@ -227,7 +256,14 @@ public class WorkbenchDataItem implements java.io.Serializable, Comparable<Workb
      */
     public int compareTo(WorkbenchDataItem obj)
     {
-        return getWorkbenchTemplateMappingItem().getViewOrder().compareTo(obj.getWorkbenchTemplateMappingItem().getViewOrder());
+        if (getWorkbenchTemplateMappingItem() != null &&
+            getWorkbenchTemplateMappingItem().getViewOrder() != null &&
+            obj.getWorkbenchTemplateMappingItem() != null &&
+            obj.getWorkbenchTemplateMappingItem().getViewOrder() != null)
+        {
+            return getWorkbenchTemplateMappingItem().getViewOrder().compareTo(obj.getWorkbenchTemplateMappingItem().getViewOrder());
+        }
+        return 0;
     }
 
 	/**
@@ -237,4 +273,40 @@ public class WorkbenchDataItem implements java.io.Serializable, Comparable<Workb
 	{
 		return cellDataLength;
 	}
+	
+	/**
+	 * @return the statusText
+	 */
+	@Transient
+	public String getStatusText()
+	{
+		return statusText;
+	}
+	
+	/**
+	 * @param statusText
+	 */
+	public void setStatusText(String statusText)
+	{
+		this.statusText = statusText;
+	}
+
+	/**
+	 * @return the required
+	 */
+	@Transient
+	public boolean isRequired()
+	{
+		return required;
+	}
+
+	/**
+	 * @param required the required to set
+	 */
+	public void setRequired(boolean required)
+	{
+		this.required = required;
+	}
+	
+	
 }

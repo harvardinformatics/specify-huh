@@ -43,7 +43,7 @@ public class LocalityRecFinalizer implements UploadedRecFinalizerIFace
     public void finalizeForWrite(DataModelObjBase rec, int recNum, Uploader uploader) throws UploaderException
     {
         //This assumes that rec is a newly uploaded/created record. 
-        //Will need to be re-worked when record updates are implemented
+        //XXX Updates -- Will need to be re-worked when record updates are implemented
         Locality loc = (Locality )rec;
         WorkbenchRow wbRow = uploader.getWbSS().getWorkbench().getRow(uploader.getRow());
         loc.setLat1text(wbRow.getLat1Text());

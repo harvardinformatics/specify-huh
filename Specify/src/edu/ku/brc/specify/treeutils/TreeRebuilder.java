@@ -1,12 +1,28 @@
-/**
+/* Copyright (C) 2009, University of Kansas Center for Research
  * 
- */
+ * Specify Software Project, specify@ku.edu, Biodiversity Institute,
+ * 1345 Jayhawk Boulevard, Lawrence, Kansas, 66045, USA
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
 package edu.ku.brc.specify.treeutils;
 
+import java.awt.Window;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.swing.JDialog;
 
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
@@ -34,7 +50,8 @@ public class TreeRebuilder<T extends Treeable<T, D, I>,
     protected final boolean doNodeNumbers;
     protected final boolean doFullNames;
 
-    protected JDialog progDlg = null;
+    protected Window  progWin        = null;
+    protected Boolean hasCompletedOK = null;
 
 	/**
 	 * @param treeDef
@@ -70,14 +87,14 @@ public class TreeRebuilder<T extends Treeable<T, D, I>,
             rebuildTree(new TreeNodeInfo(root.getTreeId(), root.getRankId(), root.getName()), 
             		new LinkedList<TreeNodeInfo>(), 1);
             traversalSession.commit();
-            return true;
+            return hasCompletedOK = true;
         }
         catch (Exception e)
         {
             e.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(NodeNumberer.class, e);
-            return false;
+            return hasCompletedOK = false;
         }
         finally
         {
@@ -85,6 +102,13 @@ public class TreeRebuilder<T extends Treeable<T, D, I>,
         }
 	}
 
+    /**
+     * @return the hasCompletedOK null if it hasn't finished, true - good, false - error
+     */
+    public Boolean hasCompletedOK()
+    {
+        return hasCompletedOK;
+    }
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.treeutils.TreeTraversalWorker#buildChildrenQuery()
      */
@@ -199,11 +223,11 @@ public class TreeRebuilder<T extends Treeable<T, D, I>,
 	}
 
     /**
-     * @param progDlg the progDlg to set.
+     * @param  the progWin to set.
      */
-    public void setProgDlg(final JDialog progDlg)
+    public void setProgWin(final Window progWin)
     {
-        this.progDlg = progDlg;
+        this.progWin = progWin;
     }
     
 	/* (non-Javadoc)
@@ -213,9 +237,9 @@ public class TreeRebuilder<T extends Treeable<T, D, I>,
 	protected void done() 
 	{
 		super.done();
-        if (progDlg != null)
+        if (progWin != null)
         {
-            progDlg.setVisible(false);
+            progWin.setVisible(false);
         }
 	}
 

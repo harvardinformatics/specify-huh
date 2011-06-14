@@ -88,7 +88,9 @@ import edu.ku.brc.specify.datamodel.SpExportSchemaItemMapping;
 import edu.ku.brc.specify.datamodel.SpQueryField;
 import edu.ku.brc.specify.datamodel.SpQueryField.OperatorType;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
+import edu.ku.brc.specify.ui.CatalogNumberUIFieldFormatter;
 import edu.ku.brc.specify.ui.db.PickListDBAdapterFactory;
+import edu.ku.brc.specify.ui.db.PickListTableAdapter;
 import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.MultiStateIconButon;
 import edu.ku.brc.ui.RolloverCommand;
@@ -270,27 +272,27 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             return text.getText();
         }
         
-        /**
-         * @return true unless the entered criteria is really messed up.
-         */
-        public boolean isValidPairEntry()
-        {
-            if (showingPair)
-            {
-                return (StringUtils.isBlank(text1.getText()) && StringUtils.isBlank(text2.getText()))
-                    || (!StringUtils.isBlank(text1.getText()) && !StringUtils.isBlank(text2.getText()));
-            }
-            
-            return true;
-        }   
-        
-        /**
-         * @return showingPair.
-         */
-        public boolean isShowingPair()
-        {
-            return showingPair;
-        }
+//        /**
+//         * @return true unless the entered criteria is really messed up.
+//         */
+//        public boolean isValidPairEntry()
+//        {
+//            if (showingPair)
+//            {
+//                return (StringUtils.isBlank(text1.getText()) && StringUtils.isBlank(text2.getText()))
+//                    || (!StringUtils.isBlank(text1.getText()) && !StringUtils.isBlank(text2.getText()));
+//            }
+//            
+//            return true;
+//        }   
+//        
+//        /**
+//         * @return showingPair.
+//         */
+//        public boolean isShowingPair()
+//        {
+//            return showingPair;
+//        }
         
         /**
          * @param showingPair
@@ -323,7 +325,17 @@ public class QueryFieldPanel extends JPanel implements ActionListener
     
     protected PickListDBAdapterIFace buildPickList()
     {
-        if (fieldQRI != null && fieldQRI.getTableInfo() != null && fieldQRI.getFieldInfo() != null) 
+        if (fieldQRI instanceof RelQRI)
+        {
+        	PickListDBAdapterIFace pl = PickListDBAdapterFactory.getInstance().create(fieldQRI.getTableInfo().getName(), false);
+        	if (pl instanceof PickListTableAdapter)
+        	{
+        		return pl;
+        	}
+        	return null;
+
+        }
+    	if (fieldQRI != null && fieldQRI.getTableInfo() != null && fieldQRI.getFieldInfo() != null) 
         {
             //XXX unfortunately this doesn't work because currently picklist defs are only setup via form view defs
             if (StringUtils.isNotEmpty(fieldQRI.getFieldInfo().getPickListName()))
@@ -394,13 +406,25 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         this.conditionForSchema = conditionForSchema;
         if (this.ownerQuery.isPromptMode())
         {
-            labelStrs = new String[]{ " ",
+            if (!conditionForSchema && schemaItem == null)
+            {
+            	labelStrs = new String[]{ " ",
                     UIRegistry.getResourceString("QB_FIELD"), UIRegistry.getResourceString("QB_NOT"),
                     UIRegistry.getResourceString("QB_OPERATOR"),
                     UIRegistry.getResourceString("QB_CRITERIA"), UIRegistry.getResourceString("QB_SORT"),
                     //UIRegistry.getResourceString("QB_DISPLAY"), getResourceString("QB_PROMPT"), 
                     //" ", " " 
                     };
+            } else
+            {
+            	labelStrs = new String[]{UIRegistry.getResourceString("QB_SCHEMAITEM"), " ",
+                        UIRegistry.getResourceString("QB_FIELD"), UIRegistry.getResourceString("QB_NOT"),
+                        UIRegistry.getResourceString("QB_OPERATOR"),
+                        UIRegistry.getResourceString("QB_CRITERIA"), UIRegistry.getResourceString("QB_SORT"), UIRegistry.getResourceString("QB_ALLOW_NULL"),
+                        //UIRegistry.getResourceString("QB_DISPLAY"), getResourceString("QB_PROMPT"), 
+                        //" ", " " 
+                        };
+            }
         }
         else
         {
@@ -417,7 +441,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             	labelStrs = new String[]{ UIRegistry.getResourceString("QB_SCHEMAITEM"), " ",
                         /*UIRegistry.getResourceString("QB_FIELD")*/" ", UIRegistry.getResourceString("QB_NOT"),
                         UIRegistry.getResourceString("QB_OPERATOR"),
-                        UIRegistry.getResourceString("QB_CRITERIA"), UIRegistry.getResourceString("QB_SORT"),
+                        UIRegistry.getResourceString("QB_CRITERIA"), UIRegistry.getResourceString("QB_SORT"), getResourceString("QB_ALLOW_NULL"),
                         /*UIRegistry.getResourceString("QB_DISPLAY"), getResourceString("QB_PROMPT"), getResourceString("QB_ALWAYS_ENFORCE"), */" ", " " };
             }
         }
@@ -491,7 +515,13 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         {
             qField.setIsDisplay(isDisplayedCkbx.isSelected());
             qField.setIsPrompt(isPromptCkbx.isSelected());
-            qField.setAlwaysFilter(isEnforcedCkbx.isSelected());
+            if (conditionForSchema)
+            {
+            	qField.setAllowNulls(isEnforcedCkbx.isSelected());
+            } else
+            {
+            	qField.setAlwaysFilter(isEnforcedCkbx.isSelected());
+            }
             qField.setIsNot(isNotCheckbox.isSelected());
             if (validator.hasChanged() && qField.getSpQueryFieldId() != null)
             {
@@ -578,7 +608,14 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             if (queryField.getSpQueryFieldId() != null)
             {
                 isNotCheckbox.setSelected(queryField.getIsNot());
-                operatorCBX.setSelectedIndex(queryField.getOperStart());
+                try
+                {
+                	operatorCBX.setSelectedIndex(queryField.getOperStart());
+                } catch(IllegalArgumentException ex)
+                {
+                	log.error("unable to set operator index for " + queryField.getStringId() + ": " + ex);
+                	operatorCBX.setSelectedIndex(0);
+                }
                 setCriteriaText(queryField.getStartValue(), queryField.getEndValue(), (OperatorType )operatorCBX.getSelectedItem());
                 sortCheckbox.setState(queryField.getSortType());
                 sortCheckbox.setEnabled(queryField.getIsDisplay());
@@ -586,7 +623,19 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                 {
                     isDisplayedCkbx.setSelected(queryField.getIsDisplay());
                     isPromptCkbx.setSelected(queryField.getIsPrompt() == null ? true : queryField.getIsPrompt());
-                    isEnforcedCkbx.setSelected(queryField.getAlwaysFilter() == null ? true : queryField.getAlwaysFilter());
+                    if (conditionForSchema || schemaItem != null)
+                    {
+                    	isEnforcedCkbx.setSelected(queryField.getAllowNulls() == null ? false : queryField.getAllowNulls());
+                    } else
+                    {
+                    	isEnforcedCkbx.setSelected(queryField.getAlwaysFilter() == null ? true : queryField.getAlwaysFilter());
+                    }
+                } else
+                {
+                	if (conditionForSchema)
+                	{
+                		isEnforcedCkbx.setSelected(queryField.getAllowNulls() == null ? true : queryField.getAllowNulls());
+                	}
                 }
                 validator.setHasChanged(false);
             } else
@@ -673,7 +722,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
 				sortCheckbox.setVisible(false);
 				isDisplayedCkbx.setVisible(false);
 				isPromptCkbx.setVisible(false);
-				isEnforcedCkbx.setVisible(false);
+				//isEnforcedCkbx.setVisible(false);
 			}
 			if (!ownerQuery.isPromptMode())
 			{
@@ -686,7 +735,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
 		{
 			isDisplayedCkbx.setVisible(false);
 			isPromptCkbx.setVisible(false);
-			isEnforcedCkbx.setVisible(false);
+			//isEnforcedCkbx.setVisible(false);
 		}
     	setQueryField(qf);
     }
@@ -729,7 +778,21 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         if (field.getFieldInfo() != null && field.getFieldInfo().getName().equalsIgnoreCase("catalognumber") 
                 && field.getTableInfo().getClassObj().equals(CollectionObject.class))
         {
-            return getComparatorListForClass(Number.class);
+            if (field.getFieldInfo().getFormatter() != null && field.getFieldInfo().getFormatter().isNumeric())
+            {
+            	return getComparatorListForClass(Number.class);
+            }
+            OperatorType[] stringCmps = getComparatorListForClass(String.class);
+            OperatorType[] result = new OperatorType[stringCmps.length + 3];
+            int c = 0;
+            for (OperatorType ot : stringCmps)
+            {
+            	result[c++] = ot;
+            }
+            result[c++] = SpQueryField.OperatorType.GREATERTHAN;
+            result[c++] = SpQueryField.OperatorType.LESSTHAN;
+            result[c++] = SpQueryField.OperatorType.BETWEEN;
+            return result;
         }
         //else
         return getComparatorListForClass(field.getDataClass());
@@ -750,6 +813,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
 						SpQueryField.OperatorType.LIKE,
 						SpQueryField.OperatorType.EQUALS,
 						SpQueryField.OperatorType.IN,
+						SpQueryField.OperatorType.BETWEEN,
 						SpQueryField.OperatorType.EMPTY };
 			}
 			if (classObj.equals(Boolean.class))
@@ -815,7 +879,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         }
         return StringUtils.isNotEmpty(getCriteriaText(true).trim());
     }
-    
+ 
     /**
      * @param criteriaEntry - String of comma-delimited entries
      * @return Array of formatted criteria
@@ -859,7 +923,12 @@ public class QueryFieldPanel extends JPanel implements ActionListener
             try
             {
                 result[e] = formatter != null ? formatter.formatFromUI(raw[e].trim()) : raw[e].trim();
-            }
+                if (formatter instanceof CatalogNumberUIFieldFormatter && ((CatalogNumberUIFieldFormatter )formatter).isNumeric())
+                {
+                	//the formatFromUI call will catch format errors, but if numeric and a valid number was entered then just use the number
+                	result[e] = raw[e].trim();
+                }
+        }
             catch (Exception ex)
             {
                 throw new ParseException(getLabel() + " - " 
@@ -990,6 +1059,29 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         }
         return result;
     }
+    
+    /**
+     * @return
+     */
+    public boolean isNegated()
+    {
+    	return isNotCheckbox != null && isNotCheckbox.isSelected();
+    }
+
+    /**
+     * @return true if criteria entries should be handled as numeric cat nums for hql/sql
+     * 
+     * NOTE: "where catalogNumber = 1000" works in hql even though catalogNumber is a string field.
+     * This MAY be because MySQL will automatically convert string/numeric types when necessary.
+     * If we switch to another sql dbms, catalogNumbers may have to be treated as strings.
+     * 
+     */
+    protected boolean isNumericCatalogNumber() 
+    {
+    	UIFieldFormatterIFace formatter = fieldQRI.getFormatter();
+    	return formatter instanceof CatalogNumberUIFieldFormatter && ((CatalogNumberUIFieldFormatter )formatter).isNumeric();    	
+    }
+
     /**
      * @return
      */
@@ -1031,9 +1123,9 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                     }
                     operStr = "=";
                 }
-                else if (fieldQRI.getDataClass().equals(String.class))
+                else if (fieldQRI.getDataClass().equals(String.class) && !isNumericCatalogNumber())
                 {
-                    criteriaFormula = concatCriteria(criteriaStrs, operStr, true);
+                    criteriaFormula = concatCriteria(criteriaStrs, operStr, !(pickList instanceof PickListTableAdapter));
                 }
                 else if (fieldQRI.getDataClass().equals(Calendar.class) || fieldQRI.getDataClass().equals(java.sql.Timestamp.class))
                 {
@@ -1089,7 +1181,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                         criteriaFormula = "(" + criteriaFormula + ")";
                     }
                 }
-                else if (Number.class.isAssignableFrom(fieldQRI.getDataClass()) )
+                else if (Number.class.isAssignableFrom(fieldQRI.getDataClass()) || isNumericCatalogNumber())
                 {
                     Constructor<?> tester;
                     try
@@ -1098,6 +1190,20 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                         for (int s = 0; s < criteriaStrs.length; s++)
                         {
                             tester.newInstance((String)criteriaStrs[s]);
+                            
+                            //remove leading zeroes
+                            String newString = criteriaStrs[s].toString();
+                            boolean isZeroes = false;
+                            while (newString.startsWith("0"))
+                            {
+                            	newString = newString.substring(1);
+                            	isZeroes = true;
+                            }
+                            if (isZeroes && StringUtils.isBlank(newString))
+                            {
+                            	newString = "0";
+                            }
+                            criteriaStrs[s] = newString;
                         }
                     }
                     catch (NoSuchMethodException ex)
@@ -1189,7 +1295,12 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                     }
                     str.append(")");
                 }
-                return str.toString();
+                String result =  str.toString();
+                if (StringUtils.isNotBlank(result) && isEnforcedCkbx != null && isEnforcedCkbx.isSelected() && conditionForSchema)
+                {
+                	result = "(" + result + " or " + fieldQRI.getSQLFldSpec(ta, true, schemaItem != null) + " is null)";
+                }
+                return result;
             }
         }
         return null;
@@ -1442,11 +1553,23 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         sortCheckbox.addFocusListener(focusListener);
         sortCheckbox.addActionListener(dcn);
         sortCheckbox.addKeyListener(enterListener);
+        if (!this.ownerQuery.isPromptMode() || conditionForSchema || schemaItem != null)
+        {
+            isEnforcedCkbx = createCheckBox("isEnforcedCkbx");
+            dcn = validator.hookupComponent(isEnforcedCkbx, "iecb",
+                    UIValidator.Type.Changed, "", true);
+            isEnforcedCkbx.addActionListener(dcn);
+            isEnforcedCkbx.addFocusListener(focusListener);
+            isEnforcedCkbx.addKeyListener(enterListener);
+        }
         if (!this.ownerQuery.isPromptMode())
         {
             isDisplayedCkbx = createCheckBox("isDisplayedCkbx");
+            dcn = validator.hookupComponent(isDisplayedCkbx, "idcb",
+                    UIValidator.Type.Changed, "", true);
             isDisplayedCkbx.addFocusListener(focusListener);
             isDisplayedCkbx.addKeyListener(enterListener);
+            isDisplayedCkbx.addActionListener(dcn);
             isDisplayedCkbx.addActionListener(new ActionListener() {
 
 				/* (non-Javadoc)
@@ -1469,11 +1592,17 @@ public class QueryFieldPanel extends JPanel implements ActionListener
 				}
             });
             isPromptCkbx = createCheckBox("isPromptCkbx");
+            dcn = validator.hookupComponent(isPromptCkbx, "ipcb",
+                    UIValidator.Type.Changed, "", true);
+            isPromptCkbx.addActionListener(dcn);
             isPromptCkbx.addFocusListener(focusListener);
             isPromptCkbx.addKeyListener(enterListener);
-            isEnforcedCkbx = createCheckBox("isEnforcedCkbx");
-            isEnforcedCkbx.addFocusListener(focusListener);
-            isEnforcedCkbx.addKeyListener(enterListener);
+//            isEnforcedCkbx = createCheckBox("isEnforcedCkbx");
+//            dcn = validator.hookupComponent(isEnforcedCkbx, "iecb",
+//                    UIValidator.Type.Changed, "", true);
+//            isEnforcedCkbx.addActionListener(dcn);
+//            isEnforcedCkbx.addFocusListener(focusListener);
+//            isEnforcedCkbx.addKeyListener(enterListener);
             closeBtn = createIconBtn("Close", "QB_REMOVE_FLD", new ActionListener()
             {
                 public void actionPerformed(ActionEvent ae)
@@ -1511,14 +1640,17 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         {
             isDisplayedCkbx = null;
             this.isPromptCkbx = null;
-            isEnforcedCkbx = null;
+            if (!conditionForSchema && schemaItem == null)
+            {
+            	isEnforcedCkbx = null;
+            }
             this.closeBtn = null;
         }
 
         JComponent[] qComps = {iconLabel, fieldLabel, isNotCheckbox, operatorCBX, criteria,
                 sortCheckbox, isDisplayedCkbx, isPromptCkbx, isEnforcedCkbx, closeBtn, null };
         JComponent[] sComps = { schemaItemLabel, iconLabel, fieldLabel, isNotCheckbox, operatorCBX, criteria,
-                sortCheckbox, closeBtn, null };
+                sortCheckbox, isEnforcedCkbx, closeBtn, null };
         // 0 1 2 3 4 5 6 7 8 9
         if (schemaItem == null && !conditionForSchema)
         {
@@ -1537,7 +1669,7 @@ public class QueryFieldPanel extends JPanel implements ActionListener
                 sb.append(i == 0 ? "" : ",");
                 if (isCenteredComp(i))
                     sb.append("c:");
-                if (i != 0 || schemaItem == null)
+                if (i != 0 || schemaItem == null || !conditionForSchema)
                 {
                 	sb.append("p");
                 }
@@ -1594,9 +1726,9 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         {
 			// for now
 			boolean isRel = fieldQRI != null && fieldQRI instanceof RelQRI;
-			isNotCheckbox.setVisible(!isRel);
-			operatorCBX.setVisible(!isRel);
-			criteria.setVisible(!isRel && !isBool);
+			isNotCheckbox.setVisible(!isRel || pickList != null);
+			operatorCBX.setVisible(!isRel || pickList != null);
+			criteria.setVisible((!isRel && !isBool) || pickList != null);
 			if (!isRel)
 			{
 				this.sortCheckbox.setVisible(true);
@@ -1932,6 +2064,24 @@ public class QueryFieldPanel extends JPanel implements ActionListener
         if (queryField != null)
         {
             return queryField.getAlwaysFilter();
+        }
+        return false;
+    }
+    
+    /**
+     * @return true if nulls are allowed. i.e: if 'or is null' should be appended to the field's criteria.
+     */
+    public boolean isAllowNulls()
+    {
+    	//XXX until/if allowNulls is added to general queries, the isEnforcedCkbx is being used to 
+    	//access it
+    	if (isEnforcedCkbx != null) 
+        {
+            return isEnforcedCkbx.isSelected();
+        }
+        if (queryField != null)
+        {
+            return queryField.getAllowNulls();
         }
         return false;
     }

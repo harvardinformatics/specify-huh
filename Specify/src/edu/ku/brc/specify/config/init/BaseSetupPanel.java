@@ -195,6 +195,7 @@ public abstract class BaseSetupPanel extends JPanel implements SetupPanelIFace
     @Override
     public void aboutToLeave()
     {
+        // no op
     }
 
     /**

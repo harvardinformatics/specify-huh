@@ -85,7 +85,6 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
         receivedComments = null;
         preparation = null;
         gift = null;
-        gift = null;
     }
     // End Initializer
 
@@ -277,6 +276,6 @@ public class GiftPreparation extends DisciplineMember implements java.io.Seriali
      */
     public int compareTo(GiftPreparation obj)
     {
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 }

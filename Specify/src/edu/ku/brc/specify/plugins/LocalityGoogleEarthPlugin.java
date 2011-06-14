@@ -130,6 +130,7 @@ public class LocalityGoogleEarthPlugin extends JButton implements GetSetValueIFa
                 {
                     items.add(new CEPlacemark(colEv, img));
                 }
+                
             } else if (locality != null)
             {
                 Locality geLoc = new Locality();
@@ -226,6 +227,15 @@ public class LocalityGoogleEarthPlugin extends JButton implements GetSetValueIFa
         throw new NotImplementedException("isNotEmpty not implement!");
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#getFieldNames()
+     */
+    @Override
+    public String[] getFieldNames()
+    {
+        return new String[] {"localityName", "latitude1", "longitude1", "geography"};
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.GetSetValueIFace#setValue(java.lang.Object, java.lang.String)
      */
@@ -527,6 +537,24 @@ public class LocalityGoogleEarthPlugin extends JButton implements GetSetValueIFa
         {
             return null;
         }
+    }
+    
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#carryForwardStateChange()
+     */
+    @Override
+    public void carryForwardStateChange()
+    {
+        // no op
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#setNewObj(boolean)
+     */
+    @Override
+    public void setNewObj(boolean isNewObj)
+    {
+        // no op
     }
 }

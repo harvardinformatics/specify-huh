@@ -32,6 +32,10 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -79,15 +83,16 @@ public class ImportFileSplitter extends CustomDialog
 {
 	private static final Logger log = Logger.getLogger(ImportFileSplitter.class);
 
-	protected int defaultChunkSize = 2000;
+	protected final int defaultChunkSize = edu.ku.brc.specify.tasks.WorkbenchTask.MAX_ROWS;
 	protected JTextField fileName;
 	protected JCheckBox headerChk;
+	protected PosIntTextField fileSize;
 	protected JProgressBar progBar;
 	protected javax.swing.SwingWorker<ChunkageReport, Integer> worker = null;
 	
 	public ImportFileSplitter()
 	{
-		super((Frame )null, UIRegistry.getResourceString("ImportFileSplitter.Title"), true, OKCANCELHELP, null); 
+		super((Frame )null, UIRegistry.getResourceString("ImportFileSplitter.Title"), true, OKCANCELHELP, null);
 	}
 	
 	
@@ -103,7 +108,7 @@ public class ImportFileSplitter extends CustomDialog
 		this.setOkLabel(UIRegistry.getResourceString("ImportFileSplitter.SplitBtn"));
 		this.setCancelLabel(UIRegistry.getResourceString("CLOSE"));
 		
-		PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p, 1dlu, f:max(150dlu;p):g, 1dlu, f:p, 5dlu", "8dlu, p, 2dlu, p, 9dlu"));
+		PanelBuilder pb = new PanelBuilder(new FormLayout("5dlu, f:p, 1dlu, f:max(150dlu;p):g, 1dlu, f:p, 5dlu", "8dlu, p, 2dlu, p, 2dlu, p, 9dlu"));
 		CellConstraints cc = new CellConstraints();
 		pb.add(UIHelper.createLabel(UIRegistry.getResourceString("ImportFileSplitter.FileToSplit")), cc.xy(2, 2)); 
 		fileName = UIHelper.createTextField();
@@ -122,9 +127,16 @@ public class ImportFileSplitter extends CustomDialog
 			
 		});
 		pb.add(chooseBtn, cc.xy(6, 2));
+		
 		headerChk = UIHelper.createCheckBox(UIRegistry.getResourceString("ImportFileSplitter.FirstLineHeaders"));
 		headerChk.setSelected(true);
 		pb.add(headerChk, cc.xy(4, 4));
+		
+		pb.add(UIHelper.createLabel(UIRegistry.getResourceString("ImportFileSplitter.FileSize")), cc.xy(2, 6)); 
+		//fileSize = UIHelper.createTextField(5);
+		fileSize = new PosIntTextField(10000);
+		fileSize.setText(String.valueOf(defaultChunkSize));
+		pb.add(fileSize, cc.xy(4, 6));
 		
 		PanelBuilder mainPb = new PanelBuilder(new FormLayout("f:p:g", "p, f:max(15dlu;p)"));
 		PanelBuilder progPb = new PanelBuilder(new FormLayout("5dlu, f:p:g, 5dlu", "p"));
@@ -231,7 +243,15 @@ public class ImportFileSplitter extends CustomDialog
 			UIRegistry.displayErrorDlg(UIRegistry.getResourceString("ImportFileSplitter.InvalidFileName")); 
 			return;
 		}
-		chunkFile(toChunk);
+		if (fileSize.getValue() > defaultChunkSize)
+		{
+			if (!UIRegistry.displayConfirmLocalized("ImportFileSplitter.BigLinesConfirmTitle",
+					"ImportFileSplitter.BigLinesConfirmMsg", "OK", "Cancel", JOptionPane.WARNING_MESSAGE))
+			{
+				return;
+			}
+		}
+		chunkFile(toChunk, fileSize.getValue());
 	}
 
 	
@@ -257,7 +277,7 @@ public class ImportFileSplitter extends CustomDialog
 	}
 
 
-	protected void chunkFile(final File toChunk)
+	protected void chunkFile(final File toChunk, final int aChunkSize)
 	{
 		if (!isXLS(toChunk) && !isCSV(toChunk))
 		{
@@ -287,8 +307,8 @@ public class ImportFileSplitter extends CustomDialog
 			POIFSFileSystem fs       = null;
 			HSSFWorkbook    workBook = null;
 			HSSFSheet       sheet    = null;
-			int             chunkSize = defaultChunkSize;
 			int             maxCols = 0;
+			int 			chunkSize = aChunkSize;
 			boolean         hasHeaders = headerChk.isSelected();
 			
 			protected void writeXLSChunk(final File toChunkArg, final HSSFWorkbook workBookOut, final int fileNum, final int numFiles,
@@ -347,8 +367,8 @@ public class ImportFileSplitter extends CustomDialog
 					{
 						numRows--;
 					}
-					int				numFiles = numRows / defaultChunkSize;
-					int             leftover = numRows - (numFiles * defaultChunkSize);
+					int				numFiles = numRows / aChunkSize;
+					int             leftover = numRows - (numFiles * aChunkSize);
 					numFiles++;
 					checkXLS();
 					boolean go = false;
@@ -357,7 +377,7 @@ public class ImportFileSplitter extends CustomDialog
 						go = UIRegistry.displayConfirm(UIRegistry.getResourceString("ImportFileSplitter.FileInfoTitle"), 
 							String.format(UIRegistry.getResourceString("ImportFileSplitter.FileInfo"), 
 							numRows, numFiles-1, 
-							defaultChunkSize, leftover),
+							aChunkSize, leftover),
 							UIRegistry.getResourceString("OK"), UIRegistry.getResourceString("CANCEL"), JOptionPane.INFORMATION_MESSAGE);
 					}
 					if (!go || isCancelled())
@@ -499,14 +519,14 @@ public class ImportFileSplitter extends CustomDialog
 					{
 						numRows--;
 					}
-					int				numFiles = numRows / defaultChunkSize;
-					int             leftover = numRows - (numFiles * defaultChunkSize);
+					int				numFiles = numRows / aChunkSize;
+					int             leftover = numRows - (numFiles * aChunkSize);
 					numFiles++;
 					boolean go = UIRegistry.displayConfirm(UIRegistry.getResourceString("ImportFileSplitter.FileInfoTitle"), 
 							String.format(UIRegistry.getResourceString("ImportFileSplitter.FileInfo"), 
 							numRows, 
 							numFiles-1, 
-							defaultChunkSize, leftover),
+							aChunkSize, leftover),
 							UIRegistry.getResourceString("OK"), UIRegistry.getResourceString("CANCEL"), JOptionPane.INFORMATION_MESSAGE);
 					if (!go || isCancelled())
 					{
@@ -638,7 +658,7 @@ public class ImportFileSplitter extends CustomDialog
 						}
 						else if (!result.isCancelled())
 						{
-							UIRegistry.displayErrorDlg(StringUtils.isBlank(result.getMessage()) ? "Massive catastrophic total failure" : result.getMessage());
+							UIRegistry.displayErrorDlg(StringUtils.isBlank(result.getMessage()) ? "File could not be split." : result.getMessage());
 						}
 					}
 				}
@@ -773,8 +793,14 @@ public class ImportFileSplitter extends CustomDialog
         ImageIcon helpIcon = IconManager.getIcon("AppIcon",IconSize.Std16); //$NON-NLS-1$
         HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage());
         
+        //JDialog jd = new JDialog();
+        //jd.setModal(true);
+        //jd.setTitle("DRAG ME");
+        //UIHelper.centerAndShow(jd);
+        
 		ImportFileSplitter chunker = new ImportFileSplitter();
-		chunker.setCustomTitleBar(UIRegistry.getResourceString("ImportFileSplitter.Title"));
+		//chunker.setCustomTitleBar(UIRegistry.getResourceString("ImportFileSplitter.Title"));
+		chunker.setTitle(UIRegistry.getResourceString("ImportFileSplitter.Title"));
 		chunker.setIconImage(icon.getImage());
 		chunker.setHelpContext("slicer");
 		UIHelper.centerAndShow(chunker);
@@ -891,5 +917,87 @@ public class ImportFileSplitter extends CustomDialog
 		}
 		
 		
+	}
+	
+	private class PosIntTextField extends JTextField
+	{
+		private final int maxVal;
+		
+		/**
+		 * @param maxVal
+		 */
+		public PosIntTextField(int maxVal)
+		{
+			super();
+			this.maxVal = maxVal;
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.JTextField#createDefaultModel()
+		 */
+		protected Document createDefaultModel()
+		{
+			return new IntTextDocument();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.awt.Component#isValid()
+		 */
+		public boolean isValid()
+		{
+			try
+			{
+				Integer val = getValue();
+				return (val >= 1 && val <= maxVal);
+			} catch (NumberFormatException e)
+			{
+				return false;
+			}
+		}
+
+		/**
+		 * @return
+		 */
+		public int getValue()
+		{
+			try
+			{
+				if (getDocument() == null)
+				{
+					return 0;
+				}
+				return Integer.parseInt(getText());
+			} catch (NumberFormatException e)
+			{
+				return 0;
+			} 		
+		}
+		
+		/**
+		 * @author Tadmin
+		 *
+		 */
+		class IntTextDocument extends PlainDocument
+		{
+			public void insertString(int offs, String str, AttributeSet a)
+					throws BadLocationException
+			{
+				if (str == null)
+					return;
+				String oldString = getText(0, getLength());
+				String newString = oldString.substring(0, offs) + str
+						+ oldString.substring(offs);
+				try
+				{
+					Integer newVal = Integer.parseInt(newString + "0");
+					if (newVal >= 1 && newVal <= maxVal*10)
+					{
+						super.insertString(offs, str, a);
+					}
+				} catch (NumberFormatException e)
+				{
+				}
+			}
+		}
 	}
 }

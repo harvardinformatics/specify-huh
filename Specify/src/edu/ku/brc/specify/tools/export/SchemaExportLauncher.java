@@ -34,6 +34,7 @@ import edu.ku.brc.specify.datamodel.SpLocaleContainer;
 import edu.ku.brc.specify.tasks.QueryTask;
 import edu.ku.brc.specify.tasks.subpane.qb.QueryBldrPane;
 import edu.ku.brc.specify.tools.ireportspecify.IReportLauncher;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -90,9 +91,8 @@ public class SchemaExportLauncher implements DatabaseLoginListener
                                               getResourceString("Specify.LOGIN_USER_MISMATCH"),  //$NON-NLS-1$
                                               getResourceString("Specify.LOGIN_USER_MISMATCH_TITLE"),  //$NON-NLS-1$
                                               JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
             }
-        
+            System.exit(0);
         }
         //...end specify.restartApp snatch
         
@@ -134,10 +134,12 @@ public class SchemaExportLauncher implements DatabaseLoginListener
                     {
                     	maps = session.getDataList(SpExportSchemaMapping.class);
                     	Discipline disc = AppContextMgr.getInstance().getClassObject(Discipline.class);
+                    	//XXX CollectionScoping Issue!!! Collection coll = AppContextMgr.getInstance().getClassObject(Collection.class);
                     	for (int m = maps.size() - 1; m >= 0; m--)
                     	{
                     		SpExportSchemaMapping map = maps.get(m);
                     		if (!map.getSpExportSchema().getDiscipline().getId().equals(disc.getId()))
+                        	//XXX CollectionScoping Issue!!! if (!map.getCollectionMemberId().equals(coll.getId()))
                     		{
                     			maps.remove(m);
                     		}
@@ -250,6 +252,7 @@ public class SchemaExportLauncher implements DatabaseLoginListener
                     	frame.setTitle(UIRegistry.getResourceString("SchemaExportLauncher.DlgTitle"));
                     	frame.setContentPane(ep);
                     	frame.pack();
+                    	frame.setIconImage(IconManager.getImage(IconManager.makeIconName("SpecifyWhite32")).getImage());
                     	UIHelper.centerAndShow(frame);
                     }
                 }

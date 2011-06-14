@@ -19,7 +19,6 @@
 */
 package edu.ku.brc.specify.datamodel;
 
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -32,9 +31,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
@@ -56,6 +53,8 @@ import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.dbsupport.TypeCode;
 import edu.ku.brc.specify.dbsupport.TypeCodeItem;
+import edu.ku.brc.ui.CommandAction;
+import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -94,8 +93,11 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     protected String                        lastName;
     protected String                        middleInitial;
     protected String                        title;               // Mr., Mrs., Dr.
+    protected Byte                          dateType;
     protected Calendar                      dateOfBirth;
+    protected Byte                          dateOfBirthPrecision;   // Accurate to Year, Month, Day
     protected Calendar                      dateOfDeath;
+    protected Byte                          dateOfDeathPrecision;   // Accurate to Year, Month, Day
     protected String                        interests;
     protected String                        abbreviation;
     protected String                        initials;
@@ -126,9 +128,6 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
      
     protected Set<Address>                  addresses;
     protected Set<AgentVariant>             variants;
-    
-    protected Set<Discipline>               disciplines;
-
     
     /*
     protected Set<Project>                  projects;
@@ -188,6 +187,26 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     {
         this.agentId = agentId;
     }
+    
+    /**
+     * @param a
+     */
+    /*public Agent(final Agent a) throws CloneNotSupportedException
+    {
+        DataGetterForObj getter = new DataGetterForObj();
+        DataSetterForObj setter = new DataSetterForObj();
+        
+        for (Field field : Agent.class.getDeclaredFields())
+        {
+            Object val = getter.getFieldValue(a, field.getName());
+            if (!(val instanceof Set<?>))
+            {
+                setter.setFieldValue(this, field.getName(), val);
+            }
+        }
+        
+        cloneSets(a, this);
+    }*/
 
     // Initializer
     @Override
@@ -200,8 +219,11 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         lastName                  = null;
         middleInitial             = null;
         title                     = null;
+        dateType                  = null;
         dateOfBirth               = null;
+        dateOfBirthPrecision      = null;
         dateOfDeath               = null;
+        dateOfDeathPrecision      = null;
         interests                 = null;
         abbreviation              = null;
         initials                  = null;
@@ -218,7 +240,6 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         instContentContact        = null;
         collTechContact           = null;
         collContentContact        = null;
-        disciplines               = new HashSet<Discipline>();
         specifyUser               = null;
        
         // Agent
@@ -313,6 +334,16 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         this.agentId = agentId;
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        // Do not override this method
+        super.forceLoad();
+    }
+
     /**
      *
      */
@@ -375,10 +406,27 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     }
 
     /**
+     * @return the dateType
+     */
+    @Column(name = "DateType", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getDateType()
+    {
+        return dateType;
+    }
+
+    /**
+     * @param dateType the dateType to set
+     */
+    public void setDateType(Byte dateType)
+    {
+        this.dateType = dateType;
+    }
+
+    /**
      * @return the dateOfBirth
      */
     @Temporal(TemporalType.DATE)
-    @Column(name = "DateOfBirth")
+    @Column(name = "DateOfBirth", unique = false, nullable = true, insertable = true, updatable = true)
     public Calendar getDateOfBirth()
     {
         return dateOfBirth;
@@ -393,10 +441,27 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     }
 
     /**
+     * @return the dateOfBirthPrecision
+     */
+    @Column(name = "DateOfBirthPrecision", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getDateOfBirthPrecision()
+    {
+        return dateOfBirthPrecision;
+    }
+
+    /**
+     * @param dateOfBirthPrecision the dateOfBirthPrecision to set
+     */
+    public void setDateOfBirthPrecision(Byte dateOfBirthPrecision)
+    {
+        this.dateOfBirthPrecision = dateOfBirthPrecision;
+    }
+
+    /**
      * @return the dateOfDeath
      */
     @Temporal(TemporalType.DATE)
-    @Column(name = "DateOfDeath")
+    @Column(name = "DateOfDeath", unique = false, nullable = true, insertable = true, updatable = true)
     public Calendar getDateOfDeath()
     {
         return dateOfDeath;
@@ -408,6 +473,23 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
     public void setDateOfDeath(Calendar dateOfDeath)
     {
         this.dateOfDeath = dateOfDeath;
+    }
+
+    /**
+     * @return the dateOfDeathPrecision
+     */
+    @Column(name = "DateOfDeathPrecision", unique = false, nullable = true, insertable = true, updatable = true)
+    public Byte getDateOfDeathPrecision()
+    {
+        return dateOfDeathPrecision;
+    }
+
+    /**
+     * @param dateOfDeathPrecision the dateOfDeathPrecision to set
+     */
+    public void setDateOfDeathPrecision(Byte dateOfDeathPrecision)
+    {
+        this.dateOfDeathPrecision = dateOfDeathPrecision;
     }
 
     /**
@@ -683,31 +765,6 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
        this.division = division;
    }
 
-   /**
-     * @return the discipline
-     */
-   @ManyToMany(cascade = {}, fetch = FetchType.LAZY)
-   @JoinTable(name = "agent_discipline", joinColumns = 
-           { 
-               @JoinColumn(name = "AgentID", unique = false, nullable = false, insertable = true, updatable = false) 
-           }, 
-           inverseJoinColumns = 
-           { 
-               @JoinColumn(name = "DisciplineID", unique = false, nullable = false, insertable = true, updatable = false) 
-           })
-    public Set<Discipline> getDisciplines()
-    {
-        return disciplines;
-    }
-    
-    /**
-     * @param discipline the discipline to set
-     */
-    public void setDisciplines(Set<Discipline> disciplines)
-    {
-        this.disciplines = disciplines;
-    }
-    
     /**
     *  The Institution for Technical Contact.
     */
@@ -976,10 +1033,77 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         return DataObjFieldFormatMgr.getInstance().format(this, getClass());
     }
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.AttachmentOwnerIFace#getAttachmentReferences()
+     */
     @Transient
+    @Override
     public Set<AgentAttachment> getAttachmentReferences()
     {
         return agentAttachments;
+    }
+    
+    /**
+     * @param src
+     * @param dst
+     */
+    private void cloneSets(final Agent src, final Agent dst) throws CloneNotSupportedException
+    {
+        for (Address addr : src.addresses)
+        {
+            Address newAddr = (Address)addr.clone();
+            dst.addresses.add(newAddr);
+            newAddr.setAgent(dst);
+        }
+        
+        for (AgentVariant cObj : src.variants)
+        {
+            AgentVariant newObj = (AgentVariant)cObj.clone();
+            dst.variants.add(newObj);
+            cObj.setAgent(dst);
+        }
+        
+        for (AgentGeography cObj : src.agentGeographies)
+        {
+            AgentGeography newObj = (AgentGeography)cObj.clone();
+            dst.agentGeographies.add(newObj);
+            cObj.setAgent(dst);
+        }
+        
+        for (AgentSpecialty cObj : src.agentSpecialties)
+        {
+            AgentSpecialty newObj = (AgentSpecialty)cObj.clone();
+            dst.agentSpecialties.add(newObj);
+            cObj.setAgent(dst);
+        }
+        
+        for (Collector cObj : src.collectors)
+        {
+            Collector newObj = (Collector)cObj.clone();
+            dst.collectors.add(newObj);
+            cObj.setAgent(dst);
+        }
+        
+        for (GroupPerson cObj : src.members)
+        {
+            GroupPerson newObj = (GroupPerson)cObj.clone();
+            dst.members.add(newObj);
+            cObj.setMember(dst);
+        }
+        
+        for (GroupPerson cObj : src.groups)
+        {
+            GroupPerson newObj = (GroupPerson)cObj.clone();
+            dst.groups.add(newObj);
+            cObj.setGroup(dst);
+        }
+        
+        for (Agent cObj : src.orgMembers)
+        {
+            Agent newObj = (Agent)cObj.clone();
+            dst.orgMembers.add(newObj);
+            cObj.setOrganization(dst);
+        }
     }
     
     /* (non-Javadoc)
@@ -991,24 +1115,30 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
         Agent obj = (Agent)super.clone();
         
         obj.agentId = null;
-        obj.timestampCreated     = new Timestamp(System.currentTimeMillis());
-        obj.timestampModified    = timestampCreated;
         
+        initializeSets(obj);
+        
+        cloneSets(this, obj);
+        
+        return obj;
+    }
+    
+    /**
+     * @param obj
+     */
+    public static void initializeSets(final Agent obj)
+    {
         obj.orgMembers                = new HashSet<Agent>();
         obj.groups                    = new HashSet<GroupPerson>();
         obj.members                   = new HashSet<GroupPerson>();
         obj.collectors                = new HashSet<Collector>();
         
-        obj.disciplines               = new HashSet<Discipline>();
-       
         // Agent
-        obj.addresses                      = new HashSet<Address>();
-        obj.agentAttachments               = new HashSet<AgentAttachment>();
-        obj.variants                       = new HashSet<AgentVariant>();
-        obj.agentGeographies               = new HashSet<AgentGeography>();
-        obj.agentSpecialties               = new HashSet<AgentSpecialty>();
-        
-        return obj;
+        obj.addresses                 = new HashSet<Address>();
+        obj.agentAttachments          = new HashSet<AgentAttachment>();
+        obj.variants                  = new HashSet<AgentVariant>();
+        obj.agentGeographies          = new HashSet<AgentGeography>();
+        obj.agentSpecialties          = new HashSet<AgentSpecialty>();
     }
     
     /**
@@ -1024,26 +1154,33 @@ public class Agent extends DataModelObjBase implements java.io.Serializable,
      * @param user User that agents will point to
      * @param agents Agents that will all point to the given user
      */
-    public static void setUserAgent(final SpecifyUser user, final Discipline discipline)
+    public static void setUserAgent(final SpecifyUser user, final Division division)
     {
         
-        String sql = "SELECT a.AgentID FROM discipline d INNER JOIN agent_discipline ad ON d.UserGroupScopeId = ad.DisciplineID "+
-                     "INNER JOIN agent a ON ad.AgentID = a.AgentID "+
-                     "INNER JOIN specifyuser su ON a.SpecifyUserID = su.SpecifyUserID WHERE " +
-                     "d.UserGroupScopeId = " + discipline.getId() + " AND su.SpecifyUserID = " + user.getId();
+        String sql = "SELECT a.AgentID FROM agent AS a WHERE a.DivisionID = " + division.getId() + " AND a.SpecifyUserID = " + user.getId();
         
+        boolean notFndErr = false;
         userAgent = null;
-        Integer agentId = BasicSQLUtils.getCount(sql);
+        
+        Integer agentId = BasicSQLUtils.getCount(sql); // gets the AgentId
         if (agentId != null)
         {
             userAgent = getDataObj(Agent.class, agentId);
             if (userAgent == null)
             {
-                UIRegistry.showError("A user agent was not found for the SpecifyUser for discipline["+discipline.getName()+"] and Agent id ["+agentId+"]");
+                UIRegistry.showError("A user agent was not found for the SpecifyUser for division["+division.getName()+"] and Agent id ["+agentId+"]");
+                notFndErr = true;
             }
         } else
         {
-            UIRegistry.showError("A user agent was not found for the SpecifyUser for discipline["+discipline.getName()+"]");
+            UIRegistry.showError("A user agent was not found for the SpecifyUser for division["+division.getName()+"]");
+            notFndErr = true;
+        }
+        
+        if (notFndErr)
+        {
+            UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+            CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit"));
         }
     }
     

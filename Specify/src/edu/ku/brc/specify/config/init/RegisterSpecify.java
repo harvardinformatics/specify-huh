@@ -206,6 +206,8 @@ public class RegisterSpecify
     public static Institution setHasBeenAsked()
     {
         Institution inst = AppContextMgr.getInstance().getClassObject(Institution.class);
+        inst = (Institution)DataModelObjBase.getDataObj(Institution.class, ((DataModelObjBase)inst).getId());
+        
         inst.setHasBeenAsked(true);
         inst = getInstance().update(Institution.class, inst);
         return inst;
@@ -454,8 +456,8 @@ public class RegisterSpecify
      * @return an array of POST parameters
      */
     private NameValuePair[] createPostParameters(final RegisterType regType, 
-                                                          final boolean isAnonymous,
-                                                          final boolean isForISANumber)
+                                                 final boolean isAnonymous,
+                                                 final boolean isForISANumber)
     {
         Vector<NameValuePair> postParams = new Vector<NameValuePair>();
 
@@ -464,11 +466,14 @@ public class RegisterSpecify
         postParams.add(new NameValuePair("id", installID)); //$NON-NLS-1$
 
         // get the OS name and version
-        postParams.add(new NameValuePair("reg_type",     regType.toString()));
-        postParams.add(new NameValuePair("os_name",      System.getProperty("os.name"))); //$NON-NLS-1$
-        postParams.add(new NameValuePair("os_version",   System.getProperty("os.version"))); //$NON-NLS-1$
-        postParams.add(new NameValuePair("java_version", System.getProperty("java.version"))); //$NON-NLS-1$
-        postParams.add(new NameValuePair("java_vendor",  System.getProperty("java.vendor"))); //$NON-NLS-1$
+        postParams.add(new NameValuePair("reg_type",     regType.toString()));//$NON-NLS-1$
+        postParams.add(new NameValuePair("os_name",      System.getProperty("os.name"))); //$NON-NLS-1$ $NON-NLS-2$
+        postParams.add(new NameValuePair("os_version",   System.getProperty("os.version"))); //$NON-NLS-1$ $NON-NLS-2$
+        postParams.add(new NameValuePair("java_version", System.getProperty("java.version"))); //$NON-NLS-1$ $NON-NLS-2$
+        postParams.add(new NameValuePair("java_vendor",  System.getProperty("java.vendor"))); //$NON-NLS-1$ $NON-NLS-2$
+        postParams.add(new NameValuePair("is_anonymous", Boolean.toString(isAnonymous))); //$NON-NLS-1$
+        postParams.add(new NameValuePair("is_isa_anonymous", Boolean.toString(isAnonymous))); //$NON-NLS-1$
+
         
         //postParams.add(new NameValuePair("user_name",    System.getProperty("user.name"))); //$NON-NLS-1$
 
@@ -480,7 +485,7 @@ public class RegisterSpecify
         
         if (isForISANumber)
         {
-            postParams.add(new NameValuePair("reg_isa",  "true")); //$NON-NLS-1$
+            postParams.add(new NameValuePair("reg_isa",  "true")); //$NON-NLS-1$  $NON-NLS-2$
             postParams.add(new NameValuePair("reg_number",  collection.getRegNumber())); //$NON-NLS-1$
         }
         
@@ -514,6 +519,7 @@ public class RegisterSpecify
                 postParams.add(new NameValuePair("Institution_number", fixParam(inst.getRegNumber()))); //$NON-NLS-1$
                 postParams.add(new NameValuePair("Division_number",    fixParam(division.getRegNumber()))); //$NON-NLS-1$
                 postParams.add(new NameValuePair("Discipline_number",  fixParam(discipline.getRegNumber()))); //$NON-NLS-1$
+                postParams.add(new NameValuePair("Collection_number",  fixParam(collection.getRegNumber()))); //$NON-NLS-1$
                 if (!isAnonymous)
                 {
                     postParams.add(new NameValuePair("Discipline_type", fixParam(discipline.getType()))); //$NON-NLS-1$
@@ -549,9 +555,34 @@ public class RegisterSpecify
     /**
      * Registers the Institution and makes it be not Anonymous anymore.
      */
-    public static void register(final boolean forceRegistration)
+    public static void register(final boolean forceRegistration, final int delayInSecs)
     {
-        getInstance().registerInternal(forceRegistration);
+        if (delayInSecs == 0)
+        {
+            getInstance().registerInternal(forceRegistration);
+        } else {
+            javax.swing.SwingWorker<Object, Object> worker  = new javax.swing.SwingWorker<Object, Object>()
+            {
+                @Override
+                protected Object doInBackground() throws Exception
+                {
+                    try
+                    {
+                        Thread.sleep(delayInSecs * 1000);
+                    } catch (InterruptedException ex) {}
+                    return null;
+                }
+
+                @Override
+                protected void done()
+                {
+                    getInstance().registerInternal(forceRegistration);
+                    super.done();
+                }
+                
+            };
+            worker.execute();
+        }
     }
 
     /**

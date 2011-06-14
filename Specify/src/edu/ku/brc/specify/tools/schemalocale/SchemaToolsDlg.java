@@ -19,11 +19,12 @@
 */
 package edu.ku.brc.specify.tools.schemalocale;
 
-import static edu.ku.brc.ui.UIHelper.createButton;
+import static edu.ku.brc.ui.UIHelper.*;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.HeadlessException;
@@ -40,6 +41,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -50,6 +52,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.betwixt.XMLIntrospector;
 import org.apache.commons.betwixt.io.BeanWriter;
+import org.apache.commons.lang.StringUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -63,6 +66,10 @@ import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpLocaleContainer;
+import edu.ku.brc.specify.utilapps.BuildSampleDatabase;
+import static edu.ku.brc.specify.utilapps.BuildSampleDatabase.UpdateType;
+import edu.ku.brc.ui.CommandAction;
+import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CustomDialog;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
@@ -78,10 +85,13 @@ import edu.ku.brc.ui.dnd.SimpleGlassPane;
  */
 public class SchemaToolsDlg extends CustomDialog
 {
-    protected JButton      editSchemaBtn      = createButton(getResourceString("SL_EDIT_SCHEMA"));
-    protected JButton      removeLocaleBtn    = createButton(getResourceString("SL_REMOVE_SCHEMA_LOC"));
-    protected JButton      exportSchemaLocBtn = createButton(getResourceString("SL_EXPORT_SCHEMA_LOC"));
-    protected JButton      importSchemaLocBtn = createButton(getResourceString("SL_IMPORT_SCHEMA_LOC"));
+    private static final String SL_CHS_LOC = "SL_CHS_LOC";
+    private static final String SL_CHS_IMP = "SL_CHS_IMP";
+    
+    protected JButton      editSchemaBtn        = createI18NButton("SL_EDIT_SCHEMA");
+    protected JButton      removeLocaleBtn      = createI18NButton("SL_REMOVE_SCHEMA_LOC");
+    protected JButton      exportSchemaLocBtn   = createI18NButton("SL_EXPORT_SCHEMA_LOC");
+    protected JButton      importSchemaLocBtn   = createI18NButton("SL_IMPORT_SCHEMA_LOC");
     protected JList        localeList;
     protected Byte         schemaType;
     protected DBTableIdMgr tableMgr;
@@ -113,7 +123,8 @@ public class SchemaToolsDlg extends CustomDialog
         
         super.createUI();
         
-
+        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        
         Vector<DisplayLocale> localeDisplays = new Vector<DisplayLocale>();
         for (Locale locale : SchemaLocalizerDlg.getLocalesInUseInDB(schemaType))
         {
@@ -130,10 +141,10 @@ public class SchemaToolsDlg extends CustomDialog
         builder.add(sp, cc.xywh(1,3,3,1));
         
         builder.addSeparator(getResourceString("SL_TASKS"), cc.xywh(1, 5, 3, 1));
-        builder.add(editSchemaBtn,      cc.xy(1,7));
-        builder.add(removeLocaleBtn,    cc.xy(3,7));
-        builder.add(exportSchemaLocBtn, cc.xy(1,9));
-        builder.add(importSchemaLocBtn, cc.xy(3,9));
+        builder.add(editSchemaBtn,        cc.xy(1,7));
+        builder.add(removeLocaleBtn,      cc.xy(3,7));
+        builder.add(exportSchemaLocBtn,   cc.xy(1,9));
+        builder.add(importSchemaLocBtn,   cc.xy(3,9));
         
         builder.setDefaultDialogBorder();
         
@@ -186,7 +197,7 @@ public class SchemaToolsDlg extends CustomDialog
 
             public void actionPerformed(ActionEvent arg0)
             {
-                JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), getResourceString("SL_NOT_IMPLEMENTED"));
+                chooseImportType();
             }
         });
         
@@ -200,7 +211,9 @@ public class SchemaToolsDlg extends CustomDialog
     {
         
         editSchemaBtn.setEnabled(enable);
-        removeLocaleBtn.setEnabled(localeList.getModel().getSize() > 1);
+        // XXX Fix Me when remove is implemented.
+        //removeLocaleBtn.setEnabled(localeList.getModel().getSize() > 1);
+        removeLocaleBtn.setEnabled(false);
         exportSchemaLocBtn.setEnabled(enable);
     }
 
@@ -259,6 +272,114 @@ public class SchemaToolsDlg extends CustomDialog
         });
     }
     
+    private void chooseImportType()
+    {
+        int rv = UIRegistry.askYesNoLocalized(SL_CHS_IMP, SL_CHS_LOC, getResourceString("SL_CHOOSEIMPMSG"), "SL_CHOOSEIMPMSG_TITLE");
+        if (rv == JOptionPane.YES_OPTION || rv == JOptionPane.NO_OPTION)
+        {
+            importSchema(rv == JOptionPane.NO_OPTION);
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void importSchema(final boolean doLocalization)
+    {
+        FileDialog fileDlg = new FileDialog((Dialog)null);
+        fileDlg.setTitle(getResourceString(doLocalization ? SL_CHS_LOC : SL_CHS_IMP));
+        UIHelper.centerAndShow(fileDlg);
+        
+        String fileName = fileDlg.getFile();
+        if (StringUtils.isNotEmpty(fileName))
+        {
+            String title = getResourceString(doLocalization ? "SL_L10N_SCHEMA" : "SL_IMPORT_SCHEMA");
+            
+            final File            file      = new File(fileDlg.getDirectory() + File.separator + fileName);
+            final SimpleGlassPane glassPane = new SimpleGlassPane(title, 18);
+            glassPane.setBarHeight(12);
+            glassPane.setFillColor(new Color(0, 0, 0, 85));
+            
+            setGlassPane(glassPane);
+            glassPane.setVisible(true);
+            
+            SwingWorker<Integer, Integer> importWorker = new SwingWorker<Integer, Integer>()
+            {
+                private boolean isOK = false;
+                @Override
+                protected Integer doInBackground() throws Exception
+                {
+                    DataProviderSessionIFace localSession = null;
+                    try
+                    {
+                        localSession = DataProviderFactory.getInstance().createSession();
+                        
+                        localSession.beginTransaction();
+                        
+                        BuildSampleDatabase bsd = new BuildSampleDatabase();
+                        
+                        Discipline discipline = localSession.get(Discipline.class, AppContextMgr.getInstance().getClassObject(Discipline.class).getId());
+                        
+                        isOK = bsd.loadSchemaLocalization(discipline, 
+                                                            schemaType, 
+                                                            DBTableIdMgr.getInstance(),
+                                                            null, //catFmtName,
+                                                            null, //accFmtName,
+                                                            doLocalization ? UpdateType.eLocalize : UpdateType.eImport, // isDoingUpdate
+                                                            file, // external file
+                                                            glassPane,
+                                                            localSession);
+                        if (isOK)
+                        {
+                            localSession.commit();
+                        } else
+                        {
+                            localSession.rollback();
+                        }
+                        
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                        edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(BuildSampleDatabase.class, ex);
+                        
+                    } finally 
+                    {
+                        if (localSession != null)
+                        {
+                            localSession.close();
+                        }
+                    }
+
+                    return null;
+                }
+
+                @Override
+                protected void done()
+                {
+                    super.done();
+                    
+                    glassPane.setVisible(false);
+                    
+                    if (isOK)
+                    {
+                        UIRegistry.showLocalizedMsg("Specify.ABT_EXIT");
+                        CommandDispatcher.dispatch(new CommandAction("App", "AppReqExit"));
+                    }
+                }
+            };
+            importWorker.addPropertyChangeListener(
+                    new PropertyChangeListener() {
+                        public  void propertyChange(final PropertyChangeEvent evt) {
+                            if (evt.getPropertyName().equals("progress")) 
+                            {
+                                glassPane.setProgress((Integer)evt.getNewValue());
+                            }
+                        }
+                    });
+            importWorker.execute();
+        }
+    }
+    
     /**
      * 
      */
@@ -282,7 +403,7 @@ public class SchemaToolsDlg extends CustomDialog
             final File    outFile = new File(dlg.getDirectory() + File.separator + fileName);
             //final File    outFile = new File("xxx.xml");
         
-            final SimpleGlassPane glassPane = new SimpleGlassPane("Exporting Schema...", 18);
+            final SimpleGlassPane glassPane = new SimpleGlassPane(getResourceString("SL_EXPORT_SCHEMA"), 18);
             glassPane.setBarHeight(12);
             glassPane.setFillColor(new Color(0, 0, 0, 85));
             
@@ -300,9 +421,9 @@ public class SchemaToolsDlg extends CustomDialog
                     {
                         session = DataProviderFactory.getInstance().createSession();
                         
-                        String sql = "FROM SpLocaleContainer WHERE disciplineId = "+ AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
+                        int    dispId = AppContextMgr.getInstance().getClassObject(Discipline.class).getDisciplineId();
+                        String sql    = String.format("FROM SpLocaleContainer WHERE disciplineId = %d AND schemaType = %d", dispId, schemaType);
                         List<SpLocaleContainer> spContainers = (List<SpLocaleContainer>)session.getDataList(sql);
-
                         try
                         {
                             FileWriter fw   = new FileWriter(outFile);
@@ -325,6 +446,14 @@ public class SchemaToolsDlg extends CustomDialog
                                 // force Load of lazy collections
                                 container.getDescs().size();
                                 container.getNames().size();
+                                
+                                // Leaving this Code as an example of specifying the bewtixt file.
+                                /*InputStream inputStream = Specify.class.getResourceAsStream("datamodel/SpLocaleContainer.betwixt");
+                                //InputStream inputStream = Specify.class.getResourceAsStream("/edu/ku/brc/specify/tools/schemalocale/SpLocaleContainer.betwixt");
+                                InputSource inputSrc    = new InputSource(inputStream); 
+                                beanWriter.write(container, inputSrc);
+                                inputStream.close(); */
+                                
                                 beanWriter.write(container);
                                 
                                 total += step;

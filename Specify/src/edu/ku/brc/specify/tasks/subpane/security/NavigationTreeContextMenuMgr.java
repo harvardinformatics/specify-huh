@@ -37,10 +37,12 @@ import javax.swing.tree.TreePath;
 import org.apache.commons.lang.StringUtils;
 
 import edu.ku.brc.af.auth.specify.principal.AdminPrincipal;
+import edu.ku.brc.af.auth.specify.principal.GroupPrincipal;
+import edu.ku.brc.af.core.AppContextMgr;
 import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
-import edu.ku.brc.specify.datamodel.Collection;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.SpPrincipal;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.ui.UIHelper;
@@ -115,14 +117,16 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                if (getTreeMgr().canDeleteUser(lastClickComp))
+                boolean isDoingDelete = delUserBtn.getToolTipText().equals(getResourceString("SEC_DEL_USR_GRP"));
+                
+                if (isDoingDelete && getTreeMgr().canDeleteUser(lastClickComp))
                 {
                     if (UIHelper.promptForAction("DELETE", "CANCEL", "SEC_ASKDELUSR_TITLE", getResourceString("SEC_ASKDELUSR")))
                     {
                         getTreeMgr().deleteUser(lastClickComp);
                     }
                     
-                } else if (getTreeMgr().canRemoveUserFromGroup(lastClickComp))
+                } else if (!isDoingDelete && getTreeMgr().canRemoveUserFromGroup(lastClickComp))
                 {
                     if (UIHelper.promptForAction("REMOVE", "CANCEL", "SEC_ASKRMUSRGRP_TITLE", getResourceString("SEC_ASKRMUSRGRP")))
                     {
@@ -155,14 +159,29 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
     
             if (dmObject instanceof SpecifyUser)
             {
-                SpecifyUser spu = (SpecifyUser)dmObject;
+                SpecifyUser specifyUser = (SpecifyUser)dmObject;
                 
                 addUserBtn.setEnabled(false);
                 addExtUserBtn.setEnabled(false);
-                
+
+                String sqlFmt = "SELECT COUNT(*) FROM spprincipal Inner Join specifyuser_spprincipal ON spprincipal.SpPrincipalID = specifyuser_spprincipal.SpPrincipalID " + 
+                                "Inner Join specifyuser ON specifyuser_spprincipal.SpecifyUserID = specifyuser.SpecifyUserID WHERE GroupSubClass = '%s'";
+
                 boolean isLastAdminUser = false;
                 boolean isParentMgrGrp  = false;
-                boolean isUserInAdmGrp  = spu.isInAdminGroup();
+                boolean isParentAdmGrp  = false;
+                
+                String sql = String.format(sqlFmt, AdminPrincipal.class.getCanonicalName());
+                sql += " AND specifyuser.SpecifyUserID = " + specifyUser.getId();
+                boolean isUserInAdmGrp = BasicSQLUtils.getCountAsInt(sql) > 0;
+                
+                sql = String.format(sqlFmt, AdminPrincipal.class.getCanonicalName());
+                int allAdminUsersCnt = BasicSQLUtils.getCountAsInt(sql); // count of all adminusers
+                
+                sql = String.format(sqlFmt, GroupPrincipal.class.getCanonicalName());
+                sql += " AND specifyuser.SpecifyUserID = " + specifyUser.getId();
+                int grpUserCnt = BasicSQLUtils.getCountAsInt(sql); // count of groups for this user
+                
                 DefaultMutableTreeNode parentTreeNode = (DefaultMutableTreeNode)lastClickComp.getParent();
                 if (parentTreeNode != null)
                 {
@@ -172,37 +191,43 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
                         SpPrincipal parentsPrin = (SpPrincipal)(pWrapper.getDataObj() instanceof SpPrincipal ? pWrapper.getDataObj() : null); 
                         if (parentsPrin != null)
                         {
-                            boolean isInAdminGrp = AdminPrincipal.class.getCanonicalName().equals(parentsPrin.getGroupSubClass());
-                            isLastAdminUser = parentsPrin.getSpecifyUsers().size() == 1 && isInAdminGrp;
-                            isParentMgrGrp     = parentsPrin.getGroupType() != null && parentsPrin.getGroupType().equals("Manager");
-                            //System.out.println("Parent is Admin Grp: " + isInAdminGrp + "  Is Last Admin: " + isLastAdminUser + "  Parent is Mgr: "+(parentsPrin.getGroupType() != null ? parentsPrin.getGroupType().equals("Manager") : "null") +"  User In AdminGrp: "+ spu.isInAdminGroup());
+                            isLastAdminUser = allAdminUsersCnt == 1;
+                            isParentMgrGrp  = parentsPrin.getGroupType() != null && parentsPrin.getGroupType().equals("Manager");
+                            isParentAdmGrp  =  parentsPrin.getGroupSubClass().equals(AdminPrincipal.class.getCanonicalName());
                         }
                     }
                 }
                 
                 addToAdminBtn.setEnabled(isParentMgrGrp && !isUserInAdmGrp);
     
-                if (!isLastAdminUser)
+                String toolTip = "";
+                boolean canDelUser = !isUserInAdmGrp && grpUserCnt == 1;
+                boolean canRemUser;
+                if (isUserInAdmGrp && isParentAdmGrp)
                 {
-                    String toolTip = "";
-                    boolean canDelUser = getTreeMgr().canDeleteUser(lastClickComp);
-                    boolean canRemUser = getTreeMgr().canRemoveUserFromGroup(lastClickComp);
-                    if (canDelUser)
-                    {
-                        toolTip = "SEC_DEL_USR_GRP";
-                        
-                    } else if (canRemUser)
-                    {
-                        toolTip = "SEC_RM_USR_GRP";
-                    }
-                    delUserBtn.setEnabled(canDelUser || canRemUser);
-                    delUserBtn.setToolTipText(StringUtils.isNotEmpty(toolTip) ? getResourceString(toolTip) : null);
+                    canRemUser = allAdminUsersCnt > 1 && (grpUserCnt > 1 || !isLastAdminUser);
+                    
                 } else
                 {
-                    delUserBtn.setEnabled(false);
-                    delUserBtn.setToolTipText(null);
+                    canRemUser = grpUserCnt > 1;
+                    if (canRemUser && dmObject instanceof SpecifyUser)
+                    {
+                        SpecifyUser spUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
+                        canRemUser = !((SpecifyUser)dmObject).getId().equals(spUser.getId());
+                    }
                 }
                 
+                if (canDelUser)
+                {
+                    toolTip = "SEC_DEL_USR_GRP";
+                    
+                } else if (canRemUser)
+                {
+                    toolTip = "SEC_RM_USR_GRP";
+                }
+                delUserBtn.setEnabled(canDelUser || canRemUser);
+                delUserBtn.setToolTipText(StringUtils.isNotEmpty(toolTip) ? getResourceString(toolTip) : null);
+                    
             } else if (dmObject instanceof SpPrincipal)
             {
                 boolean enable = getTreeMgr().canAddNewUser(lastClickComp);
@@ -210,9 +235,13 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
                 addExtUserBtn.setEnabled(enable);
                 delUserBtn.setEnabled(false);
                 
-            } else if (dmObject instanceof Collection)
+            } else //if (dmObject instanceof Collection)
             {
                 // object is a collection: offer to add new group and to delete the collection
+                boolean enable = getTreeMgr().canAddNewUser(lastClickComp);
+                addUserBtn.setEnabled(enable);
+                addExtUserBtn.setEnabled(enable);
+                delUserBtn.setEnabled(false);
             }
         } else
         {
@@ -307,7 +336,7 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
                         adminPrin = (SpPrincipal)session.getData(SpPrincipal.class, "name", "Administrator", DataProviderSessionIFace.CompareType.Equals);
                         if (adminPrin != null)
                         {
-                            SpecifyUser spUser = (SpecifyUser)dmObject;
+                            SpecifyUser spUser = session.get(SpecifyUser.class, ((SpecifyUser)dmObject).getId());
                             spUser.addUserToSpPrincipalGroup(adminPrin);
                             
                             session.beginTransaction();
@@ -323,6 +352,8 @@ public class NavigationTreeContextMenuMgr extends MouseAdapter implements TreeSe
                             model.nodeChanged(adminNode);
                             model.nodeChanged(newNode);
                             getTree().repaint();
+                            
+                            getTree().setSelectionPath(new TreePath(newNode.getPath()));
                             
                             lastClickComp = null;
                             updateBtnUI();

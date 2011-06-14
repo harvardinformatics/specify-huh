@@ -24,13 +24,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.specify.datamodel.Attachment;
 import edu.ku.brc.specify.datamodel.ObjectAttachmentIFace;
@@ -46,8 +46,9 @@ import edu.ku.brc.util.thumbnails.Thumbnailer;
  */
 public class AttachmentUtils
 {
-    protected static AttachmentManagerIface attachMgr;
-    protected static Thumbnailer            thumbnailer;
+    private static final Logger           log              = Logger.getLogger(AttachmentUtils.class);
+    private static AttachmentManagerIface attachMgr;
+    private static Thumbnailer            thumbnailer;
     
     /**
      * @return the manager
@@ -113,30 +114,55 @@ public class AttachmentUtils
      */
     public static boolean isAttachmentDirMounted(final File attachmentLocation)
     {
+        String fullPath = "";
+        String statsMsg = "The test to write to the AttachmentLocation [%s] %s.";
         try
         {
-            if (attachmentLocation.exists() && attachmentLocation.isDirectory())
+            fullPath = attachmentLocation.getCanonicalPath();
+            
+            if (attachmentLocation.exists())
             {
-                File tmpFile = new File(attachmentLocation.getAbsoluteFile() + File.separator + System.currentTimeMillis() + System.getProperty("user.name"));
-                if (tmpFile.createNewFile())
+                if (attachmentLocation.isDirectory())
                 {
-                    // I don't think I need this anymore
-                    FileOutputStream fos = FileUtils.openOutputStream(tmpFile);
-                    fos.write(1);
-                    fos.close();
-                    tmpFile.delete();
-                    return true;
+                    File tmpFile = new File(attachmentLocation.getAbsoluteFile() + File.separator + System.currentTimeMillis() + System.getProperty("user.name"));
+                    //log.debug(String.format("Trying to write a file to AttachmentLocation [%s]", tmpFile.getCanonicalPath()));
+                    if (tmpFile.createNewFile())
+                    {
+                        // I don't think I need this anymore
+                        FileOutputStream fos = FileUtils.openOutputStream(tmpFile);
+                        fos.write(1);
+                        fos.close();
+                        tmpFile.delete();
+                        
+                        //log.debug(String.format(statsMsg, fullPath, "succeeded"));
+                        
+                        return true;
+                        
+                    } else
+                    {
+                        log.error(String.format("The Attachment Location [%s] atachment file couldn't be created", fullPath));
+                    }
+                } else
+                {
+                    log.error(String.format("The Attachment Location [%s] is not a directory.", fullPath));
                 }
+            } else
+            {
+                log.error(String.format("The Attachment Location [%s] doesn't exist.", fullPath));
             }
+            
         } catch (Exception ex)
         {
             ex.printStackTrace();
         }
+        
+        log.debug(String.format(statsMsg, fullPath, "failed"));
+        
         return false;
     }
     
     /**
-     * @return the actionlister for when things need to be displayed
+     * @return the actionlistener for when things need to be displayed
      */
     public static ActionListener getAttachmentDisplayer()
     {
@@ -145,7 +171,7 @@ public class AttachmentUtils
             public void actionPerformed(ActionEvent e)
             {
                 Object source = e.getSource();
-                if (!(source instanceof Attachment) && !(source instanceof ObjectAttachmentIFace))
+                if (!(source instanceof Attachment) && !(source instanceof ObjectAttachmentIFace<?>))
                 {
                     throw new IllegalArgumentException("Passed object must be an Attachment or ObjectAttachmentIFace");
                 }
@@ -168,20 +194,26 @@ public class AttachmentUtils
                     original = new File(origFile);
                 }
 
-                try
+                String errMsg = null;
+                if (original != null && original.exists())
                 {
-                    if (original != null && original.exists())
+                    try
                     {
                         Desktop.getDesktop().open(original);
-                    } else
+                        
+                    } catch (java.io.IOException ex)
                     {
-                        UIRegistry.showLocalizedMsg("AttachmentUtils.ANF_TITLE", "AttachmentUtils.ANF", 
-                                attachMgr.getDirectory() != null ? attachMgr.getDirectory().getAbsoluteFile() : "N/A");
+                        errMsg = ex.getMessage();
+                        ex.printStackTrace();
                     }
-                }
-                catch (IOException e1)
+                } else
                 {
-                    e1.printStackTrace();
+                    errMsg = attachMgr.getDirectory() != null ? attachMgr.getDirectory().getAbsolutePath() : "N/A";
+                }
+                
+                if (errMsg != null)
+                {
+                    UIRegistry.showLocalizedMsg("AttachmentUtils.ANF_TITLE", "AttachmentUtils.ANF", errMsg);
                 }
             }
         };
@@ -201,7 +233,10 @@ public class AttachmentUtils
         }
         
         MimetypesFileTypeMap mimeMap = (MimetypesFileTypeMap)FileTypeMap.getDefaultFileTypeMap();
+        mimeMap.addMimeTypes("image/tif    tif");
+        mimeMap.addMimeTypes("image/tif    TIF");
         mimeMap.addMimeTypes("image/png    png");
+        mimeMap.addMimeTypes("image/png    PNG");
         mimeMap.addMimeTypes("application/vnd.google-earth.kml+xml kml");
 
         return mimeMap.getContentType(filename);

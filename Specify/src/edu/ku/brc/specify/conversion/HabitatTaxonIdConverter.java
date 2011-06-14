@@ -82,9 +82,9 @@ public class HabitatTaxonIdConverter
         Statement         stmt  = null;
         try
         {
-            updateStmt   = newDBConn.prepareStatement("UPDATE collectionobjectattribute SET HostTaxonID=? WHERE CollectionObjectAttributeID = ?");
+            updateStmt   = newDBConn.prepareStatement("UPDATE collectionobjectattribute SET RelatedTaxonID=? WHERE CollectionObjectAttributeID = ?");
             coUpdateStmt = newDBConn.prepareStatement("UPDATE collectionobject SET CollectionObjectAttributeID=? WHERE CollectionObjectID = ?");
-            insertStmt   = newDBConn.prepareStatement("INSERT INTO collectionobjectattribute (TimestampCreated, TimestampModified, Version, HostTaxonID, CollectionMemberID) VALUES(?,?,?,?,?)");
+            insertStmt   = newDBConn.prepareStatement("INSERT INTO collectionobjectattribute (TimestampCreated, TimestampModified, Version, RelatedTaxonID, CollectionMemberID) VALUES(?,?,?,?,?)");
             stmt         = oldDBConn.createStatement();
             
             

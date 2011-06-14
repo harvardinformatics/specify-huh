@@ -20,6 +20,8 @@
 package edu.ku.brc.specify.config.init;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
@@ -33,6 +35,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import edu.ku.brc.ui.UIHelper;
+import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
 /**
@@ -45,9 +48,12 @@ import edu.ku.brc.util.Pair;
  */
 public class SummaryPanel extends BaseSetupPanel
 {
+    public static final String           PRINT_GRID          = "RPT.PrintTable";
+
     protected Vector<BaseSetupPanel> panels;
     protected JTable                 table;
-    protected DefaultTableModel      model;  
+    
+    protected JTable                 printTable;
     
     /**
      * @param panelName
@@ -63,15 +69,29 @@ public class SummaryPanel extends BaseSetupPanel
         
         this.panels = panels;
         
-        table = new JTable();
-        model = new DefaultTableModel();
-        //table.setDefaultRenderer(String.class, new BiColorTableCellRenderer(false));
-
+        table      = new JTable();
+        printTable = new JTable();
         
         CellConstraints cc = new CellConstraints();
-        PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"), this);
+        PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g,10px,p"), this);
         
         pb.add(UIHelper.createScrollPane(table), cc.xy(1, 1));
+        
+        JButton printBtn = UIHelper.createI18NButton("PRINT");
+        PanelBuilder lpb = new PanelBuilder(new FormLayout("f:p:g,p", "p"));
+        lpb.add(printBtn, cc.xy(2,1));
+        
+        pb.add(lpb.getPanel(), cc.xy(1, 3));
+        
+        printBtn.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                PrintTableHelper pth = new PrintTableHelper(printTable);
+                pth.printGrid(UIRegistry.getResourceString("SUMMARY"));
+            }
+        });
     }
     
     /* (non-Javadoc)
@@ -80,13 +100,15 @@ public class SummaryPanel extends BaseSetupPanel
     @Override
     public void doingNext()
     {
-        Vector<Pair<String, String>> values = new Vector<Pair<String,String>>();
+        Vector<Pair<String, String>> values      = new Vector<Pair<String,String>>();
+        Vector<Pair<String, String>> printValues = new Vector<Pair<String,String>>();
         for (BaseSetupPanel p : panels)
         {
             List<Pair<String, String>> list = p.getSummary();
             if (list != null)
             {
                 values.addAll(list);
+                printValues.addAll(list);
             }
             values.add(new Pair<String, String>("", ""));
         }
@@ -100,7 +122,26 @@ public class SummaryPanel extends BaseSetupPanel
             i++;
         }
         
-        table.setModel(new DefaultTableModel(valueObjs, new String[] {"Name", "Value"}));
+        i = 0;
+        Object[][] pValueObjs = new Object[printValues.size()][2];
+        for (Pair<String, String> p : printValues)
+        {
+            pValueObjs[i][0] = p.first;
+            pValueObjs[i][1] = p.second;
+            i++;
+        }
+        
+        String nameStr = UIRegistry.getResourceString("Name");
+        String valueStr = UIRegistry.getResourceString("Value");
+        
+        DefaultTableModel model = new DefaultTableModel(valueObjs, new String[] {nameStr, valueStr})
+        {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+            
+        };
+        table.setModel(model);
+        printTable.setModel(new DefaultTableModel(pValueObjs, new String[] {nameStr, valueStr}));
         
         UIHelper.makeTableHeadersCentered(table, false);
     }
@@ -155,5 +196,5 @@ public class SummaryPanel extends BaseSetupPanel
     public void updateBtnUI()
     {
     }
-
+    
 }

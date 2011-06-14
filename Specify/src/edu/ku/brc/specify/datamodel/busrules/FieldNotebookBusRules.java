@@ -20,6 +20,8 @@
 package edu.ku.brc.specify.datamodel.busrules;
 
 import edu.ku.brc.specify.datamodel.FieldNotebook;
+import edu.ku.brc.specify.datamodel.FieldNotebookPage;
+import edu.ku.brc.specify.datamodel.FieldNotebookPageSet;
 
 /**
  * @author rod
@@ -36,4 +38,25 @@ public class FieldNotebookBusRules extends AttachmentOwnerBaseBusRules
         super(FieldNotebook.class);
     }
 
+    
+    /**
+     * @param attOwner
+     */
+    @Override
+    protected void addExtraObjectForProcessing(final Object dObjAtt)
+    {
+        super.addExtraObjectForProcessing(dObjAtt);
+        
+        FieldNotebook fnb = (FieldNotebook)dObjAtt;
+        
+        for (FieldNotebookPageSet pageSet : fnb.getPageSets())
+        {
+            super.addExtraObjectForProcessing(pageSet);
+            
+            for (FieldNotebookPage page : pageSet.getPages())
+            {
+                super.addExtraObjectForProcessing(page);
+            }
+        }
+    }
 }

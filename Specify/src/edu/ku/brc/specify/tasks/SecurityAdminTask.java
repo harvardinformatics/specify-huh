@@ -26,8 +26,6 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -56,9 +54,12 @@ import edu.ku.brc.af.ui.PasswordStrengthUI;
 import edu.ku.brc.af.ui.db.ViewBasedDisplayDialog;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.validation.UIValidatable;
 import edu.ku.brc.af.ui.forms.validation.ValPasswordField;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
+import edu.ku.brc.specify.datamodel.Institution;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.tasks.subpane.security.SecurityAdminPane;
 import edu.ku.brc.specify.tasks.subpane.security.SecuritySummaryDlg;
@@ -162,9 +163,15 @@ public class SecurityAdminTask extends BaseTask
                 final ValPasswordField   verPwdVTF    = fvo.getCompById("3");
                 final PasswordStrengthUI pwdStrenthUI = fvo.getCompById("4");
                 
+                Institution institution = AppContextMgr.getInstance().getClassObject(Institution.class);
+                int minPwdLen = (int)institution.getMinimumPwdLength();
+                newPwdVTF.setMinLen(minPwdLen);
+                verPwdVTF.setMinLen(minPwdLen);
+                pwdStrenthUI.setMinPwdLen(minPwdLen);
+                
                 DocumentAdaptor da = new DocumentAdaptor() {
                     @Override
-                    protected void changed(DocumentEvent e)
+                    protected void changed(final DocumentEvent e)
                     {
                         super.changed(e);
                         
@@ -173,11 +180,13 @@ public class SecurityAdminTask extends BaseTask
                             @Override
                             public void run()
                             {
-                                boolean enabled = dlg.getOkBtn().isEnabled();
-                                String  pwdStr  = new String(newPwdVTF.getPassword());
-                                boolean pwdOK   = pwdStrenthUI.checkStrength(pwdStr);
                                 
-                                dlg.getOkBtn().setEnabled(enabled && pwdOK);
+                                String  pwdStr  = new String(newPwdVTF.getPassword());
+                                String  verStr  = new String(verPwdVTF.getPassword());
+                                boolean pwdOK   = pwdStrenthUI.checkStrength(pwdStr) &&
+                                                  pwdStr.equals(verStr) &&
+                                                  newPwdVTF.getState() == UIValidatable.ErrorType.Valid;
+                                dlg.getOkBtn().setEnabled(pwdOK);
                                 pwdStrenthUI.repaint();
                             }
                         });
@@ -207,7 +216,7 @@ public class SecurityAdminTask extends BaseTask
                 if (newPwd1.length() >= pwdLen)
                 {
                     SpecifyUser spUser    = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
-                    String      username  = spUser.getName();
+                    //String      username  = spUser.getName();
                     String      spuOldPwd = spUser.getPassword();
                     
                     String newEncryptedPwd = null;
@@ -230,10 +239,10 @@ public class SecurityAdminTask extends BaseTask
                     {
                         Pair<String, String> masterPwd = UserAndMasterPasswordMgr.getInstance().getUserNamePasswordForDB();
                         
-                        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(masterPwd.first, masterPwd.second, newPwd2);
+                        String encryptedMasterUP = UserAndMasterPasswordMgr.encrypt(masterPwd.first, masterPwd.second, newPwd2);
                         if (StringUtils.isNotEmpty(encryptedMasterUP))
                         {
-                            AppPreferences.getLocalPrefs().put(username+"_"+UserAndMasterPasswordMgr.MASTER_PATH, encryptedMasterUP);
+                            AppPreferences.getLocalPrefs().put(UserAndMasterPasswordMgr.getInstance().getMasterPrefPath(true), encryptedMasterUP);
                         } else
                         {
                             UIRegistry.writeTimedSimpleGlassPaneMsg(getResourceString(getKey("PWD_ERR_RTRV")), Color.RED);
@@ -254,15 +263,6 @@ public class SecurityAdminTask extends BaseTask
         }
     }
     
-    /* (non-Javadoc)
-     * @see edu.ku.brc.af.tasks.BaseTask#requestContext()
-     */
-    @Override
-    public void requestContext()
-    {
-        super.requestContext();
-    }
-
     /**
      * @param key
      * @return
@@ -302,7 +302,8 @@ public class SecurityAdminTask extends BaseTask
         // check whether user can see the security admin panel
         // other permissions will be checked when the panel is created 
         // XXX RELEASE
-        if (!AppContextMgr.isSecurityOn() || SecurityMgr.getInstance().checkPermission("Task." + SECURITY_ADMIN, BasicSpPermission.view)) //$NON-NLS-1$
+        String securityName = buildTaskPermissionName(SECURITY_ADMIN);
+        if (!AppContextMgr.isSecurityOn() || SecurityMgr.getInstance().checkPermission(securityName, BasicSpPermission.view)) //$NON-NLS-1$
         {
             // security tools menu item
             menuTitle = getKey("SECURITY_TOOLS_MENU"); //$NON-NLS-1$
@@ -336,7 +337,7 @@ public class SecurityAdminTask extends BaseTask
             public void actionPerformed(ActionEvent ae)
             {
                 SpecifyUser spUser = AppContextMgr.getInstance().getClassObject(SpecifyUser.class);
-                UserAndMasterPasswordMgr.getInstance().editMasterInfo(spUser.getName(), true);
+                UserAndMasterPasswordMgr.getInstance().editMasterInfo(spUser.getName(), DBConnection.getInstance().getDatabaseName(), true);
             }
         });
         MenuItemDesc mid = new MenuItemDesc(mi, UIHelper.isMacOS() ? "HELP" : "HELP/ABOUT", UIHelper.isMacOS() ? MenuItemDesc.Position.Bottom : MenuItemDesc.Position.Before); //$NON-NLS-1$ $NON-NLS-2$
@@ -360,26 +361,16 @@ public class SecurityAdminTask extends BaseTask
         return menuItems;
     }
     
-    
-    
     /* (non-Javadoc)
      * @see edu.ku.brc.af.tasks.BaseTask#getToolBarItems()
      */
     @Override
     public List<ToolBarItemDesc> getToolBarItems()
     {
-        // XXX RELEASE
-        if (!UIRegistry.isRelease())
+        String securityName = buildTaskPermissionName(SECURITY_ADMIN);
+        if (!AppContextMgr.isSecurityOn() || SecurityMgr.getInstance().checkPermission(securityName, BasicSpPermission.view)) //$NON-NLS-1$
         {
-            String  userName       = System.getProperty("user.name");
-            boolean addSecurityBtn = false;
-            try {
-                InetAddress addr = InetAddress.getLocalHost();
-                addSecurityBtn = addr.getHostAddress().startsWith("129.237");
-                
-            } catch (UnknownHostException e) {}
-            
-            if (addSecurityBtn || userName.startsWith("rod"))
+            if (AppPreferences.getLocalPrefs().getBoolean("SEC_TOOLBAR", false))
             {
                 toolbarItems = new Vector<ToolBarItemDesc>();
                 toolbarItems.add(new ToolBarItemDesc(createToolbarButton("Security", iconName, "")));
@@ -428,4 +419,44 @@ public class SecurityAdminTask extends BaseTask
                                 {false, false, false, false},
                                 {false, false, false, false}};
     }
+    
+    /*class PwdDocAdapter extends DocumentAdaptor
+    {
+        private CustomDialog       dlg;
+        private ValPasswordField   pwdField;
+        private boolean            doCheckLen;
+        private PasswordStrengthUI pwdStrenthUI;
+        
+        public PwdDocAdapter(final CustomDialog dlg, 
+                             final ValPasswordField pwdField, 
+                             final PasswordStrengthUI pwdStrenthUI,
+                             final boolean doCheckLen)
+        {
+            super();
+            this.dlg          = dlg;
+            this.pwdField     = pwdField;
+            this.pwdStrenthUI = pwdStrenthUI;
+            this.doCheckLen   = doCheckLen;
+        }
+                
+        @Override
+        protected void changed(DocumentEvent e)
+        {
+            super.changed(e);
+            
+            // Need to invoke later so the da gets to set the enabled state last.
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run()
+                {
+                    //boolean enabled = dlg.getOkBtn().isEnabled();
+                    //String  pwdStr  = new String(newPwdVTF.getPassword());
+                    //boolean pwdOK   = pwdStrenthUI.checkStrength(pwdStr);
+                    
+                    //dlg.getOkBtn().setEnabled(enabled && pwdOK);
+                    //pwdStrenthUI.repaint();
+                }
+            });
+        }
+    }*/
 }

@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.db.AutoNumberIFace;
 import edu.ku.brc.af.prefs.AppPrefsCache;
@@ -52,7 +53,7 @@ import edu.ku.brc.util.Pair;
  */
 public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
 {
-    //private static final Logger log = Logger.getLogger(UIFieldFormatter.class);
+    private static final Logger log = Logger.getLogger(UIFieldFormatter.class);
     protected static DateWrapper scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
     
     public static int[]            daysInMon = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
@@ -78,6 +79,7 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     
     protected Number               minValue = null;
     protected Number               maxValue = null;
+    protected Boolean              hasDash  = null;
     
     // Transient
 
@@ -576,9 +578,19 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
     @Override
     public String getNextNumber(String value)
     {
+        return getNextNumber(value, false);
+    }
+
+    
+    /* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#getNextNumber(java.lang.String, boolean)
+	 */
+	@Override
+	public String getNextNumber(String value, boolean incrementValue) 
+	{
         if (autoNumber != null)
         {
-            String number = autoNumber.getNextNumber(this, value);
+            String number = autoNumber.getNextNumber(this, value, incrementValue);
             if (number == null && autoNumber.isInError())
             {
                 UIRegistry.showError(autoNumber.getErrorMsg());
@@ -588,9 +600,9 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
             }
         }
         return null;
-    }
+	}
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.formatters.UIFieldFormatterIFace#formatInBound(java.lang.Object)
      */
     @Override
@@ -663,7 +675,12 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         str.append(" [");
         for (UIFieldFormatterField field : fields)
         {
-            str.append(field.getValue());
+            String val = field.getValue();
+            if (StringUtils.isEmpty(val))
+            {
+                val = field.getSample();
+            }
+            str.append(val);
         }
         str.append("]");
 
@@ -824,8 +841,16 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
         
         if (month != null)
         {
-            String val    = text.substring(monthInx, monthInx+month.getSize());
-            int    monVal = Integer.parseInt(val);
+            String val    = text.substring(monthInx, monthInx+month.getSize()).trim();
+            int    monVal = 0;
+            try
+            {
+                monVal = Integer.parseInt(val);
+            } catch (NumberFormatException ex)
+            {
+                log.debug(ex.toString());
+                return false;
+            }
             if (monVal < 1 || monVal > 12)
             {
                 return false;
@@ -899,6 +924,14 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
                                         return false;
                                     }
                                     break;
+                                    
+                                case year:
+                                    if (!StringUtils.isNumeric(val))
+                                    {
+                                        return false;
+                                    }
+                                    int year = Integer.parseInt(val);
+                                    return year > 0 && year < 2100;
                                     
                                 case constant:
                                 case separator:
@@ -1016,6 +1049,27 @@ public class UIFieldFormatter implements UIFieldFormatterIFace, Cloneable
 	{
 		this.type = type;
 	}
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#hasDash()
+     */
+    @Override
+    public boolean hasDash()
+    {
+        if (hasDash == null)
+        {
+            hasDash = false;
+            for (UIFieldFormatterField fld : getFields())
+            {
+                if ((fld.isSeparator() || fld.isConstant()) && fld.getValue().equals("-"))
+                {
+                    hasDash = true;
+                    break;
+                }
+            }
+        }
+        return hasDash;
+    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#clone()

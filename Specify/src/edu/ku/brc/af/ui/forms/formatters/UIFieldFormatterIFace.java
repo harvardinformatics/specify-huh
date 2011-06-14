@@ -225,6 +225,16 @@ public interface UIFieldFormatterIFace
     public abstract String getNextNumber(String value);
 
     /**
+     * @param value
+     * @param incrementValue
+     * @return next number.
+     * 
+     * If incrementValue is true, value is incremented to produce next number,
+     * otherwise, the highest existing number is incremented.
+     */
+    public abstract String getNextNumber(final String value, final boolean incrementValue);
+
+    /**
      * @return true if part of the format needs user input, false it is auto-generated.
      */
     public abstract boolean isUserInputNeeded();
@@ -246,6 +256,14 @@ public interface UIFieldFormatterIFace
     // The Data Specific Methods
     //-----------------------------------------------------------------------
     
+    /**
+     * @return whether the format contains a dash character '-'
+     */
+    public abstract boolean hasDash();
+    
+    /**
+     * @param type
+     */
     public abstract void setType(FormatterType type);
     
     /**

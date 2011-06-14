@@ -37,6 +37,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.hibernate.annotations.Cascade;
@@ -154,7 +155,9 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
                                       //(the data object or objects on the 'other' side of the relationship)
     protected Boolean      alwaysFilter; //true if criteria for this field should be applied in all situations, i.e. even
                                         //when query content is provided by a list of ids.
-    
+    protected Boolean	   allowNulls; //true if 'or is null' should be appended to the condition for the field
+    									//This allows, for example, a Determination.Current is true condition
+    									//to be applied without removing specimens that don't have any determinations.
     protected String	   stringId; //unique name for the field within it's query
     
     protected Byte         operStart;
@@ -264,6 +267,14 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     public void setAlwaysFilter(Boolean alwaysFilter)
     {
         this.alwaysFilter = alwaysFilter;
+    }
+
+    /**
+     * @param allowNulls the allowNulls to set
+     */
+    public void setAllowNulls(Boolean allowNulls)
+    {
+        this.allowNulls = allowNulls;
     }
 
     /**
@@ -424,6 +435,15 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     }
 
     /**
+     * @return the allowNulls
+     */
+    @Column(name = "AllowNulls", unique = false, nullable = true, insertable = true, updatable = true)
+    public Boolean getAllowNulls()
+    {
+        return allowNulls;
+    }
+
+    /**
      * @return the operStart
      */
     @Column(name = "OperStart", unique = false, nullable = false, insertable = true, updatable = true)
@@ -546,6 +566,7 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         isDisplay      = null;
         isPrompt       = null;
         alwaysFilter   = null;
+        allowNulls     = null;
         isRelFld       = null;        
         operStart      = null;
         operEnd        = null;
@@ -653,7 +674,7 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
 
     public int compareTo(SpQueryField o)
     {
-        return position.compareTo(o.position);
+        return position != null && o != null && o.position != null ? position.compareTo(o.position) : 0;
     }
 
     /**
@@ -688,6 +709,10 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     @Transient
     public String getColumnAliasTitle()
     {
+    	if (columnAlias == null)
+    	{
+    		columnAlias = fieldName;
+    	}
     	DBTableInfo tbl = DBTableIdMgr.getInstance().getInfoById(contextTableIdent);
     	if (tbl != null)
     	{
@@ -749,7 +774,6 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
     public Object clone() throws CloneNotSupportedException
     {
         SpQueryField field = (SpQueryField)super.clone();
-        field.init();
         
         return field;
     }
@@ -845,17 +869,50 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
         setValue(tblInfo, "columnAlias", getAttr(element, "columnAlias", null));
     }
 
-    protected boolean eq(final Object obj1, final Object obj2, final Object nullVal)
+    /**
+     * @param obj1
+     * @param obj2
+     * @return
+     */
+    protected boolean eq(final Object obj1, final Object obj2)
     {
     	if (obj1 == null && obj2 == null)
     	{
     		return true;
     	}
-    	Object o1 = obj1 == null ? nullVal : obj1;
-    	Object o2 = obj2 == null ? nullVal : obj2;
-    	return o1.equals(o2);
+    	if (obj1 == null || obj2 == null)
+    	{
+    		return false;
+    	}
+    	return obj1.equals(obj2);
     }
     
+    /**
+     * @param val
+     * @return
+     */
+    protected String nullIfBlank(String val)
+    {
+    	if (StringUtils.isEmpty(val))
+    	{
+    		return null;
+    	}
+    	return val;
+    }
+    
+    /**
+     * @param val
+     * @return
+     */
+    protected Number nullIfZero(Number val)
+    {
+    	if (val != null && val.equals(0))
+    	{
+    		return null;
+    	}
+    	return val;
+    }
+
 	/**
 	 * @param obj
 	 * @return true if this and obj represent the same database field with the same relationship to the
@@ -871,14 +928,14 @@ public class SpQueryField extends DataModelObjBase implements Comparable<SpQuery
 				&& isDisplay.equals(f.isDisplay)
 				&& isPrompt.equals(f.isPrompt)
 				&& alwaysFilter.equals(f.alwaysFilter)
-				&& eq(operStart, f.operStart, 0)
-				&& eq(operEnd, f.operEnd, 0)
-				&& eq(startValue, f.startValue, "")
-				&& eq(endValue, f.endValue, "")
-				&& eq(sortType, f.sortType, 0)
-				&& eq(tableList, f.tableList, "")
-				&& eq(contextTableIdent, f.contextTableIdent, 0)
-				&& eq(columnAlias, f.columnAlias, "");
+				&& eq(nullIfZero(operStart), nullIfZero(f.operStart))
+				&& eq(nullIfZero(operEnd), nullIfZero(f.operEnd))
+				&& eq(nullIfBlank(startValue), nullIfBlank(f.startValue))
+				&& eq(nullIfBlank(endValue), nullIfBlank(f.endValue))
+				&& eq(nullIfZero(sortType), nullIfZero(f.sortType))
+				&& eq(nullIfBlank(tableList), nullIfBlank(f.tableList))
+				&& eq(nullIfZero(contextTableIdent), nullIfZero(f.contextTableIdent))
+				&& eq(nullIfBlank(columnAlias), nullIfBlank(f.columnAlias));
 		}
 		return false;
 	}

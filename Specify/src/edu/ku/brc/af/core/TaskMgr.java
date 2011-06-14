@@ -48,7 +48,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.UIPluginable;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
@@ -76,6 +78,8 @@ public class TaskMgr implements CommandListener
     private static final Logger  log               = Logger.getLogger(TaskMgr.class);
     private static final TaskMgr instance          = new TaskMgr();
     private static final String  APP_RESTART_ACT   = "AppRestart"; //$NON-NLS-1$
+    private static final String  APP_SHUTDOWN_ACT  = "Shutdown"; //$NON-NLS-1$
+
 
     // Data Members
     protected Vector<Taskable>               toolbarTasks   = new Vector<Taskable>();
@@ -151,7 +155,7 @@ public class TaskMgr implements CommandListener
                 startUpTask.requestContext();
                 instance.currentTask = startUpTask;
                 
-            } else
+            } else if (instance.tasks.values().size() > 0)
             {
                 Taskable arbitraryTaskable = instance.tasks.values().iterator().next();
                 if (arbitraryTaskable != null)
@@ -184,11 +188,13 @@ public class TaskMgr implements CommandListener
 
             } else
             {
-                throw new RuntimeException("Registering a plugin with an existing name["+plugin.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                //throw new RuntimeException("Registering a plugin with an existing name["+plugin.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                FormDevHelper.appendFormDevError("Registering a plugin with an existing name["+plugin.getName()+"]");//$NON-NLS-1$ //$NON-NLS-2$
             }
         } else
         {
-            throw new NullPointerException("Trying to register a null plugin!"); //$NON-NLS-1$
+            //throw new NullPointerException("Trying to register a null plugin!"); //$NON-NLS-1$
+            FormDevHelper.appendFormDevError("Trying to register a null plugin!"); //$NON-NLS-1$
         }
     }
 
@@ -233,7 +239,7 @@ public class TaskMgr implements CommandListener
     }
 
     /**
-     * Registers the plugin's UI compontents with the various parts of the UI. If the requested poxition
+     * Registers the plugin's UI components with the various parts of the UI. If the requested position
      * is 'Position.AppendNextToLast' then it is appended and the ToolBar is set to adjust the last item to
      * the right. Note: If two items request Position.AppendNextToLast then the last one to do so is 
      * is adjusted right since they are appended.
@@ -360,15 +366,22 @@ public class TaskMgr implements CommandListener
             {
                 Container menuComp = ((JMenu)parent).getPopupMenu();
                 boolean found     = false;
-                int     insertPos = menuComp.getComponentCount();
+                int     insertPos = menuComp.getComponentCount(); // last position
+                JMenu   menu      = (JMenu)parent;
                 
                 if (menuItemDesc.getPosition() == MenuItemDesc.Position.Top)
                 {
                     insertPos = 0;
+                    //log.debug(String.format("0 Inserted: %s - %d", ((JMenuItem)me).getText(), insertPos));
+                    
+                } else if (menuItemDesc.getPosition() == MenuItemDesc.Position.Bottom)
+                {
+                    //log.debug(String.format("1 Inserted: %s - %d", ((JMenuItem)me).getText(),insertPos));
                 }
                 
-                JMenu menu = (JMenu)parent;
-                if (menuItemDesc.getPosition() != MenuItemDesc.Position.None)
+                
+                if (menuItemDesc.getPosition() == MenuItemDesc.Position.Before || 
+                    menuItemDesc.getPosition() == MenuItemDesc.Position.After)
                 {
                     int inx = 0;
                     for (int i=0;i<menuComp.getComponentCount();i++)
@@ -396,6 +409,7 @@ public class TaskMgr implements CommandListener
                 } else
                 {
                     menu.add((JMenuItem)me, insertPos);
+                    //log.debug(String.format("2 Inserted: %s - %d", ((JMenuItem)me).getText(),insertPos));
                     found = true;
                 }
                 
@@ -406,6 +420,8 @@ public class TaskMgr implements CommandListener
                     if (found)
                     {
                         menu.add(new JPopupMenu.Separator(), insertPos);
+                        //log.debug(String.format("3 Inserted: Sep - %d", insertPos));
+
                     }
                 }
             } else if (parent instanceof JMenuItem)
@@ -422,6 +438,7 @@ public class TaskMgr implements CommandListener
                         break;
                     }
                 }
+                //log.debug(String.format("4 Inserted: %s - %d", ((JMenuItem)me).getText(), menuItemDesc.getPosition() == MenuItemDesc.Position.After ? pos + 1 : pos));
                 menu.insert((JMenuItem)me, menuItemDesc.getPosition() == MenuItemDesc.Position.After ? pos + 1 : pos);
             }
             
@@ -430,9 +447,17 @@ public class TaskMgr implements CommandListener
             String label = getResourceString(menuPath[currIndex]);
 
             MenuElement menuElement = getMenuByName(parent, label);
+            
+            /*log.debug(menuPath[currIndex]+" -> "+label+ " "+menuElement);
+            if (parent instanceof JMenuItem) log.debug(((JMenuItem)parent).getText());
+            else if (parent instanceof JMenu) log.debug(((JMenu)parent).getText());
+            else if (parent instanceof JMenuBar) log.debug("MenuBar");
+            */
+            
             if (menuElement == null)
             {
-                throw new RuntimeException("Couldn't find menu element ["+label+"]"); //$NON-NLS-1$ //$NON-NLS-2$
+                log.error("Couldn't find menu element ["+label+"]");//$NON-NLS-1$ //$NON-NLS-2$
+                //UIRegistry.showError("Couldn't find menu element ["+label+"]"); //$NON-NLS-1$ //$NON-NLS-2$
             }
             buildMenuTree(menuElement, menuItemDesc, menuPath, currIndex+1);
         }
@@ -578,6 +603,15 @@ public class TaskMgr implements CommandListener
                             }
                         }
                         
+                        String prefName = getAttr(pluginElement, "prefname", null); //$NON-NLS-1$
+                        if (prefName != null)
+                        {
+                            if (!AppPreferences.getLocalPrefs().getBoolean(prefName, false))
+                            {
+                                continue;
+                            }
+                        }
+
                         register(task, shouldAddToUI); //$NON-NLS-1$
 
                     } else
@@ -598,7 +632,7 @@ public class TaskMgr implements CommandListener
                         try
                         {
                             Class<?> cls = Class.forName(className).asSubclass(UIPluginable.class);
-                            log.debug("Registering ["+name+"] Class["+cls.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                            //log.debug("Registering ["+name+"] Class["+cls.getName()+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                             instance.uiPluginHash.put(name, cls);
         
                         } catch (Exception ex)
@@ -654,6 +688,17 @@ public class TaskMgr implements CommandListener
         return tasks.values();
     }
     
+    /**
+     * Tells all tasks they are shutting down.
+     */
+    private void shutdownTasks()
+    {
+        for (Taskable task : instance.tasks.values())
+        {
+            task.shutdown();
+        }
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.CommandListener#doCommand(edu.ku.brc.ui.CommandAction)
      */
@@ -662,6 +707,8 @@ public class TaskMgr implements CommandListener
     {
         if (cmdAction.isAction(APP_RESTART_ACT))
         {
+            shutdownTasks();
+            
             for (Taskable task : instance.tasks.values())
             {
                 if (AppContextMgr.isSecurityOn())
@@ -674,6 +721,9 @@ public class TaskMgr implements CommandListener
                     }
                 }
             }
+        } else if (cmdAction.isAction(APP_SHUTDOWN_ACT))
+        {
+            shutdownTasks();
         }
     }
     

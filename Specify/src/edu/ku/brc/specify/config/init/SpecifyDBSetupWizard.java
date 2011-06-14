@@ -62,14 +62,17 @@ import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.specify.SpecifyUserTypes;
 import edu.ku.brc.specify.config.DisciplineType;
+import edu.ku.brc.specify.config.FixDBAfterLogin;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataType;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.GeographyTreeDef;
 import edu.ku.brc.specify.datamodel.Institution;
+import edu.ku.brc.specify.datamodel.SpVersion;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.TaxonTreeDef;
@@ -228,13 +231,15 @@ public class SpecifyDBSetupWizard extends JPanel
        
         if (wizardType == WizardType.Institution)
         {
-            dbPanel = new DatabasePanel(nextBtn, backBtn, "wizard_mysql_username", true);
+            props.put("fromwizard", "true");
+            
+            dbPanel = new DatabasePanel(nextBtn, backBtn, getHelpCntxt("wizard_mysql_username"), true);
             panels.add(dbPanel);
             HelpMgr.registerComponent(helpBtn, dbPanel.getHelpContext());
             
             panels.add(new MasterUserPanel("SA",
                     "ENTER_SA_INFO", 
-                    "wizard_master_username",
+                    getHelpCntxt("wizard_master_username"),
                     new String[] { "SA_USERNAME", "SA_PASSWORD"}, 
                     new String[] { "saUserName", "saPassword"}, 
                     new Integer[] { 32, 32}, 
@@ -242,7 +247,7 @@ public class SpecifyDBSetupWizard extends JPanel
             
             panels.add(new GenericFormPanel("SECURITY", 
                     "SECURITY_INFO",
-                    "wizard_security_on",
+                    getHelpCntxt("wizard_security_on"),
                     new String[] { "SECURITY_ON"}, 
                     new String[] { "security_on"},
                     new String[] { "checkbox"},
@@ -251,7 +256,7 @@ public class SpecifyDBSetupWizard extends JPanel
     
             userInfoPanel = new UserInfoPanel("AGENT", 
                     "ENTER_COLMGR_INFO", 
-                    "wizard_create_it_user",
+                    getHelpCntxt("wizard_create_it_user"),
                     new String[] { "FIRSTNAME", "LASTNAME", "MIDNAME",       "EMAIL",  null,  "USERLOGININFO", "USERNAME",    "PASSWORD"}, 
                     new String[] { "firstName", "lastName", "middleInitial", "email",  " ",   "-",             "usrUsername",  "usrPassword"}, 
                     new boolean[] { true,       true,       false,            true,    true,  false,           true,           true},
@@ -261,7 +266,7 @@ public class SpecifyDBSetupWizard extends JPanel
             
             panels.add(new GenericFormPanel("INST", 
                     "ENTER_INST_INFO",
-                    "wizard_create_institution",
+                    getHelpCntxt("wizard_create_institution"),
                     new String[]  { "NAME",     "ABBREV",     null,  "INST_ADDR", "ADDR1", "ADDR2", "CITY",  "STATE", "COUNTRY", "ZIP", "PHONE"}, 
                     new String[]  { "instName", "instAbbrev", " ",   "-",         "addr1", "addr2", "city",  "state", "country", "zip", "phone"}, 
                     new boolean[] { true,       true,         false,  false,      true,    false,   true,    true,    true,      true,  true},
@@ -270,7 +275,7 @@ public class SpecifyDBSetupWizard extends JPanel
 
             accessionPanel = new GenericFormPanel("ACCESSIONGLOBALLY", 
                     "ENTER_ACC_INFO",
-                    "wizard_choose_accession_level",
+                    getHelpCntxt("wizard_choose_accession_level"),
                     new String[] { "ACCGLOBALLY"}, 
                     new String[] { "accglobal"},
                     new String[] { "checkbox"},
@@ -280,7 +285,7 @@ public class SpecifyDBSetupWizard extends JPanel
             
             if (wizardType == WizardType.Institution)
             {
-                accessionPickerGbl = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, null);
+                accessionPickerGbl = new FormatterPickerPanel("ACCNOFMT", getHelpCntxt("wizard_create_accession_number"), nextBtn, backBtn, false, null);
                 panels.add(accessionPickerGbl);
                 
             }
@@ -288,7 +293,7 @@ public class SpecifyDBSetupWizard extends JPanel
             storageTDPanel = new TreeDefSetupPanel(StorageTreeDef.class, 
                                                     getResourceString("Storage"), 
                                                     "Storage", 
-                                                    "wizard_configure_storage_tree",
+                                                    getHelpCntxt("wizard_configure_storage_tree"),
                                                     "CONFIG_TREEDEF", 
                                                     nextBtn, 
                                                     backBtn, 
@@ -297,23 +302,29 @@ public class SpecifyDBSetupWizard extends JPanel
             
             panels.add(new InstSetupPanel("CREATEINST", 
                     "CREATEINST",
-                    "wizard_configure_storage_tree",
-                    new String[] { "NAME",    "PREFIX"}, 
-                    new String[] { "instName", "instAbbrev"}, 
-                    new Integer[] { 255,       64}, 
+                    getHelpCntxt("wizard_create_institution"),
+                    new String[] { }, 
+                    new String[] { },
+                    new Integer[] { }, 
                     nextBtn, backBtn, true));
         }
         
         if (wizardType == WizardType.Institution ||
             wizardType == WizardType.Division)
         {
-            panels.add(new GenericFormPanel("DIV", 
-                "ENTER_DIV_INFO",
-                "wizard_enter_division",
-                new String[] { "NAME",    "ABBREV"}, 
-                new String[] { "divName", "divAbbrev"}, 
-                new Integer[] { 255,       64}, 
-                nextBtn, backBtn, true));
+            DivisionPanel divPanel = new DivisionPanel("DIV", 
+                                            "ENTER_DIV_INFO",
+                                            getHelpCntxt("wizard_enter_division"),
+                                            new String[] { "NAME",    "ABBREV"}, 
+                                            new String[] { "divName", "divAbbrev"}, 
+                                            new Integer[] { 255,       64}, 
+                                            nextBtn, backBtn, true);
+            panels.add(divPanel);
+            
+            if (wizardType == WizardType.Division)
+            {
+                HelpMgr.registerComponent(helpBtn, divPanel.getHelpContext());
+            }
         }
         
         if (wizardType != WizardType.Institution)
@@ -342,25 +353,31 @@ public class SpecifyDBSetupWizard extends JPanel
             wizardType == WizardType.Discipline)
         {
             nextBtn.setEnabled(false);
-            disciplinePanel = new DisciplinePanel("wizard_choose_discipline_type", nextBtn, backBtn);
+            disciplinePanel = new DisciplinePanel(getHelpCntxt("wizard_choose_discipline_type"), nextBtn, backBtn);
             panels.add(disciplinePanel);
+            
+            if (wizardType == WizardType.Discipline)
+            {
+                HelpMgr.registerComponent(helpBtn, disciplinePanel.getHelpContext());
+            }
+
 
             taxonTDPanel = new TreeDefSetupPanel(TaxonTreeDef.class, 
                                                  getResourceString("Taxon"), 
                                                  "Taxon", 
-                                                 "wizard_configure_taxon_tree",
+                                                 getHelpCntxt("wizard_configure_taxon_tree"),
                                                  "CONFIG_TREEDEF", 
                                                  nextBtn, 
                                                  backBtn,
                                                  disciplinePanel);
             panels.add(taxonTDPanel);
             
-            panels.add(new TaxonLoadSetupPanel("wizard_preload_taxon", nextBtn, backBtn));
+            panels.add(new TaxonLoadSetupPanel(getHelpCntxt("wizard_preload_taxon"), nextBtn, backBtn));
              
             geoTDPanel = new TreeDefSetupPanel(GeographyTreeDef.class, 
                                                getResourceString("Geography"), 
                                                "Geography", 
-                                               "wizard_configure_geography_tree",
+                                               getHelpCntxt("wizard_configure_geography_tree"),
                                                "CONFIG_TREEDEF", 
                                                nextBtn, 
                                                backBtn,
@@ -368,15 +385,21 @@ public class SpecifyDBSetupWizard extends JPanel
             panels.add(geoTDPanel);
         }
 
-        panels.add(new GenericFormPanel("COLLECTION", 
-                    "ENTER_COL_INFO",
-                    "wizard_create_collection",
-                    new String[] { "NAME",     "PREFIX", }, 
-                    new String[] { "collName", "collPrefix", }, 
-                    new Integer[] { 50,        50}, 
-                    nextBtn, backBtn, true));
+        CollectionPanel colPanel = new CollectionPanel("COLLECTION", 
+                                                "ENTER_COL_INFO",
+                                                getHelpCntxt("wizard_create_collection"),
+                                                new String[] { "NAME",     "PREFIX", }, 
+                                                new String[] { "collName", "collPrefix", }, 
+                                                new Integer[] { 50,        50}, 
+                                                nextBtn, backBtn, true);
+        panels.add(colPanel);
         
-        catNumPicker = new FormatterPickerPanel("CATNOFMT", "wizard_create_catalog_number", nextBtn, backBtn, true, null);
+        if (wizardType == WizardType.Collection)
+        {
+            HelpMgr.registerComponent(helpBtn, colPanel.getHelpContext());
+        }
+        
+        catNumPicker = new FormatterPickerPanel("CATNOFMT", getHelpCntxt("wizard_create_catalog_number"), nextBtn, backBtn, true, null);
         panels.add(catNumPicker);
         
         if (wizardType != WizardType.Institution)
@@ -392,18 +415,18 @@ public class SpecifyDBSetupWizard extends JPanel
                 if (inst != null && !inst.getIsAccessionsGlobal())
                 {
                     if (wizardType != WizardType.Institution)
-                    accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, accessionFmt);
+                    accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", getHelpCntxt("wizard_create_accession_number"), nextBtn, backBtn, false, accessionFmt);
                     accessionPickerCol.setDoingDisciplineCollection(wizardType != WizardType.Division);
                     panels.add(accessionPickerCol);
                 }
             }
         } else
         {
-            accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", "wizard_create_accession_number", nextBtn, backBtn, false, null); 
+            accessionPickerCol = new FormatterPickerPanel("ACCNOFMT", getHelpCntxt("wizard_create_accession_number"), nextBtn, backBtn, false, null); 
             panels.add(accessionPickerCol);
         }
         
-        panels.add(new SummaryPanel("SUMMARY", "wizard_summary", nextBtn, backBtn, panels));
+        panels.add(new SummaryPanel("SUMMARY", getHelpCntxt("wizard_summary"), nextBtn, backBtn, panels));
          
         lastStep = panels.size();
         
@@ -608,7 +631,36 @@ public class SpecifyDBSetupWizard extends JPanel
     }
     
     /**
-     * @return
+     * Returns the proper help context depedning on how the wizrd was started.
+     * @param hContext the 'base' key for the help context
+     * @return the full help context.
+     */
+    private String getHelpCntxt(final String hContext)
+    {
+        String prefix = "";
+        switch (wizardType)
+        {
+            case Institution:
+                prefix = UIRegistry.isEmbedded() ? "ezdb_" : "";
+                break;
+                
+            case Division:
+                prefix = "div_";
+                break;
+                
+            case Discipline:
+                prefix = "dis_";
+                break;
+                
+            case Collection:
+                prefix = "col_";
+                break;
+        }
+        return prefix + hContext;
+    }
+    
+    /**
+     * @return the icon name for the icon for the panel.
      */
     public static String getIconName()
     {
@@ -767,7 +819,7 @@ public class SpecifyDBSetupWizard extends JPanel
         String saUserName = props.getProperty("saUserName");
         String saPassword = props.getProperty("saPassword");
         
-        String encryptedMasterUP = UserAndMasterPasswordMgr.getInstance().encrypt(saUserName, saPassword, password);
+        String encryptedMasterUP = UserAndMasterPasswordMgr.encrypt(saUserName, saPassword, password);
 
         DatabaseDriverInfo driverInfo = dbPanel.getDriver();
         AppPreferences ap = AppPreferences.getLocalPrefs();
@@ -878,6 +930,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     progressFrame.adjustProgressFrame();
                     progressFrame.setProcessPercent(true);
                     progressFrame.setOverall(0, 12);
+                    UIRegistry.pushWindow(progressFrame);
                     
                     UIHelper.centerAndShow(progressFrame);
                     
@@ -907,7 +960,7 @@ public class SpecifyDBSetupWizard extends JPanel
                     
                     bsd.setDataType(dataType);
                     
-                    Division division = bsd.createEmptyDivision(institution, disciplineType, user, props, true, true);
+                    Division division = bsd.createEmptyDivision(institution, disciplineType, user, props, true, true, true);
                     if (division != null)
                     {
                         isOK = division != null;
@@ -916,6 +969,7 @@ public class SpecifyDBSetupWizard extends JPanel
                         
                         if (isOK)
                         {
+                            FixDBAfterLogin.fixUserPermissions(true);
                             saveFormatters();
                         }
         
@@ -926,10 +980,6 @@ public class SpecifyDBSetupWizard extends JPanel
                         isOK = false;
                     }
                     
-                    JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
-                                                  getLocalizedMessage("BLD_DONE", getResourceString(isOK ? "BLD_OK" :"BLD_NOTOK")),
-                                                  getResourceString("COMPLETE"), JOptionPane.INFORMATION_MESSAGE);                                
-                
                 } catch (Exception ex)
                 {
                     //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -945,15 +995,23 @@ public class SpecifyDBSetupWizard extends JPanel
             @Override
             protected void done()
             {
-                if (isOK)
+                // Create Version Record and copy if there is a connection
+                if (DBConnection.getInstance().getConnection() != null)
                 {
+                    String resAppVersion = UIRegistry.getAppVersion();
+                    String dbVersion     = SchemaUpdateService.getInstance().getDBSchemaVersionFromXML();
+                    SpVersion.createInitialRecord(DBConnection.getInstance().getConnection(), resAppVersion, dbVersion);
+            
                     if (UIRegistry.isMobile())
                     {
                         DBConnection.setCopiedToMachineDisk(true);
                     }
-                    HibernateUtil.shutdown();
-                    DBConnection.shutdown();
                 }
+                
+                JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
+                        getLocalizedMessage("BLD_DONE", getResourceString(isOK ? "BLD_OK" :"BLD_NOTOK")),
+                        getResourceString("COMPLETE"), JOptionPane.INFORMATION_MESSAGE);                                
+
                 if (listener != null)
                 {
                     listener.hide();

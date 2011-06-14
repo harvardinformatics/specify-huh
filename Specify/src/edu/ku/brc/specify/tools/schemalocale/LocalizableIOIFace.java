@@ -39,9 +39,10 @@ import edu.ku.brc.specify.datamodel.PickList;
 public interface LocalizableIOIFace
 {
     /**
+     * @param useCurrentLocaleOnly
      * @return
      */
-    public abstract boolean load();
+    public abstract boolean load(boolean useCurrentLocaleOnly);
     
     /**
      * @return
@@ -52,7 +53,7 @@ public interface LocalizableIOIFace
      * @param item
      * @param l
      */
-    public abstract void getContainer(LocalizableJListItem item, LocalizableIOIFaceListener l);
+    public abstract LocalizableContainerIFace getContainer(LocalizableJListItem item, LocalizableIOIFaceListener l);
     
     /**
      * @param container
@@ -94,7 +95,7 @@ public interface LocalizableIOIFace
      * @param dst the destination locale
      * @param pcl listener for changes made during copy
      */
-    public abstract void copyLocale(Locale src, Locale dst, PropertyChangeListener pcl);
+    public abstract void copyLocale(LocalizableIOIFaceListener lclIOListener, Locale src, Locale dst, PropertyChangeListener pcl);
     
     /**
      * @return true on save, false on failure
@@ -106,6 +107,13 @@ public interface LocalizableIOIFace
      * @return
      */
     public abstract boolean exportToDirectory(File expportFile);
+    
+    /**
+     * @param expportFile
+     * @param locale
+     * @return
+     */
+    public abstract boolean exportSingleLanguageToDirectory(File expportFile, Locale locale);
     
     /**
      * @return
@@ -130,4 +138,9 @@ public interface LocalizableIOIFace
      * @return whether the application tables should be included to be configured.
      */
     public abstract boolean shouldIncludeAppTables();
+    
+    /**
+     * @return whether any data has changed.
+     */
+    public abstract boolean hasChanged();
 }

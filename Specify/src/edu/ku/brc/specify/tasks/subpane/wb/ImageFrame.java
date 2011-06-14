@@ -27,6 +27,7 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -82,11 +83,14 @@ import edu.ku.brc.af.core.UsageTracker;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.helpers.ImageFilter;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.datamodel.WorkbenchRow;
 import edu.ku.brc.specify.datamodel.WorkbenchRowImage;
 import edu.ku.brc.specify.tasks.WorkbenchTask;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable;
 import edu.ku.brc.specify.ui.HelpMgr;
+import edu.ku.brc.ui.ChooseFromListDlg;
 import edu.ku.brc.ui.DefaultModifiableListModel;
 import edu.ku.brc.ui.GraphicsUtils;
 import edu.ku.brc.ui.IconManager;
@@ -94,6 +98,7 @@ import edu.ku.brc.ui.JStatusBar;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.ui.IconManager.IconSize;
+import edu.ku.brc.util.Pair;
 import edu.ku.brc.util.thumbnails.ImageThumbnailGenerator;
 
 /**
@@ -103,6 +108,7 @@ import edu.ku.brc.util.thumbnails.ImageThumbnailGenerator;
  *
  * @code_status Beta
  */
+@SuppressWarnings("serial")
 public class ImageFrame extends JFrame implements PropertyChangeListener
 {
     private static final Logger log                        = Logger.getLogger(ImageFrame.class);
@@ -611,7 +617,7 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
             {
                 ImageIcon testIcon = new ImageIcon(bytes);
                 
-                System.err.println(testIcon.getIconHeight()+"  "+testIcon.getIconWidth());
+                //System.err.println(testIcon.getIconHeight()+"  "+testIcon.getIconWidth());
                 
                 // this image file is corrupted or a format that we cannot display
                 return testIcon.getIconHeight() > 0 && testIcon.getIconWidth() > 0;
@@ -623,6 +629,66 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
         return false;
     }
 
+    
+    /**
+     * @return 
+     */
+    protected String getAttachToTableName()
+    {
+        String attachToTableName = null;
+        List<UploadTable> attachableTbls = wbPane.getAttachableTables();
+        if (attachableTbls == null || attachableTbls.size() == 0)
+        {
+        	//message about default attachment table
+        } else
+        {
+        	if (attachableTbls.size() == 1)
+        	{
+        		attachToTableName = attachableTbls.get(0).getTable().getName();
+        	} else
+        	{
+        		Vector<Pair<String, String>> titleNamePairs = new Vector<Pair<String, String>>();
+        		Vector<String> titles = new Vector<String>();
+        		for (UploadTable ut : attachableTbls)
+        		{
+        			String tblTitle = ut.getTblClass().equals(Agent.class) ? ut.toString() : ut.getTblTitle();
+        			if (!titles.contains(tblTitle));
+        			{
+        				String tblSpec = ut.getTable().getName();
+        				if (ut.getTblClass().equals(Agent.class) && ut.getRelationship() != null)
+        				{
+        					tblSpec += "." + ut.getRelationship().getRelatedField().getTable().getTableInfo().getName();
+        				}
+        				titleNamePairs.add(new Pair<String, String>(tblTitle, tblSpec));
+        				titles.add(tblTitle);
+        			}
+        		}
+        		ChooseFromListDlg<String> dlg = new ChooseFromListDlg<String>((Frame )UIRegistry.getMostRecentWindow(),
+        				UIRegistry.getResourceString("ImageFrame.ChooseAttachTableDlgTitle"),
+        				titles);
+        		UIHelper.centerAndShow(dlg);
+        		if (!dlg.isCancelled())
+        		{
+        			for (Pair<String, String> p : titleNamePairs)
+        			{
+        				if (p.getFirst().equals(dlg.getSelectedObject()))
+        				{
+        					attachToTableName = p.getSecond();
+        					break;
+        				}
+        			}
+        			
+        		} else
+        		{
+        			attachToTableName = "";
+        		}
+        			
+        		dlg.dispose();        		
+        	}
+        }
+        return attachToTableName;
+    }
+    
     /**
      * Adds a new image to the current {@link WorkbenchRow}.
      */
@@ -631,6 +697,11 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
         UsageTracker.incrUsageCount("WB.AddWBRowImage");
         
         final WorkbenchRow wbRow = this.row;
+        final String attachToTableName = getAttachToTableName();
+        if ("".equals(attachToTableName))
+        {
+        	return; //choose attachToTable dlg cancelled by user.
+        }
         
         final File[] imageFiles = askUserForImageFiles();
         if (imageFiles == null || imageFiles.length == 0)
@@ -653,6 +724,8 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
         this.setEnabled(false);
         
         log.debug("addImages: " + imageFiles.length + " files selected");
+        
+        loadImgBtn.setEnabled(false);
         
         SwingWorker loadImagesTask = new SwingWorker()
         {
@@ -682,6 +755,7 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
                             });
                             
                             WorkbenchRowImage rowImage = row.getRowImage(newIndex);
+                            rowImage.setAttachToTableName(attachToTableName);
                             rowImagesNeedingThumbnails.add(rowImage);
                             wbPane.setChanged(true);
                         }
@@ -699,6 +773,8 @@ public class ImageFrame extends JFrame implements PropertyChangeListener
             @Override
             public void finished()
             {
+                loadImgBtn.setEnabled(true);
+                
                 Object retVal = get();
                 
                 if (retVal != null && retVal instanceof List)

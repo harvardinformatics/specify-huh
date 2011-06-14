@@ -20,7 +20,10 @@
 package edu.ku.brc.specify.datamodel;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +38,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
-import edu.ku.brc.af.ui.forms.FormDataObjIFace;
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 @SuppressWarnings("serial")
 @Entity
@@ -44,6 +47,8 @@ import edu.ku.brc.af.ui.forms.FormDataObjIFace;
 @Table(name = "lithostrattreedef")
 public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef, LithoStratTreeDefItem> implements java.io.Serializable
 {
+
+
 	protected Integer                    lithoStratTreeDefId;
     protected String                     name;
     protected String                     remarks;
@@ -377,9 +382,10 @@ public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef
     @Transient
     public Integer getParentId()
     {
-        if (disciplines != null && disciplines.size() == 1)
+        Vector<Object> ids = BasicSQLUtils.querySingleCol("SELECT DisciplineID FROM discipline WHERE LithoStratTreeDefID = "+ lithoStratTreeDefId);
+        if (ids.size() == 1)
         {
-            return ((FormDataObjIFace)disciplines.toArray()[0]).getId();
+            return (Integer)ids.get(0);
         }
         return null;
     }
@@ -421,4 +427,21 @@ public class LithoStratTreeDef extends BaseTreeDef<LithoStrat, LithoStratTreeDef
     {
         return getIdentityTitle();
     }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.BaseTreeDef#getStandardLevels()
+     */
+    @Override
+    @Transient
+    public List<TreeDefItemStandardEntry> getStandardLevels()
+    {
+        List<TreeDefItemStandardEntry> result = new LinkedList<TreeDefItemStandardEntry>();    
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.SuperGroup", 100)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Group", 200)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Formation", 300)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Member", 400)); //$NON-NLS-1$
+        result.add(new TreeDefItemStandardEntry("LithoStratTreeDef.Bed", 500)); //$NON-NLS-1$
+        return result;
+    }
+
 }

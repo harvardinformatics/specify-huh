@@ -246,10 +246,10 @@ public abstract class AppContextMgr
     public AppResourceIFace copyToDirAppRes(final String appResDirName, final String resourceName)
     {
         AppResourceIFace toAppRes   = null;
-        AppResourceIFace fromAppRes = AppContextMgr.getInstance().getResource(resourceName);
+        AppResourceIFace fromAppRes = getResource(resourceName);
         if (fromAppRes != null)
         {
-            toAppRes = AppContextMgr.getInstance().createAppResourceForDir(appResDirName);
+            toAppRes = createAppResourceForDir(appResDirName);
             copy(fromAppRes, toAppRes);
         }
         return toAppRes;
@@ -257,7 +257,7 @@ public abstract class AppContextMgr
     
     /**
      * Sets (registers) a single object so others can get it globally.
-     * @param clazz the class of object being set
+     * @param clazz the class of object being sets
      * @param object the object.
      */
     public void setClassObject(final Class<?> clazz, final Object object)

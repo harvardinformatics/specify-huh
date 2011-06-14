@@ -39,6 +39,7 @@ import edu.ku.brc.af.core.PermissionIFace;
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.persist.FormDevHelper;
 import edu.ku.brc.af.ui.forms.persist.ViewLoader;
 import edu.ku.brc.specify.extras.ViewToSchemaReview;
 import edu.ku.brc.specify.tools.FormDisplayer;
@@ -123,48 +124,55 @@ public class FormEditTask extends BaseTask
         String    mneu; 
         JMenuItem mi;
         
+        String securityName = buildTaskPermissionName(FORM_SECURITY);
         if (!AppContextMgr.isSecurityOn() || 
-            (secMgr.getPermission(FORM_SECURITY) != null && 
-             !secMgr.getPermission(FORM_SECURITY).hasNoPerm()))
+            (secMgr.getPermission(securityName) != null && 
+             !secMgr.getPermission(securityName).hasNoPerm()))
         {
             final String reloadViews = "reload_views"; //$NON-NLS-1$
             JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.RELOAD_VIEWS")); //$NON-NLS-1$
             cbMenuItem.setSelected(AppPreferences.getLocalPrefs().getBoolean(reloadViews, false));
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean isReload = !AppPreferences.getLocalPrefs().getBoolean(reloadViews, false);                       
-                            AppPreferences.getLocalPrefs().putBoolean(reloadViews, isReload);
-                            ((JMenuItem)ae.getSource()).setSelected(isReload);
-                            
-                            ((JMenuItem)ae.getSource()).setSelected(isReload);
-                        }});
+            cbMenuItem.addActionListener(new ActionListener() 
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    boolean isReload = !AppPreferences.getLocalPrefs().getBoolean(reloadViews, false);                       
+                    AppPreferences.getLocalPrefs().putBoolean(reloadViews, isReload);
+                    ((JMenuItem)ae.getSource()).setSelected(isReload);
+                    
+                    ((JMenuItem)ae.getSource()).setSelected(isReload);
+            }});
             mid = new MenuItemDesc(cbMenuItem, FULL_SYSTEM_MENU);
             menuItems.add(mid);
     
             final String verifyFields = "verify_field_names"; //$NON-NLS-1$
             cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.VERIFY_FIELDS")); //$NON-NLS-1$
             cbMenuItem.setSelected(AppPreferences.getLocalPrefs().getBoolean(verifyFields, false));
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean isVerify = !AppPreferences.getLocalPrefs().getBoolean(verifyFields, false);                       
-                            AppPreferences.getLocalPrefs().putBoolean(verifyFields, isVerify);
-                            ((JMenuItem)ae.getSource()).setSelected(isVerify);
-                            ViewLoader.setDoFieldVerification(isVerify);
-                        }});
+            cbMenuItem.addActionListener(new ActionListener() 
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    boolean isVerify = !AppPreferences.getLocalPrefs().getBoolean(verifyFields, false);                       
+                    AppPreferences.getLocalPrefs().putBoolean(verifyFields, isVerify);
+                    ((JMenuItem)ae.getSource()).setSelected(isVerify);
+                    ViewLoader.setDoFieldVerification(isVerify);
+                }});
             mid = new MenuItemDesc(cbMenuItem, FULL_SYSTEM_MENU);
             menuItems.add(mid);
             
             cbMenuItem = new JCheckBoxMenuItem(getResourceString("Specify.SHOW_FORM_DEBUG")); //$NON-NLS-1$
             cbMenuItem.setSelected(FormViewObj.isUseDebugForm());
-            cbMenuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            boolean useDebugForm = !FormViewObj.isUseDebugForm();
-                            FormViewObj.setUseDebugForm(useDebugForm);
-                            ((JMenuItem)ae.getSource()).setSelected(useDebugForm);
-                        }});
+            cbMenuItem.addActionListener(new ActionListener() 
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    boolean useDebugForm = !FormViewObj.isUseDebugForm();
+                    FormViewObj.setUseDebugForm(useDebugForm);
+                    ((JMenuItem)ae.getSource()).setSelected(useDebugForm);
+                }});
             mid = new MenuItemDesc(cbMenuItem, FULL_SYSTEM_MENU);
             mid.setSepPosition(MenuItemDesc.Position.After);
             menuItems.add(mid);
@@ -174,14 +182,14 @@ public class FormEditTask extends BaseTask
             String desc = "Specify.CREATE_FORM_IMAGES";//$NON-NLS-1$ 
             mi = UIHelper.createLocalizedMenuItem(ttle , mneu, desc, true, null);  
             mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            FormDisplayer fd = new FormDisplayer();
-                            fd.generateFormImages();
-                        }
-                    });
+            {
+               @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    FormDisplayer fd = new FormDisplayer();
+                    fd.generateFormImages();
+                }
+            });
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
             menuItems.add(mid);
             
@@ -190,14 +198,14 @@ public class FormEditTask extends BaseTask
             desc = "Specify.CREATE_FORM_LIST";//$NON-NLS-1$ 
             mi = UIHelper.createLocalizedMenuItem(ttle , mneu, desc, true, null);  
             mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            FormDisplayer fd = new FormDisplayer();
-                            fd.createViewListing(UIRegistry.getUserHomeDir(), true);
-                        }
-                    });
+            {
+               @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    FormDisplayer fd = new FormDisplayer();
+                    fd.createViewListing(UIRegistry.getUserHomeDir(), true);
+                }
+            });
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
             menuItems.add(mid);
             
@@ -206,13 +214,13 @@ public class FormEditTask extends BaseTask
             desc = "Specify.FORM_FIELD_LIST";//$NON-NLS-1$ 
             mi = UIHelper.createLocalizedMenuItem(ttle , mneu, desc, true, null);  
             mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            ViewToSchemaReview.dumpFormFieldList(true);
-                        }
-                    });
+            {
+               @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    ViewToSchemaReview.dumpFormFieldList(true);
+                }
+            });
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
             menuItems.add(mid);
 
@@ -221,16 +229,48 @@ public class FormEditTask extends BaseTask
             desc = "Specify.VIEW_REVIEW_LIST";//$NON-NLS-1$ 
             mi = UIHelper.createLocalizedMenuItem(ttle , mneu, desc, true, null);  
             mi.addActionListener(new ActionListener()
-                    {
-                        @SuppressWarnings("synthetic-access") //$NON-NLS-1$
-                        public void actionPerformed(ActionEvent ae)
-                        {
-                            (new ViewToSchemaReview()).checkSchemaAndViews();
-                        }
-                    });
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    (new ViewToSchemaReview()).checkSchemaAndViews();
+                }
+            });
             mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
             menuItems.add(mid);
             
+            ttle = "Specify.FORM_DEV";//$NON-NLS-1$ 
+            mneu = "Specify.FORM_DEV_MNEU";//$NON-NLS-1$ 
+            desc = "Specify.FORM_DEV_DESC";//$NON-NLS-1$ 
+            final JCheckBoxMenuItem miCbx = UIHelper.createLocalizedCheckBoxMenuItem(ttle , mneu, desc, true, null);
+            miCbx.setSelected(FormDevHelper.isFormDevMode());
+            miCbx.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    FormDevHelper.setIsFormDevMode(miCbx.isSelected());
+                }
+            });
+            
+            mid = new MenuItemDesc(miCbx, FULL_SYSTEM_MENU);
+            mid.setSepPosition(MenuItemDesc.Position.Before);
+            menuItems.add(mid);
+            
+            ttle = "Specify.SHOW_DEV_WIN";//$NON-NLS-1$ 
+            mneu = "Specify.SHOW_DEV_WIN_MNEU";//$NON-NLS-1$ 
+            desc = "Specify.SHOW_DEV_WIN";//$NON-NLS-1$ 
+            mi = UIHelper.createLocalizedMenuItem(ttle , mneu, desc, true, null);  
+            mi.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent ae)
+                {
+                    FormDevHelper.getLogFrame().setVisible(true);
+                }
+            });
+            mid = new MenuItemDesc(mi, FULL_SYSTEM_MENU);
+            menuItems.add(mid);
         }
         
         return menuItems;

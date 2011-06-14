@@ -263,6 +263,7 @@ public class SearchTableConfig implements DisplayOrderingIFace,
             primaryKey = StringUtils.replace(primaryKey, "Id", "ID");
         }
         
+        sqlStr.append("DISTINCT ");
         sqlStr.append(tableInfo.getAbbrev());
         sqlStr.append('.');
         sqlStr.append(primaryKey);
@@ -305,7 +306,7 @@ public class SearchTableConfig implements DisplayOrderingIFace,
         
         boolean addParen = false;
         String sqlSnipet = QueryAdjusterForDomain.getInstance().getSpecialColumns(tableInfo, isHQL, false, tableInfo.getAbbrev()); 
-        if (sqlSnipet != null)
+        if (StringUtils.isNotEmpty(sqlSnipet))
         {
             sqlStr.append(sqlSnipet);
             sqlStr.append(" AND (");

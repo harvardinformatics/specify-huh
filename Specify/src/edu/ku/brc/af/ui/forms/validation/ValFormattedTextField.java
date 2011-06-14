@@ -70,7 +70,6 @@ import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterField.FieldType;
 import edu.ku.brc.ui.ColorWrapper;
 import edu.ku.brc.ui.DocumentAdaptor;
-import edu.ku.brc.ui.GetSetValueIFace;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
@@ -87,9 +86,7 @@ import edu.ku.brc.ui.UIRegistry;
  *
  */
 @SuppressWarnings("serial")
-public class ValFormattedTextField extends JPanel implements UIValidatable,
-                                                             GetSetValueIFace,
-                                                             AutoNumberableIFace
+public class ValFormattedTextField extends JPanel implements ValFormattedTextFieldIFace
 {
     //private static final Logger log  = Logger.getLogger(ValFormattedTextField.class);
 
@@ -447,6 +444,14 @@ public class ValFormattedTextField extends JPanel implements UIValidatable,
                             isChanged = true;
                             if (!shouldIgnoreNotifyDoc)
                             {
+                                String fldStr = getText();
+                                int    len    = StringUtils.isNotEmpty(fldStr) ? fldStr.length() : 0;
+                                if (formatter != null && len > 0 && formatter.isLengthOK(len))
+                                {
+                                    setState(formatter.isValid(fldStr) ? UIValidatable.ErrorType.Valid : UIValidatable.ErrorType.Error);
+                                    repaint();
+                                }
+                                
                                 //validateState();
                                 if (changeListener != null)
                                 {

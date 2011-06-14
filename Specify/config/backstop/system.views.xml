@@ -47,6 +47,15 @@
             </altviews>
         </view>
         
+        <view name="TypeSearchInfo"
+            class="edu.ku.brc.af.ui.forms.validation.TypeSearchInfo"
+            resourcelabels="false">
+            <desc><![CDATA[The TypeSearchInfo Object form.]]></desc>
+            <altviews>
+                <altview name="TypeSearchInfo Edit" viewdef="TypeSearchInfo" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
         <!-- <view name="DeterminationStatus"
             class="edu.ku.brc.specify.datamodel.DeterminationStatus"
             busrules="edu.ku.brc.specify.datamodel.busrules.DeterminationStatusBusRules"
@@ -125,6 +134,15 @@
             <desc><![CDATA[]]></desc>
             <altviews>
                 <altview name="ChangePassword Edit" viewdef="ChangePassword" mode="edit" validated="true"/>
+            </altviews>
+        </view>
+        
+        <view name="CollectionRelType"
+            class="edu.ku.brc.specify.datamodel.CollectionRelType"
+            resourcelabels="false">
+            <desc><![CDATA[]]></desc>
+            <altviews>
+                <altview name="CollectionRelType Edit" viewdef="CollectionRelType" mode="edit" validated="true"/>
             </altviews>
         </view>
         
@@ -364,24 +382,24 @@
                     <cell type="label" labelfor="6" label="Password Strength"/>
                     <cell type="field" id="6" uitype="plugin" name="this" initialize="name=PasswordStrengthUI"/>
                 </row>
-                <!-- <row>
+                <row>
                     <cell type="label" labelfor="2"/>
-                    <cell type="field" id="2" name="email" uitype="text" cols="40" isrequired="true"/> 
-                </row> -->
+                    <cell type="field" id="2" name="email" uitype="text" cols="40" isrequired="false"/> 
+                </row>
                 <row>
                     <cell type="label" labelfor="4" label="Agent"/>
-                    <cell type="field" id="4" name="agent" uitype="querycbx" initialize="name=AgentSSPU;title=Agent;adjustquery=false" isrequired="true" ignore="true"/>
+                    <cell type="field" id="4" name="agent" uitype="textfieldinfo" initialize="name=AgentSSPU;title=Agent;" isrequired="false" ignore="true"/>
                 </row>
                 <row>
                     <cell type="label" labelfor="key" label="Key"/>
                     <cell type="field" id="key" name="key" uitype="text" ignore="true" readonly="true"/> 
-                    <cell type="command" id="GenerateKey" name="GenerateKey" label="Generate New Key" ignore="true"/>
+                    <cell type="command" id="GenerateKey" name="GenerateKey" label="Generate Master Key" ignore="true"/>
                     <cell type="command" id="CopyToCB" name="CopyToCB" label="" initialize="icon=ClipboardCopy;size=24;tooltip=CPY_TO_CB_TT" ignore="true"/>
                 </row>
                 <!--row>
                     <cell type="label" labelfor="4" label="Retype Password"/>
                     <cell type="field" id="4" name="password" uitype="text" cols="15"/>
-                </row-->
+                    </row-->
             </rows>
         </viewdef>
 
@@ -408,6 +426,76 @@
                 </row>
             </rows>
         </viewdef>
+        
+        <viewdef type="form"
+            name="TypeSearchInfo"
+            class="edu.ku.brc.af.ui.forms.validation.TypeSearchInfo"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[The TypeSearchInfo Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p, 2px, p, p, p:g, f:250px:g</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,f:p:g</rowDef>
+            <rows>
+                <row>
+                    <cell type="separator" label="Query Combobox Information" colspan="6"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="tableCBX" label="Table"/>
+                    <cell type="panel" id="tp" name="tp" coldef="p,f:p:g" rowdef="p" ignore="true" colspan="4">
+                        <rows>
+                            <row>
+                                <cell type="field" id="tableCBX" name="tableCBX" uitype="combobox" ignore="true"/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
+                    <cell type="label" labelfor="name" label="Name"/>
+                    <cell type="field" id="name" name="name" uitype="text" isrequired="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="displayColumns" label="Display Columns"/>
+                    <cell type="field" id="displayColumns" name="displayColumns" uitype="textarea" isrequired="true" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="searchFieldName" label="Search Field Name"/>
+                    <cell type="field" id="searchFieldName" name="searchFieldName" uitype="text" isrequired="true" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="format" label="Format"/>
+                    <cell type="field" id="format" name="format" uitype="text" isrequired="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="uiFieldFormatterNameCBX" label="UI Field Formatter"/>
+                    <cell type="panel" id="uip" name="uip" coldef="p,f:p:g" rowdef="p" ignore="true" colspan="4">
+                        <rows>
+                            <row>
+                                <cell type="field" id="uiFieldFormatterNameCBX" name="uiFieldFormatterNameCBX" uitype="combobox" ignore="true"/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
+                    <cell type="label" labelfor="dataObjFormatterNameCBX" label="Data Obj Formatter"/>
+                    <cell type="panel" id="dop" name="dop" coldef="p,f:p:g" rowdef="p" ignore="true" colspan="4">
+                        <rows>
+                            <row>
+                                <cell type="field" id="dataObjFormatterNameCBX" name="dataObjFormatterNameCBX" uitype="combobox" ignore="true"/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
+                    <cell type="label" labelfor="sqlTemplate" label="HQL Template"/>
+                    <cell type="field" id="sqlTemplate" name="sqlTemplate" uitype="textarea" colspan="4"/>
+                </row>
+            </rows>
+
+        </viewdef>
+        
         
         <!-- 
         <viewdef
@@ -517,6 +605,42 @@
                     <cell type="label" labelfor="4" label="Password Strength"/>
                     <!-- <cell type="field" id="4" name="strength" uitype="progress" isrequired="true" readonly="true"/> -->
                     <cell type="field" id="4" uitype="plugin" name="this" initialize="name=PasswordStrengthUI"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            type="form"
+            name="CollectionRelType"
+            class="edu.ku.brc.specify.datamodel.CollectionRelType"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[CollectionRelType Form]]></desc>
+            <columnDef>p,3dlu,f:p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="panel" id="desc" name="desc" coldef="p,2px,p,2px,p,1px,f:p:g" rowdef="p" ignore="true">
+                        <rows>
+                            <row>
+                                <cell type="label" id="left"  label="  "/>
+                                <cell type="label" id="mid"   label=" -> "/>
+                                <cell type="label" id="right" label="  "/>
+                                <cell type="label" id="stretch" label="  "/>
+                            </row>
+                        </rows>
+                    </cell>
+                </row>
+                <row>
+                    <cell type="label" labelfor="name"/>
+                    <cell type="field" id="name" name="name" uitype="text" isrequired="true"/> 
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textarea" isrequired="false" cols="50" rows="5"/>
                 </row>
             </rows>
         </viewdef>

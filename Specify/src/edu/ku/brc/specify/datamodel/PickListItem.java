@@ -37,6 +37,7 @@ import org.hibernate.annotations.CascadeType;
 
 import edu.ku.brc.af.ui.db.PickListIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
+import edu.ku.brc.ui.TitleValueIFace;
 import edu.ku.brc.util.Orderable;
 
 /**
@@ -54,7 +55,8 @@ import edu.ku.brc.util.Orderable;
 @Table(name = "picklistitem")
 public class PickListItem extends DataModelObjBase implements PickListItemIFace, 
                                                               Orderable,
-                                                              java.io.Serializable
+                                                              java.io.Serializable,
+                                                              TitleValueIFace
 {
     // Fields
     protected Integer  pickListItemId;
@@ -174,7 +176,7 @@ public class PickListItem extends DataModelObjBase implements PickListItemIFace,
     @Column(name = "Value", length = 64)
     public String getValue()
     {
-        return this.value == null ? title : (value.equals("<null>") ? null : value);
+        return this.value;// == null ? title : (value.equals("|null|") ? null : value);
     }
 
     public void setValue(String value)
@@ -312,12 +314,12 @@ public class PickListItem extends DataModelObjBase implements PickListItemIFace,
         }
         
         // Default to title
-        if (title.equals(obj.getTitle()))
+        if (title != null && obj != null && obj.getTitle() != null)
         {
-            return 0;
+            return title.compareTo(obj.getTitle());
         }
         // else
-        return title.compareTo(obj.getTitle());
+        return 0;
     }
 
 

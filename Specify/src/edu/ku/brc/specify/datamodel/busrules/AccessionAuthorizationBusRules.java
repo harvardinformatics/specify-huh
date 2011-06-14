@@ -14,6 +14,7 @@
  */
 package edu.ku.brc.specify.datamodel.busrules;
 
+import java.awt.Component;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
@@ -61,9 +62,10 @@ public class AccessionAuthorizationBusRules extends BaseBusRules
         
         if (formViewObj != null && formViewObj.isEditing())
         {
-            permitQCBX = formViewObj.getCompById("1");
-            if (permitQCBX != null)
+            Component comp = formViewObj.getCompById("1");
+            if (comp instanceof ValComboBoxFromQuery)
             {
+                permitQCBX = (ValComboBoxFromQuery)comp;
                 permitQCBX.addListSelectionListener(new ListSelectionListener() {
                     @Override
                     public void valueChanged(ListSelectionEvent e)
@@ -75,7 +77,6 @@ public class AccessionAuthorizationBusRules extends BaseBusRules
                                                           ((RepositoryAgreement)parentData).getRepositoryAgreementAuthorizations();
                             
                             Permit permit = (Permit)permitQCBX.getValue();
-                            System.out.println(permit);
                             if (countDataObjectById(setOfData, permit) > 1)
                             {
                                 UIRegistry.showLocalizedError("ACCAUTH_DUP", permit.getIdentityTitle());
@@ -99,7 +100,7 @@ public class AccessionAuthorizationBusRules extends BaseBusRules
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(Object dataObj, DataProviderSessionIFace session)
+    public Object beforeDelete(Object dataObj, DataProviderSessionIFace session)
     {
         AccessionAuthorization accAuth = (AccessionAuthorization) dataObj;
         Permit                 permit  = accAuth.getPermit();
@@ -114,6 +115,7 @@ public class AccessionAuthorizationBusRules extends BaseBusRules
             removeById(accAuth.getAccession().getAccessionAuthorizations(), accAuth);
             accAuth.setAccession(null);
         }
+        return dataObj;
     }
 
 }

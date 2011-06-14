@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.tasks.subpane.security;
 
+import java.awt.Dialog;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -58,7 +59,7 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
     
     protected ExpressResultsTableInfo esTblInfo = null;
     protected ValComboBoxFromQuery    cbx;
-    protected Integer                 divId = null;
+    protected Integer                 disciplineID = null;
     
     /**
      * @param cbx
@@ -76,11 +77,11 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
     @Override
     public String buildSQL(final Map<String, Object> dataMap, final List<String> fieldNames)
     {
-        Vector<Object> divisionIds   = BasicSQLUtils.querySingleCol("SELECT DisciplineID FROM discipline");
-        if (divisionIds.size() > 1)
+        Vector<Object> disciplineIds   = BasicSQLUtils.querySingleCol("SELECT DisciplineID FROM discipline ORDER BY Name");
+        if (disciplineIds.size() > 1)
         {
-            Vector<Object> divisionNames = BasicSQLUtils.querySingleCol("SELECT Name FROM discipline");
-            ToggleButtonChooserDlg<Object> divDlg = new ToggleButtonChooserDlg<Object>(null, UIRegistry.getResourceString("SEC_PK_SRCH"), 
+            Vector<Object> divisionNames = BasicSQLUtils.querySingleCol("SELECT Name FROM discipline ORDER BY Name");
+            ToggleButtonChooserDlg<Object> divDlg = new ToggleButtonChooserDlg<Object>((Dialog)null, UIRegistry.getResourceString("SEC_PK_SRCH"), 
                                                                                        divisionNames, ToggleButtonChooserPanel.Type.RadioButton);
             divDlg.setUseScrollPane(true);
             divDlg.createUI();
@@ -88,11 +89,12 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
             
             divDlg.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             UIHelper.centerAndShow(divDlg);
-            divId = (Integer)divisionIds.get(divisionNames.indexOf(divDlg.getSelectedObject()));
+            int inx = divisionNames.indexOf(divDlg.getSelectedObject());
+            disciplineID = (Integer)disciplineIds.get(inx);
             
         } else
         {
-            divId = (Integer)divisionIds.get(0);
+            disciplineID = (Integer)disciplineIds.get(0);
         }
         
         String searchName = cbx.getSearchName();
@@ -102,7 +104,7 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
             if (esTblInfo != null)
             {
                String sqlStr = esTblInfo.getViewSql();
-               return buildSearchString(dataMap, fieldNames, StringUtils.replace(sqlStr, "DSPLNID", divId.toString()));
+               return buildSearchString(dataMap, fieldNames, StringUtils.replace(sqlStr, "DSPLNID", disciplineID.toString()));
             }
         }
         return null;
@@ -116,12 +118,13 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
     @Override
     public String buildSQL(String searchText, boolean isForCount)
     {
-        String newEntryStr = searchText + '%';
+        /*String newEntryStr = searchText + '%';
         String sql = String.format("SELECT %s FROM Agent a LEFT JOIN a.specifyUser s INNER JOIN a.division d WHERE d.id = " + divId +
                                    " AND s = null AND LOWER(a.lastName) LIKE '%s2' ORDER BY a.lastName",
                                            isForCount ? "count(*)" : "a.lastName, a.firstName, a.agentId", newEntryStr);
         log.debug(sql);
-        return sql;
+        return sql;*/
+        return null;
     }
     
     /**
@@ -172,12 +175,23 @@ public class UserAgentVSQBldr implements ViewBasedSearchQueryBuilderIFace
         
         criteria.append(")");
         
+        String sqlStr = null;
+        
         StringBuffer sb = new StringBuffer();
         sb.append(criteria);
-        sb.append(" ORDER BY ");
-        sb.append(orderBy);
+
         
-        String sqlStr = StringUtils.replace(sqlTemplate, "(%s)", sb.toString());
+        int inxGrpBy = sqlTemplate.toLowerCase().indexOf( "group by");
+        if (inxGrpBy == -1)
+        {
+            sb.append(" ORDER BY ");
+            sb.append(orderBy);
+            sqlStr = StringUtils.replace(sqlTemplate, "(%s)", sb.toString());
+        } else
+        {
+            sqlStr = StringUtils.replace(sqlTemplate, "(%s)", sb.toString());
+            sqlStr += " ORDER BY " + orderBy;
+        }
         
         log.debug(sqlStr);
         

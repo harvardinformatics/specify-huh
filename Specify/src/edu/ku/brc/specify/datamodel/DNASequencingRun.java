@@ -52,8 +52,7 @@ import edu.ku.brc.util.Orderable;
 @org.hibernate.annotations.Entity(dynamicInsert=true, dynamicUpdate=true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "dnasequencingrun")
-public class DNASequencingRun extends CollectionMember 
-	implements AttachmentOwnerIFace<DNASequencingRunAttachment>, Orderable
+public class DNASequencingRun extends CollectionMember implements AttachmentOwnerIFace<DNASequencingRunAttachment>, Orderable
 {
 	protected Integer dnaSequencingRunId;
 	protected Integer ordinal;
@@ -81,6 +80,9 @@ public class DNASequencingRun extends CollectionMember
 	protected Boolean yesNo1;
 	protected Boolean yesNo2;
 	protected Boolean yesNo3;
+	
+	protected Agent runByAgent;
+    protected Agent preparedByAgent;
 	
 	protected DNASequence dnaSequence;
 	protected Set<DNASequencingRunAttachment> attachments;
@@ -128,6 +130,9 @@ public class DNASequencingRun extends CollectionMember
         yesNo2 = null;
         yesNo3 = null;
         
+        runByAgent      = null;
+        preparedByAgent = null;
+
         dnaSequence = null;
         attachments = new TreeSet<DNASequencingRunAttachment>();
         citations = new HashSet<DNASequencingRunCitation>();
@@ -185,9 +190,6 @@ public class DNASequencingRun extends CollectionMember
 		return runDate;
 	}
 
-
-
-
 	/**
 	 * @return the pcrCocktailPrimer
 	 */
@@ -197,9 +199,6 @@ public class DNASequencingRun extends CollectionMember
 		return pcrCocktailPrimer;
 	}
 
-
-
-
 	/**
 	 * @return the pcrForwardPrimerCode
 	 */
@@ -208,9 +207,6 @@ public class DNASequencingRun extends CollectionMember
 	{
 		return pcrForwardPrimerCode;
 	}
-
-
-
 
 	/**
 	 * @return the pcrReversePrimerCode
@@ -701,9 +697,45 @@ public class DNASequencingRun extends CollectionMember
     {
         this.attachments = attachments;
     }
+    
+    /**
+     * @return the runByAgent
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "RunByAgentID", updatable = false)
+    public Agent getRunByAgent()
+    {
+        return runByAgent;
+    }
+
+    /**
+     * @param runByAgent the runByAgent to set
+     */
+    public void setRunByAgent(Agent runByAgent)
+    {
+        this.runByAgent = runByAgent;
+    }
+    
+    /**
+     * @return the preparedByAgent
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "PreparedByAgentID", updatable = false)
+    public Agent getPreparedByAgent()
+    {
+        return preparedByAgent;
+    }
+
+    /**
+     * @param preparedByAgent the preparedByAgent to set
+     */
+    public void setPreparedByAgent(Agent preparedByAgent)
+    {
+        this.preparedByAgent = preparedByAgent;
+    }
 
 	//---------------------------------------------------------------
-	//Orderable implementation
+	// Orderable implementation
 	//---------------------------------------------------------------
 
     

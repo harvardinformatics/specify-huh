@@ -23,8 +23,12 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
+
+import edu.ku.brc.ui.UIHelper;
 
 
 /**
@@ -39,6 +43,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class LatLonConverter
 {
+    protected static DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
+    protected static String               decimalSep;
+    
     public final  static char UNICODE_DEGREE = 0x00b0;
     
 	public final static String DEGREES_SYMBOL = "\u00b0";
@@ -51,7 +58,7 @@ public class LatLonConverter
     public static int[] DECIMAL_SIZES = {7, 5, 3, 0};
     
     public enum LATLON          {Latitude, Longitude}
-    public enum FORMAT          {DDDDDD, DDMMMM, DDMMSS, None} // None must be at the end so the values match Specify 5
+    public enum FORMAT          {DDDDDD, DDMMSS, DDMMMM, None} // None must be at the end so the values match Specify 5
     public enum DEGREES_FORMAT  {None, Symbol, String}
     public enum DIRECTION       {None, NorthSouth, EastWest}
     
@@ -60,6 +67,7 @@ public class LatLonConverter
     public static DecimalFormat    decFormatter    = new DecimalFormat("#0.0000000#");
     protected static StringBuffer  zeroes          = new StringBuffer(64);
     
+    //patched
     
     protected static BigDecimal    minusOne        = new BigDecimal("-1.0");
     protected static DecimalFormat decFormatter2   = new DecimalFormat("#0");
@@ -84,6 +92,7 @@ public class LatLonConverter
         {
             zeroes.append("00000000");
         }
+        decimalSep = Character.toString(formatSymbols.getDecimalSeparator());
     }
     
     /**
@@ -103,8 +112,8 @@ public class LatLonConverter
         switch (formatInt)
         {
             case 0 : return FORMAT.DDDDDD;
-            case 1 : return FORMAT.DDMMMM;
-            case 2 : return FORMAT.DDMMSS;
+            case 1 : return FORMAT.DDMMSS;
+            case 2 : return FORMAT.DDMMMM;
             default : return FORMAT.DDDDDD;
         }
     }
@@ -173,11 +182,13 @@ public class LatLonConverter
         {
             String str = strArg;
             
-            String[] tokens = breakStringAPart(str);
-            boolean startsWithMinus = str.startsWith("-");
+            boolean  redoSplit       = false;
+            String[] tokens          = breakStringAPart(str);
+            boolean  startsWithMinus = str.startsWith("-");
             if (startsWithMinus)
             {
                 str = str.substring(1);
+                redoSplit = true;
             }
             
             if (tokens.length == 1)
@@ -189,30 +200,36 @@ public class LatLonConverter
                 {
                     str += " " + eastWest[startsWithMinus ? 1 : 0]; 
                 }
+                redoSplit = true;
             }
             
-            tokens = breakStringAPart(str);
-            String   zero   = inclZeroes ? "0" : "";
+            if (redoSplit)
+            {
+                tokens = breakStringAPart(str);
+            }
+            
+            String zero = inclZeroes ? "0" : "";
             //System.err.println("tokens[1] ["+tokens[1]+"]["+str+"]");
             boolean hasDegreesTxt = tokens[1].length() == 3 && tokens[1].equals("deg");
    
             LatLonValueInfo latLonInfo = new LatLonValueInfo(hasDegreesTxt);
             latLonInfo.addPart(tokens[0]);
             
-            String dirStr = null;
-            FORMAT fmt    = null;
+            int    toksLen = tokens.length;
+            String dirStr  = null;
+            FORMAT fmt     = null;
             
             if (actualFmt != null && actualFmt != FORMAT.None)
             {
                 switch (actualFmt)
                 {
                     case DDDDDD:
-                        dirStr = tokens[1];
+                        dirStr = tokens[toksLen-1];
                         break;
                         
                     case DDMMMM:
                         
-                        if (tokens.length == 3)
+                        if (toksLen == 3)
                         {
                             latLonInfo.addPart(tokens[1]);
                             dirStr = tokens[2];
@@ -225,19 +242,29 @@ public class LatLonConverter
                         break;
                         
                     case DDMMSS:
-                        if (tokens.length == 4)
+                        if (toksLen == 4)
                         {
                             latLonInfo.addPart(tokens[1]);
                             latLonInfo.addPart(tokens[2]);
                             dirStr = tokens[3];
                             
-                        } else if (tokens.length == 3)
+                        } else if (toksLen == 3)
                         {
-                            latLonInfo.addPart(tokens[1]);
-                            latLonInfo.addPart(zero);
+                            String tok1 = tokens[1];
+                            if (StringUtils.contains(tok1, formatSymbols.getDecimalSeparator()))
+                            {
+                                String[] tks = StringUtils.split(tok1, formatSymbols.getDecimalSeparator());
+                                latLonInfo.addPart(tks[0]);
+                                latLonInfo.addPart(tks[1]);
+                                
+                            } else
+                            {
+                                latLonInfo.addPart(tok1);
+                                latLonInfo.addPart(zero);
+                            }
                             dirStr = tokens[2];
                             
-                        } else if (tokens.length == 2)
+                        } else if (toksLen == 2)
                         {
                             latLonInfo.addPart(zero);
                             latLonInfo.addPart(zero);
@@ -252,7 +279,7 @@ public class LatLonConverter
                 
             } else
             {
-                switch (tokens.length)
+                switch (toksLen)
                 {
                     case 2 : 
                     {
@@ -355,10 +382,14 @@ public class LatLonConverter
                     break;
             }
             
-            String outStr = format(bd, latOrLon, toFmt, DEGREES_FORMAT.Symbol, DECIMAL_SIZES[toFmt.ordinal()]);
-            if (StringUtils.isNotEmpty(latLonVal.getDirStr()))
+            String outStr = "";
+            if (bd != null)
             {
-                outStr += " " + latLonVal.getDirStr();
+                outStr = format(bd, latOrLon, toFmt, DEGREES_FORMAT.Symbol, DECIMAL_SIZES[toFmt.ordinal()]);
+                if (StringUtils.isNotEmpty(latLonVal.getDirStr()))
+                {
+                    outStr += " " + latLonVal.getDirStr();
+                }
             }
             return outStr;
         }
@@ -770,7 +801,9 @@ public class LatLonConverter
         withoutDegSign = StringUtils.chomp(withoutDegSign, "�");
         //apparently need to do this on mac
         withoutDegSign =  StringUtils.remove(withoutDegSign, UNICODE_DEGREE);
-        return new BigDecimal(withoutDegSign);
+        
+        String val = StringUtils.replace(StringUtils.replace(withoutDegSign, decimalSep, ""), "-", "");
+        return StringUtils.isNumeric(val) ? UIHelper.parseDoubleToBigDecimal(withoutDegSign) : null;
     }
     
     /**
@@ -781,7 +814,13 @@ public class LatLonConverter
      */
     public static BigDecimal convertDDDDStrToDDDDBD(final String str, final String direction)
     {
-        BigDecimal bd = new BigDecimal(str);
+        String val = StringUtils.replace(StringUtils.replace(str, decimalSep, ""), "-", "");
+        if (!StringUtils.isNumeric(val))
+        {
+            return null;
+        }
+        
+        BigDecimal bd = UIHelper.parseDoubleToBigDecimal(str);
         if (isNegative(direction))
         {
             return bd.multiply(minusOne);
@@ -807,15 +846,20 @@ public class LatLonConverter
     public static BigDecimal convertDDMMSSStrToDDDDBD(final String str)
     {
         String[] parts = StringUtils.split(str," d°'\"" + DEGREES_SYMBOL);
-        double p0 =  Double.parseDouble(parts[0]);
+        if (parts.length != 3)
+        {
+            return null;
+        }
+        
+        double p0 =  UIHelper.parseDouble(parts[0]);
         boolean neg = false;
         if (p0 < 0)
         {
             p0 = p0*-1;
             neg = true;
         }
-        double p1 =  Double.parseDouble(parts[1]);
-        double p2 =  Double.parseDouble(parts[2]);
+        double p1 =  UIHelper.parseDouble(parts[1]);
+        double p2 =  UIHelper.parseDouble(parts[2]);
 
         BigDecimal val = new BigDecimal(p0 + ((p1 + (p2 / 60.0)) / 60.0));
         if (neg)
@@ -851,14 +895,14 @@ public class LatLonConverter
     {
         String[] parts = StringUtils.split(str, " d°'\"" + DEGREES_SYMBOL);
         
-        double p0 =  Double.parseDouble(parts[0]);
+        double p0 =  UIHelper.parseDouble(parts[0]);
         boolean neg = false;
         if (p0 < 0)
         {
             p0 = p0*-1;
             neg = true;
         }
-        double p1 =  Double.parseDouble(parts[1]);
+        double p1 =  UIHelper.parseDouble(parts[1]);
 
         BigDecimal val = new BigDecimal(p0 + (p1 / 60.0));
 
@@ -899,7 +943,7 @@ public class LatLonConverter
         }
         // else
         String newStr = StringUtils.stripEnd(str, "0");
-        if (newStr.endsWith("."))
+        if (newStr.endsWith(decimalSep))
         {
             return newStr + "0";
         }
@@ -957,10 +1001,23 @@ public class LatLonConverter
     public static BigDecimal convertDirectionalDDMMSSToDDDD(final String str)
     {
         String[] parts = StringUtils.split(str," d°'\"" + DEGREES_SYMBOL);
-        double p0 =  Double.parseDouble(parts[0]);
-        double p1 =  Double.parseDouble(parts[1]);
-        double p2 =  Double.parseDouble(parts[2]);
-        String dir = parts[3].substring(0, 1);
+        
+        String dir = null;
+        if (parts.length < 4)
+        {
+            parts[2] = parts[2].replaceAll("[NSEW]", "");
+            
+            int beginIndex = str.indexOf(parts[2]) + parts[2].length();
+            dir = str.substring(beginIndex, beginIndex + 1);
+        }
+        else
+        {
+            dir = parts[3].substring(0, 1);
+        }
+        
+        double p0 =  UIHelper.parseDouble(parts[0]);
+        double p1 =  UIHelper.parseDouble(parts[1]);
+        double p2 =  UIHelper.parseDouble(parts[2]);
 
         BigDecimal val = new BigDecimal(p0 + ((p1 + (p2 / 60.0)) / 60.0));
 
@@ -979,9 +1036,22 @@ public class LatLonConverter
     public static BigDecimal convertDirectionalDDMMMMToDDDD(final String dm)
     {
         String[] parts = StringUtils.split(dm," d°'\"" + DEGREES_SYMBOL);
-        double p0 =  Double.parseDouble(parts[0]);
-        double p1 =  Double.parseDouble(parts[1]);
-        String dir = parts[2].substring(0, 1);
+        
+        String dir = null;
+        if (parts.length < 3)
+        {
+            parts[1] = parts[1].replaceAll("[NSEW]", "");
+            
+            int beginIndex = dm.indexOf(parts[1]) + parts[1].length();
+            dir = dm.substring(beginIndex, beginIndex + 1);
+        }
+        else
+        {
+            dir = parts[2].substring(0, 1);
+        }
+        
+        double p0 =  UIHelper.parseDouble(parts[0]);
+        double p1 =  UIHelper.parseDouble(parts[1]);
 
         BigDecimal val = new BigDecimal(p0 + (p1 / 60.0));
 
@@ -1000,8 +1070,21 @@ public class LatLonConverter
     public static BigDecimal convertDirectionalDDDDToDDDD(final String str)
     {
         String[] parts = StringUtils.split(str," d°'\"" + DEGREES_SYMBOL);
-        double p0  = Double.parseDouble(parts[0]);
-        String dir = parts[1].substring(0, 1);
+        
+        String dir = null;
+        if (parts.length < 2)
+        {
+            parts[0] = parts[0].replaceAll("[NSEW]", "");
+            
+            int beginIndex = str.indexOf(parts[0]) + parts[0].length();
+            dir = str.substring(beginIndex, beginIndex + 1);
+        }
+        else
+        {
+            dir = parts[1].substring(0, 1);
+        }
+        
+        double p0  = UIHelper.parseDouble(parts[0]);
         
         BigDecimal val = new BigDecimal(p0);
 

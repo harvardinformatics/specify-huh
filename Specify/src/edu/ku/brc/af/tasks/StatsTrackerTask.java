@@ -23,6 +23,8 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Vector;
 
@@ -30,17 +32,18 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.SubPaneIFace;
 import edu.ku.brc.af.core.ToolBarItemDesc;
 import edu.ku.brc.af.core.UsageTracker;
+import edu.ku.brc.af.prefs.AppPreferences;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.helpers.SwingWorker;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
-import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
 
@@ -53,6 +56,8 @@ import edu.ku.brc.util.Pair;
  */
 public class StatsTrackerTask extends BaseTask
 {
+    private static final Logger log = Logger.getLogger(StatsTrackerTask.class);
+    
     public  static final String           STATS_TRACKER   = "StatsTracker"; //$NON-NLS-1$
     
     protected StatsSwingWorker<?, ?> worker;
@@ -133,10 +138,14 @@ public class StatsTrackerTask extends BaseTask
     }
     
     /**
-     * @param doExit
-     * @param doSilent
+     * When it is done sending the statistics: if doExit is true it will shutdown the Hibernate and the DBConnections
+     * and call System.exit(0), if doSendDoneEvent is true then it send a CommandAction(APP_CMD_TYPE, "STATS_SEND_DONE", null)
+     * for someone else to shut everything down.
+     * @param doExit call exit
+     * @param doSilent don't show any UI while sending stats
+     * @param doSendDoneEvent send a STATS_SEND_DONE command on the UI thread.
      */
-    public void sendStats(final boolean doExit, final boolean doSilent)
+    public void sendStats(final boolean doExit, final boolean doSilent, final boolean doSendDoneEvent)
     {
         if (!doSilent)
         {
@@ -164,9 +173,14 @@ public class StatsTrackerTask extends BaseTask
                     
                     if (doExit)
                     {
+                        AppPreferences.shutdownAllPrefs();
                         DataProviderFactory.getInstance().shutdown();
                         DBConnection.shutdown();
                         System.exit(0);
+                        
+                    } else if (doSendDoneEvent)
+                    {
+                        CommandDispatcher.dispatch(new CommandAction(APP_CMD_TYPE, "STATS_SEND_DONE", null));
                     }
                 }
                 
@@ -275,15 +289,18 @@ public class StatsTrackerTask extends BaseTask
             httpClient.executeMethod(postMethod);
             
             // get the server response
-            /*String responseString = postMethod.getResponseBodyAsString();
+            String responseString = postMethod.getResponseBodyAsString();
             
             if (StringUtils.isNotEmpty(responseString))
             {
                 System.err.println(responseString);
-            }*/
+            }
 
-        }
-        catch (Exception e)
+        } catch (java.net.UnknownHostException ex)
+        {
+            log.debug("Couldn't reach host.");
+            
+        } catch (Exception e)
         {
             //e.printStackTrace();
             //UsageTracker.incrHandledUsageCount();
@@ -371,18 +388,18 @@ public class StatsTrackerTask extends BaseTask
             if (!UIRegistry.isRelease()) // For Testing Only
             {
                 postParams.add(new NameValuePair("user_name", System.getProperty("user.name"))); //$NON-NLS-1$
-                //try 
-                //{
-                //    postParams.add(new NameValuePair("ip", InetAddress.getLocalHost().getHostAddress())); //$NON-NLS-1$
-                //} catch (UnknownHostException e) {}
+                try 
+                {
+                    postParams.add(new NameValuePair("ip", InetAddress.getLocalHost().getHostAddress())); //$NON-NLS-1$
+                } catch (UnknownHostException e) {}
             }
             
-            String install4JStr = UIHelper.getInstall4JInstallString();
-            if (StringUtils.isEmpty(install4JStr))
+            String resAppVersion = UIRegistry.getAppVersion();
+            if (StringUtils.isEmpty(resAppVersion))
             {
-                install4JStr = "Unknown"; 
+                resAppVersion = "Unknown"; 
             }
-            postParams.add(new NameValuePair("app_version", install4JStr)); //$NON-NLS-1$
+            postParams.add(new NameValuePair("app_version", resAppVersion)); //$NON-NLS-1$
             
             if (doSendSecondaryStats)
             {

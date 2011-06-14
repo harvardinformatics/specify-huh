@@ -80,8 +80,8 @@ public class LSIDPrefsPanel extends GenericPrefsPanel
         super();
         
         title    = "LSIDPrefsPanel";
-        name     = "LSIDPrefsPanel";
-        hContext = "LSIDPrefs";
+        name     = title;
+        hContext = "PrefsLSID";
         
         validator.setName("LSID Validator");
         validator.setNewObj(true);

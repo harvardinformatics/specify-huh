@@ -50,10 +50,11 @@ import org.hibernate.annotations.Index;
 
 import edu.ku.brc.services.biogeomancer.GeoCoordDataIFace;
 import edu.ku.brc.ui.GraphicsUtils;
+import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.GeoRefConverter;
-import edu.ku.brc.util.LatLonConverter;
 import edu.ku.brc.util.GeoRefConverter.GeoRefFormat;
+import edu.ku.brc.util.LatLonConverter;
 
 /**
  * WorkbenchRow generated rods
@@ -92,11 +93,15 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     protected String                 long1Text;
     protected String                 long2Text;
     
+    //For updates
+    protected Integer				 				recordId; //recordID exported from 'main' db to this row
+    protected Set<WorkbenchRowExportedRelationship> workbenchRowExportedRelationships;
+    
     // XXX PREF
-    protected int                      maxWidth  = 500;
-    protected int                      maxHeight = 500;
-    protected int                      maxImageSize = 16000000; // ~ 16 MB
-    protected SoftReference<ImageIcon> fullSizeImageSR = null;
+    protected int                      				maxWidth  = 500;
+    protected int                      				maxHeight = 500;
+    protected int                      				maxImageSize = 16000000; // ~ 16 MB
+    protected SoftReference<ImageIcon> 				fullSizeImageSR = null;
     
     // Transient Data Members
     protected Hashtable<Short, WorkbenchDataItem>            items         = new Hashtable<Short, WorkbenchDataItem>();
@@ -128,16 +133,18 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     // Initializer
     public void initialize()
     {
-        workbenchRowId     = null;
-        workbench          = null;
-        rowNumber          = null;
-        workbenchDataItems = new HashSet<WorkbenchDataItem>();
-        workbenchRowImages = new HashSet<WorkbenchRowImage>();
-        uploadStatus       = UPLD_NONE;
-        lat1Text           = null;
-        lat2Text           = null;
-        long1Text          = null;
-        long2Text          = null;
+        workbenchRowId     					= null;
+        workbench          					= null;
+        rowNumber          					= null;
+        workbenchDataItems 					= new HashSet<WorkbenchDataItem>();
+        workbenchRowImages 					= new HashSet<WorkbenchRowImage>();
+        uploadStatus       					= UPLD_NONE;
+        lat1Text           					= null;
+        lat2Text           					= null;
+        long1Text          					= null;
+        long2Text          					= null;
+        recordId           					= null;
+        workbenchRowExportedRelationships 	= new HashSet<WorkbenchRowExportedRelationship>();
     }
     // End Initializer
     
@@ -263,6 +270,19 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
      */
     public synchronized int addImage(final File orig) throws IOException
     {
+    	return addImage(orig, null);
+    }
+
+    /**
+     * Adds a new image to the row.
+     * 
+     * @param orig the image file
+     * @param attachToTlbName the table to attach the image to
+     * @return the index of the new image
+     * @throws IOException if an error occurs while loading or scaling the image file
+     */
+    public synchronized int addImage(final File orig, final String attachToTblName) throws IOException
+    {
         if (workbenchRowImages == null)
         {
             workbenchRowImages = new HashSet<WorkbenchRowImage>();
@@ -278,12 +298,41 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             newRowImage.setCardImageFullPath(orig.getAbsolutePath());
             newRowImage.setCardImageData(imgData);
             newRowImage.setWorkbenchRow(this);
+            newRowImage.setAttachToTableName(attachToTblName);
             workbenchRowImages.add(newRowImage);
             return order;
         }
         return -1;
     }
     
+    /**
+     * Adds a new image to the row.
+     * 
+     * @param orig the image file
+     * @param attachToTlbName the table to attach the image to
+     * @return the index of the new image
+     * @throws IOException if an error occurs while loading or scaling the image file
+     */
+    public synchronized int addImagePath(final String orig, final String attachToTblName)
+    {
+        if (workbenchRowImages == null)
+        {
+            workbenchRowImages = new HashSet<WorkbenchRowImage>();
+        }
+        
+        //byte[] imgData = readAndScaleCardImage(orig);
+            int order = workbenchRowImages.size();
+            WorkbenchRowImage newRowImage = new WorkbenchRowImage();
+            newRowImage.initialize();
+            newRowImage.setImageOrder(order);
+            newRowImage.setCardImageFullPath(orig);
+            newRowImage.setCardImageData(null);
+            newRowImage.setWorkbenchRow(this);
+            newRowImage.setAttachToTableName(attachToTblName);
+            workbenchRowImages.add(newRowImage);
+            return order;
+    }
+
     /**
      * @param index
      */
@@ -388,6 +437,14 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             throw new NullPointerException("Provided File must be non-null");
         }
 
+        if (!imageFile.exists())
+        {
+            loadStatus = LoadStatus.Error;
+            loadException = new IOException();
+
+            throw (IOException )loadException;
+        }
+        
         if (imageFile.length() < this.maxImageSize)
         {
             byte[] imgBytes = null;
@@ -583,12 +640,38 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
     }
 
     /**
+     * @return the workbenchRowExportedRelationships
+     */
+    @OneToMany(mappedBy = "workbenchRow")
+    @Cascade( {CascadeType.ALL, CascadeType.DELETE_ORPHAN} )
+    public Set<WorkbenchRowExportedRelationship> getWorkbenchRowExportedRelationships()
+    {
+        return workbenchRowExportedRelationships;
+    }
+
+    /**
+     * @param workbenchRowExportedRelationships
+     */
+    public void setWorkbenchRowExportedRelationships(Set<WorkbenchRowExportedRelationship> workbenchRowExportedRelationships)
+    {
+        this.workbenchRowExportedRelationships = workbenchRowExportedRelationships;
+    }
+
+    /**
      * Returns a hashtable of items where the key is the column index of the item.
      * @return a hashtable of items where the key is the column index of the item.
      */
     @Transient
     public Hashtable<Short, WorkbenchDataItem> getItems()
     {
+        if (items.size() != workbenchDataItems.size())
+        {
+            items.clear();
+            for (WorkbenchDataItem wbdi : workbenchDataItems)
+            {
+                items.put(wbdi.getColumnNumber(), wbdi);
+            }
+        }
         return items;
     }
 
@@ -599,42 +682,64 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
      */
     public String getData(final int col)
     {
-        if (items.size() != workbenchDataItems.size())
-        {
-            items.clear();
-            for (WorkbenchDataItem wbdi : workbenchDataItems)
-            {
-                items.put(wbdi.getColumnNumber(), wbdi);
-            }
-        }
-        WorkbenchDataItem wbdi = items.get((short)col);
+        WorkbenchDataItem wbdi = getItems().get((short)col);
         if (wbdi != null)
         {
             return wbdi.getCellData();
         }
         // else
+//        WorkbenchTemplateMappingItem wbtmi = workbench.getMappingFromColumn((short )col);
+//        if (wbtmi != null && wbtmi.getIsRequired())
+//        {
+//        	//include empty items for required columns to make validation easier, and besides they will be needed eventually (unless wb is never uploaded)
+//        	wbdi = new WorkbenchDataItem(this, workbench.getMappingFromColumn((short )col), null, rowNumber); // adds it to the row also
+//        	items.put((short )col, wbdi);
+//        	workbenchDataItems.add(wbdi);
+//        }
         return "";
     }
+    
+//    /**
+//     * @param wbdi
+//     * @return true if the mapping item for wbdi is required.
+//     */
+//    protected boolean colIsRequired(WorkbenchTemplateMappingItem wbtmi)
+//    {
+//    	boolean required = false;
+//    	if (wbtmi != null)
+//    	{
+//    		required = wbtmi.getIsRequired() || (wbtmi.getFieldInfo() != null && wbtmi.getFieldInfo().isRequired());
+//    	}
+//    	return required;
+//    }
     
     /**
      * Sets the string data into the column items.
      * @param dataStr the string data
      * @param col the column index to be set
      */
-    public WorkbenchDataItem setData(final String dataStr, final short col, final boolean updateGeoRefInfo)
+   public WorkbenchDataItem setData(final String dataStr, final short col, final boolean updateGeoRefInfo)
     {
-        WorkbenchDataItem wbdi = items.get(col);
+    	return setData(dataStr, col, updateGeoRefInfo, false);
+    }
+    /**
+     * Sets the string data into the column items.
+     * @param dataStr the string data
+     * @param col the column index to be set
+     */
+    public WorkbenchDataItem setData(final String dataStr, final short col, final boolean updateGeoRefInfo, final boolean isRequired)
+    {
+        WorkbenchDataItem wbdi = getItems().get(col);
         if (wbdi != null)
         {
-            // XXX we may actually want to remove and 
-            // delete the item if it is set to empty
-            
-            //if nothing has changed return null. (Mostly to prevent unnecessary updates of Georef texts).
-            if (dataStr == null && wbdi.getCellData() == null)
+            // remove the item if it is set to empty and is not required
+            if (StringUtils.isEmpty(dataStr) && (wbdi.isRequired()))
             {
-                return null; 
+                items.remove(col);
+                workbenchDataItems.remove(wbdi);
             }
-            if (dataStr != null && dataStr.equals(wbdi.getCellData()))
+            //if nothing has changed return null. (Mostly to prevent unnecessary updates of Georef texts).
+            else if (dataStr.equals(wbdi.getCellData()))
             {
                 return null;
             }
@@ -642,10 +747,14 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
             wbdi.setCellData(dataStr);
         } else // the cell doesn't exist so create one
         {
-            if (StringUtils.isNotEmpty(dataStr))
+        	if (StringUtils.isNotEmpty(dataStr) || isRequired)
             {
-                Short inx = (short)col;
+        		Short inx = (short)col;
                 wbdi = new WorkbenchDataItem(this, workbench.getMappingFromColumn(col), dataStr, rowNumber); // adds it to the row also
+                if (isRequired)
+                {
+                	wbdi.setRequired(true);
+                }
                 items.put(inx, wbdi);
                 workbenchDataItems.add(wbdi);
             }
@@ -749,7 +858,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
                 return null;
             }
             ddString = geoConverter.convert(StringUtils.stripToNull(latEntry), GeoRefFormat.D_PLUS_MINUS.name());
-            BigDecimal bigD = new BigDecimal(ddString);
+            BigDecimal bigD = UIHelper.parseDoubleToBigDecimal(ddString);
             return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Latitude, decimalSize);
         }
         catch (NumberFormatException ex)
@@ -781,7 +890,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
                 return null;
             }
             ddString = geoConverter.convert(StringUtils.stripToNull(longEntry), GeoRefFormat.D_PLUS_MINUS.name());
-            BigDecimal bigD = new BigDecimal(ddString);
+            BigDecimal bigD = UIHelper.parseDoubleToBigDecimal(ddString);
             return LatLonConverter.ensureFormattedString(bigD, null, fmt, LatLonConverter.LATLON.Longitude, decimalSize);
         }
         catch (NumberFormatException ex)
@@ -841,7 +950,7 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
      */
     public int compareTo(final WorkbenchRow obj)
     {
-        return rowNumber.compareTo(obj.rowNumber);
+        return rowNumber != null && obj != null && obj.rowNumber != null ? rowNumber.compareTo(obj.rowNumber) : 0;
     }
     
     //------------------------------------------------------------------------
@@ -1047,7 +1156,25 @@ public class WorkbenchRow implements java.io.Serializable, Comparable<WorkbenchR
         this.uploadStatus = uploadStatus;
     }
 
+    
     /**
+	 * @return the recordId
+	 */
+    @Column(name = "RecordID", unique = false, nullable = true, insertable = true, updatable = true)
+	public Integer getRecordId()
+	{
+		return recordId;
+	}
+
+	/**
+	 * @param recordId the recordId to set
+	 */
+	public void setRecordId(Integer recordId)
+	{
+		this.recordId = recordId;
+	}
+
+	/**
      * @return the lat1Text
      */
     @Column(name = "Lat1Text", unique = false, nullable = true, insertable = true, updatable = true, length = 50)

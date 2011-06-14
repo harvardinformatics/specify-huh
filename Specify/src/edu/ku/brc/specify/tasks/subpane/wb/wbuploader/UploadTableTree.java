@@ -24,8 +24,10 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -45,6 +47,7 @@ import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Field;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Table;
+import edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader.ParentTableEntry;
 
 /**
  * @author timbo
@@ -429,7 +432,7 @@ public class UploadTableTree extends UploadTable
      */
     protected String getDefaultParentName()
     {
-        return uploader.getIdentifier();
+    	return uploader.getIdentifier();
     }
     
     /* (non-Javadoc)
@@ -445,17 +448,6 @@ public class UploadTableTree extends UploadTable
             keys.add(new UploadedRecordInfo(((DataModelObjBase)defParent).getId(), -1, 0, null));
         }
         deleteObjects(keys.iterator(), showProgress);
-        if (parent == null && !this.incrementalNodeNumberUpdates)
-        {
-            try
-            {
-                getTreeDef().updateAllNodes((DataModelObjBase)getTreeRoot(), false, false);
-            }
-            catch (Exception ex)
-            {
-                throw new UploaderException(ex);
-            }
-        }
     }
 
     /**
@@ -496,20 +488,41 @@ public class UploadTableTree extends UploadTable
             return -1;
         }
     }
-
+    
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getRecordSetName()
+     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getFullRecordSetName()
      */
     @Override
-    protected String getRecordSetName() 
+    protected String getFullRecordSetName(boolean showRecordSetInUI)
     {
-        try
+        if (showRecordSetInUI)
+        {
+        	return super.getFullRecordSetName(showRecordSetInUI);
+        }
+        
+    	try
         {
             return getTreeDefItem().getName() + "_" + uploader.getIdentifier();
         }
         catch (UploaderException ux)
         {
             return tblClass.getSimpleName() + "_" + uploader.getIdentifier();
+        }
+    }
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getShortRecordSetName()
+     */
+    @Override
+    protected String getShortRecordSetName()
+    {
+        try
+        {
+            return getTreeDefItem().getName();
+        }
+        catch (UploaderException ux)
+        {
+            return tblClass.getSimpleName();
         }
     }
     
@@ -522,7 +535,7 @@ public class UploadTableTree extends UploadTable
         try
         {
             TreeDefItemIface td = getTreeDefItem();
-            if (td != null) return td.getName();
+            if (td != null) return td.getDisplayText();
             return tblClass.getSimpleName();
         }
         catch (UploaderException ux)
@@ -531,7 +544,17 @@ public class UploadTableTree extends UploadTable
         }
     }
 
+    
     /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getTblTitle()
+	 */
+	@Override
+	public String getTblTitle()
+	{
+		return toString();
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#verifyUploadability()
      */
     @Override
@@ -554,17 +577,20 @@ public class UploadTableTree extends UploadTable
         		Vector<UploadField> uploadFields = new Vector<UploadField>();
         		for (UploadField fld : flds)
         		{
-        			int idx = fields.indexOf(fld.getField());
-        			if (idx != -1)
+        			if (fld.getIndex() != -1)
         			{
-        				String msg = String.format(getResourceString("WB_UPLOAD_EQUIV_RANKS"), fld.getWbFldName(), 
+        				int idx = fields.indexOf(fld.getField());
+        				if (idx != -1)
+        				{
+        					String msg = String.format(getResourceString("WB_UPLOAD_EQUIV_RANKS"), fld.getWbFldName(), 
         						uploadFields.get(idx).getWbFldName(), getTreeDefItem().getName());
-        				result.add(new InvalidStructure(msg, this));
-        			}
-        			else
-        			{
-        				fields.add(fld.getField());
-        				uploadFields.add(fld);
+        					result.add(new InvalidStructure(msg, this));
+        				}
+        				else
+        				{
+        					fields.add(fld.getField());
+        					uploadFields.add(fld);
+        				}
         			}
         		}
         	}
@@ -593,27 +619,30 @@ public class UploadTableTree extends UploadTable
     protected Vector<TreeDefItemIface<?,?,?>> getMissingRequiredDefs() throws UploaderException
     {
         Vector<TreeDefItemIface<?,?,?>> result = new Vector<TreeDefItemIface<?,?,?>>();
-        for (Object obj : getTreeDef().getTreeDefItems())
+        if (child != null)
         {
-            TreeDefItemIface<?,?,?> defItem = (TreeDefItemIface<?,?,?>)obj;
-            if (defItem.getRankId() > rank && defItem.getIsEnforced() != null && defItem.getIsEnforced())
-            {
-                UploadTableTree currLevel = this;
-                while (currLevel != null)
-                {
-                    if (!defItem.getRankId().equals(currLevel.rank))
-                    {
-                        currLevel = currLevel.child;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                if (currLevel == null)
-                {
-                    result.add(defItem);            
-                }
+        	for (Object obj : getTreeDef().getTreeDefItems())
+        	{
+        		TreeDefItemIface<?,?,?> defItem = (TreeDefItemIface<?,?,?>)obj;
+        		if (defItem.getRankId() > rank && defItem.getIsEnforced() != null && defItem.getIsEnforced())
+        		{
+        			UploadTableTree currLevel = this;
+        			while (currLevel != null)
+        			{
+        				if (!defItem.getRankId().equals(currLevel.rank))
+        				{
+        					currLevel = currLevel.child;
+        				}
+        				else
+        				{
+                        	break;
+        				}
+        			}
+        			if (currLevel == null)
+        			{
+        				result.add(defItem);            
+        			}
+        		}
             }
         }
         return result;
@@ -670,6 +699,27 @@ public class UploadTableTree extends UploadTable
         return dataToWrite(recNum);
     }
 
+    /**
+     * @return true if changes that require a tree update have occurred.
+     * 
+     * This method should be called by the highest level in the tree.
+     */
+    protected boolean needToUpdateTree()
+    {
+    	//XXX may need to check other things when 'update' uploads are implemented
+    	if (uploadedRecs.size() > 0)
+    	{
+    		return true;
+    	}
+    	
+    	if (child != null)
+    	{
+    		return child.needToUpdateTree();
+    	}
+    	
+    	return false;
+    }
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#finishUpload()
      */
@@ -679,22 +729,36 @@ public class UploadTableTree extends UploadTable
         super.finishUpload(cancelled);
         if (this.parent == null  && !this.incrementalNodeNumberUpdates && !cancelled)
         {
-            try
-            {
-                getTreeDef().updateAllNodes((DataModelObjBase)getTreeRoot(), false, false);
-            }
-            catch (Exception ex)
-            {
-                if (ex instanceof UploaderException) 
-                { 
-                    throw (UploaderException) ex; 
-                }
-                throw new UploaderException(ex);
-            }
+        	if (needToUpdateTree())
+        	{
+        		try
+        		{
+        			getTreeDef().updateAllNodes((DataModelObjBase)getTreeRoot(), true, false);
+        		}
+        		catch (Exception ex)
+        		{
+        			if (ex instanceof UploaderException) 
+        			{ 
+        				throw (UploaderException) ex; 
+        			}
+        			throw new UploaderException(ex);
+        		}
+        	}
         }
     }
 
+    
     /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#finishUndoUpload()
+	 */
+	@Override
+	public void finishUndoUpload() throws UploaderException
+	{
+		super.finishUndoUpload();
+		finishUpload(false);
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#shutdown()
      */
     @Override
@@ -753,8 +817,9 @@ public class UploadTableTree extends UploadTable
     protected boolean setParents(DataModelObjBase rec, int recNum)
             throws InvocationTargetException, IllegalArgumentException, IllegalAccessException, UploaderException
     {
-        super.setParents(rec, recNum);
-        return true; //don't worry. It will be OK in the end.
+        boolean result = super.setParents(rec, recNum);
+        //return true; //don't worry. It will be OK in the end.
+        return result;
     }
 
 	/* (non-Javadoc)
@@ -762,11 +827,44 @@ public class UploadTableTree extends UploadTable
 	 */
 	@Override
 	protected void addDomainCriteria(CriteriaIFace criteria)
-			throws UploaderException {
+			throws UploaderException 
+	{
 		// all already taken care of.
 	}
 
+	
     /* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#shouldLoadParent(edu.ku.brc.specify.tasks.subpane.wb.wbuploader.Uploader.ParentTableEntry)
+	 */
+	@Override
+	protected boolean shouldLoadParent(ParentTableEntry pte)
+	{
+		return super.shouldLoadParent(pte) && pte.getImportTable() != parent;
+	}
+
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#loadMyRecord(edu.ku.brc.specify.datamodel.DataModelObjBase, int)
+	 */
+	@Override
+	protected void loadMyRecord(DataModelObjBase rec, int seq)
+	{
+		DataModelObjBase parentRec = rec;
+		if (rec != null && ((Treeable<?,?,?> )rec).getRankId().equals(getRank()))
+		{
+			super.loadMyRecord(rec, seq);
+			parentRec = (DataModelObjBase )((Treeable<?,?,?> )rec).getParent();
+		}
+		else 
+		{
+			super.loadMyRecord(null, seq);
+		}
+		if (parent != null)
+		{
+			parent.loadMyRecord(parentRec, seq);		
+		}
+	}
+
+	/* (non-Javadoc)
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#isBlankVal(edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadField, int, int, edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadData)
      */
     @Override
@@ -848,7 +946,7 @@ public class UploadTableTree extends UploadTable
      * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#validateRowValues(int, edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadData, java.util.Vector)
      */
     @Override
-    protected void validateRowValues(int row,
+    public void validateRowValues(int row,
                                      UploadData uploadData,
                                      Vector<UploadTableInvalidValue> invalidValues)
     {
@@ -929,16 +1027,17 @@ public class UploadTableTree extends UploadTable
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getMatchCriteria(edu.ku.brc.dbsupport.DataProviderSessionIFace.CriteriaIFace, int, java.util.Vector)
+     * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getMatchCriteria(edu.ku.brc.dbsupport.DataProviderSessionIFace.CriteriaIFace, int, java.util.Vector, java.util.HashMap)
      */
     @Override
     protected boolean getMatchCriteria(CriteriaIFace critter,
                                        int recNum,
-                                       Vector<UploadTable.MatchRestriction> restrictedVals)
+                                       Vector<UploadTable.MatchRestriction> restrictedVals,
+                                       HashMap<UploadTable, DataModelObjBase> overrideParentParams)
             throws UploaderException, IllegalAccessException, NoSuchMethodException,
             InvocationTargetException
     {
-        boolean result =  super.getMatchCriteria(critter, recNum, restrictedVals);
+        boolean result =  super.getMatchCriteria(critter, recNum, restrictedVals, overrideParentParams);
         if (!allowUnacceptedMatches)
         {
         //XXX It is possible for taxa (or other tree tables) to have null (interpreted as true) isAccepted
@@ -949,6 +1048,21 @@ public class UploadTableTree extends UploadTable
         }
         return result;
     }
+
+    
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#isMatchable(java.util.Set, int)
+	 */
+	@Override
+	protected boolean isMatchable(Set<Integer> unmatchableCols, int seq) 
+	{
+		boolean result = parent != null ? parent.isMatchable(unmatchableCols, seq) : true;
+		if (result)
+		{
+			result = super.isMatchable(unmatchableCols, seq);
+		}
+		return result;
+	}
 
 	/**
 	 * @return the parent
@@ -966,6 +1080,18 @@ public class UploadTableTree extends UploadTable
 		return child;
 	}
 
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.specify.tasks.subpane.wb.wbuploader.UploadTable#getAdjustedSeqForBlankRowCheck(int)
+	 */
+	@Override
+	protected int getAdjustedSeqForBlankRowCheck(int seq)
+	{
+		if (uploadFields.size() == 1 && seq > 0)
+		{
+			return 0;
+		}
+		return seq;
+	}
     /**
      * @author timo
      * 

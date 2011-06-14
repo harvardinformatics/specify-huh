@@ -12,12 +12,10 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
-import edu.ku.brc.specify.datamodel.Geography;
-import edu.ku.brc.specify.datamodel.Storage;
-import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
+import edu.ku.brc.specify.datamodel.busrules.BaseTreeBusRules;
 
 
 /**
@@ -68,7 +66,7 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 	/**
 	 * @return tableInfo for Node type
 	 */
-	protected DBTableInfo getNodeTable()
+	public DBTableInfo getNodeTable()
 	{
 		return DBTableIdMgr.getInstance().getByClassName(treeDef.getNodeClass().getName());
 	}
@@ -92,9 +90,17 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 	/**
 	 * @return name of the name field for node table
 	 */
-	protected String getNameFld()
+	public String getNameFld()
 	{
 		return "name";
+	}
+	
+	/**
+	 * @return
+	 */
+	public String getFullNameFld()
+	{
+		return "fullname";
 	}
 	
 	/**
@@ -117,7 +123,7 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 	 * 
 	 * @throws Exception if more than matching child exists.
 	 */
-	protected Integer getMatch(final Object[] child, final Integer parentId) throws Exception
+	protected Integer getMatch(final Object[] child, final Integer parentId) throws TreeMergeException
 	{
 		Boolean isAccepted = (Boolean )child[2];
 		String sql = "select " + nodeTable.getIdFieldName() + " from " + nodeTable.getName() + " where "
@@ -134,7 +140,7 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 			return (Integer )matches.get(0)[0];
 		}
 		//XXX prompt user???
-		throw new Exception("multiple matches. unable to merge."); //XXX i18n 
+		throw new TreeMergeException(this, (String )child[1], parentId);  
 	}
 	
 	/**
@@ -219,22 +225,19 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected List<String> getPreMergeSql(final Integer toMergeId, final Integer mergeIntoId)
 	{
-		// use nodeTable.getRelationships()???
-		
 		Vector<String> result = new Vector<String>();
-		if (nodeTable.getClassObj().equals(Taxon.class))
+		BaseTreeBusRules<N,D,I> busRules = (BaseTreeBusRules<N,D,I> )DBTableIdMgr.getInstance().getBusinessRule(treeDef.getNodeClass());
+		if (busRules != null)
 		{
-			//deal with determinations and stuff
-		}
-		else if (nodeTable.getClassObj().equals(Geography.class))
-		{
-			result.add("update locality set geographyid = " + mergeIntoId + " where geographyid = " + toMergeId);
-		}
-		else if (nodeTable.getClassObj().equals(Storage.class))
-		{
-			
+			String[] rels = busRules.getAllRelatedTableAndColumnNames();	
+			for (int i = 0; i < rels.length; i += 2)
+			{
+				result.add("update " + rels[i] + " set " + rels[i+1] + " = " + mergeIntoId 
+						+ " where " + rels[i+1] + " = " + toMergeId);
+			}
 		}
 		return result;
 	}
@@ -243,7 +246,7 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 	 * @param mergeIntoId
 	 * @throws Exception
 	 */
-	protected void preMerge(final Integer toMergeId, final Integer mergeIntoId) throws Exception
+	protected void preMerge(final Integer toMergeId, final Integer mergeIntoId) throws TreeMergeException, Exception
 	{
 		//business rules??? Use hibernate here??
 		List<String> updaters = getPreMergeSql(toMergeId, mergeIntoId);
@@ -257,7 +260,7 @@ public class TreeMerger<N extends Treeable<N,D,I>,
 		}		
 		else 
 		{
-			throw new Exception("Unable to merge " + nodeTable.getName() + " objects");
+			throw new TreeMergeException(this, null, toMergeId, mergeIntoId, null, TreeMergeException.UNSPECIFIED);
 		}
 	}
 	

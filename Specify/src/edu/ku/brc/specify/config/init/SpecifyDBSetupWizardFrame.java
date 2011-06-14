@@ -65,6 +65,7 @@ import edu.ku.brc.dbsupport.CustomQueryFactory;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.HibernateUtil;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppPrefs;
@@ -112,7 +113,9 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         SpecifyAppPrefs.setSkipRemotePrefs(true);
         SpecifyAppPrefs.initialPrefs();
         
-        ImageIcon helpIcon = IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconSize.Std16); //$NON-NLS-1$
+        Specify.adjustLocaleFromPrefs();
+        
+        ImageIcon helpIcon = IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconSize.Std32); //$NON-NLS-1$
         HelpMgr.initializeHelp("SpecifyHelp", helpIcon.getImage()); //$NON-NLS-1$
         
         JMenuBar menuBar = createMenus();
@@ -122,7 +125,7 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         }
         UIRegistry.register(UIRegistry.MENUBAR, menuBar);
         
-        setIconImage(IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconManager.IconSize.Std16).getImage());
+        setIconImage(IconManager.getIcon(SpecifyDBSetupWizard.getIconName(), IconManager.IconSize.NonStd).getImage());
         
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -171,10 +174,10 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
      */
     protected String getAppTitle(final String titleStr)
     {
-        String install4JStr = UIHelper.getInstall4JInstallString();
-        if (StringUtils.isNotEmpty(install4JStr))
+        String resAppVersion = UIRegistry.getAppVersion();
+        if (StringUtils.isNotEmpty(resAppVersion))
         {
-            appVersion = install4JStr;
+            appVersion = resAppVersion;
         }
         
         return AppBase.getTitle(appVersion, appBuildVersion, titleStr);
@@ -238,18 +241,22 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         {
             DBConnection.setCopiedToMachineDisk(true);
         }
+        
         DBConnection.shutdown();
         HibernateUtil.shutdown();
         
-        SwingUtilities.invokeLater(new Runnable() {
-
-            /* (non-Javadoc)
-             * @see java.lang.Runnable#run()
-             */
+        SwingUtilities.invokeLater(new Runnable() 
+        {
             @Override
             public void run()
             {
-                System.exit(0);
+                if (UIRegistry.isEmbedded() || UIRegistry.isMobile())
+                {
+                    DBConnection.shutdownFinalConnection(true, false); // true means System.exit
+                } else
+                {
+                    System.exit(0);
+                }
             }
         });
         
@@ -346,6 +353,8 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         System.setProperty(DBTableIdMgr.factoryName,                    "edu.ku.brc.specify.config.SpecifyDBTableIdMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");              // Needed for Tree Field Names //$NON-NLS-1$
         System.setProperty(BackupServiceFactory.factoryName,            "edu.ku.brc.af.core.db.MySQLBackupService");                   // Needed for Backup and Restore //$NON-NLS-1$
+        System.setProperty(SchemaUpdateService.factoryName,             "edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService");   // needed for updating the schema
+
     }
     
     /**
@@ -382,6 +391,8 @@ public class SpecifyDBSetupWizardFrame extends JFrame implements FrameworkAppIFa
         }
         
         AppBase.processArgs(args);
+        AppBase.setupTeeForStdErrStdOut(true, false);
+        
         System.setProperty("appdatadir", "..");
         
         SwingUtilities.invokeLater(new Runnable()

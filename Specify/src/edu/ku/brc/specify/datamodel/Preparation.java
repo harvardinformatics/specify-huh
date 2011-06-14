@@ -103,6 +103,9 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     protected Set<PreparationAttr>        preparationAttrs;        // Generic Expandable Attributes
     protected Set<PreparationAttachment>  preparationAttachments;
     
+    protected Set<ExchangeInPrep>         exchangeInPreps;
+    protected Set<ExchangeOutPrep>        exchangeOutPreps;
+    
     // Transient
     protected Boolean                     isOnLoan = null;
     
@@ -119,9 +122,6 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     {
         this.preparationId = preparationId;
     }
-   
-    
-    
 
     /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#initialize()
@@ -160,6 +160,10 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         preparationAttribute   = null;
         preparationAttrs       = new HashSet<PreparationAttr>();
         preparationAttachments = new HashSet<PreparationAttachment>();
+        
+        exchangeInPreps  = new HashSet<ExchangeInPrep>();
+        exchangeOutPreps = new HashSet<ExchangeOutPrep>();
+
     }
     // End Initializer
 
@@ -282,13 +286,13 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
                                  "INNER JOIN loanpreparation lp ON p.PreparationID = lp.PreparationID WHERE p.PreparationID = "+getId();
                     ResultSet rs = stmt.executeQuery(sql);
                     
-                    int     totalAvail = 0;
-                    Integer prepQty    = null;
+                    int     totalOnLoan = 0;
+                    Integer prepQty     = null;
                     
                     while (rs.next())
                     {
                         prepQty = rs.getObject(1) != null ? rs.getInt(1) : 0;
-                        //System.err.print("\nprepQty "+prepQty);
+                        //System.err.println("\nprepQty "+prepQty);
                         
                         boolean isResolved = rs.getObject(5) != null ? rs.getBoolean(5) : false;
                         
@@ -296,12 +300,16 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
                         int qtyRes  = rs.getObject(3) != null ? rs.getInt(3) : 0;
                         //int qtyRtn  = rs.getObject(4) != null ? rs.getInt(4) : 0;
                         
+                        //System.err.println("loanQty "+loanQty);
+                        //System.err.println("qtyRes  "+qtyRes);
+                        //System.err.println("qtyRtn  "+qtyRtn);
+                        
                         if (isResolved && qtyRes != loanQty) // this shouldn't happen
                         {
                             qtyRes = loanQty;
                         }
                         
-                        totalAvail += qtyRes - loanQty;
+                        totalOnLoan += loanQty - qtyRes;
                     }
                     rs.close();
                     
@@ -310,7 +318,10 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
                         return false;
                     }
                         
-                    isOnLoan = totalAvail < prepQty;
+                    isOnLoan = totalOnLoan > 0;
+                    //System.err.println("totalOnLoan "+totalOnLoan);
+                    //System.err.println("isOnLoan    "+isOnLoan);
+                    
                 } else
                 {
                     UsageTracker.incrNetworkUsageCount();
@@ -340,7 +351,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
                 }
             }
         }
-        return isOnLoan == null ? false : true;
+        return isOnLoan == null ? false : isOnLoan;
     }
     
     /**
@@ -564,6 +575,32 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     public void setGiftPreparations(Set<GiftPreparation> giftPreparations) {
         this.giftPreparations = giftPreparations;
     }
+    
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<ExchangeInPrep> getExchangeInPreps() {
+        return this.exchangeInPreps;
+    }
+    
+    public void setExchangeInPreps(Set<ExchangeInPrep> exchangeInPreps) {
+        this.exchangeInPreps = exchangeInPreps;
+    }
+    
+    /**
+     * 
+     */
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "preparation")
+    @org.hibernate.annotations.Cascade( { org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
+    public Set<ExchangeOutPrep> getExchangeOutPreps() {
+        return this.exchangeOutPreps;
+    }
+    
+    public void setExchangeOutPreps(Set<ExchangeOutPrep> exchangeOutPreps) {
+        this.exchangeOutPreps = exchangeOutPreps;
+    }
 
    /**
      * @return the preparationAttrs
@@ -744,13 +781,22 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
     }
     
     /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#forceLoad()
+     */
+    @Override
+    public void forceLoad()
+    {
+        preparationAttachments.size();
+        preparationAttrs.size();
+    }
+    
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
      */
     @Override
     public Object clone() throws CloneNotSupportedException
     {
         Preparation obj = (Preparation)super.clone();
-        obj.init();
         
         obj.preparationId           = null;
         obj.loanPreparations        = new HashSet<LoanPreparation>();
@@ -763,7 +809,9 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
         obj.preparationAttrs        = new HashSet<PreparationAttr>();
         for (PreparationAttr pa : preparationAttrs)
         {
-            obj.preparationAttrs.add((PreparationAttr)pa.clone());
+            PreparationAttr newPA = (PreparationAttr)pa.clone();
+            obj.preparationAttrs.add(newPA);
+            newPA.setPreparation(obj);
         }
          
         return obj;
@@ -783,7 +831,7 @@ public class Preparation extends CollectionMember implements AttachmentOwnerIFac
             return prepType.name.toLowerCase().compareTo(obj.prepType.name.toLowerCase());
         }
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 
 

@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
+import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 
 /**
@@ -39,14 +40,14 @@ public class SpecifySchemaUpdateScopeFixer
     protected static final Logger log = Logger.getLogger(SpecifySchemaUpdateScopeFixer.class);
     protected HashMap<Integer, Integer> colToDspHash = new HashMap<Integer, Integer>();
     protected HashMap<Integer, Integer> colToDivHash = new HashMap<Integer, Integer>();
-    
+    protected final String databaseName;
     /**
      * 
      */
-    public SpecifySchemaUpdateScopeFixer()
+    public SpecifySchemaUpdateScopeFixer(final String databaseName)
     {
         super();
-        // TODO Auto-generated constructor stub
+        this.databaseName = databaseName;
     }
 
     
@@ -91,7 +92,7 @@ public class SpecifySchemaUpdateScopeFixer
         
         for (int i=0;i<memberTableNames.length;i++)
         {
-            if (!fixCollectionMember(conn, memberTableNames[i], memberIndexNames[i]))
+            if (!fixCollectionMember(conn, memberTableNames[i].toLowerCase(), memberIndexNames[i]))
             {
                 return false;
             }
@@ -140,12 +141,45 @@ public class SpecifySchemaUpdateScopeFixer
         };*/
     }
     
+    /**
+     * @param conn
+     * @param tableName
+     * @param fieldName
+     * @return true if there is a field named fieldName in the table named tableName.
+     */
+    protected boolean fieldExists(final Connection conn,  final String tableName, final String fieldName)
+    {
+        DBMSUserMgr dbUserMgr = DBMSUserMgr.getInstance();
+        Connection connCache = dbUserMgr.getConnection();
+        dbUserMgr.setConnection(conn);
+        
+        boolean fieldExists = dbUserMgr.doesFieldExistInTable(tableName, fieldName);
+        
+        dbUserMgr.setConnection(connCache);
+        
+        return fieldExists;
+    }
+    
+    /**
+     * @param conn
+     * @param tableName
+     * @param oldIndexName
+     * @return
+     */
     protected boolean fixCollectionMember(final Connection conn, 
                                           final String tableName,
                                           final String oldIndexName)
     {
         log.info(tableName + " - " + oldIndexName);
         
+        //check to see if the fix has already been done
+        if (!fieldExists(conn, tableName, "CollectionMemberID")) 
+        {
+            return true; //successfully did nothing
+        }
+        
+        boolean hasDisciplineID = fieldExists(conn, tableName, "DisciplineID");
+
         DBTableInfo tblInfo = DBTableIdMgr.getInstance().getByShortClassName(tableName);
         if (tblInfo != null && tblInfo.getTableIndexMap() != null)
         {
@@ -168,6 +202,7 @@ public class SpecifySchemaUpdateScopeFixer
 
                 HashMap<Integer, Integer> hash = new HashMap<Integer, Integer>();
                 String sql = "SELECT " + tblInfo.getIdFieldName() + ", CollectionMemberID FROM " + tblName;
+                log.debug(sql);
                 for (Object[] row : BasicSQLUtils.query(conn, sql))
                 {
                     hash.put((Integer)row[0], (Integer)row[1]);
@@ -193,7 +228,11 @@ public class SpecifySchemaUpdateScopeFixer
                     return false; 
                 }*/
                 
-                rv = BasicSQLUtils.update(conn, createNewCol);
+                if (!hasDisciplineID)
+                {
+                    rv = BasicSQLUtils.update(conn, createNewCol);
+                }
+
 /*                if (rv != 0)
                 {
                     log.error("Error on ["+createNewCol+"] for table["+tblName+"]");
@@ -229,10 +268,16 @@ public class SpecifySchemaUpdateScopeFixer
         }
         return false;
     }
+
     
 
     public boolean fixGroupPerson(final Connection conn)
     {
+        if (!fieldExists(conn, "groupperson", "CollectionMemberID"))
+        {
+            return true; //already fixed
+        }
+        
         String dropOldInx   = "DROP INDEX GPColMemIDX on groupperson";
         String dropOldCol   = "ALTER TABLE groupperson DROP COLUMN CollectionMemberID";
         String createNewCol = "ALTER TABLE groupperson Add COLUMN DivisionID int(11)";

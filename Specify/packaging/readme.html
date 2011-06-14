@@ -1,202 +1,295 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Readme</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Release Notes</title>
 </head>
-
 <body>
-<h3>Specify 6.1<br />
-30 October 2009<br />
-Release Notes<br />
+<h3>Release Notes<br>
+Specify 6.3.00<br>
+09 June 2011<br>
 Specify Software Project</h3>
-
-<br />
-
-<h3>New Capabilities:</h3>
+<br>
+<br>
+<h4>New or Enhanced Features:</h4>
 <ol>
-<li>Added support for automatic generation of Life Science Identifiers (LSIDs) for Agents, Chronostratigraphy, Collection Objects, Geography, Journals, Lithostratigraphy, Localities, Reference Works, and Taxonomy.</li>
-
-<li>Added NASA World Wind plug-in for geo-referencing specimen localities.</li>
-
-<li>Added support for the GBIF IPT toolkit for publishing XML structured data with the TAPIR protocol to the GBIF cache and to other specimen database portals.</li>
-
-<li>Added database audit records which identify changed records.</li>
-
-<li>Added support for polygon boundaries for localities and added fields to the GeoCoordinate Detail Table to accommodate ever shifting MANIS Network requirements for mammal collections.</li>
-
-<li>Added several requested fields to Specify WorkBench schema</li>
-
-<li>Added capability to extract Day, Month, Year from date fields in queries and reports.</li>
+  <li><b>Specify WorkBench Validates Data Uploads:</b> The WorkBench is
+a versatile tool for new data entry, it allows specimen data to be
+keystroked into a spreadsheet grid or a customized form view. The
+WorkBench is also great for importing collection records from Excel
+files. In Specify 6.3 we introduce powerful validation functions which
+inspect the data in WorkBench fields and evaluate them against the
+contents of your Specify database. The WorkBench does this as you type
+in new records or in batch mode once a Data Set is ready for uploading
+to Specify. Through color coding the WorkBench indicates which data
+values are new to your database, as well as highlighting formatting
+errors or data type mismatches. These validation functions immediately
+indicate which data values need further attention--either to be
+corrected or accepted as valid new database entries. WorkBench
+validation of incoming data records keeps misspellings in data types
+such as taxon or geographical, or collectors' (Agent) names, out of
+your database and greatly facilitates accurate and consistent data
+entry.<br>
+  </li>
+  <li><b>Containers Organize Specimens:</b> Specify 6.3 now supports
+Containers which can be substrates or physical containers in a
+collection. For example, a microscope slide upon which one or more
+algal specimens are mounted can now be linked to the algal collection
+object records. The slide may optionally be given a catalog number
+itself. Containers contain specimens or even other containers. A lichen
+specimen on the surface of a wood sample would be cataloged as a
+collection object, while the piece of wood could be recorded as a
+Container. A Container might also be a box of specimens (Collection
+Objects) that needs to be cataloged to be curated. Catalog Numbers are
+optional for Containers, some collections use them, some don't.</li>
+  <li><b>Documenting Biological Relationships:</b> Relationships can
+now be expressed between two collections in order to document
+biological relationships between collection objects. Predator/prey,
+pollinator/plant, host/parasite relationships between cataloged collection objects (e.g. a specimen in
+a herbarium database and an insect in an entomology collection), can
+now be linked, searched and displayed across collections within Specify.</li>
+  <li><b>New Tree Merge Function Improves Data Quality:</b> Data
+managed in Specify's tree windows (Taxon, Geography, Storage Locality,
+Chronostratigraphy and Lithostratigraphy) can now be merged across tree
+entries or nodes. This capability is highly useful for rapid data
+cleanup when new data entry has introduced misspellings or unwanted
+variant terms. Nodes at the same rank in a tree can be merged to
+consolidate duplicate child nodes and preserve all distinct child
+nodes under the target term. For example, if a Geography Tree has
+Country rank nodes for "Columbia" and "Colombia", with Colombian
+Departments listed beneath them, dragging "Columbia" to "Colombia" in a
+Geography tree will merge all Department nodes, eliminating any
+redundant Department entries but preserving unique Department
+names. No information is lost, and all linked Collection Object records
+then point to "Colombia" and to the appropriate Departments at the next
+lower rank. Drag-and-drop node merging is a powerful and efficient work
+flow tool for improving data consistency.<br>
+  </li>
+  <li><b>Distributing Data Entry and Mobilizing Records:</b> Specify
+users can create Record Sets of Collection Objects in their database
+and then export copies of those records to a Data Set usable by the
+Specify WorkBench. From there data can be exported to Excel format
+files. Those Excel files can in turn be imported into other WorkBenches
+as Data Sets at other institutions or collections, and then re-imported
+into Specify. Moving Specify records around in this way creates
+opportunities for collaborative or distributed cataloging as well as
+for transporting records in Excel for portability and remote use. </li>
+  <li><b>Data Cloning Function Speeds Data Entry:</b> Query Combo Boxes
+are used on Specify's data forms to find and link to existing data in
+related data tables. For example you may have a Query Combo Box for
+looking up and scrolling through Locality or Collecting Event records
+to match one with a new specimen record. If you find an existing
+Locality or Collecting Event that is close but not identical to the
+information you need to enter, Specify 6.3's cloning function enables selecting an existing record, quickly duplicating it to make any
+changes and then saving it. With new data entry, there is no need to
+link to Locality or Collecting Event data that are different from what
+you need-- just find an existing record, clone, edit, and save. (This
+new capability works with any Query Combo Box representing a
+Many-to-One relationship between data types.)</li>
+  <li><b>Batch Identify (or Batch Determination) Accelerates Name
+Updates:</b> With Batch Identify one can identify a batch of specimens
+and then change their Current Determination in one action instead of
+one specimen at a time.</li>
+  <li><b>Series Data Entry Creates New Specimens in Batches:</b> Some
+disciplines such as entomology often computerize a large number of
+specimens within a single series. With Specify 6.3 one can now enter a
+range of Catalog Numbers, enter data in one Collection Object form and
+then with one mouse click, save a series of sequentially-numbered
+Collection Objects with the entered data.</li>
+  <li><b>Pick List Import/Export:</b> Data Form Pick Lists which
+standardize data values for fields by presenting a small number of
+valid values, can now be exchanged among Specify installations and
+collections with Specify 6.3's import/export capabilities. This is
+useful for collaborators who need to standardize term value options
+across two or more collection databases. Most Specify data fields can
+be configured as Pick Lists.</li>
+  <li><b>New Security Wizard Recovers Credentials:</b> The Security
+Wizard is a new application which must be run with the Specify IT User
+account name and password. The Security Wizard can verify the Specify
+Master User name and password, or reset them. The Security Wizard also
+can view and edit the list of databases the Specify Master User enables
+Specify users to access. (The Specify IT User is either the 'root' user
+on the MySQL database installation, or an account in MySQL with
+root-level permissions created by a database administrator).</li>
+  <li><b>Higher Level Taxonomic Searches:</b> Taxon queries are now
+able to search for Taxon nodes constrained to a particular tree rank.
+e.g. show me a list of families in my collection.</li>
+  <li><b>Specify WorkBench Schema Mapping:</b> The data field labels in
+the Data Set Mapping Editor are now editable to more easily keep track of individual field mappings between the WorkBench and Specify.</li>
+  <li><b>Minimum Password Length can be Specified:</b> Users can be
+required to create passwords of a minimum length or larger. The default setting is 8 characters.</li>
+  <li><b>Use a Custom Database Server Port:</b> Specify can be
+configured to access a custom network port of a MySQL Server computer.</li>
+  <li><b>Query Results now Display a Maximum of 20,000 Records.</b></li>
+  <li><b>The Specify WorkBench Data Set Row Limit has been Increased to
+4,000 Rows.</b><br>
+  </li>
 </ol>
- 
-
-<h3>A new Specify Mobile WorkBench application and a new easy-install version of Specify 6, Specify EZDB will be released shortly as an update Specify 6.1.1.</h3>
-
-<br />
-
-<h3>List of changes for 6.1</h3>
-
+<h4>&nbsp;</h4>
+<h4>List of changes in Specify 6.3<br>
+</h4>
 <ol>
-<li>[NODUP][branch] Only one collection object can be saved in Accession.&nbsp;&nbsp;2009-08-05 10:14:22 -0500&nbsp;&nbsp;(7526).</li>
-<li>[trunk] Should removed hold on "root" for master username in MySQL embedded.&nbsp;&nbsp;2009-08-05 10:26:25 -0500&nbsp;&nbsp;(7517).</li>
-<li>[Trunk/Branch] To only permit one instance of each launcher for all mobile, embed, and external launchers.&nbsp;&nbsp;2009-08-12 12:29:27 -0500&nbsp;&nbsp;(7505).</li>
-<li>[branch] Can't add attachments to Pages subform in Field Notebook.&nbsp;&nbsp;2009-08-12 12:31:16 -0500&nbsp;&nbsp;(7515).</li>
-
-<li>[Trunk] Neither Close button nor (X) button kill the ImportFileSplitter program/process&nbsp;&nbsp;2009-08-12 12:32:57 -0500&nbsp;&nbsp;(7365).</li>
-<li>[Br,Tr] Exception when deleting Taxon Citations in taxon tree editor.&nbsp;&nbsp;2009-08-17 16:33:17 -0500&nbsp;&nbsp;(7536).</li>
-<li>Can't save changes to Institution&nbsp;&nbsp;2009-08-26 13:11:50 -0500&nbsp;&nbsp;(7279).</li>
-<li>Branch and trunk - Carry forward is creating many to one for prep attributes,  and Collection Object Attributes.&nbsp;&nbsp;2009-08-27 13:56:29 -0500&nbsp;&nbsp;(7488).</li>
-<li>The wizard's build process is generating two error messages&nbsp;&nbsp;2009-08-31 10:39:11 -0500&nbsp;&nbsp;(7608).</li>
-
-<li>Cancel button in Wizard should be dumb-mistake proofed&nbsp;&nbsp;2009-09-04 09:46:44 -0500&nbsp;&nbsp;(7185).</li>
-<li>[Trunk] Warning message for creating new Discipline/Division should mention that root credentials are required.&nbsp;&nbsp;2009-09-14 10:02:06 -0500&nbsp;&nbsp;(7612).</li>
-<li>[Trunk] After entering root credentials for creating a new discipline or division, the screen "unlocks."&nbsp;&nbsp;2009-09-14 10:04:42 -0500&nbsp;&nbsp;(7613).</li>
-<li>"Removing" a user does not totally remove it:  cannot re-add the same username.&nbsp;&nbsp;2009-09-14 10:17:34 -0500&nbsp;&nbsp;(7243).</li>
-<li>The Loan preference, Due in Months, does not do anything (yet).&nbsp;&nbsp;2009-09-14 10:26:54 -0500&nbsp;&nbsp;(7283).</li>
-
-<li>[Branch/Trunk] Help->Help in SpiReport brings up a broken link in a web browser.&nbsp;&nbsp;2009-09-14 10:32:32 -0500&nbsp;&nbsp;(7416).</li>
-<li>[Trunk/Branch] The Next button in 70% (Preload Taxon) becomes badly enabled upon keystrokes in Choose field.&nbsp;&nbsp;2009-09-14 10:40:48 -0500&nbsp;&nbsp;(7432).</li>
-<li>Custom Catalog Number Formatter causes exception upon save.&nbsp;&nbsp;2009-09-14 15:37:35 -0500&nbsp;&nbsp;(7494).</li>
-<li>[T&B] Don't allow deletion of the Administrator&nbsp;&nbsp;2009-09-14 16:21:17 -0500&nbsp;&nbsp;(7410).</li>
-
-<li>[T/B] Deleting CO from query results exception&nbsp;&nbsp;2009-09-14 16:29:18 -0500&nbsp;&nbsp;(7444).</li>
-<li>[trunk] Exception when editing "Ayn Timusanat" in Geography Tree.&nbsp;&nbsp;2009-09-16 14:14:05 -0500&nbsp;&nbsp;(7583).</li>
-<li>[trunk] Even though an accession authorization is not added, it says its added.&nbsp;&nbsp;2009-09-16 14:15:22 -0500&nbsp;&nbsp;(7573).</li>
-<li>[trunk] Exception in resource Import/export in davinci & localhost.&nbsp;&nbsp;2009-09-16 14:16:24 -0500&nbsp;&nbsp;(7565).</li>
-
-<li>Exception when deleting user defined picklist in schema config.&nbsp;&nbsp;2009-09-16 14:24:19 -0500&nbsp;&nbsp;(7547).</li>
-<li>[br/tr] Deleted users in Security still show up in existing user list.&nbsp;&nbsp;2009-09-16 14:28:58 -0500&nbsp;&nbsp;(7520).</li>
-<li>[Br/Tr] Attachments tools are enabled for Manager, but are restricted after logging in as Manager.&nbsp;&nbsp;2009-09-16 14:43:08 -0500&nbsp;&nbsp;(7484).</li>
-<li>Error when opening Help in Security&nbsp;&nbsp;2009-09-16 14:47:37 -0500&nbsp;&nbsp;(7648).</li>
-<li>[trunk] Export mapper button does not have icon in security tools.&nbsp;&nbsp;2009-09-16 14:48:32 -0500&nbsp;&nbsp;(7477).</li>
-
-<li>Carry forward - Partial date label needs more to explain WHICH is partial date&nbsp;&nbsp;2009-09-17 10:05:48 -0500&nbsp;&nbsp;(7638).</li>
-<li>Botany labels is not working - get no pages&nbsp;&nbsp;2009-09-17 13:28:31 -0500&nbsp;&nbsp;(6638).</li>
-<li>Problems with availability of fields&nbsp;&nbsp;2009-09-17 13:34:55 -0500&nbsp;&nbsp;(6882).</li>
-<li>Trunk and Branch Loan Invoice generates error.&nbsp;&nbsp;2009-09-17 13:46:33 -0500&nbsp;&nbsp;(7469).</li>
-<li>Mammal loan invoice comes back with error.&nbsp;&nbsp;2009-09-17 13:46:52 -0500&nbsp;&nbsp;(7344).</li>
-
-<li>Trunk - suspected bad data causing an error message&nbsp;&nbsp;2009-09-17 14:33:07 -0500&nbsp;&nbsp;(7541).</li>
-<li>Trunk - clicking cancel on the preview produces different results&nbsp;&nbsp;2009-09-17 14:33:47 -0500&nbsp;&nbsp;(7543).</li>
-<li>Trunk and brank - The help is not linking to the correct help&nbsp;&nbsp;2009-09-17 14:45:21 -0500&nbsp;&nbsp;(7556).</li>
-<li>[trunk] The default help isn't going to the correct location.&nbsp;&nbsp;2009-09-17 14:51:47 -0500&nbsp;&nbsp;(7558).</li>
-<li>Trunk - External backup and restore&nbsp;&nbsp;2009-09-17 14:52:42 -0500&nbsp;&nbsp;(7559).</li>
-
-<li>[trunk] It would be WONDERFUL if for the external backup and restore function, if it said IT user&nbsp;&nbsp;2009-09-17 14:53:10 -0500&nbsp;&nbsp;(7560).</li>
-<li>[Trunk and branch] Workbench sample label popup has no captions.&nbsp;&nbsp;2009-09-17 14:54:32 -0500&nbsp;&nbsp;(7569).</li>
-<li>For plants - the botany label is not working at all.&nbsp;&nbsp;2009-09-17 15:17:23 -0500&nbsp;&nbsp;(7596).</li>
-<li>Cannot delete prior mappings and change them&nbsp;&nbsp;2009-09-17 15:22:28 -0500&nbsp;&nbsp;(7620).</li>
-<li>Taxon tree is only getting top level and you cannot add anything&nbsp;&nbsp;2009-09-17 15:24:41 -0500&nbsp;&nbsp;(7652).</li>
-
-<li>Adding two instances of a user in Security and then deleting one of them deletes both&nbsp;&nbsp;2009-09-25 09:38:50 -0500&nbsp;&nbsp;(7646).</li>
-<li>Adding a user to two different user groups in security and them removing them causes exception.&nbsp;&nbsp;2009-09-25 14:18:20 -0500&nbsp;&nbsp;(7645).</li>
-<li>[Trunk] Attempting to open two linux copies of internal Specify causes an error message.&nbsp;&nbsp;2009-09-28 09:44:14 -0500&nbsp;&nbsp;(7550).</li>
-<li>[branch] In nonglobally accessioned databases, creating a new division does not allow you to pick your accession number format&nbsp;&nbsp;2009-10-06 16:29:18 -0500&nbsp;&nbsp;(7690).</li>
-<li>]Branch] The LSID authority field is missing on the Institution form.&nbsp;&nbsp;2009-10-06 16:34:15 -0500&nbsp;&nbsp;(7677).</li>
-
-<li>[Branch] Discrepancy concerning the level above which nonglobally accessioned databases share accession data objects.&nbsp;&nbsp;2009-10-07 17:05:25 -0500&nbsp;&nbsp;(7686).</li>
-<li>[Tr] (embed) Cannot log into an embedded database with SpiReport (unless Specify is open and logged in already)&nbsp;&nbsp;2009-10-07 17:06:24 -0500&nbsp;&nbsp;(7578).</li>
-<li>[branch] Exception upon creating a new division.&nbsp;&nbsp;2009-10-08 14:59:50 -0500&nbsp;&nbsp;(7689).</li>
-<li>All Date + (Day, Month, or Year) fields in querybuilder cause exception upon search.&nbsp;&nbsp;2009-10-15 15:38:35 -0500&nbsp;&nbsp;(7678).</li>
-<li>[Branch] Upon logging into a database and opening a new query, an exception results.&nbsp;&nbsp;2009-10-19 15:36:01 -0500&nbsp;&nbsp;(7709).</li>
-
-<li>[Branch] Creating a new mapping results in exception.&nbsp;&nbsp;2009-10-19 15:37:04 -0500&nbsp;&nbsp;(7710).</li>
-<li>Cannot create a new database 6.2b.01&nbsp;&nbsp;2009-10-21 12:51:39 -0500&nbsp;&nbsp;(7667).</li>
-<li>[trunk]Email tool in Agent should not ask for email address again&nbsp;&nbsp;2009-10-21 12:57:27 -0500&nbsp;&nbsp;(5505).</li>
-<li>Simple Search does not find DNA Sequence results&nbsp;&nbsp;2009-10-21 12:59:46 -0500&nbsp;&nbsp;(5608).</li>
-<li>[trunk]Should not have duplicate agents for Groups subform&nbsp;&nbsp;2009-10-21 13:05:16 -0500&nbsp;&nbsp;(5855).</li>
-
-<li>[trunk]Duplicate Authors allowed in Reference Work&nbsp;&nbsp;2009-10-21 13:06:45 -0500&nbsp;&nbsp;(6003).</li>
-<li>In Exchange In/Out, the Exchange Date field clears when the Address of Record subform is enabled&nbsp;&nbsp;2009-10-21 13:11:53 -0500&nbsp;&nbsp;(6121).</li>
-<li>(tr & br)In Field Formatting Editor, cannot accept changes once the Name has been deleted and typed again&nbsp;&nbsp;2009-10-21 13:17:01 -0500&nbsp;&nbsp;(7551).</li>
-<li>Cannot edit a newly added picklist&nbsp;&nbsp;2009-10-21 15:17:14 -0500&nbsp;&nbsp;(7571).</li>
-
-<li>Exception when you try to delete the original collection that you built with&nbsp;&nbsp;2009-10-21 15:33:35 -0500&nbsp;&nbsp;(7575).</li>
-<li>Cannot search by Collecting Information Start date in Collecting Trip form&nbsp;&nbsp;2009-10-21 15:47:52 -0500&nbsp;&nbsp;(7585).</li>
-<li>Exception when adding Accession to CO&nbsp;&nbsp;2009-10-21 15:55:43 -0500&nbsp;&nbsp;(7591).</li>
-<li>Exception when saving a Reference Work without a title&nbsp;&nbsp;2009-10-21 15:56:53 -0500&nbsp;&nbsp;(7622).</li>
-<li>Adding an Attachment in Icon or Grid view for FieldNotebook Page or Set gives exception&nbsp;&nbsp;2009-10-21 15:59:34 -0500&nbsp;&nbsp;(7634).</li>
-
-<li>[Branch] The "Ask for collection at startup" pref causes refresh button in Reports to prompt for collection.&nbsp;&nbsp;2009-10-22 14:50:20 -0500&nbsp;&nbsp;(7711).</li>
-<li>Changing Permissions in Security causes exception&nbsp;&nbsp;2009-10-22 15:04:42 -0500&nbsp;&nbsp;(7647).</li>
-<li>Specify Wizard hangs on start-up pane&nbsp;&nbsp;2009-10-22 15:22:25 -0500&nbsp;&nbsp;(7693).</li>
-<li>Specify freezes if the field formatter editor window is closed before all changes are saved to a Cat#&nbsp;&nbsp;2009-10-22 15:23:08 -0500&nbsp;&nbsp;(7695).</li>
-<li>Cannot use search tool for Storage querycbx in Preparations&nbsp;&nbsp;2009-10-22 15:24:32 -0500&nbsp;&nbsp;(7700).</li>
-
-<li>(Trunk) Catalog Numbers are not being auto-incremented that should be&nbsp;&nbsp;2009-10-23 14:23:39 -0500&nbsp;&nbsp;(7519).</li>
-<li>WB mapping service throws error when lat2/lon2 are empty&nbsp;&nbsp;2009-10-26 14:30:39 -0500&nbsp;&nbsp;(7713).</li>
-<li>Can't save Reports with USER scope&nbsp;&nbsp;2009-10-26 14:33:48 -0500&nbsp;&nbsp;(7706).</li>
-<li>Sometimes hidden fields are displayed in queries&nbsp;&nbsp;2009-10-26 14:36:54 -0500&nbsp;&nbsp;(7703).</li>
-<li>Tree locks based on the 'Usage Count' - form lock are not handled by 'Unlock Tree' items.&nbsp;&nbsp;2009-10-26 14:43:56 -0500&nbsp;&nbsp;(7696).</li>
-
-<li>Geography tree not un-locked after form edits&nbsp;&nbsp;2009-10-26 14:47:07 -0500&nbsp;&nbsp;(7691).</li>
-<li>Cannot add a Manager user because cannot add an agent.&nbsp;&nbsp;2009-10-26 14:48:52 -0500&nbsp;&nbsp;(7669).</li>
-<li>When I added a field to the query and then went to export tool, it showed that it needed to be updated BUT did not create any records.&nbsp;&nbsp;2009-10-26 15:14:42 -0500&nbsp;&nbsp;(7664).</li>
-<li>Cannot add an administrator user&nbsp;&nbsp;2009-10-26 15:18:08 -0500&nbsp;&nbsp;(7662).</li>
-<li>AutoNumberSchema for Accession need to be shared at the Division&nbsp;&nbsp;2009-10-26 15:18:55 -0500&nbsp;&nbsp;(7659).</li>
-
-<li>Common Form importing doesn't work correctly&nbsp;&nbsp;2009-10-26 15:30:58 -0500&nbsp;&nbsp;(7655).</li>
-<li>Having a taxon with a taxon citation cannot remove it.&nbsp;&nbsp;2009-10-26 15:32:36 -0500&nbsp;&nbsp;(7653).</li>
-<li>[Tr Br]The new Day/Month/Year query builder fields don't work in reports&nbsp;&nbsp;2009-10-26 15:38:13 -0500&nbsp;&nbsp;(7651).</li>
-<li>[Tr + Br]running queries with fields from AgentVariant causes exception dialog&nbsp;&nbsp;2009-10-26 15:40:27 -0500&nbsp;&nbsp;(7642).</li>
-<li>Geography doesn't load on Windows&nbsp;&nbsp;2009-10-26 15:42:14 -0500&nbsp;&nbsp;(7641).</li>
-
-<li>[Tr - Br]Deleting an agent caused an exception&nbsp;&nbsp;2009-10-26 15:52:35 -0500&nbsp;&nbsp;(7636).</li>
-<li>[Br + Tr]Queries won't save after edits.&nbsp;&nbsp;2009-10-26 15:53:21 -0500&nbsp;&nbsp;(7633).</li>
-<li>[Tr Br] Add 'Empty' operator for Tree ranks&nbsp;&nbsp;2009-10-26 15:59:52 -0500&nbsp;&nbsp;(7632).</li>
-<li>Export Tool: clicking the 'Build/Update' button repeatedly can lock up app&nbsp;&nbsp;2009-10-26 16:02:36 -0500&nbsp;&nbsp;(7625).</li>
-<li>Add way to delete Export Schemata&nbsp;&nbsp;2009-10-26 16:05:10 -0500&nbsp;&nbsp;(7624).</li>
-
-<li>When clicking on a field down in a long list - the page jumps to the bottom.&nbsp;&nbsp;2009-10-26 16:09:44 -0500&nbsp;&nbsp;(7619).</li>
-<li>Get an exception if I map and delete mapping too often&nbsp;&nbsp;2009-10-26 16:12:04 -0500&nbsp;&nbsp;(7618).</li>
-<li>Add Day/Month/Year QueryBuilder controls for Dates&nbsp;&nbsp;2009-10-26 16:14:45 -0500&nbsp;&nbsp;(7615).</li>
-<li>If you go Back to Preload Taxon, the Next button becomes disabled&nbsp;&nbsp;2009-10-26 16:16:56 -0500&nbsp;&nbsp;(7654).</li>
-<li>Uploader incorrectly finds geo coord data invalid&nbsp;&nbsp;2009-10-26 16:18:10 -0500&nbsp;&nbsp;(7611).</li>
-
-<li>Cannot search for Chronos Strat in Paleo Context&nbsp;&nbsp;2009-10-26 16:19:56 -0500&nbsp;&nbsp;(7663).</li>
-<li>Searching for an agent with multiple addresses returns with multiple agents&nbsp;&nbsp;2009-10-26 16:22:42 -0500&nbsp;&nbsp;(7671).</li>
-<li>Loan invoice throws error and cannot generate report&nbsp;&nbsp;2009-10-26 16:23:06 -0500&nbsp;&nbsp;(7610).</li>
-<li>[trunk][NoDup]Searching Locality fields in a Collecting Trip Query causes error&nbsp;&nbsp;2009-10-26 16:41:55 -0500&nbsp;&nbsp;(5906).</li>
-<li>Changes to reports are not refreshing in Specify&nbsp;&nbsp;2009-10-26 16:45:00 -0500&nbsp;&nbsp;(7554).</li>
-
-<li>Pausing an Upload and Viewing uploaded records disables the Upload button&nbsp;&nbsp;2009-10-26 16:48:56 -0500&nbsp;&nbsp;(7621).</li>
-<li>A manager with all permissions updating trees causes exception&nbsp;&nbsp;2009-10-26 16:59:01 -0500&nbsp;&nbsp;(7712).</li>
-<li>Error when adding more than one FieldNotebookPage&nbsp;&nbsp;2009-10-27 11:07:17 -0500&nbsp;&nbsp;(5488).</li>
-<li>Exception when deleting a row that has a picture attached to it&nbsp;&nbsp;2009-10-27 11:27:48 -0500&nbsp;&nbsp;(7721).</li>
-<li>"Next Empty" button does not function in Schema Localizer&nbsp;&nbsp;2009-10-27 15:21:47 -0500&nbsp;&nbsp;(5850).</li>
-
-<li>Wizard Catalog number field formatting editor lockup problem&nbsp;&nbsp;2009-10-27 16:04:45 -0500&nbsp;&nbsp;(7170).</li>
-<li>Cannot search for Parent in Storage forms.&nbsp;&nbsp;2009-10-27 16:20:05 -0500&nbsp;&nbsp;(5874).</li>
-<li>HoverOver ToolTips&nbsp;&nbsp;2009-10-27 16:21:39 -0500&nbsp;&nbsp;(6476).</li>
-<li>[NO DUP]Geography is loading on Windows, but getting old error message&nbsp;&nbsp;2009-10-27 16:22:04 -0500&nbsp;&nbsp;(7701).</li>
-<li>Mixed case db names causes problems on Windows&nbsp;&nbsp;2009-10-27 16:23:31 -0500&nbsp;&nbsp;(7725).</li>
-
-<li>Can't switch Collections after logging in&nbsp;&nbsp;2009-10-27 16:23:48 -0500&nbsp;&nbsp;(7726).</li>
-<li>Pre-load of botany taxonomy fails to load family common names&nbsp;&nbsp;2009-10-28 14:04:14 -0500&nbsp;&nbsp;(7204).</li>
-<li>[T/B] Wizard: If database name is numeric, wizard cannot continue&nbsp;&nbsp;2009-10-28 14:08:16 -0500&nbsp;&nbsp;(7434).</li>
-<li>[MAJOR WORK]borrow form doesn't display entered in the fields&nbsp;&nbsp;2009-10-28 14:21:53 -0500&nbsp;&nbsp;(7018).</li>
-<li>[TRUNK] Table Format Editor Exception&nbsp;&nbsp;2009-10-28 15:05:12 -0500&nbsp;&nbsp;(7062).</li>
-
-<li>add a choice of 'None' to Catalog Number Pick List&nbsp;&nbsp;2009-10-28 15:12:01 -0500&nbsp;&nbsp;(7071).</li>
-<li>Exception when using magnifying glass to search for storage parent&nbsp;&nbsp;2009-10-28 15:17:12 -0500&nbsp;&nbsp;(7728).</li>
-<li>Email address does not get updated in Outlook express.&nbsp;&nbsp;2009-10-28 15:25:37 -0500&nbsp;&nbsp;(5954).</li>
-<li>This usecase permanently disables OK button when creating a custom catalog numbering format.&nbsp;&nbsp;2009-10-28 15:32:34 -0500&nbsp;&nbsp;(7387).</li>
-<li>Date format gets changed in certain circumstances to be just 2 digits for years&nbsp;&nbsp;2009-10-28 15:41:33 -0500&nbsp;&nbsp;(7555).</li>
-
-<li>For multiple collections, different Catalog Numbers change to match format and incrementing&nbsp;&nbsp;2009-10-28 15:49:51 -0500&nbsp;&nbsp;(7681).</li>
-<li>Address details for Institution that are entered in the Wizard are not displayed in System Config&nbsp;&nbsp;2009-10-28 15:52:09 -0500&nbsp;&nbsp;(7674).</li>
-<li>[trunk/branch] Exporting workbench data set causes exception.&nbsp;&nbsp;2009-10-28 16:12:34 -0500&nbsp;&nbsp;(7440).</li>
-<li>Problems removing fields from a saved query.&nbsp;&nbsp;2009-10-29 10:09:09 -0500&nbsp;&nbsp;(7616).</li>
-<li>[Branch]Exception when editing agent in security&nbsp;&nbsp;2009-10-29 11:45:48 -0500&nbsp;&nbsp;(6983).</li>
-
-<li>[Branch]  LSIDs are failing to generate.&nbsp;&nbsp;2009-10-29 14:16:38 -0500&nbsp;&nbsp;(7733).</li>
-<li>Unrecoverable Error if database name has a space&nbsp;&nbsp;2009-10-29 15:36:44 -0500&nbsp;&nbsp;(7717).</li>
-<li>Exception when creating a new Repository Agreement Agent&nbsp;&nbsp;2009-10-29 15:44:02 -0500&nbsp;&nbsp;(7731).</li>
-<li>Exporting from Search Results to MS Excel while the Excel file is open causes exception&nbsp;&nbsp;2009-10-29 15:45:48 -0500&nbsp;&nbsp;(7553).</li>
-<li>Can select different Accession numbers when creating a new Discipline or Collection&nbsp;&nbsp;2009-10-29 15:47:35 -0500&nbsp;&nbsp;(7729).</li>
-
+  <li>It is now possible to delete a user permanently in
+Security.&nbsp;&nbsp;2011-01-18 15:17:03&nbsp;&nbsp;(Bugzilla #7376).</li>
+  <li>The Specify Wizard now downloads Taxon Authority Files as needed
+from the Specify web site.&nbsp;&nbsp;2010-09-21
+15:16:14&nbsp;&nbsp;(8054).</li>
+  <li>Uploading the same Data Set twice no longer causes the tree to
+rebuild.&nbsp;&nbsp;2011-01-06 14:25:33&nbsp;&nbsp;(8065).</li>
+  <li>Users can now edit the name of a Collection in
+Configuration in the System menu.&nbsp;&nbsp;2011-03-28
+15:33:49&nbsp;&nbsp;(8079).</li>
+  <li>In the DNA Sequence form, the Residue Counter no longer displays
+blank in view mode.&nbsp;&nbsp;2011-04-27 13:37:15&nbsp;&nbsp;(8141).</li>
+  <li>The schema update messages that appear when users log into a
+database with a new version of Specify have been made more
+informative.&nbsp;&nbsp;2011-04-27 13:35:16&nbsp;&nbsp;(8159).</li>
+  <li>Stratigraphy tables are now available as Query
+Creators.&nbsp;&nbsp;2011-01-06 11:48:57&nbsp;&nbsp;(8197).</li>
+  <li>The Data Set Mapping Editor no longer shows "Taxon" twice instead
+of "Taxon" and "Taxon Import Only".&nbsp;&nbsp;2011-04-22
+13:54:19&nbsp;&nbsp;(8209).</li>
+  <li>64-bit NASA World Wind libraries have been added to 64-bit
+installations of Specify.&nbsp;&nbsp;2011-02-09
+14:35:34&nbsp;&nbsp;(8219).</li>
+  <li>The GeoLocate button no longer turns into the BioGeomancer button
+for no clear reason.&nbsp;&nbsp;2011-04-22 13:27:44&nbsp;&nbsp;(8221).</li>
+  <li>An issue that allowed user input in an update notification dialog
+has been fixed.&nbsp;&nbsp;2011-04-21 10:53:43&nbsp;&nbsp;(8245).</li>
+  <li>The user name "root" is no longer allowed to be used for the
+generation of login keys.&nbsp;&nbsp;2011-04-11
+13:23:54&nbsp;&nbsp;(8252).</li>
+  <li>The default Tree Rank configuration for some discipline types in
+the Specify Wizard had subphylum "not included" but
+"enforced."&nbsp;&nbsp;2011-04-21 10:45:53&nbsp;&nbsp;(8267).</li>
+  <li>Tables in grid mode now always have the green plus
+button.&nbsp;&nbsp;2011-03-17 14:05:28&nbsp;&nbsp;(8269).</li>
+  <li>The Security Wizard now shows the correct list of databases to
+which the Master user does not have permissions.&nbsp;&nbsp;2011-04-11
+13:36:55&nbsp;&nbsp;(8284).</li>
+  <li>Pressing "back" in the Security Wizard no longer causes the
+cancel button to disappear.&nbsp;&nbsp;2011-04-11
+13:37:17&nbsp;&nbsp;(8286).</li>
+  <li>The Security Wizard no longer crashes when it asks users to fix
+their Master permissions.&nbsp;&nbsp;2011-04-19
+11:43:36&nbsp;&nbsp;(8287).</li>
+  <li>An exception has been resolved that appeared when users edited
+the name of a Container from the form of that Container's
+parent.&nbsp;&nbsp;2011-04-01 14:00:52&nbsp;&nbsp;(8288).</li>
+  <li>In the Container form, the Collection Object Query Combo Box is
+no longer editable in view mode.&nbsp;&nbsp;2011-04-18
+14:50:21&nbsp;&nbsp;(8289).</li>
+  <li>In the Container form, users can now delete a relationship to a
+Collection Object (i.e. they can remove it from the Query Combo Box
+entitled Collection Object).&nbsp;&nbsp;2011-04-18
+14:47:15&nbsp;&nbsp;(8290).</li>
+  <li>An issue that caused an exception to appear when users opened
+Preferences has been fixed.&nbsp;&nbsp;2011-04-15
+12:49:25&nbsp;&nbsp;(8291).</li>
+  <li>A discrepancy in the WorkBench that allowed new values to be
+added to the Preparation Type pick list on a case insensitive basis but
+validated on a case sensitive basis has been resolved: now both are
+insensitive.&nbsp;&nbsp;2011-04-11 13:41:06&nbsp;&nbsp;(8293).</li>
+  <li>Feedback now appears when a user attempts to export a Record Set
+the type for which no Data Set exists.&nbsp;&nbsp;2011-04-11
+13:42:47&nbsp;&nbsp;(8294).</li>
+  <li>It is no longer possible to rename a Collection with the name of
+another existing Collection.&nbsp;&nbsp;2011-04-13
+10:23:21&nbsp;&nbsp;(8298).</li>
+  <li>An issue that caused the Specify SetupWizard to fail on the
+Create Institution and Admin User step has been
+fixed.&nbsp;&nbsp;2011-04-11 13:48:42&nbsp;&nbsp;(8307).</li>
+  <li>An issue that caused an exception to appear upon logging into a
+new database has been fixed.&nbsp;&nbsp;2011-04-07
+16:35:02&nbsp;&nbsp;(8310).</li>
+  <li>Several Record Set usability problems have been fixed in the
+Interactions pane.&nbsp;&nbsp;2011-04-21 10:37:04&nbsp;&nbsp;(8313).</li>
+  <li>In a given user's Security profile, the "Generate Master Key"
+button is now disabled when the string in the password field is
+encrypted: otherwise the key is being generated from an
+already-encrypted string.&nbsp;&nbsp;2011-04-15
+13:53:30&nbsp;&nbsp;(8316).</li>
+  <li>Adding a parent Container to a Container now triggers the save
+button.&nbsp;&nbsp;2011-04-21 10:31:53&nbsp;&nbsp;(8318).</li>
+  <li>Tabbing to the server field in the login screen no longer sends
+the mouse focus to the password field.&nbsp;&nbsp;2011-04-14
+12:30:59&nbsp;&nbsp;(8319).</li>
+  <li>An issue that prevented user login for two or more databases with
+the same user name and password is now fixed.&nbsp;&nbsp;2011-04-15
+13:02:51&nbsp;&nbsp;(8320).</li>
+  <li>The login screen no longer sometimes changes the database name in
+the field to that of a recently used database when users attempt to
+login.&nbsp;&nbsp;2011-04-15 13:01:56&nbsp;&nbsp;(8321).</li>
+  <li>An issue that caused the Express Search to generate an exception
+has been fixed.&nbsp;&nbsp;2011-04-14 12:29:27&nbsp;&nbsp;(8323).</li>
+  <li>Adding a new pick list from the Schema Configuration now works
+correctly.&nbsp;&nbsp;2011-04-15 12:54:02&nbsp;&nbsp;(8325).</li>
+  <li>Pick lists can now only be edited through the Schema
+Configuration tool (System---Schema Configuration); pick lists cannot
+be edited from System---Configuration anymore.&nbsp;&nbsp;2011-04-15
+12:51:30&nbsp;&nbsp;(8326).</li>
+  <li>Importing a bad file name with the Pick List Importer no longer
+creates an exception.&nbsp;&nbsp;2011-04-14 12:19:15&nbsp;&nbsp;(8328).</li>
+  <li>An issue that allowed users without sufficient permissions to
+use the QueryBuilder is now fixed.&nbsp;&nbsp;2011-05-03
+14:31:32&nbsp;&nbsp;(8330).</li>
+  <li>The exception generated by clicking the magnifying glass in the
+Container sub-form is now fixed.&nbsp;&nbsp;2011-04-27
+13:21:21&nbsp;&nbsp;(8338).</li>
+  <li>In the Collection Object form of cataloged Containers, the
+Container field no longer becomes blank when the user changes to Edit
+mode.&nbsp;&nbsp;2011-04-27 13:30:54&nbsp;&nbsp;(8339).</li>
+  <li>Using keyboard shortcuts in Data Entry no longer disables the
+save button.&nbsp;&nbsp;2011-04-27 13:29:38&nbsp;&nbsp;(8341).</li>
+  <li>One can now delete a collection.&nbsp; 2011-05-20
+13:51:10&nbsp;&nbsp;(8345).</li>
+  <li>Query results on the various component fields of DNA Sequence
+data objects now display the correct number of, for example, "A's" in
+the Gene Sequence field.&nbsp;&nbsp;2011-05-20
+13:53:11&nbsp;&nbsp;(8349).</li>
+  <li>Saving a batch of Collection Objects when some of the Catalog
+Numbers of the batch already exist in the database no longer generates
+a separate error message for each Catalog Number in
+error.&nbsp;&nbsp;2011-05-03 15:13:58&nbsp;&nbsp;(8351).</li>
+  <li>The Collecting Event and Collecting Information icons no longer
+switch places and display for the wrong Discipline
+types.&nbsp;&nbsp;2011-05-20 13:53:43&nbsp;&nbsp;(8359).</li>
+  <li>Georeferencing a Locality form accessed from a Collection Object form no longer fills in the GeoRefDetBy field with a
+value that has disappeared upon reopening the Locality data
+object.&nbsp;&nbsp;2011-05-16 14:42:12&nbsp;&nbsp;(8360).</li>
+  <li>On Mac OS X and Linux, the Pick List Exporter tool no longer
+duplicates the ".xml" extension of the exported
+file.&nbsp;&nbsp;2011-05-20 13:55:00&nbsp;&nbsp;(8362).</li>
+  <li>Exporting a Workbench Data Set no longer causes an
+exception.&nbsp;&nbsp;2011-05-18 13:33:13&nbsp;&nbsp;(8364).</li>
+  <li>The text on the summary page of the Specify Wizard is no longer
+editable.&nbsp;&nbsp;2011-05-16 14:50:22&nbsp;&nbsp;(8365).</li>
+  <li>In the Collection Object form, the Collection Relationship search
+that uses the magnifying glass no longer causes an
+exception.&nbsp;&nbsp;2011-05-20 13:56:20&nbsp;&nbsp;(8366).</li>
+  <li>It is no longer possible to make a Container the parent and child
+of the same Container. 2011-05-16 14:45:09&nbsp;&nbsp;(8367).</li>
+  <li>Adding and deleting a Determination in the Batch Identify tool no
+longer causes an exception. 2011-05-16 14:51:35&nbsp;&nbsp;(8368).</li>
+  <li>The Workbench Schema Configuration window now displays the
+correct title.&nbsp;&nbsp;2011-05-16 14:58:07&nbsp;&nbsp;(8372).</li>
+  <li>Collection Objects can now belong to cataloged
+Containers.&nbsp;&nbsp;2011-05-20 11:41:24&nbsp;&nbsp;(8375).</li>
+  <li>Irrelevant error pop ups have been removed from the Security
+Wizard.&nbsp;&nbsp;2011-05-20 11:01:42&nbsp;&nbsp;(8376).</li>
+  <li>Deleting multiple determinations in the Batch Identify tool no
+longer causes an exception.&nbsp;&nbsp;2011-05-23
+10:51:05&nbsp;&nbsp;(8378).</li>
+  <li>For a Collection Relationship, viewing a Source Collection Object
+from a Destination Collection Object's form now correctly shows the
+Source Collection Object's Collection Relationship.&nbsp;&nbsp;2011-05-20
+14:15:00&nbsp;&nbsp;(8380).</li>
+  <li>Clearing cells in WorkBench Data Sets now enables the Save
+button.&nbsp;&nbsp;2011-05-23 10:47:31&nbsp;&nbsp;(8381).</li>
 </ol>
-
-
+<br>
+<br>
+<br>
+<br>
 </body>
 </html>

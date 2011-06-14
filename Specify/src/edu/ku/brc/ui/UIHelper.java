@@ -21,20 +21,20 @@ package edu.ku.brc.ui;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import static java.awt.event.InputEvent.ALT_DOWN_MASK;
-import static java.awt.event.KeyEvent.VK_BRACELEFT;
-import static java.awt.event.KeyEvent.VK_BRACERIGHT;
 import static java.awt.event.KeyEvent.VK_C;
 import static java.awt.event.KeyEvent.VK_D;
+import static java.awt.event.KeyEvent.VK_DOWN;
 import static java.awt.event.KeyEvent.VK_END;
 import static java.awt.event.KeyEvent.VK_ENTER;
-import static java.awt.event.KeyEvent.VK_GREATER;
 import static java.awt.event.KeyEvent.VK_HOME;
-import static java.awt.event.KeyEvent.VK_LESS;
+import static java.awt.event.KeyEvent.VK_LEFT;
 import static java.awt.event.KeyEvent.VK_N;
 import static java.awt.event.KeyEvent.VK_PAGE_DOWN;
 import static java.awt.event.KeyEvent.VK_PAGE_UP;
+import static java.awt.event.KeyEvent.VK_RIGHT;
 import static java.awt.event.KeyEvent.VK_S;
 import static java.awt.event.KeyEvent.VK_TAB;
+import static java.awt.event.KeyEvent.VK_UP;
 import static java.awt.event.KeyEvent.VK_V;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
@@ -77,14 +77,15 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -143,6 +144,8 @@ import javax.swing.table.TableModel;
 import javax.swing.text.MaskFormatter;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.BigDecimalValidator;
+import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
@@ -197,10 +200,14 @@ public final class UIHelper
     protected static boolean        isMacOS_10_5_X   = false;
     protected static BasicStroke    stdLineStroke    = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     
+    protected static DoubleValidator     doubleValidator = new DoubleValidator();
+    protected static BigDecimalValidator bigDecValidator = new BigDecimalValidator();
+    
     protected static Hashtable<CommandType, KeyStroke> cmdTypeKSHash = new Hashtable<CommandType, KeyStroke>();
 
 
-    protected static Object[]       values           = new Object[2];
+    //protected static Object[]       values           = new Object[2];
+    protected static Object[][]     valuesArray      = null;
     protected static DateWrapper    scrDateFormat    = null;
 
     protected static Border          emptyBorder     = BorderFactory.createEmptyBorder(1, 1, 1, 1);
@@ -219,7 +226,21 @@ public final class UIHelper
     
 
     static {
-        calendar = GregorianCalendar.getInstance();
+        
+        valuesArray = new Object[5][0];
+        for (int i=0;i<5;i++)
+        {
+            valuesArray[i] = new Object[i+1];
+        }
+        
+        try
+        {
+            calendar = GregorianCalendar.getInstance();
+            
+        } catch (Exception ex)
+        {
+            log.error(ex.getMessage());
+        }
         
         String osStr = System.getProperty("os.name");
         if (osStr.startsWith("Mac OS X"))
@@ -643,7 +664,7 @@ public final class UIHelper
             }
         } else
         {
-            log.error("getFloat - Result Object is null for["+valObj+"]");
+            log.error("getFloat - Result Object is null");
         }
         return value;
     }
@@ -671,7 +692,7 @@ public final class UIHelper
             }
         } else
         {
-            log.error("getDouble - Result Object is null for["+valObj+"]");
+            log.error("getDouble - Result Object is null");
         }
         return value;
     }
@@ -699,7 +720,7 @@ public final class UIHelper
             }
         } else
         {
-            log.error("getInt - Result Object is null for["+valObj+"]");
+            log.error("getInt - Result Object is null");
         }
         return value;
     }
@@ -716,7 +737,7 @@ public final class UIHelper
             log.error("getString - Class type is "+valObj.getClass().getName()+" should be String");
         } else
         {
-            log.error("getString - Result Object is null for["+valObj+"] in getString");
+            log.error("getString - Result Object is null for in getString");
         }
         return "";
    }
@@ -788,17 +809,9 @@ public final class UIHelper
      * @param cls
      * @return
      */
-    public static boolean isClassNumeric(final Class<?> cls)
+    public static boolean isClassNumeric(final Class<?> cls, final boolean doScalarOnly)
     {
         if (cls == Integer.class)
-        {
-            return true;
-            
-        } else if (cls == Float.class)
-        {
-            return true;
-            
-        } else if (cls == Double.class)
         {
             return true;
             
@@ -813,11 +826,26 @@ public final class UIHelper
         } else if (cls == Byte.class)
         {
             return true;
+        }
+        
+        if (doScalarOnly)
+        {
+            return false;
+        }
+        
+        if (cls == Float.class)
+        {
+            return true;
+            
+        } else if (cls == Double.class)
+        {
+            return true;
             
         } else if (cls == BigDecimal.class)
         {
             return true;
         }
+        
         return false;
     }
     
@@ -868,10 +896,10 @@ public final class UIHelper
             if (valObj instanceof String)
             {
                 String valStr = ((String)valObj).toLowerCase();
-                if (valStr.equals("true"))
+                if (valStr.equalsIgnoreCase("true"))
                 {
                     return true;
-                } else if (valStr.equals("false"))
+                } else if (valStr.equalsIgnoreCase("false"))
                 {
                     return false;
                 } else
@@ -1019,43 +1047,40 @@ public final class UIHelper
 
         if (includeCutCopyPaste)
         {
-        	title = "EditMenu";
-        	mneu = "EditMneu";
+            title = "EditMenu";
+            mneu = "EditMneu";
             JMenu editMenu = createLocalizedMenu(menuBar, title, mneu);
             editMenu.add(createMenu(getResourceString("CutMenu"), getResourceString("CutAccl").charAt(0), getResourceString("CutMneu")));
             editMenu.add(createMenu(getResourceString("CopyMenu"), VK_C, getResourceString("CopyMneu")));
             editMenu.add(createMenu(getResourceString("PasteMenu"), VK_V, getResourceString("PasteMneu")));
         }
-
-
-
         return menuBar;
     }
 
     /**
      * Creates a JMenuItem.
-     * @param label the label of the menu item
+     * @param key the label key of the menu item
      * @param mnemonic the mnemonic
      * @param accessibleDescription the accessible Description
      * @param enabled enabled
      * @param action the aciton
      * @return menu item
      */
-    public static JMenuItem createLocalizedMenuItem(final String         label,
+    public static JMenuItem createLocalizedMenuItem(final String         key,
                                                     final String         mnemonic,
                                                     final String         accessibleDescription,
                                                     final boolean        enabled,
                                                     final ActionListener al)
     {
-        JMenuItem mi = new JMenuItem(getResourceString(label));
+        JMenuItem mi = new JMenuItem(getResourceString(key));
         if (isNotEmpty(mnemonic))
         {
-        	String mnu = getResourceString(mnemonic);
+            String mnu = getResourceString(mnemonic);
             mi.setMnemonic(mnu.charAt(0));
         }
         if (isNotEmpty(accessibleDescription))
         {
-        	String desc = getResourceString(accessibleDescription);
+            String desc = getResourceString(accessibleDescription);
             mi.getAccessibleContext().setAccessibleDescription(desc);
         }
         mi.addActionListener(al);
@@ -1066,7 +1091,7 @@ public final class UIHelper
     /**
      * Creates a JMenuItem.
      * @param menu parent menu
-     * @param label the label of the menu item
+     * @param key the label key of the menu item
      * @param mnemonic the mnemonic
      * @param accessibleDescription the accessible Description
      * @param enabled enabled
@@ -1074,13 +1099,13 @@ public final class UIHelper
      * @return menu item
      */
     public static JMenuItem createLocalizedMenuItem(final JMenu          menu,
-                                                    final String         label,
+                                                    final String         key,
                                                     final String         mnemonic,
                                                     final String         accessibleDescription,
                                                     final boolean        enabled,
                                                     final ActionListener al)
     {
-        JMenuItem mi = createLocalizedMenuItem(label, mnemonic, accessibleDescription, enabled, al);
+        JMenuItem mi = createLocalizedMenuItem(key, mnemonic, accessibleDescription, enabled, al);
         if (menu != null)
         {
             menu.add(mi);
@@ -1090,22 +1115,22 @@ public final class UIHelper
     
     /**
      * Creates a JMenuItem.
-     * @param menu parent menu
-     * @param label the label of the menu item
-     * @param mnemonic the mnemonic
-     * @param accessibleDescription the accessible Description
-     * @param enabled enabled
-     * @param action the aciton
-     * @return menu item
+     * @param popupMenu
+     * @param key
+     * @param mnemonic
+     * @param accessibleDescription
+     * @param enabled
+     * @param al
+     * @return
      */
-    public static JMenuItem createlocalizedMenuItem(final JPopupMenu     popupMenu,
-                                           final String         label,
-                                           final String         mnemonic,
-                                           final String         accessibleDescription,
-                                           final boolean        enabled,
-                                           final ActionListener al)
+    public static JMenuItem createLocalizedMenuItem(final JPopupMenu     popupMenu,
+                                                    final String         key,
+                                                    final String         mnemonic,
+                                                    final String         accessibleDescription,
+                                                    final boolean        enabled,
+                                                    final ActionListener al)
     {
-        JMenuItem mi = createLocalizedMenuItem(label, mnemonic, accessibleDescription, enabled, al);
+        JMenuItem mi = createLocalizedMenuItem(key, mnemonic, accessibleDescription, enabled, al);
         if (popupMenu != null)
         {
             popupMenu.add(mi);
@@ -1132,6 +1157,7 @@ public final class UIHelper
     {
         JMenuItem mi = new JMenuItem(action);
         mi.setText(label);
+        
         if (menu != null)
         {
             menu.add(mi);
@@ -1234,6 +1260,38 @@ public final class UIHelper
     }
 
     /**
+     * Creates a Localized JCheckBoxMenuItem.
+     * @param labelKey
+     * @param mnemonicKey
+     * @param accessibleDescriptionKey
+     * @param enabled
+     * @param action
+     * @return
+     */
+    public static JCheckBoxMenuItem createLocalizedCheckBoxMenuItem(final String         labelKey,
+                                                                    final String         mnemonicKey,
+                                                                    final String         accessibleDescriptionKey,
+                                                                    final boolean        enabled,
+                                                                    final AbstractAction action)
+    {
+        JCheckBoxMenuItem mi = new JCheckBoxMenuItem(getResourceString(labelKey));
+        setLocalizedMnemonic(mi, getResourceString(mnemonicKey));
+        
+        if (isNotEmpty(accessibleDescriptionKey))
+        {
+            mi.getAccessibleContext().setAccessibleDescription(getResourceString(accessibleDescriptionKey));
+        }
+        if (action != null)
+        {
+            mi.addActionListener(action);
+            action.addPropertyChangeListener(new MenuItemPropertyChangeListener(mi));
+            action.setEnabled(enabled);
+        }
+
+        return mi;
+    }
+
+    /**
      * Creates a JRadioButtonMenuItem.
      * @param menu parent menu
      * @param label the label of the menu item
@@ -1279,10 +1337,22 @@ public final class UIHelper
      */
     public static JMenu createLocalizedMenu(final JMenuBar menuBar, final String labelKey, final String mneuKey)
     {
+        return menuBar.add(createLocalizedMenu(labelKey, mneuKey));
+    }
+    
+    /**
+     * Create a menu.
+     * @param menuBar the menubar
+     * @param labelKey the label key to be localized
+     * @param mneuKey the mneu key to be localized
+     * @return returns a menu
+     */
+    public static JMenu createLocalizedMenu(final String labelKey, final String mneuKey)
+    {
         JMenu menu = null;
         try
         {
-            menu = menuBar.add(new JMenu(getResourceString(labelKey)));
+            menu = new JMenu(getResourceString(labelKey));
             if (oSType != OSTYPE.MacOSX)
             {
                 setLocalizedMnemonic(menu, mneuKey);
@@ -1335,11 +1405,15 @@ public final class UIHelper
             scrDateFormat = AppPrefsCache.getDateWrapper("ui", "formatting", "scrdateformat");
         }
 
-        if (fieldNames.length > values.length)
+        Object[] values = null;
+        
+        if (fieldNames.length > 5)
         {
             values = new Object[fieldNames.length];
         } else
         {
+            values = valuesArray[fieldNames.length-1];
+            
             for (int i=fieldNames.length;i<values.length;i++)
             {
                 values[i] = null;
@@ -1433,8 +1507,7 @@ public final class UIHelper
      * @param format the format mask
      * @return a string with the formatted values
      */
-    public static Object getFormattedValue(final Object[] valuesArg,
-                                           final String format)
+    public static Object getFormattedValue(final String format, final Object...valuesArg)
     {
         if (valuesArg == null)
         {
@@ -1443,11 +1516,12 @@ public final class UIHelper
 
         try
         {
-            Formatter formatter = new Formatter();
-            formatter.format(format, valuesArg);
-            return formatter.toString();
+            return String.format(format, valuesArg);
+            //Formatter formatter = new Formatter();
+            //formatter.format(format, valuesArg);
+            //return formatter.toString();
 
-        } catch (java.util.IllegalFormatConversionException ex)
+        } catch (Exception ex)
         {
             return valuesArg[0] != null ? valuesArg[0].toString() : "";
         }
@@ -1476,35 +1550,6 @@ public final class UIHelper
     //-- Helpers for logging into the database
     //-------------------------------------------------------
 
-    /**
-     * Constructs the full connection string for JDBC
-     * @param dbProtocol the protocol
-     * @param dbServer the server name machine or IP address
-     * @param dbName the name of the database
-     * @return the full JDBC connection string
-     */
-    public static String constructJDBCConnectionString(final String dbProtocol,
-                                                       final String dbServer,
-                                                       final String dbName)
-    {
-        StringBuilder strBuf = new StringBuilder(64);
-        strBuf.append("jdbc:");
-        strBuf.append(dbProtocol);
-
-        if (isNotEmpty(dbServer))
-        {
-            strBuf.append("://");
-            strBuf.append(dbServer);
-            strBuf.append("/");
-            strBuf.append(dbName);
-
-        } else
-        {
-            strBuf.append(":");
-            strBuf.append(dbName);
-        }
-        return strBuf.toString();
-    }
 
     /**
      * Tries to login using the supplied params
@@ -1669,15 +1714,15 @@ public final class UIHelper
                                              final String  appIconName,
                                              final String  helpContext) //frame's icon name
     {  
-    	
-        ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std16);
+        
+        ImageIcon icon = IconManager.getIcon("AppIcon", IconManager.IconSize.Std32);
         if (StringUtils.isNotEmpty(appIconName))
         {
-        	ImageIcon imgIcon = IconManager.getIcon(appIconName);
-        	if (imgIcon != null)
-        	{
-        		icon = imgIcon;
-        	}
+            ImageIcon imgIcon = IconManager.getIcon(appIconName);
+            if (imgIcon != null)
+            {
+                icon = imgIcon;
+            }
         }
 
         if (useDialog)
@@ -2068,7 +2113,26 @@ public final class UIHelper
                                         final ActionListener       al)
     {
         String ttText = StringUtils.isNotEmpty(toolTipTextKey) ? getResourceString(toolTipTextKey) : null;
-        return createIconBtnTT(iconName, size, ttText, withEmptyBorder, al);
+        return createIconBtnTT(iconName, size, ttText, withEmptyBorder, false, al);
+    }
+    
+    /**
+     * Creates an icon button with tooltip and action listener.
+     * @param iconName the name of the icon (use default size)
+     * @param toolTipTextKey the tooltip text resource bundle key
+     * @param al the action listener
+     * @param withEmptyBorder set an empyt border
+     * @return the JButton icon button
+     */
+    public static JButton createIconBtn(final String               iconName, 
+                                        final IconManager.IconSize size,
+                                        final String               toolTipTextKey, 
+                                        final boolean              withEmptyBorder,
+                                        final boolean              enabled,
+                                        final ActionListener       al)
+    {
+        String ttText = StringUtils.isNotEmpty(toolTipTextKey) ? getResourceString(toolTipTextKey) : null;
+        return createIconBtnTT(iconName, size, ttText, withEmptyBorder, enabled, al);
     }
 
     /**
@@ -2085,6 +2149,24 @@ public final class UIHelper
                                           final boolean              withEmptyBorder,
                                           final ActionListener       al)
     {
+        return createIconBtnTT(iconName, size, toolTipText, withEmptyBorder, false, al);
+    }
+
+    /**
+      * Creates an icon button with tooltip and action listener.
+     * @param iconName the name of the icon (use default size)
+     * @param toolTipTextKey the actual localized tooltip text 
+     * @param al the action listener
+     * @param withEmptyBorder set an empyt border
+     * @return the JButton icon button
+     */
+    public static JButton createIconBtnTT(final String               iconName, 
+                                          final IconManager.IconSize size,
+                                          final String               toolTipText, 
+                                          final boolean              withEmptyBorder,
+                                          final boolean              enabled,
+                                          final ActionListener       al)
+    {
         
         IconButton btn = new IconButton(size != null ? IconManager.getIcon(iconName, size) : IconManager.getIcon(iconName), withEmptyBorder);
         if (StringUtils.isNotEmpty(toolTipText))
@@ -2095,7 +2177,7 @@ public final class UIHelper
         {
             btn.addActionListener(al);
         }
-        btn.setEnabled(false);
+        btn.setEnabled(enabled);
         return btn;
     }
 
@@ -2268,80 +2350,100 @@ public final class UIHelper
      */
     public static void calcColumnWidths(final JTable table, final Integer numRowsHeight)
     {
-        JTableHeader header = table.getTableHeader();
-
-        TableCellRenderer defaultHeaderRenderer = null;
-
-        if (header != null)
+        calcColumnWidths(table, numRowsHeight, null);
+    }
+    
+    /**
+     * Calculates and sets the each column to it preferred size.  NOTE: This
+     * method also sets the table height to 10 rows.
+     * 
+     * @param table the table to fix up
+     * @param numRowsHeight the number of rows to make the table height (or null not to set it)
+     */
+    public static void calcColumnWidths(final JTable table, final Integer numRowsHeight, final Integer maxWidth)
+    {
+        if (table != null)
         {
-            defaultHeaderRenderer = header.getDefaultRenderer();
-        }
-
-        TableColumnModel columns = table.getColumnModel();
-        TableModel data = table.getModel();
-
-        int margin = columns.getColumnMargin(); // only JDK1.3
-
-        int rowCount = data.getRowCount();
-
-        int totalWidth = 0;
-
-        for (int i = columns.getColumnCount() - 1; i >= 0; --i)
-        {
-            TableColumn column = columns.getColumn(i);
-
-            int columnIndex = column.getModelIndex();
-
-            int width = -1;
-
-            TableCellRenderer h = column.getHeaderRenderer();
-
-            if (h == null)
-                h = defaultHeaderRenderer;
-
-            if (h != null) // Not explicitly impossible
+            JTableHeader header = table.getTableHeader();
+    
+            TableCellRenderer defaultHeaderRenderer = null;
+    
+            if (header != null)
             {
-                Component c = h.getTableCellRendererComponent
-                       (table, column.getHeaderValue(),
-                        false, false, -1, i);
-
-                width = c.getPreferredSize().width;
+                defaultHeaderRenderer = header.getDefaultRenderer();
             }
-
-            for (int row = rowCount - 1; row >= 0; --row)
+    
+            TableColumnModel columns = table.getColumnModel();
+            TableModel data = table.getModel();
+    
+            int margin = columns.getColumnMargin(); // only JDK1.3
+    
+            int rowCount = data.getRowCount();
+    
+            int totalWidth = 0;
+    
+            for (int i = columns.getColumnCount() - 1; i >= 0; --i)
             {
-                TableCellRenderer r = table.getCellRenderer(row, i);
-
-                Component c = r.getTableCellRendererComponent
-                   (table,
-                    data.getValueAt(row, columnIndex),
-                    false, false, row, i);
-
-                    width = Math.max(width, c.getPreferredSize().width+10); // adding an arbitray 10 pixels to make it look nicer
+                TableColumn column = columns.getColumn(i);
+    
+                int columnIndex = column.getModelIndex();
+    
+                int width = -1;
+    
+                TableCellRenderer h = column.getHeaderRenderer();
+    
+                if (h == null)
+                    h = defaultHeaderRenderer;
+    
+                if (h != null) // Not explicitly impossible
+                {
+                    Component c = h.getTableCellRendererComponent
+                           (table, column.getHeaderValue(),
+                            false, false, -1, i);
+    
+                    width = c.getPreferredSize().width;
+                }
+    
+                for (int row = rowCount - 1; row >= 0; --row)
+                {
+                    TableCellRenderer r = table.getCellRenderer(row, i);
+    
+                    Component c = r.getTableCellRendererComponent
+                       (table,
+                        data.getValueAt(row, columnIndex),
+                        false, false, row, i);
+    
+                        width = Math.max(width, c.getPreferredSize().width+10); // adding an arbitray 10 pixels to make it look nicer
+                        
+                        if (maxWidth != null)
+                        {
+                            width = Math.min(width, maxWidth);
+                        }
+                }
+    
+                if (width >= 0)
+                {
+                    column.setPreferredWidth(width + margin); // <1.3: without margin
+                }
+                else
+                {
+                    // ???
+                }
+    
+                totalWidth += column.getPreferredWidth();
             }
-
-            if (width >= 0)
+    
+            // If you like; This does not make sense for two many columns!
+            Dimension size = table.getPreferredScrollableViewportSize();
+            //if (totalWidth > size.width)
             {
-                column.setPreferredWidth(width + margin); // <1.3: without margin
+                if (numRowsHeight != null)
+                {
+                    size.height = Math.min(size.height, table.getRowHeight() * numRowsHeight);
+                }
+                size.width  = totalWidth;
+                table.setPreferredScrollableViewportSize(size);
             }
-            else
-            {
-                // ???
-            }
-
-            totalWidth += column.getPreferredWidth();
-        }
-
-        // If you like; This does not make sense for two many columns!
-        Dimension size = table.getPreferredScrollableViewportSize();
-        //if (totalWidth > size.width)
-        {
-            if (numRowsHeight != null)
-            {
-                size.height = Math.min(size.height, table.getRowHeight() * numRowsHeight);
-            }
-            size.width  = totalWidth;
-            table.setPreferredScrollableViewportSize(size);
         }
     }
     
@@ -2447,7 +2549,7 @@ public final class UIHelper
     }
 
     /**
-     * Get Property as boolean, if it is empty then it passes back the default value.
+     * Get Property as boolean, if it is empty then it passes back the default value. Returns 'false' when there are no props.
      * @param properties the properties
      * @param nameStr the name of the property
      * @param defVal the default value
@@ -2511,18 +2613,18 @@ public final class UIHelper
             int endInx = databasePath.lastIndexOf("/");
             if (endInx > -1)
             {
-            	databasePath = databasePath.substring(0, endInx);
+                databasePath = databasePath.substring(0, endInx);
             } else 
             {
-            	endInx = databasePath.lastIndexOf("\\");
+                endInx = databasePath.lastIndexOf("\\");
                 if (endInx > -1)
                 {
-                	databasePath = databasePath.substring(0, endInx);
+                    databasePath = databasePath.substring(0, endInx);
 
-	            } else
-	            {
-	            	log.error("Couldn'f find / in ["+databasePath+"]");
-	            }
+                } else
+                {
+                    log.error("Couldn'f find / in ["+databasePath+"]");
+                }
             }
         }
         return databasePath;
@@ -2555,9 +2657,12 @@ public final class UIHelper
      */
     public static void removeFocusListeners(final Component comp)
     {
-        for (FocusListener l : comp.getFocusListeners())
+        if (comp != null)
         {
-            comp.removeFocusListener(l);
+            for (FocusListener l : comp.getFocusListeners())
+            {
+                comp.removeFocusListener(l);
+            }
         }
     }
 
@@ -2567,9 +2672,12 @@ public final class UIHelper
      */
     public static void removeListSelectionListeners(final JList comp)
     {
-        for (ListSelectionListener l : comp.getListSelectionListeners())
+        if (comp != null)
         {
-            comp.removeListSelectionListener(l);
+            for (ListSelectionListener l : comp.getListSelectionListeners())
+            {
+                comp.removeListSelectionListener(l);
+            }
         }
     }
     
@@ -2579,9 +2687,12 @@ public final class UIHelper
      */
     public static void removeKeyListeners(final Component comp)
     {
-        for (KeyListener l : comp.getKeyListeners())
+        if (comp != null)
         {
-            comp.removeKeyListener(l);
+            for (KeyListener l : comp.getKeyListeners())
+            {
+                comp.removeKeyListener(l);
+            }
         }
     }
 
@@ -2592,13 +2703,16 @@ public final class UIHelper
      */
     public static void removeMouseListeners(final Component c)
     {
-        for (MouseListener l : c.getMouseListeners())
+        if (c != null)
         {
-            c.removeMouseListener(l);
-        }
-        for (MouseMotionListener l : c.getMouseMotionListeners())
-        {
-            c.removeMouseMotionListener(l);
+            for (MouseListener l : c.getMouseListeners())
+            {
+                c.removeMouseListener(l);
+            }
+            for (MouseMotionListener l : c.getMouseMotionListeners())
+            {
+                c.removeMouseMotionListener(l);
+            }
         }
     }
     
@@ -2783,23 +2897,68 @@ public final class UIHelper
     }
     
     /**
+     * @param root
+     * @param nodeName
+     * @return
+     */
+    private static String getSysVersion(Element root, final String nodeName)
+    {
+        for (Object obj : root.selectNodes("/config/" + nodeName)) //$NON-NLS-1$
+        {
+            Element varObj = (Element)obj;
+            String name = XMLHelper.getAttr(varObj, "name", null); //$NON-NLS-1$
+            if (name.equals("sys.version"))
+            {
+                return XMLHelper.getAttr(varObj, "value", null); //$NON-NLS-1$
+            }
+        }
+        return null;
+    }
+    
+    /**
      * @return the version string from install4j
      */
     public static String getInstall4JInstallString()
     {
+        
         Element root = XMLHelper.readDOMFromConfigDir(".." + File.separator + ".install4j" + File.separator + "i4jparams.conf");
         if (root != null)
         {
-            for (Object obj : root.selectNodes("/config/variables/variable")) //$NON-NLS-1$
+            String sysVersion = getSysVersion(root, "variables/variable"); // Install4j Version 4
+            if (StringUtils.isNotEmpty(sysVersion))
             {
-                Element varObj = (Element)obj;
-                String name = XMLHelper.getAttr(varObj, "name", null); //$NON-NLS-1$
-                if (name.equals("sys.version"))
-                {
-                    return XMLHelper.getAttr(varObj, "value", null); //$NON-NLS-1$
-                }
+                return sysVersion;
+            }
+            sysVersion = getSysVersion(root, "compilerVariables/variable"); // Install4j Version 5
+            if (StringUtils.isNotEmpty(sysVersion))
+            {
+                return sysVersion;
             }
         }
+        
+        // This is for testing and Debugging
+        try
+        {
+            File parmsFile = new File(UIRegistry.getUserHomeDir() + File.separator + "i4jparams.conf");
+            //log.debug(parmsFile.getAbsolutePath());
+            if (parmsFile.exists())
+            {
+                root = XMLHelper.readFileToDOM4J(parmsFile);
+                if (root != null)
+                {
+                    for (Object obj : root.selectNodes("/config/variables/variable")) //$NON-NLS-1$
+                    {
+                        Element varObj = (Element)obj;
+                        String name = XMLHelper.getAttr(varObj, "name", null); //$NON-NLS-1$
+                        if (name.equals("sys.version"))
+                        {
+                            return XMLHelper.getAttr(varObj, "value", null); //$NON-NLS-1$
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {}
+        
         return null;
     }
     
@@ -2873,11 +3032,11 @@ public final class UIHelper
      */
     public static JButton[] adjustButtonArray(JButton[] buttonArray)
     {
-    	for (JButton btn : buttonArray)
-    	{
+        for (JButton btn : buttonArray)
+        {
             setControlSize(btn);
-    	}
-    	return buttonArray;
+        }
+        return buttonArray;
     }
     
     /**
@@ -3098,12 +3257,12 @@ public final class UIHelper
     
     public static JTextArea createTextArea()
     {
-    	final JTextArea text = new JTextArea();
-    	setControlSize(text);
-    	
-    	// Enable being able to TAB out of TextArea
-    	text.getInputMap().put(KeyStroke.getKeyStroke("TAB"), "none");
-    	text.addKeyListener(new KeyAdapter() {
+        final JTextArea text = new JTextArea();
+        setControlSize(text);
+        
+        // Enable being able to TAB out of TextArea
+        text.getInputMap().put(KeyStroke.getKeyStroke("TAB"), "none");
+        text.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent event) {
                 if (event.getKeyCode() == VK_TAB )
@@ -3121,19 +3280,19 @@ public final class UIHelper
         return text;
     }
 
-	public static JTextArea createTextArea(int rows, int columns)
+    public static JTextArea createTextArea(int rows, int columns)
     {
-    	JTextArea text = new JTextArea(rows, columns);
-    	setControlSize(text);
+        JTextArea text = new JTextArea(rows, columns);
+        setControlSize(text);
         return text;
     }
 
     public static JList createList(final ListModel model)
     {
-    	JList lst = new JList(model);
+        JList lst = new JList(model);
         if (isMacOS_10_5_X)
         {
-        	lst.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
+            lst.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
         }
         return lst;
     }
@@ -3389,7 +3548,7 @@ public final class UIHelper
         int alt = ALT_DOWN_MASK;
         
         //           First,         Previous,             Next,                 Last,          Save, NewItem, DelItem
-        int[] keys = {VK_BRACELEFT, VK_LESS,  VK_GREATER, VK_BRACERIGHT, VK_S, VK_N,     VK_D, };
+        int[] keys = {VK_UP,        VK_LEFT,              VK_RIGHT,             VK_DOWN,       VK_S, VK_N,     VK_D, };
         int[] mods = {alt,          alt,                  alt,                  alt,           alt,  alt,      alt, };
         
         buildKeyStrokeForCommandTypes(keys, mods);
@@ -3433,7 +3592,7 @@ public final class UIHelper
      */
     public static boolean isValidNameForDB(final String name)
     {
-        return name.matches("[a-zA-Z0-9\\-. '`]*");
+        return name.matches("^(?:\\p{L}\\p{M}*|[0-9\\-. '`])*$");
     }
     
     /**
@@ -3445,7 +3604,15 @@ public final class UIHelper
         return StringUtils.replace(name, "'", "`");
     }
     
-    
+    /**
+     * @param str
+     * @return true if str is a decimal number. (eg. "1", "1.1", "-1.1") 
+     */
+    public static boolean isANumber(final String str)
+    {
+    	String separator = "\\" + DecimalFormatSymbols.getInstance().getDecimalSeparator();
+    	return StringUtils.isNumeric(str.replaceFirst("-", "").replaceFirst(separator, ""));
+    }
     /**
      * Fixes a potential 8 char color to 6 where the first 2 chars are alpha
      * @param textColorArg the color string hex only
@@ -3532,38 +3699,38 @@ public final class UIHelper
             localPrefs.putBoolean(USE_WORLDWIND, true);
             return true;
         }
-    	
-    	try 
-    	{
-			SwingUtilities.invokeLater(new Runnable() 
-			{
-				@Override
-				public void run() 
-				{
-			        Boolean hasOpenGL = localPrefs.getBoolean(HAS_OPENGL_PREF, null);
-			        if (hasOpenGL == null)
-			        {
-			            final JDialog frame = new JDialog();
-			            try
-			            {
-			                GLCanvas canvas = new GLCanvas();
-			                
-			                frame.getContentPane().add(canvas);
-			                
-			                JFrame topFrame = (JFrame)UIRegistry.getTopWindow();
-			                if (topFrame != null)
-			                {
-			                    Rectangle screenRect = topFrame.getGraphicsConfiguration().getBounds();
-			                    frame.setBounds(screenRect.width, screenRect.height+50, 50, 50);
-			                    
-			                } else
-			                {
-			                    frame.setBounds(-100, -100, 50, 50);
-			                }
-			                frame.setVisible(true);
-			                
-			                hasOpenGL = true;
-			                
+        
+        try 
+        {
+            SwingUtilities.invokeLater(new Runnable() 
+            {
+                @Override
+                public void run() 
+                {
+                    Boolean hasOpenGL = localPrefs.getBoolean(HAS_OPENGL_PREF, null);
+                    if (hasOpenGL == null)
+                    {
+                        final JDialog frame = new JDialog();
+                        try
+                        {
+                            GLCanvas canvas = new GLCanvas();
+                            
+                            frame.getContentPane().add(canvas);
+                            
+                            JFrame topFrame = (JFrame)UIRegistry.getTopWindow();
+                            if (topFrame != null)
+                            {
+                                Rectangle screenRect = topFrame.getGraphicsConfiguration().getBounds();
+                                frame.setBounds(screenRect.width, screenRect.height+50, 50, 50);
+                                
+                            } else
+                            {
+                                frame.setBounds(-100, -100, 50, 50);
+                            }
+                            frame.setVisible(true);
+                            
+                            hasOpenGL = true;
+                            
                         } catch (javax.media.opengl.GLException ex)
                         {
                             hasOpenGL = false;
@@ -3572,40 +3739,44 @@ public final class UIHelper
                         {
                             hasOpenGL = false;
                             
-			            } finally
-			            {
-			                localPrefs.putBoolean(HAS_OPENGL_PREF, hasOpenGL != null ? hasOpenGL : UIHelper.isMacOS());
-			                if (initialUseWordWind == null || (initialHasOpenGL != null && hasOpenGL != initialHasOpenGL))
+                        } finally
+                        {
+                            if (hasOpenGL == null)
                             {
-			                    localPrefs.putBoolean(USE_WORLDWIND, hasOpenGL);    
+                                hasOpenGL = UIHelper.isMacOS();
                             }
-			                
-			                SwingUtilities.invokeLater(new Runnable() 
-			                {
-			                    @Override
-			                    public void run() 
-			                    {
-        			                if (frame != null)
-        			                {
-        			                    frame.setVisible(false);
-        			                }
-			                    }
-			                });
-			            }
-			        }
-				}
-				
-			});
-		} catch (java.lang.Error e) 
-		{
-		    e.printStackTrace();
-		    
-			localPrefs.putBoolean(HAS_OPENGL_PREF, false);
-			if (initialUseWordWind == null || (initialHasOpenGL != null && initialHasOpenGL))
+                            localPrefs.putBoolean(HAS_OPENGL_PREF, hasOpenGL);
+                            if (initialUseWordWind == null || (initialHasOpenGL != null && hasOpenGL != initialHasOpenGL))
+                            {
+                                localPrefs.putBoolean(USE_WORLDWIND, hasOpenGL);    
+                            }
+                            
+                            SwingUtilities.invokeLater(new Runnable() 
+                            {
+                                @Override
+                                public void run() 
+                                {
+                                    if (frame != null)
+                                    {
+                                        frame.setVisible(false);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+                
+            });
+        } catch (java.lang.Error e) 
+        {
+            e.printStackTrace();
+            
+            localPrefs.putBoolean(HAS_OPENGL_PREF, false);
+            if (initialUseWordWind == null || (initialHasOpenGL != null && initialHasOpenGL))
             {
                 localPrefs.putBoolean(USE_WORLDWIND, false);    
             }
-		}
+        }
 
         return localPrefs.getBoolean(HAS_OPENGL_PREF, false);  
     }
@@ -3694,5 +3865,106 @@ public final class UIHelper
             }
         }
         return null;
+    }
+    
+    /**
+     * @param value
+     * @return
+     */
+    public static Double parseDouble(final String value)
+    {
+        return doubleValidator.validate(value, Locale.getDefault());
+    }
+    
+    /**
+     * @param value: a decimal format number (exponential or other formats not supported)
+     * @return
+     */
+    public static BigDecimal parseDoubleToBigDecimal(final String value)
+    {
+        return bigDecValidator.validate(value, Locale.getDefault());
+    }
+
+    /**
+     * @param str
+     * @return
+     */
+    public static boolean isAllCaps(final String str)
+    {
+        for (int i=0;i<str.length();i++)
+        {
+            char ch = str.charAt(i);
+            if (Character.isLetter(ch) && Character.isLowerCase(ch))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Sizes the table to number of rows using getRowHeight
+     * @param table the table to be sized
+     * @param rows the number of rows
+     */
+    public static void setVisibleRowCount(final JTable table, final int rows)
+    {
+        if (table != null)
+        {
+            table.setPreferredScrollableViewportSize(new Dimension( 
+                    table.getPreferredScrollableViewportSize().width, 
+                    rows*table.getRowHeight()));
+        }
+    }
+    
+    /**
+     * Sizes the table to number of rows using the height of actual rows.
+     * @param table the table to be sized
+     * @param rows the number of rows
+     */
+    public static void setVisibleRowCountForHeight(final JTable table, final int rows)
+    { 
+        if (table != null)
+        {
+            int height = 0; 
+            for(int row=0; row<rows; row++) 
+                height += table.getRowHeight(row); 
+         
+            table.setPreferredScrollableViewportSize(new Dimension( 
+                    table.getPreferredScrollableViewportSize().width, 
+                    height 
+            ));
+        }
+    }
+    
+    /**
+     * @param locale
+     * @param fileName
+     * @return
+     */
+    public static String createLocaleName(final Locale locale, 
+                                          final String fileName,
+                                          final String ext)
+    {
+        String name = fileName + '_' + locale.getLanguage();
+        if (StringUtils.isNotEmpty(locale.getCountry()))
+        {
+            name += '_' + locale.getCountry();
+        }
+        
+        String fullPath = name + '.' + ext;
+        File file = new File(fullPath);
+        if (file.exists())
+        {
+            return name;
+        }
+        
+        fullPath = fileName + '_' + locale.getLanguage() + '.' + ext;
+        file = new File(name);
+        if (!file.exists())
+        {
+            fullPath = fileName + '.' + ext;
+        }
+        return fullPath;
     }
 }

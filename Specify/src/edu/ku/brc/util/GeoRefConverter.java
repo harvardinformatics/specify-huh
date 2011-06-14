@@ -20,12 +20,16 @@
 package edu.ku.brc.util;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
 
 public class GeoRefConverter implements StringConverter
 {
-    //NOTE: on mac the order of the formats matters. 
+    protected final String decimalSep;
+	
+	//NOTE: on mac the order of the formats matters. 
 	//Some strings will (invalidly - at least according to windows/linux interpretation)
 	//match more than format. 
 	//Currently, For the mac, conversions will only work if formats are defined in the order below. 
@@ -95,11 +99,18 @@ public class GeoRefConverter implements StringConverter
         public abstract BigDecimal convertToDecimalDegrees(String original);
     }
     
+    /**
+     * 
+     */
     public GeoRefConverter()
     {
-        // nothing to do here
+        decimalSep = Character.toString(new DecimalFormatSymbols(Locale.getDefault()).getDecimalSeparator());
     }
 
+    /**
+     * @param llText
+     * @return
+     */
     public int getDecimalSize(final String llText)
     {
         if (StringUtils.isBlank(llText))
@@ -108,7 +119,7 @@ public class GeoRefConverter implements StringConverter
         }
         
     	int decimalFmtLen = 0;
-        int decIndex = llText.lastIndexOf('.');
+        int decIndex = llText.lastIndexOf(decimalSep);
         if (decIndex > -1 && llText.length() > decIndex)
         {
             int end = llText.length();
@@ -147,16 +158,17 @@ public class GeoRefConverter implements StringConverter
             return null;
         }
         
+        
         // first we have to 'discover' the original format
         // and convert to decimal degrees
         // then we convert to the requested format
 
-        
+        String deLocalized = original.replace(decimalSep, ".");
         BigDecimal degreesPlusMinus = null;
         GeoRefFormat originalFormat = null;
         for (GeoRefFormat format: GeoRefFormat.values())
         {
-        	if (original.matches(format.regex))
+        	if (deLocalized.matches(format.regex))
             {
                 degreesPlusMinus = format.convertToDecimalDegrees(original);
                 originalFormat = format;
@@ -202,13 +214,14 @@ public class GeoRefConverter implements StringConverter
             {
             	decimalFmtLen += 2;
             }
+            
         	if (destFormat.equals(GeoRefFormat.DM_PLUS_MINUS.name()))
         	{
-        		return LatLonConverter.convertToSignedDDMMMM(degreesPlusMinus, decimalFmtLen, degFmt);
+        		return LatLonConverter.convertToSignedDDMMMM(degreesPlusMinus, Math.max(decimalFmtLen,2), degFmt);
         	}
             else if (destFormat.equals(GeoRefFormat.DM_NSEW.name()))
             {
-            	return LatLonConverter.convertToDDMMMM(degreesPlusMinus, degFmt, getDir(llType), decimalFmtLen, true);
+            	return LatLonConverter.convertToDDMMMM(degreesPlusMinus, degFmt, getDir(llType), Math.max(decimalFmtLen,2), true);
             }
         }
         else if (destFormat.equals(GeoRefFormat.D_PLUS_MINUS.name()) || destFormat.equals(GeoRefFormat.D_NSEW.name()))
@@ -221,13 +234,14 @@ public class GeoRefConverter implements StringConverter
             {
             	decimalFmtLen += 5;
             }
+            
             if (destFormat.equals(GeoRefFormat.D_PLUS_MINUS.name()))
             {
-            	return LatLonConverter.convertToSignedDDDDDD(degreesPlusMinus, decimalFmtLen, degFmt);
+            	return LatLonConverter.convertToSignedDDDDDD(degreesPlusMinus, Math.max(decimalFmtLen,2), degFmt);
             }
             else if (destFormat.equals(GeoRefFormat.D_NSEW.name()))
             {
-            	return LatLonConverter.convertToDDDDDD(degreesPlusMinus, degFmt, getDir(llType), decimalFmtLen, true);
+            	return LatLonConverter.convertToDDDDDD(degreesPlusMinus, degFmt, getDir(llType), Math.max(decimalFmtLen,2), true);
             }
         }
 
@@ -258,12 +272,13 @@ public class GeoRefConverter implements StringConverter
      */
     public LatLonConverter.FORMAT getLatLonFormat(final String entry)
     {
-        if (entry != null)
+    	if (entry != null)
         {
-            for (GeoRefFormat format: GeoRefFormat.values())
+            String delocalized = entry.replace(decimalSep, ".");
+    		for (GeoRefFormat format: GeoRefFormat.values())
             {
                 //System.out.println("matching: " + entry + " with " + format.name());
-            	if (format.matches(entry))
+            	if (format.matches(delocalized))
                 {
                     //System.out.println("matched: " + entry + " with " + format.name());
                     if (format.equals(GeoRefFormat.D_NSEW) || format.equals(GeoRefFormat.D_PLUS_MINUS))

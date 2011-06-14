@@ -122,7 +122,11 @@ import edu.ku.brc.dbsupport.RecordSetIFace;
 import edu.ku.brc.dbsupport.RecordSetItemIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.CollectionObject;
+import edu.ku.brc.specify.datamodel.CollectionRelationship;
+import edu.ku.brc.specify.datamodel.Container;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpExportSchema;
 import edu.ku.brc.specify.datamodel.SpExportSchemaItem;
@@ -132,6 +136,7 @@ import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpQueryField;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.Treeable;
 import edu.ku.brc.specify.datamodel.Workbench;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
@@ -141,6 +146,8 @@ import edu.ku.brc.specify.tasks.ReportsBaseTask;
 import edu.ku.brc.specify.tasks.subpane.ExpressSearchResultsPaneIFace;
 import edu.ku.brc.specify.tasks.subpane.JasperCompilerRunnable;
 import edu.ku.brc.specify.tasks.subpane.wb.WorkbenchJRDataSource;
+import edu.ku.brc.specify.tools.export.ConceptMapUtils;
+import edu.ku.brc.specify.tools.export.MappedFieldInfo;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CommandListener;
@@ -166,6 +173,11 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     protected static final Logger                            log            = Logger.getLogger(QueryBldrPane.class);
     protected static final Color                             TITLEBAR_COLOR = new Color(82, 160, 52);
     protected static final int                               ExportSchemaPreviewSize = 120;
+    //the maximum number of times the Parent relationship can be opened for recursive relationships.
+    //This is currently only used for Containers (parent relationship has been unavailable for some time for Treeable tables).
+    //It was originally necessary as a workaround to prevent a memory leak when the parent relationship was recursively opened, 
+    //but now is used just to limit the recursion to a sane depth
+    protected static final int                               maxParentChainLen = 7;     
     
     protected JList                                          tableList;
     protected Vector<QueryFieldPanel>                        queryFieldItems  = new Vector<QueryFieldPanel>();
@@ -230,9 +242,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     protected final AtomicReference<QBQueryForIdResultsHQL> completedResults = new AtomicReference<QBQueryForIdResultsHQL>();
     protected final AtomicLong doneTime = new AtomicLong(-1);
     protected final AtomicLong startTime = new AtomicLong(-1);
-    
-    protected Map<String, AutoMap> autoMaps = new HashMap<String, AutoMap>();
-    
+        
     
     /**
      * Constructor.
@@ -293,7 +303,8 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             fieldsToSkipHash.put(nameStr, true);
         }
         
-        loadAutoMaps();
+        //loadAutoMaps();
+        //writeAutoMapsToXml();
         
         QueryTask qt = (QueryTask )task;
         Pair<TableTree, Hashtable<String, TableTree>> trees = qt.getTableTrees();
@@ -307,85 +318,138 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         CommandDispatcher.register(ReportsBaseTask.REPORTS, this);
     }
 
-    protected void loadAutoMaps() {
-		
+//    protected void loadAutoMaps() {
+
+//        for (Map.Entry<String, AutoMap> am : autoMaps.entrySet())
+//        {
+//        	System.out.println(am.getKey() + ": " + am.getValue());
+//        }
+    	
     	//from older darwin cores 
-    	autoMaps.put("scientificnameauthor", new AutoMap(
-				"1,9-determinations,4-preferredTaxon.taxon.author", "author",
-				"1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("collector", new AutoMap(
-				"1,10,30-collectors.collector.collectors", "collectors",
-				"1,10,30-collectors", true));
-		autoMaps.put("globaluniqueidentifier", new AutoMap(
-				"1.collectionobject.guid", "guid", "1", false));
-		autoMaps.put("daycollected", new AutoMap(
-				"1,10.collectingevent.startDate", "startDate", "1,10", false));
-		
-		//from darwin core used by ipt
-		autoMaps.put("catalognumber", new AutoMap("1.collectionobject.catalogNumber", "catalogNumber", "1", false));
-		autoMaps.put("class", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Class", "Class", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("collectioncode", new AutoMap("1,23.collection.code", "code", "1,23", false));
-		autoMaps.put("continent", new AutoMap("1,10,2,3.geography.Continent", "Continent", "1,10,2,3", false));
-		//autoMaps.put("coordinateuncertaintyinmeters", new AutoMap("1,10,2.locality.latLongAccuracy", "latLongAccuracy", "1,10,2", false));
-		autoMaps.put("country", new AutoMap("1,10,2,3.geography.Country", "Country", "1,10,2,3", false));
-		autoMaps.put("county", new AutoMap("1,10,2,3.geography.County", "County", "1,10,2,3", false));
-		//autoMaps.put("dateidentified", new AutoMap("1,9-determinations.determination.determinedDate", "determinedDate", "1,9-determinations", false));
-		autoMaps.put("decimallatitude", new AutoMap("1,10,2.locality.latitude1", "latitude1", "1,10,2", false));
-		autoMaps.put("decimallongitude", new AutoMap("1,10,2.locality.longitude1", "longitude1", "1,10,2", false));
-		autoMaps.put("eventdate", new AutoMap("1,10.collectingevent.startDate", "startDate", "1,10", false));
-		//autoMaps.put("eventremarks", new AutoMap("1,10.collectingevent.remarks", "remarks", "1,10", false));
-		//autoMaps.put("eventtime", new AutoMap("1,10.collectingevent.startTime", "startTime", "1,10", false));
-		autoMaps.put("family", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Family", "Family", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("fieldnumber", new AutoMap("1.collectionobject.fieldNumber", "fieldNumber", "1", false));
-		autoMaps.put("genus", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Genus", "Genus", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("geodeticdatum", new AutoMap("1,10,2.locality.datum", "datum", "1,10,2", false));
-		//autoMaps.put("georeferencedby", new AutoMap("1,10,2,123-geoCoordDetails,5-geoRefDetBy.agent.geoRefDetBy", "geoRefDetBy", "1,10,2,123-geoCoordDetails,5-geoRefDetBy", false));
-		//autoMaps.put("georeferenceprotocol", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.protocol", "protocol", "1,10,2,123-geoCoordDetails", false));
-		//autoMaps.put("georeferenceremarks", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.geoRefRemarks", "geoRefRemarks", "1,10,2,123-geoCoordDetails", false));
-		//autoMaps.put("georeferencesources", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.source", "source", "1,10,2,123-geoCoordDetails", false));
-		//autoMaps.put("georeferenceverificationstatus", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.geoRefVerificationStatus", "geoRefVerificationStatus", "1,10,2,123-geoCoordDetails", false));
-		//autoMaps.put("habitat", new AutoMap("1,10,92.collectingeventattribute.text9", "text9", "1,10,92", false));
-		//autoMaps.put("identificationqualifier", new AutoMap("1,9-determinations.determination.qualifier", "qualifier", "1,9-determinations", false));
-		//autoMaps.put("identificationreferences", new AutoMap("1,9-determinations,38-determinationCitations.determinationcitation.determinationCitations", "determinationCitations", "1,9-determinations,38-determinationCitations", false));
-		//autoMaps.put("identificationremarks", new AutoMap("1,9-determinations.determination.remarks", "remarks", "1,9-determinations", false));
-		autoMaps.put("identifiedby", new AutoMap("1,9-determinations,5-determiner.agent.determiner", "determiner", "1,9-determinations,5-determiner", false));
-		autoMaps.put("individualcount", new AutoMap("1.collectionobject.countAmt", "countAmt", "1", false));
-		autoMaps.put("infraspecificepithet", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Subspecies", "Subspecies", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("institutioncode", new AutoMap("1,23,26,96,94.institution.code", "code", "1,23,26,96,94", false));
-		//autoMaps.put("island", new AutoMap("1,10,2,124-localityDetails.localitydetail.island", "island", "1,10,2,124-localityDetails", false));
-		//autoMaps.put("islandgroup", new AutoMap("1,10,2,124-localityDetails.localitydetail.islandGroup", "islandGroup", "1,10,2,124-localityDetails", false));
-		autoMaps.put("kingdom", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Kingdom", "Kingdom", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("lifestage", new AutoMap("1,93.collectionobjectattribute.text4", "text4", "1,93", false));
-		autoMaps.put("locality", new AutoMap("1,10,2.locality.localityName", "localityName", "1,10,2", false));
-		//autoMaps.put("locationremarks", new AutoMap("1,10,2.locality.remarks", "remarks", "1,10,2", false));
-		//autoMaps.put("maximumdepthinmeters", new AutoMap("1,10,92.collectingeventattribute.text2", "text2", "1,10,92", false));
-		autoMaps.put("maximumelevationinmeters", new AutoMap("1,10,2.locality.maxElevation", "maxElevation", "1,10,2", false));
-		//autoMaps.put("minimumdepthinmeters", new AutoMap("1,10,92.collectingeventattribute.text1", "text1", "1,10,92", false));
-		autoMaps.put("minimumelevationinmeters", new AutoMap("1,10,2.locality.minElevation", "minElevation", "1,10,2", false));
-		//autoMaps.put("occurrenceremarks", new AutoMap("1.collectionobject.remarks", "remarks", "1", false));
-		autoMaps.put("order", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Order", "Order", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("othercatalognumbers", new AutoMap("1.collectionobject.altCatalogNumber", "altCatalogNumber", "1", false));
-		autoMaps.put("phylum", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Phylum", "Phylum", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("preparations", new AutoMap("1,63-preparations.preparation.preparations", "preparations", "1,63-preparations", false));
-		//autoMaps.put("previousidentifications", new AutoMap("1,9-determinations.determination.determinations", "determinations", "1,9-determinations", false));
-		autoMaps.put("recordedby", new AutoMap(
-				"1,10,30-collectors.collector.collectors", "collectors",
-				"1,10,30-collectors", true));
-		//autoMaps.put("reproductivecondition", new AutoMap("1,93.collectionobjectattribute.text3", "text3", "1,93", false));
-		autoMaps.put("scientificname", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.fullName", "fullName", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("scientificnameauthorship", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.author", "author", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("sex", new AutoMap("1,93.collectionobjectattribute.text1", "text1", "1,93", false));
-		autoMaps.put("specificepithet", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Species", "Species", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("stateprovince", new AutoMap("1,10,2,3.geography.State", "State", "1,10,2,3", false));
-		//autoMaps.put("subgenus", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Subgenus", "Subgenus", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("taxonremarks", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.remarks", "remarks", "1,9-determinations,4-preferredTaxon", false));
-		autoMaps.put("typestatus", new AutoMap("1,9-determinations.determination.typeStatusName", "typeStatusName", "1,9-determinations", false));
-		//autoMaps.put("verbatimelevation", new AutoMap("1,10,2.locality.verbatimElevation", "verbatimElevation", "1,10,2", false));
-		//autoMaps.put("verbatimeventdate", new AutoMap("1,10.collectingevent.verbatimDate", "verbatimDate", "1,10", false));
-		//autoMaps.put("verbatimlocality", new AutoMap("1,10.collectingevent.verbatimLocality", "verbatimLocality", "1,10", false));
-		//autoMaps.put("vernacularname", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.commonName", "commonName", "1,9-determinations,4-preferredTaxon", false));
-		//autoMaps.put("waterbody", new AutoMap("1,10,2,124-localityDetails.localitydetail.waterBody", "waterBody", "1,10,2,124-localityDetails", false));	
-	}
+//    	autoMaps.put("scientificnameauthor", new AutoMap(
+//				"1,9-determinations,4-preferredTaxon.taxon.author", "author",
+//				"1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("collector", new AutoMap(
+//				"1,10,30-collectors.collector.collectors", "collectors",
+//				"1,10,30-collectors", true));
+//		autoMaps.put("globaluniqueidentifier", new AutoMap(
+//				"1.collectionobject.guid", "guid", "1", false));
+//		autoMaps.put("daycollected", new AutoMap(
+//				"1,10.collectingevent.startDate", "startDate", "1,10", false));
+//		
+//		//from darwin core used by ipt
+//		autoMaps.put("catalognumber", new AutoMap("1.collectionobject.catalogNumber", "catalogNumber", "1", false));
+//		autoMaps.put("class", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Class", "Class", "1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("collectioncode", new AutoMap("1,23.collection.code", "code", "1,23", false));
+//		autoMaps.put("continent", new AutoMap("1,10,2,3.geography.Continent", "Continent", "1,10,2,3", false));
+//		
+//		autoMaps.put("coordinateuncertaintyinmeters", new AutoMap("1,10,2.locality.latLongAccuracy", "latLongAccuracy", "1,10,2", false, false));
+//		
+//		autoMaps.put("country", new AutoMap("1,10,2,3.geography.Country", "Country", "1,10,2,3", false));
+//		autoMaps.put("county", new AutoMap("1,10,2,3.geography.County", "County", "1,10,2,3", false));
+//		
+//		autoMaps.put("dateidentified", new AutoMap("1,9-determinations.determination.determinedDate", "determinedDate", "1,9-determinations", false, false));
+//		
+//		autoMaps.put("decimallatitude", new AutoMap("1,10,2.locality.latitude1", "latitude1", "1,10,2", false));
+//		autoMaps.put("decimallongitude", new AutoMap("1,10,2.locality.longitude1", "longitude1", "1,10,2", false));
+//		autoMaps.put("eventdate", new AutoMap("1,10.collectingevent.startDate", "startDate", "1,10", false));
+//		
+//		autoMaps.put("eventremarks", new AutoMap("1,10.collectingevent.remarks", "remarks", "1,10", false, false));
+//		autoMaps.put("eventtime", new AutoMap("1,10.collectingevent.startTime", "startTime", "1,10", false, false));
+//		
+//		autoMaps.put("family", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Family", "Family", "1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("fieldnumber", new AutoMap("1.collectionobject.fieldNumber", "fieldNumber", "1", false));
+//		autoMaps.put("genus", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Genus", "Genus", "1,9-determinations,4-preferredTaxon", false));
+//		
+//		autoMaps.put("geodeticdatum", new AutoMap("1,10,2.locality.datum", "datum", "1,10,2", false, false));
+//		autoMaps.put("georeferencedby", new AutoMap("1,10,2,123-geoCoordDetails,5-geoRefDetBy.agent.geoRefDetBy", "geoRefDetBy", "1,10,2,123-geoCoordDetails,5-geoRefDetBy", false, false));
+//		autoMaps.put("georeferenceprotocol", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.protocol", "protocol", "1,10,2,123-geoCoordDetails", false, false));
+//		autoMaps.put("georeferenceremarks", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.geoRefRemarks", "geoRefRemarks", "1,10,2,123-geoCoordDetails", false, false));
+//		autoMaps.put("georeferencesources", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.source", "source", "1,10,2,123-geoCoordDetails", false, false));
+//		autoMaps.put("georeferenceverificationstatus", new AutoMap("1,10,2,123-geoCoordDetails.geocoorddetail.geoRefVerificationStatus", "geoRefVerificationStatus", "1,10,2,123-geoCoordDetails", false, false));
+//		autoMaps.put("habitat", new AutoMap("1,10,92.collectingeventattribute.text9", "text9", "1,10,92", false, false));
+//		autoMaps.put("identificationqualifier", new AutoMap("1,9-determinations.determination.qualifier", "qualifier", "1,9-determinations", false, false));
+//		autoMaps.put("identificationreferences", new AutoMap("1,9-determinations,38-determinationCitations.determinationcitation.determinationCitations", "determinationCitations", "1,9-determinations,38-determinationCitations", false, false));
+//		autoMaps.put("identificationremarks", new AutoMap("1,9-determinations.determination.remarks", "remarks", "1,9-determinations", false, false));
+//		
+//		autoMaps.put("identifiedby", new AutoMap("1,9-determinations,5-determiner.agent.determiner", "determiner", "1,9-determinations,5-determiner", false));
+//		autoMaps.put("individualcount", new AutoMap("1.collectionobject.countAmt", "countAmt", "1", false));
+//		autoMaps.put("infraspecificepithet", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Subspecies", "Subspecies", "1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("institutioncode", new AutoMap("1,23,26,96,94.institution.code", "code", "1,23,26,96,94", false));
+//		
+//		autoMaps.put("island", new AutoMap("1,10,2,124-localityDetails.localitydetail.island", "island", "1,10,2,124-localityDetails", false, false));
+//		autoMaps.put("islandgroup", new AutoMap("1,10,2,124-localityDetails.localitydetail.islandGroup", "islandGroup", "1,10,2,124-localityDetails", false, false));
+//		
+//		autoMaps.put("kingdom", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Kingdom", "Kingdom", "1,9-determinations,4-preferredTaxon", false));
+//		
+//		autoMaps.put("lifestage", new AutoMap("1,93.collectionobjectattribute.text4", "text4", "1,93", false, false));
+//		
+//		autoMaps.put("locality", new AutoMap("1,10,2.locality.localityName", "localityName", "1,10,2", false));
+//		
+//		autoMaps.put("locationremarks", new AutoMap("1,10,2.locality.remarks", "remarks", "1,10,2", false, false));
+//		autoMaps.put("maximumdepthinmeters", new AutoMap("1,10,92.collectingeventattribute.text2", "text2", "1,10,92", false, false));
+//		
+//		autoMaps.put("maximumelevationinmeters", new AutoMap("1,10,2.locality.maxElevation", "maxElevation", "1,10,2", false));
+//		
+//		autoMaps.put("minimumdepthinmeters", new AutoMap("1,10,92.collectingeventattribute.text1", "text1", "1,10,92", false, false));
+//		
+//		autoMaps.put("minimumelevationinmeters", new AutoMap("1,10,2.locality.minElevation", "minElevation", "1,10,2", false));
+//		
+//		autoMaps.put("occurrenceremarks", new AutoMap("1.collectionobject.remarks", "remarks", "1", false, false));
+//		
+//		autoMaps.put("order", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Order", "Order", "1,9-determinations,4-preferredTaxon", false));
+//		
+//		autoMaps.put("othercatalognumbers", new AutoMap("1.collectionobject.altCatalogNumber", "altCatalogNumber", "1", false, false));
+//		
+//		autoMaps.put("phylum", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Phylum", "Phylum", "1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("preparations", new AutoMap("1,63-preparations.preparation.preparations", "preparations", "1,63-preparations", false));
+//		
+//		autoMaps.put("previousidentifications", new AutoMap("1,9-determinations.determination.determinations", "determinations", "1,9-determinations", false, false));
+//		
+//		autoMaps.put("recordedby", new AutoMap(
+//				"1,10,30-collectors.collector.collectors", "collectors",
+//				"1,10,30-collectors", true));
+//		
+//		autoMaps.put("reproductivecondition", new AutoMap("1,93.collectionobjectattribute.text3", "text3", "1,93", false, false));
+//		
+//		autoMaps.put("scientificname", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.fullName", "fullName", "1,9-determinations,4-preferredTaxon", false));
+//		
+//		autoMaps.put("scientificnameauthorship", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.author", "author", "1,9-determinations,4-preferredTaxon", false, false));
+//		autoMaps.put("sex", new AutoMap("1,93.collectionobjectattribute.text1", "text1", "1,93", false, false));
+//		
+//		autoMaps.put("specificepithet", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Species", "Species", "1,9-determinations,4-preferredTaxon", false));
+//		autoMaps.put("stateprovince", new AutoMap("1,10,2,3.geography.State", "State", "1,10,2,3", false));
+//		
+//		autoMaps.put("subgenus", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.Subgenus", "Subgenus", "1,9-determinations,4-preferredTaxon", false, false));
+//		autoMaps.put("taxonremarks", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.remarks", "remarks", "1,9-determinations,4-preferredTaxon", false, false));
+//		
+//		autoMaps.put("typestatus", new AutoMap("1,9-determinations.determination.typeStatusName", "typeStatusName", "1,9-determinations", false));
+//		
+//		autoMaps.put("verbatimelevation", new AutoMap("1,10,2.locality.verbatimElevation", "verbatimElevation", "1,10,2", false, false));
+//		autoMaps.put("verbatimeventdate", new AutoMap("1,10.collectingevent.verbatimDate", "verbatimDate", "1,10", false, false));
+//		autoMaps.put("verbatimlocality", new AutoMap("1,10.collectingevent.verbatimLocality", "verbatimLocality", "1,10", false, false));
+//		autoMaps.put("vernacularname", new AutoMap("1,9-determinations,4-preferredTaxon.taxon.commonName", "commonName", "1,9-determinations,4-preferredTaxon", false, false));
+//		autoMaps.put("waterbody", new AutoMap("1,10,2,124-localityDetails.localitydetail.waterBody", "waterBody", "1,10,2,124-localityDetails", false, false));	
+//	}
+    
+//    protected void writeAutoMapsToXml()
+//    {
+//    	File out = new File("/home/timo/automap.xml");
+//    	Vector<String> lines = new Vector<String>();
+//    	for (Map.Entry<String, AutoMap> me : autoMaps.entrySet())
+//    	{
+//    		String line = "<default_mapping name=\"" + me.getKey() + "\" " + me.getValue().toXML() + "/>" ;
+//    		lines.add(line);
+//    	}
+//    	try
+//    	{
+//    		FileUtils.writeLines(out, lines);
+//    	} catch(Exception ex)
+//    	{
+//    		ex.printStackTrace();
+//    	}
+//    }
+    
     /**
      * create the query builder UI.
      */
@@ -507,22 +571,35 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 	return;
                 }
                 
-                FieldQRI fieldQRI = buildFieldQRI(qri);
-            	SpQueryField qf = new SpQueryField();
-            	qf.initialize();
-            	qf.setFieldName(fieldQRI.getFieldName());
-            	qf.setStringId(fieldQRI.getStringId());
-            	query.addReference(qf, "fields");
-            	
-                if (exportSchema == null)
-                {
-                	addQueryFieldItem(fieldQRI, qf, false);
-                }
-                else
-                {
-                	addNewMapping(fieldQRI, qf, selectedQFP);
-                }
-            }
+                try
+				{
+					FieldQRI fieldQRI = buildFieldQRI(qri);
+					if (fieldQRI == null)
+					{
+						throw new Exception("null FieldQRI");
+					}
+					SpQueryField qf = new SpQueryField();
+					qf.initialize();
+					qf.setFieldName(fieldQRI.getFieldName());
+					qf.setStringId(fieldQRI.getStringId());
+					query.addReference(qf, "fields");
+
+					if (exportSchema == null)
+					{
+						addQueryFieldItem(fieldQRI, qf, false);
+					} else
+					{
+						addNewMapping(fieldQRI, qf, selectedQFP);
+					}
+				} catch (Exception ex)
+				{
+					log.error(ex);
+					UsageTracker.incrHandledUsageCount();
+					edu.ku.brc.exceptions.ExceptionTracker.getInstance()
+							.capture(QueryBldrPane.class, ex);
+					return;
+				}
+             }
         });
 
         contextPanel = new JPanel(new BorderLayout());
@@ -945,7 +1022,8 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             }
             //query.forceLoad(true);                	
             qfps = exportSchema == null ? getQueryFieldPanels(this, query.getFields(), tableTree, tableTreeHash, saveBtn, missingFlds)
-            		: getQueryFieldPanelsForMapping(this, query.getFields(), tableTree, tableTreeHash, saveBtn, schemaMapping, missingFlds, autoMaps);
+            		: getQueryFieldPanelsForMapping(this, query.getFields(), tableTree, tableTreeHash, saveBtn, schemaMapping, missingFlds, 
+            				ConceptMapUtils.getDefaultDarwinCoreMappings());
             
             if (missingFlds.size() > 0)
             {
@@ -1003,7 +1081,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         	{
         		if (!qfp.isConditionForSchema())
 				{
-					AutoMap mappedTo = autoMaps.get(qfp.getSchemaItem()
+					MappedFieldInfo mappedTo = ConceptMapUtils.getDefaultDarwinCoreMappings().get(qfp.getSchemaItem()
 							.getFieldName().toLowerCase());
 					if (mappedTo != null)
 					{
@@ -1034,7 +1112,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 			@Override
 			public void run()
 			{
-				distinctChk.setSelected(query.getSelectDistinct() == null ? false : query.getSelectDistinct());
+				distinctChk.setSelected(query.isSelectDistinct());
 				countOnlyChk.setSelected(query.getCountOnly() == null ? false : query.getCountOnly());
 				countOnly = countOnlyChk.isSelected();
 				searchSynonymyChk.setSelected(query.getSearchSynonymy() == null ? true : query.getSearchSynonymy());
@@ -1064,19 +1142,20 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     protected boolean canSave()
     {
         boolean result = true;
-        if (AppContextMgr.isSecurityOn() && (!task.getPermissions().canAdd() || !task.getPermissions().canModify()))
-        {
-            if (!task.getPermissions().canAdd() && !task.getPermissions().canModify())
-            {
-                result = false;
-            }
-            else
-            {
-                boolean newQ = query == null || query.getId() == null;
-                //if canAdd but !canModify then some strange behavior may result
-                result = newQ ? task.getPermissions().canAdd() : task.getPermissions().canModify();
-            }
-        }
+        //if the query builder is enabled for a user then the user can save queries.
+//        if (AppContextMgr.isSecurityOn() && (!task.getPermissions().canAdd() || !task.getPermissions().canModify()))
+//        {
+//            if (!task.getPermissions().canAdd() && !task.getPermissions().canModify())
+//            {
+//                result = false;
+//            }
+//            else
+//            {
+//                boolean newQ = query == null || query.getId() == null;
+//                //if canAdd but !canModify then some strange behavior may result
+//                result = newQ ? task.getPermissions().canAdd() : task.getPermissions().canModify();
+//            }
+//        }
         return result;
     }
     /**
@@ -1129,7 +1208,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         StringBuilder orderStr = new StringBuilder();
         LinkedList<SortElement> sortElements = new LinkedList<SortElement>();
         boolean postSortPresent = false;
-        boolean debug = true;
+        boolean debug = false;
         ProcessNode root = new ProcessNode();
         int fldPosition = distinct ? 0 : 1;
 
@@ -1139,7 +1218,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         	{
         		continue;
         	}
-        	
+   
         	qfi.updateQueryField();
 
             if (qfi.isForDisplay())
@@ -1317,7 +1396,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             {
             	continue;
             }
-            
+ 
         	if (qfi.isForDisplay())
             {
                 visibleFldExists = true;
@@ -1341,9 +1420,9 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                     {
                         criteriaStr.append(" AND ");
                     }
-                    if (isSynSearchable(qfi.getFieldQRI()) && hqlHasSynJoins)
+                    if (hqlHasSynJoins && isSynSearchable(qfi.getFieldQRI()))
                     {
-                        criteria = adjustForSynSearch(tableAbbreviator.getAbbreviation(qfi.getFieldQRI().getTable().getTableTree()), criteria);
+                        criteria = adjustForSynSearch(tableAbbreviator.getAbbreviation(qfi.getFieldQRI().getTable().getTableTree()), criteria, qfi.isNegated());
                     }
                     criteriaStr.append(criteria);
                 }
@@ -1625,15 +1704,33 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
      * @param criteria
      * @return supplied criteria parameter with adjustments to enable synonymy searching.
      */
-    protected static String adjustForSynSearch(final String tblAlias, final String criteria)
+    protected static String adjustForSynSearch(final String tblAlias, final String criteria, final boolean isNegated)
     {
         String result = "(" + criteria;
         String chunk = criteria.replace(tblAlias + ".", getAcceptedChildrenAlias(tblAlias) + ".");
-        result += " OR " + chunk;
+        if (isNegated)
+        {
+        	result += " AND " + chunk;
+        } else
+        {
+        	result += " OR " + chunk;
+        }
         chunk = criteria.replace(tblAlias + ".", getAcceptedParentAlias(tblAlias) + ".");
-        result += " OR " + chunk;
+        if (isNegated)
+        {
+        	result += " AND " + chunk;
+        } else
+        {
+        	result += " OR " + chunk;
+        }
         chunk = criteria.replace(tblAlias + ".", getAcceptedParentChildrenAlias(tblAlias) + ".");
-        result += " OR " + chunk + ") ";
+        if (isNegated)
+        {
+        	result += " AND " + chunk + ") ";
+        } else
+        {
+        	result += " OR " + chunk + ") ";
+        }
         
         return result;
     }
@@ -1651,6 +1748,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         catch (Exception ex)
         {
             String msg = StringUtils.isBlank(ex.getLocalizedMessage()) ? getResourceString("QB_RUN_ERROR") : ex.getLocalizedMessage();
+            ex.printStackTrace();
         	UIRegistry.getStatusBar().setErrorMessage(msg, ex);
             UIRegistry.writeTimedSimpleGlassPaneMsg(msg, Color.RED);
             runningResults.set(null);
@@ -1721,9 +1819,12 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     {
         for (QueryFieldPanel fldPanel : fieldPanels)
         {
-            if (fldPanel.getFieldQRI() == fld)
+            if (fldPanel.getFieldQRI() != null)
             {
-                return fldPanel.hasCriteria();
+            	if (fldPanel.getFieldQRI() == fld || fldPanel.getFieldQRI().getStringId().equals(fld.getStringId()))
+            	{
+            		return fldPanel.hasCriteria();
+            	}
             }
         }
         return false;
@@ -1736,6 +1837,8 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     protected static String getJoin(final ProcessNode node)
     {
         //XXX really should only use left join when necessary.
+    	//XXX if this is ever modified to use inner join when conditions exists in the related table
+    	//the 'allowNulls' setting must be checked and left join used when it is true.
         return " left join ";
     }
     
@@ -1772,13 +1875,24 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     */
     protected static boolean isSynSearchable(final FieldQRI fld)
     {
-        //XXX It would be good to have a way of knowing if synonymy is actually supported for a tree or treeable class.    
+        //XXX It would be good to have a way of knowing if synonymy is actually supported for a tree or treeable class.   
+    	System.out.println("isSynSearchble " + fld.getTitle());
         if (!Treeable.class.isAssignableFrom(fld.getTableInfo().getClassObj()))
         {
             return false;
         }
         
-        return fld.getFieldName().equalsIgnoreCase("name") || fld.getFieldName().equalsIgnoreCase("fullname") || fld instanceof TreeLevelQRI;
+        SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
+        
+        @SuppressWarnings("unchecked")
+        TreeDefIface<?, ?, ?> treeDef = spMgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>> )fld.getTableInfo().getClassObj());        
+        
+        if (treeDef.isSynonymySupported())
+        {
+        	System.out.println(fld.getFieldName() + "  --  " + fld.getClass().getSimpleName());
+        	return fld.getFieldName().equalsIgnoreCase("name") || fld.getFieldName().equalsIgnoreCase("fullname") || fld instanceof TreeLevelQRI;
+        }
+        return false;
     }
     
     /**
@@ -1824,19 +1938,21 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                     sqlStr.append(' ');
                     sqlStr.append(alias);
                     sqlStr.append(' ');
-                    //XXX It would be good to have a way of knowing if synonymy is actually supported for a tree or treeable class.
                     if (searchSynonymy && Treeable.class.isAssignableFrom(((TableQRI )qri).getTableInfo().getClassObj()))
                     {
                         //check to see if Name is inUse and if so, add joins for accepted taxa
                         TableQRI tqri = (TableQRI )qri;
                         boolean addSynJoin = false;
-                        for (int t = 0; t < tqri.getFields(); t++)
+                        for (QueryFieldPanel qfp : fieldPanels)
                         {
-                            if (isSynSearchable(tqri.getField(t)) && tqri.getField(t).isInUse() && fieldHasCriteria(tqri.getField(t), fieldPanels))
-                            {
-                                addSynJoin = true;
-                                break;
-                            }
+                        	if (qfp.getFieldQRI() != null)
+                        	{
+                        		if (isSynSearchable(qfp.getFieldQRI()) && qfp.hasCriteria())
+                        		{
+                        			addSynJoin = true;
+                        			break;
+                        		}
+                        	}
                         }
                         if (addSynJoin)
                         {
@@ -1867,7 +1983,10 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 					|| formatter.getSingleField() == null)
 				{
 					ProcessNode newNode = new ProcessNode(relQRI);
-					processFormatter(formatter, newNode);
+					if (formatter != null)
+					{
+						processFormatter(formatter, newNode);
+					}
 					String rootAlias = tableAbbreviator.getAbbreviation(relQRI.getTableTree().getParent());
 					String formFrom = getTimestampFrom(rootAlias, newNode, fromTbls);
 					sqlStr.append(" ");
@@ -2008,9 +2127,10 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 }
                 else if (qfp.getFieldQRI() instanceof TreeLevelQRI)
                 {
+                    TreeLevelQRI tqri = (TreeLevelQRI )qfp.getFieldQRI();
                     for (ERTICaptionInfoTreeLevelGrp tg : treeGrps)
                     {
-                        erti = tg.addRank((TreeLevelQRI )qfp.getFieldQRI(), colName, lbl, qfp.getStringId());
+                        erti = tg.addRank((TreeLevelQRI )qfp.getFieldQRI(), colName, lbl, qfp.getStringId(), tqri.getRealFieldName());
                         if (erti != null)
                         {
                             break;
@@ -2018,10 +2138,9 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                     }
                     if (erti == null)
                     {
-                        TreeLevelQRI tqri = (TreeLevelQRI )qfp.getFieldQRI();
                         ERTICaptionInfoTreeLevelGrp newTg = new ERTICaptionInfoTreeLevelGrp(tqri.getTreeDataClass(), 
                                 tqri.getTreeDefId(), tqri.getTableAlias(), true, null);
-                        erti = newTg.addRank(tqri, colName, lbl, qfp.getStringId());
+                        erti = newTg.addRank(tqri, colName, lbl, qfp.getStringId(), tqri.getRealFieldName());
                         treeGrps.add(newTg);
                     }
                 }
@@ -2148,6 +2267,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                         {
                             lbl = lbl.replaceAll(" ", "_");
                             lbl = lbl.replaceAll("/", "_");
+                            lbl = lbl.replaceAll("#", "_");
                         }
                         ERTICaptionInfo erti;
                         if (fi != null)
@@ -2248,17 +2368,26 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 {
                     pane = new JTabbedPane();
                     ((JTabbedPane) pane).addTab(UIRegistry
-                            .getResourceString("QB_REP_RUN_CRITERIA_TAB_TITLE"), qpp);
+                            .getResourceString("QB_REP_RUN_CRITERIA_TAB_TITLE"), new JScrollPane(qpp,
+                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+
                     ((JTabbedPane) pane).addTab(UIRegistry
-                            .getResourceString("QB_REP_RUN_PARAM_TAB_TITLE"), rpp);
+                            .getResourceString("QB_REP_RUN_PARAM_TAB_TITLE"), new JScrollPane(rpp,
+                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
                 }
                 else if (qpp != null && qpp.getHasPrompts())
                 {
-                    pane = qpp;
+                    pane = new JScrollPane(qpp,
+                            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 }
                 else
                 {
-                    pane = rpp;
+                    pane = new JScrollPane(rpp,
+                            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 }
                 CustomDialog cd = new CustomDialog((Frame) UIRegistry.getTopWindow(), UIRegistry
                         .getResourceString("QB_GET_REPORT_CONTENTS_TITLE"), true, CustomDialog.OKCANCELHELP,
@@ -2295,7 +2424,8 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 	HQLSpecs sql = null;
 
                 	// XXX need to allow modification of SelectDistinct(etc) ???
-                	boolean includeRecordIds = true;
+                	//boolean includeRecordIds = true;
+                	boolean includeRecordIds = !report.getQuery().isSelectDistinct();
 
                 	try
                 	{
@@ -2307,7 +2437,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 	catch (Exception ex)
                 	{
                         String msg = StringUtils.isBlank(ex.getLocalizedMessage()) ? getResourceString("QB_RUN_ERROR") : ex.getLocalizedMessage();
-                    	UIRegistry.getStatusBar().setErrorMessage(msg, ex);
+                        UIRegistry.getStatusBar().setErrorMessage(msg, ex);
                         UIRegistry.writeTimedSimpleGlassPaneMsg(msg, Color.RED);
                 		return;
                 	}
@@ -2350,7 +2480,10 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                         ReportsBaseTask.PRINT_REPORT, src);
                 cmd.setProperty("title", title);
                 cmd.setProperty("file", report.getName());
-                cmd.setProperty("skip-parameter-prompt", "true");
+                if (rs == null)
+                {
+                	cmd.setProperty("skip-parameter-prompt", "true");
+                }
                 //if isCompileRequired is true then an error probably occurred while compiling,
                 //and, if so, it will be caught again and reported in the report results pane.
                 if (!jcr.isCompileRequired())
@@ -2459,14 +2592,14 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 {
                     msg = String.format(UIRegistry
                         .getResourceString("QB_DISPLAYING_RETRIEVED_RESULTS"), String
-                        .valueOf(results), String
-                        .valueOf((doneTime.get() - startTime.get()) / 1000000000D));
+                        .valueOf(results), String.format("%04.2f", 
+                        		(doneTime.get() - startTime.get()) / 1000000000D));
                 }
                 else if (!runningResults.get().isPostSorted())
                 {
                     msg = String.format(UIRegistry.getResourceString("QB_DISPLAYING_RETRIEVED_RESULTS_PARTIAL"), 
                             String.valueOf(results), 
-                            String.valueOf((doneTime.get() - startTime.get()) / 1000000000D),
+                            String.format("%04.2f", (doneTime.get() - startTime.get()) / 1000000000D),
                             String.valueOf(runningResults.get().getMaxTableRows()));
                 }
                 else
@@ -2676,13 +2809,16 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         for (QueryFieldPanel qfp : queryFieldItems)
         {
             SpQueryField qf = qfp.getQueryField();
-            if (qf == null) { throw new RuntimeException("Shouldn't get here!"); }
-            SpQueryField newQf = new SpQueryField();
-            newQf.initialize();
-            newQf.setFieldName(qf.getFieldName());
-            newQf.setPosition(qf.getPosition());
-            qfp.updateQueryField(newQf);
-            result.addReference(newQf, "fields");
+            
+            if (qf != null) 
+            {
+            	SpQueryField newQf = new SpQueryField();
+            	newQf.initialize();
+            	newQf.setFieldName(qf.getFieldName());
+            	newQf.setPosition(qf.getPosition());
+            	qfp.updateQueryField(newQf);
+            	result.addReference(newQf, "fields");
+            }
         }
         return result;
     }
@@ -2737,7 +2873,19 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 		}
         
         UsageTracker.incrUsageCount("QB.SaveQuery." + query.getContextName());
-                
+        
+        //This is necessary to indicate that a query has been changed when only field deletes have occurred.
+        //If the query's timestampModified is not modified the schema export tool doesn't know the 
+        //export schema needs to be rebuilt.
+        if (!saveAs && query.getId() != null)
+        {
+        	int origCount = BasicSQLUtils.getCountAsInt("select count(*) from spqueryfield where spqueryid=" + query.getId());
+        	if (origCount > query.getFields().size())
+        	{
+        		query.setTimestampModified(new Timestamp(System.currentTimeMillis()));
+        	}
+        }
+        
         TableQRI tableQRI = (TableQRI) tableList.getSelectedValue();
         if (tableQRI != null)
         {
@@ -2964,15 +3112,17 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                 TableTree kidK = tblQRI.getTableTree().getKid(k);
                 if (kidK.isAlias())
                 {
-                    if (!fixAliases(kidK, tableTreeHash))
-                    {
-                        addIt = false;
-                    }
-                    else
-                    {
-                        addIt = tblIsDisplayable(kidK, tableTreeHash.get(kidK.getName())
-                                .getTableInfo());
-                    }
+//                	if (!fixAliases(kidK, tableTreeHash))
+//                    {
+//                        addIt = false;
+//                    }
+//                    else
+//                    {
+//                        addIt = tblIsDisplayable(kidK, tableTreeHash.get(kidK.getName())
+//                                .getTableInfo());
+//                    }
+                	addIt = tblIsDisplayable(kidK, tableTreeHash.get(kidK.getName())
+                            .getTableInfo()) && fixAliases(kidK, tableTreeHash);
                 }
                 else
                 {
@@ -3104,7 +3254,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         		{
         			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == tblInfo.getTableId())
         			{
-        				if (parent.getField() != null && alias.getField().startsWith("accepted"))
+        				if (parent.getField() != null && parent.getField().startsWith("accepted"))
         				{
         					if(++loop > 1)
         					{
@@ -3121,7 +3271,139 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         	}
         	return true;
         }
-        
+        else if (Container.class.isAssignableFrom(tblInfo.getClassObj()))
+        {
+    		TableTree parent = alias.getParent();
+        	if (alias.getField().equals("parent"))
+        	{
+        		if (parent != null)
+        		{
+        			//prevent loop back to parent container from expansion of Container.children
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == tblInfo.getTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("children"))
+        				{
+        					return false;
+        				}
+        			}
+        		}
+        		int parentCount = 0;
+        		while (parent != null && parentCount < maxParentChainLen)
+        		{
+        			parentCount++;
+        			TableTree grandParent = null;
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == tblInfo.getTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("parent"))
+        				{
+        					grandParent = parent.getParent();
+        				}
+        			}    
+        			parent = grandParent;
+        		}
+        		if (parentCount == maxParentChainLen)
+        		{
+        			return false;
+        		}
+
+        	} else if (alias.getField().equals("children"))
+        	{
+        		if (parent != null)
+        		{
+        			//prevent loop back to children container from expansion of Container.parent
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == tblInfo.getTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("parent"))
+        				{
+        					return false;
+        				}
+        			}
+        		}
+        		
+        	}
+        	else if (alias.getField().equals("container"))
+        	{
+        		if (parent != null)
+        		{
+        			//prevent loop back to container from expansion of Container.collectionObjects relationship
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == CollectionObject.getClassTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("collectionObjects"))
+        				{
+        					return false;
+        				}
+        			}
+        			
+        			//prevent loop back to continer from expansion of Container.collectionObjectKids relationship
+        			//Assuming that a container's collectionobject can't be contained in another container. 
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == CollectionObject.getClassTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("collectionObjectKids"))
+        				{
+        					return false;
+        				}
+        			}
+        		}
+        		
+        	} else if (alias.getField().equals("containerOwner"))
+        	{
+				// prevent loop back to container from expansion of Container.collectionObjects relationship
+				// Assuming that collectionobjects linked by this relationship won't be containers.
+				if (parent.getTableInfo() != null
+						&& parent.getTableInfo().getTableId() == CollectionObject
+								.getClassTableId())
+				{
+					if (parent.getField() != null
+							&& parent.getField().equals("collectionObjects"))
+					{
+						return false;
+					}
+				}
+				if (parent != null)
+        		{
+        			//prevent loop back to continer owner from expansion of Container.collectionObjectKids relationship
+        			if (parent.getTableInfo() != null && parent.getTableInfo().getTableId() == CollectionObject.getClassTableId())
+        			{
+        				if (parent.getField() != null && parent.getField().equals("collectionObjectKids"))
+        				{
+        					return false;
+        				}
+        			}
+
+        		}
+        	}         		
+        	return true;
+        } else if (CollectionObject.class.isAssignableFrom(tblInfo.getClassObj()))
+    	{
+    		TableTree parent = alias.getParent();
+//    		if (parent != null && parent.getTableInfo().getTableId() == Container.getClassTableId())
+//    		{
+//    			return true;
+//    		}
+    		if (parent != null && parent.getTableInfo().getTableId() == CollectionRelationship.getClassTableId())
+    		{
+    			//prevent looping back to left side when leftSideRels has been opened from parent
+    			if (alias.getField().equals("leftSide") && 
+    					parent.getField() != null && parent.getField().equals("leftSideRels")) 
+    			{
+    				return false;
+    			}
+    			//prevent looping back to right side when rightSideRels has been opened from parent
+    			if (alias.getField().equals("rightSide") && 
+    					parent.getField() != null && parent.getField().equals("rightSideRels")) 
+    			{
+    				return false;
+    			}
+    		}
+    		
+    		return true;
+    	}
+
+        else if (CollectionRelationship.class.isAssignableFrom(tblInfo.getClassObj()))
+    	{
+    		return true;
+    	}
+        	
         return false;
             //special conditions... (may be needed. For example for Determination and Taxon, but on the other hand
             //Determination <-> Taxon behavior seems ok for now.
@@ -3224,20 +3506,42 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                                     else
                                     {
                                         // add the field
-                                        FieldQRI fieldQRI = buildFieldQRI(qri);
-                                        SpQueryField qf = new SpQueryField();
-                                        qf.initialize();
-                                        qf.setFieldName(fieldQRI.getFieldName());
-                                    	qf.setStringId(fieldQRI.getStringId());
-                                    	query.addReference(qf, "fields");
-                                        if (exportSchema == null)
-                                        {
-                                        	addQueryFieldItem(fieldQRI, qf, false);
-                                        }
-                                        else
-                                        {
-                                        	addNewMapping(fieldQRI, qf, selectedQFP);
-                                        }
+										try
+										{
+											FieldQRI fieldQRI = buildFieldQRI(qri);
+											if (fieldQRI == null)
+											{
+												throw new Exception(
+														"null FieldQRI");
+											}
+											SpQueryField qf = new SpQueryField();
+											qf.initialize();
+											qf.setFieldName(fieldQRI
+													.getFieldName());
+											qf.setStringId(fieldQRI
+													.getStringId());
+											query.addReference(qf, "fields");
+											if (exportSchema == null)
+											{
+												addQueryFieldItem(fieldQRI, qf,
+														false);
+											} else
+											{
+												addNewMapping(fieldQRI, qf,
+														selectedQFP);
+											}
+										} catch (Exception ex)
+										{
+											log.error(ex);
+											UsageTracker
+													.incrHandledUsageCount();
+											edu.ku.brc.exceptions.ExceptionTracker
+													.getInstance()
+													.capture(
+															QueryBldrPane.class,
+															ex);
+											return;
+										}
                                     }
                                 }
                             }
@@ -3344,21 +3648,52 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     
     /**
      * @param qri
+     * @return
+     */
+    protected static boolean isTablePickList(final TableQRI qri)
+    {
+    	//PickListDBAdapterIFace pl = PickListDBAdapterFactory.getInstance().create(qri.getTableInfo().getName(), false);
+    	//return (pl instanceof PickListTableAdapter);
+    	
+    	return false;
+    	//return qri.getTableInfo().getName().equals("preptype");
+    }
+    
+    /**
+     * @param qri
+     * @return
+     */
+    protected static FieldQRI buildFieldQRIForTablePickList(final TableQRI qri)
+    {
+    	return null;
+    }
+    /**
+     * @param qri
      * @return qri if it is already a FieldQRI, else constructs a RelQRI and returns it.
      */
-    protected static FieldQRI buildFieldQRI(final BaseQRI qri)
+    protected static FieldQRI buildFieldQRI(final BaseQRI qri) 
     {
         if (qri instanceof FieldQRI) { return (FieldQRI) qri; }
         if (qri instanceof TableQRI)
         {
-            DBRelationshipInfo relInfo = ((TableQRI)qri).getRelationship();
-            if (relInfo != null)
+            if (isTablePickList((TableQRI )qri))
             {
-                return new RelQRI((TableQRI) qri, relInfo);
+            	System.out.println(((TableQRI )qri).getTableInfo().getName() + " is a table picklist.");
+            	return buildFieldQRIForTablePickList((TableQRI )qri);
+            	
+            } else
+            {
+            	DBRelationshipInfo relInfo = ((TableQRI)qri).getRelationship();
+            	if (relInfo != null)
+            	{
+            		return new RelQRI((TableQRI) qri, relInfo);
+            	}
+                throw new RuntimeException(QueryBldrPane.class.getName() + ": unable to determine relationship."
+                		+ ((TableQRI )qri).getTableTree().getField() + " <-> " 
+            			+ ((TableQRI )qri).getTableTree().getParent().getField());
             }
-            throw new RuntimeException(QueryBldrPane.class.getName() + ": unable to determine relationship.");
         }
-        throw new RuntimeException("invalid argument: " + qri);
+        return null;
     }
 
     /**
@@ -3415,6 +3750,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 				removeSchemaItemMapping(qfp.getItemMapping());
 			}
 		}
+		final FieldQRI qfpqri = qfp.getFieldQRI();
 		if (exportSchema == null || qfp.isConditionForSchema())
 		{
 			queryFieldItems.remove(qfp);
@@ -3443,8 +3779,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 
 				try
 				{
-					BaseQRI qri = qfp.getFieldQRI() instanceof RelQRI ? qfp
-							.getFieldQRI().getTable() : qfp.getFieldQRI();
+					BaseQRI qri = qfpqri instanceof RelQRI ? qfpqri.getTable() : qfpqri;
 					//BaseQRI qri = qfp.getFieldQRI(); 
 					boolean done = false;
 					for (JList lb : listBoxList)
@@ -3455,17 +3790,23 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 									.getModel()).getSize(); i++)
 							{
 								BaseQRI qriI = (BaseQRI )((DefaultListModel) lb.getModel()).getElementAt(i);
-								boolean match = qriI == qri;
-								if (!match)
+								if (qriI != null)
 								{
-									match = buildFieldQRI(qri).getStringId().equals(buildFieldQRI(qriI).getStringId());
-								}
-								if (match)
-								{
-									qriI.setIsInUse(false);
-									lb.repaint();
-									done = true;
-									break;
+									boolean match = qriI == qri;
+									if (!match)
+									{
+										match = buildFieldQRI(qri)
+												.getStringId().equals(
+														buildFieldQRI(qriI)
+																.getStringId());
+									}
+									if (match)
+									{
+										qriI.setIsInUse(false);
+										lb.repaint();
+										done = true;
+										break;
+									}
 								}
 							}
 						}
@@ -3474,7 +3815,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
 							break;
 						}
 					}
-				} catch (ArrayIndexOutOfBoundsException ex)
+				} catch (Exception ex)
 				{
 					UsageTracker.incrHandledUsageCount();
 					edu.ku.brc.exceptions.ExceptionTracker.getInstance()
@@ -3745,7 +4086,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
             final Set<SpQueryField> fields, final TableTree tblTree, 
             final Hashtable<String,TableTree> ttHash, final Component saveBtn,
             SpExportSchemaMapping schemaMapping, List<String> missingFlds,
-            Map<String, AutoMap> autoMaps)
+            Map<String, MappedFieldInfo> autoMaps)
     {
         Vector<QueryFieldPanel> result = new Vector<QueryFieldPanel>();
         //Need to change columnDefStr if mapMode...
@@ -4040,7 +4381,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         Map<String, List<QueryFieldPanel>> map = new HashMap<String, List<QueryFieldPanel>>();
         for (QueryFieldPanel qfp : queryFieldItems)
         {
-            if (qfp.getFieldTitle() != null) //this means tree levels won't get qualified.
+            if (qfp.getFieldQRI() != null && qfp.getFieldTitle() != null) //this means tree levels won't get qualified.
             {
                 if (!map.containsKey(qfp.getFieldTitle()))
                 {
@@ -4083,7 +4424,19 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
                     {
                         for (int k = 0; k < tt.getKids(); k++)
                         {
-                            tbl.addKid((TableTree) tt.getKid(k).clone());
+//                            if (tblIsDisplayable(tt.getKid(k), tableTreeHash.get(tt.getKid(k).getName()).getTableInfo());
+//                        	
+//                        	if (tt.getKid(k).getTableInfo() == null)
+//                            {
+//                            	System.out.println("TableInfo is null for " + tt.getKid(k).getName() + " - " + tt.getKid(k).getField());
+//                            }
+//                            else if (tt.getKid(k).getTableInfo() != null && tblIsDisplayable(tt.getKid(k), tt.getKid(k).getTableInfo()))
+//                            {
+                            	tbl.addKid((TableTree) tt.getKid(k).clone());
+//                            } else 
+//                            {
+//                            	System.out.println("Skipping " +  tt.getKid(k).getName() + " - " + tt.getKid(k).getField());
+//                            }
                         }
                         tbl.setTableInfo(tt.getTableInfo());
                         tbl.setTableQRIClone(tt.getTableQRI());
@@ -4157,12 +4510,19 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
         }
         
         //This is safe as long as we continue to allow only 1 qb result.
-        //and the qbresult pane gets the same name.
         //and the qbresult pane always returns true for aboutToShutdown()
-        SubPaneIFace qbResultPane = SubPaneMgr.getInstance().getSubPaneByName(getResourceString("ES_QUERY_RESULTS"));
+        QBResultsSubPane qbResultPane = null;
+        for (SubPaneIFace subPane : SubPaneMgr.getInstance().getSubPanes())
+        {
+        	if (subPane instanceof QBResultsSubPane)
+        	{
+        		qbResultPane = (QBResultsSubPane )subPane;
+        		break;
+        	}
+        }
         if (qbResultPane != null)
         {
-        	QBResultsTablePanel tblPane = ((QBResultsSubPane )qbResultPane).getResultsTable();
+        	QBResultsTablePanel tblPane = qbResultPane.getResultsTable();
         	if (tblPane != null)
         	{
         		QBResultSetTableModel tblModel = tblPane.getTableModel();
@@ -4438,7 +4798,7 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     {
     	for (QueryFieldPanel qfp : this.queryFieldItems)
     	{
-    		if (qriClass.isAssignableFrom(qfp.getFieldQRI().getClass()))
+    		if (qfp.getFieldQRI() != null && qriClass.isAssignableFrom(qfp.getFieldQRI().getClass()))
     		{
     			return true;
     		}
@@ -4474,38 +4834,6 @@ public class QueryBldrPane extends BaseSubPane implements QueryFieldPanelContain
     	return false;
     }
     
-    public class AutoMap 
-    {
-    	protected final String stringId;
-    	protected final String fieldName;
-    	protected final String tableIds;
-    	protected final boolean isRel;
-    	
-		public AutoMap(String stringId, String fieldName, String tableIds, boolean isRel) {
-			super();
-			this.stringId = stringId;
-			this.fieldName = fieldName;
-			this.tableIds = tableIds;
-			this.isRel = isRel;
-		}
-
-		public String getStringId() {
-			return stringId;
-		}
-
-		public String getFieldName() {
-			return fieldName;
-		}
-
-		public String getTableIds() {
-			return tableIds;
-		}
-    	
-    	public boolean isRel()
-    	{
-    		return isRel;
-    	}
-    }
 
 }
 

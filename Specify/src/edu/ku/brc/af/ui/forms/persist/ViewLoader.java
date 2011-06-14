@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
@@ -48,7 +49,12 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import edu.ku.brc.af.core.db.DBFieldInfo;
+import edu.ku.brc.af.core.db.DBRelationshipInfo;
 import edu.ku.brc.af.core.db.DBTableChildIFace;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
@@ -58,7 +64,6 @@ import edu.ku.brc.af.ui.forms.FormHelper;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.forms.validation.TypeSearchForQueryFactory;
-import edu.ku.brc.exceptions.ConfigurationException;
 import edu.ku.brc.ui.CustomFrame;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
@@ -82,13 +87,19 @@ public class ViewLoader
     private static final Logger     log = Logger.getLogger(ViewLoader.class);
     private static final ViewLoader instance = new ViewLoader();
 
-    private static final String NAME       = "name";
-    private static final String TYPE       = "type";
-    private static final String LABEL      = "label";
-    private static final String DESC       = "desc";
-    private static final String CLASSNAME  = "class";
-    private static final String GETTABLE   = "gettable";
-    private static final String SETTABLE   = "settable";
+    private static final String ID             = "id";
+    private static final String NAME           = "name";
+    private static final String TYPE           = "type";
+    private static final String LABEL          = "label";
+    private static final String DESC           = "desc";
+    private static final String TITLE          = "title";
+    private static final String CLASSNAME      = "class";
+    private static final String GETTABLE       = "gettable";
+    private static final String SETTABLE       = "settable";
+    private static final String INITIALIZE     = "initialize";
+    private static final String DSPUITYPE      = "dspuitype";
+    private static final String VALIDATION     = "validation";
+    private static final String ISREQUIRED     = "isrequired";
     private static final String RESOURCELABELS = "useresourcelabels";
     
     // Data Members
@@ -101,6 +112,7 @@ public class ViewLoader
     protected static DBTableInfo           fldVerTableInfo     = null;
     protected static FormViewDef           fldVerFormViewDef   = null;
     protected static String                colDefType          = null;
+    protected static CustomFrame           verifyDlg           = null;
     
     protected FieldVerifyTableModel        fldVerTableModel    = null;
     
@@ -186,7 +198,7 @@ public class ViewLoader
                 
                 String altName      = altElement.attributeValue(NAME);
                 String viewDefName  = altElement.attributeValue("viewdef");
-                String title        = altElement.attributeValue("title");
+                String title        = altElement.attributeValue(TITLE);
                 
                 boolean isValidated = getAttr(altElement, "validated", mode == AltViewIFace.CreationMode.EDIT);
                 boolean isDefault   = getAttr(altElement, "default", false);
@@ -215,7 +227,7 @@ public class ViewLoader
                             
                         } else
                         {
-                            throw new RuntimeException("Selector Value is missing for viewDefName["+viewDefName+"] altName["+altName+"]");
+                            FormDevHelper.appendFormDevError("Selector Value is missing for viewDefName["+viewDefName+"] altName["+altName+"]");
                         }
                     }
                     
@@ -263,37 +275,35 @@ public class ViewLoader
         
         if (isEmpty(name))
         {
-            throw new RuntimeException("name is null.");
+            FormDevHelper.appendFormDevError("Name is null for element["+element.asXML()+"]");
+            return null;
         }
 
         if (isEmpty(className))
         {
-            throw new RuntimeException("className is null. name["+name+"]");
+            FormDevHelper.appendFormDevError("className is null. name["+name+"] for element["+element.asXML()+"]");
+            return null;
         }
 
         if (isEmpty(gettableClassName))
         {
-            throw new RuntimeException("gettableClassName Name is null.name["+name+"] classname["+className+"]");
+            FormDevHelper.appendFormDevError("gettableClassName Name is null.name["+name+"] classname["+className+"]");
+            return null;
         }
 
-        if (isEmpty(settableClassName))
-        {
-            //throw new RuntimeException("settableClassName Name is null.name["+name+"] classname["+className+"] settableClassName["+settableClassName+"]");
-        }
-        
         DBTableInfo tableinfo = DBTableIdMgr.getInstance().getByClassName(className);
 
-        ViewDef.ViewType type;
+        ViewDef.ViewType type = null;
         try
         {
             type = ViewDefIFace.ViewType.valueOf(element.attributeValue(TYPE));
 
         } catch (Exception ex)
         {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewLoader.class, ex);
-            log.error("view["+name+"] has illegal type["+element.attributeValue(TYPE)+"]", ex);
-            throw ex;
+            String msg = "view["+name+"] has illegal type["+element.attributeValue(TYPE)+"]";
+            log.error(msg, ex);
+            FormDevHelper.appendFormDevError(msg, ex);
+            return null;
         }
 
         ViewDef viewDef = null;//new ViewDef(type, name, className, gettableClassName, settableClassName, desc);
@@ -366,14 +376,17 @@ public class ViewLoader
                 Element   element = (Element) i.next(); // assume element is NOT null, if it is null it will cause an exception
                 ViewIFace view    = createView(element, altViewsViewDefName);
                 
-                if (views.get(view.getName()) == null)
+                if (view != null)
                 {
-                    views.put(view.getName(), view);
-                } else
-                {
-                    String msg = "View Set ["+instance.viewSetName+"] ["+view.getName()+"] is not unique.";
-                    log.error(msg);
-                    throw new ConfigurationException(msg);
+                    if (views.get(view.getName()) == null)
+                    {
+                        views.put(view.getName(), view);
+                    } else
+                    {
+                        String msg = "View Set ["+instance.viewSetName+"] ["+view.getName()+"] is not unique.";
+                        log.error(msg);
+                        FormDevHelper.appendFormDevError(msg);
+                    }
                 }
             }
         }
@@ -405,17 +418,18 @@ public class ViewLoader
             {
                 Element  element = (Element) i.next(); // assume element is NOT null, if it is null it will cause an exception
                 ViewDef  viewDef = createViewDef(element);
-                
-                //log.debug("Loaded ViewDef["+viewDef.getName()+"]");
-                if (viewDefs.get(viewDef.getName()) == null)
+                if (viewDef != null)
                 {
-                    viewDefs.put(viewDef.getName(), viewDef);
-                    
-                } else
-                {
-                    String msg = "View Set ["+instance.viewSetName+"] the View Def Name ["+viewDef.getName()+"] is not unique.";
-                    log.error(msg);
-                    throw new ConfigurationException(msg);
+                    if (viewDefs.get(viewDef.getName()) == null)
+                    {
+                        viewDefs.put(viewDef.getName(), viewDef);
+                        
+                    } else
+                    {
+                        String msg = "View Set ["+instance.viewSetName+"] the View Def Name ["+viewDef.getName()+"] is not unique.";
+                        log.error(msg);
+                        FormDevHelper.appendFormDevError(msg);
+                    }
                 }
             }
             
@@ -424,7 +438,7 @@ public class ViewLoader
                 mapDefinitionViewDefs(viewDefs);
             }
         }
-
+        
         return instance.viewSetName;
     }
     
@@ -456,7 +470,9 @@ public class ViewLoader
                         
                     } else
                     {
-                        throw new RuntimeException("Couldn't find the ViewDef for formtable definition name["+((FormViewDefIFace)viewDef).getDefinitionName()+"]");
+                        String msg = "Couldn't find the ViewDef for formtable definition name["+((FormViewDefIFace)viewDef).getDefinitionName()+"]";
+                        log.error(msg);
+                        FormDevHelper.appendFormDevError(msg);
                     }
                 }
             }
@@ -482,13 +498,15 @@ public class ViewLoader
                 for ( Iterator<?> i = enableRules.elementIterator( "rule" ); i.hasNext(); )
                 {
                     Element ruleElement = (Element) i.next();
-                    String id = getAttr(ruleElement, "id", "");
+                    String id = getAttr(ruleElement, ID, "");
                     if (isNotEmpty(id))
                     {
                         rulesList.put(id, ruleElement.getTextTrim());
                     } else
                     {
-                        throw new RuntimeException("The name is missing for rule["+ruleElement.getTextTrim()+"] is missing.");
+                        String msg = "The name is missing for rule["+ruleElement.getTextTrim()+"] is missing.";
+                        log.error(msg);
+                        FormDevHelper.appendFormDevError(msg);
                     }
                 }
             }
@@ -568,12 +586,6 @@ public class ViewLoader
                     // or pick the first one.
                     cellDef = (Element)list.get(0);
                 }
-                
-                if (cellDef == null)
-                {
-                    int x = 0;
-                    x++;
-                }
             }
         } else
         {
@@ -606,7 +618,8 @@ public class ViewLoader
                     return autoStr;
                 }
                 // else
-                throw new RuntimeException("Element ["+element.getName()+"] Cell or Sep is null for 'dup' or 'auto 'on column def.");
+                FormDevHelper.appendFormDevError("Element ["+element.getName()+"] Cell or Sep is null for 'dup' or 'auto 'on column def.");
+                return "";
             }
             // else
             item.setAuto(false);
@@ -614,7 +627,9 @@ public class ViewLoader
             return cellText;
         }
         // else
-        log.error("Element ["+element.getName()+"] must have a columnDef");
+        String msg = "Element ["+element.getName()+"] must have a columnDef";
+        log.error(msg);
+        FormDevHelper.appendFormDevError(msg);
         return "";
     }
 
@@ -674,20 +689,30 @@ public class ViewLoader
                 for ( Iterator<?> cellIter = rowElement.elementIterator( "cell" ); cellIter.hasNext(); )
                 {
                     Element cellElement = (Element)cellIter.next();
-                    String  cellId      = getAttr(cellElement, "id", "");
+                    String  cellId      = getAttr(cellElement, ID, "");
                     String  cellName    = getAttr(cellElement, NAME, cellId); // let the name default to the id if it doesn't have a name
                     int     colspan     = getAttr(cellElement, "colspan", 1);
                     int     rowspan     = getAttr(cellElement, "rowspan", 1);
                     
-                    /*boolean isReq    = getAttr(cellElement, "isrequired", false);
+                    /*boolean isReq    = getAttr(cellElement, ISREQUIRED, false);
                     if (isReq)
                     {
                         System.err.println(String.format("%s\t%s\t%s\t%s", gViewDef.getName(), cellId, cellName, tableinfo != null ? tableinfo.getTitle() : "N/A"));
                     }*/
 
-                    FormCell.CellType cellType = FormCellIFace.CellType.valueOf(cellElement.attributeValue(TYPE));
+                    FormCell.CellType cellType = null;
                     FormCellIFace     cell     = null;
                     
+                    try
+                    {
+                        cellType = FormCellIFace.CellType.valueOf(cellElement.attributeValue(TYPE));
+                        
+                    } catch (java.lang.IllegalArgumentException ex)
+                    {
+                        FormDevHelper.appendFormDevError(ex.toString());
+                        FormDevHelper.appendFormDevError(String.format("Cell Name[%s] Id[%s] Type[%s]", cellName, cellId, cellElement.attributeValue(TYPE)));
+                        return;
+                    }
                     
                     if (doFieldVerification &&
                         fldVerTableInfo != null && 
@@ -695,26 +720,7 @@ public class ViewLoader
                         StringUtils.isNotEmpty(cellId) && 
                         !cellName.equals("this"))
                     {
-                        if (fldVerTableInfo.getFieldByName(cellName) == null)
-                        {
-                            if (fldVerTableInfo.getRelationshipByName(cellName) == null)
-                            {
-                                String msg = " ViewSet["+instance.viewSetName+"]\n ViewDef["+fldVerFormViewDef.getName()+"]\n The cell name ["+cellName+"] for cell with Id ["+cellId+"] is not a field\n in Data Object["+fldVerTableInfo.getName()+"]\n on Row ["+rowNumber+"]";
-                                if (!isTreeClass)
-                                {
-                                    //if (!StringUtils.contains(cellName, "."))
-                                    //{
-                                        //JOptionPane.showMessageDialog(null, msg, "Cell Name Error", JOptionPane.ERROR_MESSAGE);
-                                        instance.fldVerTableModel.addRow(instance.viewSetName, fldVerFormViewDef.getName(), cellId, cellName, Integer.toString(rowNumber));
-                                        
-                                    //} else
-                                    //{
-                                    //    log.debug("Couldn't verify field name ["+cellName+"] is contains '.' notation.");
-                                    //}
-                                }
-                                log.error(msg);
-                            }
-                        }
+                        processFieldVerify(cellName, cellId, rowNumber);
                     }
 
                     switch (cellType)
@@ -728,7 +734,7 @@ public class ViewLoader
                                                                      getAttr(cellElement, "icon", null),
                                                                      getAttr(cellElement, "recordobj", false), 
                                                                      colspan));
-                            String initialize = getAttr(cellElement, "initialize", null);
+                            String initialize = getAttr(cellElement, INITIALIZE, null);
                             if (StringUtils.isNotEmpty(initialize))
                             {
                                 cell.setProperties(UIHelper.parseProperties(initialize));
@@ -742,7 +748,7 @@ public class ViewLoader
                                                                          getLabel(cellElement), 
                                                                          getAttr(cellElement, "collapse", ""),
                                                                          colspan));
-                            String initialize = getAttr(cellElement, "initialize", null);
+                            String initialize = getAttr(cellElement, INITIALIZE, null);
                             if (StringUtils.isNotEmpty(initialize))
                             {
                                 cell.setProperties(UIHelper.parseProperties(initialize));
@@ -759,15 +765,16 @@ public class ViewLoader
                             int    cols           = getAttr(cellElement, "cols", DEFAULT_COLS); // XXX PREF for default width of text field
                             int    rows           = getAttr(cellElement, "rows", DEFAULT_ROWS);  // XXX PREF for default heightof text area
                             String validationType = getAttr(cellElement, "valtype", "Changed");
-                            String validationRule = getAttr(cellElement, "validation", "");
-                            String initialize     = getAttr(cellElement, "initialize", "");
-                            boolean isRequired    = getAttr(cellElement, "isrequired", false);
+                            String validationRule = getAttr(cellElement, VALIDATION, "");
+                            String initialize     = getAttr(cellElement, INITIALIZE, "");
+                            boolean isRequired    = getAttr(cellElement, ISREQUIRED, false);
                             String  pickListName  = getAttr(cellElement, "picklist", "");
                             
                             if (isNotEmpty(format) && isNotEmpty(formatName))
                             {
-                                //throw new RuntimeException("Both format and formatname cannot both be set! ["+cellName+"]");
-                                log.error("Both format and formatname cannot both be set! ["+cellName+"] ignoring format");
+                                String msg = "Both format and formatname cannot both be set! ["+cellName+"] ignoring format";
+                                log.error(msg);
+                                FormDevHelper.appendFormDevError(msg);
                                 format = "";
                             }
                             
@@ -784,23 +791,34 @@ public class ViewLoader
 
                             // THis switch is used to get the "display type" and 
                             // set up other vars needed for creating the controls
-                            FormCellFieldIFace.FieldType uitype       = FormCellFieldIFace.FieldType.valueOf(uitypeStr);
-                            String                  dspUITypeStr = null;
+                            FormCellFieldIFace.FieldType uitype = null;
+                            try
+                            {
+                                uitype = FormCellFieldIFace.FieldType.valueOf(uitypeStr);
+                                
+                            } catch (java.lang.IllegalArgumentException ex)
+                            {
+                                FormDevHelper.appendFormDevError(ex.toString());
+                                FormDevHelper.appendFormDevError(String.format("Cell Name[%s] Id[%s] uitype[%s] is in error", cellName, cellId, uitypeStr));
+                                uitype = FormCellFieldIFace.FieldType.text; // default to text
+                            }
+                            
+                            String dspUITypeStr = null;
                             switch (uitype)
                             {
                                 case textarea:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "dsptextarea");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "dsptextarea");
                                     break;
                                 
                                 case textareabrief:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "textareabrief");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "textareabrief");
                                     break;
                                 
                                 case  querycbx:
                                 {
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "textfieldinfo");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "textfieldinfo");
                                     
-                                    String fmtName = TypeSearchForQueryFactory.getDataObjFormatterName(properties.getProperty("name"));
+                                    String fmtName = TypeSearchForQueryFactory.getInstance().getDataObjFormatterName(properties.getProperty("name"));
                                     if (isEmpty(formatName) && isNotEmpty(fmtName))
                                     {
                                         formatName = fmtName;
@@ -810,8 +828,8 @@ public class ViewLoader
 
                                 case formattedtext:
                                 {
-                                    validationRule = getAttr(cellElement, "validation", "formatted"); // XXX Is this OK?
-                                    dspUITypeStr   = getAttr(cellElement, "dspuitype", "formattedtext");
+                                    validationRule = getAttr(cellElement, VALIDATION, "formatted"); // XXX Is this OK?
+                                    dspUITypeStr   = getAttr(cellElement, DSPUITYPE, "formattedtext");
                                     
                                     //-------------------------------------------------------
                                     // This part should be moved to the ViewFactory
@@ -822,35 +840,44 @@ public class ViewLoader
                                         UIFieldFormatterIFace uiFormatter = UIFieldFormatterMgr.getInstance().getFormatter(uiFieldFormatterName);
                                         if (uiFormatter == null)
                                         {
-                                            log.error("Couldn't find formatter["+uiFieldFormatterName+"]");
+                                            String msg = "Couldn't find formatter["+uiFieldFormatterName+"]";
+                                            log.error(msg);
+                                            FormDevHelper.appendFormDevError(msg);
+                                            
                                             uiFieldFormatterName = "";
                                             uitype = FormCellFieldIFace.FieldType.text;
                                         }
                                         
                                     } else // ok now check the schema for the UI formatter
                                     {
-                                        DBFieldInfo fieldInfo = tableinfo.getFieldByName(cellName);
-                                        if (fieldInfo != null)
+                                        if (tableinfo != null)
                                         {
-                                            if (fieldInfo.getFormatter() != null)
+                                            DBFieldInfo fieldInfo = tableinfo.getFieldByName(cellName);
+                                            if (fieldInfo != null)
                                             {
-                                                uiFieldFormatterName = fieldInfo.getFormatter().getName();
-                                                
-                                            } else if (fieldInfo.getDataClass().isAssignableFrom(Date.class) ||
-                                                       fieldInfo.getDataClass().isAssignableFrom(Calendar.class))
-                                            {
-                                                log.debug("Missing Date Formatter for ["+cellName+"]");
-                                                uiFieldFormatterName = "Date";
-                                                UIFieldFormatterIFace uiFormatter = UIFieldFormatterMgr.getInstance().getFormatter(uiFieldFormatterName);
-                                                if (uiFormatter == null)
+                                                if (fieldInfo.getFormatter() != null)
+                                                {
+                                                    uiFieldFormatterName = fieldInfo.getFormatter().getName();
+                                                    
+                                                } else if (fieldInfo.getDataClass().isAssignableFrom(Date.class) ||
+                                                           fieldInfo.getDataClass().isAssignableFrom(Calendar.class))
+                                                {
+                                                    String msg = "Missing Date Formatter for ["+cellName+"]";
+                                                    log.error(msg);
+                                                    FormDevHelper.appendFormDevError(msg);
+                                                    
+                                                    uiFieldFormatterName = "Date";
+                                                    UIFieldFormatterIFace uiFormatter = UIFieldFormatterMgr.getInstance().getFormatter(uiFieldFormatterName);
+                                                    if (uiFormatter == null)
+                                                    {
+                                                        uiFieldFormatterName = "";
+                                                        uitype = FormCellFieldIFace.FieldType.text;
+                                                    }
+                                                } else
                                                 {
                                                     uiFieldFormatterName = "";
                                                     uitype = FormCellFieldIFace.FieldType.text;
                                                 }
-                                            } else
-                                            {
-                                                uiFieldFormatterName = "";
-                                                uitype = FormCellFieldIFace.FieldType.text;
                                             }
                                         }
                                     }
@@ -859,7 +886,7 @@ public class ViewLoader
                                 }
 
                                 case url:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", uitypeStr);
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, uitypeStr);
                                     properties = UIHelper.parseProperties(initialize);
                                     break;
                                     
@@ -868,49 +895,66 @@ public class ViewLoader
                                 case tristate:
                                 case checkbox:
                                 case password:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", uitypeStr);
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, uitypeStr);
                                     break;
                                 
                                 case plugin:
                                 case button:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", uitypeStr);
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, uitypeStr);
                                     properties   = UIHelper.parseProperties(initialize);
-                                    String ttl = properties.getProperty("title");
+                                    String ttl = properties.getProperty(TITLE);
                                     if (ttl != null)
                                     {
-                                        properties.put("title", getResourceLabel(ttl));
+                                        properties.put(TITLE, getResourceLabel(ttl));
                                     }
                                     break;
                                     
                                 case spinner:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "dsptextfield");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "dsptextfield");
                                     properties   = UIHelper.parseProperties(initialize);
                                     break;
                                     
                                 case combobox:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "textpl");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "textpl");
                                     if (tableinfo != null)
                                     {
                                         DBFieldInfo fieldInfo = tableinfo.getFieldByName(cellName);
                                         if (fieldInfo != null)
                                         {
-                                            pickListName = fieldInfo.getPickListName();
+                                            if (StringUtils.isNotEmpty(pickListName))
+                                            {
+                                                fieldInfo.setPickListName(pickListName);
+                                            } else
+                                            {
+                                                pickListName = fieldInfo.getPickListName();
+                                            }
                                         }
                                     }
                                     break;
                                     
                                 default:
-                                    dspUITypeStr = getAttr(cellElement, "dspuitype", "dsptextfield");
+                                    dspUITypeStr = getAttr(cellElement, DSPUITYPE, "dsptextfield");
                                     break;
                                 
                             } //switch
 
                             FormCellFieldIFace.FieldType dspUIType = FormCellFieldIFace.FieldType.valueOf(dspUITypeStr);
                             
+                            try
+                            {
+                                dspUIType = FormCellFieldIFace.FieldType.valueOf(dspUITypeStr);
+                                
+                            } catch (java.lang.IllegalArgumentException ex)
+                            {
+                                FormDevHelper.appendFormDevError(ex.toString());
+                                FormDevHelper.appendFormDevError(String.format("Cell Name[%s] Id[%s] dspuitype[%s] is in error", cellName, cellId, dspUIType));
+                                uitype = FormCellFieldIFace.FieldType.label; // default to text
+                            }
+                            
                             // check to see see if the validation is a node in the cell
                             if (isEmpty(validationRule))
                             {
-                                Element valNode = (Element)cellElement.selectSingleNode("validation");
+                                Element valNode = (Element)cellElement.selectSingleNode(VALIDATION);
                                 if (valNode != null)
                                 {
                                     String str = valNode.getTextTrim();
@@ -946,7 +990,7 @@ public class ViewLoader
                                                                 getLabel(cellElement),
                                                                 getAttr(cellElement, "commandtype", ""),
                                                                 getAttr(cellElement, "action", "")));
-                            String initialize = getAttr(cellElement, "initialize", null);
+                            String initialize = getAttr(cellElement, INITIALIZE, null);
                             if (StringUtils.isNotEmpty(initialize))
                             {
                                 cell.setProperties(UIHelper.parseProperties(initialize));
@@ -960,7 +1004,7 @@ public class ViewLoader
                                                                         getAttr(cellElement, "coldef", "p"),
                                                                         getAttr(cellElement, "rowdef", "p"),
                                                                         colspan, rowspan);
-                            String initialize = getAttr(cellElement, "initialize", null);
+                            String initialize = getAttr(cellElement, INITIALIZE, null);
                             if (StringUtils.isNotEmpty(initialize))
                             {
                                 cellPanel.setProperties(UIHelper.parseProperties(initialize));
@@ -974,12 +1018,22 @@ public class ViewLoader
                         }
                         case subview:
                         {
-                            Properties properties = UIHelper.parseProperties(getAttr(cellElement, "initialize", null));
+                            Properties properties = UIHelper.parseProperties(getAttr(cellElement, INITIALIZE, null));
 
                             String svViewSetName = cellElement.attributeValue("viewsetname");
                             if (isEmpty(svViewSetName))
                             {
                                 svViewSetName = null;
+                            }
+                            
+                            if (instance.doingResourceLabels && properties != null)
+                            {
+                                String title = properties.getProperty(TITLE);
+                                if (title != null)
+                                {
+                                    properties.setProperty(TITLE, UIRegistry.getResourceString(title));
+                                }
+                                
                             }
                             
                             String viewName = getAttr(cellElement, "viewname", null);
@@ -1037,6 +1091,72 @@ public class ViewLoader
             }
         }
     }
+    
+    /**
+     * @param cellName
+     * @param cellId
+     * @param rowNumber
+     */
+    private static void processFieldVerify(final String cellName, final String cellId, final int rowNumber)
+    {
+        try
+        {
+            boolean isOK = false;
+            if (StringUtils.contains(cellName, '.'))
+            {
+                DBTableInfo tblInfo = fldVerTableInfo;
+                String[] fieldNames = StringUtils.split(cellName, ".");
+                for (int i=0;i<fieldNames.length-1;i++)
+                {
+                    String type = null;
+                    DBTableChildIFace child = tblInfo.getItemByName(fieldNames[i]);
+                    if (child instanceof DBFieldInfo)
+                    {
+                        DBFieldInfo fldInfo = (DBFieldInfo)child;
+                        type = fldInfo.getType();
+                        if (type != null)
+                        {
+                            DBTableInfo tInfo = DBTableIdMgr.getInstance().getByClassName(type);
+                            tblInfo = tInfo != null ? tInfo : tblInfo;
+                        }
+                        isOK = tblInfo.getItemByName(fieldNames[fieldNames.length-1]) != null;
+                        
+                    } else if (child instanceof DBRelationshipInfo)
+                    {
+                        DBRelationshipInfo relInfo = (DBRelationshipInfo)child;
+                        type = relInfo.getDataClass().getName();
+                        if (type != null)
+                        {
+                            tblInfo = DBTableIdMgr.getInstance().getByClassName(type);
+                        }
+                    }
+                    //System.out.println(type);
+                }
+                
+                if (tblInfo != null)
+                {
+                    isOK = tblInfo.getItemByName(fieldNames[fieldNames.length-1]) != null;
+                }
+            } else
+            {
+                isOK = fldVerTableInfo.getItemByName(cellName) != null;
+            }
+            
+            if (!isOK)
+            {
+                String msg = " ViewSet["+instance.viewSetName+"]\n ViewDef["+fldVerFormViewDef.getName()+"]\n The cell name ["+cellName+"] for cell with Id ["+cellId+"] is not a field\n in Data Object["+fldVerTableInfo.getName()+"]\n on Row ["+rowNumber+"]";
+                if (!isTreeClass)
+                {
+                    instance.fldVerTableModel.addRow(instance.viewSetName, fldVerFormViewDef.getName(), cellId, cellName, Integer.toString(rowNumber));
+                }
+                log.error(msg);
+            }
+            
+        } catch (Exception ex)
+        {
+            log.error(ex);
+        }
+    }
    
     /**
      * @param element the DOM element for building the form
@@ -1077,8 +1197,8 @@ public class ViewLoader
                 
                 try
                 {
-                    Class<?> classObj = Class.forName(className);
                     log.debug(className);
+                    Class<?> classObj = Class.forName(className);
                     if (FormDataObjIFace.class.isAssignableFrom(classObj))
                     {
                         fldVerTableInfo   = DBTableIdMgr.getInstance().getByClassName(className);
@@ -1086,11 +1206,18 @@ public class ViewLoader
                         fldVerFormViewDef = formViewDef;
                     }
                     
+                } catch (ClassNotFoundException ex)
+                {
+                    String msg = "ClassNotFoundException["+className+"]  Name["+name+"]";
+                    log.error(msg);
+                    FormDevHelper.appendFormDevError(msg);
+                    //edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    //edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewLoader.class, comments, ex);
+                    
                 } catch (Exception ex)
                 {
                     edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                     edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(ViewLoader.class, ex);
-                    
                 }
             }
             List<FormRowIFace> rows = formViewDef.getRows();
@@ -1122,7 +1249,11 @@ public class ViewLoader
                     return formViewDef;
                 }
             }
-            throw new RuntimeException("formtable is missing or has empty <defintion> node");
+            
+            String msg = "formtable is missing or has empty <defintion> node";
+            log.error(msg);
+            FormDevHelper.appendFormDevError(msg);
+            return null;
         }
 
         return formViewDef;
@@ -1133,7 +1264,8 @@ public class ViewLoader
      * @param tableInfo
      * @return
      */
-    protected static String getTitleFromFieldName(final String fieldName, final DBTableInfo tableInfo)
+    protected static String getTitleFromFieldName(final String fieldName, 
+                                                  final DBTableInfo tableInfo)
     {
         DBTableChildIFace derivedCI = null;
         if (fieldName.indexOf(".") > -1)
@@ -1142,17 +1274,18 @@ public class ViewLoader
             if (derivedCI == null)
             {
                 String msg = "The name 'path' ["+fieldName+"] was not valid in ViewSet ["+instance.viewSetName+"]";
-                UIRegistry.showError(msg);
+                FormDevHelper.appendFormDevError(msg);
                 log.error(msg);
                 return "";
             }
         }
+        
         DBTableChildIFace tblChild = derivedCI != null ? derivedCI : tableInfo.getItemByName(fieldName);
         if (tblChild == null)
         {
             String msg = "The Field Name ["+fieldName+"] was not in the Table ["+tableInfo.getTitle()+"] in ViewSet ["+instance.viewSetName+"]";
-            //UIRegistry.showError(msg);
             log.error(msg);
+            FormDevHelper.appendFormDevError(msg);
             return "";
         }
         return tblChild.getTitle();
@@ -1205,14 +1338,15 @@ public class ViewLoader
                             {
                                 if (!fieldName.equals("this"))
                                 {
+                                    //FormCellFieldIFace fcf = get
                                     lblCell.setLabel(getTitleFromFieldName(fieldName, tableInfo));
                                 }
                                 
                             } else
                             {
                                 String msg = "Setting Label - Form control with id["+idFor+"] is not in ViewDef or Panel ["+name+"] in ViewSet ["+instance.viewSetName+"]";
-                                UIRegistry.showError(msg);
                                 log.error(msg);
+                                FormDevHelper.appendFormDevError(msg);
                             }
                         }
                     }
@@ -1366,19 +1500,51 @@ public class ViewLoader
         }
     }
     
+    /**
+     * Di
+     */
     public static void displayFieldVerInfo()
     {
+        if (verifyDlg != null)
+        {
+            verifyDlg.setVisible(false);
+            verifyDlg.dispose();
+            verifyDlg = null;
+        }
+        
+        System.err.println("------------- "+(instance.fldVerTableModel != null ? instance.fldVerTableModel.getRowCount() : "null"));
+        
         if (instance.fldVerTableModel != null && instance.fldVerTableModel.getRowCount() > 0)
         {
-            JTable table = new JTable(instance.fldVerTableModel);
+            JLabel lbl = UIHelper.createLabel("<html><i>(Some of fields are special buttons or labal names. Review them to make sure you have not <br>mis-named any of the fields you are working with.)");
+            
+            final JTable table = new JTable(instance.fldVerTableModel);
             UIHelper.calcColumnWidths(table);
             
-            JScrollPane sp = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            CustomFrame dlg = new CustomFrame("Field Errors : "+instance.fldVerTableModel.getRowCount(), CustomFrame.OK_BTN, sp);
-            dlg.setOkLabel(getResourceString("CLOSE"));
-            dlg.createUI();
-            dlg.setSize(500, 500);
-            dlg.setVisible(true);
+            CellConstraints cc = new CellConstraints();
+            JScrollPane     sp = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g,4px,p"));
+            pb.add(sp, cc.xy(1, 1));
+            pb.add(lbl, cc.xy(1, 3));
+            pb.setDefaultDialogBorder();
+            
+            verifyDlg = new CustomFrame("Field Names on Form, but not in Database : "+instance.fldVerTableModel.getRowCount(), CustomFrame.OK_BTN, pb.getPanel())
+            {
+                @Override
+                protected void okButtonPressed()
+                {
+                    super.okButtonPressed();
+                    
+                    table.setModel(new DefaultTableModel());
+                    
+                    dispose();
+                    
+                    verifyDlg = null;
+                }
+            };
+            verifyDlg.setOkLabel(getResourceString("CLOSE"));
+            verifyDlg.createUI();
+            verifyDlg.setVisible(true);
         }
     }
     

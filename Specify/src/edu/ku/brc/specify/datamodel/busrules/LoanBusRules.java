@@ -47,7 +47,6 @@ import edu.ku.brc.specify.datamodel.Accession;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.RecordSet;
-import edu.ku.brc.specify.datamodel.Shipment;
 import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.DateWrapper;
@@ -345,46 +344,19 @@ public class LoanBusRules extends AttachmentOwnerBaseBusRules
     @Override
     public void beforeMerge(Object dataObj, DataProviderSessionIFace session)
     {
-         Loan loan = (Loan)dataObj;
+        super.beforeMerge(dataObj, session);
         
-        //System.out.println("beforeSaveCommit loanNum: "+loan.getLoanNumber());
-        
+        /*Loan loan = (Loan)dataObj;
         for (Shipment shipment : loan.getShipments())
         {
             if (shipment.getShipmentId() == null)
             {
                 //shipment.setShipmentNumber(loan.getLoanNumber());
             }
-        }
-    }
-
-    /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.busrules.AttachmentOwnerBaseBusRules#beforeSaveCommit(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
-     */
-    @Override
-    public boolean beforeSaveCommit(Object dataObj, DataProviderSessionIFace session) throws Exception
-    {
-        /*Loan loan = (Loan)dataObj;
-        
-        System.out.println("beforeSaveCommit loanNum: "+loan.getLoanNumber());
-        
-        for (Shipment shipment : loan.getShipments())
-        {
-            //if (shipment.getShipmentId() == null)
-            //{
-            String shipmentNum = shipment.getShipmentNumber();
-            if (StringUtils.isEmpty(shipmentNum))
-            {
-                shipmentNum = loan.getLoanNumber();
-                
-            } else if (StringUtils.contains(shipmentNum, UIFieldFormatterMgr.getAutoNumberPatternChar())) // XXX Need to check the formatter!
-            {
-                shipment.setShipmentNumber(loan.getLoanNumber());
-            }
         }*/
-        return super.beforeSaveCommit(dataObj, session);
     }
 
+    
     /* (non-Javadoc)
      * @see edu.ku.brc.ui.forms.BusinessRulesIFace#processBusiessRules(java.lang.Object)
      */
@@ -398,26 +370,6 @@ public class LoanBusRules extends AttachmentOwnerBaseBusRules
         }
         Loan loan = (Loan)dataObj;
         
-        /*
-        for (LoanAgent loanAgent : loan.getLoanAgents())
-        {
-            Agent agent = loanAgent.getAgent();
-            if (agent != null)
-            {
-                Set<Address> addr = agent.getAddresses();
-                if (addr.size() == 0)
-                {
-                    errorList.add("The select agent you loaning to,\nneeds to have at least one address."); // Thsi shouldn't eveer happen
-                    return STATUS.Error;
-                }
-                
-            } else
-            {
-                errorList.add("Loan Agent is missing an Agent"); // Thsi shouldn't eveer happen
-                return STATUS.Error;
-            }     
-        }
-        */  
         if (loan.getId() == null)
         {
             STATUS duplicateNumberStatus = isCheckDuplicateNumberOK("loanNumber", 

@@ -129,11 +129,11 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
      * @see edu.ku.brc.af.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
+    public Object beforeDelete(final Object dataObj, final DataProviderSessionIFace session)
     {
         updateLoanPrepQuantities(null, null);
         
-        super.beforeDelete(dataObj, session);
+        return super.beforeDelete(dataObj, session);
     }
 
     /* (non-Javadoc)
@@ -191,7 +191,7 @@ public class LoanReturnPreparationBusRules extends BaseBusRules
      */
     protected void updateLoanPrepQuantities(final LoanReturnPreparation loanRetPrepArg, final ChangeEvent e)
     {
-        if (formViewObj != null)
+        if (formViewObj != null && formViewObj.getValidator().hasChanged())
         {
             loanPrepFVO = formViewObj.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();
             loanFVO     = loanPrepFVO.getMVParent().getMultiViewParent().getCurrentViewAsFormViewObj();

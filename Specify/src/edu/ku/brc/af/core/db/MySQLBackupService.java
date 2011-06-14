@@ -312,9 +312,10 @@ public class MySQLBackupService extends BackupServiceFactory
                         }
                     }
                     
-                    String port = DatabaseDriverInfo.getDriver(DBConnection.getInstance().getDriverName()).getPort();
+                    String port   = DatabaseDriverInfo.getDriver(DBConnection.getInstance().getDriverName()).getPort();
+                    String server = DBConnection.getInstance().getServerName();
                     
-                    String cmdLine  = String.format("%s -u %s --password=%s %s %s", mysqldumpLoc, userName, password, (port != null ? ("--port="+port) : ""), databaseName);
+                    String cmdLine  = String.format("%s -u %s --password=%s --host=%s %s %s", mysqldumpLoc, userName, password, server, (port != null ? ("--port="+port) : ""), databaseName);
                     String[] args   = StringUtils.split(cmdLine, ' ');
                     Process process = Runtime.getRuntime().exec(args);
                     
@@ -606,8 +607,9 @@ public class MySQLBackupService extends BackupServiceFactory
                     String userName  = itUsername != null ? itUsername : DBConnection.getInstance().getUserName();
                     String password  = itPassword != null ? itPassword : DBConnection.getInstance().getPassword();
                     String port      = DatabaseDriverInfo.getDriver(DBConnection.getInstance().getDriverName()).getPort();
+                    String server    = DBConnection.getInstance().getServerName();
                     
-                    String   cmdLine = mysqlLoc+" -u "+userName+" --password="+password + " " + (port != null ? ("--port="+port) : "") + " "+  databaseName;
+                    String cmdLine  = String.format("%s -u %s --password=%s --host=%s %s %s", mysqlLoc, userName, password, server, (port != null ? ("--port="+port) : ""), databaseName);
                     String[] args    = StringUtils.split(cmdLine, ' ');
                     Process  process = Runtime.getRuntime().exec(args); 
                     
@@ -1046,6 +1048,8 @@ public class MySQLBackupService extends BackupServiceFactory
             @Override
             protected Integer doInBackground() throws Exception
             {
+                boolean skipTrackExceptions = BasicSQLUtils.isSkipTrackExceptions();
+                BasicSQLUtils.setSkipTrackExceptions(false);
                 try
                 {
                     String userName  = itUsername != null ? itUsername : DBConnection.getInstance().getUserName();
@@ -1105,9 +1109,11 @@ public class MySQLBackupService extends BackupServiceFactory
                                         fPath = StringUtils.replace(fPath, "\\", "\\\\");
                                     }
                                     String sql = "LOAD DATA LOCAL INFILE '" + fPath + "' INTO TABLE " + FilenameUtils.getBaseName(file.getName());
-                                    //System.out.println(sql);
+                                    log.debug(sql);
+                                    //System.err.println(sql);
                                     int rv = BasicSQLUtils.update(connection, sql);
-                                    log.debug("rv= "+rv);
+                                    log.debug("done fPath["+fPath+"] rv= "+rv);
+                                    //System.err.println("done fPath["+fPath+"] rv= "+rv);
                                 }
                             }
                         }
@@ -1137,6 +1143,10 @@ public class MySQLBackupService extends BackupServiceFactory
                     {
                         pcl.propertyChange(new PropertyChangeEvent(MySQLBackupService.this, "Error", 0, 1));
                     }
+                    
+                } finally
+                {
+                    BasicSQLUtils.setSkipTrackExceptions(skipTrackExceptions);
                 }
                 return null;
             }
@@ -1456,7 +1466,7 @@ public class MySQLBackupService extends BackupServiceFactory
         System.setProperty(DBMSUserMgr.factoryName, "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
 
         String usr = "root";
-        String pwd = "nessie1601";
+        String pwd = "";
         
         DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getDriver("MySQL");
         String             connStr    = driverInfo.getConnectionStr(DatabaseDriverInfo.ConnectionType.Open, "localhost", null, usr, pwd, driverInfo.getName());

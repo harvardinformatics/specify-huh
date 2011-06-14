@@ -2,9 +2,9 @@
 
 <!-- 
 
-    Last used ID is 137 or 532
+    Last used ID is 141 or 532
     
-    126 are available
+    [] are available
     
     PLEASE Keep this file in alphabetical order! 
 
@@ -52,6 +52,7 @@
         	<display view="AttachmentsForm" newobjdlg="AttachmentsForm"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentBusRules</businessrule>
         </table>
+        <table name="edu.ku.brc.specify.datamodel.AttachmentImageAttribute" abbrev="ati" id="139" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AttachmentMetadata" abbrev="atm" id="42" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AttachmentTag" abbrev="attag" id="130" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.AttributeDef" abbrev="atd" id="16"/>
@@ -120,7 +121,9 @@
         	<display view="ObjectAttachment" newobjdlg="ConservEventAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.Container" abbrev="con" id="31" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.Container" abbrev="con" id="31" searchable="true">
+            <display view="Container" dataobjformatter="Container" searchdlg="ContainerSearch" newobjdlg="ContainerDisplay"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.DataType" abbrev="dt" id="33">
             <businessrule>edu.ku.brc.specify.datamodel.busrules.DataTypeBusRules</businessrule>          
         </table>
@@ -150,8 +153,14 @@
         <table name="edu.ku.brc.specify.datamodel.ExchangeIn" abbrev="exi" id="39" searchable="true">
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ExchangeInBusRules</businessrule>
         </table>
+        <table name="edu.ku.brc.specify.datamodel.ExchangeInPrep" abbrev="exip" id="140" searchable="true">
+            <display view="ExchangeInPrep" newobjdlg="ExchangeInPrepDisplay"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.ExchangeOut" abbrev="exo" id="40" searchable="true">
             <businessrule>edu.ku.brc.specify.datamodel.busrules.ExchangeOutBusRules</businessrule>
+        </table>
+        <table name="edu.ku.brc.specify.datamodel.ExchangeOutPrep" abbrev="exop" id="141" searchable="true">
+            <display view="ExchangeOutPrep" newobjdlg="ExchangeOutPrepDisplay"/>
         </table>
         <table name="edu.ku.brc.specify.datamodel.Exsiccata" abbrev="exsic" id="89" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.ExsiccataItem" abbrev="exsicit" id="104" searchable="true"/>
@@ -163,7 +172,7 @@
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.FieldNotebookPage" abbrev="fnbp" id="85" searchable="true">
-            <display view="FieldNotebookPage" dataobjformatter="FieldNotebookPage" newobjdlg="FieldNotebookPageDisplay"/>
+            <display view="FieldNotebookPage" dataobjformatter="FieldNotebookPage" searchdlg="FieldNotebookPageSearch" newobjdlg="FieldNotebookPageDisplay"/>
           	<businessrule>edu.ku.brc.specify.datamodel.busrules.FieldNotebookPageBusRules</businessrule>
         </table>
         <table name="edu.ku.brc.specify.datamodel.FieldNotebookPageAttachment" abbrev="fnbpat" id="129" searchable="true">
@@ -177,7 +186,9 @@
         	<display view="ObjectAttachment" newobjdlg="FieldNotebookPageSetAttachmentDisplay"/>
         	<businessrule>edu.ku.brc.specify.datamodel.busrules.AttachmentReferenceBaseBusRules</businessrule>
         </table>
-        <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.GeoCoordDetail" abbrev="gcd" id="123" searchable="true">
+            <businessrule>edu.ku.brc.specify.datamodel.busrules.GeoCoordDetailBusRules</businessrule>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.Geography" abbrev="geo" id="3" workbench="true" searchable="true">
             <display view="Geography" dataobjformatter="Geography" searchdlg="GeographySearch" newobjdlg="GeographyDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.GeographyBusRules</businessrule>          
@@ -265,6 +276,9 @@
         </table>
         <table name="edu.ku.brc.specify.datamodel.LocalityCitation" abbrev="locc" id="57" searchable="true"/>
         <table name="edu.ku.brc.specify.datamodel.LocalityNameAlias" abbrev="locna" id="120" searchable="true"/>
+        <table name="edu.ku.brc.specify.datamodel.MorphBankView" abbrev="mbvw" id="138" searchable="true">
+            <display view="MorphBankView" searchdlg="MorphBankViewSearch" newobjdlg="MorphBankViewDisplay"/>
+        </table>
         <table name="edu.ku.brc.specify.datamodel.Storage" abbrev="lcn" id="58" searchable="true">
             <display view="Storage" dataobjformatter="Storage" searchdlg="StorageSearch" newobjdlg="StorageDisplay"/>
             <businessrule>edu.ku.brc.specify.datamodel.busrules.StorageBusRules</businessrule>            
@@ -392,6 +406,7 @@
         <table name="edu.ku.brc.specify.datamodel.Workbench" abbrev="wb" id="79"/>
         <table name="edu.ku.brc.specify.datamodel.WorkbenchDataItem" abbrev="wbdi" id="80"/>
         <table name="edu.ku.brc.specify.datamodel.WorkbenchRow" abbrev="wbr" id="90"/>
+        <table name="edu.ku.brc.specify.datamodel.WorkbenchRowExportedRelationship" abbrev="wber" id="126"/>
         <table name="edu.ku.brc.specify.datamodel.WorkbenchRowImage" abbrev="wbri" id="95"/>
         <table name="edu.ku.brc.specify.datamodel.WorkbenchTemplate" abbrev="wbt" id="81"/>
         <table name="edu.ku.brc.specify.datamodel.WorkbenchTemplateMappingItem" abbrev="wbtmi" id="82"/>

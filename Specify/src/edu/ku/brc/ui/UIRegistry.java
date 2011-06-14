@@ -44,7 +44,6 @@ import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -79,6 +78,10 @@ import javax.swing.undo.UndoManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import edu.ku.brc.af.ui.ViewBasedDialogFactoryIFace;
 import edu.ku.brc.exceptions.UIException;
 import edu.ku.brc.ui.dnd.GhostGlassPane;
@@ -108,7 +111,7 @@ public class UIRegistry
     protected static final String MOBILE_EMBEDDED_DB_PATH = "mobile.embedded.dbpath";
     protected static final String EMBEDDED_DB_DIR         = "SPECIFY_DATA";
     
-    protected static final boolean debugPaths  = true;
+    protected static final boolean debugPaths  = false;
 
     
     public static final String FRAME        = "frame";
@@ -148,11 +151,11 @@ public class UIRegistry
     
 
     // Data Members
-    protected Hashtable<String, Component> components  = new Hashtable<String, Component>();
+    protected HashMap<String, Component> components  = new HashMap<String, Component>();
     protected Window                       topWindow   = null;
     protected Stack<Window>                windowStack = new Stack<Window>();
 
-    protected Hashtable<String, Hashtable<String, JComponent>> uiItems = new Hashtable<String, Hashtable<String, JComponent>>();
+    protected HashMap<String, HashMap<String, JComponent>> uiItems = new HashMap<String, HashMap<String, JComponent>>();
 
     protected Font           baseFont           = null;
     protected Font           defaultFont        = null;
@@ -178,7 +181,7 @@ public class UIRegistry
 
     protected ViewBasedDialogFactoryIFace viewbasedFactory = null;
     
-    protected Hashtable<String, Action> actionMap = new Hashtable<String, Action>();
+    protected HashMap<String, Action> actionMap = new HashMap<String, Action>();
     
     //------------------------------------------------
     // Undo / Redo Helpers
@@ -208,7 +211,7 @@ public class UIRegistry
         
         instance.baseFont = new JLabel("").getFont();
         instance.baseFont = instance.baseFont.deriveFont(Font.PLAIN);
-    	
+        
         final KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager(); 
         focusManager.addPropertyChangeListener( 
             new PropertyChangeListener() { 
@@ -222,12 +225,14 @@ public class UIRegistry
                     /*
                     System.out.println(propName+"  "+
                             ( focusManager.getFocusOwner() != null ? focusManager.getFocusOwner().hashCode():"")+
-                            "  FO: "+focusManager.getFocusOwner()+
-                            " "+focusManager.getFocusedWindow()+" perm: "+permanentFocusOwner);
+                            "  FO: ["+(focusManager.getFocusOwner() != null ? focusManager.getFocusOwner().getClass().getSimpleName() : "NULL")+"]"+
+                            " PERM: ["+(permanentFocusOwner != null ? permanentFocusOwner.getClass().getSimpleName() : "NULL")+"]");//+" perm: "+permanentFocusOwner);
+                    
                     if (focusManager.getFocusOwner() instanceof GetSetValueIFace)
                     {
-                        System.out.println(((GetSetValueIFace)focusManager.getFocusOwner()).getValue());
-                    }*/
+                        System.out.println("-> "+((GetSetValueIFace)focusManager.getFocusOwner()).getValue());
+                    }
+                    */
                     if (("focusOwner".equals(propName)) && undoAction != null && redoAction != null) 
                     { 
                         if (focusManager.getFocusOwner() instanceof UndoableTextIFace)
@@ -277,6 +282,32 @@ public class UIRegistry
     }
     
     /**
+     * @return the string for the current version number from the resources file (e.g. 6.2.10)
+     */
+    public static String getAppVersion()
+    {
+        return getResourceString("SPECIFY_VERSION");
+    }
+    
+    /**
+     * @return true if the install version number matches the jar version number.
+     */
+    public static boolean doesAppversionsMatch()
+    {
+        String install4J     = UIHelper.getInstall4JInstallString();
+        String resAppVersion = getAppVersion();
+        
+        if (StringUtils.isEmpty(install4J) ||
+            StringUtils.isEmpty(resAppVersion) ||
+            !resAppVersion.equals(install4J))
+        {
+            showLocalizedError("APPVER_MISMATCH", install4J, resAppVersion);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * @return the platformLocale
      */
     public static Locale getPlatformLocale()
@@ -302,7 +333,13 @@ public class UIRegistry
                 resBundle = ResourceBundle.getBundle(name);
             } else
             {
-                resBundle = ResourceBundle.getBundle(name, instance.resourceLocale);
+                try
+                {
+                    resBundle = ResourceBundle.getBundle(name, instance.resourceLocale);
+                } catch (MissingResourceException ex) 
+                {
+                    resBundle = ResourceBundle.getBundle(name, Locale.ENGLISH);
+                }
             }
 
         } catch (MissingResourceException ex) 
@@ -439,7 +476,7 @@ public class UIRegistry
             //log.error("["+key+"]["+resourceBundle.getString(key)+"]");
             if (StringUtils.isEmpty(key))
             {
-                log.warn("The key was null/empty for localization");
+                log.warn("The key ["+key+"] was null/empty for localization");
                 return "";
             }
             return resourceBundle.getString(key);
@@ -559,7 +596,24 @@ public class UIRegistry
         instance.statusBar = statusBar;
     }
 
-	/**
+    /**
+     * Set the working directory. It is not recommended to use this because the working directory will automatically be created.
+     * @param defaultWorkingPath the new and different working directory.
+     */
+    public static void setDefaultWorkingPath(final String defaultWorkingPath)
+    {
+        File path = new File(defaultWorkingPath);
+        String defPath = defaultWorkingPath;
+        try
+        {
+            defPath = path.getCanonicalPath();
+        } catch (IOException e) {}
+        
+        dumpCanonicalPath("setDefaultWorkingPath", defPath);
+        instance.defaultWorkingPath = defPath;
+    }
+    
+    /**
      * Returns the "working" directory which is platform specific. It will create one if one is not created
      * <b>NOTE: The application name must be set first.</b><br>
      * One Windows it is ...\<i>&lt;user name&gt;</i>\Application Data\&lt;application name&gt;<br>
@@ -569,18 +623,18 @@ public class UIRegistry
      */
     public static String getDefaultWorkingPath()
     {
-    	if (instance.defaultWorkingPath == null)
-    	{
-    		File file = new File(".");
-    		instance.defaultWorkingPath = UIHelper.stripSubDirs(file.getAbsolutePath(), 1);
-    		log.debug("Working Path not set, setting it to["+instance.defaultWorkingPath+"]");
-    	}
-    	//log.debug("Def Working Path["+instance.defaultWorkingPath+"]");
-    	
+        if (instance.defaultWorkingPath == null)
+        {
+            File file = new File(".");
+            instance.defaultWorkingPath = UIHelper.stripSubDirs(file.getAbsolutePath(), 1);
+            log.debug("Working Path not set, setting it to["+instance.defaultWorkingPath+"]");
+        }
+        //log.debug("Def Working Path["+instance.defaultWorkingPath+"]");
+        
         if (debugPaths)
         {
             try {
-                log.debug("************************ getDefaultWorkingPath: ["+(new File(instance.defaultWorkingPath).getCanonicalPath())+"]");
+                log.debug("************************ getDefaultWorkingPath: Canonical["+(new File(instance.defaultWorkingPath).getCanonicalPath())+"]");
             } catch (Exception ex) {}
         }
         return instance.defaultWorkingPath;
@@ -607,28 +661,18 @@ public class UIRegistry
     }
 
     /**
-     * Set the working directory. It is not recommended to use this because the working directory will automatically be created.
-     * @param defaultWorkingPath the new and different working directory.
+     * @param appDataDir
      */
-    public static void setDefaultWorkingPath(final String defaultWorkingPath)
+    public static void setBaseAppDataDir(final String appDataDir) 
     {
-        dumpCanonicalPath("setDefaultWorkingPath", defaultWorkingPath);
-        instance.defaultWorkingPath = defaultWorkingPath;
-    }
-	
-	/**
-	 * @param appDataDir
-	 */
-	public static void setBaseAppDataDir(final String appDataDir) 
-	{
         dumpCanonicalPath("setBaseAppDataDir", appDataDir);
-		instance.appDataDir = appDataDir;
-	}
+        instance.appDataDir = appDataDir;
+    }
 
-	/**
-	 * This method will create the "working" directory for the application.
-	 * @return the the working directory where local preferences and other files are saved.
-	 */
+    /**
+     * This method will create the "working" directory for the application.
+     * @return the the working directory where local preferences and other files are saved.
+     */
     public static String getAppDataDir()
     {
         File dir;
@@ -666,21 +710,23 @@ public class UIRegistry
         }
         try
         {
-        	return dir.getCanonicalPath();
+            return dir.getCanonicalPath();
         } catch (IOException ex)
         {
-        	ex.printStackTrace();
+            ex.printStackTrace();
         }
         return dir.getAbsolutePath();
     }
 
     /**
-     * Get the "user" based working directory that is platform specific and requires the "application name" be set first. 
+     * Gets the location of Application directory by calling {@link getUserHomeDir()} that is platform specific and requires the "application name" be set first. 
      * @return the string to a platform specify user data directory for the application name.
      */
     public static String getUserHomeAppDir()
     {
-    	return getUserHomeDir() + File.separator + instance.appName;
+        assert(instance.appName == null);
+        
+        return getUserHomeDir() + File.separator + instance.appName;
     }
 
     /**
@@ -688,7 +734,9 @@ public class UIRegistry
      * @return the string to a platform specify user data directory
      */
     /**
-     * Get the "user" based working directory that is platform specific. 
+     * Get the "user" based working directory that is platform specific. When in Mobile 'mode'
+     * it returns the DefaultWorkingPath, when in Standard app mode it uses the 'Default User Home Dir"
+     * which is the platform specific true home directory.
      * @return the string to a platform specify user data directory
      */
     public static String getUserHomeDir()
@@ -715,6 +763,7 @@ public class UIRegistry
         } else if (osType == UIHelper.OSTYPE.MacOSX)
         {
             String docPath = homeDir + File.separator + "Documents"; // Not Localized
+            
             if (new File(docPath).exists())
             {
                 return docPath;
@@ -722,6 +771,34 @@ public class UIRegistry
         }
         // else
         return homeDir;
+    }
+    
+    /**
+     * 
+     */
+    public static void dumpPaths()
+    {
+        String mobile = "";
+        try
+        {
+            if (StringUtils.isNotEmpty(getMobileEmbeddedDBPath()))
+            {
+                mobile = (new File(getMobileEmbeddedDBPath())).getCanonicalPath();
+            }
+        } catch (IOException ex) {}
+        
+        if (debugPaths)
+        {
+            log.debug("AppDataDir:                  "+getAppDataDir());
+            log.debug("UserHomeAppDir:              "+getUserHomeAppDir());
+            log.debug("UserHomeDir:                 "+getUserHomeDir());
+            
+            log.debug("DefaultEmbeddedDBPath:       "+getDefaultEmbeddedDBPath());
+            log.debug("DefaultMobileEmbeddedDBPath: "+getEmbeddedDBPath());
+            log.debug("MobileEmbeddedDBPath:        "+mobile);
+            log.debug("DefaultWorkingPath:          "+getDefaultWorkingPath());
+            //log.debug("MobileMachineDir:            "+DBConnection.getMobileMachineDir("<database name>"));
+        }
     }
 
     /**
@@ -757,10 +834,10 @@ public class UIRegistry
      */
     public static void registerUI(final String category, final String name, final JComponent uiComp) throws UIException
     {
-        Hashtable<String, JComponent> compsHash = instance.uiItems.get(category);
+        HashMap<String, JComponent> compsHash = instance.uiItems.get(category);
         if (compsHash == null)
         {
-            compsHash = new Hashtable<String, JComponent>();
+            compsHash = new HashMap<String, JComponent>();
             instance.uiItems.put(category, compsHash);
         }
         if (compsHash.containsKey(name))
@@ -778,7 +855,7 @@ public class UIRegistry
      */
     public static void unregisterUI(final String category, final String name) throws UIException
     {
-        Hashtable<String, JComponent> compsHash = instance.uiItems.get(category);
+        HashMap<String, JComponent> compsHash = instance.uiItems.get(category);
         if (compsHash == null)
         {
             throw new UIException("Couldn't find UI Category with Name["+category+"].");
@@ -951,6 +1028,53 @@ public class UIRegistry
     {
         showLocalizedMsg(JOptionPane.WARNING_MESSAGE, titleKey, msgKey, args);
     }
+    
+    /**
+     * Asks Yes or No question using a JOptionPane
+     * @param yesKey the resource key for the Yes button
+     * @param noKey the resource key for the No button
+     * @param nonL10NMsg the message or question NOT Localized
+     * @param titleKey the resource key for the Dialog Title
+     * @return JOptionPane.NO_OPTION or JOptionPane.YES_OPTION
+     */
+    public static int askYesNoLocalized(final String yesKey, final String noKey, final String nonL10NMsg, final String titleKey)
+    {
+        int userChoice = JOptionPane.NO_OPTION;
+        Object[] options = { getResourceString(yesKey), getResourceString(noKey) };
+
+        userChoice = JOptionPane.showOptionDialog(UIRegistry.getMostRecentWindow(), 
+                                                  nonL10NMsg,
+                                                     getResourceString(titleKey),
+                                                     JOptionPane.YES_NO_OPTION,
+                                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        return userChoice;
+    }
+
+    /**
+     * Asks Yes, No, Cancel question using a JOptionPane
+     * @param yesKey the resource key for the Yes button
+     * @param noKey the resource key for the No button
+     * @param cancelKey the resource key for the Cancel button
+     * @param nonL10NMsg the message or question NOT Localized
+     * @param titleKey the resource key for the Dialog Title
+     * @return JOptionPane.NO_OPTION or JOptionPane.YES_OPTION
+     */
+    public static int askYesNoLocalized(final String yesKey, 
+                                        final String noKey, 
+                                        final String cancelKey, 
+                                        final String nonL10NMsg, 
+                                        final String titleKey)
+    {
+        int userChoice = JOptionPane.CANCEL_OPTION;
+        Object[] options = { getResourceString(yesKey), getResourceString(noKey), getResourceString(cancelKey) };
+
+        userChoice = JOptionPane.showOptionDialog(UIRegistry.getMostRecentWindow(), 
+                                                  nonL10NMsg,
+                                                     getResourceString(titleKey),
+                                                     JOptionPane.YES_NO_CANCEL_OPTION,
+                                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        return userChoice;
+    }
 
     /**
      * Displays an error dialog with a non-localized error message.
@@ -958,9 +1082,44 @@ public class UIRegistry
      */
     public static void showError(final String msg)
     {
+        showError(null, msg);
+    }
+
+    /**
+     * Displays an error dialog with a non-localized error message.
+     * @param dlgType Dialog type error or warning
+     * @param msg the message
+     */
+    public static void showError(final Integer dlgType, final String msg)
+    {
+        log.error(msg);
+        
+        String titleKey = dlgType != null && dlgType == JOptionPane.WARNING_MESSAGE ? "WARNING" : "UIRegistry.UNRECOVERABLE_ERROR_TITLE";
         JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), 
                 msg, 
-                getResourceString("UIRegistry.UNRECOVERABLE_ERROR_TITLE"), JOptionPane.ERROR_MESSAGE);
+                getResourceString(titleKey), dlgType == null ? JOptionPane.ERROR_MESSAGE : dlgType);
+    }
+
+    /**
+     * Displays an error dialog with a non-localized error message in a non-modal dialog.
+     * @param msg the message
+     */
+    public static void showErrorNonModal(final String msg)
+    {
+        log.error(msg);
+        
+        CellConstraints cc = new CellConstraints();
+        PanelBuilder    pb = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"));
+        pb.add(UIHelper.createLabel(msg), cc.xy(1,1));
+        pb.setDefaultDialogBorder();
+        
+        CustomDialog dlg = new CustomDialog((Frame)UIRegistry.getTopWindow(), 
+                                   getResourceString("UIRegistry.UNRECOVERABLE_ERROR_TITLE"),
+                                   false,
+                                   CustomDialog.OK_BTN,
+                                   pb.getPanel());
+        
+        dlg.setVisible(true);
     }
 
     /**
@@ -969,7 +1128,17 @@ public class UIRegistry
      */
     public static void showLocalizedError(final String key)
     {
-        showError(getResourceString(key));
+        showError(null, getResourceString(key));
+    }
+    
+    /**
+     * Displays an error dialog with a localized error message.
+     * @param dlgType Dialog type error or warning
+     * @param key the bundle key for the message
+     */
+    public static void showLocalizedError(final Integer dlgType, final String key)
+    {
+        showError(dlgType, getResourceString(key));
     }
     
     /**
@@ -980,6 +1149,17 @@ public class UIRegistry
     public static void showLocalizedError(final String key, final Object ... args)
     {
         showError(String.format(getResourceString(key), args));
+    }
+    
+    /**
+     * Displays an error dialog with a localized error message.
+     * @param dlgType Dialog type error or warning
+     * @param key the bundle key for the message
+     * @param args args for the message
+     */
+    public static void showLocalizedError(final Integer dlgType, final String key, final Object ... args)
+    {
+        showError(dlgType, String.format(getResourceString(key), args));
     }
     
     /**
@@ -1147,7 +1327,7 @@ public class UIRegistry
 
     /**
      * Display an Information dialog that gets its string from the resource bundle.
-     * @param msg the message to be displayed
+     * @param key the message to be displayed
      * @param args for formatting msg
      */
     public static void displayInfoMsgDlgLocalized(final String key, Object... args)
@@ -1156,7 +1336,17 @@ public class UIRegistry
     }
     
     /**
-     * Display an Confirmation Dialog where everything comes ffrom the bundle.
+     * Display an Information dialog that gets its string from the resource bundle.
+     * @param msg the already localized message to be displayed
+     */
+    public static void displayInfoMsgDlg(final String msg)
+    {
+         JOptionPane.showMessageDialog(getMostRecentWindow(), msg, getResourceString("INFORMATION"), JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    
+    /**
+     * Display an Confirmation Dialog where everything comes from the bundle.
      * @param titleKey the key to the dialog title
      * @param msgKey the key to the dialog message
      * @param keyBtn1 the key to the first button 
@@ -1179,7 +1369,7 @@ public class UIRegistry
     }
 
     /**
-     * Display an Confirmation Dialog where everything comes ffrom the bundle.
+     * Display an Confirmation Dialog where everything comes from the bundle.
      * @param titleKey the key to the dialog title
      * @param msgKey the key to the dialog message
      * @param keyBtn1 the key to the first button 
@@ -1196,81 +1386,126 @@ public class UIRegistry
         return displayConfirm(getResourceString(titleKey), getResourceString(msgKey), getResourceString(keyBtn1), getResourceString(keyBtn2), iconOption);
     }
 
+    /**
+     * Display an Confirmation Dialog where everything comes from the bundle.
+     * @param titleKey the key to the dialog title
+     * @param msgKey the key to the dialog message
+     * @param keyBtn1 the key to the first button 
+     * @param keyBtn2 the key to the second button
+     * @param keyBtn3 the key to the third button
+     * @param iconOption the icon to show
+     * @return YES_OPTION, NO_OPTION, CANCEL_OPTION
+     */
+    public static int displayConfirm(final String title, 
+                                     final String msg,
+                                     final String keyBtn1, // Yes
+                                     final String keyBtn2, // No
+                                     final String keyBtn3, // Cancel
+                                     final int    iconOption)
+    {
+        // Custom button text
+        Object[] options = { keyBtn1, keyBtn2, keyBtn3 };
+        
+        return JOptionPane.showOptionDialog(getMostRecentWindow(), msg, 
+                title, JOptionPane.YES_NO_CANCEL_OPTION,
+                iconOption, null, options, options[2]);
+    }
+
+    /**
+     * Display an Confirmation Dialog where everything comes from the bundle.
+     * @param titleKey the key to the dialog title
+     * @param msgKey the key to the dialog message
+     * @param keyBtn1 the key to the first button 
+     * @param keyBtn2 the key to the second button
+     * @param keyBtn3 the key to the third button
+     * @param iconOption the icon to show
+     * @return YES_OPTION, NO_OPTION, CANCEL_OPTION
+     */
+    public static int displayConfirmLocalized(final String titleKey, 
+                                              final String msgKey,
+                                              final String keyBtn1,
+                                              final String keyBtn2,
+                                              final String keyBtn3,
+                                              final int    iconOption)
+    {
+        return displayConfirm(getResourceString(titleKey), getResourceString(msgKey), getResourceString(keyBtn1), getResourceString(keyBtn2), getResourceString(keyBtn3), iconOption);
+    }
+
     //----------------------------------------------------------------------------------
     // File Cache Section
     //----------------------------------------------------------------------------------
 
     /**
      * Returns the longTermCache.
-	 * @return the longTermCache.
-	 */
-	public static FileCache getLongTermFileCache()
-	{
-	    synchronized(instance)
-	    {
-	        if (instance.longTermCache == null)
-	        {
-	            try
-	            {
-	                instance.longTermCache = new FileCache("longTerm.Cache");
-	                
-	                // set the cache size to 20 MB
-	                instance.longTermCache.setMaxCacheSize(20000);
-	                
-	            } catch (Exception ex)
-	            {
-	                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-	                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UIRegistry.class, ex);
+     * @return the longTermCache.
+     */
+    public static FileCache getLongTermFileCache()
+    {
+        synchronized(instance)
+        {
+            if (instance.longTermCache == null)
+            {
+                try
+                {
+                    instance.longTermCache = new FileCache("longTerm.Cache");
+                    
+                    // set the cache size to 20 MB
+                    instance.longTermCache.setMaxCacheSize(20000);
+                    
+                } catch (Exception ex)
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UIRegistry.class, ex);
                     ex.printStackTrace();
-	                log.error(ex);
-	            }
-	        }
-	    }
-	    return instance.longTermCache;
-	}
+                    log.error(ex);
+                }
+            }
+        }
+        return instance.longTermCache;
+    }
 
-	/**
+    /**
      * Sets the longTermCache.
-	 * @param longTermCache The longTermCache to set.
-	 */
-	public static void setLongTermFileCache(FileCache longTermCache)
-	{
-		instance.longTermCache = longTermCache;
-	}
+     * @param longTermCache The longTermCache to set.
+     */
+    public static void setLongTermFileCache(FileCache longTermCache)
+    {
+        instance.longTermCache = longTermCache;
+    }
 
-	/**
+    /**
      * Gets the shortTermCache.
-	 * @return the shortTermCache.
-	 */
-	public static FileCache getShortTermFileCache()
-	{
-	    synchronized(instance)
-	    {
-	        if (instance.shortTermCache == null)
-	        {
-	            try
-	            {
-	                instance.shortTermCache = new FileCache();
-	            } catch (Exception ex)
-	            {
-	                edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-	                edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UIRegistry.class, ex);
-	                ex.printStackTrace();
-	                log.error(ex);
-	            }
-	        }
-	    }
-	    return instance.shortTermCache;
-	}
+     * @return the shortTermCache.
+     */
+    public static FileCache getShortTermFileCache()
+    {
+        synchronized(instance)
+        {
+            if (instance.shortTermCache == null)
+            {
+                try
+                {
+                    instance.shortTermCache = new FileCache();
+                } catch (Exception ex)
+                {
+                    edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+                    edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(UIRegistry.class, ex);
+                    ex.printStackTrace();
+                    log.error(ex);
+                }
+            }
+        }
+        return instance.shortTermCache;
+    }
 
-	/**
+    /**
      * Sets the shortTermCache.
-	 * @param shortTermCache The shortTermCache to set.
-	 */
-	public static void setShortTermFileCache(FileCache shortTermCache)
-	{
-		instance.shortTermCache = shortTermCache;
-	}
+     * @param shortTermCache The shortTermCache to set.
+     */
+    public static void setShortTermFileCache(FileCache shortTermCache)
+    {
+        instance.shortTermCache = shortTermCache;
+    }
 
     /**
      * Returns the forms cache.
@@ -1315,25 +1550,25 @@ public class UIRegistry
      */
     protected static void adjustAllFonts(final Font oldBaseFont, final Font baseFontArg)
     {
-    	if (oldBaseFont != null && baseFontArg != null)
-    	{
-	        int    fontSize    = baseFontArg.getSize();
-	        int    oldFontSize = oldBaseFont.getSize();
-	        String family      = baseFontArg.getFamily();
-	        
-	        UIDefaults uiDefaults = UIManager.getDefaults();
-	        Enumeration<Object> e = uiDefaults.keys();
-	        while (e.hasMoreElements())
-	        {
-	            Object key = e.nextElement();
-	            if (key.toString().endsWith(".font"))
-	            {
-	                FontUIResource fontUIRes = (FontUIResource)uiDefaults.get(key);
-	                if (fontSize != fontUIRes.getSize() || !family.equals(fontUIRes.getFamily()))
-	                {
-	                    UIManager.put(key, new FontUIResource(new Font(family, fontUIRes.getStyle(), fontSize + (fontUIRes.getSize() - oldFontSize))));
-	                }
-	            }
+        if (oldBaseFont != null && baseFontArg != null)
+        {
+            int    fontSize    = baseFontArg.getSize();
+            int    oldFontSize = oldBaseFont.getSize();
+            String family      = baseFontArg.getFamily();
+            
+            UIDefaults uiDefaults = UIManager.getDefaults();
+            Enumeration<Object> e = uiDefaults.keys();
+            while (e.hasMoreElements())
+            {
+                Object key = e.nextElement();
+                if (key.toString().endsWith(".font"))
+                {
+                    FontUIResource fontUIRes = (FontUIResource)uiDefaults.get(key);
+                    if (fontSize != fontUIRes.getSize() || !family.equals(fontUIRes.getFamily()))
+                    {
+                        UIManager.put(key, new FontUIResource(new Font(family, fontUIRes.getStyle(), fontSize + (fontUIRes.getSize() - oldFontSize))));
+                    }
+                }
             }
         }
     }
@@ -1376,18 +1611,18 @@ public class UIRegistry
      */
     public static void setDefaultFont(Font defaultFont) 
     {
-    	instance.defaultFont = defaultFont;
-	}
+        instance.defaultFont = defaultFont;
+    }
 
-	/**
+    /**
      * @return the default font
      */
     public static Font getDefaultFont() 
     {
-		return instance.defaultFont;
-	}
+        return instance.defaultFont;
+    }
 
-	//---------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
     //-- Glass Pane Buffered Image
     //---------------------------------------------------------------------------------
     protected static SoftReference<BufferedImage> glassPaneBufferedImageSR;
@@ -1538,7 +1773,18 @@ public class UIRegistry
      */
     public static SimpleGlassPane writeSimpleGlassPaneMsg(final String msg, final int pointSize)
     {
-        SimpleGlassPane glassPane = new SimpleGlassPane(msg, pointSize);
+    	return writeSimpleGlassPaneMsg(msg, pointSize, false);
+    }
+    
+    /**
+     * @param msg
+     * @param pointSize
+     * @param isDblClickProgBar
+     * @return
+     */
+    public static SimpleGlassPane writeSimpleGlassPaneMsg(final String msg, final int pointSize, final boolean isDblClickProgBar)
+    {
+        SimpleGlassPane glassPane = new SimpleGlassPane(msg, pointSize, false, isDblClickProgBar);
         
         JStatusBar statusBar = UIRegistry.getStatusBar();
         if (statusBar != null)
@@ -1661,6 +1907,13 @@ public class UIRegistry
         {
             ((JFrame)UIRegistry.getTopWindow()).setGlassPane(oldGlassPane);
             oldGlassPane.setVisible(false);
+        } else
+        {
+            Component glassPane = ((JFrame)UIRegistry.getTopWindow()).getGlassPane();
+            if (glassPane != null)
+            {
+                glassPane.setVisible(false);
+            }
         }
         oldGlassPane     = null;
         showingGlassPane = false;
@@ -1702,7 +1955,7 @@ public class UIRegistry
      * Sets the path to the embedded DB.
      * @param path the path.
      */
-    public static void setEmbeddedDBDir(final String path)
+    public static void setEmbeddedDBPath(final String path)
     {
         dumpCanonicalPath("setEmbeddedDBDir", path);
 
@@ -1738,7 +1991,7 @@ public class UIRegistry
         if (debugPaths)
         {
             try {
-                log.debug("************************ "+desc+": ["+path.getCanonicalPath()+"]");
+                log.debug("***** dumpCanonicalPath: "+desc+": ["+path.getCanonicalPath()+"]");
             } catch (Exception ex) {}
         }
     }
@@ -1758,7 +2011,7 @@ public class UIRegistry
      */
     public static String getDefaultMobileEmbeddedDBPath()
     {
-        dumpCanonicalPath("getMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR);
+        dumpCanonicalPath("getDefaultMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR);
         return UIRegistry.getDefaultWorkingPath() + File.separator + EMBEDDED_DB_DIR;
     }
     
@@ -1768,17 +2021,30 @@ public class UIRegistry
      */
     public static String getDefaultMobileEmbeddedDBPath(final String dbName)
     {
-        dumpCanonicalPath("getMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + dbName);
-        return UIRegistry.getDefaultWorkingPath() + File.separator + dbName;
+        dumpCanonicalPath("getDefaultMobileEmbeddedDBPath", UIRegistry.getDefaultWorkingPath() + File.separator + dbName);
+        
+        String path = UIRegistry.getDefaultWorkingPath();
+        
+        String mobileRelativePath = System.getProperty("mobilesrcdir");
+        if (StringUtils.isNotEmpty(mobileRelativePath))
+        {
+            if (!path.endsWith(File.separator) && !mobileRelativePath.startsWith(File.separator))
+            {
+                path += File.separator;
+            }
+            path += mobileRelativePath;
+        }
+        
+        return path + File.separator + dbName;
     }
     
     /**
      * Sets the path to the embedded DB.
      * @param path the path.
      */
-    public static void setMobileEmbeddedDBDir(final String path)
+    public static void setMobileEmbeddedDBPath(final String path)
     {
-        dumpCanonicalPath("setMobileEmbeddedDBDir", path);
+        dumpCanonicalPath("setMobileEmbeddedDBPath", path);
 
         if (StringUtils.isNotEmpty(path))
         {
@@ -1972,8 +2238,18 @@ public class UIRegistry
         instance.actionMap.get(PASTE).setEnabled(enable);
     }
 
+    /**
+     * @param actionClass
+     * @param owner
+     * @param name
+     * @param icon
+     * @param toolTip
+     * @param mnemonicKeyCode
+     * @param acceleratorKey
+     * @return
+     */
     @SuppressWarnings("unchecked")
-    public Action makeAction(Class actionClass,
+    public Action makeAction(Class<?> actionClass,
                              Object owner,
                              String name,
                              ImageIcon icon,
@@ -1984,7 +2260,7 @@ public class UIRegistry
         Action a = null;
         try
         {
-            Constructor c;
+            Constructor<?> c;
             if (owner != null)
             {
                 // If the class is an inner class, its constuctor takes a hidden
@@ -2008,7 +2284,7 @@ public class UIRegistry
             try
             {
                 // Output a list of constructors available for this class.
-                Constructor[] cc = actionClass.getConstructors();
+                Constructor<?>[] cc = actionClass.getConstructors();
                 for (int i = 0; i < cc.length; i++)
                 {
                     System.err.println(cc[i].toString());
@@ -2021,6 +2297,15 @@ public class UIRegistry
         return a;
     }
 
+    /**
+     * @param action
+     * @param name
+     * @param icon
+     * @param toolTip
+     * @param mnemonicKeyCode
+     * @param acceleratorKey
+     * @return
+     */
     public Action makeAction(Action    action,
                              String    name,
                              ImageIcon icon,

@@ -19,6 +19,7 @@
 */
 package edu.ku.brc.specify.datamodel;
 
+import java.io.File;
 import java.lang.ref.SoftReference;
 
 import javax.persistence.Column;
@@ -45,6 +46,7 @@ import javax.swing.ImageIcon;
 @org.hibernate.annotations.Entity(dynamicInsert = true, dynamicUpdate = true)
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "workbenchrowimage")
+@SuppressWarnings("serial")
 public class WorkbenchRowImage implements java.io.Serializable, Comparable<WorkbenchRowImage>
 {
     protected Integer         workbenchRowImageId;
@@ -185,7 +187,7 @@ public class WorkbenchRowImage implements java.io.Serializable, Comparable<Workb
     @Transient
     public ImageIcon getFullSizeImage()
     {
-        if (cardImageData != null && cardImageFullPath != null && cardImageFullPath.length()>0)
+        if (cardImageData != null && cardImageFullPath != null && cardImageFullPath.length() > 0)
         {
             ImageIcon fullSizeImage = null;
             
@@ -196,9 +198,32 @@ public class WorkbenchRowImage implements java.io.Serializable, Comparable<Workb
             }
             
             // if the image is still null, reload the SoftReference
-            if (fullSizeImage == null)
+            if (fullSizeImage == null || fullSizeImage.getIconWidth() == -1)
             {
-                ImageIcon iconImage = new ImageIcon(cardImageFullPath);
+                ImageIcon iconImage = null;
+                
+                File file = new File(cardImageFullPath);
+                if (file.exists())
+                {
+                    iconImage = new ImageIcon(cardImageFullPath);
+                    if (iconImage == null || iconImage.getIconHeight() == -1)
+                    {
+                        try
+                        {
+                            iconImage = new ImageIcon(cardImageData);
+                        } catch (Exception ex)
+                        {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+                
+                if (iconImage == null || iconImage.getIconHeight() == -1)
+                {
+                    fullSizeImageSR = null;
+                    return null;
+                }
+                
                 fullSizeImageSR = new SoftReference<ImageIcon>(iconImage);
             }
             
@@ -223,11 +248,10 @@ public class WorkbenchRowImage implements java.io.Serializable, Comparable<Workb
      */
     public int compareTo(WorkbenchRowImage o)
     {
-        if (o == null)
+        if (imageOrder != null && o != null && o.imageOrder != null)
         {
-            return 1;
+            return imageOrder.compareTo(o.imageOrder);
         }
-        
-        return this.getImageOrder().compareTo(o.getImageOrder());
+        return 0;
     }
 }

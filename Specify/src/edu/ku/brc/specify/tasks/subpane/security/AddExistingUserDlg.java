@@ -19,20 +19,20 @@
 */
 package edu.ku.brc.specify.tasks.subpane.security;
 
+import static edu.ku.brc.ui.UIRegistry.getMostRecentWindow;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-
-import org.apache.log4j.Logger;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -57,24 +57,21 @@ import edu.ku.brc.ui.UIHelper;
 @SuppressWarnings("serial")
 public class AddExistingUserDlg extends CustomDialog
 {
-    private static final Logger log = Logger.getLogger(AddExistingUserDlg.class);
-    
     final private String AED = "AddExistingUserDlg.";
     
-    private JList      userList;
-    private SpPrincipal group;
+    private JList             userList;
+    private List<SpPrincipal> groups;
     
     /**
      * @param parentDlg
      * @param group
      */
-    public AddExistingUserDlg(final CustomDialog parentDlg, 
-                              final SpPrincipal  group) 
+    public AddExistingUserDlg(final List<SpPrincipal> groups) 
     {
-        super(parentDlg, getResourceString("AddExistingUserDlg.TITLE"), true, OKCANCEL, null);
+        super((Frame)getMostRecentWindow(), getResourceString("AddExistingUserDlg.TITLE"), true, OKCANCEL, null);
         //helpContext = "SECURITY_EXIST_USR";
         
-        this.group  = group;
+        this.groups     = groups;
     }
     
     /* (non-Javadoc)
@@ -86,10 +83,10 @@ public class AddExistingUserDlg extends CustomDialog
         super.createUI();
         
         CellConstraints cc = new CellConstraints();
-        PanelBuilder mainPB = new PanelBuilder( new FormLayout("f:p:g", "p,5px,f:min(400px;p):g,2dlu,p"));
+        PanelBuilder mainPB = new PanelBuilder( new FormLayout("f:p:g", "p,5px,f:p:g,2dlu,p"));
         
         // lay out controls on panel
-        mainPB.addSeparator(getResourceString(AED+"SEL_ADD"), cc.xy(1, 1));
+        mainPB.addSeparator(getResourceString(AED+"SEL_ADD"), cc.xy(1, 1)); // I18N
 
         userList = createUserList();
         mainPB.add(UIHelper.createScrollPane(userList, true), cc.xy(1, 3));
@@ -106,40 +103,47 @@ public class AddExistingUserDlg extends CustomDialog
     /**
      * Gets a list of SpecifyUser ids that are in the group or out of the group
      * @param groupId the primary key id of the group
-     * @param groupType the type of group
      * @param inGroup whether the user are in the group or out
      * @return the list of users (never null)
      */
     @SuppressWarnings("unchecked")
-    private static List<SpecifyUser> getUsers(final int     groupId, 
-                                              final boolean inGroup)
+    public static List<SpecifyUser> getUsers(final List<SpPrincipal> groups)
     {
-        String sql = "SELECT DISTINCT u.SpecifyUserID FROM specifyuser u INNER JOIN specifyuser_spprincipal upr ON u.SpecifyUserID = upr.SpecifyUserID " +
-                     "INNER JOIN spprincipal p ON upr.SpPrincipalID = p.SpPrincipalID WHERE p.SpPrincipalID " + 
-                     (inGroup ? "= " : "<> ") + groupId;
-        
-        log.debug(sql);
-        
-        ArrayList<Integer> ids = new ArrayList<Integer>();
-        
-        Vector<Object> rows = BasicSQLUtils.querySingleCol(sql);
-        for (Object objId : rows)
+        StringBuilder usedIds = new StringBuilder();
+        for (SpPrincipal grp : groups)
         {
-            sql = "SELECT COUNT(u.SpecifyUserID) FROM specifyuser u INNER JOIN specifyuser_spprincipal upr ON u.SpecifyUserID = upr.SpecifyUserID " +
-                  "INNER JOIN spprincipal p ON upr.SpPrincipalID = p.SpPrincipalID WHERE p.SpPrincipalID = " + groupId + " AND u.SpecifyUserID = " + objId;
-            log.debug(sql);
-            Integer count = BasicSQLUtils.getCount(sql);
-            if (count != null && count == 0)
+            if (usedIds.length() != 0) usedIds.append(',');
+            usedIds.append(grp.getId());
+        }
+        
+        // Get all the Users in this Collection
+        String sql = "SELECT DISTINCT u.SpecifyUserID FROM specifyuser u INNER JOIN specifyuser_spprincipal upr ON u.SpecifyUserID = upr.SpecifyUserID " +
+                     "INNER JOIN spprincipal p ON upr.SpPrincipalID = p.SpPrincipalID WHERE p.SpPrincipalID in (" + usedIds.toString() + ")";
+        
+        HashSet<Integer> usersHash = new HashSet<Integer>();
+        Vector<Integer> ids = BasicSQLUtils.queryForInts(sql);
+        for (Integer id : ids)
+        {
+            usersHash.add(id);
+        }
+        
+        sql = "SELECT DISTINCT u.SpecifyUserID FROM specifyuser u INNER JOIN specifyuser_spprincipal upr ON u.SpecifyUserID = upr.SpecifyUserID " +
+              "INNER JOIN spprincipal p ON upr.SpPrincipalID = p.SpPrincipalID WHERE NOT (p.SpPrincipalID in (" + usedIds.toString() + "))";
+
+        HashSet<Integer> usersOKHash = new HashSet<Integer>();
+        for (Integer id : BasicSQLUtils.queryForInts(sql))
+        {
+            if (!usersHash.contains(id))
             {
-                ids.add((Integer)objId);
+                usersOKHash.add(id);
             }
         }
         
-        if (ids.size() > 0)
+        if (usersOKHash.size() > 0)
         {
             StringBuilder sb = new StringBuilder("FROM SpecifyUser WHERE id in (");
             int i = 0;
-            for (Integer id : ids)
+            for (Integer id : usersOKHash)
             {
                 if (i != 0) sb.append(',');
                 sb.append(id);
@@ -150,8 +154,6 @@ public class AddExistingUserDlg extends CustomDialog
             DataProviderSessionIFace session   = DataProviderFactory.getInstance().createSession();
             try
             {
-                log.debug(sb.toString());
-                
                 return (List<SpecifyUser>)session.getDataList(sb.toString());
                 
             } catch (Exception ex)
@@ -175,7 +177,7 @@ public class AddExistingUserDlg extends CustomDialog
         DataProviderSessionIFace session   = DataProviderFactory.getInstance().createSession();
         try
         {
-            for (SpecifyUser user : getUsers(group.getUserGroupId(), false))
+            for (SpecifyUser user : getUsers(groups))
             {
                 listModel.addElement(user);
             }
@@ -192,12 +194,9 @@ public class AddExistingUserDlg extends CustomDialog
         if (listEmpty)
         {
             listModel.addElement(getResourceString(AED+"GRP_ALL"));
-            okBtn.setEnabled(false);
         }
         JList usrList = new JList(listModel);
         usrList.setEnabled(!listEmpty);
-        
-        usrList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         
         usrList.addMouseListener(new MouseAdapter()
         {
@@ -218,17 +217,25 @@ public class AddExistingUserDlg extends CustomDialog
      * Returns the selected user, if OK button was clicked. Returns null if no user was selected.
      * @return the selected user, if OK button was clicked. Returns null if no user was selected.
      */
-    public SpecifyUser getSelectedUser() 
+    public SpecifyUser[] getSelectedUsers() 
     {
         DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
         try
         {
-            SpecifyUser selectedUser = (SpecifyUser)userList.getSelectedValue();
-            if (btnPressed == OK_BTN && selectedUser != null) 
+            Object[] objs = userList.getSelectedValues();
+            final int n = objs.length;
+            if (btnPressed == OK_BTN && n > 0) 
             {
-                session.attach(selectedUser);
-                selectedUser.getSpPrincipals().size(); // Force load of the principals
-                return selectedUser;
+                SpecifyUser[] selectedUsers = new SpecifyUser[n];
+                for (int i = 0; i <  n ; i++) 
+                {
+                    selectedUsers[i] = (SpecifyUser)objs[i];
+                    
+                    session.attach( selectedUsers[i]);
+                    selectedUsers[i].getSpPrincipals().size();
+    
+                }
+                return selectedUsers;
             }
         
         } catch (Exception ex)
@@ -239,6 +246,6 @@ public class AddExistingUserDlg extends CustomDialog
         {
             session.close();
         }
-        return null;
+        return new SpecifyUser[0];
     }
 }

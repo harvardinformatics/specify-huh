@@ -20,9 +20,18 @@
 package edu.ku.brc.specify.config;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -36,14 +45,23 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.ku.brc.af.core.AppContextMgr;
+import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.ui.forms.formatters.DataObjFieldFormatMgr;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.specify.datamodel.CollectingEvent;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Collector;
+import edu.ku.brc.specify.datamodel.Determination;
+import edu.ku.brc.specify.datamodel.Taxon;
+import edu.ku.brc.specify.datamodel.TaxonTreeDef;
 import edu.ku.brc.specify.tasks.subpane.wb.WorkbenchJRDataSource;
+import edu.ku.brc.ui.UIRegistry;
+import edu.ku.brc.util.DateConverter;
 import edu.ku.brc.util.LatLonConverter;
+import edu.ku.brc.util.Triple;
 
 /*
  * @code_status Unknown (auto-generated)
@@ -55,7 +73,17 @@ public class Scriptlet extends JRDefaultScriptlet
 {
     private static final Logger log = Logger.getLogger(Scriptlet.class);
     
+    private static final String SCRPLT_N = "SCRPLT_N";
+    private static final String SCRPLT_S = "SCRPLT_S";
+    private static final String SCRPLT_E = "SCRPLT_E";
+    private static final String SCRPLT_W = "SCRPLT_W";
+    
+    
     protected UIFieldFormatterIFace catalogFormatter = AppContextMgr.getInstance().getFormatter("CollectionObject", "CatalogNumber");
+    DateConverter dateConverter = new DateConverter();
+    
+    protected final static String stdFormat = "yyyy-MM-dd";
+    protected HashMap<String, SimpleDateFormat> dateFormatHash = new HashMap<String, SimpleDateFormat>();
 
     /**
      * beforeReportInit.
@@ -196,18 +224,47 @@ public class Scriptlet extends JRDefaultScriptlet
     }
 
     /**
-     * Formats a float to a string with "N","S","E", "W".
-     * @param floatVal the float value
+     * Formats a Float to a string with "N","S","E", "W".
+     * @param floatVal the Float value
      * @param isLat whether it is a lat or lon
      * @return Formats a float to a string with "N","S","E", "W"
      */
-    public String getDirChar(Float floatVal, boolean isLat)
+    public String getDirChar(final Float floatVal, final boolean isLat)
     {
         if (floatVal == null) { return ""; }
 
+        String key;
         if (isLat)
-            return floatVal.floatValue() > 0.0 ? "N" : "S";
-        else return floatVal.floatValue() > 0.0 ? "E" : "W";
+        {
+            key = floatVal.floatValue() > 0.0 ? SCRPLT_N : SCRPLT_S;
+        } else
+        {
+            key = floatVal.floatValue() > 0.0 ? SCRPLT_E : SCRPLT_W;
+        }
+        return UIRegistry.getResourceString(key);
+    }
+    
+    
+
+    /**
+     * Formats a BigDecimal to a string with "N","S","E", "W".
+     * @param bdValue the float value
+     * @param isLat whether it is a lat or lon
+     * @return Formats a float to a string with "N","S","E", "W"
+     */
+    public String getDirChar(final BigDecimal bdValue, final boolean isLat)
+    {
+        if (bdValue == null) { return ""; }
+
+        String key;
+        if (isLat)
+        {
+            key = bdValue.floatValue() > 0.0 ? SCRPLT_N : SCRPLT_S;
+        } else
+        {
+            key = bdValue.floatValue() > 0.0 ? SCRPLT_E : SCRPLT_W;
+        }
+        return UIRegistry.getResourceString(key);
 
     }
 
@@ -217,10 +274,10 @@ public class Scriptlet extends JRDefaultScriptlet
      * @param isLat whether it is a lat or lon
      * @return Formats a String as a float with "N","S","E", "W"
      */
-    public String getDirChar(String floatVal, boolean isLat)
+    public String getDirChar(final String strVal, final boolean isLat)
     {
-        if (floatVal == null) { return ""; }
-        return getDirChar(new Float(Float.parseFloat(floatVal)), isLat);
+        if (strVal == null) { return ""; }
+        return getDirChar(new Float(Float.parseFloat(strVal)), isLat);
     }
 
     /**
@@ -249,11 +306,11 @@ public class Scriptlet extends JRDefaultScriptlet
     /**
      * Formats a String with a float value as a degrees.
      * @param floatStr
-     * @param isLat inidcates whether it is a latitude or a longitude
+     * @param isLat indicates whether it is a latitude or a longitude
      * @return Formats a String with a float value as a degrees
      * @throws JRScriptletException XXX
      */
-    public String degrees(String floatStr, boolean isLat) throws JRScriptletException
+    public String degrees(final String floatStr, final boolean isLat) throws JRScriptletException
     {
         return "Not Implemented!";//degrees(new Float(Float.parseFloat(floatStr)), isLat);
     }
@@ -312,13 +369,22 @@ public class Scriptlet extends JRDefaultScriptlet
     {
         return fieldNumber == null ? "" : fieldNumber;
     }
+    
+    /**
+     * @param format
+     * @return
+     */
+    public String getCurrentDate(final String format)
+    {
+        return formatDate(new Date(System.currentTimeMillis()), format);
+    }
 
     /**
-     * Creates the category string wich is either "LOAN" or "GIFT"
+     * Creates the category string which is either "LOAN" or "GIFT"
      * @param isGift
      * @return "LOAN" if isGift is null else "GIFT"
      */
-    public String loanCategory(Boolean isGift)
+    public String loanCategory(final Boolean isGift)
     {
         if (isGift)
         {
@@ -328,21 +394,240 @@ public class Scriptlet extends JRDefaultScriptlet
     }
 
     /**
+     * @param text
+     * @return text with characters such as '&' replaced by their html codes.
+     * 
+     * Currently only replaces '&'.
+     * 
+     */
+    public String escapeForHtml(final String text)
+    {
+    	String[] subs = {"&", "&amp;"};
+    	String result = text;
+    	for (int s = 0; s < subs.length; s+=2)
+    	{
+    		result = result.replaceAll(subs[s], subs[s+1]);
+    	}
+    	return result;
+    }
+    
+    
+    /**
+     * @param catalogNumber
+     * @return for specimen indicated by catalogNumber, the Collector with the lowest orderNumber in the default Collector format.
+     */
+    public String getFirstCollector(final Object catalogNumber)
+    {
+        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+        try
+        {
+        	String result = "";
+            UIFieldFormatterIFace formatter = DBTableIdMgr.getInstance().getInfoById(CollectionObject.getClassTableId()).getFieldByName("catalogNumber").getFormatter();
+            Object dbCatNum = formatter.formatFromUI(catalogNumber);
+            List<?> list = session.getDataList(CollectionObject.class, "catalogNumber", dbCatNum);
+        	if (list.size() > 0)
+        	{
+        		CollectingEvent ce = (CollectingEvent )((CollectionObject )list.get(0)).getCollectingEvent();
+        		Set<Collector> collectors = ce.getCollectors();
+        		if (collectors.size() > 0)
+        		{
+        			Collector firstCollector = null;
+        			for (Collector collector : collectors)
+        			{
+        				if (firstCollector == null || collector.getOrderNumber() < firstCollector.getOrderNumber())
+        				{
+        					firstCollector = collector;
+        				}
+        			}
+        			if (firstCollector != null)
+        			{
+        				result = DataObjFieldFormatMgr.getInstance().format(firstCollector, Collector.class);
+        			}
+        		} else
+        		{
+        			result = "";
+        		}
+        	} else
+        	{
+        		log.error("Couldn't locate CatalogNumber [" + catalogNumber + "]");
+        	}
+        		return result;
+        } finally
+        {
+        	session.close();
+        }
+    }
+    
+    /**
+     * @param catalogNumber
+     * @return for specimen indicated by catalogNumber, the Collectors (excluding the first Collector formatted by the default Collector aggregator.
+     */
+    public String getSecondaryCollectors(final Object catalogNumber)
+    {
+        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+        try
+        {
+        	String result = "";
+            UIFieldFormatterIFace formatter = DBTableIdMgr.getInstance().getInfoById(CollectionObject.getClassTableId()).getFieldByName("catalogNumber").getFormatter();
+            Object dbCatNum = formatter.formatFromUI(catalogNumber);
+            List<?> list = session.getDataList(CollectionObject.class, "catalogNumber", dbCatNum);
+        	if (list.size() > 0)
+        	{
+        		CollectingEvent ce = (CollectingEvent )((CollectionObject )list.get(0)).getCollectingEvent();
+        		Set<Collector> collectors = ce.getCollectors();
+        		if (collectors.size() > 1)
+        		{
+        			Collector firstCollector = null;
+        			for (Collector collector : collectors)
+        			{
+        				if (firstCollector == null || collector.getOrderNumber() < firstCollector.getOrderNumber())
+        				{
+        					firstCollector = collector;
+        				}
+        			}
+        			if (firstCollector != null)
+        			{
+        				collectors.remove(firstCollector);
+        				Vector<Collector> sortedCollectors = new Vector<Collector>(collectors);
+        				Collections.sort(sortedCollectors, new Comparator<Collector>(){
+
+							/* (non-Javadoc)
+							 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+							 */
+							@Override
+							public int compare(Collector arg0, Collector arg1) {
+								Integer order0 = arg0.getOrderNumber() != null ? arg0.getOrderNumber() : -1;;
+								Integer order1 = arg1.getOrderNumber() != null ? arg1.getOrderNumber() : -1;
+								return order0.compareTo(order1);
+							}
+        					
+        				});
+        				result = DataObjFieldFormatMgr.getInstance().aggregate(collectors, Collector.class);
+        			}
+        		} else
+        		{
+        			result = "";
+        		}
+        	} else
+        	{
+        		log.error("Couldn't locate CatalogNumber [" + catalogNumber + "]");
+        	}
+        		return result;
+        } finally
+        {
+        	session.close();
+        }
+    }
+
+    /**
      * Builds the shipped to agent's name string.
      * @param firstName
      * @param lastName
      * @param middleInitial
      */
-    public String buildNameString(String firstName, String lastName, String middleInitial)
+    public String buildNameString(final String firstName, final String lastName, final String middleInitial)
     {
-        String name = lastName + ", " + firstName;
-        if (middleInitial != null)
+        String name = StringUtils.isNotEmpty(lastName) ? lastName : "";
+        if (StringUtils.isNotEmpty(firstName))
         {
-            name += " " + middleInitial;
+            name += (name.length() > 0 ? ", " : "") + firstName;
+        }
+        if (StringUtils.isNotEmpty(middleInitial))
+        {
+            name += (name.length() > 0 ? " " : "") + middleInitial;
         }
         return name;
     }
 
+    /**
+     * @param collectionObjectId
+     * @return string giving type status for determinations for collectionObjectId. Returns "" if no type determinations exist.
+     * 
+     */
+    public String getTypeStatus(final Integer collectionObjectId)
+    {
+    	DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+    	String result = "";
+        try
+        {
+        	if (collectionObjectId != null)
+        	{        	
+        		List<Determination> list = session.getDataList(Determination.class, "collectionObject", 
+        				session.get(CollectionObject.class, collectionObjectId));        
+        		for (Determination d : list)
+        		{
+        			if (d.getTypeStatusName() != null)
+        			{
+        				if (!result.equals(""))
+        				{
+        					result += ", ";
+        				}
+        				result += d.getTypeStatusName();
+        			}
+        		}
+        	}         
+        } finally 
+        {
+        	session.close();
+        }
+		return result;
+    }
+    
+    /**
+     * @param collectionObjectId
+     * @return FullTaxonName + Author for type determinations for collectionObjectId. Return "" if no type determinations.
+     * 
+     */
+    public String getTypeTaxon(final Integer collectionObjectId)
+    {
+        DataProviderSessionIFace session = DataProviderFactory.getInstance().createSession();
+     	String result = "";
+        try
+        {
+        	if (collectionObjectId != null)
+        	{
+				List<Determination> list = session.getDataList(Determination.class, "collectionObject",
+						session.get(CollectionObject.class, collectionObjectId));
+				for (Determination d : list)
+				{
+					if (d.getTypeStatusName() != null)
+					{
+						Taxon t = null;
+						if (d.getTaxon() != null)
+						{
+							t = session
+									.getData(
+											Taxon.class,
+											"taxonId",
+											d.getTaxon().getId(),
+											DataProviderSessionIFace.CompareType.Equals);
+						}
+						if (t != null)
+						{
+							if (!result.equals(""))
+							{
+								result += ", ";
+							}
+							result += t.getFullName();
+							if  (t.getAuthor() != null)
+							{
+								result += " " + t.getAuthor();
+							}
+						} else
+						{
+							log.error("Couldn't locate taxon [" + d.getTaxon()
+									+ "]");
+						}
+					}
+				}
+        	}        
+        	} finally 
+        {
+        	session.close();
+        }
+		return result;
+    }
+    
     /**
      * Builds the locality string.
      * @param geoName - the geography place name (country, state)
@@ -350,10 +635,10 @@ public class Scriptlet extends JRDefaultScriptlet
      * @param latitude - latitude
      * @param longitude - longitude
      */
-    public String buildLocalityString(String geoName,
-                                      String localityName,
-                                      String latitude,
-                                      String longitude)
+    public String buildLocalityString(final String geoName,
+                                      final String localityName,
+                                      final String latitude,
+                                      final String longitude)
     {
         String locality = "";
 
@@ -389,7 +674,8 @@ public class Scriptlet extends JRDefaultScriptlet
      */
     public String dateDifference(java.sql.Date startDate, java.sql.Date endDate)
     {
-        String loanLength = "N/A";
+        String loanLength = UIRegistry.getResourceString("NA");
+        
         if (startDate != null && endDate != null)
         {
             Calendar startCal = Calendar.getInstance();
@@ -405,9 +691,48 @@ public class Scriptlet extends JRDefaultScriptlet
                 monthCount++;
             }
 
-            loanLength = monthCount + " months"; // I18N
+            loanLength = String.format(UIRegistry.getResourceString("SCRPLT_MON_LEN"), monthCount);
         }
         return loanLength;
+    }
+    
+    public String dateStringDifference(String startDate, String endDate)
+    {
+    	try
+    	{
+    		return dateDifference(new java.sql.Date(dateConverter.convert(startDate).getTimeInMillis()),
+    			new java.sql.Date(dateConverter.convert(endDate).getTimeInMillis()));
+    	} catch (ParseException pex)
+    	{
+    		return UIRegistry.getResourceString("NA");
+    	}
+    }
+    
+    /**
+     * @param date
+     * @param format
+     * @return
+     */
+    public String formatDate(final Date date, final String format)
+    {
+        String           fmtStr = StringUtils.isNotEmpty(format) ? format : stdFormat;
+        SimpleDateFormat sdf    = dateFormatHash.get(fmtStr);
+        if (sdf == null)
+        {
+            sdf = new SimpleDateFormat(fmtStr);
+            dateFormatHash.put(format, sdf);
+        }
+        return sdf.format(date);
+    }
+
+    /**
+     * @param sqlDate
+     * @param format
+     * @return
+     */
+    public String formatDate(final java.sql.Date sqlDate, final String format)
+    {
+        return formatDate((Date)sqlDate, format);
     }
 
     /**
@@ -421,7 +746,7 @@ public class Scriptlet extends JRDefaultScriptlet
         //System.out.println(colEvId);
 
         //DBTableIdMgr.TableInfo tblInfo = DBTableIdMgr.getInstance().lookupByClassName(CollectingEvent.class.getName());
-        String collectorsStr = "N/A"; // XXX I18N
+        String collectorsStr = UIRegistry.getResourceString("NA");
         List<?> list = session.getDataList(CollectingEvent.class, "collectingEventId", colEvId);
         if (list.size() > 0)
         {
@@ -432,7 +757,7 @@ public class Scriptlet extends JRDefaultScriptlet
                 collectorsStr = DataObjFieldFormatMgr.getInstance().aggregate(collectors, Collector.class);
             } else
             {
-                collectorsStr = "No Collectors"; // XXX I18N
+                collectorsStr = UIRegistry.getResourceString("SCRPLT_NO_COLTRS");
             }
 
         } else
@@ -630,6 +955,477 @@ public class Scriptlet extends JRDefaultScriptlet
         labelNames.add("<style isItalic=\"true\">");
 
         return labelNames;
+    }
+    
+    protected static final int Genus                  = 1;
+    protected static final int SpeciesQualifier       = 2;
+    protected static final int Species                = 4;
+    protected static final int SpeciesAuthorFirstName = 8;
+    protected static final int SpeciesAuthorLastName  = 16;
+    protected static final int SubspeciesQualifier    = 32;
+    protected static final int Subspecies             = 64;
+    protected static final int InfraAuthorFirstName   = 128;
+    protected static final int InfraAuthorLastName    = 256;
+    protected static final int VarietyQualifier       = 512;
+    protected static final int Variety                = 1024;
+    
+    protected int mask;
+    protected TaxonInfo info = new TaxonInfo();
+    protected Triple<String, String, String>   cit   = new Triple<String, String, String>();
+    protected Statement stmt = null;
+    
+    protected boolean isOn(final int opt)
+    {
+        return (mask & opt) == opt;
+    }
+    
+    protected void setOn(final int opt)
+    {
+        mask |= opt;
+    }
+    
+    public String formatTaxonWithAuthors(final String genus,
+                                         final String speciesQualifier,
+                                         final String species,
+                                         final String speciesAuthorFirstName,
+                                         final String speciesAuthorLastName,
+                                         final String subspeciesQualifier,
+                                         final String subspecies,
+                                         final String infraAuthorFirstName,
+                                         final String infraAuthorLastName,
+                                         final String varietyQualifier,
+                                         final String variety)
+    {
+        //  1 - Genus
+        //  2 - speciesQualifier
+        //  3 - species
+        //  4 - speciesAuthorFirstName
+        //  5 - speciesAuthorLastName
+        //  6 - subspeciesQualifier
+        //  7 - subspecies
+        //  8 - infraAuthorFirstName
+        //  9 - infraAuthorLastName
+        // 10 - varietyQualifier
+        // 11 - variety
+        
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append(genus); // 1 Genus
+        sb.append(" ");
+        
+        if (isOn(SpeciesQualifier))
+        {
+            sb.append("<style isItalic=\"true\">");
+            sb.append(speciesQualifier); // 2
+            sb.append("</style>");
+            sb.append(" ");
+        }
+        sb.append(species); // 3
+        
+        if (isOn(SpeciesAuthorFirstName) || isOn(SpeciesAuthorLastName))
+        {
+            sb.append(" ");
+            sb.append("<style isItalic=\"true\">(");
+            if (isOn(SpeciesAuthorFirstName))
+            {
+                sb.append(speciesAuthorFirstName); // 4
+                if (isOn(SpeciesAuthorLastName))
+                {
+                    sb.append(" ");  
+                }
+            }
+            if (isOn(SpeciesAuthorLastName))
+            {
+                sb.append(speciesAuthorLastName); // 5
+            }
+            sb.append(")</style>");
+        }
+
+        if (isOn(SubspeciesQualifier))
+        {
+            sb.append(" ");
+            sb.append(subspeciesQualifier); // 6
+        }
+        if (isOn(Subspecies))
+        {
+            sb.append(" subsp. ");
+            sb.append(subspecies); // 7
+        }
+        
+        if (isOn(InfraAuthorFirstName) || isOn(InfraAuthorLastName))
+        {
+            sb.append(" ");
+            sb.append("<style isItalic=\"true\">(");
+            if (isOn(InfraAuthorFirstName))
+            {
+                sb.append(infraAuthorFirstName); // 4
+                if (isOn(InfraAuthorLastName))
+                {
+                    sb.append(" ");  
+                }
+            }
+            if (isOn(InfraAuthorLastName))
+            {
+                sb.append(infraAuthorLastName); // 5
+            }
+            sb.append(")</style>");
+        }
+        
+        if (isOn(VarietyQualifier))
+        {
+            sb.append(" ");  
+            sb.append(varietyQualifier);  // 10
+        }
+        
+        if (isOn(Variety))
+        {
+            sb.append(" var. ");
+            sb.append(variety);  // 11
+        }
+        
+        //System.err.println("----------------------------------------------------------------------------");
+        //System.err.println(sb.toString());
+        
+        return sb.toString();
+    }
+    
+    /**
+     * @param taxonId
+     * @return
+     */
+    protected TaxonInfo getTaxonInfo(final int taxonId)
+    {
+        if (stmt == null)
+        {
+            try
+            {
+                stmt = DBConnection.getInstance().getConnection().createStatement();
+            } catch (SQLException ex)
+            {
+                log.debug(ex);
+            }
+        }
+        
+        ResultSet rs = null;
+        try
+        {
+            rs = stmt.executeQuery("SELECT Name, RankID, ParentID, Author FROM taxon WHERE TaxonID = "+taxonId);
+            if (rs.next())
+            {
+                info.set(rs.getString(1), rs.getInt(2), rs.getInt(3), rs.getString(4));
+            }
+            
+        } catch (SQLException ex)
+        {
+            log.debug(ex);
+            ex.printStackTrace();
+            
+        } finally 
+        {
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                } catch (SQLException ex) {}
+            }
+        }
+        return info;
+    }
+    
+    /**
+     * @param taxonId
+     * @return
+     */
+    protected Triple<String, String, String> getAuthor(final int taxonId)
+    {
+        if (stmt == null)
+        {
+            try
+            {
+                stmt = DBConnection.getInstance().getConnection().createStatement();
+            } catch (SQLException ex)
+            {
+                log.debug(ex);
+            }
+        }
+        
+        ResultSet rs = null;
+        try
+        {
+            String sql = "SELECT r.Title, r.WorkDate, a.FirstName, a.MiddleInitial, a.LastName " +
+                         "FROM taxoncitation ct INNER JOIN referencework r ON ct.ReferenceWorkID = r.ReferenceWorkID " +    
+                         "LEFT JOIN author au ON r.ReferenceWorkID = au.ReferenceWorkID " +
+                         "INNER JOIN agent a ON au.AgentID = a.AgentID WHERE ct.TaxonID = " + taxonId + " ORDER BY au.OrderNumber ASC";
+                        
+            rs = stmt.executeQuery(sql);
+            cit.third = "";
+            while (rs.next())
+            {
+                cit.first  = rs.getString(1);
+                cit.second = rs.getString(2);
+                
+                //String first = rs.getString(3);
+                //String mid   = rs.getString(4);
+                String last  = rs.getString(5);
+                if (StringUtils.isNotEmpty(cit.third)) cit.third += ", ";
+                cit.third += last;
+            }
+            
+        } catch (SQLException ex)
+        {
+            log.debug(ex);
+            ex.printStackTrace();
+            
+        } finally 
+        {
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                } catch (SQLException ex) {}
+            }
+        }
+        return cit;
+    }
+    
+    /**
+     * @param taxonId
+     * @return
+     */
+    protected Triple<String, String, String> getDeterminationQualifiers(final int detId)
+    {
+        if (stmt == null)
+        {
+            try
+            {
+                stmt = DBConnection.getInstance().getConnection().createStatement();
+                
+            } catch (SQLException ex)
+            {
+                log.debug(ex);
+            }
+        }
+        
+        ResultSet rs = null;
+        try
+        {
+            String sql = "SELECT Qualifier, SubSpQualifier, VarQualifier FROM determination WHERE DeterminationID = " + detId;
+            rs = stmt.executeQuery(sql);
+            cit.third = "";
+            while (rs.next())
+            {
+                info.spQualifer    = rs.getString(1);
+                info.subSpQualifer = rs.getString(2);
+                info.varQualifer   = rs.getString(3);
+            }
+            
+        } catch (SQLException ex)
+        {
+            log.debug(ex);
+            ex.printStackTrace();
+            
+        } finally 
+        {
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                } catch (SQLException ex) {}
+            }
+        }
+        return cit;
+    }
+    
+    /**
+     * @param taxonIdArg
+     * @return
+     */
+    public String getTaxonNameWithAuthors(final Integer taxonIdArg, final Integer detIdArg)
+    {
+        int taxonId = taxonIdArg;
+        
+        String genus                  = null;
+        String speciesQualifier       = null;
+        String species                = null;
+        String speciesAuthorFirstName = null;
+        String speciesAuthorLastName  = null;
+        String subspeciesQualifier    = null;
+        String subspecies             = null;
+        String infraAuthorFirstName   = null;
+        String infraAuthorLastName    = null;
+        String varietyQualifier       = null;
+        String variety                = null;
+        
+        mask = 0;
+        
+        info.clear();
+        
+        if (detIdArg != null)
+        {
+            getDeterminationQualifiers(detIdArg);
+            
+            if (StringUtils.isNotEmpty(info.spQualifer))
+            {
+                speciesQualifier = info.spQualifer;
+                setOn(SpeciesQualifier);
+            }
+            if (StringUtils.isNotEmpty(info.subSpQualifer))
+            {
+                subspeciesQualifier = info.subSpQualifer;
+                setOn(SubspeciesQualifier);
+            }
+            if (StringUtils.isNotEmpty(info.varQualifer))
+            {
+                varietyQualifier = info.varQualifer;
+                setOn(VarietyQualifier);
+            }
+        }
+        
+        getTaxonInfo(taxonId);
+        if (info.rankId == TaxonTreeDef.VARIETY)
+        {
+            variety     = info.name;
+            taxonId     = info.parentId;
+            info.rankId = TaxonTreeDef.SUBSPECIES;
+            setOn(Variety);
+        }
+        
+        if (info.rankId == TaxonTreeDef.SUBSPECIES)
+        {
+            getTaxonInfo(taxonId);
+            if (StringUtils.isNotEmpty(info.author))
+            {
+                cit.third = info.author;
+            } else
+            {
+                getAuthor(taxonId);
+            }
+            if (cit.third != null)
+            {
+                infraAuthorLastName = cit.third;
+                setOn(InfraAuthorLastName);
+            }
+            
+            subspecies  = info.name;
+            taxonId     = info.parentId;
+            info.rankId = TaxonTreeDef.SPECIES;
+            setOn(Subspecies);
+        }
+        
+        if (info.rankId == TaxonTreeDef.SPECIES)
+        {
+            getTaxonInfo(taxonId);
+            if (StringUtils.isNotEmpty(info.author))
+            {
+                cit.third = info.author;
+            } else
+            {
+                getAuthor(taxonId);
+            }
+            if (cit.third != null)
+            {
+                speciesAuthorLastName = cit.third;
+                setOn(SpeciesAuthorLastName);
+            }
+            
+            species     = info.name;
+            taxonId     = info.parentId;
+            info.rankId = TaxonTreeDef.GENUS;
+            setOn(Species);
+        }
+        
+        if (info.rankId == TaxonTreeDef.GENUS)
+        {
+            getTaxonInfo(taxonId);
+            
+            genus       = info.name;
+            taxonId     = info.parentId;
+            info.rankId = TaxonTreeDef.SUBSPECIES;
+            setOn(Genus);
+        }
+        
+        if (stmt != null)
+        {
+            try
+            {
+                stmt.close();
+                stmt = null;
+                
+            } catch (SQLException ex) {}
+        }
+        
+        return formatTaxonWithAuthors(genus,
+                                      speciesQualifier,
+                                      species,
+                                      speciesAuthorFirstName,
+                                      speciesAuthorLastName,
+                                      subspeciesQualifier,
+                                      subspecies,
+                                      infraAuthorFirstName,
+                                      infraAuthorLastName,
+                                      varietyQualifier,
+                                      variety);
+    }
+    
+    class TaxonInfo
+    {
+        String  name;
+        Integer rankId;
+        Integer parentId;
+        String  author;
+        
+        // Qualifiers
+        String spQualifer;
+        String subSpQualifer;
+        String varQualifer;
+        
+        /**
+         * 
+         */
+        public TaxonInfo()
+        {
+            super();
+            // TODO Auto-generated constructor stub
+        }
+
+        /**
+         * @param name
+         * @param rankId
+         * @param parentId
+         * @param author
+         */
+        public TaxonInfo(String name, Integer rankId, Integer parentId, String author)
+        {
+            super();
+            this.name = name;
+            this.rankId = rankId;
+            this.parentId = parentId;
+            this.author = author;
+        }
+        
+        public void set(String name, Integer rankId, Integer parentId, String author)
+        {
+            this.name = name;
+            this.rankId = rankId;
+            this.parentId = parentId;
+            this.author = author;
+        }
+        
+        public void clear()
+        {
+            this.name = null;
+            this.rankId = null;
+            this.parentId = null;
+            this.author = null;
+            
+            // Qualifiers
+            spQualifer = null;
+            subSpQualifer = null;
+            varQualifer = null;
+        }
     }
 
 }

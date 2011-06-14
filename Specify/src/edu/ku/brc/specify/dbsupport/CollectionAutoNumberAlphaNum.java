@@ -67,7 +67,7 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
      * @see edu.ku.brc.af.core.db.AutoNumberGeneric#getHighestObject(edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace, org.hibernate.Session, java.lang.String, edu.ku.brc.util.Pair, edu.ku.brc.util.Pair)
      */
     @Override
-    protected Object getHighestObject(final UIFieldFormatterIFace formatter, 
+    protected String getHighestObject(final UIFieldFormatterIFace formatter, 
                                       final Session session, 
                                       final String  value,
                                       final Pair<Integer, Integer> yearPos, 
@@ -81,7 +81,7 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
             yearVal = extractIntegerValue(yearPos, value);
         }
 
-        StringBuilder sb = new StringBuilder(" From CollectionObject c Join c.collection col Join col.numberingSchemes cns WHERE cns.autoNumberingSchemeId = ");
+        StringBuilder sb = new StringBuilder("SELECT c.catalogNumber From CollectionObject c Join c.collection col Join col.numberingSchemes cns WHERE cns.autoNumberingSchemeId = ");
         sb.append(currCollection.getNumberingSchemesByType(CollectionObject.getClassTableId()).getAutoNumberingSchemeId());
         
         if (yearVal != null)
@@ -110,13 +110,11 @@ public class CollectionAutoNumberAlphaNum extends AutoNumberGeneric
             }
             
             String sql = QueryAdjusterForDomain.getInstance().adjustSQL(sb.toString());
-            
             //System.out.println(sql);
             List<?> list = session.createQuery(sql).setMaxResults(1).list();
             if (list.size() == 1)
             {
-                Object[] objArray = (Object[]) list.get(0);
-                return objArray[0];
+                return list.get(0).toString();
             }
         } catch (Exception ex)
         {

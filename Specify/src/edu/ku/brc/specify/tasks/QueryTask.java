@@ -31,9 +31,11 @@ import java.lang.ref.SoftReference;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -91,6 +93,7 @@ import edu.ku.brc.specify.datamodel.SpExportSchemaMapping;
 import edu.ku.brc.specify.datamodel.SpQuery;
 import edu.ku.brc.specify.datamodel.SpReport;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
+import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
 import edu.ku.brc.specify.datamodel.Treeable;
@@ -342,7 +345,23 @@ public class QueryTask extends BaseTask
                 xmlStr = newAppRes.getDataAsString();
             } else
             {
-                xmlStr = "";
+                if (resourceName.equals("QueryFreqList") || resourceName.equals("QueryExtraList"))
+                {
+                    ((SpecifyAppContextMgr)AppContextMgr.getInstance()).addDiskResourceToAppDir(SpecifyAppContextMgr.DISCPLINEDIR, resourceName);
+                    newAppRes = AppContextMgr.getInstance().copyToDirAppRes("Personal", resourceName);
+                    if (newAppRes != null)
+                    {
+                        // Save it in the User Area
+                        AppContextMgr.getInstance().saveResource(newAppRes);
+                        xmlStr = newAppRes.getDataAsString();
+                    } else
+                    {
+                        xmlStr = ""; 
+                    }
+                } else
+                {
+                    xmlStr = "";    
+                }
             }
         }
         
@@ -857,6 +876,11 @@ public class QueryTask extends BaseTask
                 }));
     }
 
+    protected boolean showQueryCreator(final String tblName)
+    {
+        DBTableInfo tbl = DBTableIdMgr.getInstance().getByShortClassName(tblName);
+        return !tbl.isHidden() && (!AppContextMgr.isSecurityOn() || tbl.getPermissions().canView());
+    }
     /**
      * Adds the NavBtns for creating new queries.
      */
@@ -872,8 +896,8 @@ public class QueryTask extends BaseTask
             for (Object obj : tableNodes)
             {
                 String sName = XMLHelper.getAttr((Element)obj, "name", null);
-                if (!AppContextMgr.isSecurityOn() || DBTableIdMgr.getInstance().getByShortClassName(sName).getPermissions().canView())
-                {
+            	if (showQueryCreator(sName))
+            	{
                     stdQueries.add(sName);
                 }
             }
@@ -1472,7 +1496,18 @@ public class QueryTask extends BaseTask
         								.getRepeats());
         			} else
         			{
-        				src = rsm.getRecordSet(null, true);
+        				int[] selectedRows = rsm.getParentERTP().getSelectedRows();
+        				if (selectedRows != null && selectedRows.length == 0)
+        				{
+        					selectedRows = null;
+        				}
+        				if (selectedRows == null)
+        				{
+        					src = (RecordSet )cmdAction.getData();
+        				} else
+        				{
+        					src = rsm.getRecordSet(selectedRows, false);
+        				}
         			}
         			final CommandAction cmd = new CommandAction(
         					ReportsBaseTask.REPORTS, ReportsBaseTask.PRINT_REPORT, src);
@@ -1710,24 +1745,7 @@ public class QueryTask extends BaseTask
                 try
                 {
                    SpecifyAppContextMgr mgr = (SpecifyAppContextMgr )AppContextMgr.getInstance();
-                   //XXX It is no longer to reload the the TreeDefs from the AppContextMgr, Right??
-                   TreeDefIface<?, ?, ?> deadTreeDef = mgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>>) tableInfo.getClassObj());
-                   TreeDefIface<?,?,?> treeDef = null;
-                   DataProviderSessionIFace session = null;
-                   try
-                   {
-                       session = DataProviderFactory.getInstance().createSession();
-                       DataModelObjBase tdObj = (DataModelObjBase )session.get(deadTreeDef.getClass(), deadTreeDef.getTreeDefId());
-                       treeDef = (TreeDefIface )tdObj;
-                       tdObj.forceLoad();
-                   }
-                   finally
-                   {
-                	   if (session != null)
-                	   {
-                		   session.close();
-                	   }
-                   }
+                   TreeDefIface<?, ?, ?> treeDef = mgr.getTreeDefForClass((Class<? extends Treeable<?,?,?>>) tableInfo.getClassObj());
                    
                    SortedSet<TreeDefItemIface<?, ?, ?>> defItems = new TreeSet<TreeDefItemIface<?, ?, ?>>(
                             new Comparator<TreeDefItemIface<?, ?, ?>>()
@@ -1748,9 +1766,18 @@ public class QueryTask extends BaseTask
                         {
                             try
                             {
+                                //newTreeNode.getTableQRI().addField(
+                                //        new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
+                                //                .getRankId()));
                                 newTreeNode.getTableQRI().addField(
                                         new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
-                                                .getRankId()));
+                                                .getRankId(), "name"));
+                                if (defItem instanceof TaxonTreeDefItem)
+                                {
+                                	newTreeNode.getTableQRI().addField(
+                                        new TreeLevelQRI(newTreeNode.getTableQRI(), null, defItem
+                                                .getRankId(), "author"));
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1811,6 +1838,92 @@ public class QueryTask extends BaseTask
     {
     	return "/queries/query"; 
     }
+    
+    /**
+     * @param filePath
+     * @param topNode
+     * @return list queries defined in file.
+     */
+    protected static Vector<SpQuery> getQueriesFromFile(final String filePath, final String topNode)
+    {
+        Vector<SpQuery> queries = new Vector<SpQuery>();
+        try
+        {
+            Element root = XMLHelper.readFileToDOM4J(new File(filePath));
+            for (Object obj : root.selectNodes(topNode))
+            {
+                Element el = (Element)obj;
+                SpQuery query = new SpQuery();
+                query.initialize();
+                query.fromXML(el);
+                query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
+                queries.add(query);
+            }
+            return queries;
+        } catch (Exception ex)
+        {
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
+            ex.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * @param importedQueries
+     * @param existingQueries
+     * 
+     * Modifies imported query names if necessary to ensure uniqueness.
+     */
+    protected static void adjustImportedQueryNames(List<SpQuery> importedQueries, List<String> existingQueries)
+    {
+    	Set<String> names = new HashSet<String>();
+    	names.addAll(existingQueries);
+    	for (SpQuery query : importedQueries)
+        {
+            String origName = query.getName();
+            int    cnt      = 0;
+            String qName    = origName;
+            while (names.contains(qName))
+            {
+                cnt++;
+                qName = origName + cnt;
+            }
+            query.setName(qName);
+            names.add(qName);
+        }
+    }
+    
+    /**
+     * @param filePath
+     * @return true if successful
+     * 
+     * imports all queries from file
+     */
+    protected static boolean importQueries(final String filePath)
+    {
+    	Vector<SpQuery> queries = getQueriesFromFile(filePath, "/queries/query");
+        Vector<String> names = new Vector<String>(); 
+        DataProviderSessionIFace session = null;
+        try
+        {
+            session = DataProviderFactory.getInstance().createSession();
+        	List<SpQuery> qs = session.getDataList(SpQuery.class);
+        	for (SpQuery q : qs)
+        	{
+        		names.add(q.getName());
+        	}
+        } finally 
+        {
+        	if (session != null)
+        	{
+        		session.close();
+        	}
+        }
+        adjustImportedQueryNames(queries, names);
+        return DataModelObjBase.save(true, queries);
+    }
+    
     /**
      * 
      */
@@ -1835,27 +1948,7 @@ public class QueryTask extends BaseTask
         path = dirStr + fileName;
         AppPreferences.getLocalPrefs().put(XML_PATH_PREF, path);
         
-        Vector<SpQuery> queries = new Vector<SpQuery>();
-        try
-        {
-        
-            Element root = XMLHelper.readFileToDOM4J(new File(path));
-            for (Object obj : root.selectNodes(getTopLevelNodeSelector()))
-            {
-                Element el = (Element)obj;
-                SpQuery query = new SpQuery();
-                query.initialize();
-                query.fromXML(el);
-                query.setSpecifyUser(AppContextMgr.getInstance().getClassObject(SpecifyUser.class));
-                queries.add(query);
-            }
-        } catch (Exception ex)
-        {
-            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(QueryTask.class, ex);
-            ex.printStackTrace();
-            return;
-        }
+        Vector<SpQuery> queries = getQueriesFromFile(path, getTopLevelNodeSelector());
         
         ToggleButtonChooserDlg<SpQuery> dlg = new ToggleButtonChooserDlg<SpQuery>((Frame)UIRegistry.getMostRecentWindow(),
                 "QY_IMPORT_QUERIES",
@@ -1874,24 +1967,12 @@ public class QueryTask extends BaseTask
             return;
         }
         
-        Hashtable<String, Boolean> namesHash = new Hashtable<String, Boolean>();
+        Vector<String> names = new Vector<String>();
         for (NavBoxItemIFace nbi : navBox.getItems())
         {
-            namesHash.put(nbi.getTitle(), true);
+            names.add(nbi.getTitle());
         }
-        
-        for (SpQuery query : queriesList)
-        {
-            String origName = query.getName();
-            int    cnt      = 0;
-            String qName    = origName;
-            while (namesHash.get(qName) != null)
-            {
-                cnt++;
-                qName = origName + cnt;
-            }
-            query.setName(qName);
-        }
+        adjustImportedQueryNames(queries, names);
         
         if (saveImportedQueries(queriesList))
         {
@@ -2019,7 +2100,12 @@ public class QueryTask extends BaseTask
             dlg.setHelpContext(getExportHelpContext());
             UIHelper.centerAndShow(dlg);
             selectedList = dlg.getSelectedObjects();
+            if (dlg.isCancelled() || selectedList.size() == 0)
+            {
+            	return;
+            }
         }
+        
         
         String path = AppPreferences.getLocalPrefs().get(XML_PATH_PREF, null);
         
@@ -2146,7 +2232,8 @@ public class QueryTask extends BaseTask
 	@Override
 	public PermissionEditorIFace getPermEditorPanel()
 	{
-		return new BasicPermisionPanel("QueryTask.PermTitle", "QueryTask.PermEnable", null, null, null);
+		return new BasicPermisionPanel("QueryTask.PermTitle", "QueryTask.PermEnable", null, 
+				null, null);
 	}
 
 

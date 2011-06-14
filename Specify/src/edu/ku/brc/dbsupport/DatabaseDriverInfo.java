@@ -106,7 +106,7 @@ public class DatabaseDriverInfo implements Comparable<DatabaseDriverInfo>
         {
             dataDir = new File(dataDir).getAbsolutePath();
             
-            log.debug(dataDir);
+            //log.debug(dataDir);
             return StringUtils.replace(connStr, "DATADIR",  dataDir); //$NON-NLS-1$
         }
         return connStr;
@@ -231,6 +231,27 @@ public class DatabaseDriverInfo implements Comparable<DatabaseDriverInfo>
     public String getPort()
     {
         return port;
+    }
+
+    public Integer getPortAsInt()
+    {
+        return port != null && StringUtils.isNumeric(this.port) ? Integer.parseInt(this.port) : null;
+    }
+
+    /**
+     * @param port the port to set
+     */
+    public void setPort(String port)
+    {
+        this.port = port;
+    }
+
+    /**
+     * @param port the port to set
+     */
+    public void setPort(Integer port)
+    {
+        this.port = port != null ? port.toString() : null;
     }
 
     /**

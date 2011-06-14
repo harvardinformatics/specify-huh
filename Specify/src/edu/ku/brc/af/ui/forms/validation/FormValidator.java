@@ -34,7 +34,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 
 import org.apache.commons.jexl.Expression;
 import org.apache.commons.jexl.JexlContext;
@@ -593,7 +593,7 @@ public class FormValidator implements ValidationListener, DataChangeListener
      * @param valStr the validation rule where the subject is its name
      * @param changeListenerOnly indicates whether to create a validator
      */
-    public void hookupTextField(final JTextField       textField,
+    public void hookupTextField(final JTextComponent   textField,
                                 final String           id,
                                 final boolean          isRequiredArg,
                                 final UIValidator.Type valType,
@@ -605,32 +605,39 @@ public class FormValidator implements ValidationListener, DataChangeListener
 
         UIValidator.Type type = isRequiredArg ? UIValidator.Type.Changed : valType;
 
-        UIValidator uiv;
+        UIValidator uiv = null;
         if (StringUtils.isEmpty(valStr))
         {
-            uiv = createValidator(textField, valType);
+            if (valType != UIValidator.Type.None)
+            {
+                uiv = createValidator(textField, valType);
+            }
         } else
         {
             uiv = changeListenerOnly ? null : createValidator(textField, type, valStr);
         }
-        DataChangeNotifier dcn = new DataChangeNotifier(id, textField, uiv);
-        dcn.addDataChangeListener(this);
-
-        dcNotifiers.put(id, dcn);
-
-        if (type == UIValidator.Type.Changed || isRequiredArg || changeListenerOnly)
+        
+        if (uiv != null)
         {
-            textField.getDocument().addDocumentListener(dcn);
-
-        } else if (type == UIValidator.Type.Focus)
-        {
-            textField.addFocusListener(dcn);
-
-        } else
-        {
-           // Do nothing for UIValidator.Type.OK
+            DataChangeNotifier dcn = new DataChangeNotifier(id, textField, uiv);
+            dcn.addDataChangeListener(this);
+    
+            dcNotifiers.put(id, dcn);
+    
+            if (type == UIValidator.Type.Changed || isRequiredArg || changeListenerOnly)
+            {
+                textField.getDocument().addDocumentListener(dcn);
+    
+            } else if (type == UIValidator.Type.Focus)
+            {
+                textField.addFocusListener(dcn);
+    
+            } else
+            {
+               // Do nothing for UIValidator.Type.OK
+            }
         }
-
+        
         addRuleObjectMapping(id, textField);
     }
 
@@ -1003,6 +1010,13 @@ public class FormValidator implements ValidationListener, DataChangeListener
         }
     }
     
+    /**
+     * IMPORTANT CHANGE: rods 05/04/11 will now only cascade upwards
+     * when the parent is false and the child is true. It use to 
+     * cascade false up through the parents.
+     * 
+     * @param changed true/false
+     */
     protected void cascadeHasChanged(final boolean changed)
     {
         hasChanged = changed;
@@ -1012,7 +1026,10 @@ public class FormValidator implements ValidationListener, DataChangeListener
             FormValidator parentFV = parent;
             while (parentFV != null)
             {
-                parentFV.hasChanged = changed;
+                if (!parentFV.hasChanged && changed)
+                {
+                    parentFV.hasChanged = changed;
+                }
                 //log.debug("Parent Val "+parentFV.getName()+" hasChanged "+changed);
                 parentFV = parentFV.parent;
             }
@@ -1429,7 +1446,10 @@ public class FormValidator implements ValidationListener, DataChangeListener
     }
 
     /**
-     * Sets whether the data in the form has changed
+     * Sets whether the data in the form has changed and cascades
+     * it up through the parents to the top. NOTE: It only cascades
+     * changes from false to true.
+     * 
      * @param hasChanged whether the data in the form has changed
      */
     public void setHasChanged(boolean hasChanged)

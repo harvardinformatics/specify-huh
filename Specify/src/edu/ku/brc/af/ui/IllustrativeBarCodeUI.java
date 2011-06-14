@@ -303,4 +303,32 @@ public class IllustrativeBarCodeUI extends JPanel implements GetSetValueIFace, U
         return "IllustrativeBarCode";
     }
 
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#getFieldNames()
+     */
+    @Override
+    public String[] getFieldNames()
+    {
+        return new String[] {"geneSequence"};
+    }
+    
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#carryForwardStateChange()
+     */
+    @Override
+    public void carryForwardStateChange()
+    {
+        // no op
+    }
+
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.UIPluginable#setNewObj(boolean)
+     */
+    @Override
+    public void setNewObj(boolean isNewObj)
+    {
+        // no op
+    }
 }

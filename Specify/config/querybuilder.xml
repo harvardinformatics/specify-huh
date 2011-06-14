@@ -47,6 +47,7 @@
 	     
     <table name="Attachment">
         <table name="AttachmentMetadata" field="metadata"/>
+        <table name="AttachmentImageAttribute" />
     </table>
    
     <table name="Author">
@@ -72,7 +73,9 @@
         <table name="CollectingEventAttachment" field="collectingEventAttachments">
             <alias name="Attachment"/>
         </table>
-        <table name="CollectingEventAttribute"/>
+        <table name="CollectingEventAttribute">
+        	<alias name="Taxon" field="hostTaxon"/>
+        </table>
         <alias name="CollectingTrip"/>
         <alias name="CollectionObject" field="collectionObjects"/>
         <alias name="Agent" field="createdByAgent" />
@@ -99,19 +102,14 @@
     	
         <alias name="Determination" field="determinations"/>
         
-        <table name="PaleoContext" field="paleoContext">
-    		<table name="GeologicTimePeriod" field="bioStrat"/>
-    		<table name="GeologicTimePeriod" field="chronosStrat"/>
-    		<table name="LithoStrat"/>
-    	</table>
-    	
+        <alias name="PaleoContext" field="paleoContext" />
+   	
         <alias name="Preparation" field="preparations"/>
       	<alias name="Appraisal" field="appraisal" />
       	<alias name="Agent" field="cataloger" />
     	<table name="Collection" field="collection" >
     		<alias name="Agent" field="contentContacts" />
         	<alias name="Agent" field="createdByAgent" />
-    		<table name="FieldNotebook" field="fieldNoteBooks" />
       		<!-- <alias name="CollectionRelType" field="leftSideRelTypes" />  -->
          	<alias name="Agent" field="modifiedByAgent" />
          	<table name="AutoNumberingScheme" field="numberingSchemes" />
@@ -130,19 +128,32 @@
       	<alias name="ConservDescription" field="conservDescriptions" /> 
       	<!-- table name="Container" field="container" /-->
       	<!-- table name="Container" field="containerOwner" /-->
-      	<alias name="Agent" field="createdByAgent" />
       	<table name="DNASequence" field="dnaSequences">
       			<alias name="Agent" field="sequencer" /> 
       	</table>
       	
+      	<alias name="Container" field="container"/>
+      	<alias name="Container" field="containerOwner"/>
+      	
       	<alias name="FieldNotebookPage" field="fieldNotebookPage" />
       	
-      	<!-- <table name="CollectionRelationship" field="leftSideRels" /> -->
+      	<alias name="CollectionRelationship" field="leftSideRels" />
+      	<alias name="CollectionRelationship" field="rightSideRels"/>
+      	
+      	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
+      	
       	<table name="OtherIdentifier" field="otherIdentifiers" />
       	<alias name="Project" field="projects" />
-      	<table name="CollectionRelationship" field="rightSideRels" />
       	<table name="TreatmentEvent" field="treatmentEvents" />
+    </table>
+    
+    <table name="CollectionRelationship">
+    	<alias name="CollectionObject" field="leftSide"/>
+    	<alias name="CollectionObject" field="rightSide"/>
+    	<table name="CollectionRelType" field="collectionRelType" />
+    	<alias name="Agent" field="modifiedByAgent"/>
+    	<alias name="Agent" field="createdByAgent"/>
     </table>
     
     <!-- 
@@ -160,10 +171,15 @@
     	<table name="ConservEvent" field="events" />
     </table>
     
-    <!-- table name="Container" >
+    <table name="Container" >
+    	<alias name="Container" field="parent" />    	
+    	<alias name="Container" field="children" />
+    	<alias name="CollectionObject" field="collectionObjectKids"/>
+    	<alias name="CollectionObject" field="collectionObjects"/>
+    	<alias name="Storage" field="storage"/>
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
-    </table-->
+    </table>
     
     <table name="Deaccession">
       <table name="DeaccessionAgent" field="deaccessionAgents" >
@@ -198,6 +214,11 @@
      	<alias name="Agent" field="agentReceivedFrom"/>
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />    	
+        <table name="ExchangeInPrep" field="exchangeInPreps">
+                <alias name="Preparation"/>
+                <alias name="Agent" field="createdByAgent" />
+                <alias name="Agent" field="modifiedByAgent" />
+        </table>
     </table>
     
     <table name="ExchangeOut" >
@@ -207,7 +228,12 @@
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />    	
      	<alias name="Shipment" field="shipments" />    	
-    </table>
+        <table name="ExchangeOutPrep" field="exchangeOutPreps">
+                <alias name="Preparation"/>
+                <alias name="Agent" field="createdByAgent" />
+                <alias name="Agent" field="modifiedByAgent" />
+        </table>
+   </table>
     
     <table name="FieldNotebook" >
     	<table name="FieldNotebookAttachment" field="attachments" >	
@@ -248,6 +274,15 @@
       	<!-- <alias name="Geography" field="parent" /-->
       	<alias name="Locality" field="localities" />
       	<alias name="Agent" field="modifiedByAgent" />    	
+        <table name="GeographyTreeDefItem" field="definitionItem"/>
+    </table>
+
+     <table name="GeologicTimePeriod" >
+      	<alias name="Agent" field="createdByAgent" />
+      	<alias name="Agent" field="modifiedByAgent" />
+      	<alias name="PaleoContext" field="bioStratsPaleoContext" />
+      	<alias name="PaleoContext" field="chronosStratsPaleoContext" />
+        <table name="GeologicTimePeriodTreeDefItem" field="definitionItem"/>
     </table>
     
     <table name="Gift">
@@ -276,6 +311,13 @@
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />   
       	<alias name="ReferenceWork" field="referenceWorks"/>
+    </table>
+ 
+     <table name="LithoStrat" >
+      	<alias name="Agent" field="createdByAgent" />
+      	<alias name="Agent" field="modifiedByAgent" />
+      	<alias name="PaleoContext" field="paleoContexts" />
+        <table name="LithoStratTreeDefItem" field="definitionItem"/>
     </table>
     
     <table name="Loan">
@@ -323,6 +365,12 @@
         <!-- alias name="CollectingEvent" field="collectingEvents"/-->
     </table>
     
+    <table name="PaleoContext" flags="paleo">
+    	<alias name="GeologicTimePeriod" field="bioStrat"/>
+    	<alias name="GeologicTimePeriod" field="chronosStrat"/>
+    	<alias name="LithoStrat"/>
+    </table>
+    	
     <table name="Permit">
         <table name="PermitAttachment" field="permitAttachments">
             <alias name="Attachment"/>
@@ -406,6 +454,7 @@
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
       	<alias name="Preparation" field="preparations" />
+        <table name="StorageTreeDefItem" field="definitionItem"/>
     </table>
     
     <table name="Taxon">
@@ -416,6 +465,9 @@
         </table>
         <table name="TaxonCitation" field="taxonCitations">
            	<alias name="ReferenceWork"/>
+        </table>
+        <table name="CollectingEventAttribute" field="collectingEventAttributes">
+        	<alias name="CollectingEvent" field="collectingEvents"/>
         </table>
         <table name="CommonNameTx" field="commonNames" >
         	<table name="CommonNameTxCitation" field="citations">
@@ -430,6 +482,7 @@
             <!--<table name="DeterminationStatus" field="status"/>-->
             <alias name="Agent" field="determiner"/>
         </table>
+        <table name="TaxonTreeDefItem" field="definitionItem"/>
       	<alias name="Agent" field="createdByAgent" />
       	<alias name="Agent" field="modifiedByAgent" />
     </table>

@@ -47,7 +47,7 @@ import javax.persistence.Transient;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "latlonpolygon")
 @org.hibernate.annotations.Table(appliesTo="latlonpolygon")
-public class LatLonPolygon extends DataModelObjBase
+public class LatLonPolygon extends DataModelObjBase implements Cloneable
 {
     protected Integer                 latLonPolygonId;
     protected String                  name;
@@ -213,6 +213,47 @@ public class LatLonPolygon extends DataModelObjBase
 
 
     /* (non-Javadoc)
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        LatLonPolygon obj = (LatLonPolygon)super.clone();
+        obj.init();
+
+        obj.latLonPolygonId = null;
+        
+        obj.points = new HashSet<LatLonPolygonPnt>();
+        for (LatLonPolygonPnt pnt : points)
+        {
+            LatLonPolygonPnt llpp = (LatLonPolygonPnt)pnt.clone();
+            obj.points.add(llpp);
+            llpp.setLatLonPolygon(obj);
+        }
+        return obj;
+    }
+
+    
+    /* (non-Javadoc)
+     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getParentId()
+     */
+    @Override
+    @Transient
+    public Integer getParentId()
+    {
+        if (visualQuery != null)
+        {
+            return visualQuery.getId();
+        }
+        if (locality != null)
+        {
+            return locality.getId();
+        }
+        return null;
+    }
+
+    /* (non-Javadoc)
      * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getDataClass()
      */
     @Transient
@@ -233,11 +274,19 @@ public class LatLonPolygon extends DataModelObjBase
     }
 
     /* (non-Javadoc)
-     * @see edu.ku.brc.specify.datamodel.DataModelObjBase#getTableId()
+     * @see edu.ku.brc.ui.forms.FormDataObjIFace#getTableId()
      */
-    @Transient
     @Override
+    @Transient
     public int getTableId()
+    {
+        return getClassTableId();
+    }
+    
+    /**
+     * @return the Table ID for the class.
+     */
+    public static int getClassTableId()
     {
         return 136;
     }

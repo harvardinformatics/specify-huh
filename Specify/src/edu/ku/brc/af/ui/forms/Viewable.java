@@ -155,9 +155,15 @@ public interface Viewable
     /**
      * Returns a subform by name
      * @param name the name of the sub form to be returned
-     * @return a subform (Viewable)
+     * @return a subform's MultiView
      */
     public abstract MultiView getSubView(final String name);
+
+    /**
+     * Returns a the Parent MultiView, menaing this view's MultiView
+     * @return MultiView
+     */
+    public abstract MultiView getMVParent();
 
     /**
      * List the List with all the ids of the cells of type "field".
@@ -201,6 +207,12 @@ public interface Viewable
      * @param hide true - hide, false show
      */
     public abstract void hideMultiViewSwitch(boolean hide);
+
+    /**
+     * Enables/Disables the UI Switcher control
+     * @param enable true - hide, false disable
+     */
+    public abstract void enableMultiViewSwitch(boolean hide);
 
     /**
      * Tell the viewable whether the validation was OK so it knows to update the UI appropriately; this usually means it should update an OK or save button.

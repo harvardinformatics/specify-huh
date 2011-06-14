@@ -83,6 +83,8 @@ public class FormatterPickerPanel extends BaseSetupPanel
     protected boolean                     wasUsed      = false;
     protected String                      currFormatter;
     protected boolean                     doingDisciplineCollection = false;
+
+    protected UIFieldFormatterMgr         uiFldFmtMgr;
     
     /**
      * @param nextBtn
@@ -96,6 +98,11 @@ public class FormatterPickerPanel extends BaseSetupPanel
                                 final String  currFormatter)
     {
         super(panelName, helpContext, nextBtn, prevBtn);
+        
+        //UIFieldFormatterMgr.setDoingLocal(true);
+        //uiFldFmtMgr = new SpecifyUIFieldFormatterMgr();
+        //UIFieldFormatterMgr.setDoingLocal(false);
+        uiFldFmtMgr = UIFieldFormatterMgr.getInstance();
         
         this.doingCatNums  = doingCatNums;
         this.currFormatter = currFormatter;
@@ -162,7 +169,7 @@ public class FormatterPickerPanel extends BaseSetupPanel
         }
         
         newFormatter = new UIFieldFormatter();
-        UIFormatterEditorDlg dlg = new UIFormatterEditorDlg(null, fieldInfo, newFormatter, true, false, UIFieldFormatterMgr.getInstance());
+        UIFormatterEditorDlg dlg = new UIFormatterEditorDlg(null, fieldInfo, newFormatter, true, false, uiFldFmtMgr);
         dlg.setVisible(true);
         if (!dlg.isCancelled())
         {
@@ -235,7 +242,7 @@ public class FormatterPickerPanel extends BaseSetupPanel
             formatterCBX.removeActionListener(al);
         }
         
-        fmtList = new Vector<UIFieldFormatterIFace>(UIFieldFormatterMgr.getInstance().getFormatterList(doingCatNums ? CollectionObject.class : Accession.class));
+        fmtList = new Vector<UIFieldFormatterIFace>(uiFldFmtMgr.getFormatterList(doingCatNums ? CollectionObject.class : Accession.class));
         if (newFormatter != null)
         {
             fmtList.add(newFormatter);

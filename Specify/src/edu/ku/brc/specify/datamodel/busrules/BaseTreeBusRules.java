@@ -26,6 +26,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -44,7 +45,6 @@ import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
-import edu.ku.brc.af.ui.forms.BaseBusRules;
 import edu.ku.brc.af.ui.forms.FormViewObj;
 import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.af.ui.forms.persist.AltViewIFace.CreationMode;
@@ -57,6 +57,8 @@ import edu.ku.brc.dbsupport.DataProviderSessionIFace;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace.QueryIFace;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
+import edu.ku.brc.specify.datamodel.CollectionMember;
+import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpTaskSemaphore;
 import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.datamodel.TreeDefItemIface;
@@ -87,7 +89,7 @@ import edu.ku.brc.ui.UIRegistry;
 public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
                                        D extends TreeDefIface<T,D,I>,
                                        I extends TreeDefItemIface<T,D,I>>
-                                       extends BaseBusRules
+                                       extends AttachmentOwnerBaseBusRules
 {
     public static final boolean ALLOW_CONCURRENT_FORM_ACCESS = true;
 	
@@ -173,11 +175,22 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
     }
 
     /**
-     * @return list of relationships for purposes of checking
-     * if a record can be deleted.
+     * @return list of foreign key relationships for purposes of checking
+     * if a record can be deleted. 
+     * The list contains two entries for each relationship. The first entry
+     * is the related table name. The second is the name of the foreign key field in the related table.
      */
     public abstract String[] getRelatedTableAndColumnNames();
     
+    /**
+    * @return list of ass foreign key relationships. 
+    * The list contains two entries for each relationship. The first entry
+    * is the related table name. The second is the name of the foreign key field in the related table.
+    */
+    public String[] getAllRelatedTableAndColumnNames()
+    {
+    	return getRelatedTableAndColumnNames();
+    }
     
     /* (non-Javadoc)
 	 * @see edu.ku.brc.af.ui.forms.BaseBusRules#okToEnableDelete(java.lang.Object)
@@ -293,7 +306,34 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
     }
     
     
-    @SuppressWarnings("unchecked")
+    @Override
+	protected String getExtraWhereColumns(DBTableInfo tableInfo) {
+		String result = super.getExtraWhereColumns(tableInfo);
+		if (CollectionMember.class.isAssignableFrom(tableInfo.getClassObj()))
+		{
+			Vector<Object> cols = BasicSQLUtils.querySingleCol("select distinct CollectionID from collection "
+					+ "where DisciplineID = " + AppContextMgr.getInstance().getClassObject(Discipline.class).getId());
+			if (cols != null)
+			{
+				String colList = "";
+				for (Object col : cols)
+				{
+					if (!"".equals(colList))
+					{
+						colList += ",";
+					}
+					colList += col;
+				}
+				if (!"".equals(colList))
+				{
+					result = "((" + result + ") or " + tableInfo.getAbbrev() + ".CollectionMemberID in(" + colList + "))";
+				}
+			}
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
     protected void rankChanged(final FormViewObj form,
             final ValComboBoxFromQuery parentComboBox, 
             final ValComboBox rankComboBox,
@@ -560,27 +600,33 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             
             final I nodeInForm = (I)formViewObj.getDataObj();
             //disable FullName -related fields if TreeDefItem is used by nodes in the tree
+        	//NOTE: Can remove the edit restriction. Tree rebuilds now update fullname fields. Need to add tree rebuild after fullname def edits.
             if (nodeInForm != null && nodeInForm.getTreeDef() != null)
             {
-            	boolean canEditFullNameFlds = nodeInForm.hasTreeEntries();
-            	if (canEditFullNameFlds)
-            	{
-            		ValTextField ftCtrl = (ValTextField )formViewObj.getControlByName("textAfter");
-            		if (ftCtrl != null)
-            		{
-            			ftCtrl.setEnabled(false);
-            		}
-            		ftCtrl = (ValTextField )formViewObj.getControlByName("textBefore");
-            		if (ftCtrl != null)
-            		{
-            			ftCtrl.setEnabled(false);
-            		}
-            		ftCtrl = (ValTextField )formViewObj.getControlByName("fullNameSeparator");
-            		if (ftCtrl != null)
-            		{
-            			ftCtrl.setEnabled(false);
-            		}
-            	}
+//            	boolean canNOTEditFullNameFlds = nodeInForm.hasTreeEntries();
+//            	if (canNOTEditFullNameFlds)
+//            	{
+//            		ValTextField ftCtrl = (ValTextField )formViewObj.getControlByName("textAfter");
+//            		if (ftCtrl != null)
+//            		{
+//            			ftCtrl.setEnabled(false);
+//            		}
+//            		ftCtrl = (ValTextField )formViewObj.getControlByName("textBefore");
+//            		if (ftCtrl != null)
+//            		{
+//            			ftCtrl.setEnabled(false);
+//            		}
+//            		ftCtrl = (ValTextField )formViewObj.getControlByName("fullNameSeparator");
+//            		if (ftCtrl != null)
+//            		{
+//            			ftCtrl.setEnabled(false);
+//            		}
+//            		ValCheckBox ftBox = (ValCheckBox )formViewObj.getControlByName("isInFullName");
+//            		if (ftBox != null)
+//            		{
+//            			ftBox.setEnabled(false);
+//            		}
+//            	}
             
             	if (!viewName.endsWith("TreeDefItem"))
             	{
@@ -592,7 +638,8 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
                 TreeDefItemStandardEntry stdLevel = null;
                 for (TreeDefItemStandardEntry std : stds)
                 {
-                    if (std.getTitle().equals(nodeInForm.getName()) && std.getRank() == nodeInForm.getRankId())
+                   //if (std.getTitle().equals(nodeInForm.getName()) && std.getRank() == nodeInForm.getRankId())
+                   if (std.getRank() == nodeInForm.getRankId())
                     {
                         stdLevel = std;
                         break;
@@ -1003,7 +1050,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
             if (node.getDefinition().getDoNodeNumberUpdates() && node.getDefinition().getNodeNumbersAreUpToDate())
             {
                 log.info("Saved tree node was added.  Updating node numbers appropriately.");
-                TreeDataService dataServ = TreeDataServiceFactory.createService();
+                TreeDataService<T,D,I> dataServ = TreeDataServiceFactory.createService();
                 if (added)
                 {
                 	success = dataServ.updateNodeNumbersAfterNodeAddition(node, session);
@@ -1254,7 +1301,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
      * @see edu.ku.brc.ui.forms.BaseBusRules#beforeDelete(java.lang.Object, edu.ku.brc.dbsupport.DataProviderSessionIFace)
      */
     @Override
-    public void beforeDelete(Object dataObj, DataProviderSessionIFace session)
+    public Object beforeDelete(Object dataObj, DataProviderSessionIFace session)
     {
         super.beforeDelete(dataObj, session);
         if (dataObj instanceof Treeable<?,?,?>)
@@ -1266,6 +1313,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
                 node.setAcceptedParent(null);
             }
         }
+        return dataObj;
     }
 
     
@@ -1353,7 +1401,7 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
      */
     protected STATUS checkForRequiredFields(Object dataObj)
     {
-		if (dataObj instanceof Treeable)
+		if (dataObj instanceof Treeable<?,?,?>)
 		{
 			STATUS result = STATUS.OK;
 			Treeable<?,?,?> obj = (Treeable<?,?,?> )dataObj;
@@ -1389,10 +1437,11 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 	 */
 	@Override
 	public STATUS processBusinessRules(Object parentDataObj, Object dataObj,
-			boolean isExistingObject) {
+			boolean isExistingObject) 
+	{
 		reasonList.clear();
 		STATUS result = STATUS.OK;
-		if (!processedRules && dataObj instanceof Treeable)
+		if (!processedRules && dataObj instanceof Treeable<?, ?, ?>)
 		{	
 			result = checkForSiblingWithSameName(parentDataObj, dataObj, isExistingObject);
 			if (result == STATUS.OK)
@@ -1503,15 +1552,16 @@ public abstract class BaseTreeBusRules<T extends Treeable<T,D,I>,
 	public boolean afterSaveCommit(Object dataObj,
 			DataProviderSessionIFace session)
 	{
+		boolean result = false;
 		if (!super.afterSaveCommit(dataObj, session))
 		{
-			return false;
+			result = false;
 		}
 		if (BaseTreeBusRules.ALLOW_CONCURRENT_FORM_ACCESS && viewable != null)
 		{
 			freeLocks();
 		}
-		return true;
+		return result;
 	}
 
 	

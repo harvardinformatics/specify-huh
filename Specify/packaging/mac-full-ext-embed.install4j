@@ -3,8 +3,11 @@
   <directoryPresets config="../InstallerFiles" />
   <application name="Specify" distributionSourceDir="" applicationId="5397-6897-2502-8965" mediaDir="../ExtMacMedia" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_EZDB" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" keepModificationTimes="false" missingFilesStrategy="warn" shortName="Specify" publisher="Biodiversity Research Center, University of Kansas" publisherWeb="http://www.specifysoftware.org" version="6.0.05" allPathsRelative="true" backupOnSave="true" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="1.7" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
-      <principalLanguage id="en" customLocalizationFile="" />
-      <additionalLanguages />
+      <principalLanguage id="en" customLocalizationFile="./localization_en.utf8" />
+      <additionalLanguages>
+        <!-- <language id="pt_BR" customLocalizationFile="./localization_pt_BR.utf8" /> -->
+        <language id="pt" customLocalizationFile="./localization_pt.utf8" />
+</additionalLanguages>
     </languages>
     <searchSequence>
       <registry />
@@ -37,7 +40,7 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
@@ -67,7 +70,7 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
@@ -97,7 +100,7 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
@@ -127,7 +130,7 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
@@ -157,7 +160,7 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
@@ -187,11 +190,41 @@
       </executable>
       <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
         <text>
-          <statusLine x="95" y="326" text="Copyright (C) 2009 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
           <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
       <java mainClass="edu.ku.brc.specify.tools.export.ExportPanel" vmParameters="-Xmx768m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SchemaExporter" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="specify.jar" failOnError="true" />
+          <scanDirectory location="libs" failOnError="true" />
+          <scanDirectory location="hibernate_libs" failOnError="true" />
+          <scanDirectory location="iReportLibs" failOnError="true" />
+          <scanDirectory location="wwlib" failOnError="true" />
+          <directory location="help" failOnError="false" />
+          <scanDirectory location="embedded_libs" failOnError="true" />
+        </classPath>
+        <nativeLibraryDirectories>
+          <directory name="wwlib" />
+        </nativeLibraryDirectories>
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <customScript mode="1" file="">
+        <scriptLines />
+      </customScript>
+    </launcher>
+    <launcher name="SpecifyL10NEZDB" id="1400" external="false" excludeFromMenu="false" menuName="" icnsFile="icns/specifyE.icns" pngIcon16File="../src/edu/ku/brc/specify/images/specify16E.png" pngIcon32File="../src/edu/ku/brc/specify/images/specify32E.png" macServiceDependencies="" swtApp="false" fileset="">
+      <executable name="SpecifyL10NEZDB" type="1" iconSet="true" iconFile="" executableDir="bin" redirectStderr="true" stderrFile="error.log" redirectStdout="false" stdoutFile="output.log" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" />
+      </executable>
+      <splashScreen show="true" autoOff="true" alwaysOnTop="false" width="700" height="357" bitmapFile="../InstallerFiles/SpecifyBigSplash.png" java6SplashScreen="false">
+        <text>
+          <statusLine x="95" y="326" text="Copyright (C) 2010 Kansas University Center for Research. FOSS licensed under GNU GPL2." font="Arial" fontSize="10" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="330" y="260" text="Version: ${compiler:sys.version}" font="Arial" fontSize="12" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="edu.ku.brc.specify.tools.StrLocalizerApp" vmParameters="-Xmx512m" arguments="-Dappdir=.. -Dembedded -Dcom.apple.macos.useSmallTabs=true -Dapple.laf.useScreenMenuBar=true -Xdock:icon=&quot;src/edu/ku/brc/specify/images/specify128.png&quot; -Dcom.apple.mrj.application.apple.menu.about.name=SpecifyL10N" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="specify.jar" failOnError="true" />
           <scanDirectory location="libs" failOnError="true" />
@@ -265,70 +298,6 @@
           </screen>
         </startup>
         <screens>
-          <screen name="" id="1320" beanClass="com.install4j.runtime.beans.screens.FormScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false">
-            <serializedBean>
-              <java class="java.beans.XMLDecoder">
-                <object class="com.install4j.runtime.beans.screens.FormScreen">
-                  <void property="subTitle">
-                    <string>Specify’s “IT User” account name and password are needed to proceed.</string>
-                  </void>
-                  <void property="title">
-                    <string>Note: The Specify database structure will be updated with this release.</string>
-                  </void>
-                </object>
-              </java>
-            </serializedBean>
-            <condition />
-            <validation>if (context.getBooleanVariable("IsVerified") == false) {
-    Util.showErrorMessage("Please read through this screen and then check the checkbox in order to continue.");
-    return false;
-} else {
-    return true;
-}</validation>
-            <preActivation />
-            <postActivation />
-            <actions />
-            <formComponents>
-              <formComponent name="" id="1322" beanClass="com.install4j.runtime.beans.formcomponents.MultilineHtmlLabelComponent" enabled="true" commentSet="false" comment="" insetTop="15" insetLeft="" insetBottom="10" insetRight="" resetInitOnPrevious="false">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.MultilineHtmlLabelComponent">
-                      <void property="labelHtml">
-                        <string>This update changes the structure of the MySQL database that Specify uses. On the first login to your database after installing this update, Specify will prompt you for its “IT User” credentials, a username and password that were used to create your database originally. Without this username and password, after you complete this update, you will not be able to use Specify to update or connect to your database. Only click the checkbox below if you have this information; otherwise, click cancel and exit this update installer now. NOTE: if you use a central database with many Specify clients, only the first login after installing this update will require the “IT User” credentials.</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <initScript />
-                <visibiltyScript />
-              </formComponent>
-              <formComponent name="" id="1323" beanClass="com.install4j.runtime.beans.formcomponents.SeparatorComponent" enabled="true" commentSet="false" comment="" insetTop="0" insetLeft="20" insetBottom="10" insetRight="20" resetInitOnPrevious="false">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.SeparatorComponent" />
-                  </java>
-                </serializedBean>
-                <initScript />
-                <visibiltyScript />
-              </formComponent>
-              <formComponent name="" id="1324" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="0" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
-                      <void property="checkboxText">
-                        <string>I have my “IT User” username and password.</string>
-                      </void>
-                      <void property="variableName">
-                        <string>IsVerified</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <initScript />
-                <visibiltyScript />
-              </formComponent>
-            </formComponents>
-          </screen>
           <screen name="" id="2" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
@@ -499,10 +468,10 @@
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="361" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true">
+          <screen name="" id="1777" beanClass="com.install4j.runtime.beans.screens.BannerFormScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
-                <object class="com.install4j.runtime.beans.screens.FinishedScreen">
+                <object class="com.install4j.runtime.beans.screens.BannerFormScreen">
                   <void property="bannerBackground">
                     <object class="java.awt.Color">
                       <int>255</int>
@@ -516,6 +485,9 @@
                       <string>../src/edu/ku/brc/specify/images/specify128.png</string>
                     </object>
                   </void>
+                  <void property="title">
+                    <string>Specify is now installed on your computer.</string>
+                  </void>
                 </object>
               </java>
             </serializedBean>
@@ -524,7 +496,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="364" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1778" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
@@ -534,22 +506,101 @@
                     </object>
                   </java>
                 </serializedBean>
-                <condition>context.getBooleanVariable("executeLauncherAction") &amp;&amp; (!context.isUnattended()) &amp;&amp; (!context.getBooleanVariable("executeBuilder"))</condition>
+                <condition>String condit = (String)context.getVariable("executeLauncherAction");
+
+if (condit.equals("Specify")) {
+    return true;
+} else {
+    return false;
+}
+</condition>
+              </action>
+              <action name="" id="1779" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>724</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>String condit = (String)context.getVariable("executeLauncherAction");
+
+if (condit.equals("SpWizard")) {
+    return true;
+} else {
+    return false;
+}</condition>
               </action>
             </actions>
             <formComponents>
-              <formComponent name="Execute launcher" id="365" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+              <formComponent name="" id="1780" beanClass="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
-                      <void property="checkboxText">
-                        <string>${i18n:RunEntryExec("${compiler:sys.fullName}")}</string>
+                    <object class="com.install4j.runtime.beans.formcomponents.MultilineLabelComponent">
+                      <void property="labelText">
+                        <string>${i18n:explanationStartWizard}</string>
                       </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1783" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
                       <void property="initiallySelected">
                         <boolean>true</boolean>
                       </void>
+                      <void property="radioButtonLabel">
+                        <string>${i18n:justFinish}</string>
+                      </void>
                       <void property="variableName">
                         <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>none</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1782" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
+                      <void property="radioButtonLabel">
+                        <string>${i18n:runSpWizard}</string>
+                      </void>
+                      <void property="variableName">
+                        <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>SpWizard</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibiltyScript />
+              </formComponent>
+              <formComponent name="" id="1781" beanClass="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.SingleRadiobuttonComponent">
+                      <void property="radioButtonLabel">
+                        <string>${i18n:runSpecify}</string>
+                      </void>
+                      <void property="variableName">
+                        <string>executeLauncherAction</string>
+                      </void>
+                      <void property="variableValue">
+                        <string>Specify</string>
                       </void>
                     </object>
                   </java>
@@ -1359,7 +1410,7 @@ if (wizardContext != null) {
     </applications>
   </installerGui>
   <mediaSets>
-    <macosFolder name="Mac OS X Folder" id="24" mediaFileName="" installDir="Specify6EZDB" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
+    <macosFolder name="Mac OS X Folder" id="24" mediaFileName="" installDir="SpecifyEZDB" overridePrincipalLanguage="false" requires64bit="false" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" customInstallBaseDir="" createUninstallIcon="true" contentFilesType="1" downloadURL="">
       <excludedLaunchers />
       <excludedComponents />
       <excludedBeans />

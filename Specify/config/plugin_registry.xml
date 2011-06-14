@@ -24,7 +24,9 @@
 		<plugin class="edu.ku.brc.specify.tasks.InfoRequestTask" addui="false"/>
 		<plugin class="edu.ku.brc.specify.tasks.SystemSetupTask" addui="true"/>
 		
-		<plugin class="edu.ku.brc.specify.tasks.WorkbenchTask" addui="true"/>
+        <plugin class="edu.ku.brc.specify.tasks.WorkbenchTask" addui="true"/>
+        
+        <plugin class="edu.ku.brc.specify.tasks.SGRTask" addui="true"/>
 
 		<!-- Remove the comments from the line below to see the security administration task on the main toolbar --> 
 		<plugin class="edu.ku.brc.specify.tasks.SecurityAdminTask" addui="true"/>
@@ -32,7 +34,9 @@
 		<!-- 
 		<plugin class="edu.ku.brc.af.tasks.EditorTask" addui="true"/>
 		 -->
-		 
+
+        <plugin class="edu.ku.brc.specify.tasks.CollectionRelTask" addui="true"/>
+        		 
 		<plugin class="edu.ku.brc.specify.tasks.PluginsTask" addui="true"/>
 		
 		<plugin class="edu.ku.brc.specify.tasks.ExpressSearchTask" addui="true"/>
@@ -42,6 +46,9 @@
         <plugin class="edu.ku.brc.specify.tasks.BackupTask" addui="true"/>
         
         <plugin class="edu.ku.brc.specify.tasks.FormEditTask" addui="true"/>
+        
+        <plugin class="edu.ku.brc.specify.tasks.VisualQueryTask" addui="true" prefname="visualquery"/>
+
 		
 	</core>
 	
@@ -51,21 +58,31 @@
         <plugin class="edu.ku.brc.specify.tasks.RecordSetTask" addui="false"/>
         <plugin class="edu.ku.brc.specify.tasks.WorkbenchTask" addui="true"/>
         <plugin class="edu.ku.brc.specify.tasks.StatsTrackerTask" addui="false"/>
+        <plugin class="edu.ku.brc.specify.tasks.PluginsTask" addui="false"/>
 	</mobilecore>
 	
 	<uiplugins>
-		<plugin name="WebLinkButton"        class="edu.ku.brc.af.ui.weblink.WebLinkButton"/>
-		<plugin name="PartialDateUI"        class="edu.ku.brc.specify.plugins.PartialDateUI"/>
-        <plugin name="LocalityGoogleEarth"  class="edu.ku.brc.specify.plugins.LocalityGoogleEarthPlugin"/>
-        <plugin name="LocalityWorldWind"    class="edu.ku.brc.specify.plugins.LocalityWorldWindPlugin"/>
-		<plugin name="LocalityGeoRef"       class="edu.ku.brc.specify.plugins.LocalityGeoRefPlugin"/>
-		<plugin name="FishBase"             class="edu.ku.brc.specify.plugins.FishBase"/>
-		<plugin name="LatLonUI"             class="edu.ku.brc.specify.plugins.latlon.LatLonUI"/>
+		<plugin name="PartialDateUI"          class="edu.ku.brc.specify.plugins.PartialDateUI"/>
+        <plugin name="LocalityGoogleEarth"    class="edu.ku.brc.specify.plugins.LocalityGoogleEarthPlugin"/>
+        <plugin name="LocalityWorldWind"      class="edu.ku.brc.specify.plugins.LocalityWorldWindPlugin"/>
+		<plugin name="LocalityGeoRef"         class="edu.ku.brc.specify.plugins.LocalityGeoRefPlugin"/>
+		<plugin name="FishBase"               class="edu.ku.brc.specify.plugins.FishBase"/>
+        <plugin name="LatLonUI"               class="edu.ku.brc.specify.plugins.latlon.LatLonUI"/>
+		<plugin name="ContainerPlugin"          class="edu.ku.brc.specify.plugins.ContainerPlugin"/>
+        <plugin name="ContainersColObjPlugin" class="edu.ku.brc.specify.plugins.ContainersColObjPlugin"/>
+        <plugin name="CollectionRelOneToManyPlugin" class="edu.ku.brc.specify.plugins.CollectionRelOneToManyPlugin"/>
+		
+		<!-- 
+		<plugin name="MorphBankPanel"       class="edu.ku.brc.specify.plugins.morphbank.MorphBankPanel"/>
+		-->
+		
 		<plugin name="TaxonLabelFormatting" class="edu.ku.brc.specify.plugins.TaxonLabelFormatting"/>
 		<plugin name="ColRelTypePlugin"     class="edu.ku.brc.specify.plugins.CollectionRelPlugin"/>
+        <plugin name="HostTaxonPlugin"       class="edu.ku.brc.specify.plugins.HostTaxonPlugin"/>
+        
+        <plugin name="WebLinkButton"        class="edu.ku.brc.af.ui.weblink.WebLinkButton"/>
         <plugin name="PasswordStrengthUI"   class="edu.ku.brc.af.ui.PasswordStrengthUI"/>
         <plugin name="IllustrativeBarCodeUI" class="edu.ku.brc.af.ui.IllustrativeBarCodeUI"/>
-		
 	</uiplugins>
 	
 	<external>

@@ -243,9 +243,13 @@ public class PluginsTask extends BaseTask
                         //    roc.addDropDataFlavor(new DataFlavorTableExt(RecordSetTask.class, "Record_Set", tableId));
                         //}
                         
-                        DataFlavorTableExt df = new DataFlavorTableExt(RecordSetTask.RECORDSET_FLAVOR.getDefaultRepresentationClass(), 
-                                                                       RecordSetTask.RECORDSET_FLAVOR.getHumanPresentableName(), tool.getTableIds());
-                        roc.addDropDataFlavor(df);
+                        int[] tableIds = tool.getTableIds();
+                        if (tableIds != null && tableIds.length > 0)
+                        {
+                            DataFlavorTableExt df = new DataFlavorTableExt(RecordSetTask.RECORDSET_FLAVOR.getDefaultRepresentationClass(), 
+                                                                           RecordSetTask.RECORDSET_FLAVOR.getHumanPresentableName(), tableIds);
+                            roc.addDropDataFlavor(df);
+                        }
                         
                         toolsNavBoxList.add(nbi);
                     }
@@ -375,7 +379,7 @@ public class PluginsTask extends BaseTask
      */
     protected void processToolDataFromList(final Object data, final Properties requestParams, final RecordSetToolsIFace exporter)
     {
-        if (data instanceof List)
+        if (data instanceof List<?>)
         {
             doProcessTool(exporter, (List<?>)data, requestParams);
         }
@@ -516,6 +520,7 @@ public class PluginsTask extends BaseTask
             JMenuItem mi        = UIHelper.createLocalizedMenuItem(menuTitle, mneu, desc, true, null);
             mi.addActionListener(new ActionListener()
             {
+                @Override
                 public void actionPerformed(ActionEvent ae)
                 {
                     PluginsTask.this.requestContext();
@@ -523,6 +528,7 @@ public class PluginsTask extends BaseTask
             });
             MenuItemDesc rsMI = new MenuItemDesc(mi, menuDesc);
             rsMI.setPosition(MenuItemDesc.Position.After);
+            rsMI.setSepPosition(MenuItemDesc.Position.Before);
             menuItems.add(rsMI);
         }
         
@@ -561,7 +567,7 @@ public class PluginsTask extends BaseTask
                 
                 // XXX Probably need to also get RSs with Localisties and or CollectingEvents
 
-                data = getRecordSetOfColObj(null, colObjRSList.size());
+                data = getRecordSetOfDataObjs(null, CollectionObject.class, "catalogNumber", colObjRSList.size());
             }
             
             processToolDataFromRecordSet(data, cmdAction.getProperties(), tool);

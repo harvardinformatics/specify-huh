@@ -20,18 +20,24 @@
 package edu.ku.brc.specify.tasks.subpane.wb.wbuploader;
 
 import java.lang.reflect.Method;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import edu.ku.brc.af.core.db.DBFieldInfo;
 import edu.ku.brc.af.ui.db.PickListDBAdapterIFace;
 import edu.ku.brc.af.ui.db.PickListItemIFace;
+import edu.ku.brc.specify.datamodel.DataModelObjBase;
+import edu.ku.brc.specify.datamodel.Locality;
+import edu.ku.brc.specify.datamodel.PrepType;
 import edu.ku.brc.specify.dbsupport.RecordTypeCodeBuilder;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Field;
 import edu.ku.brc.specify.tasks.subpane.wb.schema.Relationship;
 import edu.ku.brc.specify.ui.db.PickListDBAdapterFactory;
+import edu.ku.brc.specify.ui.db.PickListTableAdapter;
 
 /**
  * @author timbo
@@ -67,22 +73,33 @@ public class UploadField
     /**
      * The one to many 'order' of the field (e.g. LastName1, lastName2, ... )
      */
-    protected Integer                    sequence           = 0;
+    protected Integer                    sequence           = null;
     /**
      * True if the field must contain data
      */
     protected Boolean                    required = null;
     /**
-     * The method used to set the field's contents to the java object representing the field's
+     * The methods used to set and get the field's contents in the java object representing the field's
      * Table.
      */
     protected Method                     setter;
-
+    protected Method                     getter = null;
+    
     /**
      * A set of valid values for fields with associated pick lists.
      */
     protected Map<String, PickListItemIFace> validValues        = null;
 
+    /**
+     * True if field has a read-only picklist
+     */
+    protected boolean readOnlyValidValues = false;
+    
+    /**
+     * True if warnings should be made about values not contained in picklist.
+     */
+    protected boolean picklistWarn = false;
+    
     /**
      * True if associated pick list has been searched for.
      */
@@ -104,6 +121,32 @@ public class UploadField
         this.setter = setter;
     }
 
+    /**
+     * @return getter
+     */
+    public final Method getGetter()
+    {
+    	if (getter != null)
+    	{
+    		return getter;
+    	}
+    	
+    	if (setter == null)
+    	{
+    		return null;
+    	}
+    	Class<?> cls = setter.getDeclaringClass();
+    	try
+    	{
+    		String name = "get" + setter.getName().substring(3);
+    		getter = cls.getMethod(name, (Class<?>[] )null);
+    	} catch (NoSuchMethodException ex)
+    	{
+    		//no getter
+    	}
+    	return getter;
+    }
+    
     public UploadField(Field field, int index, String wbFldName, Relationship relationship)
     {
         this.field = field;
@@ -155,12 +198,23 @@ public class UploadField
         PickListItemIFace item = validValues.get(value);
         if (item != null)
         {
-            return item.getValueObject().toString();
+            Object valObj = item.getValueObject();
+            if (valObj instanceof DataModelObjBase)
+            {
+            	//this means its a table picklist, but, with current code, all we need is the item 'name'
+            	return value;
+            }
+        	return valObj.toString();
         }
         if (!StringUtils.isBlank(value))
         {
-        	//this should have already been caught.
-        	log.error("Invalid value '" + value + "' for field '" + wbFldName + "'");
+        	if (readOnlyValidValues)
+        	{
+        		//this should have already been caught.
+        		log.error("Invalid value '" + value + "' for field '" + wbFldName + "'");
+        		return null;
+        	} 
+        	return value;
         }
         return null;
     }
@@ -255,7 +309,9 @@ public class UploadField
         {
             return field.getFieldInfo().isRequired() || 
             	//force CollectionObject.CatalogNumber to be required
-            	(field.getFieldInfo().getTableInfo().getTableId() == 1 && field.getFieldInfo().getName().equalsIgnoreCase("catalogNumber"));
+            	(field.getFieldInfo().getTableInfo().getTableId() == 1 && field.getFieldInfo().getName().equalsIgnoreCase("catalogNumber"))
+            	//ditto for locality.LocalityName. Its field info no longer says it's required, but hibernate/mysql still requires it.
+            	|| (field.getFieldInfo().getTableInfo().getTableId() == Locality.getClassTableId() && field.getFieldInfo().getName().equalsIgnoreCase("localityname"));
         }
         
         return false;
@@ -277,6 +333,10 @@ public class UploadField
         return wbFldName;
     }
     
+    /**
+      * @return list valid values for this field's picklist,
+     * or null if no picklist is defined for this field.
+    */
     public Map<String, PickListItemIFace> getValidValues()
     {
         if (!validValuesChecked)
@@ -287,6 +347,10 @@ public class UploadField
         return validValues;
     }
     
+    /**
+     * @return list valid values for this field's picklist,
+     * or null if no picklist is defined for this field.
+     */
     protected Map<String, PickListItemIFace> buildValidValues()
     {
         if (getIndex() != -1 && getField().getFieldInfo() != null)
@@ -299,10 +363,55 @@ public class UploadField
             else if (RecordTypeCodeBuilder.isTypeCodeField(getField().getFieldInfo()))
             {
                 pickList = RecordTypeCodeBuilder.getTypeCode(getField().getFieldInfo());
+            } 
+            else 
+            {
+            	pickList = checkForSpecialCasePicklist();
             }
             if (pickList != null)
             {
-                TreeMap<String, PickListItemIFace> pickListItems = new TreeMap<String, PickListItemIFace>();                for (PickListItemIFace item : pickList.getList())
+                readOnlyValidValues = pickList.isReadOnly() && !(pickList instanceof PickListTableAdapter);
+                picklistWarn = !readOnlyValidValues && pickList instanceof PickListTableAdapter;
+                
+//                TreeMap<String, PickListItemIFace> pickListItems = picklistWarn ?
+//                		new TreeMap<String, PickListItemIFace>(new Comparator<String>(){
+//
+//							/* (non-Javadoc)
+//							 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+//							 */
+//							@Override
+//							public int compare(String arg0, String arg1) {
+//								if (arg0 == null && arg1 == null) return 0;
+//								if (arg0 == null) return 1;
+//								if (arg1 == null) return -1;
+//								return arg0.compareToIgnoreCase(arg1);
+//							}
+//                			
+//                		})
+//                		: new TreeMap<String, PickListItemIFace>();                
+				TreeMap<String, PickListItemIFace> pickListItems = new TreeMap<String, PickListItemIFace>(
+						new Comparator<String>() {
+
+							/*
+							 * (non-Javadoc)
+							 * 
+							 * @see
+							 * java.util.Comparator#compare(java.lang.Object,
+							 * java.lang.Object)
+							 */
+							@Override
+							public int compare(String arg0, String arg1) {
+								if (arg0 == null && arg1 == null)
+									return 0;
+								if (arg0 == null)
+									return 1;
+								if (arg1 == null)
+									return -1;
+								return arg0.compareToIgnoreCase(arg1);
+							}
+
+						});
+                for (PickListItemIFace item : pickList.getList())
                 {
                     pickListItems.put(item.getTitle(), item);
                 }
@@ -311,4 +420,43 @@ public class UploadField
         }
         return null;
     }
+    
+    /**
+     * @return picklist for "special cases"
+     */
+    protected PickListDBAdapterIFace checkForSpecialCasePicklist()
+    {
+    	PickListDBAdapterIFace result = null;
+    	DBFieldInfo fldInfo = getField().getFieldInfo();
+    	if (fldInfo != null)
+    	{
+    		if (fldInfo.getName().equals("name") && fldInfo.getTableInfo().getClassObj().equals(PrepType.class))
+    		{
+            	PickListDBAdapterIFace pl = PickListDBAdapterFactory.getInstance().create(fldInfo.getTableInfo().getName(), false);
+            	if (pl instanceof PickListTableAdapter)
+            	{
+            		result =  pl;
+            	}
+    		}
+    	}
+    	return result;
+    }
+
+	/**
+	 * @return the readOnlyValidValues
+	 */
+	public boolean isReadOnlyValidValues() 
+	{
+		return readOnlyValidValues;
+	}
+
+	/**
+	 * @return the picklistWarn
+	 */
+	public boolean isPicklistWarn() 
+	{
+		return picklistWarn;
+	}
+    
+	
 }

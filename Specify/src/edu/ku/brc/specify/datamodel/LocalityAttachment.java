@@ -108,7 +108,7 @@ public class LocalityAttachment extends DataModelObjBase implements ObjectAttach
     }
 
     @ManyToOne(cascade = {}, fetch = FetchType.EAGER)
-    @Cascade( {CascadeType.SAVE_UPDATE, CascadeType.MERGE, CascadeType.LOCK} )
+    @Cascade( { CascadeType.ALL, CascadeType.DELETE_ORPHAN })
     @JoinColumn(name = "AttachmentID", nullable = false)
     @OrderBy("ordinal ASC")
     public Attachment getAttachment()
@@ -249,9 +249,11 @@ public class LocalityAttachment extends DataModelObjBase implements ObjectAttach
      */
     public int compareTo(LocalityAttachment obj)
     {
-    	int o1 = ordinal == null ? 0 : ordinal.intValue();
-    	int o2 = obj.ordinal == null ? 0 : obj.ordinal.intValue();
-    	return o1 == o2 ? 0 : o1 < o2 ? -1 : 1;
+        if (ordinal != null && obj != null && obj.ordinal != null)
+        {
+            ordinal.compareTo(obj.ordinal);
+        }
+    	return 0;
     }
 
 }

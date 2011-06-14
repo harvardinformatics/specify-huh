@@ -117,6 +117,13 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
         return relUIHash;
     }
 
+    /**
+     * @param p
+     * @param f
+     * @param font
+     * @param y
+     * @param all
+     */
     public void build(final PanelBuilder p, final DBFieldInfo f, final Font font, final int y, boolean all)
     {
         String typ = StringUtils.substringAfterLast(f.getType(), ".");
@@ -128,7 +135,7 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
         String lenStr = f.getLength() > 0  && f.getLength() < 65000 ? Integer.toString(f.getLength()) : "";
         
         CellConstraints cc = new CellConstraints();
-        p.add(ERDVisualizer.mkLabel(font, f.getTitle(), SwingConstants.LEFT),   cc.xy(1,y));
+        p.add(ERDVisualizer.mkLabel(font, f.getTitle(), SwingConstants.LEFT),    cc.xy(1,y));
         p.add(ERDVisualizer.mkLabel(font, typ, SwingConstants.CENTER),           cc.xy(3,y));
         p.add(ERDVisualizer.mkLabel(font, lenStr, SwingConstants.CENTER),        cc.xy(5,y));
         
@@ -140,6 +147,13 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
 
     }
     
+    /**
+     * @param p
+     * @param tbl
+     * @param font
+     * @param y
+     * @param all
+     */
     public void build(final PanelBuilder p, final DBTableInfo tbl, final Font font, final int y, boolean all)
     {
         String typ = StringUtils.substringAfterLast(tbl.getIdType(), ".");
@@ -159,12 +173,23 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
 
     }
     
+    /**
+     * @param p
+     * @param r
+     * @param font
+     * @param y
+     * @param all
+     * @return
+     */
     public JComponent build(final PanelBuilder p, final DBRelationshipInfo r, final Font font, final int y, boolean all)
     {
+        String type = r.getType().toString().toLowerCase();
+        type = getResourceString(type);
+        
         CellConstraints cc = new CellConstraints();
         p.add(ERDVisualizer.mkLabel(font, StringUtils.substringAfterLast(r.getClassName(), "."), SwingConstants.LEFT), cc.xy(1,y));
         p.add(ERDVisualizer.mkLabel(font, StringUtils.capitalize(r.getTitle()), SwingConstants.LEFT), cc.xy(3,y));
-        JComponent comp = ERDVisualizer.mkLabel(font, r.getType().toString(), SwingConstants.CENTER);
+        JComponent comp = ERDVisualizer.mkLabel(font, type, SwingConstants.CENTER);
         p.add(comp, cc.xy(5,y));
         if (all)
         {
@@ -225,8 +250,11 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
             }
             yy += 2;
             
-            build(fieldsPB, table, font, yy, doingAll); // does ID
-            yy += 2;
+            if (StringUtils.isNotEmpty(table.getIdColumnName()))
+            {
+                build(fieldsPB, table, font, yy, doingAll); // does ID
+                yy += 2;
+            }
             
             for (DBFieldInfo f : table.getFields())
             {
@@ -237,7 +265,7 @@ public class ERDTable extends JPanel implements Comparable<ERDTable>
             
         }
         
-        if (displayType == DisplayType.All || displayType == DisplayType.TitleAndRel)
+        if ((displayType == DisplayType.All || displayType == DisplayType.TitleAndRel) && table.getRelationships().size() > 0)
         {
             pb.addSeparator("", cc.xy(1,y)); y += 2;
             

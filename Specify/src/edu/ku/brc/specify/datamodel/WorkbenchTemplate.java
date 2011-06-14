@@ -113,6 +113,10 @@ public class WorkbenchTemplate extends DataModelObjBase implements java.io.Seria
         {
             item.getFieldName();
         }
+        for (Workbench wb : getWorkbenches())
+        {
+        	wb.getName();
+        }
     }
 
     /**
@@ -317,7 +321,7 @@ public class WorkbenchTemplate extends DataModelObjBase implements java.io.Seria
      */
     public int compareTo(WorkbenchTemplate obj)
     {
-        return name.compareTo(obj.name);
+        return name != null && obj != null && obj.name != null ? name.compareTo(obj.name) : 0;
     }
     
     /**
@@ -396,10 +400,6 @@ public class WorkbenchTemplate extends DataModelObjBase implements java.io.Seria
     {
         WorkbenchTemplate wbt = (WorkbenchTemplate)super.clone();
         wbt.workbenchTemplateId = null;
-        wbt.name        = name;
-        wbt.remarks     = remarks;
-        wbt.specifyUser = specifyUser;
-        wbt.srcFilePath = srcFilePath;
         
         wbt.workbenches                   = new HashSet<Workbench>();
         wbt.workbenchTemplateMappingItems = new HashSet<WorkbenchTemplateMappingItem>();

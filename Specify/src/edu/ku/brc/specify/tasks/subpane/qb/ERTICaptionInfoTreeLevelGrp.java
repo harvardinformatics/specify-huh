@@ -54,6 +54,7 @@ public class ERTICaptionInfoTreeLevelGrp
     protected final Class<?>                         treeClass;
     protected final int                              treeDefId;
     protected final String                           alias;
+    protected final Vector<String>				     fieldsToRetrieve;		
     protected final LookupsCache                     lookupCache;
     protected final boolean                          useCache;
     
@@ -63,7 +64,7 @@ public class ERTICaptionInfoTreeLevelGrp
     protected Statement                              statement = null;
     protected String                                 querySQL = null;
     
-    protected String[]                               currentRanks = null;
+    protected Object[]                               currentRanks = null;
     protected Object                                 currentVal   = null;
 
     protected DataProviderSessionIFace               session = null;
@@ -71,35 +72,39 @@ public class ERTICaptionInfoTreeLevelGrp
     protected boolean                                isSetup      = false;
     
 
+
     /**
      * @param treeClass
      * @param treeDefId
      * @param alias
+     * @param useCache
+     * @param cacheSize
      */
     public ERTICaptionInfoTreeLevelGrp(final Class<?> treeClass, final int treeDefId, final String alias,
-                                       final boolean useCache, final Integer cacheSize)
+            final boolean useCache, final Integer cacheSize)
     {
-        this.treeClass = treeClass;
-        this.treeDefId = treeDefId;
-        this.alias = alias;
-        this.members = new Vector<ERTICaptionInfoTreeLevel>();
-        this.useCache = useCache;
-        if (useCache)
-        {
-            lookupCache = cacheSize == null ? new LookupsCache() : new LookupsCache(cacheSize);
-        }
-        else
-        {
-            lookupCache = null;
-        }
+    	this.treeClass = treeClass;
+    	this.treeDefId = treeDefId;
+    	this.alias = alias;
+    	this.fieldsToRetrieve = new Vector<String>();
+    	this.members = new Vector<ERTICaptionInfoTreeLevel>();    	
+    	this.useCache = useCache;
+    	if (useCache)
+    	{
+    		lookupCache = cacheSize == null ? new LookupsCache() : new LookupsCache(cacheSize);
+    	}
+    	else
+    	{
+    		lookupCache = null;
+    	}
     }
-
+    
     /**
      * @param value
      * @param rankIdx
      * @return
      */
-    public Object processValue(final Object value, final int rankIdx) throws SQLException
+    public Object processValue(final Object value, final int rankIdx, final int fldIdx) throws SQLException
     {
         if (!isSetup)
         {
@@ -117,21 +122,31 @@ public class ERTICaptionInfoTreeLevelGrp
             currentVal = value;
         }
         
-        return currentRanks[rankIdx];
+        Object[] currentRank = (Object[] )currentRanks[rankIdx];
+        if (currentRank == null)
+        {
+        	return null;
+        }
+        return currentRank[fldIdx];
     }
 
     /**
      * @param ancestor
      * @return Pair of ancestor's rank and name.
      */
-    protected Pair<Integer, String> getAncestorInfo(final Object ancestor)
+    protected Pair<Integer, String[]> getAncestorInfo(final Object ancestor)
     {
         if (ancestor == null)
         {
-            return new Pair<Integer, String>(null, null);
+            return new Pair<Integer, String[]>(null, null);
         }
         Object[] info = (Object[] )ancestor;
-        return new Pair<Integer, String>((Integer )info[1], (String )info[0]);
+        String[] vals = new String[info.length-1];
+        for (int c = 0; c < vals.length; c++)
+        {
+        	vals[c] = info[c] == null ? null : info[c].toString();
+        }
+        return new Pair<Integer, String[]>((Integer )info[info.length - 1], vals);
     }
     
     
@@ -145,7 +160,7 @@ public class ERTICaptionInfoTreeLevelGrp
     {
         if (useCache)
         {
-            String[] lookedUp = (String[] )lookupCache.lookupKey((Integer )value);
+            Object[] lookedUp = (Object[] )lookupCache.lookupKey((Integer )value);
             if (lookedUp != null)
             {
                 currentRanks = lookedUp;
@@ -155,7 +170,7 @@ public class ERTICaptionInfoTreeLevelGrp
 
         if (useCache)
         {
-            currentRanks = new String[members.size()];
+            currentRanks = new Object[members.size()];
             for (int r = 0; r < currentRanks.length; r++)
             {
                 currentRanks[r] = null;
@@ -163,7 +178,7 @@ public class ERTICaptionInfoTreeLevelGrp
         }
         ResultSet ancestorRows = null;
         Iterator<Object> ancestors = null;
-        Pair<Integer, String> ancestor = null;
+        Pair<Integer, String[]> ancestor = null;
         if (useHibernate)
         {
             query.setParameter("descendantArg", value);
@@ -191,9 +206,13 @@ public class ERTICaptionInfoTreeLevelGrp
 				{
 					try
 					{
-						Object[] result = new Object[2];
-						result[0] = rows.getString(1);
-						result[1] = Integer.valueOf(rows.getString(2));
+						int arraySize = fieldsToRetrieve == null ? 2 : fieldsToRetrieve.size() + 1;
+						Object[] result = new Object[arraySize];
+						for (int c = 0; c < arraySize-1; c++)
+						{
+							result[c] = rows.getString(c+1);
+						}
+						result[arraySize-1] = Integer.valueOf(rows.getString(arraySize));
 						return result;
 					} catch (SQLException ex)
 					{
@@ -211,6 +230,7 @@ public class ERTICaptionInfoTreeLevelGrp
 
         }
         
+        //XXX using a pair for ancestor will not work when fieldsToRetrieve is non null
     	ancestor = ancestors.hasNext() ? getAncestorInfo(ancestors.next()) : null;
         //members are ordered by rank
         for (ERTICaptionInfoTreeLevel member : members)
@@ -246,11 +266,27 @@ public class ERTICaptionInfoTreeLevelGrp
     
     
     /**
-     * @return the name of the 'name' field for nodes in the tree.
+     * @return the list of fields that need to be retrieved.
+     * by default this is just the name of the 'name' field for nodes in the tree.
      */
-    protected String getNodeNameFld()
+    protected String geFldsList()
     {
-        return "name";
+        if (fieldsToRetrieve == null)
+        {
+        	return "name";
+        } else
+        {
+        	StringBuilder result = new StringBuilder();
+        	for (String fld : fieldsToRetrieve)
+        	{
+        		if (result.length() > 0)
+        		{
+        			result.append(", ");
+        		}
+        		result.append(fld);
+        	}
+        	return result.toString();
+        }
     }
     
     /**
@@ -320,7 +356,8 @@ public class ERTICaptionInfoTreeLevelGrp
      * 
      * Adds a member to the group and returns a CaptionInfo for the rank's column in the result-set.
      */
-    public ERTICaptionInfoTreeLevel addRank(final TreeLevelQRI rank, final String colName, final String lbl, final String id)
+    public ERTICaptionInfoTreeLevel addRank(final TreeLevelQRI rank, final String colName, final String lbl, final String id, 
+    		final String fldName)
     {
         if (isSetup)
         {
@@ -331,7 +368,13 @@ public class ERTICaptionInfoTreeLevelGrp
         {
             return null;
         }
-        ERTICaptionInfoTreeLevel result = new ERTICaptionInfoTreeLevel(colName, lbl, 0, id, this, rank.getRankId());
+        int fldIdx = fieldsToRetrieve.indexOf(fldName);
+        if (fldIdx == -1)
+        {
+        	fieldsToRetrieve.add(fldName);
+        	fldIdx = fieldsToRetrieve.size() - 1;
+        }
+        ERTICaptionInfoTreeLevel result = new ERTICaptionInfoTreeLevel(colName, lbl, 0, id, this, rank.getRankId(), fldIdx);
         members.add(result);
         return result;
     }
@@ -389,7 +432,7 @@ public class ERTICaptionInfoTreeLevelGrp
         	session = DataProviderFactory.getInstance().createSession();
 
         	String ancestorSQL = "select "
-        		+ getNodeNameFld()
+        		+ geFldsList()
         		+ ", rankId from "
         		+ getNodeTblName()
         		+ " where "
@@ -401,7 +444,7 @@ public class ERTICaptionInfoTreeLevelGrp
         else 
         {
         	querySQL = "select "
-        		+ getNodeNameFld()
+        		+ geFldsList()
         		+ ", rankId from "
         		+ getNodeTblName().toLowerCase()
         		+ " where "

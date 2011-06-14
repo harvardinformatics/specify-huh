@@ -77,6 +77,12 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     protected Boolean           isRequired;
     protected Set<WorkbenchDataItem> workbenchDataItems;
 
+    //for updates
+    /**
+     * User configurable. False if, for an exported dataset, the data in column cannot be edited.
+     */
+    protected Boolean			isEditable;
+    
     // UI Layout extras
     protected String            metaData;
     protected Short             xCoord;
@@ -126,6 +132,7 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         isExportableToContent = true;
         isIncludedInTitle     = false;
         isRequired            = false;
+        isEditable            = false;
         
         workbenchDataItems = new HashSet<WorkbenchDataItem>();
         
@@ -370,7 +377,25 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
         this.isExportableToContent = isExportableToContent;
     }
 
-    @Column(name="IsIncludedInTitle")
+    
+    /**
+	 * @return the isEditable
+	 */
+    @Column(name="IsEditable")
+	public Boolean getIsEditable()
+	{
+		return isEditable;
+	}
+
+	/**
+	 * @param isEditable the isEditable to set
+	 */
+	public void setIsEditable(Boolean isEditable)
+	{
+		this.isEditable = isEditable;
+	}
+
+	@Column(name="IsIncludedInTitle")
     public Boolean getIsIncludedInTitle()
     {
         return isIncludedInTitle;
@@ -505,28 +530,12 @@ public class WorkbenchTemplateMappingItem extends DataModelObjBase implements ja
     {
         WorkbenchTemplateMappingItem wbtmi = (WorkbenchTemplateMappingItem)super.clone();
         wbtmi.workbenchTemplateMappingItemId = null;
-        wbtmi.tableName             = tableName;
-        wbtmi.srcTableId            = srcTableId;
-        wbtmi.fieldName             = fieldName;
-        wbtmi.importedColName       = fieldName;
-        wbtmi.caption               = caption;
-        wbtmi.viewOrder             = viewOrder;
-        wbtmi.origImportColumnIndex = origImportColumnIndex;
-        wbtmi.dataFieldLength       = dataFieldLength;
-        wbtmi.fieldType             = fieldType;
         wbtmi.workbenchTemplate     = null;
-        wbtmi.metaData              = metaData;
-        wbtmi.xCoord                = xCoord;
-        wbtmi.yCoord                = yCoord;
-        wbtmi.carryForward          = carryForward;
-        wbtmi.isExportableToContent = isExportableToContent;
-        wbtmi.isIncludedInTitle     = isIncludedInTitle;
-        wbtmi.isRequired            = isRequired;
         wbtmi.workbenchDataItems    = new HashSet<WorkbenchDataItem>();
         
         wbtmi.timestampCreated      = new Timestamp(System.currentTimeMillis());
         wbtmi.timestampModified     = null;
-        wbtmi.modifiedByAgent          = null;
+        wbtmi.modifiedByAgent       = null;
 
         return wbtmi;
     }

@@ -219,9 +219,9 @@ public class PrefsToolbar extends JPanel
                             
                         } catch (MissingResourceException ex)
                         {
+                            log.error("Couldn't find key["+prefTitle+"]"); 
                             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
                             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(PrefsToolbar.class, ex);
-                            log.error("Couldn't find key["+prefTitle+"]"); 
                         }
                     }
 
@@ -261,6 +261,7 @@ public class PrefsToolbar extends JPanel
                             PrefsPanelIFace prefPanel = (PrefsPanelIFace)comp;
                             prefPanel.setName(prefName);
                             prefPanel.setTitle(prefTitle);
+                            prefPanel.setHelpContext(hContext);
                             
                             if (!prefPanel.isOKToLoad() || (AppContextMgr.isSecurityOn() && !prefPanel.getPermissions().canView()))
                             {
@@ -274,7 +275,6 @@ public class PrefsToolbar extends JPanel
                             if (StringUtils.isNotEmpty(viewSetName) && StringUtils.isNotEmpty(viewName))
                             {
                                 GenericPrefsPanel genericPrefsPanel = (GenericPrefsPanel)comp;
-                                genericPrefsPanel.setHelpContext(hContext);
                                 genericPrefsPanel.createForm(viewSetName, viewName);
                                 
                             } else
@@ -298,8 +298,11 @@ public class PrefsToolbar extends JPanel
                 }
             }
             
-            prevBtn = (RolloverCommand)getComponent(0);
-            prevBtn.setActive(true);
+            if (getComponentCount() > 0)
+            {
+                prevBtn = (RolloverCommand)getComponent(0);
+                prevBtn.setActive(true);
+            }
             
             /*int aveWidth = totalWidth / btns.size();
             for (NavBoxButton nbb : btns)
@@ -323,9 +326,7 @@ public class PrefsToolbar extends JPanel
         } finally
         {
             RolloverCommand.setVertGap(0);
-
         }
-        
     }
 
     /**

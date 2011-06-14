@@ -55,6 +55,7 @@ public class MenuSwitcherPanel extends JPanel
     protected Hashtable<String, Vector<AltViewIFace>>   selectorValHash = null;
     protected Hashtable<String, DropDownButtonStateful> switcherHash    = null;
     protected boolean                                   isSelector;
+    protected SwitcherAL                                switcherAL      = null;
 
     /**
      * @param mvParentArg
@@ -111,6 +112,7 @@ public class MenuSwitcherPanel extends JPanel
     /* (non-Javadoc)
      * @see javax.swing.JComponent#setEnabled(boolean)
      */
+    @Override
     public void setEnabled(final boolean enabled)
     {
         super.setEnabled(enabled);
@@ -141,6 +143,14 @@ public class MenuSwitcherPanel extends JPanel
     }
     
     /**
+     * @return the switcherAL
+     */
+    public SwitcherAL getSwitcherAL()
+    {
+        return switcherAL;
+    }
+
+    /**
      * Creates a special drop "switcher UI" component for switching between the Viewables in the MultiView.
      * @param mvParentArg the MultiView Parent
      * @param altViewsListArg the Vector of AltViewIFace that will contains the ones in the Drop Down
@@ -152,21 +162,6 @@ public class MenuSwitcherPanel extends JPanel
         DropDownButtonStateful switcher = null;
         List<DropDownMenuInfo> items    = new ArrayList<DropDownMenuInfo>(altViewsListArg.size());
         
-        
-        class SwitcherAL implements ActionListener
-        {
-            protected DropDownButtonStateful switcherComp;
-            public SwitcherAL(final DropDownButtonStateful switcherComp)
-            {
-                this.switcherComp = switcherComp;
-            }
-            public void actionPerformed(ActionEvent ae)
-            {
-                //log.info("Index: "+switcherComp.getCurrentIndex());
-                
-                mvParentArg.showView(altViewsListArg.get(switcherComp.getCurrentIndex()));
-            }
-        }
         
         // If we have AltViewIFace then we need to build information for the Switcher Control
         if (altViewsListArg.size() > 0)
@@ -183,45 +178,91 @@ public class MenuSwitcherPanel extends JPanel
                 
                 ViewDefIFace viewDef = av.getViewDef();
                 boolean      isEdit  = av.getMode() == AltViewIFace.CreationMode.EDIT;
-                if (viewDef.getType() == ViewDefIFace.ViewType.form)
+                
+                if (viewDef != null)
                 {
-                    label = "Form";
-                    imgIcon = IconManager.getImage(isEdit ? "EditForm" : "ViewForm", IconManager.IconSize.Std16);
-                    toolTip = getResourceString(isEdit ? "ShowEditViewTT" : "ShowViewTT");
-
-                } else if (viewDef.getType() == ViewDefIFace.ViewType.table ||
-                           viewDef.getType() == ViewDefIFace.ViewType.formtable)
-                {
-                    label = "Grid";
-                    imgIcon = IconManager.getImage(isEdit ? "SpreadsheetEdit" : "Spreadsheet", IconManager.IconSize.Std16);
-                    toolTip = getResourceString("ShowSpreadsheetTT");
-
-                } else
-                {
-                    label = "Icon";
-                    imgIcon = IconManager.getImage("image", IconManager.IconSize.Std16);
-                    toolTip = getResourceString("ShowViewTT");
+                    if (viewDef.getType() == ViewDefIFace.ViewType.form)
+                    {
+                        label   = getResourceString("Form");
+                        imgIcon = IconManager.getImage(isEdit ? "EditForm" : "ViewForm", IconManager.IconSize.Std16);
+                        toolTip = getResourceString(isEdit ? "ShowEditViewTT" : "ShowViewTT");
+    
+                    } else if (viewDef.getType() == ViewDefIFace.ViewType.table ||
+                               viewDef.getType() == ViewDefIFace.ViewType.formtable)
+                    {
+                        label   = getResourceString("Grid");
+                        imgIcon = IconManager.getImage(isEdit ? "SpreadsheetEdit" : "Spreadsheet", IconManager.IconSize.Std16);
+                        toolTip = getResourceString("ShowSpreadsheetTT");
+    
+                    } else
+                    {
+                        label   = getResourceString("Icon");
+                        imgIcon = IconManager.getImage("image", IconManager.IconSize.Std16);
+                        toolTip = getResourceString("ShowViewTT");
+                    }
                 }
                 
                 // Override when Top Level Form
                 if (mvParentArg.isTopLevel())
                 {
-                    label = isEdit ? "Edit" : "View";
-                    
+                    label = getResourceString(isEdit ? "EDIT" : "View");
                 }
 
                 items.add(new DropDownMenuInfo(label, imgIcon, toolTip));
             }
             
-
             switcher = new DropDownButtonStateful(items);
             switcher.setToolTipText(getResourceString("SwitchViewsTT"));
-            switcher.addActionListener(new SwitcherAL(switcher));
+            switcher.addActionListener(new SwitcherAL(switcher, mvParentArg, altViewsListArg, false));
             switcher.validate();
             switcher.doLayout();
             switcher.setOpaque(false);
             
+            switcherAL = new SwitcherAL(switcher, mvParentArg, altViewsListArg, true);
         }
         return switcher;
+    }
+    
+    //--------------------------------------------------------------------------------------------
+    //-- class SwitcherAL
+    //--------------------------------------------------------------------------------------------
+    public class SwitcherAL implements ActionListener
+    {
+        protected DropDownButtonStateful switcherComp;
+        protected MultiView              mvParent;
+        protected Vector<AltViewIFace>   altViewsList;
+        protected boolean                doIncrement;
+        
+        /**
+         * @param switcherComp
+         * @param mvParent
+         * @param altViewsList
+         */
+        public SwitcherAL(final DropDownButtonStateful switcherComp,
+                          final MultiView              mvParent,
+                          final Vector<AltViewIFace>   altViewsList,
+                          final boolean                doIncrement)
+        {
+            this.switcherComp = switcherComp;
+            this.mvParent     = mvParent;
+            this.altViewsList = altViewsList;
+            this.doIncrement  = doIncrement;
+        }
+        
+        /* (non-Javadoc)
+         * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+         */
+        @Override
+        public void actionPerformed(ActionEvent ae)
+        {
+            //log.info("Index: "+switcherComp.getCurrentIndex());
+            if (doIncrement)
+            {
+                switcherComp.doAdvance(ae);
+            } else
+            {
+                mvParent.showView(altViewsList.get(switcherComp.getCurrentIndex()));    
+            }
+        }
     }
 }

@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * of the License, or (Pat your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,18 +31,23 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -55,7 +60,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -74,23 +81,22 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertBlue;
 
-import edu.ku.brc.af.auth.SecurityMgr;
 import edu.ku.brc.af.core.AppContextMgr;
-import edu.ku.brc.af.core.SchemaI18NService;
 import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
-import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
+import edu.ku.brc.af.core.db.MySQLBackupService;
 import edu.ku.brc.af.prefs.AppPreferences;
-import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
-import edu.ku.brc.dbsupport.CustomQueryFactory;
 import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.dbsupport.DatabaseDriverInfo;
 import edu.ku.brc.dbsupport.HibernateUtil;
 import edu.ku.brc.dbsupport.MySQLDMBSUserMgr;
 import edu.ku.brc.dbsupport.ResultsPager;
+import edu.ku.brc.dbsupport.SchemaUpdateService;
 import edu.ku.brc.helpers.Encryption;
 import edu.ku.brc.helpers.SwingWorker;
+import edu.ku.brc.helpers.XMLHelper;
+import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.SpecifyUserTypes;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.Collection;
@@ -107,18 +113,17 @@ import edu.ku.brc.specify.datamodel.SpecifyUser;
 import edu.ku.brc.specify.datamodel.Storage;
 import edu.ku.brc.specify.datamodel.StorageTreeDef;
 import edu.ku.brc.specify.datamodel.StorageTreeDefItem;
-import edu.ku.brc.specify.datamodel.TaxonTreeDef;
-import edu.ku.brc.specify.datamodel.TaxonTreeDefItem;
-import edu.ku.brc.specify.datamodel.TreeDefIface;
 import edu.ku.brc.specify.dbsupport.PostInsertEventListener;
-import edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService;
 import edu.ku.brc.specify.tools.SpecifySchemaGenerator;
+import edu.ku.brc.specify.ui.AppBase;
 import edu.ku.brc.specify.utilapps.BuildSampleDatabase;
 import edu.ku.brc.ui.CustomDialog;
+import edu.ku.brc.ui.IconManager;
 import edu.ku.brc.ui.ProgressFrame;
 import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 import edu.ku.brc.util.Pair;
+import edu.ku.brc.util.Triple;
 
 /**
  * Create more sample data, letting Hibernate persist it for us.
@@ -126,10 +131,12 @@ import edu.ku.brc.util.Pair;
  * @code_status Beta
  * @author rods
  */
-public class SpecifyDBConverter
+public class SpecifyDBConverter extends AppBase
 {
     protected static final Logger log = Logger.getLogger(SpecifyDBConverter.class);
 
+    protected static final int                  OVERALL_STEPS     = 22;
+    
     protected static Hashtable<String, Integer> prepTypeMapper    = new Hashtable<String, Integer>();
     protected static int                        attrsId           = 0;
     protected static SimpleDateFormat           dateFormatter     = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
@@ -145,13 +152,12 @@ public class SpecifyDBConverter
     protected Pair<String, String>              namePairToConvert = null;
     
     protected static ProgressFrame              frame             = null;
+    protected Pair<String, String>              itUsrPwd     = new Pair<String, String>(null, null);
+    protected Pair<String, String>              masterUsrPwd = new Pair<String, String>("Master", "Master");
+    protected String                            hostName     = "localhost";
     
-    protected Pair<String, String> itUsrPwd     = new Pair<String, String>(null, null);
-    protected Pair<String, String> masterUsrPwd = new Pair<String, String>("Master", "Master");
-    protected String               hostName     = "localhost";
-    
-    protected GenericDBConversion  conversion;
-    protected ConversionLogger     convLogger   = new ConversionLogger();
+    protected GenericDBConversion               conversion;
+    protected ConversionLogger                  convLogger   = new ConversionLogger();
     
     /**
      * Constructor.
@@ -162,6 +168,21 @@ public class SpecifyDBConverter
         
         setUpSystemProperties();
         
+        AppContextMgr.getInstance().setHasContext(true);
+        
+        // Load Local Prefs
+        AppPreferences localPrefs = AppPreferences.getLocalPrefs();
+        localPrefs.setDirPath(UIRegistry.getAppDataDir());
+
+        // Then set this
+        IconManager.setApplicationClass(Specify.class);
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_datamodel.xml")); //$NON-NLS-1$
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_plugins.xml")); //$NON-NLS-1$
+        IconManager.loadIcons(XMLHelper.getConfigDir("icons_disciplines.xml")); //$NON-NLS-1$
+        
+        appIcon = new JLabel("  "); //$NON-NLS-1$
+        setAppIcon(null); //$NON-NLS-1$
+
     }
 
     /**
@@ -170,43 +191,30 @@ public class SpecifyDBConverter
      */
     public static void main(String args[]) throws Exception
     {
+        /*try
+        {
+            List<String>   list = FileUtils.readLines(new File("/Users/rods/drop.sql"));
+            Vector<String> list2 = new Vector<String>();
+            for (String line : list)
+            {
+                list2.add(line+";");
+            }
+            FileUtils.writeLines(new File("/Users/rods/drop2.sql"), list2);
+            return;
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }*/
+        
         // Set App Name, MUST be done very first thing!
         UIRegistry.setAppName("Specify");  //$NON-NLS-1$
 
         log.debug("********* Current ["+(new File(".").getAbsolutePath())+"]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         
-        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        UIRegistry.setEmbeddedDBPath(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         
-        for (String s : args)
-        {
-            String[] pairs = s.split("="); //$NON-NLS-1$
-            if (pairs.length == 2)
-            {
-                if (pairs[0].startsWith("-D")) //$NON-NLS-1$
-                {
-                    //System.err.println("["+pairs[0].substring(2, pairs[0].length())+"]["+pairs[1]+"]");
-                    System.setProperty(pairs[0].substring(2, pairs[0].length()), pairs[1]);
-                } 
-            } else
-            {
-                String symbol = pairs[0].substring(2, pairs[0].length());
-                //System.err.println("["+symbol+"]");
-                System.setProperty(symbol, symbol);
-            }
-        }
-        
-        // Now check the System Properties
-        String appDir = System.getProperty("appdir");
-        if (StringUtils.isNotEmpty(appDir))
-        {
-            UIRegistry.setDefaultWorkingPath(appDir);
-        }
-        
-        String appdatadir = System.getProperty("appdatadir");
-        if (StringUtils.isNotEmpty(appdatadir))
-        {
-            UIRegistry.setBaseAppDataDir(appdatadir);
-        }
+        AppBase.processArgs(args);
         
         final SpecifyDBConverter converter = new  SpecifyDBConverter();
         
@@ -245,9 +253,9 @@ public class SpecifyDBConverter
                 Pair<String, String> namePair = null;
                 try
                 {
-                    if (converter.selectedDBsToConvert())
+                    if (converter.selectedDBsToConvert(false))
                     {
-                        namePair = converter.chooseTable();
+                        namePair = converter.chooseTable("Select a DB to Convert", "Specify 5 Databases", true);
                     }
                        
                 } catch (SQLException ex)
@@ -266,7 +274,6 @@ public class SpecifyDBConverter
                     JOptionPane.showConfirmDialog(null, "The Converter was unable to login.", "Error", JOptionPane.CLOSED_OPTION);
                     System.exit(0);
                 }
-                
             }
         });
     }
@@ -306,7 +313,9 @@ public class SpecifyDBConverter
      * @return
      * @throws SQLException
      */
-    protected Pair<String, String> chooseTable() throws SQLException
+    public Pair<String, String> chooseTable(final String title, 
+                                            final String subTitle,
+                                            final boolean doSp5DBs) throws SQLException
     {
         MySQLDMBSUserMgr mgr = new MySQLDMBSUserMgr();
         
@@ -321,33 +330,28 @@ public class SpecifyDBConverter
             for (Object[] row : dbNames)
             {
                 String dbName = row[0].toString();
-                if (dbName.equalsIgnoreCase("kui_fish_dbo"))
-                {
-                    System.out.println("xxx");
-                }
                 
-                System.out.print("Database Found ["+dbName+"]  ");
+                //System.out.print("Database Found ["+dbName+"]  ");
                 conn.setCatalog(dbName);
                 
-                boolean fnd = false;
+                boolean isSp5DB = false;
                 Vector<Object[]> tables = BasicSQLUtils.query(conn, "show tables");
                 for (Object[] tblRow : tables)
                 {
                     String tableName = tblRow[0].toString();
                     if (tableName.equalsIgnoreCase("usysversion"))
                     {
-                        fnd = true;
-                        System.out.println(" is Sp5");
+                        isSp5DB = true;
                         break;
                     }
                 }
                 
-                if (!fnd)
+                if ((!isSp5DB && doSp5DBs) || (isSp5DB && !doSp5DBs))
                 {
-                    System.out.println(" is NOT Sp5");
                     continue;
                 }
                 
+                // make all table names lowercase
                 try
                 {
                     Integer count = BasicSQLUtils.getCount(conn, "select COUNT(*) FROM collection");
@@ -365,10 +369,10 @@ public class SpecifyDBConverter
                     ex.printStackTrace();
                 }
                 
-                Vector<Object[]> tableDesc = BasicSQLUtils.query(conn, "select CollectionName FROM collection");
+                Vector<Object> tableDesc = BasicSQLUtils.querySingleCol(conn, "select CollectionName FROM collection");
                 if (tableDesc.size() > 0)
                 {
-                    String collName =  tableDesc.get(0)[0].toString();
+                    String collName =  tableDesc.get(0).toString();
                     availPairs.add(new DBNamePair(collName, row[0].toString()));
                 }
             }
@@ -377,7 +381,7 @@ public class SpecifyDBConverter
                 @Override
                 public int compare(Pair<String, String> o1, Pair<String, String> o2)
                 {
-                    return o1.first.compareTo(o2.first);
+                    return o1.second.compareTo(o2.second);
                 }
             });
             
@@ -386,11 +390,12 @@ public class SpecifyDBConverter
             
             final JList     list = new JList(availPairs);
             CellConstraints cc   = new CellConstraints();
-            PanelBuilder    pb   = new PanelBuilder(new FormLayout("f:p:g", "f:p:g"));
-            pb.add(UIHelper.createScrollPane(list, true), cc.xy(1,1));
+            PanelBuilder    pb   = new PanelBuilder(new FormLayout("f:p:g", "p,4px,f:p:g"));
+            pb.add(UIHelper.createLabel(subTitle), cc.xy(1, 1));
+            pb.add(UIHelper.createScrollPane(list, true), cc.xy(1,3));
             pb.setDefaultDialogBorder();
             
-            final CustomDialog dlg = new CustomDialog(null, "Select a DB to Convert", true, pb.getPanel());
+            final CustomDialog dlg = new CustomDialog(null, title, true, pb.getPanel());
             list.addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e)
@@ -481,7 +486,7 @@ public class SpecifyDBConverter
     /**
      * 
      */
-    protected void setUpSystemProperties()
+    /*protected void setUpSystemProperties()
     {
         // Name factories
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr
@@ -498,7 +503,7 @@ public class SpecifyDBConverter
         System.setProperty(SecurityMgr.factoryName,                     "edu.ku.brc.af.auth.specify.SpecifySecurityMgr");
 
         AppContextMgr.getInstance().setHasContext(true);
-    }
+    }*/
     
     /**
      * @param oldDBConn
@@ -537,16 +542,73 @@ public class SpecifyDBConverter
                             {
                                 BasicSQLUtils.update(oldDBConn, "UPDATE "+tableName+ " SET TimestampCreated='"+nowStr+"' WHERE TimestampCreated IS NULL");
                             }
+                        }
+                    }
+                } catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        frame.setProcess(tableNames.size());
+        log.debug("Done setting Timestamps");
+    }
+    
+    /**
+     * @param oldDBConn
+     */
+    private HashSet<String> getOldEditedByStrings(final Connection oldDBConn)
+    {
+        HashSet<String> names = new HashSet<String>();
+        
+        // Makes sure old data has all the TimestampCreated filled in
+        List<String> tableNames = BasicSQLUtils.getTableNames(oldDBConn);
+        
+        frame.setProcess(0, tableNames.size());
+        
+        int cnt = 0;
+        for (String tableName : tableNames)
+        {
+            frame.setProcess(cnt++);
+            
+            if (!tableName.toLowerCase().startsWith("usys") && 
+                !tableName.toLowerCase().startsWith("web") && 
+                !tableName.toLowerCase().equals("taxonomytype") && 
+                !tableName.toLowerCase().equals("taxonomicunittype") && 
+                !tableName.toLowerCase().equals("reports"))
+            {
+                try
+                {
+                    System.out.println("Table: "+tableName);
+                    
+                    List<String> fieldNames = BasicSQLUtils.getFieldNamesFromSchema(oldDBConn, tableName);
+                    for (String fieldName : fieldNames)
+                    {
+                        if (fieldName.equals("LastEditedBy"))
+                        {
+                            String sql = "SELECT LastEditedBy FROM " + tableName + " WHERE LastEditedBy IS NOT NULL GROUP BY LastEditedBy";
+                            for (Object obj : BasicSQLUtils.querySingleCol(oldDBConn, sql))
+                            {
+                                names.add(obj.toString());
+                            }
                             break;
                         }
                     }
                 } catch (Exception ex)
                 {
+                    ex.printStackTrace();
                 }
             }
         }
+        frame.setProcess(tableNames.size());
+        
+        for (String name : names)
+        {
+            System.out.println(name);
+        }
+        log.debug("Done getting LastEditedBy");
+        return names;
     }
-    
 
     /**
      * Convert old Database to New 
@@ -554,16 +616,16 @@ public class SpecifyDBConverter
      * @param databaseNameDest name of new DB
      * @throws Exception xx
      */
+    @SuppressWarnings("unchecked")
     protected  void convertDB(final String dbNameSource, 
                               final String dbNameDest) throws Exception
     {
-        System.setProperty(DBMSUserMgr.factoryName, "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
+        //System.setProperty(DBMSUserMgr.factoryName, "edu.ku.brc.dbsupport.MySQLDMBSUserMgr");
 
         AppContextMgr.getInstance().clear();
         
-        boolean doAll               = true; 
         boolean startfromScratch    = true; 
-        boolean deleteMappingTables = true;
+        boolean deleteMappingTables = false;
         
         
         System.out.println("************************************************************");
@@ -620,24 +682,85 @@ public class SpecifyDBConverter
             return;
         }
         
-        OldDBStatsDlg dlg = new OldDBStatsDlg(oldDBConn);
-        frame.setVisible(false);
-        
-        dlg.setVisible(true);
-        if (dlg.isCancelled())
+        boolean doFixLoanPreps = false;
+        if (doFixLoanPreps)
         {
-            oldDBConn.close();
-            newDBConn.close();
-            System.exit(0);
+            fixLoanPreps(oldDBConn, newDBConn);
+            fixGiftPreps(oldDBConn, newDBConn);
+            return;
+        }
+        
+        boolean doGetLastEditedByNamesHashSet = true;
+        if (doGetLastEditedByNamesHashSet)
+        {
+            getOldEditedByStrings(oldDBConn);
+            //return;
+        }
+        
+        boolean doFix = false;
+        if (doFix)
+        {
+            IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+            DuplicateCollectingEvents dce = new DuplicateCollectingEvents(oldDBConn, newDBConn);
+            //dce.performMaint(true);
+            dce.fixCollectorsForCollectingEvents2();
+            //dce.removeUnneededCEs();
+            return;
+        }
+        
+        if (!System.getProperty("user.name").equals("rods"))
+        {
+            OldDBStatsDlg dlg = new OldDBStatsDlg(oldDBConn);
+            frame.setVisible(false);
+            
+            dlg.setVisible(true);
+            if (dlg.isCancelled())
+            {
+                oldDBConn.close();
+                newDBConn.close();
+                System.exit(0);
+            }
+            doFixCollectors = dlg.doFixAgents();
         }
         
         startTime = System.currentTimeMillis();
         
-        doFixCollectors = dlg.doFixAgents();
-        
         convLogger.initialize(dbNameDest);
+        convLogger.setIndexTitle(dbNameDest + " Conversion "+(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")).format(Calendar.getInstance().getTime()));
+
         
-        convLogger.setIndexTitle("Conversion from "+dbNameSource+" to "+dbNameDest);
+        /*if (true)
+        {
+            TableWriter tDSTblWriter = convLogger.getWriter("TableDataSummary.html", "Table Data Summary", true);
+            TableDataChecker tblDataChecker = new TableDataChecker(oldDBConn);
+            tblDataChecker.createHTMLReport(tDSTblWriter);
+            tDSTblWriter.close();
+            return;
+        }*/
+        
+        boolean doCheckLastEditedByNamesHashSet = false;
+        if (doCheckLastEditedByNamesHashSet)
+        {
+            IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+            IdMapperMgr.getInstance().addTableMapper("agent", "AgentID", false);
+            IdMapperMgr.getInstance().addTableMapper("address", "AddressID", false);
+            
+            convLogger.initialize(dbNameDest);
+            convLogger.setIndexTitle(dbNameDest + " Conversion "+(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")).format(Calendar.getInstance().getTime()));
+            conversion = new GenericDBConversion(oldDBConn, newDBConn, dbNameSource, convLogger);
+            conversion.checkCreatedModifiedByAgents();
+            //conversion.fixCreatedModifiedByAgents(itUsrPwd.first, itUsrPwd.second, dbNameSource);
+            return;
+        } 
+        
+        //ConvertMiscData.moveHabitatToStratSp5(oldDBConn);
+
+        boolean doFix2 = false;
+        if (doFix2)
+        {
+            ConvertMiscData.convertMethodFromStratGTP(oldDBConn, newDBConn);
+            return;
+        }
         
         frame.setSize(500, frame.getPreferredSize().height);
         
@@ -649,12 +772,74 @@ public class SpecifyDBConverter
         frame.turnOnOverAll();
         
         conversion = new GenericDBConversion(oldDBConn, newDBConn, dbNameSource, convLogger);
-        if (!conversion.initialize())
+        GenericDBConversion.CollectionResultType collInitStatus = conversion.initialize();
+        if (collInitStatus == GenericDBConversion.CollectionResultType.eError)
+        {
+            oldDBConn.close();
+            newDBConn.close();
+            throw new RuntimeException("There are no collections!");
+            
+        } else if (collInitStatus == GenericDBConversion.CollectionResultType.eCancel)
         {
             oldDBConn.close();
             newDBConn.close();
             System.exit(0);
         }
+        
+        boolean doFix3 = false;
+        if (doFix3)        
+        {
+            IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+            AgentConverter agentConverter = new AgentConverter(conversion, IdMapperMgr.getInstance(), false);
+            agentConverter.fixMissingAddrsFromConv();
+            oldDBConn.close();
+            newDBConn.close();
+            return;
+        }
+        
+        boolean doFix4 = false;
+        if (doFix4)        
+        {
+            IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+            ConvertMiscData.moveStratFieldsToCEA(oldDBConn, newDBConn);
+            oldDBConn.close();
+            newDBConn.close();
+            return;
+        }
+        
+        String sql = "SELECT count(*) FROM (SELECT ce.CollectingEventID, Count(ce.CollectingEventID) as cnt FROM collectingevent AS ce " +
+        "Inner Join collectionobject AS co ON ce.CollectingEventID = co.CollectingEventID " +
+        "Inner Join collectionobjectcatalog AS cc ON co.CollectionObjectID = cc.CollectionObjectCatalogID " +    
+        "WHERE ce.BiologicalObjectTypeCollectedID <  21 " +
+        "GROUP BY ce.CollectingEventID) T1 WHERE cnt > 1";
+
+        /*if (true)
+        {
+            IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+            
+            //convLogger.initialize(dbNameDest);
+            //convLogger.setIndexTitle(dbNameDest + " Conversion "+(new SimpleDateFormat("yyy-MM-dd hh:mm:ss")).format(Calendar.getInstance().getTime()));
+            
+            TableWriter tblWriter = convLogger.getWriter("ScopeUpdater.html", "Updating Scope Summary");
+            ConvScopeFixer convScopeFixer = new ConvScopeFixer(oldDBConn, newDBConn, dbNameDest, tblWriter);
+            convScopeFixer.doFixTables();
+            convScopeFixer.checkTables();
+            return;
+        }*/
+        
+        int numCESharing = BasicSQLUtils.getCountAsInt(oldDBConn, sql);
+
+        String msg = String.format("Will this Collection share Collecting Events?\nThere are %d Collecting Events that are sharing now.\n(Sp5 was %ssharing them.)", numCESharing, isUsingEmbeddedCEsInSp5() ? "NOT " : "");
+        boolean isSharingCollectingEvents  = UIHelper.promptForAction("Share", "Adjust CEs", "Duplicate Collecting Events", msg);
+        boolean doingOneToOneForColObjToCE = !isSharingCollectingEvents;
+        
+        conversion.setSharingCollectingEvents(isSharingCollectingEvents);
+        
+        /*if (false) 
+        {
+            createTableSummaryPage();
+            return;
+        }*/
         
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -664,18 +849,65 @@ public class SpecifyDBConverter
                 frame.setDesc("Building Database Schema...");
                 frame.adjustProgressFrame();
                 frame.getProcessProgress().setIndeterminate(true);
+                frame.getProcessProgress().setString("");
                 UIHelper.centerAndShow(frame);
 
             }
         });
-
+        
         
         if (startfromScratch)
         {
-            log.debug("Starting from scratch and generating the schema");
-            SpecifySchemaGenerator.generateSchema(driverInfo, hostName, dbNameDest, itUsrPwd.first, itUsrPwd.second);
-        }
+            boolean doBuild = true;
+            File    file    = new File("blank.sql");
+            System.err.println(file.getAbsolutePath());
+            if (file.exists())
+            {
+                DBMSUserMgr dbMgr = DBMSUserMgr.getInstance();
+                if (dbMgr.connect(itUsrPwd.first, itUsrPwd.second, "localhost", dbNameDest))
+                {
+                    if (dbMgr.doesDBExists(dbNameDest))
+                    {
+                        dbMgr.dropDatabase(dbNameDest);
+                    }
+                    
+                    if (dbMgr.createDatabase(dbNameDest))
+                    {
+                        doBuild = false;
+                    }
+                    
+                    dbMgr.close();
+                }
 
+                
+                MySQLBackupService bkService = new MySQLBackupService();
+                
+                doBuild = !bkService.doRestore(file.getAbsolutePath(),"/usr/local/mysql/bin/mysql", dbNameDest, itUsrPwd.first, itUsrPwd.second);
+            } 
+            
+            if (doBuild)
+            {
+                DBMSUserMgr dbMgr = DBMSUserMgr.getInstance();
+                if (dbMgr.connect(itUsrPwd.first, itUsrPwd.second, "localhost", dbNameDest))
+                {
+                    if (dbMgr.doesDBExists(dbNameDest))
+                    {
+                        dbMgr.dropDatabase(dbNameDest);
+                    }
+                    
+                    if (dbMgr.createDatabase(dbNameDest))
+                    {
+                        doBuild = false;
+                    }
+                    
+                    dbMgr.close();
+                }
+
+                log.debug("Starting from scratch and generating the schema");
+                SpecifySchemaGenerator.generateSchema(driverInfo, hostName, dbNameDest, itUsrPwd.first, itUsrPwd.second);
+            }
+        }
+        
         log.debug("Preparing new database: completed");
 
         setSession(HibernateUtil.getNewSession());
@@ -687,7 +919,7 @@ public class SpecifyDBConverter
         	GenericDBConversion.setShouldCreateMapTables(startfromScratch);
             GenericDBConversion.setShouldDeleteMapTables(deleteMappingTables);
             
-            frame.setOverall(0, 19);
+            frame.setOverall(0, OVERALL_STEPS);
             SwingUtilities.invokeLater(new Runnable() {
                 public void run()
                 {
@@ -714,16 +946,18 @@ public class SpecifyDBConverter
                 // NOTE: Within BasicSQLUtils the connection is for removing tables and records
                 BasicSQLUtils.setDBConnection(conversion.getNewDBConnection());
                 
-                if (false)
+                /*if (false)
                 {
                     addStorageTreeFomrXML(true);
                     return;
-                }
+                }*/
                 
                 //---------------------------------------------------------------------------------------
                 //-- Create basic set of information.
                 //---------------------------------------------------------------------------------------
                 conversion.doInitialize();
+                
+                boolean doAll = true;
                 
                 if (startfromScratch)
                 {
@@ -735,9 +969,7 @@ public class SpecifyDBConverter
                 frame.setDesc("Mapping Tables.");
                 log.info("Mapping Tables.");
                 boolean mapTables = true;
-                
-                //GenericDBConversion.setShouldCreateMapTables(false);
-                if (mapTables || doAll)
+                if (mapTables)
                 {
                     // Ignore these field names from new table schema when mapping OR
                     // when mapping IDs
@@ -759,20 +991,11 @@ public class SpecifyDBConverter
                     System.exit(0);
                 }
                 
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                // Need to ask for Discipline here or get it from the Sp5 DB
-                
                 conversion.convertDivision(institutionId);
                 frame.incOverall();
                 
-                /////////////////////////////////////////////////////////////
-                // Really need to create or get a proper Discipline Record
-                /////////////////////////////////////////////////////////////
-                
-                frame.setDesc("Converting CollectionObjectDefs.");
-                log.info("Converting CollectionObjectDefs.");
-                boolean convertDiscipline = true;
-                if (convertDiscipline || doAll)
+                Agent userAgent = null;
+                if (startfromScratch)
                 {
                     String           username         = "testuser";
                     String           title            = "Mr.";
@@ -783,65 +1006,65 @@ public class SpecifyDBConverter
                     String           email            = "testuser@ku.edu";
                     String           userType         = SpecifyUserTypes.UserType.Manager.toString();   
                     String           password         = "testuser";
+
+                    Transaction trans = getSession().beginTransaction();
                     
-                    Agent userAgent   = null;
+                    //BasicSQLUtils.deleteAllRecordsFromTable(newConn, "usergroup", BasicSQLUtils.myDestinationServerType);
+                    BasicSQLUtils.deleteAllRecordsFromTable(newConn, "specifyuser", BasicSQLUtils.myDestinationServerType);
+                    //SpPrincipal userGroup = createUserGroup("admin2");
                     
-                    if (startfromScratch)
-                    {
-                        Transaction trans = getSession().beginTransaction();
-                        
-                        //BasicSQLUtils.deleteAllRecordsFromTable(newConn, "usergroup", BasicSQLUtils.myDestinationServerType);
-                        BasicSQLUtils.deleteAllRecordsFromTable(newConn, "specifyuser", BasicSQLUtils.myDestinationServerType);
-                        //SpPrincipal userGroup = createUserGroup("admin2");
-                        
-                        Criteria criteria = getSession().createCriteria(Agent.class);
-                        criteria.add(Restrictions.eq("lastName", lastName));
-                        criteria.add(Restrictions.eq("firstName", firstName));
-                        
-                        
-                        List<?> list = criteria.list();
-                        if (list != null && list.size() == 1)
-                        { 
-                            userAgent = (Agent)list.get(0);
-                        } else
-                        {
-                            userAgent = createAgent(title, firstName, midInit, lastName, abbrev, email);
-                        }
-                        
-                        //specifyUser = createSpecifyUser(username, email, password, userType);
-                        Institution institution = (Institution)getSession().createQuery("FROM Institution").list().get(0);
-                        
-                        String encrypted = Encryption.encrypt(password, password);
-                        specifyUser = createAdminGroupAndUser(getSession(), institution,  username, email, encrypted, userType);
-                        specifyUser.addReference(userAgent, "agents");
-                        
-                        getSession().saveOrUpdate(institution);
-                        
-                        userAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
-                        getSession().saveOrUpdate(userAgent);
-                        
-                        trans.commit();
-                        getSession().flush();
-                        
+                    Criteria criteria = getSession().createCriteria(Agent.class);
+                    criteria.add(Restrictions.eq("lastName", lastName));
+                    criteria.add(Restrictions.eq("firstName", firstName));
+                    
+                    List<?> list = criteria.list();
+                    if (list != null && list.size() == 1)
+                    { 
+                        userAgent = (Agent)list.get(0);
                     } else
                     {
-                        // XXX Works for a Single Convert
-                        specifyUser = (SpecifyUser)getSession().createCriteria(SpecifyUser.class).list().get(0);
-                        userAgent   = specifyUser.getAgents().iterator().next();
+                        userAgent = createAgent(title, firstName, midInit, lastName, abbrev, email);
                     }
                     
-                    if (startfromScratch)
-                    {
-                        int     catSeriesId = 0;
-                        conversion.convertCollectionObjectDefs(specifyUser.getSpecifyUserId(), catSeriesId, userAgent);
-                        
-                    } else
-                    {
-                        AppContextMgr.getInstance().setClassObject(SpecifyUser.class, specifyUser);
-                        // XXX Works for a Single Convert
-                        Collection collection = (Collection)getSession().createCriteria(Collection.class).list().get(0);
-                        AppContextMgr.getInstance().setClassObject(Collection.class, collection);
-                    }
+                    Institution institution = (Institution)getSession().createQuery("FROM Institution").list().get(0);
+                    
+                    String encrypted = Encryption.encrypt(password, password);
+                    specifyUser = createAdminGroupAndUser(getSession(), institution,  null, username, email, encrypted, userType);
+                    specifyUser.addReference(userAgent, "agents");
+                    
+                    getSession().saveOrUpdate(institution);
+                    
+                    userAgent.setDivision(AppContextMgr.getInstance().getClassObject(Division.class));
+                    getSession().saveOrUpdate(userAgent);
+                    
+                    trans.commit();
+                    getSession().flush();
+                    
+                } else
+                {
+                    specifyUser = (SpecifyUser)getSession().createCriteria(SpecifyUser.class).list().get(0);
+                    userAgent   = specifyUser.getAgents().iterator().next();
+                    
+                    AppContextMgr.getInstance().setClassObject(SpecifyUser.class, specifyUser);
+                    // XXX Works for a Single Convert
+                    Collection collection = (Collection)getSession().createCriteria(Collection.class).list().get(0);
+                    AppContextMgr.getInstance().setClassObject(Collection.class, collection);
+                }
+                
+                /////////////////////////////////////////////////////////////
+                // Really need to create or get a proper Discipline Record
+                /////////////////////////////////////////////////////////////
+                TableWriter taxonTblWriter = convLogger.getWriter("FullTaxon.html", "Taxon Conversion");
+                ConvertTaxonHelper           taxonHelper    = new ConvertTaxonHelper(oldDBConn, newDBConn, dbNameDest, frame, taxonTblWriter, conversion, conversion);
+                taxonHelper.createTaxonIdMappings();
+                taxonHelper.doForeignKeyMappings();
+                
+                frame.setDesc("Converting CollectionObjectDefs.");
+                log.info("Converting CollectionObjectDefs.");
+                boolean convertDiscipline = true;
+                if (convertDiscipline)
+                {
+                    conversion.convertCollectionObjectTypes(specifyUser.getSpecifyUserId(), userAgent);
 
                 } else
                 {
@@ -850,7 +1073,6 @@ public class SpecifyDBConverter
                 }
                 frame.incOverall();
 
-                
                 frame.setDesc("Converting Agents.");
                 log.info("Converting Agents.");
                 
@@ -860,8 +1082,8 @@ public class SpecifyDBConverter
                 // This MUST be done before any of the table copies because it
                 // creates the IdMappers for Agent, Address and more importantly AgentAddress
                 // NOTE: AgentAddress is actually mapping from the old AgentAddress table to the new Agent table
-                boolean copyAgentAddressTables = true;
-                if (copyAgentAddressTables || doAll)
+                boolean copyAgentAddressTables = doAll;
+                if (copyAgentAddressTables)
                 {
                     log.info("Calling - convertAgents");
                     
@@ -874,10 +1096,10 @@ public class SpecifyDBConverter
                     idMapperMgr.addTableMapper("agentaddress", "AgentAddressID");
                 }
                 frame.incOverall();
-                
+
                 frame.setDesc("Mapping Agent Tables.");
                 log.info("MappingAgent Tables.");
-                if (mapTables || doAll)
+                if (mapTables)
                 {
                     // Ignore these field names from new table schema when mapping OR
                     // when mapping IDs
@@ -889,45 +1111,86 @@ public class SpecifyDBConverter
                     BasicSQLUtils.setFieldsToIgnoreWhenMappingIDs(null);
                 }
                 frame.incOverall();
+                
+                
+                TableWriter gtpTblWriter = convLogger.getWriter("GTP.html", "Geologic Time Period");
+                StratToGTP  stratToGTP   = null;//new StratToGTP(oldDBConn, newDBConn, dbNameDest, gtpTblWriter);
 
+                
+                frame.setDesc("Converting Geography");
+                log.info("Converting Geography");
+                boolean doGeography = doAll;
+                if (!dbNameDest.startsWith("accessions") && doGeography)
+                {
+                    GeographyTreeDef treeDef = conversion.createStandardGeographyDefinitionAndItems(true);
+                    conversion.convertGeography(treeDef, null, true);
+                }
+                frame.incOverall();
 
                 frame.setDesc("Converting Geologic Time Period.");
                 log.info("Converting Geologic Time Period.");
                 // GTP needs to be converted here so the stratigraphy conversion can use
                 // the IDs
-                boolean doGTP = true;
-                if (doGTP || doAll)
+                boolean doGTP = doAll;
+                if (doGTP)
                 {
-                    ConversionLogger.TableWriter tblWriter = convLogger.getWriter("GTP.html", "Geologic Time Period");
-                    GeologicTimePeriodTreeDef treeDef = conversion.convertGTPDefAndItems(conversion.isPaleo());
-                    conversion.convertGTP(tblWriter, treeDef, conversion.isPaleo());
+                    if (stratToGTP != null)
+                    {
+                        stratToGTP.createTreeDef();
+                        
+                    } else
+                    {
+                        GeologicTimePeriodTreeDef treeDef = conversion.convertGTPDefAndItems(conversion.isPaleo());
+                        conversion.convertGTP(gtpTblWriter, treeDef, conversion.isPaleo());
+                    }
                 } else
                 {
                     idMapperMgr.addTableMapper("geologictimeperiod", "GeologicTimePeriodID");
                     idMapperMgr.mapForeignKey("Stratigraphy", "GeologicTimePeriodID", "GeologicTimePeriod", "GeologicTimePeriodID");
                 }
-
                 frame.incOverall();
+
+                frame.setDesc("Converting Taxonomy");
+                log.info("Converting Taxonomy");
+                boolean doTaxonomy = doAll;
+                if (doTaxonomy)
+                {
+                    BasicSQLUtils.setTblWriter(taxonTblWriter);
+                    taxonHelper.doConvert();
+                    //taxonHelper.convertTaxonCitationToTaxonImage();
+                    BasicSQLUtils.setTblWriter(null);
+                }
+                frame.incOverall();
+
+                //checkDisciplines();
+
+                //-------------------------------------------------------------------------------
+                // Get the Discipline Objects and put them into the CollectionInfo Objects
+                //-------------------------------------------------------------------------------
+                //conversion.loadDisciplineObjects();
+                
+                conversion.convertHabitat();
                 
                 frame.setDesc("Converting Determinations Records");
                 log.info("Converting Determinations Records");
-                boolean doDeterminations = false;
-                if (doDeterminations || doAll)
+                boolean doDeterminations = doAll;
+                if (doDeterminations)
                 {
-                    //conversion.createDefaultDeterminationStatusRecords();
                     frame.incOverall();
-
                     conversion.convertDeterminationRecords();
                 } else
                 {
                     frame.incOverall();
                 }
                 frame.incOverall();
+
+                //checkDisciplines();
+
                 
                 frame.setDesc("Copying Tables");
                 log.info("Copying Tables");
-                boolean copyTables = true;
-                if (copyTables || doAll)
+                boolean copyTables = doAll;
+                if (copyTables)
                 {
                     boolean doBrief  = false;
                     conversion.copyTables(doBrief);
@@ -935,37 +1198,55 @@ public class SpecifyDBConverter
 
                 frame.incOverall();
 
+                //checkDisciplines();
+                
+                conversion.updateHabitatIds();
+
+                frame.setDesc("Converting Locality");
+                log.info("Converting Locality");
+                
+                boolean doLocality = doAll;
+                if (!dbNameDest.startsWith("accessions") && (doGeography || doLocality))
+                {
+                    conversion.convertLocality();
+                    frame.incOverall();
+                    
+                } else
+                {
+                    frame.incOverall();
+                    frame.incOverall();
+                }
+
+                //checkDisciplines();
                 
                 frame.setDesc("Converting DeaccessionCollectionObject");
                 log.info("Converting DeaccessionCollectionObject");
-                boolean doDeaccessionCollectionObject = false;
-                if (doDeaccessionCollectionObject || doAll)
+                boolean doDeaccessionCollectionObject = doAll;
+                if (doDeaccessionCollectionObject)
                 {
                     conversion.convertDeaccessionCollectionObject();
                 }
                 frame.incOverall();          
 
-                frame.setDesc("Converting CollectionObjects");
-                log.info("Converting CollectionObjects");
-                boolean doCollectionObjects = false;
-                if (doCollectionObjects || doAll)
+                //checkDisciplines();
+
+                frame.setDesc("Converting Preparations");
+                log.info("Converting Preparations");
+                boolean doCollectionObjects = doAll;
+                if (doCollectionObjects)
                 {
                     if (true)
                     {
                         Session session = HibernateUtil.getCurrentSession();
                         try
                         {
+                            // Get a HashMap of all the PrepTypes for each Collection
                             Hashtable<Integer, Map<String, PrepType>> collToPrepTypeHash = new Hashtable<Integer, Map<String,PrepType>>();
                             Query   q = session.createQuery("FROM Collection");
                             for (Object dataObj :  q.list())
                             {
-                                boolean cache = GenericDBConversion.shouldCreateMapTables();
-                                GenericDBConversion.setShouldCreateMapTables(true);
-                                
                                 Collection            collection  = (Collection)dataObj;
-                                Map<String, PrepType> prepTypeMap = conversion.createPreparationTypesFromUSys(collection);
-                                
-                                GenericDBConversion.setShouldCreateMapTables(cache);
+                                Map<String, PrepType> prepTypeMap = conversion.createPreparationTypesFromUSys(collection); // Hashed by PrepType's Name
                                 
                                 PrepType miscPT = prepTypeMap.get("misc");
                                 if (miscPT != null)
@@ -982,26 +1263,30 @@ public class SpecifyDBConverter
                                         log.error("******************************* Couldn't find 'Misc' PrepType!");
                                     }
                                 }
+                                // So Cache a Map of PrepTYpes for each Collection
                                 collToPrepTypeHash.put(collection.getCollectionId(), prepTypeMap);
                             }
                             conversion.convertPreparationRecords(collToPrepTypeHash);
-                            
+
+                            //checkDisciplines();
+
                         } catch (Exception ex)
                         {
                             throw new RuntimeException(ex);
-                            
                         }
                     }
                     
-                    frame.setDesc("Converting LoanPreparations Records");
-                    log.info("Converting LoanPreparations Records");
-                    boolean doLoanPreparations = false;
-                    if (doLoanPreparations || doAll)
+                    frame.setDesc("Converting Loan Records");
+                    log.info("Converting Loan Records");
+                    boolean doLoanPreparations = doAll;
+                    if (doLoanPreparations)
                     {
                     	conversion.convertLoanRecords(false);     // Loans
                     	conversion.convertLoanAgentRecords(false);// Loans
                         conversion.convertLoanPreparations();
                         
+                        frame.setDesc("Converting Gift Records");
+                        log.info("Converting Gift Records");
                     	conversion.convertLoanAgentRecords(true); // Gifts
                     	conversion.convertLoanRecords(true);      // Gifts
                         conversion.convertGiftPreparations();
@@ -1011,9 +1296,13 @@ public class SpecifyDBConverter
                     {
                         frame.incOverall();
                     }
-                    
+
+                    //checkDisciplines();
+
                     // Arg1 - Use Numeric Catalog Number
                     // Arg2 - Use the Prefix from Catalog Series
+                    frame.setDesc("Converting CollectionObjects Records");
+                    log.info("Converting CollectionObjects Records");
                     conversion.convertCollectionObjects(true, false);
                     frame.incOverall();
 
@@ -1024,92 +1313,33 @@ public class SpecifyDBConverter
                     frame.incOverall();
                 }
                 
-                frame.setDesc("Converting Geography");
-                log.info("Converting Geography");
-                boolean doGeography = true;
-                if (!dbNameDest.startsWith("accessions") && (doGeography || doAll))
+                conversion.updateBioLogicalObjAttrIds();;
+                conversion.updatePrepAttrIds();
+
+                //checkDisciplines();
+
+                //conversion.convertHostTaxonId();
+                
+                if (getSession() != null)
                 {
-                    GeographyTreeDef treeDef = conversion.createStandardGeographyDefinitionAndItems();
-                    conversion.convertGeography(treeDef);
-                    frame.incOverall();
-                    conversion.convertLocality();
-                    frame.incOverall();
-                    
-                } else
-                {
-                    frame.incOverall();
-                    frame.incOverall();
+                    getSession().close();
+                    setSession(null);
                 }
- 
-                frame.setDesc("Converting Taxonomy");
-                log.info("Converting Taxonomy");
-                boolean doTaxonomy = true;
-                if (doTaxonomy || doAll )
-                {
-                	 ConversionLogger.TableWriter tblWriter = convLogger.getWriter("FullTaxon.html", "Taxon Conversion");
-                	
-                	conversion.copyTaxonTreeDefs(tblWriter);
-                	conversion.convertTaxonTreeDefItems(tblWriter);
-                	BasicSQLUtils.setTblWriter(tblWriter);
-                    
-                    // fix the fullNameDirection field in each of the converted tree defs
-                    Session session = HibernateUtil.getCurrentSession();
-                    Query q = session.createQuery("FROM TaxonTreeDef");
-                    List<?> allTTDs = q.list();
-                    HibernateUtil.beginTransaction();
-                    for(Object o: allTTDs)
-                    {
-                        TaxonTreeDef ttd = (TaxonTreeDef)o;
-                        ttd.setFullNameDirection(TreeDefIface.FORWARD);
-                        session.saveOrUpdate(ttd);
-                    }
-                    try
-                    {
-                        HibernateUtil.commitTransaction();
-                    }
-                    catch(Exception e)
-                    {
-                        log.error("Error while setting the fullname direction of taxonomy tree definitions.");
-                    }
-                    
-                    // fix the fullNameSeparator field in each of the converted tree def items
-                    session = HibernateUtil.getCurrentSession();
-                    q = session.createQuery("FROM TaxonTreeDefItem");
-                    List<?> allTTDIs = q.list();
-                    HibernateUtil.beginTransaction();
-                    for(Object o : allTTDIs)
-                    {
-                        TaxonTreeDefItem ttdi = (TaxonTreeDefItem)o;
-                        ttdi.setFullNameSeparator(" ");
-                        session.saveOrUpdate(ttdi);
-                    }
-                    try
-                    {
-                        HibernateUtil.commitTransaction();
-                    }
-                    catch(Exception e)
-                    {
-                        log.error("Error while setting the fullname separator of taxonomy tree definition items.");
-                    }
-                    
-                	conversion.convertTaxonRecords(tblWriter);
-                	
-                	BasicSQLUtils.setTblWriter(null);
-                	
-                	conversion.convertHabitat();
-                }
-                frame.incOverall();
+                
+                setSession(HibernateUtil.getNewSession());
                 
                 frame.setDesc("Converting Straigraphy");
                 log.info("Converting Straigraphy");
-                boolean doStrat = false;
-                if (doStrat || doAll )
+                boolean doStrat = true;
+                if (doStrat)
                 {
-                     ConversionLogger.TableWriter tblWriter = convLogger.getWriter("FullStrat.html", "Straigraphy Conversion");
+                     TableWriter tblWriter = convLogger.getWriter("FullStrat.html", "Straigraphy Conversion");
                      
                      conversion.convertStrat(tblWriter, conversion.isPaleo());
                 }
-                
+
+                //checkDisciplines();
+
                 //-------------------------------------------
                 // Get Discipline and Collection
                 //-------------------------------------------
@@ -1149,7 +1379,9 @@ public class SpecifyDBConverter
                     {
                         collection = dscp.getCollections().iterator().next();
                     }
-                    
+
+                    //checkDisciplines();
+
                     if (collection == null)
                     {
                         if (conversion.getCurCollectionID() == null || conversion.getCurCollectionID() == 0)
@@ -1169,7 +1401,14 @@ public class SpecifyDBConverter
                             collection = (Collection)list.get(0);
                         }
                     }
+
+                    //checkDisciplines();
                     
+                    if (stratToGTP != null)
+                    {
+                        stratToGTP.convertStratToGTP();
+                    }
+
                     division    = dscp.getDivision();
                     localSession.lock(division, LockMode.NONE);
                     institution = division.getInstitution();
@@ -1179,20 +1418,35 @@ public class SpecifyDBConverter
                     AppContextMgr.getInstance().setClassObject(Collection.class, collection);
                     AppContextMgr.getInstance().setClassObject(Division.class, division);
                     AppContextMgr.getInstance().setClassObject(Institution.class, institution);
+
+                    //checkDisciplines();
+
                     
                     if (doFixCollectors)
                     {
                         agentConverter.fixupForCollectors(division, dscp);
                     }
-                    
+
+                    //checkDisciplines();
+
                     setSession(localSession);
                     
-                    if (true)
+                    try
                     {
-                        try
+                        for (CollectionInfo collInfo : CollectionInfo.getCollectionInfoList(oldDBConn))
                         {
+                            if (collInfo.getCollectionId() == null)
+                            {
+                                log.error("CollectionID: was null for "+collInfo.getCatSeriesName());
+                                continue;
+                            }
+                            List<?> list = localSession.createQuery("FROM Collection WHERE id = " + collInfo.getCollectionId()).list();
+                            
+                            List<Collection> tmpCollList   = (List<Collection>)list;
+                            Collection       tmpCollection = tmpCollList.get(0);
+                            
                             // create the standard user groups for this collection
-                            Map<String, SpPrincipal> groupMap = createStandardGroups(localSession, collection);
+                            Map<String, SpPrincipal> groupMap = createStandardGroups(localSession, tmpCollection);
 
                             // add the administrator as a Collections Manager in this group
                             specifyUser.addUserToSpPrincipalGroup(groupMap.get(SpecifyUserTypes.UserType.Manager.toString()));
@@ -1207,31 +1461,14 @@ public class SpecifyDBConverter
                             localSession.saveOrUpdate(specifyUser);
                             
                             trans.commit();
-                            
-                            localSession.close();
-                            
-                            localSession = HibernateUtil.getNewSession();
-                            
-                            specifyUser = (SpecifyUser)localSession.merge(specifyUser);
-                            
-                            division       = (Division)localSession.createQuery("FROM Division WHERE id = " + division.getId()).list().iterator().next();
-                            institution    = (Institution)localSession.createQuery("FROM Institution WHERE id = " + institution.getId()).list().iterator().next();
-                            collection     = (Collection)localSession.createQuery("FROM Collection WHERE id = " + collection.getId()).list().iterator().next();
-                            
-                            AppContextMgr.getInstance().setClassObject(Collection.class, collection);
-                            AppContextMgr.getInstance().setClassObject(Division.class,   division);
-                            AppContextMgr.getInstance().setClassObject(Institution.class, institution);
-                            
-                            dscp = (Discipline)localSession.createQuery("FROM Discipline WHERE id = " + dscp.getId()).list().iterator().next();
-                            dscp.getAgents();
-                            AppContextMgr.getInstance().setClassObject(Discipline.class, dscp);
-                            
-                            localSession.flush();
-                            
-                        } catch (Exception ex)
-                        {
-                            ex.printStackTrace();
+
                         }
+
+                        //checkDisciplines();
+
+                    } catch (Exception ex)
+                    {
+                        ex.printStackTrace();
                     }
                     
                     status = true;
@@ -1241,23 +1478,56 @@ public class SpecifyDBConverter
                     ex.printStackTrace();
                 }
                 
+
+                //checkDisciplines();
+
+                localSession.close();
+                
+                localSession = HibernateUtil.getNewSession();
+                setSession(localSession);
+                
+                specifyUser = (SpecifyUser)localSession.merge(specifyUser);
+                
+                division       = (Division)localSession.createQuery("FROM Division WHERE id = " + division.getId()).list().iterator().next();
+                institution    = (Institution)localSession.createQuery("FROM Institution WHERE id = " + institution.getId()).list().iterator().next();
+                collection     = (Collection)localSession.createQuery("FROM Collection WHERE id = " + collection.getId()).list().iterator().next();
+                
+                AppContextMgr.getInstance().setClassObject(Collection.class, collection);
+                AppContextMgr.getInstance().setClassObject(Division.class,   division);
+                AppContextMgr.getInstance().setClassObject(Institution.class, institution);
+                
+                dscp = (Discipline)localSession.createQuery("FROM Discipline WHERE id = " + dscp.getId()).list().iterator().next();
+                AppContextMgr.getInstance().setClassObject(Discipline.class, dscp);
+
+                //checkDisciplines();
+
+                localSession.flush();
+                
                 setSession(cachedCurrentSession);
                 
                 frame.setDesc("Converting USYS Tables.");
                 log.info("Converting USYS Tables.");
-                boolean copyUSYSTables = false;
-                if (copyUSYSTables || doAll)
+                boolean copyUSYSTables = doAll;
+                if (copyUSYSTables)
                 {
                     if (status)
                     {
                         BasicSQLUtils.deleteAllRecordsFromTable("picklist", BasicSQLUtils.myDestinationServerType);
                         BasicSQLUtils.deleteAllRecordsFromTable("picklistitem", BasicSQLUtils.myDestinationServerType);
     
-                        conversion.convertUSYSTables(localSession, collection);
+                        for (Collection collectionObj : (List<Collection>)localSession.createQuery("FROM Collection").list())
+                        {
+                            log.debug("Loading PickLists for Collection ["+collectionObj.getCollectionName()+"] id["+collectionObj.getId()+"]");
+                            
+                            conversion.convertUSYSTables(localSession, collectionObj);
+                            
+                            frame.setDesc("Creating PickLists from XML.");
+                            
+                            BuildSampleDatabase.createPickLists(localSession, null, true, collectionObj);
+                            
+                            BuildSampleDatabase.createPickLists(localSession, collection.getDiscipline(), true, collectionObj);
+                        }
                         
-                        frame.setDesc("Creating PickLists from XML.");
-                        BuildSampleDatabase.createPickLists(localSession, null, true, collection);
-                        BuildSampleDatabase.createPickLists(localSession, dscp, true, collection);
                     } else
                     {
                         log.error("STATUS was FALSE for PickList creation!");
@@ -1274,63 +1544,180 @@ public class SpecifyDBConverter
                 {
                     localSession.close();
                 }
+
+                //checkDisciplines();
+
+                frame.incOverall();
+                
+                frame.setDesc("Fixing Preferred Taxon");
                 
                 // MySQL Only ???
-                String sql = "UPDATE determination SET PreferredTaxonID = CASE WHEN " +
-                "(SELECT AcceptedID FROM taxon WHERE taxon.TaxonID = determination.TaxonID) IS NULL " +
-                "THEN determination.TaxonID ELSE (SELECT AcceptedID FROM taxon WHERE taxon.TaxonID = determination.TaxonID) END";
+                sql = "UPDATE determination SET PreferredTaxonID = CASE WHEN " +
+                             "(SELECT AcceptedID FROM taxon WHERE taxon.TaxonID = determination.TaxonID) IS NULL " +
+                             "THEN determination.TaxonID ELSE (SELECT AcceptedID FROM taxon WHERE taxon.TaxonID = determination.TaxonID) END";
                 System.out.println(sql);
                 BasicSQLUtils.setSkipTrackExceptions(true);
                 BasicSQLUtils.update(sql);
+                
+                frame.incOverall();
+                
+                ShipmentConverter shipmentConv = new ShipmentConverter(oldDBConn, newDBConn);
+                shipmentConv.fixup();
                 
                 //------------------------------------------------
                 // Localize Schema and make form fields visible
                 //------------------------------------------------
                 frame.setDesc("Localizing the Schema");
                 conversion.doLocalizeSchema();
-                
-                BuildSampleDatabase.makeFieldVisible(null, dscp);
-                BuildSampleDatabase.makeFieldVisible(dscp.getType(), dscp);
 
                 frame.incOverall();
                 
-                HabitatTaxonIdConverter habitatConverter = new HabitatTaxonIdConverter(oldDB.getConnection(), newDBConn);
-                habitatConverter.convert(conversion.getCollectionMemberId());
+                //HabitatTaxonIdConverter habitatConverter = new HabitatTaxonIdConverter(oldDB.getConnection(), newDBConn);
+                //habitatConverter.convert(conversion.getCollectionMemberId());
                 
                 frame.incOverall();
                 
-                long stTime = System.currentTimeMillis();
-
-                String msg = String.format("Will this Collection share Collecting Events?\n(Sp5 was %ssharing them.)", isUsingEmbeddedCEsInSp5() ? "NOT " : "");
-                if (!UIHelper.promptForAction("Share", "Adjust CEs", "Duplicate Collecting Events", msg))
+                agentConverter.fixAddressOfRecord();
+                
+                frame.incOverall();
+                
+                if (dbNameSource.startsWith("gcf"))
                 {
-                    DuplicateCollectingEvents dce = new DuplicateCollectingEvents(newDBConn, frame, conversion.getCurAgentCreatorID(), dscp.getId());
-                    dce.performMaint();
+                    GulfInvertsFixer giFixer = new GulfInvertsFixer(oldDBConn, newDBConn, dbNameSource, null);
+                    giFixer.convert(conversion.getCollectionMemberId());
                 }
-                waitTime = System.currentTimeMillis() -stTime;
+                //checkDisciplines();
+
+                frame.setDesc("Fixing Scope....");
+                TableWriter tblWriter = convLogger.getWriter("ScopeUpdater.html", "Updating Scope Summary");
+                ConvScopeFixer convScopeFixer = new ConvScopeFixer(oldDBConn, newDBConn, dbNameDest, tblWriter);
+                convScopeFixer.doFixTables();
+                convScopeFixer.checkTables();
                 
-                endTime = System.currentTimeMillis();
+                waitTime = 0;
+                
+                /*
+                long stTime = System.currentTimeMillis();
+                
+                sql = "SELECT count(*) FROM (SELECT ce.CollectingEventID, Count(ce.CollectingEventID) as cnt FROM collectingevent AS ce " +
+                        "Inner Join collectionobject AS co ON ce.CollectingEventID = co.CollectingEventID " +
+                        "Inner Join collectionobjectcatalog AS cc ON co.CollectionObjectID = cc.CollectionObjectCatalogID " +    
+                        "WHERE ce.BiologicalObjectTypeCollectedID <  21 " +
+                        "GROUP BY ce.CollectingEventID) T1 WHERE cnt > 1";
+                
+                int numCESharing = BasicSQLUtils.getCountAsInt(oldDBConn, sql);
+
+                String msg = String.format("Will this Collection share Collecting Events?\nThere are %d Collecting Events that are sharing now.\n(Sp5 was %ssharing them.)", numCESharing, isUsingEmbeddedCEsInSp5() ? "NOT " : "");
+                boolean doingOneToOneForColObjToCE = !UIHelper.promptForAction("Share", "Adjust CEs", "Duplicate Collecting Events", msg);
+                
+                waitTime = System.currentTimeMillis() - stTime;
+                */
+                
+                frame.setDesc("Duplicating CollectingEvents Performing Maintenance...");
+                File ceFile = new File(dbNameDest+".ce_all");
+                if (doingOneToOneForColObjToCE)
+                {
+                    DuplicateCollectingEvents dce = new DuplicateCollectingEvents(oldDBConn, newDBConn, frame, conversion.getCurAgentCreatorID(), dscp.getId());
+                    dce.performMaint(true);
+                    
+                    FileUtils.writeStringToFile(ceFile, dbNameDest);
+                    
+                } else if (ceFile.exists())
+                {
+                    ceFile.delete();
+                }
+                
+                //endTime = System.currentTimeMillis();
                 
                 int convertTimeInSeconds = (int)((endTime - startTime - waitTime) / 1000.0);
                 
-                int colObjCnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(*) FROM collectionobject");
-                ConvertStatSender sender = new ConvertStatSender();
+                int               colObjCnt = BasicSQLUtils.getCountAsInt("SELECT COUNT(*) FROM collectionobject");
+                ConvertStatSender sender    = new ConvertStatSender();
                 sender.senConvertInfo(dbNameDest, colObjCnt, convertTimeInSeconds);
                 
                 frame.incOverall();
                 
-                ConvertMiscData.convertKUFishCruiseData(oldDBConn, newDBConn, conversion.getCurDisciplineID());
+                fixHibernateHiLo(newDBConn);
                 
-                if (false)
+                frame.setDesc("Discipline Duplicator...");
+                DisciplineDuplicator d = new DisciplineDuplicator(conversion.getOldDBConn(), conversion.getNewDBConn(), tblWriter, frame, conversion);
+                d.doShowFieldsForDiscipline();
+                frame.setDesc("Duplicating Collecting Events...");
+                d.duplicateCollectingEvents();
+                frame.setDesc("Duplicating Localities...");
+                d.duplicateLocalities();
+                frame.setDesc("Duplicating Geography...");
+                d.duplicateGeography();
+                
+                frame.setDesc("Running Table Checker to report on fields with data.");
+                TableWriter      tDSTblWriter   = convLogger.getWriter("TableDataSummary.html", "Table Data Summary", true);
+                TableDataChecker tblDataChecker = new TableDataChecker(oldDBConn);
+                tblDataChecker.createHTMLReport(tDSTblWriter);
+                //tDSTblWriter.close();
+                
+                frame.setDesc("Updating Version...");
+                updateVersionInfo(newConn);
+                
+                if (dbNameDest.startsWith("kui_fish_"))
                 {
-                   updateVersionInfo(newConn);
+                    ConvertMiscData.convertKUFishCruiseData(oldDBConn, newDBConn, conversion.getCurDisciplineID());
                 }
+                
+                // Check for mismatched Disciplines for CE and CE Attrs
+                sql = "SELECT Count(ce.CollectingEventID) FROM collectingevent AS ce " +
+                        "Inner Join collectingeventattribute AS cea ON ce.CollectingEventAttributeID = cea.CollectingEventAttributeID " +    
+                        "WHERE ce.DisciplineID <> cea.DisciplineID";
+                
+                int ceCnt = BasicSQLUtils.getCountAsInt(sql);
+                if (ceCnt > 0)
+                {
+                    UIRegistry.showErrorNonModal(String.format("There are %d CollectingEvents and CE Attributes where their DisciplineID do not match.", ceCnt));
+                }
+                
+                // Check for ColObjs that have bad DisciplineIDs compared to the Collection's Discipline
+                sql = "SELECT Count(ce.CollectingEventID) FROM collectingevent AS ce " +
+                        "Inner Join collectionobject AS co ON ce.CollectingEventID = co.CollectingEventID " +
+                        "Inner Join collection ON co.CollectionID = collection.UserGroupScopeId " +    
+                        "WHERE ce.DisciplineID <>  collection.DisciplineID";
+                int dspCnt = BasicSQLUtils.getCountAsInt(sql);
+                if (dspCnt > 0)
+                {
+                    UIRegistry.showErrorNonModal(String.format("There are %d mismatches between the Collection Object Discipline and the Discipline of the Colleciton it is in", dspCnt));
+                }
+                
+                // Check for One-To-One for ColObj -> CE
+                if (doingOneToOneForColObjToCE)
+                {
+                    sql = "SELECT COUNT(*) FROM (SELECT ce.CollectingEventID, Count(ce.CollectingEventID) AS cnt FROM collectingevent AS ce " +
+                            "Inner Join collectionobject AS co ON ce.CollectingEventID = co.CollectingEventID " +
+                            "GROUP BY ce.CollectingEventID) T1 WHERE cnt > 1";
+                    ceCnt = BasicSQLUtils.getCountAsInt(sql);
+                    if (ceCnt > 0)
+                    {
+                        sql = "SELECT id,cnt FROM (SELECT ce.CollectingEventID as id, Count(ce.CollectingEventID) AS cnt FROM collectingevent AS ce " +
+                                "Inner Join collectionobject AS co ON ce.CollectingEventID = co.CollectingEventID " +
+                                "GROUP BY ce.CollectingEventID) T1 WHERE cnt > 1";
+                        for (Object[] row : BasicSQLUtils.query(sql))
+                        {
+                            log.debug(String.format("CE[%s] has %s Collection Objects.", row[0].toString(), row[1].toString()));
+                        }
+                        UIRegistry.showErrorNonModal(String.format("There are %d CollectingEvents that have more than one Collection Object and they are suppose to be a One-To-One", ceCnt));
+                    }
+                }
+                
+                
+                boolean doCheckLastEditedByNamesHashSet2 = !doCheckLastEditedByNamesHashSet;
+                if (doCheckLastEditedByNamesHashSet2)
+                {
+                    conversion.checkCreatedModifiedByAgents();
+                    //conversion.fixCreatedModifiedByAgents(itUsrPwd.first, itUsrPwd.second, dbNameSource);
+                } 
                 
                 log.info("Done - " + dbNameDest + " " + convertTimeInSeconds);
                 frame.setDesc("Done - " + dbNameDest + " " + convertTimeInSeconds);
 
 
-                System.setProperty(AppPreferences.factoryName, "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");    // Needed by AppReferences
+                //System.setProperty(AppPreferences.factoryName, "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");    // Needed by AppReferences
                 System.setProperty("edu.ku.brc.dbsupport.DataProvider",         "edu.ku.brc.specify.dbsupport.HibernateDataProvider");  // Needed By the Form System and any Data Get/Set
                 
                 createTableSummaryPage();
@@ -1341,7 +1728,11 @@ public class SpecifyDBConverter
             {
                 idMapperMgr.cleanup();
             }
-            
+
+            //This will convert Specify5 queries exported from the 5 database to a file that can be imported
+            //into the six database. Need to have standard location for files. Can probably also import the queries here.
+            //QueryConverter.convert("/home/timo/Desktop/KUI_FishQueries.xml", "/home/timo/convertedSpQ.xml", "/home/timo/UnconvertedFields.xml");
+
             frame.setTitle("Done - " + dbNameDest);
             frame.incOverall();
             frame.processDone();
@@ -1365,40 +1756,347 @@ public class SpecifyDBConverter
     }
     
     /**
+     * @param oldDBConn
+     * @param newDBConn
+     */
+    protected void fixLoanPreps(final Connection oldDBConn, 
+                                final Connection newDBConn)
+    {
+        // Category == 0 -> Is a Loan, 1 is a Gift
+        
+        System.out.println("------------------------ Loans ----------------------------");
+        
+        
+        int fixCnt     = 0;
+        int totalCnt   = 0;
+        int skippedCnt = 0;
+        int notFndCnt  = 0;
+        int noMatch    = 0;
+        
+        IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+        IdTableMapper loanPrepsMapper = IdMapperMgr.getInstance().addTableMapper("loanphysicalobject", "LoanPhysicalObjectID", false);
+        IdTableMapper loansMapper     = IdMapperMgr.getInstance().addTableMapper("loan", "LoanID", false);
+        IdTableMapper prepMapper      = IdMapperMgr.getInstance().addTableMapper("collectionobject", "CollectionObjectID", false);
+
+        Statement         stmt    = null;
+        PreparedStatement newStmt = null;
+        PreparedStatement pStmt   = null;
+        try
+        {
+            pStmt   = newDBConn.prepareStatement("UPDATE loanpreparation SET Quantity=?, QuantityResolved=?, QuantityReturned=?, IsResolved=?, TimestampModified=?, TimestampCreated=?, " +
+                                                 "LoanID=?, DescriptionOfMaterial=?, OutComments=?, InComments=?, PreparationID=?, Version=? " +
+            	                                 "WHERE LoanPreparationID = ?");
+            
+            newStmt = newDBConn.prepareStatement("SELECT LoanPreparationID, TimestampModified, Version FROM loanpreparation WHERE LoanPreparationID = ?");
+            
+            String sql = "SELECT lp.LoanPhysicalObjectID, lp.PhysicalObjectID, lp.LoanID, lp.Quantity, lp.DescriptionOfMaterial, lp.OutComments, lp.InComments, " +
+                         "lp.QuantityResolved, lp.QuantityReturned, lp.TimestampCreated, lp.TimestampModified, lp.LastEditedBy, l.Closed " +
+                         "FROM loanphysicalobject lp INNER JOIN loan l ON l.LoanID = lp.LoanID WHERE l.Category = 0";
+            
+            
+            stmt    = oldDBConn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next())
+            {
+                int       id           = rs.getInt(1);
+                Timestamp oldCreatedTS = rs.getTimestamp(10);
+                
+                //System.out.println(id);
+                Integer newID = loanPrepsMapper.get(id);
+                if (newID != null)
+                {
+                    newStmt.setInt(1, newID);
+                    
+                    ResultSet rs2 = newStmt.executeQuery();
+                    if (rs2.next())
+                    {
+                        Timestamp oldModifiedTS = rs.getTimestamp(11);
+                        if (rs2.getInt(3) == 0) // version
+                        {
+                            Integer prepId       = rs.getInt(2);
+                            Integer loanId       = rs.getInt(3);
+                            Integer newLoanId    = loansMapper.get(loanId);
+                            Integer qty          = rs.getInt(4);
+                            String  descOfMat    = rs.getString(5);
+                            String  outComments  = rs.getString(6);
+                            String  inComments   = rs.getString(7);
+                            Integer qtyRes       = rs.getInt(8);
+                            Integer qtyRet       = rs.getInt(9);
+                            String  lasteditedBy = rs.getString(12);
+                            Boolean isLoanClosed = rs.getBoolean(13);
+                            
+                            isLoanClosed = isLoanClosed == null ? false : isLoanClosed;
+                            
+                            pStmt.setInt(1, qty);
+                            pStmt.setInt(2, qtyRes);
+                            pStmt.setInt(3, qtyRet);
+                            
+                            boolean isResolved = isLoanClosed;
+                            
+                            if(!isLoanClosed) // if Loan is Closed then all are resolved by definition
+                            {
+                                if (qty != null)
+                                {
+                                    if (qtyRes != null && qty.equals(qtyRes))
+                                    {
+                                        isResolved = true;
+                                        
+                                    } else if (qtyRet != null && qty.equals(qtyRet))
+                                    {
+                                        isResolved = true;
+                                    }
+                                }
+                            }
+                            pStmt.setBoolean(4,   isResolved);
+                            pStmt.setTimestamp(5, oldModifiedTS);
+                            pStmt.setTimestamp(6, oldCreatedTS);
+                            
+                            pStmt.setInt(7,     newLoanId);
+                            pStmt.setString(8,  descOfMat);
+                            pStmt.setString(9,  outComments);
+                            pStmt.setString(10, inComments);
+                            pStmt.setInt(11,    prepId != null ? prepMapper.get(prepId) : null);
+                            pStmt.setInt(12,    1); // Version
+                            
+                            pStmt.setInt(13, newID);
+                            
+                            if (pStmt.executeUpdate() != 1)
+                            {
+                                log.error(String.format("*** Error updating OldID %d  newID %d", rs.getInt(1), newID));
+                            } else
+                            {
+                                fixCnt++;
+                            }
+                        } else
+                        {
+                            noMatch++;
+                        }
+                    } else
+                    {
+                        notFndCnt++;
+                    }
+                    rs2.close();
+                } else
+                {
+                    //log.error(String.format("*** Error not new Id for OldID %d", rs.getInt(1)));
+                    skippedCnt++;
+                }
+                totalCnt++;
+            }
+            rs.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        } finally
+        {
+            try
+            {
+                if (stmt != null) stmt.close();
+                if (newStmt != null) newStmt.close();
+                if (pStmt != null) pStmt.close();
+                
+            } catch (Exception ex) {}
+        }
+        
+        System.out.println(String.format("Total: %d  Fixed: %d  Skipped: %d  NotFnd: %d  noMatch: %d", totalCnt, fixCnt, skippedCnt, notFndCnt, noMatch));
+    }
+    
+    /**
+     * @param oldDBConn
+     * @param newDBConn
+     */
+    protected void fixGiftPreps(final Connection oldDBConn, 
+                                final Connection newDBConn)
+    {
+        // Category == 0 -> Is a Loan, 1 is a Gift
+        
+        System.out.println("------------------------ Gifts ----------------------------");
+        
+        
+        int fixCnt     = 0;
+        int totalCnt   = 0;
+        int skippedCnt = 0;
+        int notFndCnt  = 0;
+        
+        IdMapperMgr.getInstance().setDBs(oldDBConn, newDBConn);
+        IdTableMapper colObjMapper = IdMapperMgr.getInstance().addTableMapper("collectionobject", "CollectionObjectID", false);
+        IdTableMapper giftMapper      = new IdTableMapper("gift", "GiftID", false, false);
+
+        Statement         stmt     = null;
+        PreparedStatement newStmt  = null;
+        PreparedStatement pStmt    = null;
+        try
+        {
+            pStmt   = newDBConn.prepareStatement("UPDATE giftpreparation SET Quantity=?, TimestampModified=?, TimestampCreated=?, " +
+                                                 "GiftID=?, DescriptionOfMaterial=?, OutComments=?, InComments=?, PreparationID=?, Version=? " +
+                                                 "WHERE GiftPreparationID = ?");
+            
+            newStmt = newDBConn.prepareStatement("SELECT GiftPreparationID FROM giftpreparation WHERE GiftID = ? AND PreparationID = ?");
+            
+            
+            String sql = "SELECT lp.LoanPhysicalObjectID, lp.PhysicalObjectID, lp.LoanID, lp.Quantity, lp.DescriptionOfMaterial, lp.OutComments, lp.InComments, " +
+                         "lp.QuantityResolved, lp.QuantityReturned, lp.TimestampCreated, lp.TimestampModified, lp.LastEditedBy, l.Closed " +
+                         "FROM loanphysicalobject lp INNER JOIN loan l ON l.LoanID = lp.LoanID WHERE l.Category = 1";
+            
+            
+            stmt    = oldDBConn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next())
+            {
+                int       loanId       = rs.getInt(5);
+                int       oldPrepId    = rs.getInt(6);
+                Integer   newPrepId    = colObjMapper.get(oldPrepId);
+                
+                //System.out.println(id);
+                Integer giftID = giftMapper.get(loanId);
+                if (giftID != null)
+                {
+                    String s = String.format("SELECT COUNT(*) FROM giftpreparation WHERE GiftID = %d AND PreparationID = %d", giftID, newPrepId);
+                    //System.out.println(s);
+                    int cnt = BasicSQLUtils.getCountAsInt(s);
+                    if (cnt == 1)
+                    {
+                        newStmt.setInt(1, giftID);
+                        newStmt.setInt(2, newPrepId);
+                    } else
+                    {
+                        log.error(String.format("*** Error get unique GiftPrep GiftID = %d AND PrepId = %d  %s", giftID, newPrepId, s)+"  "+rs.getTimestamp(2));
+                    }
+                    
+                    ResultSet rs2 = newStmt.executeQuery();
+                    if (rs2.next())
+                    {
+                        pStmt.setInt(1,       rs.getInt(4));
+                        pStmt.setTimestamp(2, rs.getTimestamp(2));
+                        pStmt.setInt(3,       rs2.getInt(1));
+                        
+                        if (pStmt.executeUpdate() != 1)
+                        {
+                            log.error(String.format("*** Error updating OldID %d  newID %d", rs.getInt(1), giftID));
+                        } else
+                        {
+                            fixCnt++;
+                        }
+                        
+                    } else
+                    {
+                        notFndCnt++;
+                    }
+                    rs2.close();
+                } else
+                {
+                    //log.error(String.format("*** Error not new Id for OldID %d", rs.getInt(1)));
+                    skippedCnt++;
+                }
+                totalCnt++;
+            }
+            rs.close();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        } finally
+        {
+            try
+            {
+                if (stmt != null) stmt.close();
+                if (newStmt != null) newStmt.close();
+                if (pStmt != null) pStmt.close();
+                
+            } catch (Exception ex) {}
+        }
+        
+        System.out.println(String.format("Total: %d  Fixed: %d  Skipped: %d  NotFnd: %d", totalCnt, fixCnt, skippedCnt, notFndCnt));
+    }
+    
+
+    
+    /**
+     * 
+     */
+    protected void checkDisciplines()
+    {
+        System.out.println("Checking Disciplines....");
+        int count = 0;
+        for (Object obj : BasicSQLUtils.querySingleCol("SELECT TaxonTreeDefID FROM discipline"))
+        {
+            if (((Integer)obj) == 1)
+            {
+                count++;
+            }
+        }
+        
+        System.out.println("Disciplines Count: "+count);
+        if (count == 3)
+        {
+            throw new RuntimeException("set back");
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    private void fixHibernateHiLo(final Connection connection)
+    {
+        Vector<Object> values = BasicSQLUtils.querySingleCol(connection, "SELECT next_hi FROM hibernate_unique_key");
+        if (values.size() == 1)
+        {
+            int nextHi = (Integer)values.get(0);
+            BasicSQLUtils.update("UPDATE hibernate_unique_key SET next_hi="+(nextHi+1));
+            
+        } else
+        {
+            throw new RuntimeException("The hibernate_unique_key must be created.");
+        }
+    }
+    
+    /**
      * @param newDBConn
      * @throws SQLException
      */
     private void updateVersionInfo(final Connection newDBConn) throws SQLException
     {
-        String  appVersion     = null;
-        String  schemaVersion  = SpecifySchemaUpdateService.getDBSchemaVersionFromXML();
+        String  appVerStr      = null;
+        String  schemaVersion  = null;
         Integer spverId        = null;
-        Integer recVerNum     = 1;
+        Integer recVerNum      = 1;
+        
+        try
+        {
+            System.setProperty(SchemaUpdateService.factoryName, "edu.ku.brc.specify.dbsupport.SpecifySchemaUpdateService");   // needed for updating the schema
+            schemaVersion = SchemaUpdateService.getInstance().getDBSchemaVersionFromXML();
+            
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
         
         Vector<Object[]> rows = BasicSQLUtils.query(newDBConn, "SELECT AppVersion, SchemaVersion, SpVersionID, Version FROM spversion");
         if (rows.size() == 1)
         {
             Object[] row  = (Object[])rows.get(0);
-            appVersion    = row[0].toString();
+            appVerStr     = row[0].toString();
             schemaVersion = row[1].toString();
             spverId       = (Integer)row[2];
             recVerNum     = (Integer)row[3];
         }
         
-        if (appVersion != null)
+        if (appVerStr != null)
         {
-            appVersion = UIHelper.getInstall4JInstallString();
-            if (appVersion == null)
+            appVerStr = UIRegistry.getAppVersion();
+            if (appVerStr == null)
             {
                 do
                 {
-                    appVersion = JOptionPane.showInputDialog("Enter Specify App version:"); 
-                } while (StringUtils.isEmpty(appVersion));
+                    appVerStr = JOptionPane.showInputDialog("Enter Specify App version:"); 
+                } while (StringUtils.isEmpty(appVerStr));
             }
             
             PreparedStatement pStmt = newDBConn.prepareStatement("UPDATE spversion SET AppVersion=?, SchemaVersion=?, Version=? WHERE SpVersionID = ?");
-            pStmt.setString(1, appVersion);
-            pStmt.setString(2, SpecifySchemaUpdateService.getDBSchemaVersionFromXML());
+            pStmt.setString(1, appVerStr);
+            pStmt.setString(2, SchemaUpdateService.getInstance().getDBSchemaVersionFromXML());
             pStmt.setInt(3, ++recVerNum);
             pStmt.setInt(4, spverId);
             if (pStmt.executeUpdate() != 1)
@@ -1408,17 +2106,17 @@ public class SpecifyDBConverter
             
         } else
         {
-            appVersion = UIHelper.getInstall4JInstallString();
-            if (appVersion == null)
+            appVerStr = UIRegistry.getAppVersion();
+            if (appVerStr == null)
             {
                 do
                 {
-                    appVersion = JOptionPane.showInputDialog("Enter Specify App version:"); 
-                } while (StringUtils.isEmpty(appVersion));
+                    appVerStr = JOptionPane.showInputDialog("Enter Specify App version:"); 
+                } while (StringUtils.isEmpty(appVerStr));
             }
             
             PreparedStatement pStmt = newDBConn.prepareStatement("INSERT INTO spversion (AppVersion, SchemaVersion, Version, TimestampCreated) VALUES(?,?,?,?)");
-            pStmt.setString(1, appVersion);
+            pStmt.setString(1, appVerStr);
             pStmt.setString(2, schemaVersion);
             pStmt.setInt(3, 0);
             pStmt.setTimestamp(4, new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -1428,6 +2126,7 @@ public class SpecifyDBConverter
             }
         }
     }
+
     
     private boolean isUsingEmbeddedCEsInSp5()
     {
@@ -1444,7 +2143,7 @@ public class SpecifyDBConverter
      */
     protected void createTableSummaryPage()
     {
-        ConversionLogger.TableWriter tblWriter = convLogger.getWriter("TableSummary.html", "Table Summary");
+        TableWriter tblWriter = convLogger.getWriter("TableSummary.html", "Table Summary");
         tblWriter.startTable();
         tblWriter.println("<tr><th>Table</th><th>Count</th></tr>");
         int total = 0;
@@ -1459,8 +2158,137 @@ public class SpecifyDBConverter
         }
         tblWriter.println("<tr><td>Total Records</td><td>"+total+"</td></tr>");
         tblWriter.endTable();
-        tblWriter.startTable();
+       
+        String sql;
         
+        //----------------------------------------------------------------------------------
+        tblWriter.println("<H3>Col Obj Counts By Discipline/Collection</H3>");
+        sql = " SELECT cct.CollectionObjectTypeName, cs.SeriesName, Count(cc.CollectionObjectCatalogID) FROM catalogseries AS cs " +
+        "Inner Join collectionobjectcatalog AS cc ON cs.CatalogSeriesID = cc.CatalogSeriesID " +
+        "Inner Join collectionobjecttype AS cct ON cc.CollectionObjectTypeID = cct.CollectionObjectTypeID " +
+        "Inner Join collectionobject AS co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +    " WHERE co.DerivedFromID IS NULL " +
+        "GROUP BY cct.CollectionObjectTypeName, cs.SeriesName";
+        
+        showTable(tblWriter, "Specify 5", false, sql, "Discipline", "Collection", "Count");
+        
+        sql = "SELECT d.Name, c.CollectionName, Count(co.CollectionObjectID) AS `Count` FROM discipline AS d " +
+        "Inner Join collection AS c ON d.UserGroupScopeId = c.DisciplineID " +
+        "Inner Join collectionobject AS co ON co.CollectionID = c.UserGroupScopeId " +
+        "GROUP BY d.Name, c.CollectionName";
+        tblWriter.println("<BR>");
+        showTable(tblWriter, "Specify 6", true, sql, "Discipline", "Collection", "Count");
+        
+        //----------------------------------------------------------------------------------
+        /*tblWriter.println("<H3>Collecting Events Counts By Discipline</H3>");
+        sql = " SELECT ct.CollectionObjectTypeName, Count(ce.CollectingEventID) FROM collectionobjecttype AS ct " +
+        "Inner Join collectingevent AS ce ON ct.CollectionObjectTypeID = ce.BiologicalObjectTypeCollectedID " +
+        "GROUP BY ct.CollectionObjectTypeName";
+        showTable(tblWriter, "Specify 5", false, sql, "Discipline", "Count");
+        
+        sql = " SELECT d.Name, Count(ce.CollectingEventID) FROM discipline AS d " +
+        "Inner Join collectingevent AS ce ON d.UserGroupScopeId = ce.DisciplineID " +
+        "GROUP BY d.Name";
+        tblWriter.println("<BR>");
+        showTable(tblWriter, "Specify 6", true, sql, "Discipline", "Count");
+        */
+        //----------------------------------------------------------------------------------
+        tblWriter.println("<H3>Col Obj Counts By Collection</H3>");
+        sql = " SELECT cs.SeriesName, Count(cc.CollectionObjectCatalogID) FROM catalogseries AS cs " +
+        "Inner Join collectionobjectcatalog AS cc ON cs.CatalogSeriesID = cc.CatalogSeriesID " +
+        "Inner Join collectionobject AS co ON cc.CollectionObjectCatalogID = co.CollectionObjectID " +    " WHERE co.DerivedFromID IS NULL " +
+        "GROUP BY cs.SeriesName";
+        
+        showTable(tblWriter, "Specify 5", false, sql,  "Collection", "Count");
+        
+        sql = " SELECT c.CollectionName, Count(co.CollectionObjectID) FROM collection AS c " +
+        "Inner Join collectionobject AS co ON c.UserGroupScopeId = co.CollectionID " +
+        "GROUP BY c.CollectionName";
+        tblWriter.println("<BR>");
+        showTable(tblWriter, "Specify 6", true, sql, "Collection", "Count");
+        
+        //----------------------------------------------------------------------------------
+        tblWriter.println("<H3>Locality Counts</H3>");
+        sql = " SELECT Count(LocalityID) FROM locality";
+        showTable(tblWriter, "Specify 5", false, sql, "Count");
+        
+        sql = " SELECT Count(LocalityID) FROM locality";
+        tblWriter.println("<BR>");
+        showTable(tblWriter, "Specify 6", true, sql, "Count");
+
+        //----------------------------------------------------------------------------------
+        tblWriter.println("<H3>Locality Counts By Discipline</H3>");
+        sql = " SELECT ct.CollectionObjectTypeName, Count(locid) FROM collectionobjecttype AS ct " +
+        "Inner Join (SELECT ce.CollectingEventID as ceid, ce.BiologicalObjectTypeCollectedID as botid, locality.LocalityID as locid FROM collectingevent ce Inner Join locality ON ce.LocalityID = locality.LocalityID GROUP BY locality.LocalityID) T1 ON ct.CollectionObjectTypeID = T1.botid " +
+        "GROUP BY ct.CollectionObjectTypeName";
+        
+        showTable(tblWriter, "Specify 5", false, sql, "Discipline", "Count");
+        
+        sql = " SELECT d.Name, Count(l.LocalityID) FROM discipline AS d " +
+        "Inner Join locality AS l ON d.UserGroupScopeId = l.DisciplineID " +
+        "GROUP BY d.Name";
+        tblWriter.println("<BR>");
+        showTable(tblWriter, "Specify 6", true, sql, "Discipline", "Count");
+        
+        //----------------------------------------------------------------------------------
+        tblWriter.startTable();
+        tblWriter.logHdr(CollectionInfoModel.getHeaders());
+        
+        DefaultTableModel model = CollectionInfo.getCollectionInfoTableModel(true);
+        Object[] row = new Object[model.getColumnCount()];
+        for (int r=0;r<model.getRowCount();r++)
+        {
+            for (int i=0;i<model.getColumnCount();i++)
+            {
+                row[i] = model.getValueAt(r, i);
+            }
+            tblWriter.logObjRow(row);
+        }
+        tblWriter.endTable();
+        tblWriter.close();
+
+        /*
+        tblWriter.startTable();
+        tblWriter.logHdr("&nbsp;", "Specify 5", "Specify 6");
+        for (Triple<String, String, String> qry : getSummaryQueries())
+        {
+            
+        }
+        tblWriter.endTable();
+        */
+    }
+    
+    private void showTable(final TableWriter tblWriter, 
+                           final String title,
+                           final boolean isNewDB,
+                           final String sql, 
+                           String...cols)
+    {
+        tblWriter.println(title + "<BR>");
+        tblWriter.startTable();
+        tblWriter.logHdr(cols);
+        for (Object[] row : BasicSQLUtils.query(isNewDB ? conversion.getNewDBConn() : conversion.getOldDBConn(), sql))
+        {
+            tblWriter.logObjRow(row);
+        }
+        tblWriter.endTable();
+    }
+    
+    /**
+     * @return
+     */
+    @SuppressWarnings("unused")
+    private List<Triple<String, String, String>> getSummaryQueries()
+    {
+        String[] desc = {};
+        String[] oldQ = {};
+        String[] newQ = {};
+        
+        ArrayList<Triple<String, String, String>> list = new ArrayList<Triple<String,String, String>>(oldQ.length);
+        for (int i=0;i<oldQ.length;i++)
+        {
+            list.add(new Triple<String, String, String>(desc[i], oldQ[i], newQ[i]));
+        }
+        return list;
     }
     
     /**
@@ -1691,7 +2519,7 @@ public class SpecifyDBConverter
      * @param hashNames every other one is the new name
      * @return the list of selected DBs
      */
-    protected boolean selectedDBsToConvert()
+    public boolean selectedDBsToConvert(final boolean useITOnly)
     {
         final JTextField     itUserNameTF = UIHelper.createTextField("root", 15);
         final JPasswordField itPasswordTF = UIHelper.createPasswordField("", 15);
@@ -1702,7 +2530,7 @@ public class SpecifyDBConverter
         final JTextField     hostNameTF = UIHelper.createTextField("localhost", 15);
 
         CellConstraints cc = new CellConstraints();
-        PanelBuilder pb = new PanelBuilder(new FormLayout("p,2px,p,f:p:g", "p,2px,p,2px,p,4px,p,2px,p,2px,p,8px,p,4px"));
+        PanelBuilder pb = new PanelBuilder(new FormLayout("p,2px,p,f:p:g", "p,2px,p,2px,p,4px," + (useITOnly ? "" : "p,2px,p,2px,") + "p,8px,p,4px"));
         
         int y = 1;
         pb.addSeparator("IT User", cc.xyw(1, y, 4)); y += 2;
@@ -1712,17 +2540,32 @@ public class SpecifyDBConverter
         pb.add(UIHelper.createLabel("Password:", SwingConstants.RIGHT), cc.xy(1, y));
         pb.add(itPasswordTF, cc.xy(3, y)); y += 2;
 
-        pb.addSeparator("Master User", cc.xyw(1, y, 4)); y += 2;
-        pb.add(UIHelper.createLabel("Username:", SwingConstants.RIGHT), cc.xy(1, y));
-        pb.add(masterUserNameTF, cc.xy(3, y)); y += 2;
-
-        pb.add(UIHelper.createLabel("Password:", SwingConstants.RIGHT), cc.xy(1, y));
-        pb.add(masterPasswordTF, cc.xy(3, y)); y += 2;
+        if (!useITOnly)
+        {
+            pb.addSeparator("Master User", cc.xyw(1, y, 4)); y += 2;
+            pb.add(UIHelper.createLabel("Username:", SwingConstants.RIGHT), cc.xy(1, y));
+            pb.add(masterUserNameTF, cc.xy(3, y)); y += 2;
+    
+            pb.add(UIHelper.createLabel("Password:", SwingConstants.RIGHT), cc.xy(1, y));
+            pb.add(masterPasswordTF, cc.xy(3, y)); y += 2;
+        }
 
         pb.add(UIHelper.createLabel("Host Name:", SwingConstants.RIGHT), cc.xy(1, y));
         pb.add(hostNameTF, cc.xy(3, y)); y += 2;
+        
+        if (System.getProperty("user.name").equals("rods"))
+        {
+            itPasswordTF.setText("root"); // password for converter database
+        } else
+        {
+            itPasswordTF.requestFocus();
+        }
+        
+        PanelBuilder panel = new PanelBuilder(new FormLayout("f:p:g,10px,f:p:g", "f:p:g"));
+        panel.add(new JLabel(IconManager.getIcon("SpecifyConv")), cc.xy(1, 1));
+        panel.add(pb.getPanel(), cc.xy(3, 1));
 
-        CustomDialog dlg = new CustomDialog(null, "Database Info", true, pb.getPanel());
+        CustomDialog dlg = new CustomDialog(null, "Specify Converter", true, panel.getPanel());
         ((JPanel)dlg.getContentPanel()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         UIHelper.centerAndShow(dlg);
         
@@ -1742,6 +2585,24 @@ public class SpecifyDBConverter
         return true;
     }
     
+    
+    
+    /**
+     * @return the itUsrPwd
+     */
+    public Pair<String, String> getItUsrPwd()
+    {
+        return itUsrPwd;
+    }
+
+    /**
+     * @return the hostName
+     */
+    public String getHostName()
+    {
+        return hostName;
+    }
+
     public CustomDBConverterDlg runCustomConverter()
     {       
         return UIHelper.doSpecifyConvert();
@@ -1774,7 +2635,7 @@ public class SpecifyDBConverter
         @Override
         public String toString()
         {
-            return first + "   ("+ second + ")";
+            return second + "   ("+ first + ")";
         }
         
     }

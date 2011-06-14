@@ -80,10 +80,11 @@ public class UploadData
     	{
     		return true;
     	}
-    	for (int col = 0; col < getCols(); col++)
+    	
+    	WorkbenchRow wbrow = getWbRow(row);
+    	for (int c = 0; c < getCols(); c++)
     	{
-    		String val = get(row, col);
-    		if (!StringUtils.isBlank(val))
+    		if (!StringUtils.isBlank(wbrow.getData(c)))
     		{
     			return false;
     		}
@@ -113,7 +114,14 @@ public class UploadData
     public UploadData(Vector<UploadMappingDef> mappings, Vector<WorkbenchRow> wbRows)
     {
         this.mappings = mappings;
-        this.wbRows = wbRows;
+        if (wbRows != null)
+        {
+        	this.wbRows = wbRows;
+        } else
+        {
+        	this.wbRows = new Vector<WorkbenchRow>();
+        }
+        
     }
     
     /**

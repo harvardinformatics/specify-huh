@@ -65,7 +65,7 @@ public class OldDBStatsDlg extends CustomDialog
      */
     public OldDBStatsDlg(final Connection oldDBConn)
     {
-        super((Frame)UIRegistry.getMostRecentWindow(), "Source DB Statistic", true, null);
+        super((Frame)UIRegistry.getMostRecentWindow(), "Source DB Statistics", true, null);
         this.oldDBConn = oldDBConn;
     }
     
@@ -84,10 +84,10 @@ public class OldDBStatsDlg extends CustomDialog
                             "SELECT COUNT(*) FROM taxonname",
                             "SELECT COUNT(*) FROM determination",
                             "SELECT COUNT(*) FROM agent",
-                            "SELECT COUNT(*) FROM agent WHERE LENGTH(Name) > 128",
-                            "SELECT COUNT(*) FROM agent WHERE LENGTH(LastName) > 128",
+                            "SELECT COUNT(*) FROM agent WHERE LENGTH(Name) > 50",
+                            "SELECT COUNT(*) FROM agent WHERE LENGTH(LastName) > 50",
                             "SELECT COUNT(*) FROM agent WHERE LastName LIKE '%;%'",
-                             "SELECT COUNT(c.AgentID) FROM collectingevent ce INNER JOIN collectors c ON ce.CollectingEventID = c.CollectingEventID " + 
+                            "SELECT COUNT(c.AgentID) FROM collectingevent ce INNER JOIN collectors c ON ce.CollectingEventID = c.CollectingEventID " + 
                                 "INNER JOIN agent a ON c.AgentID = a.AgentID WHERE a.LastName LIKE '%;%'",
                             "SELECT COUNT(*) FROM authors au INNER JOIN agent a ON au.AgentID = a.AgentID WHERE a.LastName LIKE '%;%'",
                             "SELECT COUNT(*) FROM accessionagents aagt INNER JOIN agentaddress aa ON aagt.AgentAddressID = aa.AgentAddressID " +
@@ -95,13 +95,14 @@ public class OldDBStatsDlg extends CustomDialog
                             "SELECT COUNT(*) FROM borrowagents ba INNER JOIN agentaddress aa ON ba.AgentAddressID = aa.AgentAddressID INNER JOIN agent a ON aa.AgentID = a.AgentID WHERE a.LastName LIKE '%;%'",
                             "SELECT COUNT(*) FROM loanagents la INNER JOIN agentaddress aa ON la.AgentAddressID = aa.AgentAddressID INNER JOIN agent a ON aa.AgentID = a.AgentID WHERE a.LastName LIKE '%;%'",
                             "SELECT COUNT(ID) FROM (SELECT DISTINCT ce.LocalityID as ID FROM collectingevent ce LEFT JOIN locality loc ON loc.localityid = ce.LocalityID  WHERE loc.LocalityID IS NULL) AS T1", 
+                            "SELECT COUNT(*) FROM shipment",
                             null,
                             };
         
         String[] descs = {"Stranded Preparations",
                           "Number of Taxon with a NULL RankId",
-                          "CollectionObjects",
-                          "Collection Object Catalogs",
+                          "CollectionObjects Table",
+                          "Collection Object Catalogs Table",
                           "Taxon",
                           "Determinations",
                           "Agents",
@@ -113,9 +114,10 @@ public class OldDBStatsDlg extends CustomDialog
                           "Accession Agents Last Names with ';'",
                           "Borrow Agent Last Names with ';'",
                           "Loan Agent Last Names with ';'",
-                          "Stranded Agents Last Names with ';'",
                           "Collecting Events with NULL Localities",
-                          null};
+                          "Number of Shipments",
+                          "Stranded Agents Last Names with ';'",
+                          };
         
         Integer[] errors = {0, 
                             Integer.MAX_VALUE, 
@@ -134,6 +136,7 @@ public class OldDBStatsDlg extends CustomDialog
                             0, // Borrow
                             0, // Loan
                             0, // CE no Locality
+                            0, // # Shipments
                             };
         
         for (int i=0;i<queries.length;i++)
@@ -177,14 +180,14 @@ public class OldDBStatsDlg extends CustomDialog
             i++;
         }
         
-        pb.addSeparator("Collectors with Semicolons", cc.xyw(1, 3, 3));
+        //pb.addSeparator("Collectors with Semicolons", cc.xyw(1, 3, 3));
         JTable collTable = new JTable(rows, new Object[] {"Combined", "Last Name", "First Name", "Middle"});
-        pb.add(UIHelper.createScrollPane(collTable, true), cc.xyw(1, 5, 3));
+        //pb.add(UIHelper.createScrollPane(collTable, true), cc.xyw(1, 5, 3));
         
         collTable.setPreferredScrollableViewportSize(new Dimension( collTable.getPreferredScrollableViewportSize().width, 10*collTable.getRowHeight()));
         
         doFixAgentsChkbx = UIHelper.createCheckBox("Fix Agents");
-        pb.add(doFixAgentsChkbx, cc.xyw(3, 7, 1));
+        //pb.add(doFixAgentsChkbx, cc.xyw(3, 7, 1));
         
         contentPanel = pb.getPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);

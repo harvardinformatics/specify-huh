@@ -87,6 +87,8 @@ public class MultiView extends JPanel
     public static final int USE_ONLY_CREATION_MODE =  512; // Create only the AltViews that have the same creation mode
     public static final int DONT_USE_EMBEDDED_SEP  = 1024; // use the internal embedded separator
     public static final int NO_MORE_BTN_FOR_SEP    = 2048; // doesn't include the separator's 'more' btn
+    public static final int COLLAPSE_SEPARATOR     = 4096; // Make the Collapse Separator collapsed
+    public static final int INCLUDE_ADD_BTN        = 8192; // Includes the add btn even if the search btn has been added
 
     // Statics
     private static final Logger log = Logger.getLogger(MultiView.class);
@@ -109,6 +111,7 @@ public class MultiView extends JPanel
     protected boolean                      editable             = false;
     protected AltViewIFace.CreationMode    createWithMode       = AltViewIFace.CreationMode.NONE;
     protected boolean                      ignoreDataChanges    = false;
+    protected boolean                      isNewForm            = false;
 
     protected int                          createOptions        = 0;
 
@@ -207,7 +210,8 @@ public class MultiView extends JPanel
         this.createOptions  = options | (createWithMode == AltViewIFace.CreationMode.EDIT ? IS_EDITTING : 0);
         this.cell           = cell;
         
-        initializeCardPanel(options);
+        String title = cell != null ? cell.getProperty("title") : null;
+        initializeCardPanel(options, title);
         
         this.isSelectorForm = StringUtils.isNotEmpty(view.getSelectorName());
         
@@ -289,7 +293,15 @@ public class MultiView extends JPanel
         
         if (mvParent == null && ViewLoader.isDoFieldVerification())
         {
-            ViewLoader.displayFieldVerInfo();
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    ViewLoader.displayFieldVerInfo();
+                }
+            });
+           
         }
     }
 
@@ -314,7 +326,7 @@ public class MultiView extends JPanel
         this.createWithMode = createWithMode;
         this.createOptions  = options | (createWithMode == AltViewIFace.CreationMode.EDIT ? IS_EDITTING : NO_OPTIONS);
         
-        initializeCardPanel(options);
+        initializeCardPanel(options, null);
         
         if (AppContextMgr.isSecurityOn())
         {
@@ -324,21 +336,26 @@ public class MultiView extends JPanel
             this.permissions = new PermissionSettings(PermissionSettings.ALL_PERM);
         }
         
-        createViewable(altView != null ? altView : createDefaultViewable(null), cellName);
-        showView(altView.getName());
+        AltViewIFace avi = altView != null ? altView : createDefaultViewable(null);
+        createViewable(avi, cellName);
+        showView(avi.getName());
     }
     
     /**
      * @param options
      */
-    private void initializeCardPanel(final int options)
+    private void initializeCardPanel(final int options, final String title)
     {
         if (!isOptionOn(options, DONT_USE_EMBEDDED_SEP))
         {
             setLayout(new BorderLayout());
             
-            String title = view.getTitle();
-            if (mvParent != null && StringUtils.isNotEmpty(cellName))
+            String titleStr = view.getTitle();
+            if (StringUtils.isNotEmpty(title))
+            {
+                titleStr = title;
+                
+            } else if (mvParent != null && StringUtils.isNotEmpty(cellName))
             {
                 DBTableInfo parentTblInfo = DBTableIdMgr.getInstance().getByClassName(mvParent.getView().getClassName());
                 if (parentTblInfo != null)
@@ -346,23 +363,34 @@ public class MultiView extends JPanel
                     DBTableChildIFace childInfo = parentTblInfo.getItemByName(cellName);
                     if (childInfo != null)
                     {
-                        title = childInfo.getTitle();
+                        titleStr = childInfo.getTitle();
                     }
                 }
             }
             this.cardPanel = new JPanel(cardLayout);
-            this.separator = new CollapsableSeparator(title, !isOptionOn(options, NO_MORE_BTN_FOR_SEP));
+            this.cardPanel.setVisible(!isOptionOn(options, COLLAPSE_SEPARATOR));
+            
+            this.separator = new CollapsableSeparator(titleStr, !isOptionOn(options, NO_MORE_BTN_FOR_SEP));
             this.separator.setInnerComp(this.cardPanel);
             this.cardPanel.setOpaque(false);
             
             add(this.separator, BorderLayout.NORTH);
             add(this.cardPanel, BorderLayout.CENTER);
+            
         } else
         {
             setLayout(cardLayout);
         } 
     }
     
+    /**
+     * @return the cellName
+     */
+    public String getCellName()
+    {
+        return cellName;
+    }
+
     /**
      * Get the short class name for the cell's data type.
      * @param dataClass the class of the data that is put into the form
@@ -565,6 +593,14 @@ public class MultiView extends JPanel
         }
         showDisplayFrames(show);
     }
+    
+    /**
+     * @return
+     */
+    public boolean isNewForm()
+    {
+        return isNewForm;
+    }
 
     /**
      * Tells all the Viewables that have validators that the form is new or old.
@@ -576,6 +612,8 @@ public class MultiView extends JPanel
      */
     public void setIsNewForm(final boolean isNewForm, final boolean traverseKids)
     {
+        this.isNewForm = isNewForm;
+        
         for (Enumeration<Viewable> e=viewMapByName.elements();e.hasMoreElements();)
         {
             Viewable viewable = e.nextElement();
@@ -859,10 +897,12 @@ public class MultiView extends JPanel
     }
 
     /**
-     * Show a Viewable by name.
-     * @param devName the registered name of the component (In this case it is the name of the Viewable)
+     *  Create the Viewable from an AltView Name.
+     * @param altViewName the name of the AltView
+     * @param cellNameArg
+     * @return
      */
-    public Viewable createViewable(final String altViewName, final String cellName)
+    public Viewable createViewable(final String altViewName, final String cellNameArg)
     {
         // Find the AltView to create
         List<AltViewIFace> list = view.getAltViews();
@@ -871,7 +911,7 @@ public class MultiView extends JPanel
         {
             if (altViewName.equals(altView.getName()))
             {
-                return createViewable(altView, cellName);
+                return createViewable(altView, cellNameArg);
             }
             inx++;
         }
@@ -882,10 +922,12 @@ public class MultiView extends JPanel
     }
 
     /**
-     * Show a Viewable by name.
-     * @param devName the registered name of the component (In this case it is the name of the Viewable)
+     * Create the Viewable from an AltView.
+     * @param altView the actual AltView object
+     * @param cellNameArg
+     * @return the viewable for the altview
      */
-    protected Viewable createViewable(final AltViewIFace altView, final String cellName)
+    protected Viewable createViewable(final AltViewIFace altView, final String cellNameArg)
     {
         ViewIFace newView = AppContextMgr.getInstance().getView(view.getViewSetName(), altView.getView().getName());
         // 12/14/07 - rods
@@ -894,7 +936,7 @@ public class MultiView extends JPanel
         //ViewIFace newView = view;
         if (newView != null)
         {
-            if (false)
+            /*if (false)
             {
                 log.debug("--------------------------");
                 for (int i=0;i<getComponentCount();i++)
@@ -909,11 +951,11 @@ public class MultiView extends JPanel
                     }
                 }
                 log.debug("--------------------------");
-            }
+            }*/
 
             int tmpCreateOptions = createOptions | (createWithMode == AltViewIFace.CreationMode.EDIT ? (IS_EDITTING) : 0);
             //MultiView.printCreateOptions("createViewable", createOptions);
-            Viewable viewable = ViewFactory.createFormView(this, newView, altView.getName(), data, tmpCreateOptions, cellName, getBackground());
+            Viewable viewable = ViewFactory.createFormView(this, newView, altView.getName(), data, tmpCreateOptions, cellNameArg, getBackground());
             if (viewable != null)
             {
                 if (add(viewable, altView.getName()))
@@ -1131,6 +1173,11 @@ public class MultiView extends JPanel
             return;
         }
         
+        for (Viewable v : viewMapByName.values())
+        {
+            v.enableMultiViewSwitch(false);
+        }
+        
         this.data = data;
         
         ignoreDataChanges = true;
@@ -1163,6 +1210,12 @@ public class MultiView extends JPanel
                 }
             });
         }
+        
+        for (Viewable v : viewMapByName.values())
+        {
+            v.enableMultiViewSwitch(true);
+        }
+
         
         ignoreDataChanges = false;
 
@@ -1430,7 +1483,7 @@ public class MultiView extends JPanel
             deletedItems = new Vector<Object>();
         }
         boolean addToList = true;
-        if (deletedItem instanceof FormDataObjIFace && ((FormDataObjIFace)deletedItem).getId() == null)
+        if ((deletedItem instanceof Vector<?>))
         {
             addToList = false;
         }
@@ -1441,8 +1494,8 @@ public class MultiView extends JPanel
     }
     
     /**
-     * Adds an item to be deleted to a list.
-     * @param toBeSavedItem the item to be deleted.
+     * Adds an item to be saved to a list.
+     * @param toBeSavedItem the item to be saved.
      */
     public void addToBeSavedItem(final Object toBeSavedItem)
     {
@@ -1450,6 +1503,7 @@ public class MultiView extends JPanel
         {
             toBeSavedItems = new Vector<Object>();
         }
+        
         boolean addToList = true;
         if (!(toBeSavedItem instanceof FormDataObjIFace))// && ((FormDataObjIFace)toBeSavedItem).getId() == null)
         {
@@ -1460,7 +1514,7 @@ public class MultiView extends JPanel
             toBeSavedItems.add(toBeSavedItem);
         }
     }
-    
+
     /**
      * Returns a list of items to be deleted, it may return null.
      * @return a list of items to be deleted, it may return null.
@@ -1486,6 +1540,17 @@ public class MultiView extends JPanel
         if (toBeSavedItems != null)
         {
             toBeSavedItems.clear();
+        }
+    }
+
+    /**
+     * Clears the list.
+     */
+    public void clearItemsToBeDeleted()
+    {
+        if (deletedItems != null)
+        {
+            deletedItems.clear();
         }
     }
 
@@ -1698,9 +1763,13 @@ public class MultiView extends JPanel
         log.debug("NO_SCROLLBARS         ["+((options & MultiView.NO_SCROLLBARS) == MultiView.NO_SCROLLBARS ? "true" : "false")+"]");
         log.debug("ADD_SEARCH_BTN        ["+((options & MultiView.ADD_SEARCH_BTN) == MultiView.ADD_SEARCH_BTN ? "true" : "false")+"]");
         log.debug("DONT_ADD_ALL_ALTVIEWS ["+((options & MultiView.DONT_ADD_ALL_ALTVIEWS) == MultiView.DONT_ADD_ALL_ALTVIEWS ? "true" : "false")+"]");
+        log.debug("USE_ONLY_CREATION_MODE["+((options & MultiView.USE_ONLY_CREATION_MODE) == MultiView.USE_ONLY_CREATION_MODE ? "true" : "false")+"]");
+        log.debug("DONT_USE_EMBEDDED_SEP ["+((options & MultiView.DONT_USE_EMBEDDED_SEP) == MultiView.DONT_USE_EMBEDDED_SEP ? "true" : "false")+"]");
+        log.debug("NO_MORE_BTN_FOR_SEP   ["+((options & MultiView.NO_MORE_BTN_FOR_SEP) == MultiView.NO_MORE_BTN_FOR_SEP ? "true" : "false")+"]");
+        log.debug("COLLAPSE_SEPARATOR    ["+((options & MultiView.COLLAPSE_SEPARATOR) == MultiView.COLLAPSE_SEPARATOR ? "true" : "false")+"]");
+        log.debug("INCLUDE_ADD_BTN       ["+((options & MultiView.INCLUDE_ADD_BTN) == MultiView.INCLUDE_ADD_BTN ? "true" : "false")+"]");
         log.debug(" ");        
     }
-    
     
     class ViewState 
     {

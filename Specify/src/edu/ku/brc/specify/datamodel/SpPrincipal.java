@@ -39,6 +39,8 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
+import edu.ku.brc.specify.conversion.BasicSQLUtils;
+
 /**
 
  */
@@ -323,6 +325,18 @@ public class SpPrincipal extends DataModelObjBase implements java.io.Serializabl
 		this.groupType = groupType;
 	}
 	
+    /**
+     * @param principalId the object to ask
+     * @return the integer ID from field 'userGroupScopeID'
+     */
+    @Transient
+    public static Integer getUserGroupScopeFromPrincipal(final Integer principalId)
+    {
+        String sql = "SELECT userGroupScopeID FROM spprincipal WHERE SpPrincipalID = "+principalId;
+        System.out.println(sql);
+        return principalId == null ? null : BasicSQLUtils.getCount(sql);
+    }
+    
     //----------------------------------------------------------------------
     //-- Comparable Interface
     //----------------------------------------------------------------------
@@ -332,19 +346,22 @@ public class SpPrincipal extends DataModelObjBase implements java.io.Serializabl
      */
     public int compareTo(SpPrincipal obj)
     {
-        if (priority < 80)
+        if (priority != null && obj != null && obj.priority != null)
         {
-            if (name != null && obj != null && StringUtils.isNotEmpty(obj.name))
+            if (priority < 80)
             {
-                return name.compareTo(obj.name);
+                if (name != null && obj != null && StringUtils.isNotEmpty(obj.name))
+                {
+                    return name.compareTo(obj.name);
+                }
+            } else if (priority != null && obj != null && obj.priority != null)
+            {
+                return priority.compareTo(obj.priority);
             }
-        } else if (priority != null && obj != null && obj.priority != null)
-        {
-            return priority.compareTo(obj.priority);
         }
         
         // else
-        return timestampCreated.compareTo(obj.timestampCreated);
+        return timestampCreated != null && obj != null && obj.timestampCreated != null ? timestampCreated.compareTo(obj.timestampCreated) : 0;
     }
 }
 

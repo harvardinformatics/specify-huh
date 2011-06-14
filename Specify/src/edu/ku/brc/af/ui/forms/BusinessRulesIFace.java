@@ -203,8 +203,9 @@ public interface BusinessRulesIFace
      * 
      * @param dataObj the object to be deleted
      * @param session the data provider session
+     * @return TODO
      */
-    public abstract void beforeDelete(Object dataObj, DataProviderSessionIFace session);
+    public abstract Object beforeDelete(Object dataObj, DataProviderSessionIFace session);
     
     /**
      * Called BEFORE committing a transaction in which the passed in data object will
@@ -278,6 +279,24 @@ public interface BusinessRulesIFace
      */
     public abstract void createNewObj(boolean doSetIntoAndValidateArg, Object oldDataObj);
     
+    /**
+     * Called after the object is created, the parent is set and the CarryForward Values have been set
+     * Provides an opportunity for the BR to set values before the form is filled in. Handy for 
+     * setting initial values for creation instead of when the form is filled with an already existing object.
+     * 
+     * @param newDataObj the newly created object
+     */
+    public abstract void afterCreateNewObj(Object newDataObj);
+    
+    /**
+     * Called before the objects in the cached HashSet of objects are processed in a loop.
+     */
+    public abstract void startProcessingBeforeAfterRules();
+    
+    /**
+     * Called after the objects in the cached HashSet of objects are processed in a loop.
+     */
+    public abstract void endProcessingBeforeAfterRules();
     
     /**
      * Call right before formShutdown is called, but the entire UI is still intact.

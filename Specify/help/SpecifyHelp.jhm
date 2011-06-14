@@ -17,14 +17,14 @@
    <mapID target="Simple_Search" url="SpecifyHelp/Simple_Search/Simple_Search.html"/>
    <mapID target="Express_Search" url="SpecifyHelp/Simple_Search/Simple_Search.html"/>
    <mapID target="About" url="SpecifyHelp/Intro/about.html"/>
-   <mapID target="Startup" url="SpecifyHelp/Intro/about.html"/>
+   <mapID target="Startup" url="SpecifyHelp/Intro/welcome.html"/>
    <mapID target="Update" url="SpecifyHelp/Intro/updating.html"/>
    <mapID target="Inst_Hier" url="SpecifyHelp/Configuration/institution_hierarchy.html"/>
    <mapID target="Permissions" url="SpecifyHelp/Security/permissions.html"/>
    <mapID target="WorkbenchBasicLabel" url="SpecifyHelp/Workbench/BasicLabel.html"/>
    <mapID target="CHANGE_PWD" url="SpecifyHelp/Dialogs/change_password.html"/>
    <mapID target="WorkbenchChart" url="SpecifyHelp/Workbench/Chart.html"/>
-   <mapID target="ChooseRecordSet" url="SpecifyHelp/Interactions/ChooseRecordSet.html"/>
+   <mapID target="ChooseRecordSet" url="SpecifyHelp/Dialogs/choose_record_set.html"/>
    <mapID target="SystemSetup" url="SpecifyHelp/Configuration/system_setup.html"/>
    <mapID target="Simple_Search_Config" url="SpecifyHelp/Simple_Search/Simple_Search_Config.html"/>
    <mapID target="Number_Formats" url="SpecifyHelp/Intro/number_formats.html"/>
@@ -90,7 +90,6 @@
    <mapID target="Reports" url="SpecifyHelp/ReportsLabels/reports.html"/>
    <mapID target="ReportRunReport" url="SpecifyHelp/ReportsLabels/reports.html"/>
    <mapID target="WorkbenchReporting" url="SpecifyHelp/Workbench/Reports.html"/>
-   <mapID target="SECURITY_SUMMARY" url="SpecifyHelp/System/SecuritySummary.html"/>
    <mapID target="WorkbenchPreferences" url="SpecifyHelp/Workbench/Preferences.html"/>
    <mapID target="PreferencesOverview" url="SpecifyHelp/Prefs/Prefs.html"/>
    <mapID target="WorkbenchSpecialTools" url="SpecifyHelp/Workbench/SpecialTools.html"/>
@@ -98,8 +97,8 @@
    <mapID target="iReport" url="SpecifyHelp/ReportsLabels/specifyireports.html"/>
    <mapID target="starting" url="SpecifyHelp/Dialogs/Login.html"/>
    <mapID target="SetupSpecifyDB" url="SpecifyHelp/Dialogs/Login.html"/>
-   <mapID target="MASTERPWD_MAIN" url="SpecifyHelp/Dialogs/Login.html"/>
-   <mapID target="MASTERPWD_GEN" url="SpecifyHelp/Dialogs/Login.html"/>
+   <mapID target="MASTERPWD_MAIN" url="SpecifyHelp/Dialogs/Login.html#paste_master"/>
+   <mapID target="MASTERPWD_GEN" url="SpecifyHelp/Dialogs/Login.html#generate_master"/>
    <mapID target="Login" url="SpecifyHelp/Dialogs/Login.html"/>
    <mapID target="Statistics" url="SpecifyHelp/Statistics/Statistics.html"/>
    <mapID target="PrefsSystem" url="SpecifyHelp/Prefs/System.html"/>
@@ -123,21 +122,33 @@
    <mapID target="WorkbenchWorkingWithImages" url="SpecifyHelp/Workbench/WorkingWithImages.html"/>
    <mapID target="Stats" url="SpecifyHelp/Statistics/Statistics.html"/>
    <mapID target="Load" url="SpecifyHelp/Security/loading.html"/> 
-   <mapID target="PrefsLoan" url="SpecifyHelp/Prefs/Loans.html"/> 
-   <mapID target="slicer" url="SpecifyHelp/Uploading/splitter.html"/> 
-   <mapID target="LSIDPrefs" url="SpecifyHelp/Prefs/LSIDs.html"/> 
+   <mapID target="PrefsLoan" url="SpecifyHelp/Prefs/Loans.html"/>
+   <mapID target="PrefsGeolocate" url="SpecifyHelp/Prefs/Geolocate.html"/>
+   <mapID target="PrefsNetwork" url="SpecifyHelp/Prefs/Network.html"/> 
+   <mapID target="slicer" url="SpecifyHelp/Uploading/splitter.html"/>
+   <mapID target="PrefsLSID" url="SpecifyHelp/Prefs/lsid.html"/> 
+   <mapID target="export_data" url="SpecifyHelp/QueryBuilder/third_party.html"/>
+   <mapID target="schema_tool" url="SpecifyHelp/QueryBuilder/data_exporter.html"/>
+   <mapID target="security_wiz" url="SpecifyHelp/Security/Security_Wizard.html"/>
+   <mapID target="wb_schema_config" url="SpecifyHelp/SchemaConfig/workbench_schema_config.html"/>
+   <mapID target="wb_recordset" url="SpecifyHelp/Workbench/CreateDSfromRS.html"/>
+   <mapID target="ezdb_wizard" url="SpecifyHelp/Security/Wizard_EZDB.html"/>
+   <mapID target="wizard" url="SpecifyHelp/Security/Wizard.html"/>
+   <mapID target="it_credentials" url="SpecifyHelp/Dialogs/it_credentials.html"/>
+   <mapID target="collection_relationships" url="SpecifyHelp/Configuration/collection_relationships.html"/>
+   <mapID target="separate_apps" url="SpecifyHelp/Dialogs/separate_apps.html"/>   
 
 
 <!-- Index Bookmarks -->
 
-   <mapID target="specify" url="http:/specifysoftware.org"/>
+   <mapID target="specify" url="http://specify6.specifysoftware.org"/>
    <mapID target="login" url="SpecifyHelp/Dialogs/Login.html#login"/>
    <mapID target="Forum" url="SpecifyHelp/Intro/about.html#user_forums"/>
    <mapID target="Sample_Resources" url="SpecifyHelp/Intro/about.html#sample_resources"/>
    <mapID target="Sample_Queries" url="SpecifyHelp/Intro/about.html#sample_resources"/>
    <mapID target="Sample_Reports" url="SpecifyHelp/Intro/about.html#sample_resources"/>
    <mapID target="Sample_Labels" url="SpecifyHelp/Intro/about.html#sample_resources"/>
-   <mapID target="Using_Help" url="SpecifyHelp/Intro/about.html#using_help"/>
+   <mapID target="Using_Help" url="SpecifyHelp/Intro/welcome.html#using_help"/>
    <mapID target="Registration" url="SpecifyHelp/Intro/welcome.html#registration"/>
    <mapID target="Services" url="SpecifyHelp/Intro/welcome.html#services"/>
    <mapID target="PHUI" url="SpecifyHelp/Intro/welcome.html#phui"/>
@@ -148,7 +159,6 @@
    <mapID target="Add_Collection" url="SpecifyHelp/Configuration/institution_hierarchy.html#add_collection"/>
    <mapID target="Add_User" url="SpecifyHelp/Security/permissions.html#add_user"/>
    <mapID target="SecuritySummary" url="SpecifyHelp/Security/permissions.html#security_summary"/>
-   <mapID target="SecurityAdmin" url="SpecifyHelp/Security/permissions.html"/>
    <mapID target="Set_Permissions" url="SpecifyHelp/Security/permissions.html#set_permissions"/>
    <mapID target="DataEntryConfigure" url="SpecifyHelp/Data_Entry/Data_Entry.html#data_entry_configure"/>
    <mapID target="SUBVIEW_FORM_HELP" url="SpecifyHelp/Dialogs/Using_Forms.html#sub_form"/>
@@ -158,6 +168,9 @@
    <mapID target="Forms_Unique_Boxes" url="SpecifyHelp/Data_Entry/Using_Forms.html#forms_unique_boxes"/>
    <mapID target="Forms_Field_Uses" url="SpecifyHelp/Data_Entry/Using_Forms.html#forms_field_uses"/>
    <mapID target="Forms_Tools" url="SpecifyHelp/Data_Entry/Using_Forms.html#forms_tools"/>
+   <mapID target="Forms_Series_Entry" url="SpecifyHelp/Data_Entry/Using_Forms.html#series_entry"/>
+   <mapID target="Forms_Container" url="SpecifyHelp/Data_Entry/Data_Entry.html#container"/>
+   <mapID target="Forms_Batch_Determine" url="SpecifyHelp/Data_Entry/Using_Forms.html#batch_determine"/>
    <mapID target="Carry_Forward" url="SpecifyHelp/Data_Entry/Using_Forms.html#carry_forward"/>
    <mapID target="Keyboard_Functions" url="SpecifyHelp/Data_Entry/Using_Forms.html#keyboard_functions"/>
    <mapID target="Auto_Numbering" url="SpecifyHelp/Data_Entry/Using_Forms.html#auto_numbering"/>
@@ -185,9 +198,10 @@
    <mapID target="Trees_Expand" url="SpecifyHelp/Trees/Trees_About.html#trees_expand"/>
    <mapID target="Trees_Toolbar" url="SpecifyHelp/Trees/Trees_About.html#trees_toolbar"/>
    <mapID target="Trees_Drag" url="SpecifyHelp/Trees/Trees_About.html#drag_drop"/>
-   <mapID target="Trees_Reparent" url="SpecifyHelp/Trees/Trees_About.html#drag_drop"/>
-   <mapID target="Trees_Synonymize" url="SpecifyHelp/Trees/Trees_About.html#drag_drop"/>
+   <mapID target="Trees_Reparent" url="SpecifyHelp/Trees/Trees_About.html#move_node"/>
+   <mapID target="Trees_Synonymize" url="SpecifyHelp/Trees/Trees_About.html#synonymize_node "/>
    <mapID target="Trees_Counts" url="SpecifyHelp/Trees/Trees_About.html#trees_counts"/>
+   <mapID target="Trees_Merge" url="SpecifyHelp/Trees/Trees_About.html#merge_node"/>
    <mapID target="Trees_More" url="SpecifyHelp/Trees/Trees_About.html#trees_more"/>
    <mapID target="Trees_Find" url="SpecifyHelp/Trees/Trees_About.html#trees_find"/>
    <mapID target="Trees_Title" url="SpecifyHelp/Trees/editing_tree_def.html#tree_title"/>
@@ -264,7 +278,8 @@
    <mapID target="SC_table_format" url="SpecifyHelp/SchemaConfig/schema_config.html#display_format"/>
    <mapID target="SC_hide_table" url="SpecifyHelp/SchemaConfig/schema_config.html#hide_table"/>
    <mapID target="SC_field_description" url="SpecifyHelp/SchemaConfig/schema_config.html#field_description"/>   
-   <mapID target="SC_aggregate" url="SpecifyHelp/SchemaConfig/schema_config.html#aggregation"/>  
+   <mapID target="SC_aggregate" url="SpecifyHelp/SchemaConfig/schema_config.html#aggregation"/>
+   <mapID target="SC_required_field" url="SpecifyHelp/SchemaConfig/schema_config.html#required_field"/>    
    <mapID target="SC_field_format" url="SpecifyHelp/SchemaConfig/schema_config.html#field_format"/> 
    <mapID target="UIFieldFmtListEditor" url="SpecifyHelp/SchemaConfig/schema_config.html#field_format_list"/>
    <mapID target="UIFieldFmtEditor" url="SpecifyHelp/SchemaConfig/schema_config.html#create_field_format"/>
@@ -275,7 +290,6 @@
    <mapID target="DataObjAggEditor" url="SpecifyHelp/SchemaConfig/schema_config.html#aggregation"/>
    <mapID target="Security_On" url="SpecifyHelp/Security/permissions.html#security_on"/>
    <mapID target="Record_Delete" url="SpecifyHelp/Data_Entry/using_forms.html#delete_record"/> 
-   <mapID target="wizard" url="SpecifyHelp/Security/Wizard.html"/>   
    <mapID target="wizard_mysql_username" url="SpecifyHelp/Security/Wizard.html#mysql_username"/>   
    <mapID target="wizard_master_username" url="SpecifyHelp/Security/Wizard.html#master_username"/>   
    <mapID target="wizard_security_on" url="SpecifyHelp/Security/Wizard.html#security_on"/>
@@ -293,5 +307,63 @@
    <mapID target="wizard_create_collection" url="SpecifyHelp/Security/Wizard.html#create_collection"/>    
    <mapID target="wizard_summary" url="SpecifyHelp/Security/Wizard.html#summary"/>
    <mapID target="update_tree" url="SpecifyHelp/Trees/editing_tree_def.html#update_tree_nodes"/>
-   <mapID target="field_format" url="SpecifyHelp/Security/Field_Format_Editor.html"/>                 
+   <mapID target="field_format" url="SpecifyHelp/Security/Field_Format_Editor.html"/>
+   <mapID target="SecurityAdmin" url="SpecifyHelp/Security/permissions.html"/> 
+   <mapID target="web_publishing" url="SpecifyHelp/QueryBuilder/third_party.html#web_publishing"/>
+   <mapID target="schema_mapping" url="SpecifyHelp//QueryBuilder/third_party.html#schema_mapping"/>
+   <mapID target="schema_authority" url="SpecifyHelp//QueryBuilder/third_party.html#schema_authority"/>
+   <mapID target="export_schema_map" url="SpecifyHelp//QueryBuilder/third_party.html#export_schema_map"/>
+   <mapID target="delete_schema_map" url="SpecifyHelp//QueryBuilder/third_party.html#delete_schema_map"/>
+   <mapID target="lsid" url="SpecifyHelp/Prefs/lsid.html#lsid"/>
+   <mapID target="guid" url="SpecifyHelp/Prefs/lsid.html#guid"/>
+   <mapID target="automatic_lsid" url="SpecifyHelp/Prefs/lsid.html#automatic_lsid"/>
+   <mapID target="world_wind" url="SpecifyHelp/Data_Entry/Data_Entry.html#world_wind"/>
+   <mapID target="third_party" url="SpecifyHelp/QueryBuilder/third_party.html#third_party"/>
+   <mapID target="login_master" url="SpecifyHelp/login.html#login_master"/>
+   <mapID target="security_wiz1" url="SpecifyHelp/Security/Security_Wizard.html#securitywiz_screen1"/>
+   <mapID target="security_wiz2" url="SpecifyHelp/Security/Security_Wizard.html#securitywiz_screen2"/>
+   <mapID target="security_wiz3" url="SpecifyHelp/Security/Security_Wizard.html#securitywiz_screen3"/>
+   <mapID target="security_wizreset" url="SpecifyHelp/Security/Security_Wizard.html#reset_master"/> 
+   <mapID target="ezdb_wizard_mysql_username" url="SpecifyHelp/Security/Wizard.html#mysql_username"/>   
+   <mapID target="ezdb_wizard_master_username" url="SpecifyHelp/Security/Wizard.html#master_username"/>   
+   <mapID target="ezdb_wizard_security_on" url="SpecifyHelp/Security/Wizard.html#security_on"/>
+   <mapID target="ezdb_wizard_create_it_user" url="SpecifyHelp/Security/Wizard.html#create_it_user"/>
+   <mapID target="ezdb_wizard_create_institution" url="SpecifyHelp/Security/Wizard.html#create_institution"/>    
+   <mapID target="ezdb_wizard_choose_accession_level" url="SpecifyHelp/Security/Wizard.html#choose_accession_level"/>    
+   <mapID target="ezdb_wizard_create_accession_number" url="SpecifyHelp/Security/Wizard.html#create_accession_number"/>    
+   <mapID target="ezdb_wizard_configure_storage_tree" url="SpecifyHelp/Security/Wizard.html#configure_storage_tree"/>   
+   <mapID target="ezdb_wizard_enter_division" url="SpecifyHelp/Security/Wizard.html#enter_division"/>    
+   <mapID target="ezdb_wizard_choose_discipline_type" url="SpecifyHelp/Security/Wizard.html#choose_discipline_type"/>    
+   <mapID target="ezdb_wizard_configure_taxon_tree" url="SpecifyHelp/Security/Wizard.html#configure_taxon_tree"/>
+   <mapID target="ezdb_wizard_preload_taxon" url="SpecifyHelp/Security/Wizard.html#preload_taxon"/>   
+   <mapID target="ezdb_wizard_configure_geography_tree" url="SpecifyHelp/Security/Wizard.html#configure_geography_tree"/>   
+   <mapID target="ezdb_wizard_create_catalog_number" url="SpecifyHelp/Security/Wizard.html#create_catalog_number"/> 
+   <mapID target="ezdb_wizard_create_collection" url="SpecifyHelp/Security/Wizard.html#create_collection"/>    
+   <mapID target="ezdb_wizard_summary" url="SpecifyHelp/Security/Wizard.html#summary"/>
+    <mapID target="wizard_enter_division" url="SpecifyHelp/Security/Wizard.html#enter_division"/>       
+   <mapID target="div_wizard_enter_division" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_enter_division"/>    
+   <mapID target="div_wizard_choose_discipline_type" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_choose_discipline_type"/>    
+   <mapID target="div_wizard_configure_taxon_tree" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_configure_taxon_tree"/>
+   <mapID target="div_wizard_preload_taxon" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_preload_taxon"/>   
+   <mapID target="div_wizard_configure_geography_tree" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_configure_geography_tree"/>   
+   <mapID target="div_wizard_create_catalog_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_create_catalog_number"/> 
+   <mapID target="div_wizard_create_collection" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_create_collection"/>      
+   <mapID target="div_wizard_summary" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_summary"/>
+   <mapID target="div_wizard_create_accession_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#div_assoc_number"/>  
+   <mapID target="dis_wizard_choose_discipline_type" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_choose_discipline_type"/>    
+   <mapID target="dis_wizard_configure_taxon_tree" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_configure_taxon_tree"/>
+   <mapID target="dis_wizard_preload_taxon" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_preload_taxon"/>   
+   <mapID target="dis_wizard_configure_geography_tree" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_configure_geography_tree"/>   
+   <mapID target="dis_wizard_create_catalog_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_create_catalog_number"/> 
+   <mapID target="dis_wizard_create_collection" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_create_collection"/>
+   <mapID target="dis_wizard_summary" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_summary"/>
+   <mapID target="dis_wizard_create_accession_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#dis_assoc_number"/>   
+   <mapID target="col_wizard_create_catalog_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#col_create_catalog_number"/> 
+   <mapID target="col_wizard_create_collection" url="SpecifyHelp/Configuration/institution_hierarchy.html#col_create_collection"/>
+   <mapID target="col_wizard_summary" url="SpecifyHelp/Configuration/institution_hierarchy.html#col_summary"/>
+   <mapID target="col_wizard_create_accession_number" url="SpecifyHelp/Configuration/institution_hierarchy.html#col_assoc_number"/>
+   <mapID target="cr_name" url="SpecifyHelp/Configuration/collection_relationships.html#cr_lastscreen"/>
+   <mapID target="cr_configure" url="SpecifyHelp/Configuration/collection_relationships.html#cr_configure"/>   
+    
+                  
 </map>

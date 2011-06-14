@@ -177,6 +177,17 @@ public abstract class ExportFieldFormatter implements UIFieldFormatterIFace
 		return null;
 	}
 
+	
+	/* (non-Javadoc)
+	 * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#getNextNumber(java.lang.String, boolean)
+	 */
+	@Override
+	public String getNextNumber(String value, boolean incrementValue) 
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/* (non-Javadoc)
 	 * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#getPartialDateType()
 	 */
@@ -454,7 +465,14 @@ public abstract class ExportFieldFormatter implements UIFieldFormatterIFace
 	public void toXML(StringBuilder sb)
 	{
 		// TODO Auto-generated method stub
-
 	}
 
+    /* (non-Javadoc)
+     * @see edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterIFace#hasDash()
+     */
+    @Override
+    public boolean hasDash()
+    {
+        return false;
+    }
 }

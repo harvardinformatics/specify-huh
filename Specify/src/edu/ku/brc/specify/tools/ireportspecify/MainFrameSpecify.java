@@ -29,6 +29,7 @@ import it.businesslogic.ireport.gui.JReportFrame;
 import it.businesslogic.ireport.gui.MainFrame;
 import it.businesslogic.ireport.gui.ReportPropertiesFrame;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -53,15 +54,20 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -82,6 +88,7 @@ import edu.ku.brc.af.ui.db.DatabaseLoginPanel;
 import edu.ku.brc.af.ui.forms.formatters.UIFieldFormatterMgr;
 import edu.ku.brc.af.ui.weblink.WebLinkMgr;
 import edu.ku.brc.dbsupport.CustomQueryFactory;
+import edu.ku.brc.dbsupport.DBConnection;
 import edu.ku.brc.dbsupport.DBMSUserMgr;
 import edu.ku.brc.dbsupport.DataProviderFactory;
 import edu.ku.brc.dbsupport.DataProviderSessionIFace;
@@ -91,6 +98,7 @@ import edu.ku.brc.helpers.XMLHelper;
 import edu.ku.brc.specify.Specify;
 import edu.ku.brc.specify.config.SpecifyAppContextMgr;
 import edu.ku.brc.specify.config.init.SpecifyDBSetupWizardFrame;
+import edu.ku.brc.specify.config.init.secwiz.SpecifyDBSecurityWizard;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.DataModelObjBase;
 import edu.ku.brc.specify.datamodel.SpAppResource;
@@ -187,6 +195,8 @@ public class MainFrameSpecify extends MainFrame
         	helpPageItem.removeActionListener(als[l]);
         }
         HelpMgr.registerComponent(helpPageItem, "iReport");
+        
+        setIconImage(IconManager.getIcon("SPIReports", IconManager.IconSize.NonStd).getImage());
  
     }
     
@@ -410,9 +420,13 @@ public class MainFrameSpecify extends MainFrame
 
     /**
      * @param jasperFile
+     * @param confirmOverwrite
+     * @param newResName this name override the name of the report (which is usually the file name sans the extension)
      * @return true if the report is successfully imported, otherwise return false.
      */
-    public static boolean importJasperReport(final File jasperFile, boolean confirmOverwrite)
+    public static boolean importJasperReport(final File    jasperFile, 
+                                             final boolean confirmOverwrite,
+                                             final String  newResName)
     {
         ByteArrayOutputStream xml = null;
         try
@@ -427,7 +441,9 @@ public class MainFrameSpecify extends MainFrame
             UIRegistry.getStatusBar().setErrorMessage(e.getLocalizedMessage(), e);
             return false;
         }
-        AppResAndProps resApp = getAppRes(jasperFile.getName(), null, confirmOverwrite);
+        
+        String resName = newResName != null ? newResName : FilenameUtils.getBaseName(jasperFile.getName());
+        AppResAndProps resApp = getAppRes(resName, null, confirmOverwrite);
         if (resApp != null)
         {
             String metaData = resApp.getAppRes().getMetaData();
@@ -494,7 +510,13 @@ public class MainFrameSpecify extends MainFrame
         	AppResourceIFace freshAppRes = AppContextMgr.getInstance().getResource(appRes.getName());
         	if (freshAppRes != null)
         	{
-        		appRes = freshAppRes;
+                freshAppRes.setName(appRes.getName());
+                freshAppRes.setDescription(appRes.getDescription());
+                freshAppRes.setLevel(appRes.getLevel());
+                freshAppRes.setMimeType(appRes.getMimeType());
+                freshAppRes.setMetaData(appRes.getMetaData());
+                ((SpAppResource )freshAppRes).setSpAppResourceDir(((SpAppResource )appRes).getSpAppResourceDir());
+                appRes = freshAppRes;
         	}
         	else
         	{
@@ -515,7 +537,7 @@ public class MainFrameSpecify extends MainFrame
         		newRep = true;
         	}
         }
-        boolean result = false;
+        boolean result      = false;
         boolean savedAppRes = false;
         String xmlString = xml.toString();
         if (rep != null)
@@ -529,6 +551,7 @@ public class MainFrameSpecify extends MainFrame
         }
         catch (Exception ex)
         {
+            ex.printStackTrace();
             edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
             edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, ex);
             return false;
@@ -618,11 +641,9 @@ public class MainFrameSpecify extends MainFrame
 				}
 				if (newRep && !result)
 				{
-					SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr) AppContextMgr
-							.getInstance();
+					SpecifyAppContextMgr spMgr = (SpecifyAppContextMgr) AppContextMgr.getInstance();
 					SpAppResource spRes = (SpAppResource) appRes;
-					spMgr.removeAppResourceSp(spRes.getSpAppResourceDir(),
-							spRes);
+					spMgr.removeAppResourceSp(spRes.getSpAppResourceDir(), spRes);
 				}
 				session.close();
 			}
@@ -821,13 +842,15 @@ public class MainFrameSpecify extends MainFrame
     /**
      * @param repResName
      * @param tableId
-     * @param rep
+     * @param spReport
      * @param appRes
      * 
      * Allows editing of SpReport and SpAppResource properties for reports.
      */
-    protected static AppResAndProps getProps(final String repResName, final Integer tableId, final ReportSpecify rep, 
-    		final AppResourceIFace appRes)
+    protected static AppResAndProps getProps(final String           repResName, 
+                                             final Integer          tableId, 
+                                             final ReportSpecify    spReport, 
+    		                                 final AppResourceIFace appRes)
     {
         String repType;
         if (appRes == null)
@@ -858,7 +881,8 @@ public class MainFrameSpecify extends MainFrame
             	}
             }
         }
-        RepResourcePropsPanel propPanel = new RepResourcePropsPanel(repResName, repType, tableId == null, rep);
+        
+        RepResourcePropsPanel propPanel = new RepResourcePropsPanel(repResName, repType, tableId == null, spReport);
         boolean goodProps = false;
         boolean overwrite = false;
         SpAppResource match = null;
@@ -874,11 +898,14 @@ public class MainFrameSpecify extends MainFrame
             {
                 return null;
             }
-            if (StringUtils.isEmpty(propPanel.getNameTxt().getText().trim()))
+            
+            String   repName = propPanel.getNameTxt().getText().trim();
+            boolean isNameOK = repName.matches("[a-zA-Z0-9\\-. '`_]*");
+            if (StringUtils.isEmpty(repName))
             {
                 JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), String.format(UIRegistry.getResourceString("REP_NAME_MUST_NOT_BE_BLANK"), propPanel.getNameTxt().getText()));
             }
-            else if (!UIHelper.isValidNameForDB(propPanel.getNameTxt().getText().trim()))
+            else if (!isNameOK)
             {
                 Toolkit.getDefaultToolkit().beep();
             	JOptionPane.showMessageDialog(UIRegistry.getTopWindow(), UIRegistry.getResourceString("INVALID_CHARS_NAME"));
@@ -1056,18 +1083,36 @@ public class MainFrameSpecify extends MainFrame
         setActiveReportForm(jrf);    
     }
 
+    /**
+     * @param repRes
+     * @return
+     */
     protected boolean repResIsEditableByUser(AppResourceIFace repRes)
     {
+    	if (!(repRes instanceof SpAppResource))
+    	{
+    		return false;
+    	}
+    	
     	//??? SpReport has a SpecifyUserID field too
-    	String sql = "select count(spq.SpQueryID) from spquery spq inner join spreport spr "
+    	String sql1 = "select count(spq.SpQueryID) from spquery spq inner join spreport spr "
     		+ " on spr.SpQueryID = spq.SpQueryID inner join spappresource spa "
     		+ "on spa.SpAppResourceID = spr.AppResourceID where spq.SpecifyUserID = "
-    		+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId();
+    		+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId()
+    		+ " and spa.SpAppResourceID = " + ((SpAppResource )repRes).getId();
+    	String sql2 = "select count(spw.WorkbenchTemplateID) from workbenchtemplate spw inner join spreport spr "
+    		+ " on spr.WorkbenchTemplateID = spw.WorkbenchTemplateID inner join spappresource spa "
+    		+ "on spa.SpAppResourceID = spr.AppResourceID where spw.SpecifyUserID = "
+    		+ AppContextMgr.getInstance().getClassObject(SpecifyUser.class).getSpecifyUserId()
+    		+ " and spa.SpAppResourceID = " + ((SpAppResource )repRes).getId();
     	try 
     	{
-    		return BasicSQLUtils.getCount(sql) != 0; 
+    		return BasicSQLUtils.getCount(sql1) != 0 || BasicSQLUtils.getCount(sql2) != 0; 
     	} catch (Exception ex)
     	{
+            edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
+            edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, ex);
+            log.error(ex);
     		return false;
     	}
     }
@@ -1146,7 +1191,7 @@ public class MainFrameSpecify extends MainFrame
             if (list.size() > 0)
             {
                 ChooseFromListDlg<AppResourceIFace> dlg = new ChooseFromListDlg<AppResourceIFace>(
-                        null, UIRegistry.getResourceString(REP_CHOOSE_REPORT), list);
+                        (Frame)null, UIRegistry.getResourceString(REP_CHOOSE_REPORT), list);
                 dlg.setVisible(true);
 
                 AppResourceIFace appRes = dlg.getSelectedObject();
@@ -1697,10 +1742,10 @@ public class MainFrameSpecify extends MainFrame
         // Set App Name, MUST be done very first thing!
         //UIRegistry.setAppName("iReports4Specify");  //$NON-NLS-1$
         UIRegistry.setAppName("Specify");  //$NON-NLS-1$
-        UIRegistry.setEmbeddedDBDir(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
+        UIRegistry.setEmbeddedDBPath(UIRegistry.getDefaultEmbeddedDBPath()); // on the local machine
         
         AppBase.processArgs(args);
-
+        AppBase.setupTeeForStdErrStdOut(true, false);
         
         // Then set this
         IconManager.setApplicationClass(Specify.class);
@@ -1710,6 +1755,7 @@ public class MainFrameSpecify extends MainFrame
         
         System.setProperty(AppContextMgr.factoryName,                   "edu.ku.brc.specify.config.SpecifyAppContextMgr");      // Needed by AppContextMgr //$NON-NLS-1$
         System.setProperty(AppPreferences.factoryName,                  "edu.ku.brc.specify.config.AppPrefsDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
+        System.setProperty(AppPreferences.factoryGlobalName,            "edu.ku.brc.specify.config.AppPrefsGlobalDBIOIImpl");         // Needed by AppReferences //$NON-NLS-1$
         System.setProperty("edu.ku.brc.ui.ViewBasedDialogFactoryIFace", "edu.ku.brc.specify.ui.DBObjDialogFactory");            // Needed By UIRegistry //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.ui.forms.DraggableRecordIdentifierFactory", "edu.ku.brc.specify.ui.SpecifyDraggableRecordIdentiferFactory"); // Needed By the Form System //$NON-NLS-1$ //$NON-NLS-2$
         System.setProperty("edu.ku.brc.dbsupport.AuditInterceptor",     "edu.ku.brc.specify.dbsupport.AuditInterceptor");       // Needed By the Form System for updating Lucene and logging transactions //$NON-NLS-1$ //$NON-NLS-2$
@@ -1775,12 +1821,11 @@ public class MainFrameSpecify extends MainFrame
                 DatabaseLoginPanel.MasterPasswordProviderIFace usrPwdProvider = new DatabaseLoginPanel.MasterPasswordProviderIFace()
                 {
                     @Override
-                    public boolean hasMasterUserAndPwdInfo(final String username, final String password)
+                    public boolean hasMasterUserAndPwdInfo(final String username, final String password, final String dbName)
                     {
                         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password))
                         {
-                            UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                            UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                            UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                             boolean result = false;
                             try
                             {
@@ -1800,8 +1845,7 @@ public class MainFrameSpecify extends MainFrame
                             } catch (Exception e)
                             {
                             	edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
-                            	edu.ku.brc.exceptions.ExceptionTracker.getInstance()
-    								.capture(MainFrameSpecify.class, e);
+                            	edu.ku.brc.exceptions.ExceptionTracker.getInstance().capture(MainFrameSpecify.class, e);
                             	result = false;
                             }
                             return result;
@@ -1810,10 +1854,9 @@ public class MainFrameSpecify extends MainFrame
                     }
                     
                     @Override
-                    public Pair<String, String> getUserNamePassword(final String username, final String password)
+                    public Pair<String, String> getUserNamePassword(final String username, final String password, final String dbName)
                     {
-                        UserAndMasterPasswordMgr.getInstance().setUsersUserName(username);
-                        UserAndMasterPasswordMgr.getInstance().setUsersPassword(password);
+                        UserAndMasterPasswordMgr.getInstance().set(username, password, dbName);
                         Pair<String, String> result = null;
                         try
                         {
@@ -1840,7 +1883,7 @@ public class MainFrameSpecify extends MainFrame
                         return result;
                     }
                     @Override
-                    public boolean editMasterInfo(final String username, final boolean askFroCredentials)
+                    public boolean editMasterInfo(final String username, final String dbName, final boolean askFroCredentials)
                     {
                         boolean result = false;
                     	try
@@ -1853,7 +1896,7 @@ public class MainFrameSpecify extends MainFrame
                         		AppPreferences.getLocalPrefs().setProperties(null);
                         		result =  UserAndMasterPasswordMgr
 									.getInstance()
-									.editMasterInfo(username, askFroCredentials);
+									.editMasterInfo(username, dbName, askFroCredentials);
                         	} finally
                         	{
                         		AppPreferences.getLocalPrefs().flush();
@@ -1871,6 +1914,58 @@ public class MainFrameSpecify extends MainFrame
                     	return result;
                    }
                 };
+                
+                if (UIRegistry.isMobile())
+                {
+                    DBConnection.setShutdownUI(new DBConnection.ShutdownUIIFace() 
+                    {
+                        CustomDialog processDlg;
+                        
+                        /* (non-Javadoc)
+                         * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayInitialDlg()
+                         */
+                        @Override
+                        public void displayInitialDlg()
+                        {
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "MOBILE_INFO", "MOBILE_INTRO");
+                                }
+                            });
+                        }
+            
+                        /* (non-Javadoc)
+                         * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayFinalShutdownDlg()
+                         */
+                        @Override
+                        public void displayFinalShutdownDlg()
+                        {
+                            processDlg.setVisible(false);
+                            UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "MOBILE_INFO", "MOBILE_FINI");
+                        }
+            
+                        /* (non-Javadoc)
+                         * @see edu.ku.brc.dbsupport.DBConnection.ShutdownUIIFace#displayShutdownMsgDlg()
+                         */
+                        @Override
+                        public void displayShutdownMsgDlg()
+                        {
+                            JPanel panel = new JPanel(new BorderLayout());
+                            panel.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+                            
+                            panel.add(new JLabel(IconManager.getIcon(Specify.getLargeIconName()), SwingConstants.CENTER), BorderLayout.WEST);
+                            panel.add(UIHelper.createI18NLabel("MOBILE_SHUTTING_DOWN", SwingConstants.CENTER), BorderLayout.CENTER);
+                            processDlg = new CustomDialog((Frame)null, "Shutdown", false, CustomDialog.NONE_BTN, panel);
+                            processDlg.setAlwaysOnTop(true);
+                            
+                            UIHelper.centerAndShow(processDlg);
+                            
+                        }
+                    });
+                }
+                
                 String nameAndTitle = "Specify iReport"; // I18N
                 UIRegistry.setRelease(true);
                 UIHelper.doLogin(usrPwdProvider, true, false, false, new IReportLauncher(), 

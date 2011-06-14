@@ -95,7 +95,7 @@ public class DbLoginCallbackHandler implements CallbackHandler
                 if (callbacks[i] instanceof NameCallback) 
                 {
                     log.debug("handle - [NameCallback]"); //$NON-NLS-1$
-                    //log.debug("handle - got user:" + user); //$NON-NLS-1$
+                    log.debug("handle - got user:" + user); //$NON-NLS-1$
                     ((NameCallback)callbacks[i]).setName(user);
                 } 
                 else if (callbacks[i] instanceof PasswordCallback) 

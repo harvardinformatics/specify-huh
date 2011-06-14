@@ -38,7 +38,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
@@ -65,6 +64,7 @@ import edu.ku.brc.ui.CommandAction;
 import edu.ku.brc.ui.CommandDispatcher;
 import edu.ku.brc.ui.CurvedBorder;
 import edu.ku.brc.ui.IconManager;
+import edu.ku.brc.ui.JTiledPanel;
 import edu.ku.brc.ui.SortableJTable;
 import edu.ku.brc.ui.SortableTableModel;
 import edu.ku.brc.ui.skin.SkinItem;
@@ -81,7 +81,7 @@ import edu.ku.brc.ui.skin.SkinsMgr;
  *
  */
 @SuppressWarnings("serial")
-public class StatGroupTable extends JPanel
+public class StatGroupTable extends JTiledPanel
 {
     protected static final int    SCROLLPANE_THRESOLD = 10;
     protected static final Cursor handCursor   = new Cursor(Cursor.HAND_CURSOR);
@@ -130,11 +130,6 @@ public class StatGroupTable extends JPanel
         }
     }
 
-    /**
-     * Constructor with the localized name of the Group
-     * @param name name of the group (already been localized)
-     * @param useSeparator use non-border separator titles
-     */
     /**
      * Constructor with the localized name of the Group
      * @param name name of the group (already been localized)
@@ -270,7 +265,8 @@ public class StatGroupTable extends JPanel
 
             add(scrollPane != null ? scrollPane : table, BorderLayout.CENTER);
          }
-    }    
+    }
+    
 
     /**
      * Sets info needed to send commands

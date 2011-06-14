@@ -23,6 +23,7 @@ import static edu.ku.brc.ui.UIRegistry.getLocalizedMessage;
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -43,7 +44,6 @@ import edu.ku.brc.specify.datamodel.Collection;
 import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.SpTaskSemaphore;
 import edu.ku.brc.specify.datamodel.SpecifyUser;
-import edu.ku.brc.ui.UIHelper;
 import edu.ku.brc.ui.UIRegistry;
 
 /**
@@ -197,6 +197,10 @@ public class TaskSemaphoreMgr
             {
                 UIRegistry.showLocalizedMsg("TIMEOUT_ERR");
                 
+            } catch (com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException ex)
+            {
+                UIRegistry.showLocalizedMsg("TIMEOUT_ERR");
+                
             } catch (Exception ex)
             {
                 edu.ku.brc.af.core.UsageTracker.incrHandledUsageCount();
@@ -248,6 +252,11 @@ public class TaskSemaphoreMgr
             Collection collection = scope == SCOPE.Collection ? AppContextMgr.getInstance().getClassObject(Collection.class) : null;
 
             SpTaskSemaphore semaphore = getSemaphore(session, name, scope, discipline, collection);
+            
+            if (semaphore != null && semaphore.getOwner() != null && semaphore.getOwner().getAgents() != null)
+            {
+                semaphore.getOwner().getAgents().size(); // force Load
+            }
             
             return semaphore;
             
@@ -338,7 +347,8 @@ public class TaskSemaphoreMgr
                 }
                 
                 String userStr = prevLockedBy != null ? prevLockedBy : semaphore.getOwner().getIdentityTitle();
-                String msg = UIRegistry.getLocalizedMessage("SpTaskSemaphore.IN_USE_OV_UNLK", title, userStr, semaphore.getLockedTime().toString());
+                String msg = UIRegistry.getLocalizedMessage("SpTaskSemaphore.IN_USE_OV_UNLK", title, userStr, 
+                		semaphore.getLockedTime() == null ? "?" : semaphore.getLockedTime().toString());
                 
                 int      options;
                 Object[] optionLabels;
@@ -955,7 +965,7 @@ public class TaskSemaphoreMgr
             } else if (!semaphore.getIsLocked())
             {
                 //throw new RuntimeException("Trying to unlock when already unlocked!");
-                System.err.println("Trying to unlock when already unlocked!");
+                log.error("Trying to unlock when already unlocked!");
             }
             
             previouslyLocked = locked;
@@ -985,7 +995,15 @@ public class TaskSemaphoreMgr
         {
             semaphore.setIsLocked(doLock);
             semaphore.setContext(context);
-            String machineName = InetAddress.getLocalHost().toString();
+            String machineName = "";
+            try
+            {
+            	machineName = InetAddress.getLocalHost().toString();
+            } catch (UnknownHostException ex)
+            {
+            	//no internet connection. ignore.
+            }
+            
             machineName =  StringUtils.isNotEmpty(machineName) ? machineName.substring(0, Math.min(64, machineName.length())) : null;
             semaphore.setMachineName(doLock ? machineName : null);
             semaphore.setScope(new Byte((byte)scope.ordinal()));
