@@ -440,7 +440,12 @@ public class SearchTableConfig implements DisplayOrderingIFace,
                                     
                                 } else
                                 {
-                                    clause = ESTermParser.getInstance().createWhereClause(term, abbrev, fieldName);
+                                    //PJM: Removed un-needed invocation of of of LOWER()
+                                    //The default colation at at least HUH produces case insensitve searches.
+                                    //The where clause built in createWareClause() includes LOWER() on 
+                                    //each indexed varchar field in 
+                                    //a manner that makes each quick search query run twice as slowly without.
+                                    clause = ESTermParser.getInstance().createWhereClauseNoLower(term, abbrev, fieldName);
                                     
                                     /*boolean startWildCard = term.isOn(SearchTermField.STARTS_WILDCARD);
                                     boolean endWildCard   = term.isOn(SearchTermField.ENDS_WILDCARD);

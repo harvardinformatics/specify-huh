@@ -224,4 +224,30 @@ public class ESTermParser implements SearchTermParserIFace
         return "LOWER(" + abbrev + fieldName + ") = " + "'" + term.getTerm() + "'";
     }
     
+    /**
+     * PJM: Testing creation of a where clause without the LOWER() function 
+     * use of lower function is unnecessary when colation is case insenstive
+     * and prevents efficient use of indexes, making queries run slowly.
+     * 
+     * @param term
+     * @param abbrevArg
+     * @param fieldName
+     * @return
+     */
+    public String createWhereClauseNoLower(final SearchTermField term,
+            final String abbrevArg, 
+            final String fieldName)
+    {
+        String abbrev = StringUtils.isNotEmpty(abbrevArg) ? (abbrevArg + '.') : "";
+
+        boolean startWildCard = term.isOn(SearchTermField.STARTS_WILDCARD);
+        boolean endWildCard   = term.isOn(SearchTermField.ENDS_WILDCARD);
+        if (startWildCard || endWildCard)
+        {
+            return " " + abbrev + fieldName + " LIKE " + (startWildCard ? "'%" : "'") + term.getTerm() + (endWildCard ? "%'" : "'");
+        }
+        return " " + abbrev + fieldName + " = " + "'" + term.getTerm() + "'";
+    }
+    
+    
 }
