@@ -207,5 +207,20 @@ public class FeetToMeters extends JButton implements UIPluginable, GetSetValueIF
         }
         setEnabled(enable);
     }
+	@Override
+	public void carryForwardStateChange() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public String[] getFieldNames() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public void setNewObj(boolean isNewObj) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
