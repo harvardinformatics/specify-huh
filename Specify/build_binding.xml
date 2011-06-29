@@ -1,0 +1,43 @@
+
+<project name="Specify-HUH Binding Build File" basedir=".">
+
+	<property name="source.root" value="src" />
+	<property name="bin.root" value="../bin" />
+	<property name="jibx.dir" value="jibx_libs" />
+	<property name="binding.dir" value="." />
+
+	<!-- set classpath for running bindgen -->
+	<path id="classpath">
+		<fileset dir="${jibx.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- Generate the bindings for the datamodel objects -->
+	<target name="bindgen">
+		<echo message="Running BindGen tool" />
+		<java classpathref="classpath" fork="true" failonerror="true" classname="org.jibx.binding.generator.BindGen">
+			<arg value="-v" />
+			<arg value="-s" />
+			<arg value="${source.root}" />
+			<arg value="-p" />
+			<arg value="${bin.root}" />
+			<arg value="-t" />
+			<arg value="${binding.dir}" />
+			<arg value="edu.harvard.huh.specify.reports.ReportLoan" />
+		</java>
+	</target>
+
+	<!-- Compile the bindings for the datamodel objects -->
+	<target name="bind">
+		<echo message="Running JiBX binding compiler" />
+		<taskdef name="bind" classname="org.jibx.binding.ant.CompileTask">
+			<classpath>
+				<fileset dir="${jibx.dir}" includes="*.jar" />
+			</classpath>
+		</taskdef>
+		<bind verbose="true" binding="${binding.dir}/binding.xml">
+			<classpathset dir="${bin.root}" />
+		</bind>
+	</target>
+</project>

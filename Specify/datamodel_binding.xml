@@ -1,0 +1,252 @@
+<binding>
+	<format type="java.util.Calendar"
+		deserializer="edu.harvard.huh.binding.Utility.deserializeCalendar"
+		serializer="edu.harvard.huh.binding.Utility.serializeCalendar" />
+	<mapping name="taxon" class="edu.ku.brc.specify.datamodel.Taxon">
+		<value name="taxonId" field="taxonId" usage="optional" />
+		<value name="name" field="name" usage="optional" />
+		<value name="fullName" field="fullName" usage="optional" />
+		<value name="commonName" field="commonName" usage="optional" />
+		<value name="cultivarName" field="cultivarName" usage="optional" />
+		<value name="taxonomicSerialNumber" field="taxonomicSerialNumber"
+			usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="guid" field="guid" usage="optional" />
+		<value name="author" field="author" usage="optional" />
+		<value name="colStatus" field="colStatus" usage="optional" />
+		<value name="source" field="source" usage="optional" />
+	</mapping>
+	<mapping name="prepType" class="edu.ku.brc.specify.datamodel.PrepType">
+		<value name="name" field="name" usage="optional" />
+	</mapping>
+	<mapping name="preparation" class="edu.ku.brc.specify.datamodel.Preparation">
+		<value name="preparationId" field="preparationId" usage="optional" />
+		<value name="identifier" field="identifier" usage="optional" />
+		<value name="text1" field="text1" usage="optional" />
+		<value name="text2" field="text2" usage="optional" />
+		<value name="countAmt" field="countAmt" usage="optional" />
+		<value name="storageLocation" field="storageLocation" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="preparedDate" field="preparedDate" usage="optional" />
+		<value name="preparedDatePrecision" field="preparedDatePrecision"
+			usage="optional" />
+		<value name="status" field="status" usage="optional" />
+		<value name="sampleNumber" field="sampleNumber" usage="optional" />
+		<value name="description" field="description" usage="optional" />
+		<value name="number1" field="number1" usage="optional" />
+		<value name="number2" field="number2" usage="optional" />
+		<value name="yesNo1" field="yesNo1" usage="optional" />
+		<value name="yesNo2" field="yesNo2" usage="optional" />
+		<value name="yesNo3" field="yesNo3" usage="optional" />
+		<value name="inventoryDate" field="inventoryDate" usage="optional" />
+		<value name="objectCondition" field="objectCondition" usage="optional" />
+		<structure field="prepType" usage="optional" />
+		<collection field="fragments" usage="optional" create-type="java.util.HashSet">
+			<structure type="edu.ku.brc.specify.datamodel.Fragment"
+				name="fragment">
+				<value name="fragmentId" field="fragmentId" usage="optional" />
+				<value name="accessionNumber" field="accessionNumber" usage="optional" />
+				<value name="identifier" field="identifier" usage="optional" />
+				<value name="description" field="description" usage="optional" />
+				<value name="distribution" field="distribution" usage="optional" />
+				<value name="guid" field="guid" usage="optional" />
+				<value name="phenology" field="phenology" usage="optional" />
+				<value name="prepMethod" field="prepMethod" usage="optional" />
+				<value name="provenance" field="provenance" usage="optional" />
+				<value name="remarks" field="remarks" usage="optional" />
+				<value name="sex" field="sex" usage="optional" />
+				<value name="text1" field="text1" usage="optional" />
+				<value name="text2" field="text2" usage="optional" />
+				<value name="voucher" field="voucher" usage="optional" />
+				<value name="deaccessioned" field="deaccessioned" usage="optional" />
+				<value name="yesNo1" field="yesNo1" usage="optional" />
+				<value name="yesNo2" field="yesNo2" usage="optional" />
+				<value name="number1" field="number1" usage="optional" />
+				<value name="number2" field="number2" usage="optional" />
+				<collection field="determinations" usage="optional"
+					create-type="java.util.HashSet">
+					<structure type="edu.ku.brc.specify.datamodel.Determination"
+						name="determination">
+						<value name="determinationId" field="determinationId" usage="optional" />
+						<value name="isCurrent" field="isCurrent" usage="optional" />
+						<value name="typeStatusName" field="typeStatusName" usage="optional" />
+						<value name="determinedDate" field="determinedDate" usage="optional" />
+						<value name="determinedDatePrecision" field="determinedDatePrecision"
+							usage="optional" />
+						<value name="qualifier" field="qualifier" usage="optional" />
+						<value name="addendum" field="addendum" usage="optional" />
+						<value name="confidence" field="confidence" usage="optional" />
+						<value name="method" field="method" usage="optional" />
+						<value name="alternateName" field="alternateName" usage="optional" />
+						<value name="nameUsage" field="nameUsage" usage="optional" />
+						<value name="featureOrBasis" field="featureOrBasis" usage="optional" />
+						<value name="remarks" field="remarks" usage="optional" />
+						<value name="text1" field="text1" usage="optional" />
+						<value name="text2" field="text2" usage="optional" />
+						<value name="number1" field="number1" usage="optional" />
+						<value name="number2" field="number2" usage="optional" />
+						<value name="yesNo1" field="yesNo1" usage="optional" />
+						<value name="yesNo2" field="yesNo2" usage="optional" />
+						<value name="yesNo3" field="yesNo3" usage="optional" />
+						<structure field="preferredTaxon" usage="optional" />
+						<structure field="taxon" usage="optional" />
+						<structure field="determiner" usage="optional" />
+					</structure>
+				</collection>
+			</structure>
+		</collection>
+		<structure field="preparedByAgent" usage="optional" />
+		<structure field="taxon" usage="optional" />
+	</mapping>
+	<mapping name="addressOfRecord" class="edu.ku.brc.specify.datamodel.AddressOfRecord">
+		<value name="addressOfRecordId" field="addressOfRecordId" usage="optional" />
+		<value name="address" field="address" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		<value name="postalCode" field="postalCode" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+	</mapping>
+	<mapping name="agent" class="edu.ku.brc.specify.datamodel.Agent">
+		<value name="agentId" field="agentId" usage="optional" />
+		<value name="agentType" field="agentType" usage="optional" />
+		<value name="firstName" field="firstName" usage="optional" />
+		<value name="lastName" field="lastName" usage="optional" />
+		<value name="middleInitial" field="middleInitial" usage="optional" />
+		<value name="title" field="title" usage="optional" />
+		<value name="dateOfBirth" field="dateOfBirth" usage="optional" />
+		<value name="dateOfBirthConfidence" field="dateOfBirthConfidence"
+			usage="optional" />
+		<value name="dateOfBirthPrecision" field="dateOfBirthPrecision"
+			usage="optional" />
+		<value name="dateOfDeath" field="dateOfDeath" usage="optional" />
+		<value name="dateOfDeathConfidence" field="dateOfDeathConfidence"
+			usage="optional" />
+		<value name="dateOfDeathPrecision" field="dateOfDeathPrecision"
+			usage="optional" />
+		<value name="datesType" field="datesType" usage="optional" />
+		<value name="interests" field="interests" usage="optional" />
+		<value name="abbreviation" field="abbreviation" usage="optional" />
+		<value name="initials" field="initials" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="guid" field="guid" usage="optional" />
+		<collection field="addresses" usage="optional" create-type="java.util.HashSet" />
+	</mapping>
+	<mapping name="loan" class="edu.ku.brc.specify.datamodel.Loan">
+		<value name="loanId" field="loanId" usage="optional" />
+		<value name="loanNumber" field="loanNumber" usage="optional" />
+		<value name="loanDate" field="loanDate" usage="optional" />
+		<value name="currentDueDate" field="currentDueDate" usage="optional" />
+		<value name="originalDueDate" field="originalDueDate" usage="optional" />
+		<value name="dateClosed" field="dateClosed" usage="optional" />
+		<value name="receivedComments" field="receivedComments" usage="optional" />
+		<value name="specialConditions" field="specialConditions" usage="optional" />
+		<value name="isFinancialResponsibility" field="isFinancialResponsibility"
+			usage="optional" />
+		<value name="purposeOfLoan" field="purposeOfLoan" usage="optional" />
+		<value name="overdueNotiSentDate" field="overdueNotiSentDate"
+			usage="optional" />
+		<value name="dateReceived" field="dateReceived" usage="optional" />
+		<value name="srcGeography" field="srcGeography" usage="optional" />
+		<value name="srcTaxonomy" field="srcTaxonomy" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="text1" field="text1" usage="optional" />
+		<value name="text2" field="text2" usage="optional" />
+		<value name="text3" field="text3" usage="optional" />
+		<value name="number1" field="number1" usage="optional" />
+		<value name="number2" field="number2" usage="optional" />
+		<value name="isClosed" field="isClosed" usage="optional" />
+		<value name="yesNo1" field="yesNo1" usage="optional" />
+		<value name="yesNo2" field="yesNo2" usage="optional" />
+		<value name="yesNo3" field="yesNo3" usage="optional" />
+		<structure field="addressOfRecord" usage="optional" />
+		<collection field="loanAgents" usage="optional"
+			create-type="java.util.HashSet">
+			<structure type="edu.ku.brc.specify.datamodel.LoanAgent"
+				name="loanAgent">
+				<value name="loanAgentId" field="loanAgentId" usage="optional" />
+				<value name="role" field="role" usage="optional" />
+				<value name="remarks" field="remarks" usage="optional" />
+				<structure field="agent" usage="optional" />
+			</structure>
+		</collection>
+		<collection field="loanPreparations" usage="optional"
+			create-type="java.util.HashSet" />
+		<collection field="shipments" usage="optional" create-type="java.util.HashSet" />
+	</mapping>
+	<mapping name="loanPreparation" class="edu.ku.brc.specify.datamodel.LoanPreparation">
+		<value name="loanPreparationId" field="loanPreparationId" usage="optional" />
+		<value name="itemCount" field="itemCount" usage="optional" />
+		<value name="descriptionOfMaterial" field="descriptionOfMaterial"
+			usage="optional" />
+		<value name="outComments" field="outComments" usage="optional" />
+		<value name="inComments" field="inComments" usage="optional" />
+		<value name="receivedComments" field="receivedComments" usage="optional" />
+		<value name="srcTaxonomy" field="srcTaxonomy" usage="optional" />
+		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
+		<value name="quantityResolved" field="quantityResolved" usage="optional" />
+		<value name="quantityReturned" field="quantityReturned" usage="optional" />
+		<value name="typeCount" field="typeCount" usage="optional" />
+		<value name="isResolved" field="isResolved" usage="optional" />
+		<structure field="preparation" usage="optional" />
+		<collection field="loanReturnPreparations" usage="optional"
+			create-type="java.util.HashSet">
+			<structure type="edu.ku.brc.specify.datamodel.LoanReturnPreparation"
+				name="loanReturnPreparation">
+				<value name="loanReturnPreparationId" field="loanReturnPreparationId"
+					usage="optional" />
+				<value name="returnedDate" field="returnedDate" usage="optional" />
+				<value name="itemCount" field="itemCount" usage="optional" />
+				<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
+				<value name="quantityResolved" field="quantityResolved" usage="optional" />
+				<value name="quantityReturned" field="quantityReturned" usage="optional" />
+				<value name="typeCount" field="typeCount" usage="optional" />
+				<value name="remarks" field="remarks" usage="optional" />
+				<value name="yesNo1" field="yesNo1" usage="optional" />
+			</structure>
+		</collection>
+	</mapping>
+	<mapping name="address" class="edu.ku.brc.specify.datamodel.Address">
+		<value name="addressId" field="addressId" usage="optional" />
+		<value name="address" field="address" usage="optional" />
+		<value name="address2" field="address2" usage="optional" />
+		<value name="city" field="city" usage="optional" />
+		<value name="state" field="state" usage="optional" />
+		<value name="country" field="country" usage="optional" />
+		<value name="postalCode" field="postalCode" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="ordinal" field="ordinal" usage="optional" />
+		<value name="isPrimary" field="isPrimary" usage="optional" />
+		<value name="phone1" field="phone1" usage="optional" />
+		<value name="phone2" field="phone2" usage="optional" />
+		<value name="fax" field="fax" usage="optional" />
+		<value name="roomOrBuilding" field="roomOrBuilding" usage="optional" />
+		<value name="typeOfAddr" field="typeOfAddr" usage="optional" />
+		<value name="isCurrent" field="isCurrent" usage="optional" />
+		<value name="isShipping" field="isShipping" usage="optional" />
+		<value name="startDate" field="startDate" usage="optional" />
+		<value name="endDate" field="endDate" usage="optional" />
+		<value name="positionHeld" field="positionHeld" usage="optional" />
+	</mapping>
+	<mapping name="shipment" class="edu.ku.brc.specify.datamodel.Shipment">
+		<value name="shipmentId" field="shipmentId" usage="optional" />
+		<value name="shipmentDate" field="shipmentDate" usage="optional" />
+		<value name="shipmentNumber" field="shipmentNumber" usage="optional" />
+		<value name="shipmentMethod" field="shipmentMethod" usage="optional" />
+		<value name="numberOfPackages" field="numberOfPackages" usage="optional" />
+		<value name="weight" field="weight" usage="optional" />
+		<value name="insuredForAmount" field="insuredForAmount" usage="optional" />
+		<value name="remarks" field="remarks" usage="optional" />
+		<value name="text1" field="text1" usage="optional" />
+		<value name="text2" field="text2" usage="optional" />
+		<value name="number1" field="number1" usage="optional" />
+		<value name="number2" field="number2" usage="optional" />
+		<value name="number3" field="number3" usage="optional" />
+		<value name="yesNo1" field="yesNo1" usage="optional" />
+		<value name="yesNo2" field="yesNo2" usage="optional" />
+		<structure field="shipper" usage="optional" />
+		<structure field="shippedTo" usage="optional" />
+		<structure field="shippedBy" usage="optional" />
+	</mapping>
+</binding>
