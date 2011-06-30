@@ -1893,7 +1893,6 @@ public class InteractionsTask extends BaseTask
                 multiView.setIsNewForm(false, true);
                 multiView.setData(null);
                 multiView.setData(loan);
-                multiView.getCurrentViewAsFormViewObj().setHasNewData(true);
                 UIRegistry.clearSimpleGlassPaneMsg();
                 UIRegistry.showLocalizedMsg(JOptionPane.INFORMATION_MESSAGE, "InteractionsTask.LN_RET_TITLE", "InteractionsTask.RET_LN_SV", numLPR);
             }
