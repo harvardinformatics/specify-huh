@@ -25,7 +25,11 @@ import static edu.ku.brc.ui.UIRegistry.getResourceString;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -41,6 +45,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -50,8 +55,10 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.thoughtworks.xstream.XStream;
 
-//import edu.harvard.huh.binding.DataModelObjectMarshaller;
-import edu.harvard.huh.specify.plugins.ItemCountsLabel;
+import edu.harvard.huh.binding.DataModelObjectMarshaller;
+import edu.harvard.huh.specify.reports.DataModelObjectReport;
+import edu.harvard.huh.specify.reports.ReportLoan;
+import edu.harvard.huh.specify.reports.ReportXslFiles;
 import edu.ku.brc.af.auth.BasicPermisionPanel;
 import edu.ku.brc.af.auth.PermissionEditorIFace;
 import edu.ku.brc.af.auth.PermissionSettings;
@@ -1261,10 +1268,41 @@ public class InteractionsTask extends BaseTask
             // XXX DEBUG
             //printLoan = false;
             /* UNCOMMENT LATER if (printLoan)
-            {
+            { */
+            
+            /*
+        	try {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                File file = new File(ReportXslFiles.REPORTS_DIR + "out.fo");
+                
             	DataModelObjectMarshaller<Loan> marshaller = new DataModelObjectMarshaller<Loan>(loan);
-            	marshaller.marshal();
-			*/
+            	marshaller.marshal(out);
+            	DataModelObjectTransformer transformer = new DataModelObjectTransformer(new StreamSource(ReportXslFiles.LOAN_REPORT));
+            	
+				transformer.transform(new StreamSource(new ByteArrayInputStream(out.toByteArray())), new FileOutputStream(file));
+			} catch (Exception e) {
+				e.printStackTrace();
+			} */
+            
+            try {
+                ReportLoan rp = new ReportLoan(loan);
+                File file = new File(ReportXslFiles.REPORTS_DIR + "out.fo");
+        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+                
+    			DataModelObjectMarshaller<ReportLoan> marshaller = new DataModelObjectMarshaller<ReportLoan>(rp);
+            	marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), out);
+                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+                report.generatePDF();
+
+                //delete later
+    			File reportxml = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.xml");
+                marshaller.marshal(new FileOutputStream(reportxml));
+                
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			/*
             	/*
                 InvoiceInfo invoice = getLoanReport();
                 
