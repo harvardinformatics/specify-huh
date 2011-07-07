@@ -1284,23 +1284,27 @@ public class InteractionsTask extends BaseTask
 				e.printStackTrace();
 			} */
             
-            try {
-                ReportLoan rp = new ReportLoan(loan);
-                File file = new File(ReportXslFiles.REPORTS_DIR + "out.fo");
-        		ByteArrayOutputStream out = new ByteArrayOutputStream();
-                
-    			DataModelObjectMarshaller<ReportLoan> marshaller = new DataModelObjectMarshaller<ReportLoan>(rp);
-            	marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), out);
-                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
-                report.generatePDF();
-
-                //delete later
-    			File reportxml = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.xml");
-                marshaller.marshal(new FileOutputStream(reportxml));
-                
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+            Integer option = JOptionPane.showConfirmDialog(null, "Would you like to generate an invoice for loan " + loan.getLoanNumber() + "?", "Generate Invoice", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            
+            if (option == JOptionPane.YES_OPTION) {
+	            try {
+	                ReportLoan rp = new ReportLoan(loan);
+	                File file = new File(ReportXslFiles.REPORTS_DIR + "out.fo");
+	        		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                
+	    			DataModelObjectMarshaller<ReportLoan> marshaller = new DataModelObjectMarshaller<ReportLoan>(rp);
+	            	marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), out);
+	                DataModelObjectReport report = new DataModelObjectReport(new StreamSource(new ByteArrayInputStream(out.toByteArray())));
+	                report.generatePDF();
+	
+	                //delete later
+	    			File reportxml = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.xml");
+	                marshaller.marshal(new FileOutputStream(reportxml));
+	                
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+            }
 			
 			/*
             	/*
