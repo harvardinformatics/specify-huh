@@ -22,10 +22,10 @@
 
 package edu.harvard.huh.binding;
 
+import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 import org.jibx.runtime.JiBXException;
@@ -64,7 +64,8 @@ public abstract class Utility {
 	 */
 	public static String serializeCalendar(Calendar calendar) throws JiBXException {
 		GregorianCalendar date = (GregorianCalendar) calendar;
-		return date.get(Calendar.DATE) + "/" + date.get(Calendar.MONTH) + "/" + date.get(Calendar.YEAR);
+		Format formatter = new SimpleDateFormat("MMM");
+		return date.get(Calendar.DATE) + "/" + formatter.format(date.getTime()) + "/" + date.get(Calendar.YEAR);
 		//return calendar.getTime().toString();
 	}
 }
