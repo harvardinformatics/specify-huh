@@ -2007,6 +2007,9 @@
                     <cell type="subview" viewname="GeographySubform" id="children" defaulttype="table" name="children" colspan="10"/>
                 </row>
                 <row>
+                    <cell type="subview" viewname="GeographySubform" id="acceptedChildren" defaulttype="table" name="acceptedChildren" colspan="10"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="createdByAgent"/>
                     <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
                     <cell type="label" label=""/>
