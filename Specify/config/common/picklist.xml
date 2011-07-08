@@ -492,6 +492,7 @@
       <picklistitem title="Sponsor" value="Sponsor"/>
       <picklistitem title="Staff" value="Staff"/>
       <picklistitem title="Student" value="Student"/>
+      <picklistitem title="Received By" value="receivedby"/>
     </items>
   </picklist>
   <picklist name="HUH Transaction User Type" issystem="true" type="0" readonly="true" sizelimit="2">
