@@ -1208,6 +1208,20 @@
                 <row>
                 	<cell type="subview" viewname="FragmentCollObjSub" id="fragments" name="fragments" initialize="addsearch=true" colspan="11"/>
                 </row>
+                 <row>
+                    <cell type="label" labelfor="12"/>
+                    <cell type="field" id="12" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    
+                    <cell type="label" labelfor="13"/>
+                    <cell type="field" id="13" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="10"/>
+                    <cell type="field" id="10" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    
+                    <cell type="label" labelfor="11"/>
+                    <cell type="field" id="11" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>                 
             </rows>
         </viewdef>
         
