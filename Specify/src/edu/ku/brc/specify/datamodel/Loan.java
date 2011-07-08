@@ -77,6 +77,7 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
     
     protected String                  receivedComments;
     protected String                  specialConditions;
+    protected String                  loanInventory;
     protected Boolean                 isFinancialResponsibility;
     protected String                  purposeOfLoan;
     protected Calendar                overdueNotiSentDate; // Loan Only
@@ -133,6 +134,7 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
         
         receivedComments    = null;
         specialConditions   = null;
+        loanInventory 		= null;
         isFinancialResponsibility = null;
         purposeOfLoan       = null;
         overdueNotiSentDate = null;
@@ -484,6 +486,24 @@ public class Loan extends DisciplineMember implements AttachmentOwnerIFace<LoanA
     public void setSpecialConditions(String specialConditions)
     {
         this.specialConditions = specialConditions;
+    }
+    
+    /**
+     * @return the loanInventory
+     */
+    @Lob
+    @Column(name = "LoanInventory", unique = false, nullable = true, insertable = true, updatable = true, length = 2048)
+    public String getLoanInventory()
+    {
+        return loanInventory;
+    }
+
+    /**
+     * @param loanInventory the loanInventory to set
+     */
+    public void setLoanInventory(String loanInventory)
+    {
+        this.loanInventory = loanInventory;
     }
 
     /**

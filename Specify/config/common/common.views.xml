@@ -3400,6 +3400,10 @@
                      <cell type="field" id="specialConditions" name="specialConditions" uitype="textareabrief" rows="2" colspan="12"/>
                 </row>
                 <row>
+                     <cell type="label" labelfor="loanInventory"/>
+                     <cell type="field" id="loanInventory" name="loanInventory" uitype="textareabrief" rows="2" colspan="12"/>
+                </row>
+                <row>
                      <cell type="label" labelfor="5"/>
                      <cell type="field" id="5" name="remarks" uitype="textareabrief" rows="2" colspan="12"/>
                 </row>

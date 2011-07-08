@@ -42,6 +42,7 @@
 	<xsl:variable name="total" select="reportLoan/totalCount" />
 
 	<xsl:variable name="description" select="reportLoan/description" />
+	<xsl:variable name="loanInventory" select="reportLoan/loanInventory" />
 
 	<xsl:template match="/">
 		<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
@@ -243,11 +244,11 @@
 							</fo:inline>
 							<fo:inline>total</fo:inline>
 						</fo:block>
-						<fo:block space-before="12pt">
-							<xsl:value-of select="$description" />
-						</fo:block>
+						<fo:block-container height="35mm" space-before="24pt">
+						<fo:block><xsl:value-of select="$description" /></fo:block>
+						</fo:block-container>
 					</fo:block>
-					<fo:block-container space-before="24pt"
+					<fo:block-container space-before="12pt"
 						space-after="10mm">
 						<fo:block>Received the above in good order</fo:block>
 						<fo:block space-before="24pt">
@@ -342,7 +343,6 @@
 															<fo:table-row>
 																<fo:table-cell padding-right="2mm">
 																	<fo:block>
-																		*
 																		<xsl:value-of select="identifier" />
 																	</fo:block>
 																</fo:table-cell>
@@ -417,8 +417,9 @@
 						items:
 						<xsl:value-of select="$barcodedSpecimens" />
 					</fo:block>
-					<fo:block space-before="12pt" space-after="12pt">LOAN INVENTORY
-						(loan number fill in loan number)</fo:block>
+					<fo:block space-before="24pt" space-after="12pt">LOAN INVENTORY
+						(<xsl:value-of select="$loanNumber" />)</fo:block>
+						<!--
 					<fo:block>Name of Herbarium, eg Taylor Herbarium:</fo:block>
 					<fo:block-container text-indent="2mm">
 						<fo:block>genus, species number of specimens ex folder/sheet
@@ -439,7 +440,8 @@
 					<fo:block>Total: ## specimens, including ## types</fo:block>
 					<fo:block space-before="12pt">Grand total: ## specimens,
 						including
-						## types</fo:block>
+						## types</fo:block> -->
+						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$loanInventory" /></fo:block>
 				</fo:flow>
 			</fo:page-sequence>
 		</fo:root>

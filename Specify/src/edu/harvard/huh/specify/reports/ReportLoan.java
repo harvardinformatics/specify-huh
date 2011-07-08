@@ -67,6 +67,7 @@ public class ReportLoan {
 	private int barcodedSpecimenCount;
 	private int totalCount;
 	private String description;
+	private String loanInventory;
 	
 	private Set<BarcodedSpecimen> barcodedSpecimens = new HashSet<BarcodedSpecimen>();
 	private Set<UnbarcodedSpecimen> unbarcodedSpecimens = new HashSet<UnbarcodedSpecimen>();;
@@ -87,6 +88,8 @@ public class ReportLoan {
 		loanNumber = loan.getLoanNumber();
 		dateDue = loan.getCurrentDueDate();
 		forUseBy = loan.getText1();
+		description = loan.getSpecialConditions();
+		loanInventory = loan.getLoanInventory();
 		
 		Set<LoanPreparation> loanPreparations = loan.getLoanPreparations();
 		//initializeCounts(loanPreparations);
