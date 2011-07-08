@@ -20701,6 +20701,17 @@
         </names>
         <descs/>
       </item>
+      <item name="loanInventory">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Loan Inventory</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="srcGeography">
         <version>0</version>
         <isHidden>false</isHidden>

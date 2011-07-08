@@ -1970,6 +1970,7 @@
       <field column="ReceivedComments" name="receivedComments" type="java.lang.String" length="255" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="Remarks" name="remarks" type="text" length="4096" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="SpecialConditions" name="specialConditions" type="text" length="2048" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
+      <field column="LoanInventory" name="loanInventory" type="text" length="2048" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="SrcGeography" name="srcGeography" type="java.lang.String" length="32" indexName="SrcGeographyIDX" updatable="true" required="false" unique="false" indexed="true" partialDate="false"/>
       <field column="SrcTaxonomy" name="srcTaxonomy" type="java.lang.String" length="32" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="Text1" name="text1" type="java.lang.String" length="300" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
