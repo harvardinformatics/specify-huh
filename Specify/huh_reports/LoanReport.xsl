@@ -88,7 +88,7 @@
 									<fo:block>
 										<fo:external-graphic src="huh_reports/logo.png"
 											content-width="36pt" />
-									</fo:block>
+                        			</fo:block>
 								</fo:table-cell>
 								<fo:table-cell>
 									<fo:block-container>
@@ -261,6 +261,7 @@
 							<fo:inline padding-left="78mm">Date</fo:inline>
 						</fo:block>
 					</fo:block-container>
+					<xsl:if test="count(reportLoan/unbarcodedSpecimen) > 0">
 					<fo:block space-after="24pt">LOTS OF UNBARCODED SPECIMENS
 					</fo:block>
 					<fo:table border-style="solid">
@@ -307,6 +308,8 @@
 						sheet count:
 						<xsl:value-of select="$generalCollections" />
 					</fo:block>
+					</xsl:if>
+					<xsl:if test="count(reportLoan/barcodedSpecimen) > 0">
 					<fo:block space-after="24pt">LIST OF BARCODED SPECIMENS
 					</fo:block>
 					<fo:table border-style="solid">
@@ -417,6 +420,7 @@
 						items:
 						<xsl:value-of select="$barcodedSpecimens" />
 					</fo:block>
+					</xsl:if>
 					<fo:block space-before="24pt" space-after="12pt">LOAN INVENTORY
 						(<xsl:value-of select="$loanNumber" />)</fo:block>
 						<!--
