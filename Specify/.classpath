@@ -57,7 +57,6 @@
 	<classpathentry kind="lib" path="iReportLibs/iTextAsian.jar"/>
 	<classpathentry kind="lib" path="iReportLibs/jakarta-bcel-20050813.jar"/>
 	<classpathentry kind="lib" path="iReportLibs/JasperBabylon-1.0.0.jar"/>
-	<classpathentry kind="lib" path="iReportLibs/jasperreports-extensions-1.3.1.jar"/>
 	<classpathentry kind="lib" path="iReportLibs/jasperreports-flash-2.0.5.jar"/>
 	<classpathentry kind="lib" path="iReportLibs/javacup.jar"/>
 	<classpathentry kind="lib" path="iReportLibs/jcmdline-1.0.2.jar"/>
@@ -108,13 +107,11 @@
 	<classpathentry kind="lib" path="libs/commons-jexl.jar"/>
 	<classpathentry kind="lib" path="libs/commons-lang.jar"/>
 	<classpathentry kind="lib" path="libs/commons-validator.jar"/>
-	<classpathentry kind="lib" path="libs/derby.jar"/>
 	<classpathentry kind="lib" path="libs/DynamicJasper.jar"/>
 	<classpathentry kind="lib" path="libs/ezmorph.jar"/>
 	<classpathentry kind="lib" path="libs/forms.jar"/>
 	<classpathentry kind="lib" path="libs/i4jruntime.jar"/>
 	<classpathentry kind="lib" path="libs/itext.jar"/>
-	<classpathentry kind="lib" path="libs/jasperreports.jar"/>
 	<classpathentry kind="lib" path="libs/javacsv.jar"/>
 	<classpathentry kind="lib" path="libs/jaxen.jar"/>
 	<classpathentry kind="lib" path="libs/jazzy-core.jar"/>
@@ -159,5 +156,50 @@
 	<classpathentry kind="lib" path="system_dep_libs/mac/sjsxp.jar"/>
 	<classpathentry kind="lib" path="system_dep_libs/non-mac-application-adapter.jar"/>
 	<classpathentry kind="lib" path="system_dep_libs/mxh_stub.jar"/>
+	<classpathentry kind="lib" path="wwlib/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="wwlib/jogl.jar"/>
+	<classpathentry kind="lib" path="wwlib/worldwind.jar"/>
+	<classpathentry kind="lib" path="iReportLibs/jasperreports-extensions-3.5.3.jar"/>
+	<classpathentry kind="lib" path="libs/jasperreports-3.6.0.jar"/>
+	<classpathentry kind="lib" path="embedded_libs/aspectjrt.jar"/>
+	<classpathentry kind="lib" path="embedded_libs/aspectjtools.jar"/>
+	<classpathentry kind="lib" path="embedded_libs/mysql-connector-mxj-gpl-db-files.jar"/>
+	<classpathentry kind="lib" path="embedded_libs/mysql-connector-mxj-gpl.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/bcel.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/jibx-bind.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/jibx-extras.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/jibx-run.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/jibx-schema.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/jibx-tools.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/joda-time.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/log4j.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.core.contenttype.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.core.jobs.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.core.resources.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.core.runtime.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.equinox.common.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.equinox.preferences.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.jdt.core.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.jdt.core.manipulation.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.osgi.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/org.eclipse.text.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/qdox.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/stax-api.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/wstx-asl.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/xbis-jibx.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/xmlpull_1_1_4.jar"/>
+	<classpathentry kind="lib" path="jibx_libs/xpp3.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/avalon-framework-4.2.0.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/batik-all-1.7.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/commons-io-1.3.1.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/fop.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/pdfbox-app-1.5.0.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/serializer-2.7.0.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/xalan-2.7.0.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/xercesImpl-2.7.1.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/xml-apis-1.3.04.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/xml-apis-ext-1.3.04.jar"/>
+	<classpathentry kind="lib" path="pdf_libs/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

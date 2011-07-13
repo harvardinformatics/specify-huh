@@ -24,6 +24,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import javax.swing.AbstractListModel;
@@ -558,18 +559,19 @@ public class AgentBusRules extends AttachmentOwnerBaseBusRules
             throws Exception
     {
         Agent      agent      = (Agent)dataObj;
-        Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
-        if (discipline != null)
-        {
-            for (Discipline dsp : agent.getDisciplines())
-            {
-                if (dsp.getId().equals(discipline.getId()))
-                {
-                    dsp.removeReference(agent, "agents");
-                    break;
-                }
-            }
-        }
+        agent.setDisciplines(new HashSet<Discipline>());
+//        Discipline discipline = AppContextMgr.getInstance().getClassObject(Discipline.class);
+//        if (discipline != null)
+//        {
+//            for (Discipline dsp : agent.getDisciplines())
+//            {
+//                if (dsp.getId().equals(discipline.getId()))
+//                {
+//                    dsp.removeReference(agent, "agents");
+//                    break;
+//                }
+//            }
+//        }
         
         return super.beforeDeleteCommit(dataObj, session);
     }     
