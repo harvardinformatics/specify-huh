@@ -114,6 +114,13 @@
     <field type="numeric" size="5" inc="true"/>
   </format>
   
+  <format system="true" name="HUHBorrowNumber" class="edu.ku.brc.specify.datamodel.Borrow" fieldname="borrowNumber" default="true">
+    <autonumber>edu.harvard.huh.specify.dbsupport.LoanAutoNumberAlphaNum</autonumber>
+    <field type="year" size="2" value="YY" byyear="false"/>
+    <field type="separator" size="1" value="-"/>
+    <field type="numeric" size="5" inc="true"/>
+  </format>
+  
   <format system="true" name="HUHShippingNumber" class="edu.ku.brc.specify.datamodel.Shipment" fieldname="shipmentNumber" default="true">
     <autonumber>edu.ku.brc.af.core.db.AutoNumberGeneric</autonumber>
     <field type="numeric" size="5" inc="true"/>

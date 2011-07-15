@@ -418,7 +418,8 @@
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="modifiedByAgent" columnname="ModifiedByAgentID" updatable="false" required="false" save="false"/>
     </table>
     <table classname="edu.ku.brc.specify.datamodel.Borrow" table="borrow" tableid="18" searchable="true" businessrule="edu.ku.brc.specify.datamodel.busrules.BorrowBusRules" abbrv="bo">
-      <display view="Borrow" dataobjformatter="Borrow"/>
+      <display view="Borrow" dataobjformatter="HUHBorrowNumber"/>
+      <field column="BorrowNumber" name="borrowNumber" type="java.lang.String" length="50" indexName="BorrowNumberIDX" updatable="true" required="true" unique="false" indexed="true" partialDate="false"/>
       <field column="CollectionMemberID" name="collectionMemberId" type="java.lang.Integer" indexName="BorColMemIDX" updatable="true" required="true" unique="false" indexed="true" partialDate="false"/>
       <field column="CurrentDueDate" name="currentDueDate" type="java.util.Calendar" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>
       <field column="DateClosed" name="dateClosed" type="java.util.Calendar" length="10" updatable="true" required="false" unique="false" indexed="false" partialDate="false"/>

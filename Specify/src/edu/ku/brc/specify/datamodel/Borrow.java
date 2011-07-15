@@ -49,7 +49,8 @@ import org.hibernate.annotations.Index;
 @org.hibernate.annotations.Proxy(lazy = false)
 @Table(name = "borrow")
 @org.hibernate.annotations.Table(appliesTo="borrow", indexes =
-    {   @Index (name="BorInvoiceNumberIDX", columnNames={"InvoiceNumber"}),
+    {   @Index (name="BorrowNumberIDX", columnNames={"BorrowNumber"}),
+		@Index (name="BorInvoiceNumberIDX", columnNames={"InvoiceNumber"}),
         @Index (name="BorReceivedDateIDX", columnNames={"ReceivedDate"}),
         @Index (name="BorColMemIDX", columnNames={"CollectionMemberID"})
     })
@@ -58,6 +59,7 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
     // Fields    
 
     protected Integer             borrowId;
+    protected String			  borrowNumber;
     protected String              invoiceNumber;
     protected Calendar            receivedDate;
     protected Calendar            originalDueDate;
@@ -101,6 +103,7 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
     {
         super.init();
         borrowId = null;
+        borrowNumber = null;
         invoiceNumber = null;
         receivedDate = null;
         originalDueDate = null;
@@ -175,6 +178,19 @@ public class Borrow extends CollectionMember implements java.io.Serializable {
         this.borrowId = borrowId;
     }
 
+    /**
+     * * Borrow number
+     */
+    @Column(name = "BorrowNumber", unique = false, nullable = false, insertable = true, updatable = true, length = 50)
+    public String getBorrowNumber() {
+        return this.borrowNumber;
+    }
+    
+    public void setBorrowNumber(String borrowNumber) {
+        this.borrowNumber = borrowNumber;
+    }
+
+    
     /**
      * * Lender's loan number
      */

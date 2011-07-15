@@ -1357,6 +1357,10 @@
             
             <rows>
                 <row>
+                    <cell type="label" labelfor="borrowNumber"/>
+                    <cell type="field" id="borrowNumber" name="borrowNumber" uitype="formattedtext"/>
+                </row>
+                <row>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" name="invoiceNumber" uitype="text"/>
                     <cell type="label" labelfor="3"/>
