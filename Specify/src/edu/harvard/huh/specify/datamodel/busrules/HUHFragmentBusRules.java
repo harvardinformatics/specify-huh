@@ -2,9 +2,14 @@ package edu.harvard.huh.specify.datamodel.busrules;
 
 import static edu.ku.brc.ui.UIRegistry.getResourceString;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import javax.swing.JCheckBox;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -14,6 +19,9 @@ import edu.ku.brc.af.core.db.DBTableIdMgr;
 import edu.ku.brc.af.core.db.DBTableInfo;
 import edu.ku.brc.af.core.expresssearch.QueryAdjusterForDomain;
 import edu.ku.brc.af.ui.forms.BusinessRulesIFace;
+import edu.ku.brc.af.ui.forms.FormViewObj;
+import edu.ku.brc.af.ui.forms.MultiView;
+import edu.ku.brc.af.ui.forms.Viewable;
 import edu.ku.brc.specify.conversion.BasicSQLUtils;
 import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.CollectionRelationship;
@@ -29,8 +37,54 @@ public class HUHFragmentBusRules extends AttachmentOwnerBaseBusRules implements 
     public HUHFragmentBusRules()
     {
         super();
-    }    
-    
+    }
+
+    /**
+     * Checking a determination as current automatically sets all other current
+     * determinations as non current.
+     * 
+     * @author lchan
+     * @param viewableArg
+     */
+    @Override
+    public void initialize(Viewable viewableArg) {
+        super.initialize(viewableArg);
+
+        if (viewable instanceof FormViewObj) {
+            formViewObj = (FormViewObj) viewable;
+        }
+
+        // Finds the determination form view object among the fragment's
+        // children. Adds a listener on the determination's isCurrent checkbox.
+        // If the checkbox is selected, sets the isCurrent field of the
+        // other data model objects to false.
+        for (MultiView fragmentKids : formViewObj.getKids()) {
+            if (fragmentKids.getCurrentViewAsFormViewObj().getCellName()
+                    .equals("determinations")) {
+                final FormViewObj determinationsFvo = fragmentKids
+                        .getCurrentViewAsFormViewObj();
+                final JCheckBox isCurrentCb = (JCheckBox) determinationsFvo
+                        .getControlByName("isCurrent");
+                isCurrentCb.addActionListener(new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (isCurrentCb.isSelected()) {
+                            @SuppressWarnings("unchecked")
+                            List<Determination> determinations = (List<Determination>) determinationsFvo
+                                    .getDataList();
+                            for (Determination determination : determinations) {
+                                if (determinationsFvo.getDataObj() != determination) {
+                                    determination.setIsCurrent(false);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     @Override
     public boolean isOkToAssociateSearchObject(Object newParentDataObj, Object dataObjectFromSearch)
     {
