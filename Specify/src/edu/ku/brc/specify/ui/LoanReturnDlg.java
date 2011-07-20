@@ -489,7 +489,7 @@ public class LoanReturnDlg extends JDialog
         	// dl: get the taxon name for display (the original dialog displayed only the identifier)
             for (Determination deter : determinations)
             {
-                if (deter.isCurrentDet())
+                if (deter.isCurrentDet() && deter.getPreferredTaxon() != null)
                 {
                     if (deter.getPreferredTaxon().getFullName() == null)
                     {
