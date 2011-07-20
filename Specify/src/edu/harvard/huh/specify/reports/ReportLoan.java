@@ -72,7 +72,7 @@ public class ReportLoan {
 	private Set<BarcodedSpecimen> barcodedSpecimens = new HashSet<BarcodedSpecimen>();
 	private Set<UnbarcodedSpecimen> unbarcodedSpecimens = new HashSet<UnbarcodedSpecimen>();;
 	
-	/** Default constructor explicitly declared for the puposes of JibX binding requirements
+	/** Default constructor explicitly declared for the purposes of JibX binding requirements
 	 * 
 	 */
 	public ReportLoan() { }
@@ -122,8 +122,8 @@ public class ReportLoan {
 					}
 					for (Collector c : f.getCollectionObject().getCollectingEvent().getCollectors()) {
 						item.collectorName = c.getAgent().getCollectorName();
-						item.collectorNumber = c.getId();
 					}
+					item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
 					
 					Geography geography = f.getCollectionObject().getCollectingEvent().getLocality().getGeography();
 					
@@ -195,7 +195,7 @@ public class ReportLoan {
 		private String taxon;
 		private String type;
 		private String collectorName;
-		private Integer collectorNumber;
+		private String collectorNumber;
 		private String region;
 	}
 	
