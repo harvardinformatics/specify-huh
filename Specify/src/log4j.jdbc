@@ -1,0 +1,114 @@
+# Log4J configuration file template
+#
+# Appenders are defined/configured by lines that start 'log4j.appender.[appender_name]'
+# Loggers are defined/configured by lines that start 'log4j.logger.[logger_name]'
+#
+# Possible log levels are (in order from most verbose to most granular):
+#       ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+
+
+############################################
+#####           Appenders              #####
+############################################
+
+### An appended for System.out ###
+log4j.appender.StdOutAppender=org.apache.log4j.ConsoleAppender
+log4j.appender.StdOutAppender.Target=System.out
+log4j.appender.StdOutAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.StdOutAppender.layout.ConversionPattern=%d{HH:mm:ss} %5p %C{3}:%L - %m%n
+
+### A file appender for 'specifyorig.log' ###
+log4j.appender.SpecifyLogFileAppender=org.apache.log4j.FileAppender
+log4j.appender.SpecifyLogFileAppender.File=specifyorig.log
+log4j.appender.SpecifyLogFileAppender.Append=false
+log4j.appender.SpecifyLogFileAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.SpecifyLogFileAppender.layout.ConversionPattern=%d{HH:mm:ss} %5p %C{3}:%L - %m%n
+
+### A file appender for 'hibernate.log' ###
+log4j.appender.HibernateLogFileAppender=org.apache.log4j.FileAppender
+log4j.appender.HibernateLogFileAppender.File=hibernate.log
+log4j.appender.HibernateLogFileAppender.Append=false
+log4j.appender.HibernateLogFileAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.HibernateLogFileAppender.layout.ConversionPattern=%d{HH:mm:ss} %5p %C{3}:%L - %m%n
+
+### A file appender for 'specify.log' ###
+log4j.appender.SpecifyLogRoll=org.apache.log4j.RollingFileAppender
+log4j.appender.SpecifyLogRoll.layout=org.apache.log4j.PatternLayout
+log4j.appender.SpecifyLogRoll.layout.ConversionPattern=%d{HH:mm:ss} %5p %C{3}:%L - %m%n
+log4j.appender.SpecifyLogRoll.File=specify.log
+log4j.appender.SpecifyLogRoll.MaxFileSize=25KB
+log4j.appender.SpecifyLogRoll.MaxBackupIndex=3
+
+# JDBC appender using custom handlers, 2a)
+#log4j.appender.JDBC=org.apache.log4j.jdbcplus.JDBCAppender
+#log4j.appender.JDBC.connector=org.apache.log4j.jdbcplus.examples.MySqlConnectionHandler
+#log4j.appender.JDBC.sqlhandler=org.apache.log4j.jdbcplus.examples.SqlHandler
+#log4j.appender.JDBC.dbclass=com.mysql.jdbc.Driver
+#log4j.appender.JDBC.buffer=1
+#log4j.appender.JDBC.commit=true
+#log4j.appender.JDBC.layout=org.apache.log4j.PatternLayout
+#log4j.appender.JDBC.layout.ConversionPattern=%m
+
+# JDBC appender directly, 2b)
+log4j.appender.JDBC2=org.apache.log4j.jdbcplus.JDBCAppender
+# created db alias in aliases.conf: danko = D:\Programme\Firebird\Firebird1.5\Data\danko.fdb
+log4j.appender.JDBC2.url=jdbc:mysql://webprojects.huh.harvard.edu/specify_logs
+log4j.appender.JDBC2.dbclass=com.mysql.jdbc.Driver
+log4j.appender.JDBC2.username=client
+log4j.appender.JDBC2.password=63cf5a09f54d4e9
+#log4j.appender.JDBC2.sql=INSERT INTO LOG_LOG4J2 (MSG) VALUES ('@MSG@')
+#next: example for most functions/log types
+log4j.appender.JDBC2.sql=INSERT INTO logtest (prio, iprio, cat, thread, msg, layout_msg, throwable, ndc, mdc, mdc2, mdc3, info, addon, created_by) VALUES ('@PRIO@', @IPRIO@, '@CAT@', '@THREAD@', '@MSG@', '@LAYOUT:1@', '@THROWABLE@', '@NDC@', '@MDC:username@', '@MDC:hostname@', '@MDC:systemuser@', 'info timestamp: @TIMESTAMP@', '@LAYOUT@', 'me')
+log4j.appender.JDBC2.layout=org.apache.log4j.PatternLayout
+# conversion pattern with 4 parts separated by #, second is empty
+log4j.appender.JDBC2.layout.ConversionPattern=[%t] %m %l##%d{dd.MM.yyyy}#%d{HH:mm:ss}
+log4j.appender.JDBC2.layoutPartsDelimiter=#
+log4j.appender.JDBC2.buffer=1
+log4j.appender.JDBC2.commit=true
+log4j.appender.JDBC2.quoteReplace=true
+log4j.appender.JDBC2.throwableMaxChars=3000
+
+
+############################################
+#####            Loggers               #####
+############################################
+
+log4j.rootLogger=WARN, StdOutAppender, SpecifyLogRoll, JDBC2
+log4j.logger.org.hibernate=WARN, HibernateLogFileAppender
+
+log4j.logger.edu.ku.brc.af=DEBUG
+log4j.logger.edu.ku.brc.dbsupport=DEBUG
+log4j.logger.edu.ku.brc.services=DEBUG
+log4j.logger.edu.ku.brc.specify=DEBUG
+log4j.logger.edu.ku.brc.specify.conversion=DEBUG
+log4j.logger.edu.ku.brc.specify.datamodel=DEBUG
+log4j.logger.edu.ku.brc.specify.dbsupport=DEBUG
+log4j.logger.edu.ku.brc.specify.plugins=DEBUG
+log4j.logger.edu.ku.brc.specify.prefs=DEBUG
+log4j.logger.edu.ku.brc.specify.security=DEBUG
+log4j.logger.edu.ku.brc.specify.tasks=DEBUG
+log4j.logger.edu.ku.brc.specify.tasks.subpane=DEBUG
+log4j.logger.edu.ku.brc.specify.ui=DEBUG
+log4j.logger.edu.ku.brc.ui=DEBUG
+log4j.logger.edu.ku.brc.ui.forms=DEBUG
+log4j.logger.edu.ku.brc.util=DEBUG
+
+# Other options to consider
+#
+# log4j.logger.org.apache=[some level]
+
+# Set JDBC URL
+#log4j.appender.DB.URL=
+
+# Set Database Driver
+#log4j.appender.DB.driver=
+
+# Set database user name and password
+#log4j.appender.DB.user=client
+#log4j.appender.DB.password=63cf5a09f54d4e9
+
+# Set the SQL statement to be executed.
+#log4j.appender.DB.sql=INSERT INTO LOGS (USER_ID, DATED, LOGGER, LEVEL, MESSAGE) VALUES('%x','%d','%C','%p','%m');
+
+# Define the layout for file appender
+#log4j.appender.DB.layout=org.apache.log4j.PatternLayout
