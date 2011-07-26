@@ -501,8 +501,8 @@ public class LoanReturnDlg extends JDialog
                     {
                         taxonName = deter.getPreferredTaxon().getFullName();
                     }
-
-                    break;
+                } else if (deter.getAlternateName() != null) {
+                	taxonName = deter.getAlternateName();
                 }
             }
             
