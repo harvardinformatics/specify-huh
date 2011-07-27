@@ -2143,10 +2143,11 @@ public class QueryTask extends BaseTask
     /* (non-Javadoc)
 	 * @see edu.ku.brc.af.tasks.BaseTask#getPermEditorPanel()
 	 */
+    
 	@Override
 	public PermissionEditorIFace getPermEditorPanel()
 	{
-		return new BasicPermisionPanel("QueryTask.PermTitle", "QueryTask.PermEnable", null, null, null);
+		return new BasicPermisionPanel("QueryTask.PermTitle", "View", "Modify", "Add", "Delete");
 	}
 
 
