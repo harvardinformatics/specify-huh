@@ -83,7 +83,8 @@ public class ReportLoan {
 	 * @param loan
 	 */
 	public ReportLoan(Loan loan) {
-		processShipment(loan.getShipments());
+		if(loan.getShipments() != null)
+			processShipment(loan.getShipments());
 		
 		loanNumber = loan.getLoanNumber();
 		dateDue = loan.getCurrentDueDate();
@@ -91,53 +92,74 @@ public class ReportLoan {
 		description = loan.getSpecialConditions();
 		loanInventory = loan.getLoanInventory();
 		
-		Set<LoanPreparation> loanPreparations = loan.getLoanPreparations();
+		Set<LoanPreparation> loanPreparations = new HashSet<LoanPreparation>();
+		
+		if(loan.getLoanPreparations() != null)
+			loanPreparations = loan.getLoanPreparations();
+
 		//initializeCounts(loanPreparations);
 		
 		for (LoanPreparation lp : loanPreparations) {
-			if (lp.getPreparation().getPrepType().getName().equals("Lot")) {
-				UnbarcodedSpecimen lot = new UnbarcodedSpecimen();
-				lot.sheetCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
-				                 (lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
-				                 (lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
-				lot.taxon = lp.getSrcTaxonomy();
-				lot.description = lp.getDescriptionOfMaterial();
-			
-				unbarcodedSpecimens.add(lot);
+			if (lp.getPreparation() != null) {
+				if (lp.getPreparation().getPrepType() != null && lp.getPreparation().getPrepType().getName().equals("Lot")) {
+					UnbarcodedSpecimen lot = new UnbarcodedSpecimen();
+					lot.sheetCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
+					                 (lp.getTypeCount() != null ? lp.getTypeCount() : 0) +
+					                 (lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0);
+					lot.taxon = lp.getSrcTaxonomy();
+					lot.description = lp.getDescriptionOfMaterial();
 				
-				generalCollectionCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
-                                          (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
-			} else {
-				BarcodedSpecimen barcoded = new BarcodedSpecimen();
-				for (Fragment f : lp.getPreparation().getFragments()) {
-					BarcodedItem item = new BarcodedItem();
-					item.identifier = f.getIdentifier();
-					for (Determination d : f.getDeterminations()) {
-						if (d.isCurrentDet()) {
-							item.taxon = d.getTaxon().getName();
+					unbarcodedSpecimens.add(lot);
+					
+					generalCollectionCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
+	                                          (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
+				} else {
+					BarcodedSpecimen barcoded = new BarcodedSpecimen();
+					for (Fragment f : lp.getPreparation().getFragments()) {
+						BarcodedItem item = new BarcodedItem();
+						item.identifier = f.getIdentifier();
+						if (f.getDeterminations() != null) {
+							for (Determination d : f.getDeterminations()) {
+								if (d.isCurrentDet()) {
+									if (d.getTaxon() != null) {
+										item.taxon = d.getTaxon().getName();
+									} else {
+										item.taxon = d.getAlternateName();
+									}
+								}
+								if (d.getTypeStatusName() != null) {
+									item.type = "type";
+								}
+							}
 						}
-						if (d.getTypeStatusName() != null) {
-							item.type = "type";
+						if (f.getCollectionObject() != null && f.getCollectionObject().getCollectingEvent() != null) {
+							if (f.getCollectionObject().getCollectingEvent().getCollectors() != null) {
+								for (Collector c : f.getCollectionObject().getCollectingEvent().getCollectors()) {
+									if (c.getAgent() != null)
+										item.collectorName = c.getAgent().getCollectorName();
+								}
+							}
+							item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
+							
+							if (f.getCollectionObject().getCollectingEvent().getLocality() != null &&
+									f.getCollectionObject().getCollectingEvent().getLocality().getGeography() != null) {
+								Geography geography = f.getCollectionObject().getCollectingEvent().getLocality().getGeography();
+								
+								while(geography.getRankId() != REGION_RANK_ID) {
+									geography = geography.getParent();
+								}
+								
+								item.region = geography.getName();
+							}
+							
+							barcoded.items.add(item);
 						}
 					}
-					for (Collector c : f.getCollectionObject().getCollectingEvent().getCollectors()) {
-						item.collectorName = c.getAgent().getCollectorName();
-					}
-					item.collectorNumber = f.getCollectionObject().getCollectingEvent().getStationFieldNumber();
+					barcodedSpecimens.add(barcoded);
 					
-					Geography geography = f.getCollectionObject().getCollectingEvent().getLocality().getGeography();
-					
-					while(geography.getRankId() != REGION_RANK_ID) {
-						geography = geography.getParent();
-					}
-					
-					item.region = geography.getName();
-					barcoded.items.add(item);
+					barcodedSpecimenCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
+					                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
 				}
-				barcodedSpecimens.add(barcoded);
-				
-				barcodedSpecimenCount += (lp.getItemCount() != null ? lp.getItemCount() : 0)
-				                       + (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
 			}
 			nonSpecimenCount += lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0;
 		}
@@ -157,23 +179,31 @@ public class ReportLoan {
 			}
 		}
 		dateSent = curr.getShipmentDate();
-		numberOfPackages = curr.getNumberOfPackages();
-		nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
-		nameOfShippedBy = curr.getShippedBy().getFirstName() + " " + curr.getShippedBy().getLastName();
+		numberOfPackages = curr.getNumberOfPackages() != null ? curr.getNumberOfPackages() : 0;
 		
-		institution =  curr.getShippedTo().getOrganization().getLastName();
-		acronym = curr.getShippedTo().getOrganization().getAbbreviation();
-		
-		for (Address a : curr.getShippedTo().getAddresses()) {
-			if (a.getIsShipping()) {
-				address1 = a.getAddress();
-				address2 = a.getAddress2();
-				city = a.getCity();
-				state = a.getState();
-				zip = a.getPostalCode();
-				country = a.getCountry();
+		if (curr.getShippedTo() != null) {
+			nameOfContact = curr.getShippedTo().getFirstName() + " " + curr.getShippedTo().getLastName();
+			if (curr.getShippedTo().getOrganization() != null) {
+				institution =  curr.getShippedTo().getOrganization().getLastName();
+				acronym = curr.getShippedTo().getOrganization().getAbbreviation();
+			}
+			
+			if (curr.getShippedTo().getAddresses() != null) {
+				for (Address a : curr.getShippedTo().getAddresses()) {
+					if (a.getIsShipping() != null && a.getIsShipping()) {
+						address1 = a.getAddress();
+						address2 = a.getAddress2();
+						city = a.getCity();
+						state = a.getState();
+						zip = a.getPostalCode();
+						country = a.getCountry();
+					}
+				}
 			}
 		}
+		
+		if (curr.getShippedBy() != null)
+			nameOfShippedBy = curr.getShippedBy().getFirstName() + " " + curr.getShippedBy().getLastName();
 	}
 	
 	/** Inner class that contains a HashSet representation of all the 

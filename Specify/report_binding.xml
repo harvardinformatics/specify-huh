@@ -10,7 +10,7 @@
 		<value name="state" field="state" usage="optional" />
 		<value name="zip" field="zip" usage="optional" />
 		<value name="country" field="country" usage="optional" />
-		<value name="nameOfShippedBy" field="nameOfShippedBy" />
+		<value name="nameOfShippedBy" field="nameOfShippedBy" usage="optional" />
 		<value name="loanNumber" field="loanNumber" usage="optional" />
 		<value name="dateSent" field="dateSent" usage="optional" />
 		<value name="dateDue" field="dateDue" usage="optional" />
