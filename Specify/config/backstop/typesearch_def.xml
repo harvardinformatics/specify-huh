@@ -53,6 +53,10 @@
     <typesearch tableid="5"   name="CollectorAgentByAgentVar" searchfield="av.name"       displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)" dataobjformatter="CollectorVarAgent">
            SELECT DISTINCT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
     </typesearch>
+    <!-- Added by lchan to show a designator's HUH Name in the determination citations table -->
+    <typesearch tableid="5"   name="DeterminationCitationsDesignator" searchfield="av.name"       displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)" dataobjformatter="DeterminationCitationsDesignator">
+           SELECT DISTINCT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
+    </typesearch>
     <typesearch tableid="31"  name="Container"              searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="26"  name="Discipline"             searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>
     <typesearch tableid="96"  name="Division"               searchfield="name"            displaycols="name"               format="%s"     dataobjformatter=""/>

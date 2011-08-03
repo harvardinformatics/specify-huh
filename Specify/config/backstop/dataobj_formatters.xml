@@ -355,6 +355,21 @@
         </switch>
     </format>
     
+    <!-- Added by lchan -->
+	<format
+        name="DeterminationCitationsDesignator"
+        title="DeterminationCitationsDesignator"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+        		<!-- 2 is HUH Name -->
+				<param name="varType">2</param>
+            </external>
+        </switch>
+    </format>
+    
 	<format
         name="CollectorVarCollector"
         title="CollectorVarCollector"
