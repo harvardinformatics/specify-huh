@@ -124,8 +124,14 @@ public class PrepItemTable extends JPanel implements UIPluginable, GetSetValueIF
 			}
 			
 			CollectionObject colObj = f.getCollectionObject();
-			for ( Collector c : colObj.getCollectingEvent().getCollectors()) {
-				collector = c.getAgent().getCollectorName();
+            // If check added by lchan for bug 494. One of the fragments does
+            // not have collectionobject reference in the database. The worst
+            // thing that will happen is that the "Collector" name will be ""
+            // in the loan return preparations display table.
+			if (colObj != null) {
+			    for ( Collector c : colObj.getCollectingEvent().getCollectors()) {
+			        collector = c.getAgent().getCollectorName();
+			    }
 			}
 			v.add(taxonName);
 			v.add(collector);
