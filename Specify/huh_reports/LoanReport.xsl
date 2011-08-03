@@ -10,18 +10,21 @@
 	</xsl:variable>
 	<xsl:variable name="institution">
 		<xsl:value-of select="reportLoan/institution" />
+		<xsl:if test="reportLoan/acronym != ''">
 		- (
 		<xsl:value-of select="reportLoan/acronym" />
-		)
+		)</xsl:if>
 	</xsl:variable>
 
 	<xsl:variable name="address1" select="reportLoan/address1" />
 	<xsl:variable name="address2" select="reportLoan/address2" />
 	<xsl:variable name="cityStateZip">
+	    <xsl:if test="reportLoan/city != ''">
 		<xsl:value-of select="reportLoan/city" />
-		,
+		,</xsl:if>
+		<xsl:if test="reportLoan/state != ''">
 		<xsl:value-of select="reportLoan/state" />
-		,
+		,</xsl:if>
 		<xsl:value-of select="reportLoan/zip" />
 	</xsl:variable>
 
@@ -40,6 +43,7 @@
 	<xsl:variable name="nonSpecimens" select="reportLoan/nonSpecimenCount" />
 	<xsl:variable name="barcodedSpecimens" select="reportLoan/barcodedSpecimenCount" />
 	<xsl:variable name="total" select="reportLoan/totalCount" />
+	<xsl:variable name="preparationCount" select="reportLoan/preparationCount" />
 
 	<xsl:variable name="description" select="reportLoan/description" />
 	<xsl:variable name="loanInventory" select="reportLoan/loanInventory" />
@@ -50,7 +54,7 @@
 				<fo:simple-page-master master-name="LoanReport"
 					page-width="8.5in" page-height="11in">
 					<fo:region-body margin-left=".70in" margin-right=".70in"
-						margin-top=".50in" margin-bottom=".50in" />
+						margin-top=".50in" margin-bottom="1.5in" />
 					<fo:region-before extent="1.5in" display-align="before" />
 					<fo:region-after extent="3in" display-align="after" />
 				</fo:simple-page-master>
@@ -240,12 +244,12 @@
 									<xsl:otherwise>
 										0
 									</xsl:otherwise>
-								</xsl:choose>
+								</xsl:choose> total 
+								<xsl:if test="$preparationCount != $total"> on/in <xsl:value-of select="$preparationCount" /> preparations</xsl:if>
 							</fo:inline>
-							<fo:inline>total</fo:inline>
 						</fo:block>
 						<fo:block-container height="35mm" space-before="24pt">
-						<fo:block><xsl:value-of select="$description" /></fo:block>
+						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$description" /></fo:block>
 						</fo:block-container>
 					</fo:block>
 					<fo:block-container space-before="12pt"
@@ -362,8 +366,10 @@
 																<fo:table-cell padding-right="2mm">
 																	<fo:block>
 																		<xsl:value-of select="collectorName" />
+																		<xsl:if test="collectorNumber != ''">
 																		,
 																		<xsl:value-of select="collectorNumber" />
+																		</xsl:if>
 																	</fo:block>
 																</fo:table-cell>
 																<fo:table-cell>
@@ -399,8 +405,10 @@
 												<fo:table-cell padding-right="2mm">
 													<fo:block>
 														<xsl:value-of select="collectorName" />
+														<xsl:if test="collectorName != ''">
 														,
 														<xsl:value-of select="collectorNumber" />
+														</xsl:if>
 													</fo:block>
 												</fo:table-cell>
 												<fo:table-cell>
@@ -421,8 +429,10 @@
 						<xsl:value-of select="$barcodedSpecimens" />
 					</fo:block>
 					</xsl:if>
+					<xsl:if test="loanInventory != ''">
 					<fo:block space-before="24pt" space-after="12pt">LOAN INVENTORY
 						(<xsl:value-of select="$loanNumber" />)</fo:block>
+					</xsl:if>
 						<!--
 					<fo:block>Name of Herbarium, eg Taylor Herbarium:</fo:block>
 					<fo:block-container text-indent="2mm">

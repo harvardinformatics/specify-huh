@@ -22,8 +22,11 @@
 
 package edu.harvard.huh.specify.reports;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.ku.brc.specify.datamodel.Address;
@@ -31,7 +34,6 @@ import edu.ku.brc.specify.datamodel.Collector;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Geography;
-import edu.ku.brc.specify.datamodel.Institution;
 import edu.ku.brc.specify.datamodel.Loan;
 import edu.ku.brc.specify.datamodel.LoanPreparation;
 import edu.ku.brc.specify.datamodel.Shipment;
@@ -65,11 +67,12 @@ public class ReportLoan {
 	private int generalCollectionCount;
 	private int nonSpecimenCount;
 	private int barcodedSpecimenCount;
+	private int preparationCount;
 	private int totalCount;
 	private String description;
 	private String loanInventory;
 	
-	private Set<BarcodedSpecimen> barcodedSpecimens = new HashSet<BarcodedSpecimen>();
+	private List<BarcodedSpecimen> barcodedSpecimens = new ArrayList<BarcodedSpecimen>();
 	private Set<UnbarcodedSpecimen> unbarcodedSpecimens = new HashSet<UnbarcodedSpecimen>();;
 	
 	/** Default constructor explicitly declared for the purposes of JibX binding requirements
@@ -100,6 +103,7 @@ public class ReportLoan {
 		//initializeCounts(loanPreparations);
 		
 		for (LoanPreparation lp : loanPreparations) {
+			preparationCount++;
 			if (lp.getPreparation() != null) {
 				if (lp.getPreparation().getPrepType() != null && lp.getPreparation().getPrepType().getName().equals("Lot")) {
 					UnbarcodedSpecimen lot = new UnbarcodedSpecimen();
@@ -122,7 +126,7 @@ public class ReportLoan {
 							for (Determination d : f.getDeterminations()) {
 								if (d.isCurrentDet()) {
 									if (d.getTaxon() != null) {
-										item.taxon = d.getTaxon().getName();
+										item.taxon = d.getTaxon().getFullName();
 									} else {
 										item.taxon = d.getAlternateName();
 									}
@@ -163,6 +167,11 @@ public class ReportLoan {
 			}
 			nonSpecimenCount += lp.getNonSpecimenCount() != null ? lp.getNonSpecimenCount() : 0;
 		}
+		Collections.sort(barcodedSpecimens);
+		for(BarcodedSpecimen specimen : barcodedSpecimens) {
+			Collections.sort(specimen.items);
+		}
+		
 		totalCount = generalCollectionCount + nonSpecimenCount + barcodedSpecimenCount;
 	}
 	
@@ -212,21 +221,41 @@ public class ReportLoan {
 	 * @author lowery
 	 *
 	 */
-	private class BarcodedSpecimen {
-		private Set<BarcodedItem> items = new HashSet<BarcodedItem>();
+	private class BarcodedSpecimen implements Comparable<BarcodedSpecimen> {
+		private List<BarcodedItem> items = new ArrayList<BarcodedItem>();
+		
+		private BarcodedItem getSortItem() {
+			BarcodedItem sortItem = null;
+			for (BarcodedItem item : items) {
+				if (sortItem == null || sortItem.compareTo(item) == 1)
+					sortItem = item;
+			}
+			return sortItem;
+		}
+		
+		public int compareTo(BarcodedSpecimen specimen) {
+			
+			if (Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
+			else return -1;
+		}
 	}
 	
 	/** Inner class representation of fragments associated with a barcoded loan preparation.
 	 * @author lowery
 	 *
 	 */
-	private class BarcodedItem {
+	private class BarcodedItem implements Comparable<BarcodedItem> {
 		private String identifier;
 		private String taxon;
 		private String type;
 		private String collectorName;
 		private String collectorNumber;
 		private String region;
+		
+		public int compareTo(BarcodedItem item) {
+			if (Double.parseDouble(identifier) > Double.parseDouble(item.identifier)) return 1;
+			else return -1;
+		}
 	}
 	
 	/** Inner class representation of an unbarcoded loan preparation
