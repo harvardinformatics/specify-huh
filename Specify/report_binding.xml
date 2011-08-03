@@ -21,15 +21,17 @@
 		<value name="nonSpecimenCount" field="nonSpecimenCount" usage="optional" />
 		<value name="barcodedSpecimenCount" field="barcodedSpecimenCount"
 			usage="optional" />
+		<value name="preparationCount" field="preparationCount"
+			usage="optional" />
 		<value name="totalCount" field="totalCount" usage="optional" />
 		<value name="description" field="description" usage="optional" />
 		<value name="loanInventory" field="loanInventory" usage="optional" />
 		<collection field="barcodedSpecimens" usage="optional"
-			create-type="java.util.HashSet">
+			create-type="java.util.ArrayList">
 			<structure
 				type="edu.harvard.huh.specify.reports.ReportLoan$BarcodedSpecimen"
 				name="barcodedSpecimen" usage="optional">
-				<collection field="items" create-type="java.util.HashSet">
+				<collection field="items" create-type="java.util.ArrayList">
 					<structure
 						type="edu.harvard.huh.specify.reports.ReportLoan$BarcodedItem"
 						name="barcodedItem" usage="optional">
