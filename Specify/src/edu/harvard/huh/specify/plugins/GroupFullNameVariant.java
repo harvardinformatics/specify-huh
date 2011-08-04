@@ -82,44 +82,28 @@ public class GroupFullNameVariant extends JButton implements UIPluginable,
                 agent.getGroups());
         Collections.sort(members);
 
-        for (GroupPerson member : members) {
+        // This loop expects that all agents have full names!
+        for (int i = 0; i < members.size(); i++) {
+            GroupPerson member = members.get(i);
             for (AgentVariant agentVariant : member.getMember().getVariants()) {
                 if (agentVariant.getVarType().equals(AgentVariant.FULLNAME)) {
-                    String rearrangedName = rearrangeFullName(agentVariant
-                            .getName());
-                    groupFullName += rearrangedName + ", ";
+                    String rearrangedName = agentVariant.getName();
+                    groupFullName += rearrangedName;
+                    if (i < members.size() - 2) {
+                        groupFullName += ", ";
+                    } else if (i < members.size() - 1) {
+                        groupFullName += " & ";
+                    }
                 }
             }
         }
 
-        if (groupFullName.length() > 2) {
-            groupFullName = groupFullName.substring(0,
-                    groupFullName.length() - 2);
-        }
-
+        // Sets the value of the var type name field of the UI
         Component[] dialogComponents = getParent().getComponents();
         for (Component component : dialogComponents) {
             if (component instanceof ValTextField) {
                 ((ValTextField) component).setText(groupFullName);
             }
-        }
-    }
-
-    /**
-     * Rearranges a full name from Last, First to First Last. If the fullName
-     * does not follow this format, returns the name without modification.
-     * 
-     * @param fullName
-     *            in the format of Last, First
-     * @return full name in the format of First Last
-     */
-    private String rearrangeFullName(String fullName) {
-        String[] nameParts = fullName.split(",");
-
-        if (nameParts.length == 2) {
-            return nameParts[1] + " " + nameParts[0];
-        } else {
-            return fullName;
         }
     }
 
