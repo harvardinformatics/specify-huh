@@ -103,7 +103,7 @@ public class ReportLoan {
 		//initializeCounts(loanPreparations);
 		
 		for (LoanPreparation lp : loanPreparations) {
-			preparationCount++;
+			
 			if (lp.getPreparation() != null) {
 				if (lp.getPreparation().getPrepType() != null && lp.getPreparation().getPrepType().getName().equals("Lot")) {
 					UnbarcodedSpecimen lot = new UnbarcodedSpecimen();
@@ -118,6 +118,7 @@ public class ReportLoan {
 					generalCollectionCount = (lp.getItemCount() != null ? lp.getItemCount() : 0) +
 	                                          (lp.getTypeCount() != null ? lp.getTypeCount() : 0);
 				} else {
+					preparationCount++;
 					BarcodedSpecimen barcoded = new BarcodedSpecimen();
 					for (Fragment f : lp.getPreparation().getFragments()) {
 						BarcodedItem item = new BarcodedItem();
