@@ -60,7 +60,7 @@
 				</fo:simple-page-master>
 			</fo:layout-master-set>
 			<fo:page-sequence master-reference="LoanReport"
-				font-family="Times" font-size="12pt">
+				font="12pt Times New Roman">
 				<fo:static-content flow-name="xsl-region-before">
 					<fo:block text-align="right" margin-right=".35in"
 						margin-top=".25in">
@@ -82,7 +82,7 @@
 						England Botanical Club (NEBC)
 					</fo:block>
 				</fo:static-content>
-				<fo:flow flow-name="xsl-region-body">
+				<fo:flow flow-name="xsl-region-body" font="12pt Times New Roman">
 					<fo:table>
 						<fo:table-column column-width="10%" />
 						<fo:table-column column-width="90%" />
@@ -96,7 +96,7 @@
 								</fo:table-cell>
 								<fo:table-cell>
 									<fo:block-container>
-										<fo:block font-family="Times" font-size="16pt"
+										<fo:block font="12pt Times New Roman"
 											font-weight="bold">
 											The Harvard University Herbaria</fo:block>
 										<fo:block>22 Divinity Avenue, Cambridge, Massachusetts 02138,
@@ -245,10 +245,9 @@
 										0
 									</xsl:otherwise>
 								</xsl:choose> total 
-								<xsl:if test="$preparationCount != $total"> on/in <xsl:value-of select="$preparationCount" /> preparations</xsl:if>
 							</fo:inline>
 						</fo:block>
-						<fo:block-container height="35mm" space-before="24pt">
+						<fo:block-container height="30mm" space-before="24pt">
 						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$description" /></fo:block>
 						</fo:block-container>
 					</fo:block>
@@ -317,22 +316,23 @@
 					<fo:block space-after="24pt">LIST OF BARCODED SPECIMENS
 					</fo:block>
 					<fo:table border-style="solid">
+						<fo:table-column column-width="15%" />
+						<fo:table-column column-width="40%" />
+						<fo:table-column column-width="10%" />
+						<fo:table-column column-width="35%" />
 						<fo:table-header>
 							<fo:table-row border-style="solid">
-								<fo:table-cell padding-right="2mm">
+								<fo:table-cell padding-right="5mm">
 									<fo:block font-weight="bold">Barcode</fo:block>
 								</fo:table-cell>
-								<fo:table-cell padding-right="2mm">
+								<fo:table-cell padding-right="5mm">
 									<fo:block font-weight="bold">Taxon(a)</fo:block>
 								</fo:table-cell>
-								<fo:table-cell padding-right="2mm">
+								<fo:table-cell padding-right="5mm">
 									<fo:block font-weight="bold">Type</fo:block>
 								</fo:table-cell>
-								<fo:table-cell padding-right="2mm">
-									<fo:block font-weight="bold">Collector/Number</fo:block>
-								</fo:table-cell>
-								<fo:table-cell>
-									<fo:block font-weight="bold">Geography</fo:block>
+								<fo:table-cell padding-right="5mm">
+									<fo:block font-weight="bold">Collector, Number</fo:block>
 								</fo:table-cell>
 							</fo:table-row>
 						</fo:table-header>
@@ -348,33 +348,28 @@
 													<fo:table-body>
 														<xsl:for-each select="barcodedItem">
 															<fo:table-row>
-																<fo:table-cell padding-right="2mm">
+																<fo:table-cell padding-right="5mm">
 																	<fo:block>
 																		<xsl:value-of select="identifier" />
 																	</fo:block>
 																</fo:table-cell>
-																<fo:table-cell padding-right="2mm">
+																<fo:table-cell padding-right="5mm">
 																	<fo:block>
 																		<xsl:value-of select="taxon" />
 																	</fo:block>
 																</fo:table-cell>
-																<fo:table-cell padding-right="2mm">
+																<fo:table-cell padding-right="5mm">
 																	<fo:block>
 																		<xsl:value-of select="type" />
 																	</fo:block>
 																</fo:table-cell>
-																<fo:table-cell padding-right="2mm">
+																<fo:table-cell padding-right="5mm">
 																	<fo:block>
 																		<xsl:value-of select="collectorName" />
 																		<xsl:if test="collectorNumber != ''">
 																		,
 																		<xsl:value-of select="collectorNumber" />
 																		</xsl:if>
-																	</fo:block>
-																</fo:table-cell>
-																<fo:table-cell>
-																	<fo:block>
-																		<xsl:value-of select="region" />
 																	</fo:block>
 																</fo:table-cell>
 															</fo:table-row>
@@ -387,33 +382,28 @@
 									<xsl:otherwise>
 										<xsl:for-each select="barcodedItem">
 											<fo:table-row>
-												<fo:table-cell padding-right="2mm">
+												<fo:table-cell padding-right="5mm">
 													<fo:block>
 														<xsl:value-of select="identifier" />
 													</fo:block>
 												</fo:table-cell>
-												<fo:table-cell padding-right="2mm">
+												<fo:table-cell padding-right="5mm">
 													<fo:block>
 														<xsl:value-of select="taxon" />
 													</fo:block>
 												</fo:table-cell>
-												<fo:table-cell padding-right="2mm">
+												<fo:table-cell padding-right="5mm">
 													<fo:block>
 														<xsl:value-of select="type" />
 													</fo:block>
 												</fo:table-cell>
-												<fo:table-cell padding-right="2mm">
+												<fo:table-cell padding-right="5mm">
 													<fo:block>
 														<xsl:value-of select="collectorName" />
 														<xsl:if test="collectorName != ''">
 														,
 														<xsl:value-of select="collectorNumber" />
 														</xsl:if>
-													</fo:block>
-												</fo:table-cell>
-												<fo:table-cell>
-													<fo:block>
-														<xsl:value-of select="region" />
 													</fo:block>
 												</fo:table-cell>
 											</fo:table-row>
@@ -427,6 +417,7 @@
 						Total barcoded
 						items:
 						<xsl:value-of select="$barcodedSpecimens" />
+						<xsl:if test="$preparationCount != $total"> on/in <xsl:value-of select="$preparationCount" /> sheets/packets</xsl:if>
 					</fo:block>
 					</xsl:if>
 					<xsl:if test="loanInventory != ''">
