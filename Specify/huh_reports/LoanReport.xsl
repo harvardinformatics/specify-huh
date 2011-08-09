@@ -84,17 +84,19 @@
 				</fo:static-content>
 				<fo:flow flow-name="xsl-region-body" font="12pt Times New Roman">
 					<fo:table>
+						<fo:table-column column-width="15%" />
 						<fo:table-column column-width="10%" />
-						<fo:table-column column-width="90%" />
+						<fo:table-column column-width="60%" />
+						<fo:table-column column-width="15%" />
 						<fo:table-body>
 							<fo:table-row>
-								<fo:table-cell>
+								<fo:table-cell column-number="2">
 									<fo:block>
 										<fo:external-graphic src="huh_reports/logo.png"
 											content-width="36pt" />
                         			</fo:block>
 								</fo:table-cell>
-								<fo:table-cell>
+								<fo:table-cell column-number="3">
 									<fo:block-container>
 										<fo:block font="12pt Times New Roman"
 											font-weight="bold">
@@ -191,10 +193,14 @@
 					</fo:block>
 					<fo:block border-bottom-style="solid" border-bottom-width="2pt"
 						space-before="12pt">DESCRIPTION OF SPECIMENS</fo:block>
-					<fo:block border-bottom-style="solid" border-bottom-width="2pt"
-						margin-right="95mm">
+					<fo:block>
+						<fo:table border-bottom-style="solid" border-bottom-width="2pt">
+						<fo:table-column column-width="10mm" />
+						<fo:table-column column-width="75mm" />
+						<fo:table-body>
+						<fo:table-row>
+						<fo:table-cell>
 						<fo:block>
-							<fo:inline padding-right="5mm">
 								<xsl:choose>
 									<xsl:when test="$generalCollections != ''">
 										<xsl:value-of select="$generalCollections" />
@@ -203,12 +209,8 @@
 										0
 									</xsl:otherwise>
 								</xsl:choose>
-							</fo:inline>
-							<fo:inline>general collections</fo:inline>
 						</fo:block>
-						<!-- Provide information about group(s), families, genera -->
 						<fo:block>
-							<fo:inline padding-right="5mm">
 								<xsl:choose>
 									<xsl:when test="$nonSpecimens != ''">
 										<xsl:value-of select="$nonSpecimens" />
@@ -217,11 +219,8 @@
 										0
 									</xsl:otherwise>
 								</xsl:choose>
-							</fo:inline>
-							<fo:inline>non-specimens</fo:inline>
 						</fo:block>
 						<fo:block>
-							<fo:inline padding-right="5mm">
 								<xsl:choose>
 									<xsl:when test="$barcodedSpecimens != ''">
 										<xsl:value-of select="$barcodedSpecimens" />
@@ -230,13 +229,25 @@
 										0
 									</xsl:otherwise>
 								</xsl:choose>
-							</fo:inline>
-							<fo:inline>barcoded specimens (attached sheet)</fo:inline>
 						</fo:block>
+						</fo:table-cell>
+						<fo:table-cell>
+						<fo:block>general collections</fo:block>
+						<fo:block>non-specimens</fo:block>
+						<fo:block>barcoded specimens (attached sheet)</fo:block>
+						</fo:table-cell>
+						</fo:table-row>
+						</fo:table-body>
+						</fo:table>
 					</fo:block>
 					<fo:block>
+						<fo:table>
+						<fo:table-column column-width="10mm" />
+						<fo:table-column column-width="75mm" />
+						<fo:table-body>
+						<fo:table-row>
+						<fo:table-cell>
 						<fo:block>
-							<fo:inline padding-right="5mm">
 								<xsl:choose>
 									<xsl:when test="$total != ''">
 										<xsl:value-of select="$total" />
@@ -244,9 +255,16 @@
 									<xsl:otherwise>
 										0
 									</xsl:otherwise>
-								</xsl:choose> total 
-							</fo:inline>
+								</xsl:choose>
 						</fo:block>
+						</fo:table-cell>
+						<fo:table-cell>
+						<fo:block>
+						total</fo:block>
+						</fo:table-cell>
+						</fo:table-row>
+						</fo:table-body>
+						</fo:table>
 						<fo:block-container height="30mm" space-before="24pt">
 						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$description" /></fo:block>
 						</fo:block-container>
