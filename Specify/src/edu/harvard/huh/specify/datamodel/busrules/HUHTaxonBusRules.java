@@ -160,6 +160,8 @@ public class HUHTaxonBusRules extends TaxonBusRules
     {
         super.beforeSave(dataObj, session);
         
+        fixHybridName((Taxon) dataObj);
+        
         if (dataObj instanceof Taxon)
         {
            Taxon taxon = (Taxon) dataObj;
@@ -497,6 +499,45 @@ public class HUHTaxonBusRules extends TaxonBusRules
             }
         }
         return this.editViewObj;
+    }
+    
+    /**
+     * Fixes the way Specify generates hybrid full names. Should go after the
+     * superclass's beforeSave method is called. It replaces the full name for
+     * genera and species. It appends "notho" to the rank names below species.
+     * 
+     * @author lchan
+     * @param taxon
+     */
+    public void fixHybridName(Taxon taxon) {
+        if (taxon.getIsHybrid()) {
+            String fullName = taxon.getFullName();
+
+            if (taxon.getName() != null && !taxon.getName().isEmpty()) {
+                // Genus should be xGenus
+                if (taxon.getRankId() == TaxonTreeDef.GENUS) {
+                    fullName = "\u00D7" + taxon.getName();
+                
+                }
+                // Species should be Genus xSpecies
+                else if (taxon.getRankId() == TaxonTreeDef.SPECIES) {
+                    fullName = taxon.getParent().getName() + " \u00D7"
+                            + taxon.getName();
+                }
+                // Ranks below species should be replaced with nothorank.
+                else if (taxon.getRankId() > TaxonTreeDef.SPECIES) {
+                    fullName = fullName.replace(" f. ", " nothof. ");
+                    fullName = fullName.replace(" lusus ", " notholusus. ");
+                    fullName = fullName.replace(" modif. ", " nothomodif. ");
+                    fullName = fullName.replace(" prol. ", " nothoprol. ");
+                    fullName = fullName.replace(" subsp. ", " nothosubsp. ");
+                    fullName = fullName.replace(" subvar. ", " nothosubvar. ");
+                    fullName = fullName.replace(" var. ", " nothovar. ");
+                }
+
+                taxon.setFullName(fullName);
+            }
+        }
     }
 
 }
