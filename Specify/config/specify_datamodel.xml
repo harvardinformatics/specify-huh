@@ -3181,6 +3181,7 @@
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="modifiedByAgent" columnname="ModifiedByAgentID" updatable="false" required="false" save="false"/>
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="parAuthor" columnname="ParAuthorID" updatable="false" required="false" save="false"/>
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="parExAuthor" columnname="ParExAuthorID" updatable="false" required="false" save="false"/>
+      <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="parSanctAuthor" columnname="ParSanctAuthorID" updatable="false" required="false" save="false"/>
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Taxon" relationshipname="parent" columnname="ParentID" othersidename="children" updatable="false" required="false" save="false"/>
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="sanctAuthor" columnname="SanctAuthorID" updatable="false" required="false" save="false"/>
       <relationship type="many-to-one" classname="edu.ku.brc.specify.datamodel.Agent" relationshipname="stdAuthor" columnname="StdAuthorID" updatable="false" required="false" save="false"/>

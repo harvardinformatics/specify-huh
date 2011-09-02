@@ -146,6 +146,7 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     protected Agent                citInAuthor;
     protected Agent                parAuthor;
     protected Agent                parExAuthor;
+    protected Agent                parSanctAuthor;
     protected Agent                stdAuthor;
     protected Agent                stdExAuthor;
     protected Agent                sanctAuthor;
@@ -841,6 +842,19 @@ public class Taxon extends DataModelObjBase implements AttachmentOwnerIFace<Taxo
     
     public void setParAuthor(Agent parAuthor) {
         this.parAuthor = parAuthor;
+    }
+    
+    /**
+     * 
+     */
+    @ManyToOne(cascade = {}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ParSanctAuthorID", unique = false, nullable = true, insertable = true, updatable = true)
+    public Agent getParSanctAuthor() {
+        return this.parSanctAuthor;
+    }
+    
+    public void setParSanctAuthor(Agent parSanctAuthor) {
+        this.parSanctAuthor = parSanctAuthor;
     }
     
     /**

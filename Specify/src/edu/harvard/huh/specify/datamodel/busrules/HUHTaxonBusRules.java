@@ -156,63 +156,62 @@ public class HUHTaxonBusRules extends TaxonBusRules
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void beforeSave(Object dataObj, DataProviderSessionIFace session)
-    {
+    public void beforeSave(Object dataObj, DataProviderSessionIFace session) {
         super.beforeSave(dataObj, session);
-        
+
+        if (!(dataObj instanceof Taxon)) {
+            return;
+        }
+
         fixHybridName((Taxon) dataObj);
-        
-        if (dataObj instanceof Taxon)
-        {
-           Taxon taxon = (Taxon) dataObj;
-           
-           String parAuthorName   = null;
-           String stdAuthorName   = null;
 
-           if (taxon.getStdAuthor() != null)
-           {
-               stdAuthorName = taxon.getStdAuthor().getAuthorName();
-               
-               if (taxon.getStdExAuthor() != null)
-               {
-                   String stdExAuthorName = taxon.getStdExAuthor().getAuthorName();
-                   
-                   if (stdAuthorName != null && stdExAuthorName != null)
-                   {
-                       stdAuthorName = stdAuthorName + " ex " + stdExAuthorName;
-                   }
-               }
-               
-               if (taxon.getParAuthor() != null)
-               {
-                   parAuthorName = taxon.getParAuthor().getAuthorName();
-                   
-                   if (taxon.getParExAuthor() != null)
-                   {
-                       String parExAuthorName = taxon.getParExAuthor().getAuthorName();
-                       
-                       if (parAuthorName != null && parExAuthorName != null)
-                       {
-                           parAuthorName = parAuthorName + " ex " + parExAuthorName;
-                       }
-                   }
-               }
+        Taxon taxon = (Taxon) dataObj;
 
-               if (stdAuthorName != null && parAuthorName != null)
-               {
-                   stdAuthorName = "(" + parAuthorName + ") " + stdAuthorName;
-               }
+        String parAuthorName = null;
+        String stdAuthorName = null;
 
-               String sanctAuthorName = null;
-               if (taxon.getSanctAuthor() != null)
-               {
-                   sanctAuthorName = taxon.getSanctAuthor().getAuthorName();
-                   stdAuthorName = stdAuthorName + ": " + sanctAuthorName;
-               }
+        if (taxon.getStdAuthor() != null) { // StdAuthor is required
+            stdAuthorName = taxon.getStdAuthor().getAuthorName();
 
-               // set its author
-               taxon.setAuthor(stdAuthorName);
-           }
+            if (taxon.getStdExAuthor() != null) {
+                String stdExAuthorName = taxon.getStdExAuthor().getAuthorName();
+
+                if (stdAuthorName != null && stdExAuthorName != null) {
+                    stdAuthorName = stdAuthorName + " ex " + stdExAuthorName;
+                }
+            }
+
+            if (taxon.getParAuthor() != null) {
+                parAuthorName = taxon.getParAuthor().getAuthorName();
+
+                if (taxon.getParExAuthor() != null) {
+                    String parExAuthorName = taxon.getParExAuthor()
+                            .getAuthorName();
+
+                    if (parAuthorName != null && parExAuthorName != null) {
+                        parAuthorName = parAuthorName + " ex "
+                                + parExAuthorName;
+                    }
+                }
+                
+                // Added by lchan
+                if (taxon.getParSanctAuthor() != null) {
+                    parAuthorName += ": " + taxon.getParSanctAuthor().getAuthorName();
+                }
+            }
+            
+            if (stdAuthorName != null && parAuthorName != null) {
+                stdAuthorName = "(" + parAuthorName + ") " + stdAuthorName;
+            }
+
+            String sanctAuthorName = null;
+            if (taxon.getSanctAuthor() != null) {
+                sanctAuthorName = taxon.getSanctAuthor().getAuthorName();
+                stdAuthorName = stdAuthorName + ": " + sanctAuthorName;
+            }
+
+            // set its author
+            taxon.setAuthor(stdAuthorName);
         }
     }
     
@@ -527,7 +526,7 @@ public class HUHTaxonBusRules extends TaxonBusRules
                 // Ranks below species should be replaced with nothorank.
                 else if (taxon.getRankId() > TaxonTreeDef.SPECIES) {
                     fullName = fullName.replace(" f. ", " nothof. ");
-                    fullName = fullName.replace(" lusus ", " notholusus. ");
+                    fullName = fullName.replace(" lusus ", " notholusus ");
                     fullName = fullName.replace(" modif. ", " nothomodif. ");
                     fullName = fullName.replace(" prol. ", " nothoprol. ");
                     fullName = fullName.replace(" subsp. ", " nothosubsp. ");

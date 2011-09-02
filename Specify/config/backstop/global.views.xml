@@ -1882,6 +1882,10 @@
                 	<cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Author;displaydlg=Botanist;searchdlg=BotanistSearch" formatname="AuthorVarAgent"/>
                 	<cell type="label" label="ex"/>
                 	<cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Ex Author;displaydlg=Botanist;searchdlg=BotanistSearch" colspan="8" formatname="AuthorVarAgent"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="parSanctAuthor"/>
+                	<cell type="field" id="parSanctAuthor" uitype="querycbx" name="parSanctAuthor" initialize="name=AuthorAgentByAgentVar;title=Par Sanctioning Author;displaydlg=Botanist;searchdlg=BotanistSearch" formatname="AuthorVarAgent"/>
                 	<cell type="label" label=")"/>
                 </row>
                 <row>

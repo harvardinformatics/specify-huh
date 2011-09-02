@@ -32807,6 +32807,17 @@ Specify provides an extensive array of utilities for curatorial management of sp
         </names>
         <descs/>
       </item>
+      <item name="parSanctAuthor">
+        <version>0</version>
+        <isHidden>false</isHidden>
+        <names>
+          <str language="en">
+            <version>0</version>
+            <text>Sanctioned by</text>
+          </str>
+        </names>
+        <descs/>
+      </item>
       <item name="source" type="java.lang.String">
         <version>0</version>
         <names>
