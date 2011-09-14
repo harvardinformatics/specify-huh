@@ -2753,7 +2753,17 @@ public class FormViewObj implements Viewable,
      */
     public boolean saveObject()
     {
-        // lchan: added add/modify permission checks to data objects
+        /**
+         * lchan: for bug ID 320. added add/modify permission checks to data
+         * objects. Users were able to modify the data objects from search
+         * results.
+         * 
+         * To disable a user from adding, modifing, and deleting taxa, go to
+         * Security tools and give the group view and delete permissions. The
+         * delete is necessary to keep the Determination Taxon query combobox
+         * enabled. The lack of a modify permission prevents the user from
+         * deleting taxa in the taxon edit tree.
+         */
         Boolean canAdd = perm.canAdd();
         Boolean canModify = perm.canModify();
         Integer dataObjId = ((FormDataObjIFace) dataObj).getId();
@@ -2761,6 +2771,9 @@ public class FormViewObj implements Viewable,
             UIRegistry.showLocalizedMsg("DET_NO_ADD_PERM");
             return false;
         }
+        /**
+         * End edits
+         */
         
         if (mvParent != null && mvParent.isTopLevel())
         {
