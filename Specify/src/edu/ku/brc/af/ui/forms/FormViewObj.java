@@ -2753,6 +2753,15 @@ public class FormViewObj implements Viewable,
      */
     public boolean saveObject()
     {
+        // lchan: added add/modify permission checks to data objects
+        Boolean canAdd = perm.canAdd();
+        Boolean canModify = perm.canModify();
+        Integer dataObjId = ((FormDataObjIFace) dataObj).getId();
+        if ((dataObjId == null && !canAdd) || (dataObjId != null && !canModify)) {
+            UIRegistry.showLocalizedMsg("DET_NO_ADD_PERM");
+            return false;
+        }
+        
         if (mvParent != null && mvParent.isTopLevel())
         {
             collectionViewState();
