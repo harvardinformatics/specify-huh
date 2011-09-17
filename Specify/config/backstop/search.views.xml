@@ -322,6 +322,94 @@
             </altviews>
         </view>
         
+        <!-- added by HUH -->
+        <view 
+            name="HUHBotanistSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Agent Search Form for Botanist Lookup]]></desc>
+            <altviews>
+                <altview name="BotanistSearch" viewdef="HUHBotanistSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view 
+            name="HUHCollectionObjectSearch"
+            class="edu.ku.brc.specify.datamodel.CollectionObject"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The CollectionObject Search Form]]></desc>
+            <altviews>
+                <altview name="HUHCollectionObjectSearch" viewdef="HUHCollectionObjectSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+	<view 
+          name="HUHExsiccataSearch"
+          class="edu.ku.brc.specify.datamodel.ReferenceWork"
+          usedefbusrule="false"
+          resourcelabels="false">
+          <desc><![CDATA[The Exsiccata Search Form]]></desc>
+          <altviews>
+             <altview name="HUHExsiccataSearch" viewdef="HUHExsiccataSearch" mode="edit" validated="true" default="true"/>
+          </altviews>
+        </view>
+
+        <view 
+            name="HUHOrganizationSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Organization Search Form]]></desc>
+            <altviews>
+                <altview name="HUHOrganizationSearch" viewdef="HUHOrganizationSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view 
+            name="HUHPreparationSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Preparation Search Form]]></desc>
+            <altviews>
+                <altview name="HUHPreparationSearch" viewdef="HUHPreparationSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view 
+          name="HUHReferenceWorkSearch"
+          class="edu.ku.brc.specify.datamodel.ReferenceWork"
+          usedefbusrule="false"
+          resourcelabels="false">
+          <desc><![CDATA[The ReferenceWork Search Form]]></desc>
+          <altviews>
+             <altview name="HUHReferenceWorkSearch" viewdef="HUHReferenceWorkSearch" mode="edit" validated="true" default="true"/>
+          </altviews>
+        </view>
+
+        <view 
+            name="HUHStorageSearch"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Storage Search Form]]></desc>
+            <altviews>
+                <altview name="HUHStorageSearch" viewdef="HUHStorageSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHTaxonSearch"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Taxon Search Form]]></desc>
+            <altviews>
+                <altview name="HUHTaxonSearch" viewdef="HUHTaxonSearch" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        <!-- end HUH additions -->
         
     </views>
 
@@ -1040,5 +1128,296 @@ Good: <cell type="field" name="FieldNum" ...>
             </rows>
         </viewdef>
         
+                <!-- added by HUH -->
+        <viewdef type="form"
+            name="HUHBotanistSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Agent Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Agent Info" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="1" label="Last Name"/>
+                    <cell type="field" id="1" name="LastName" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="2" label="First Name"/>
+                    <cell type="field" id="2" name="FirstName" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4" label="Address"/>
+                    <cell type="field" id="4" name="Address" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5" label="City"/>
+                    <cell type="field" id="5" name="City" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="6" label="State"/>
+                    <cell type="field" id="6" name="State" uitype="text" cols="15"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="7" label="Postal Code"/>
+                    <cell type="field" id="7" name="Postalcode" uitype="text" cols="11"/>
+                    <cell type="label" labelfor="8" label="Country"/>
+                    <cell type="field" id="8" name="Country" uitype="text" cols="20"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef type="form"
+            name="HUHCollectionObjectSearch"
+            class="edu.ku.brc.specify.datamodel.CollectionObject"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The CollectionObject Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Collection Object"/>
+                </row>
+                <row>
+                    <cell type="label" label="Label Name:" initialize="align=right"/>
+                    <cell type="field" id="1" name="VariantName" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2" />
+                    <cell type="field" id="2" name="FieldNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="collectingEvent.StartDate" uitype="formattedtext" uifieldformatter="SearchDate" initialize="ispartial=true;"/>
+                </row>
+            </rows>
+        </viewdef>
+
+	<viewdef type="form"
+            name="HUHExsiccataSearch"
+            class="edu.ku.brc.specify.datamodel.ReferenceWork"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Publication Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                	<cell type="label" labelfor="1" label="Author (Last Name)"/>
+                	<cell type="field" id="1" name="LastName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="Title" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3" label="Variant Name"/>
+                    <cell type="field" id="3" name="Name" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="WorkDate" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="6" label="Reference Number"/>
+                    <cell type="field" id="6" name="Identifier" isrequired="false" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+
+       <viewdef type="form"
+            name="HUHOrganizationSearch"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Organization Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="separator" label="Organization Info" colspan="7"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="abbrev" label="Acronym"/>
+                    <cell type="field" id="abbrev" name="Abbreviation" uitype="text" cols="20"/>
+                </row>
+                <row>
+                	<cell type="label" labelfor="1" label="Name"/>
+                    <cell type="field" id="1" name="LastName" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="4" label="Address"/>
+                    <cell type="field" id="4" name="Address" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5" label="City"/>
+                    <cell type="field" id="5" name="City" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="6" label="State"/>
+                    <cell type="field" id="6" name="State" uitype="text" cols="15"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="7" label="Postal Code"/>
+                    <cell type="field" id="7" name="Postalcode" uitype="text" cols="11"/>
+                    <cell type="label" labelfor="8" label="Country"/>
+                    <cell type="field" id="8" name="Country" uitype="text" cols="20"/>
+                </row>
+            </rows>
+        </viewdef>
+
+       <viewdef type="form"
+            name="HUHPreparationSearch"
+            class="edu.ku.brc.specify.datamodel.Preparation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Preparation Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p,3dlu,p,3dlu,p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" label="Item Barcode:" />
+                    <cell type="field" id="5" name="fragment.Identifier" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Preparation" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" label="Prep Barcode: "/>
+                    <cell type="field" id="1" name="preparation.Identifier" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Prep Type:" />
+                    <cell type="field" id="2" name="prepType.Name" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Item Number:" />
+                    <cell type="field" id="3" name="preparation.SampleNumber" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label="Tag:" />
+                    <cell type="field" id="4" name="preparation.Text1" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef type="form"
+            name="HUHReferenceWorkSearch"
+            class="edu.ku.brc.specify.datamodel.ReferenceWork"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Publication Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1" label="Author"/>
+                    <cell type="field" id="1" name="av.Name" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="Title" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3" label="Variant Name"/>
+                    <cell type="field" id="3" name="rwv.Name" uitype="text" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="Text2" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="6" label="Reference Number"/>
+                    <cell type="field" id="6" name="rwi.Identifier" isrequired="false" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef type="form"
+            name="HUHStorageSearch"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Storage Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="FullName"/>
+                    <cell type="field" id="FullName" name="FullName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Text1"/>
+                    <cell type="field" id="Text1" name="Text1" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Text2"/>
+                    <cell type="field" id="Text2" name="Text2" isrequired="false" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef type="form"
+            name="HUHTaxonSearch"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForHashMap"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForHashMap">
+            
+            <desc><![CDATA[The Taxon Search Form]]></desc>
+            <enableRules/>
+            
+            <columnDef>p,3dlu,p</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="FullName" label="Full Name"/>
+                    <cell type="field" id="FullName" name="taxon.FullName" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Author" label="Author"/>
+                    <cell type="field" id="Author" name="taxon.Author" isrequired="false" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="Group" label="Group"/>
+                    <cell type="field" id="Group" name="taxon.GroupNumber" isrequired="false" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        <!-- end HUH additions -->
+        
     </viewdefs>
 </viewset>
+

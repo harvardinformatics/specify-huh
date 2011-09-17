@@ -6,6 +6,10 @@
     <dialog type="search" viewset="Search" view="AttachmentSearch"         name="AttachmentSearch"         class="edu.ku.brc.specify.datamodel.Attachment"     idfield="attachmentId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="AutoNumberingSchemeSearch" name="AutoNumberingSchemeSearch" class="edu.ku.brc.specify.datamodel.AutoNumberingScheme" idfield="autoNumberingSchemeId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="BioStratSearch"           name="BioStratSearch"           class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" idfield="geologicTimePeriodId" helpcontext="CBXQSearch"/>
+
+	<!-- added by HUH -->
+    <dialog type="search" viewset="Search" view="BotanistSearch"           name="BotanistSearch"           class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
+
     <dialog type="search" viewset="Search" view="CollectionObjectSearch"   name="CollectionObjectSearch"   class="edu.ku.brc.specify.datamodel.CollectionObject" idfield="collectionObjectId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="CollectingEventSearch"    name="CollectingEventSearch"    class="edu.ku.brc.specify.datamodel.CollectingEvent" idfield="collectingEventId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="CollectingTripSearch"     name="CollectingTripSearch"     class="edu.ku.brc.specify.datamodel.CollectingTrip" idfield="collectingTripId" helpcontext="CBXQSearch"/>
@@ -21,9 +25,17 @@
     <dialog type="search" viewset="Search" view="LithoStratSearch"         name="LithoStratSearch"         class="edu.ku.brc.specify.datamodel.LithoStrat"     idfield="lithoStratId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="LocalitySearch"           name="LocalitySearch"           class="edu.ku.brc.specify.datamodel.Locality"       idfield="localityId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="MorphBankViewSearch"      name="MorphBankViewSearch"      class="edu.ku.brc.specify.datamodel.MorphBankView"  idfield="morphBankViewId" helpcontext="CBXQSearch"/>
+
+	<!-- added by HUH -->
+    <dialog type="search" viewset="Search" view="OrganizationSearch"       name="OrganizationSearch"       class="edu.ku.brc.specify.datamodel.Agent"          idfield="agentId" helpcontext="CBXQSearch"/>
+
     <dialog type="search" viewset="Search" view="StorageSearch"            name="StorageSearch"            class="edu.ku.brc.specify.datamodel.Storage"        idfield="storageId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="PaleoContextSearch"       name="PaleoContextSearch"       class="edu.ku.brc.specify.datamodel.PaleoContext"   idfield="paleoContextId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="PermitSearch"             name="PermitSearch"             class="edu.ku.brc.specify.datamodel.Permit"         idfield="permitId" helpcontext="CBXQSearch"/>
+
+	<!-- added by HUH -->
+    <dialog type="search" viewset="Search" view="PreparationSearch"        name="PreparationSearch"        class="edu.ku.brc.specify.datamodel.Preparation"    idfield="preparationId" helpcontext="CBXQSearch"/>
+
     <dialog type="search" viewset="Search" view="PrepTypeSearch"           name="PrepTypeSearch"           class="edu.ku.brc.specify.datamodel.PrepType"       idfield="prepTypeId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ProjectSearch"            name="ProjectSearch"            class="edu.ku.brc.specify.datamodel.Project"        idfield="projectId" helpcontext="CBXQSearch"/>
     <dialog type="search" viewset="Search" view="ReferenceWorkSearch"      name="ReferenceWorkSearch"      class="edu.ku.brc.specify.datamodel.ReferenceWork"  idfield="referenceWorkId" helpcontext="CBXQSearch"/>
@@ -34,7 +46,17 @@
     <dialog type="display" view="AccessionCO"        name="AccessionDisplay"         class="edu.ku.brc.specify.datamodel.Accession" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AccessionAgent"     name="AccessionAgentDisplay"    class="edu.ku.brc.specify.datamodel.Address" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Address"            name="AddressDisplay"           class="edu.ku.brc.specify.datamodel.Accession" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+    <dialog type="display" view="AffiliateAgent"     name="AffiliateAgent"           class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="Agent"              name="AgentDisplay"             class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+	<dialog type="display" view="AgentCitation"      name="AgentCitation"            class="edu.ku.brc.specify.datamodel.AgentCitation" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="AgentGeography"     name="AgentGeography"           class="edu.ku.brc.specify.datamodel.AgentGeography" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="AgentSpecialty"     name="AgentSpecialty"           class="edu.ku.brc.specify.datamodel.AgentSpecialty" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="AgentVariant"       name="AgentVariant"             class="edu.ku.brc.specify.datamodel.AgentVariant" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Appraisal"          name="AppraisalDisplay"         class="edu.ku.brc.specify.datamodel.Appraisal" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="AttachmentsForm"    name="AttachmentsForm"          class="edu.ku.brc.specify.datamodel.Attachment" helpcontext="CBXQViewEdit"/>
@@ -42,6 +64,10 @@
     <dialog type="display" view="Author"             name="AuthorDisplay"            class="edu.ku.brc.specify.datamodel.Author" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BioStrat"           name="BioStratDisplay"          class="edu.ku.brc.specify.datamodel.GeologicTimePeriod" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="BorrowAgent"        name="BorrowAgentDisplay"       class="edu.ku.brc.specify.datamodel.BorrowAgent" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+    <dialog type="display" view="Botanist"           name="Botanist"                 class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="Collection"         name="Collection"               class="edu.ku.brc.specify.datamodel.Collection" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Collector"          name="CollectorDisplay"         class="edu.ku.brc.specify.datamodel.Collector" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="CollectionObject"   name="CollectionObject"         class="edu.ku.brc.specify.datamodel.CollectionObject" helpcontext="CBXQViewEdit"/>
@@ -49,6 +75,10 @@
     <dialog type="display" view="CollectingTrip"     name="CollectingTripDisplay"    class="edu.ku.brc.specify.datamodel.CollectingTrip" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ContainerBrief"     name="ContainerDisplay"         class="edu.ku.brc.specify.datamodel.Container" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Determination"      name="DeterminationDisplay"     class="edu.ku.brc.specify.datamodel.Determination" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+    <dialog type="display" view="DeterminationCitation" name="DeterminationCitationDisplay" class="edu.ku.brc.specify.datamodel.DeterminationCitation" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="Division"           name="DivisionDisplay"          class="edu.ku.brc.specify.datamodel.Division" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ExchangeInPrep"     name="ExchangeInPrepDisplay"    class="edu.ku.brc.specify.datamodel.ExchangeInPrep" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ExchangeOutPrep"    name="ExchangeOutPrepDisplay"    class="edu.ku.brc.specify.datamodel.ExchangeOutPrep" helpcontext="CBXQViewEdit"/>
@@ -64,14 +94,27 @@
     <dialog type="display" view="LoanAgent"          name="LoanAgentDisplay"         class="edu.ku.brc.specify.datamodel.LoanAgent" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Locality"           name="LocalityDisplay"          class="edu.ku.brc.specify.datamodel.Locality" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="MorphBankView"      name="MorphBankViewDisplay"     class="edu.ku.brc.specify.datamodel.MorphBankView" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+    <dialog type="display" view="OtherIdentifier"    name="OtherIdentifierDisplay"   class="edu.ku.brc.specify.datamodel.OtherIdentifier" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="Permit"             name="PermitDisplay"            class="edu.ku.brc.specify.datamodel.Permit"  helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Preparation"        name="PreparationDisplay"       class="edu.ku.brc.specify.datamodel.Preparation" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ProjectSub"         name="ProjectSubDisplay"        class="edu.ku.brc.specify.datamodel.Project" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ReferenceWork"      name="ReferenceWorkDisplay"     class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+
+	<!-- added by HUH -->
+    <dialog type="display" view="ReferenceWorkIdentifier" name="ReferenceWorkIdentifierDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier" helpcontext="CBXQViewEdit"/>
+	<dialog type="display" view="ReferenceWorkVariant" name="ReferenceWorkVariantDisplay" class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="RefWorkTaxCitSub"   name="RefWorkTaxCitSub"         class="edu.ku.brc.specify.datamodel.ReferenceWork" helpcontext="CBXQViewEdit"/>
+
     <dialog type="display" view="RepositoryAgreement" name="RepositoryAgreementDisplay" class="edu.ku.brc.specify.datamodel.RepositoryAgreement" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Storage"            name="StorageDisplay"           class="edu.ku.brc.specify.datamodel.Storage" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="Taxon"              name="TaxonDisplay"             class="edu.ku.brc.specify.datamodel.Taxon" helpcontext="CBXQViewEdit"/>
 
+	<!-- added by HUH -->
+    <dialog type="display" view="Transaction Agent"  name="TransactionAgent"         class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    
 	<!-- Attachment-related displays -->
     <dialog type="display" view="ObjectAttachment" name="AccessionAttachmentDisplay"            class="edu.ku.brc.specify.datamodel.AccessionAttachment" helpcontext="CBXQViewEdit"/>
     <dialog type="display" view="ObjectAttachment" name="AgentAttachmentDisplay"                class="edu.ku.brc.specify.datamodel.AgentAttachment" helpcontext="CBXQViewEdit"/>
@@ -94,4 +137,8 @@
 	<!--  Plugin -->    
     <dialog type="display" viewset="Fish Views" view="FishBase"           name="FishBase"                  title="FishBase"                class="org.dom4j.Element" helpcontext="CBXQViewEdit"/>
     
+    <!-- added by HUH -->
+    <dialog type="display" view="Organization" name="OrganizationDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+    <dialog type="display" view="Transaction Agent" name="TransactionAgentDisplay" class="edu.ku.brc.specify.datamodel.Agent" helpcontext="CBXQViewEdit"/>
+
 </dialog>

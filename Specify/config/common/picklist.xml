@@ -208,4 +208,311 @@
       <picklist name="NumberingScheme" issystem="true" type="1" tablename="autonumberingscheme" formatter="AutoNumberingScheme" readonly="true" sizelimit="-1">
     <items/>
   </picklist>
+  <picklist name="HUH Accession Type" issystem="true" type="0" readonly="true" sizelimit="6">
+    <items>
+      <picklistitem title="Incoming Exchange" value="Exchange"/>
+      <picklistitem title="Gift" value="Gift"/>
+      <picklistitem title="Staff Collection" value="FieldWork"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Purchase" value="Purchase"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Agent Variant" issystem="true" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="Variant" value="0"/>
+      <picklistitem title="Vernacular" value="1"/>
+      <picklistitem title="HUH Name" value="2"/>
+      <picklistitem title="B &amp; P Abbrev." value="3"/>
+      <picklistitem title="Label Name" value="4"/>
+      <picklistitem title="Full Name" value="5"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Agent Dates Type" issystem="true" type="0" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="Birth/Death" value="0"/>
+      <picklistitem title="Flourished" value="1"/>
+      <picklistitem title="Collected" value="2"/>
+      <picklistitem title="Received Specimens" value="3"/>
+    </items>
+  </picklist>
+  <picklist name="HUH CITES Status" type="0" issystem="true" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="[none]" value="None"/>
+      <picklistitem title="CITES I" value="CitesI"/>
+      <picklistitem title="CITES II" value="CitesII"/>
+      <picklistitem title="CITES III" value="CitesIII"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Date Confidence" type="0" issystem="true" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="ca." value="ca."/>
+      <picklistitem title="?" value="?"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Determination Qualifier" type="0" issystem="true" readonly="true" sizelimit="6">
+    <items>
+      <picklistitem title="aff." value="Affine"/>
+      <picklistitem title="cf." value="Compare"/>
+      <picklistitem title="?" value="InQuestion"/>
+      <picklistitem title="not" value="Not"/>
+      <picklistitem title="s. lat." value="SensuLato"/>
+      <picklistitem title="s. str." value="SensuStricto"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Elevation Method" type="0" issystem="true" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="GPS" value="GPS"/>
+      <picklistitem title="altimeter" value="Altimeter"/>
+      <picklistitem title="other" value="Other"/>
+      <picklistitem title="unknown" value="Unknown"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Collection Code" type="0" issystem="true" readonly="true" sizelimit="6">
+  	<items>
+  		<picklistitem title="Arnold Arboretum" value="A"/>
+  		<picklistitem title="Oakes Ames Orchid" value="AMES"/>
+  		<picklistitem title="Economic Botany" value="ECON"/>
+  		<picklistitem title="Farlow Herbarium" value="FH"/>
+  		<picklistitem title="Gray Herbarium" value="GH"/>
+  		<picklistitem title="New England Botanical Club" value="NEBC"/>
+  	</items>
+  </picklist>
+  <picklist name="HUH Geographic Region" type="0" issystem="true" readonly="true" sizelimit="18">
+	<items>
+		<picklistitem title="Africa" value="Africa"/>
+		<picklistitem title="Antarctica" value="Antarctica"/>
+		<picklistitem title="Australia" value="Australia"/>
+		<picklistitem title="East Asia" value="East Asia"/>
+		<picklistitem title="Europe" value="Europe"/>
+		<picklistitem title="India" value="India"/>
+		<picklistitem title="Mexico and Central America" value="Mexico and Central America"/>
+		<picklistitem title="New Caledonia" value="New Caledonia"/>
+		<picklistitem title="Papuasia" value="Papuasia"/>
+		<picklistitem title="Philippines" value="Philippines"/>
+		<picklistitem title="Polynesia" value="Polynesia"/>
+		<picklistitem title="South America" value="South America"/>
+		<picklistitem title="US and Canada" value="US and Canada"/>
+		<picklistitem title="West Indies" value="West Indies"/>
+		<picklistitem title="Western Malaysia" value="Western Malaysia"/>
+		<picklistitem title="Cultivated" value="Cultivated"/>
+		<picklistitem title="Miscellaneous" value="Miscellaneous"/>
+	</items>
+  </picklist>
+  <picklist name="HUH Item Relationship Type" issystem="true" type="1" tablename="collectionreltype" formatter="CollectionRelType" readonly="true" sizelimit="-1">
+    <items/>
+  </picklist>
+  <picklist name="HUH Lat-Long Method" type="0" issystem="true" readonly="true" sizelimit="4">
+    <items>
+      <picklistitem title="GPS" value="GPS"/>
+      <picklistitem title="gazetteer" value="Gazetteer"/>
+      <picklistitem title="other" value="Other"/>
+      <picklistitem title="unknown" value="Unknown"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Loan Account" type="0" issytem="true" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="General Collections" value="GC"/>
+  		<picklistitem title="Farlow Collections" value="FC"/>
+  	</items>
+  </picklist>
+  <picklist name="HUH Plant Sexuality" type="0" issystem="true" readonly="true" sizelimit="3">
+	<items>
+		<picklistitem title="Female" value="Female"/>
+		<picklistitem title="Male" value="Male"/>
+		<picklistitem title="Male and Female" value="MaleFemale"/>
+	</items>
+  </picklist>
+  <picklist name="HUH Publication Number Type" type="0" issystem="true" readonly="true" sizelimit="6">
+	<items>
+		<picklistitem title="BPH" value="BPH"/>
+		<picklistitem title="BPH2" value="BPH2"/>
+		<picklistitem title="HOLLIS" value="HOLLIS"/>
+		<picklistitem title="ISBN" value="ISBN"/>
+		<picklistitem title="ISSN" value="ISSN"/>
+		<picklistitem title="TL2" value="TL2"/>
+	</items>
+  </picklist>
+  <picklist name="HUH Publication Title Type" type="0" issystem="true" readonly="true" sizelimit="1">
+	<items>
+		<picklistitem title="Variant" value="0"/>
+	</items>
+  </picklist>
+  <picklist name="HUH Range Direction" type="0" issytem="false" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="E" value="E"/>
+  		<picklistitem title="W" value="W"/>
+  	</items>
+  </picklist>
+  <picklist name="HUH Reference Work Type" issystem="true" type="0" readonly="true" sizelimit="10">
+    <items>
+      <picklistitem title="Book" value="0"/>
+      <picklistitem title="Electronic Media" value="1"/>
+      <picklistitem title="Paper" value="2"/>
+      <picklistitem title="Technical Report" value="3"/>
+      <picklistitem title="Thesis" value="4"/>
+      <picklistitem title="Section in Book" value="5"/>
+      <picklistitem title="Exsiccata" value="6"/>
+      <picklistitem title="Protologue" value="7"/>
+      <picklistitem title="Figure" value="8"/>
+      <picklistitem title="Plate" value="9"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Shipment Method" issystem="true" type="0" readonly="true" sizelimit="9">
+    <items>
+      <picklistitem title="Air" value="Air"/>
+      <picklistitem title="Express" value="Express"/>
+      <picklistitem title="Library rate" value="LibraryRate"/>
+      <picklistitem title="Sea mail" value="SeaMail"/>
+      <picklistitem title="First class" value="FirstClass"/>
+      <picklistitem title="Ground" value="Ground"/>
+      <picklistitem title="Priority" value="Priority"/>
+      <picklistitem title="Hand carried" value="HandCarried"/>
+      <picklistitem title="NA/Unknown" value="Unknown"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Specialty Name" issystem="true" type="0" readonly="true" sizelimit="15">
+  	<items>
+  	  <picklistitem title="Algae" value="Algae"/>
+  	  <picklistitem title="Angiosperms" value="Angiosperms"/>
+  	  <picklistitem title="Bryophytes" value="Bryophytes"/>
+  	  <picklistitem title="Cryptogamic, unspecified" value="Cryptogamic"/>
+  	  <picklistitem title="Diatoms" value="Diatoms"/>
+  	  <picklistitem title="Fossils" value="Fossils"/>
+  	  <picklistitem title="Fungi" value="Fungi"/>
+  	  <picklistitem title="Fungi and Lichens" value="FungiAndLichens"/>
+  	  <picklistitem title="Hepatics" value="Hepatics"/>
+  	  <picklistitem title="Lichens" value="Lichens"/>
+  	  <picklistitem title="Mosses" value="Mosses"/>
+  	  <picklistitem title="Phanerogams" value="Phanerogams"/>
+  	  <picklistitem title="Pre-Linnean" value="PreLinnean"/>
+  	  <picklistitem title="Pteridophytes" value="Pteridophytes"/>
+  	  <picklistitem title="Spermatophytes" value="Spermatophytes"/>
+  	</items>
+  </picklist>
+  <picklist name="HUH Taxon Group" type="0" issystem="true" readonly="true" sizelimit="7">
+    <items>
+      <picklistitem title="Fungi and Lichens" value="FungiLichens"/>
+      <picklistitem title="Monera" value="Monera"/>
+      <picklistitem title="Vascular plants" value="Vascular"/>
+      <picklistitem title="Mosses" value="Mosses"/>
+      <picklistitem title="Hepatics" value="Hepatics"/>
+      <picklistitem title="Algae" value="Algae"/>
+      <picklistitem title="Diatoms" value="Diatoms"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Series Institution" type="0" issystem="true" readonly="true" sizelimit="40">
+	<items>
+		<picklistitem title="A (Forest Department, Sandakan, Sabah)"   value="Forest Department, Sandakan, Sabah"/>
+		<picklistitem title="ANU (Australian National University)" value="Australian National University"/>
+		<picklistitem title="BB (Bosschen Buitengewesten)"  value="bosschen buitengewesten; FRI, Bogor"/>
+		<picklistitem title="BKF (Forest Herbarium, Bangkok)" value="Forest Herbarium, Bangkok"/>
+		<picklistitem title="BNBFD (British North Borneo Forestry Dept.)" value="British North Borneo Forestry Dept."/>
+		<picklistitem title="BRUN (Forest Department, Brunei)" value="Forest Department, Brunei"/>
+		<picklistitem title="BS (Bureau of Science, Manila)" value="Bureau of Science, Manila"/>
+		<picklistitem title="BSI (Botanical Survey of India)" value="Botanical Survey of India"/>
+		<picklistitem title="BSIP (British Solomon Islands Protectorate)" value="British Solomon Islands Protectorate"/>
+		<picklistitem title="BW (Boswezen, West New Guinea)" value="Boswezen, West New Guinea"/>
+		<picklistitem title="CCC (Canton Christian College, Canton)" value="Canton Christian College, Canton"/>
+		<picklistitem title="Cel. (Celebes: Forest Research Institute, Bogor)" value="Celebes: Forest Research Institute, Bogor"/>
+		<picklistitem title="CF (Conservator of Forests, Kepong)" value="Conservator of Forests, Kepong"/>
+		<picklistitem title="CHR" value="CHR"/>
+		<picklistitem title="FB (Forestry Bureau, Manila)" value="Forestry Bureau, Manila"/>
+		<picklistitem title="FMS (Federated Malay States (Museums))" value="Federated Malay States (Museums)"/>
+		<picklistitem title="FRI (Forest Research Institute, Kepong)" value="Forest Research Institute, Kepong"/>
+		<picklistitem title="Ja. (Java: Forest Research Institute, Bogor)" value="Java: Forest Research Institute, Bogor"/>
+		<picklistitem title="KEP (Forest Research Institute, Kepong)" value="Forest Research Institute, Kepong"/>
+		<picklistitem title="KL (Phytochemical Survey of Malaya, Kuala Lumpur)" value="Phytochemical Survey of Malaya, Kuala Lumpur"/>
+		<picklistitem title="LAE (Botany Division, Lae)" value="Botany Division, Lae"/>
+		<picklistitem title="NBFD (North Borneo Forestry Dept.)" value="North Borneo Forestry Dept."/>
+		<picklistitem title="NGBF" value="NGBF"/>
+		<picklistitem title="NGF (New Guinea Forces/Forests, Lae)" value="New Guinea Forces/Forests, Lae"/>
+		<picklistitem title="NIFS (Netherlands Indies Forest Service)" value="Netherlands Indies Forest Service"/>
+		<picklistitem title="PNH (Philippine National Herbarium)" value="Philippine National Herbarium"/>
+		<picklistitem title="PPI (Philippine Plant Inventory)" value="Philippine Plant Inventory"/>
+		<picklistitem title="RFK" value="RFK"/>
+		<picklistitem title="Ri (Riouw)" value="Riouw; FRI, (Buitenzorg) Bogor"/>
+		<picklistitem title="RRI (Rubber Research Institute, Malaya)" value="Rubber Research Institute, Malaya"/>
+		<picklistitem title="RSNB (Royal Society North Borneo Expedition)" value="Royal Society North Borneo Expedition"/>
+		<picklistitem title="RSS (Royal Society Solomons Expedition)" value="Royal Society Solomons Expedition"/>
+		<picklistitem title="S (Sarawak Forest Dept., Kuching)" value="Sarawak Forest Dept., Kuching"/>
+		<picklistitem title="SAN (Forest Department, Sandakan, Sabah)" value="Forest Department, Sandakan, Sabah"/>
+		<picklistitem title="SF (Singapore Field (number))" value="Singapore Field (number)"/>
+		<picklistitem title="SMHI" value="SMHI"/>
+		<picklistitem title="SWK (Sumatra's West Kust)" value="Sumatra's West Kust"/>
+		<picklistitem title="T (Thorenaar: Boschbouw.)" value="Thorenaar: Boschbouw., Buitenzorg (Bogor)"/>
+		<picklistitem title="UN" value="UN"/>
+		<picklistitem title="UPNG (University of Papua New Guinea, Boroko)" value="University of Papua New Guinea, Boroko"/>
+	</items>
+  </picklist>
+  <picklist name="HUH Taxon Status" type="0" issystem="true" readonly="true" sizelimit="10">
+    <items>
+      <picklistitem title="nom. leg." value="NomLeg"/>
+      <picklistitem title="nom. nov." value="NomNov"/>
+      <picklistitem title="nom. cons." value="NomCons"/>
+      <picklistitem title="nom. rej." value="NomRej"/>
+      <picklistitem title="nom. superfl." value="NomSuperfl"/>
+      <picklistitem title="synonym" value="Synonym"/>
+      <picklistitem title="later homonym" value="LaterHomonym"/>
+      <picklistitem title="orth. var." value="OrthVar"/>
+      <picklistitem title="nom. invalid." value="NomInvalid"/>
+      <picklistitem title="unknown" value="Unknown"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Township Direction" type="0" issytem="false" readonly="true" sizelimit="2">
+  	<items>
+  		<picklistitem title="N" value="N"/>
+  		<picklistitem title="S" value="S"/>
+  	</items>
+  </picklist>
+    <picklist name="HUH Loan Purpose" issystem="true" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="for id" value="ForID"/>
+      <picklistitem title="for study" value="ForStudy"/>
+      <picklistitem title="for dna Sampling" value="ForDnaSampling"/>
+      <picklistitem title="for exhibition" value="ForExhibition"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Transaction Purpose" issystem="true" type="0" readonly="true" sizelimit="5">
+    <items>
+      <picklistitem title="for id" value="ForID"/>
+      <picklistitem title="for study" value="ForStudy"/>
+      <picklistitem title="unrestricted" value="Unrestricted"/>
+      <picklistitem title="for dna Sampling" value="ForDnaSampling"/>
+      <picklistitem title="for exhibition" value="ForExhibition"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Transaction Role" issystem="true" type="0" readonly="true" sizelimit="17">
+    <items>
+      <picklistitem title="Borrower" value="Borrower"/>
+      <picklistitem title="Benefactor" value="Benefactor"/>
+      <picklistitem title="Collector" value="Collector"/>
+      <picklistitem title="Contact" value="Contact"/>
+      <picklistitem title="Contributor" value="Contributor"/>
+      <picklistitem title="Donor" value="Donor"/>
+      <picklistitem title="For Use By" value="ForUseBy"/>
+      <picklistitem title="Guest" value="Guest"/>
+      <picklistitem title="Lender" value="Lender"/>
+      <picklistitem title="Other" value="Other"/>
+      <picklistitem title="Preparer" value="Preparer"/>
+      <picklistitem title="Recipient" value="Receiver"/>
+      <picklistitem title="Reviewer" value="Reviewer"/>
+      <picklistitem title="Seller" value="Seller"/>
+      <picklistitem title="Sponsor" value="Sponsor"/>
+      <picklistitem title="Staff" value="Staff"/>
+      <picklistitem title="Student" value="Student"/>
+      <picklistitem title="Received By" value="receivedby"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Transaction User Type" issystem="true" type="0" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="staff" value="staff"/>
+      <picklistitem title="student" value="student"/>
+    </items>
+  </picklist>
+  <picklist name="HUH Type Confidence" type="0" issystem="true" readonly="true" sizelimit="2">
+    <items>
+      <picklistitem title="possible" value="Possible"/>
+      <picklistitem title="probable" value="Probable"/>
+    </items>
+  </picklist>
 </list>

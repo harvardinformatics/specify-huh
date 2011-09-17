@@ -39,7 +39,7 @@
             </fields>
         </switch>
     </format>
-
+    
     <format
         name="Address"
         title="Address"
@@ -80,6 +80,8 @@
         </switch>
     </format>
 
+
+    
     <format
         name="AutoNumberingScheme"
         title="AutoNumberingScheme"
@@ -128,7 +130,9 @@
           <external class="edu.ku.brc.specify.ui.CollectingEventDataObjFmt"/>
         </switch>
     </format>
+    
 
+    
     <format
         name="CollectingEventSFN"
         title="CollectingEventSFN"
@@ -203,7 +207,7 @@
             </fields>
         </switch>
     </format>
-
+    
     <format
         name="Container"
         title="Container"
@@ -551,7 +555,7 @@
             </fields>
         </switch>
     </format>
-
+    
     <format
         name="ReferenceWork"
         title="ReferenceWork"
@@ -564,7 +568,7 @@
             </fields>
         </switch>
     </format>
-
+    
     <format
         name="Shipment"
         title="Shipment"
@@ -631,7 +635,7 @@
             </fields>
         </switch>
     </format>
-
+    
     <format
         name="TaxonCitation"
         title="TaxonCitation"
@@ -670,6 +674,263 @@
             </fields>
         </switch>
     </format>
+
+    <!-- added by HUH -->
+    <format
+        name="HUHAccessionPreparation"
+        title="AccessionPreparation"
+        class="edu.ku.brc.specify.datamodel.AccessionPreparation"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>accession.accessionNumber</field>
+            </fields>
+        </switch>
+    </format>
+	
+    <format
+        name="HUHAgent"
+        title="Agent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="true"
+        >
+        <switch single="false" field="agentType">
+            <fields value="0">
+            	<field>abbreviation</field>
+                <field sep=" ">lastName</field>
+            </fields>
+            <fields value="1">
+            	<field>firstName</field>
+	            <field sep=" ">lastName</field>
+                <field>dateOfBirth</field>
+                <field sep="-">dateOfDeath</field>
+            </fields>
+            <fields value="2">
+                <field>lastName</field>
+            </fields>
+            <fields value="3">
+                <field>lastName</field>
+            </fields>
+        </switch>
+    </format>
+	
+	<format
+		name="HUHAgentSpecialty"
+		title="AgentSpecialty"
+		class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+		>
+		<switch single="true">
+			<fields>
+				<field>specialtyName</field>
+			</fields>
+		</switch>
+	</format>
+
+	<format
+		name="HUHAgentVariant"
+		title="AgentVariant"
+		class="edu.ku.brc.specify.datamodel.AgentVariant"
+		>
+		<switch single="true">
+			<fields>
+				<field>name</field>
+			</fields>
+		</switch>
+	</format>
+
+    <format
+        name="HUHAuthorAbbrevVarAgent"
+        title="AuthorAbbrevVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+            <external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">3</param>
+            </external>
+        </switch>
+    </format>
+    
+    <format
+        name="HUHAuthorAbbrevVarAuthor"
+        title="AuthorAbbrevVarAuthor"
+        class="edu.ku.brc.specify.datamodel.Author"
+        default="false"
+        >
+        <switch single="true">
+            <external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">3</param>
+            </external>
+        </switch>
+    </format>
+    
+    <format
+        name="HUHAuthorVarAgent"
+        title="AuthorVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">2</param>
+			 </external>
+        </switch>
+    </format>
+        
+    <format
+        name="HUHAuthorVarAuthor"
+        title="AuthorVarAuthor"
+        class="edu.ku.brc.specify.datamodel.Author"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">2</param>
+			 </external>
+        </switch>
+    </format>
+
+    <format
+        name="HUHCollectingEventDetail"
+        title="CollectingEventDetail"
+        class="edu.ku.brc.specify.datamodel.CollectingEvent"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.CollectingEventDataObjFmt"/>
+        </switch>
+    </format>
+
+    <format
+        name="HUHCollectionObjectDetail"
+        title="CollectionObjectDetail"
+        class="edu.ku.brc.specify.datamodel.CollectionObject"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.CollectionObjectDataObjFmt"/>
+        </switch>
+    </format>
+
+    <format
+        name="HUHCollectorVarAgent"
+        title="CollectorVarAgent"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">4</param>
+            </external>
+        </switch>
+    </format>
+
+    <format
+        name="HUHCollectorVarCollector"
+        title="CollectorVarCollector"
+        class="edu.ku.brc.specify.datamodel.Collector"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+				<param name="varType">4</param>
+            </external>
+        </switch>
+    </format>
+
+    <!-- Added by lchan -->
+    <format
+        name="HUHDeterminationCitationsDesignator"
+        title="DeterminationCitationsDesignator"
+        class="edu.ku.brc.specify.datamodel.Agent"
+        default="false"
+        >
+        <switch single="true">
+        	<external class="edu.harvard.huh.specify.ui.AgentVarDataObjFmt">
+        		<!-- 2 is HUH Name -->
+				<param name="varType">2</param>
+            </external>
+        </switch>
+    </format>
+
+    <format
+        name="HUHProject"
+        title="Project"
+        class="edu.ku.brc.specify.datamodel.Project"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>projectName</field>
+                <field sep=" - ">projectNumber</field>
+            </fields>
+        </switch>
+    </format>
+
+	<format
+        name="HUHReferenceWorkIdentifier"
+        title="ReferenceWorkIdentifier"
+        class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+            	<field>type</field>
+                <field sep=": ">identifier</field>
+            </fields>
+        </switch>
+    </format>
+    
+    <format
+        name="HUHReferenceWorkVariant"
+        title="ReferenceWorkVariant"
+        class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>name</field>
+            </fields>
+        </switch>
+    </format>
+
+    <format
+        name="HUHStorage"
+        title="Storage"
+        class="edu.ku.brc.specify.datamodel.Storage"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>fullName</field>
+                <field sep=", ">text1</field>
+            </fields>
+        </switch>
+    </format>
+
+    <format
+        name="HUHTaxon"
+        title="Taxon"
+        class="edu.ku.brc.specify.datamodel.Taxon"
+        default="true"
+        >
+        <switch single="true">
+            <fields>
+                <field>fullName</field>
+                <field sep=" ">author</field>
+            </fields>
+        </switch>
+    </format>
+
+    <format
+        name="HUHTaxonDetail"
+        title="TaxonDetail"
+        class="edu.ku.brc.specify.datamodel.Taxon"
+        >
+        <switch single="true">
+          <external class="edu.harvard.huh.specify.ui.TaxonDataObjFmt"/>
+        </switch>
+    </format>
+    <!--  end HUH additions -->
 
   <aggregators>
     <aggregator name="AccessionAgent"
@@ -726,7 +987,7 @@
                 format="identity"
                 orderfieldname="ordinal"
                />
-
+               
     <aggregator name="CollectingEventAttachment"
                 title="CollectingEventAttachment"
                 class="edu.ku.brc.specify.datamodel.CollectingEventAttachment"
@@ -935,7 +1196,7 @@
                 format="identity"
                 orderfieldname="ordinal"
                />
-
+               
     <aggregator name="RepositoryAgreementAttachment"
                 title="RepositoryAgreementAttachment"
                 class="edu.ku.brc.specify.datamodel.RepositoryAgreementAttachment"
@@ -958,7 +1219,64 @@
                 orderfieldname="ordinal"
                />
 
+	<!-- added by HUH -->               
+	<aggregator name="HUHAgentSpecialty"
+                title="AgentSpecialty"
+                class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="AgentSpecialty"
+                orderfieldname=""
+               />
+               
+	<aggregator name="HUHAgentVariant"
+                title="AgentVariant"
+                class="edu.ku.brc.specify.datamodel.AgentVariant"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="AgentVariant"
+                orderfieldname=""
+               />
+               
+    <aggregator name="HUHCollObjBarcode"
+                title="Barcode"
+                class="edu.ku.brc.specify.datamodel.CollObjBarcode"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="HUHBarcode"
+                orderfieldname=""
+               />
+               
+	<aggregator name="HUHReferenceWorkIdentifier"
+                title="ReferenceWorkIdentifier"
+                class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="identity"
+                orderfieldname=""
+               />
+               
+    <aggregator name="HUHReferenceWorkVariant"
+                title="ReferenceWorkVariant"
+                class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+                default="true"
+                separator="; "
+                ending=""
+                count=""
+                format="identity"
+                orderfieldname=""
+               />
+    <!--  end HUH additions -->
+
   </aggregators>
 
-
 </formatters>
+

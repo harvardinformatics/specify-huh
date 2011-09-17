@@ -1,29 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tree>
-
 	<treedef>
-        <level name="Life"                              enforced="false" infullname="false" rank="0"/>
-        <level name="Kingdom"                           enforced="false" infullname="false" rank="10"/>
-        <level name="Major Group"                       enforced="false" infullname="false" rank="20"/>
-        <level name="Division"                          enforced="false" infullname="false" rank="30"/>
-        <level name="Class"                             enforced="false" infullname="false" rank="60"/>
-        <level name="Order"                             enforced="false" infullname="false" rank="100"/>
-        <level name="Family"                            enforced="false" infullname="false" rank="140"/>
-        <level name="Tribe"                             enforced="false" infullname="false" rank="160"/>
-        <level name="Genus"                             enforced="true"  infullname="true"  rank="180"/>
-        <level name="Subgenus"                          enforced="false" infullname="false" rank="190"/>
-    	<level name="Species"                           enforced="true"  infullname="true"  rank="220"/>
-    	<level name="Subspecies"   abbrev="subsp. "     enforced="false" infullname="true"  rank="230"/>
-		<level name="Variety"      abbrev="var. "       enforced="false" infullname="true"  rank="240"/>
-   <!-- <level name="Nothovariety" abbrev="nothovar. "  enforced="false" infullname="true"  rank="242"/>
-		<level name="Nothomorph"   abbrev="nothomorph " enforced="false" infullname="true"  rank="244"/> -->
-		<level name="Subvariety"   abbrev="subvar. "    enforced="false" infullname="true"  rank="250"/>
-		<level name="Forma"        abbrev="f. "         enforced="false" infullname="true"  rank="260"/>
-		<level name="Subforma"     abbrev="subf. "      enforced="false" infullname="true"  rank="270"/>
-		<level name="Lusus"        abbrev="lusus "      enforced="false" infullname="true"  rank="280"/>
+        <level name="Life" enforced="true" infullname="false" rank="0">
+              <locale lang="pt" country="" var="" text="Vida"/>
+        </level>
+        <level name="Kingdom" enforced="true" infullname="false" rank="10">
+              <locale lang="pt" country="" var="" text="Reino"/>
+        </level>
+        <level name="Major Group" enforced="false" infullname="false" rank="20"/>
+        <level name="Division" enforced="true" infullname="false" rank="30">
+              <locale lang="pt" country="" var="" text="Divisão"/>
+        </level>
+        <level name="Subdivision" enforced="false" infullname="false" rank="40">
+              <locale lang="pt" country="" var="" text="Subdivisão "/>
+        </level>
+        <level name="Class" enforced="true" infullname="false" rank="60">
+              <locale lang="pt" country="" var="" text="Classe"/>
+        </level>
+        <level name="Subclass" enforced="false" infullname="false" rank="70">
+              <locale lang="pt" country="" var="" text="Subclasse"/>
+        </level>
+        <level name="Superorder" enforced="false" infullname="false" rank="90">
+              <locale lang="pt" country="" var="" text="Superordem"/>
+        </level>
+        <level name="Order" enforced="true" infullname="false" rank="100">
+              <locale lang="pt" country="" var="" text="Ordem"/>
+        </level>
+        <level name="Suborder" enforced="false" infullname="false" rank="110">
+              <locale lang="pt" country="" var="" text="Subordem"/>
+        </level>    
+        <level name="Family" enforced="false" infullname="false" rank="140">
+              <locale lang="pt" country="" var="" text="Família"/>
+        </level>
+        <level name="Genus"  enforced="true" infullname="true" rank="180">
+              <locale lang="pt" country="" var="" text="Género"/>
+        </level>
+        <level name="Species" enforced="true" infullname="true" rank="220">
+              <locale lang="pt" country="" var="" text="Espécie"/>
+        </level>
+        <level name="Subspecies" abbrev="subsp. " enforced="false" infullname="true" rank="230">
+              <locale lang="pt" country="" var="" text="Subespécie"/>
+        </level>
+        <level name="variety" abbrev="var. " enforced="false" infullname="true" rank="240">
+              <locale lang="pt" country="" var="" text="variedade"/>
+        </level>
+        <level name="Nothovariety" abbrev="nothovar. "  enforced="false" infullname="true"  rank="242"/>
+        <level name="subvariety" abbrev="subvar. " enforced="false" infullname="true" rank="250">
+              <locale lang="pt" country="" var="" text="Subvariedade"/>
+        </level>
+        <level name="forma" abbrev="f. " enforced="false" infullname="true" rank="260">
+              <locale lang="pt" country="" var="" text="forma"/>
+        </level>
+        <level name="subforma" abbrev="subf. " enforced="false" infullname="true" rank="270">
+              <locale lang="pt" country="" var="" text="subforma"/>
+        </level>
+        <level name="Lusus"        abbrev="lusus "      enforced="false" infullname="true"  rank="280"/>
 		<level name="Modification" abbrev="modif. "     enforced="false" infullname="true"  rank="290"/>
-		<level name="Prolus"       abbrev="prol. "      enforced="false" infullname="true"  rank="300"/>    
+		<level name="Prolus"       abbrev="prol. "      enforced="false" infullname="true"  rank="300"/>
     </treedef>
 	
 	<nodes/>
 </tree>
+
+        
