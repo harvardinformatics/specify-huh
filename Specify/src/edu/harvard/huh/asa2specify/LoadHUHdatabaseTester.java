@@ -103,7 +103,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
         DatabaseDriverInfo driverInfo = DatabaseDriverInfo.getInfoByName(driverList, "MySQL");
 
         String dbName   = "specify";
-        String userName = "Specify";
+        String userName = "specify"; // you may need to grant some privileges for indexing and creating temp tables
         String password = "*******";
         String hostname = "localhost";
 
@@ -173,7 +173,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             return;
         }
         
-        File dir = new File("/home/maureen/load");
+        File dir = new File("/home/mkelly/load");
         
         boolean doOptr        = false; // 1 DID YOU REMEMBER TO GRANT PRIVILEGES TO THE SPECIFY ADM USER?
         boolean doGeo         = false; // 2
@@ -255,8 +255,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"),
                                                                statement,
-                                                               new File(dir, "botanist_optr.csv"),
-                                                               new File(dir, "optr_botanist.csv"),
                                                                optrLookup);
             if (doBot)
             {
@@ -303,9 +301,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             }
 
             OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
-                                                                           statement,
-                                                                           new File(dir, "org_botanist.csv"),
-                                                                           botanistLookup);
+                                                                           statement);
             if (doOrg)
             {
                 int organizationRecords = organizationLoader.loadRecords();
@@ -314,9 +310,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             OrganizationLookup orgLookup = organizationLoader.getOrganizationLookup();
             
             SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"),
-                                                         statement,
-                                                         new File(dir, "series_botanist.csv"),
-                                                         botanistLookup);
+                                                         statement);
             if (doSeries)
             {
                 int seriesRecords = seriesLoader.loadRecords();
@@ -326,9 +320,7 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             SeriesLookup seriesLookup = seriesLoader.getSeriesLookup();
             
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
-                                                                  statement,
-                                                                  new File(dir, "affiliate_botanist.csv"),
-                                                                  botanistLookup);
+                                                                  statement);
             if (doAff)
             {
                 int affiliateRecords = affiliateLoader.loadRecords();
@@ -338,8 +330,6 @@ public class LoadHUHdatabaseTester extends LoadHUHdatabase
             
             AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"),
                                                       statement,
-                                                      new File(dir, "agent_botanist.csv"),
-                                                      botanistLookup, 
                                                       orgLookup);
             if (doAgent)
             {

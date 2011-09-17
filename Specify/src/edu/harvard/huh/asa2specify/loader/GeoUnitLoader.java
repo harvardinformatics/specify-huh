@@ -416,9 +416,6 @@ public class GeoUnitLoader extends TreeLoader
 		// Remarks
 		String remarks = geoUnit.getRemarks();
 		geography.setRemarks(remarks);
-        
-        // Version
-        geography.setVersion(1);
 
         setAuditFields(geoUnit, geography);
         
@@ -469,9 +466,6 @@ public class GeoUnitLoader extends TreeLoader
 	    synonym.setRankId(geography.getRankId());
 		
 		// Remarks
-		
-		// Version
-	    synonym.setVersion(1);
 	    
 	    setNullAuditFields(synonym);
 	    
@@ -497,25 +491,25 @@ public class GeoUnitLoader extends TreeLoader
 	                        "ModifiedByAgentID, Name, ParentID, RankID, Remarks, TimestampCreated, " +
 	                        "TimestampModified, Version";
 
-	    String[] values = new String[17];
-
-	    values[0]  = SqlUtils.sqlString( geography.getAcceptedGeography().getId());
-	    values[1]  = SqlUtils.sqlString( geography.getCommonName());
-	    values[2]  = SqlUtils.sqlString( geography.getCreatedByAgent().getId());
-	    values[3]  = SqlUtils.sqlString( geography.getFullName());
-	    values[4]  = SqlUtils.sqlString( geography.getGeographyCode());
-	    values[5]  = SqlUtils.sqlString( geography.getDefinition().getId());
-	    values[6]  = SqlUtils.sqlString( geography.getDefinitionItem().getId());
-	    values[7]  = SqlUtils.sqlString( geography.getGuid());
-	    values[8]  = SqlUtils.sqlString( geography.getIsAccepted());
-	    values[9]  = SqlUtils.sqlString( geography.getModifiedByAgent().getId());
-	    values[10] = SqlUtils.sqlString( geography.getName());
-	    values[11] = SqlUtils.sqlString( geography.getParent().getId());
-	    values[12] = SqlUtils.sqlString( geography.getRankId());
-	    values[13] = SqlUtils.sqlString( geography.getRemarks());
-	    values[14] = SqlUtils.sqlString( geography.getTimestampCreated());
-	    values[15] = SqlUtils.sqlString( geography.getTimestampModified());
-	    values[16] = SqlUtils.sqlString( geography.getVersion());
+	    String[] values = {
+	    		SqlUtils.sqlString( geography.getAcceptedGeography().getId()),
+	    		SqlUtils.sqlString( geography.getCommonName()),
+	    		SqlUtils.sqlString( geography.getCreatedByAgent().getId()),
+	    		SqlUtils.sqlString( geography.getFullName()),
+	    		SqlUtils.sqlString( geography.getGeographyCode()),
+	    		SqlUtils.sqlString( geography.getDefinition().getId()),
+	    		SqlUtils.sqlString( geography.getDefinitionItem().getId()),
+	    		SqlUtils.sqlString( geography.getGuid()),
+	    		SqlUtils.sqlString( geography.getIsAccepted()),
+	    		SqlUtils.sqlString( geography.getModifiedByAgent().getId()),
+	    		SqlUtils.sqlString( geography.getName()),
+	    		SqlUtils.sqlString( geography.getParent().getId()),
+	    		SqlUtils.sqlString( geography.getRankId()),
+	    		SqlUtils.sqlString( geography.getRemarks()),
+	    		SqlUtils.sqlString( geography.getTimestampCreated()),
+	    		SqlUtils.sqlString( geography.getTimestampModified()),
+	    		SqlUtils.one()
+	    };
 
 	    return SqlUtils.getInsertSql("geography", fieldNames, values);
 	}

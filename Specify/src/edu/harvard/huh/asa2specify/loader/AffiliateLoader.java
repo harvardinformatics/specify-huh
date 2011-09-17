@@ -4,11 +4,9 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Affiliate;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AffiliateLookup;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
 
@@ -18,23 +16,14 @@ public class AffiliateLoader extends AuditedObjectLoader
 {
 	private AffiliateLookup affiliateLookup;
 	
-    private BotanistLookup botanistLookup;
-	private AsaIdMapper affiliates;
-
 	static String getGuid(Integer affiliateId)
 	{
 		return affiliateId + " affiliate";
 	}
     
-	public AffiliateLoader(File csvFile,
-	                       Statement specifySqlStatement,
-	                       File affiliateBotanists,
-	                       BotanistLookup botanistLookup) throws LocalException
+	public AffiliateLoader(File csvFile, Statement specifySqlStatement) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-
-		this.affiliates = new AsaIdMapper(affiliateBotanists);
-		this.botanistLookup = botanistLookup;
 	}
 
 	public AffiliateLookup getAffiliateLookup()
@@ -44,10 +33,9 @@ public class AffiliateLoader extends AuditedObjectLoader
 			affiliateLookup = new AffiliateLookup() {
 				public Agent getById(Integer affiliateId) throws LocalException
 				{
-					Agent agent = new Agent(); // TODO: this doesn't account for affiliate botanists
+					Agent agent = new Agent();
 					
-					Integer botanistId = getBotanistId(affiliateId);
-					String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : AffiliateLoader.getGuid(affiliateId);
+					String guid = getGuid(affiliateId);
 					
 			        Integer agentId = getId("agent", "AgentID", "GUID", guid);
 
@@ -71,47 +59,18 @@ public class AffiliateLoader extends AuditedObjectLoader
 		// convert affiliate into agent ...
         Agent agent = getAgent(affiliate);
                 
-        Integer botanistId = getBotanistId(affiliateId);
-
-/*        if (botanistId != null) // retain botanist id in guid
-        {
-            Agent botanistAgent = lookup(botanistId);
-            Integer agentId = botanistAgent.getId();
-            agent.setAgentId(agentId);
-            
-        	if (agent.getRemarks() != null)
-            {
-        	    getLogger().warn(rec() + "Ignoring remarks: " + agent.getRemarks());
-            }
-        	
-            String sql = getUpdateSql(agent, agentId);
-            update(sql);
-        }
-        else*/
-        {
-            String sql = getInsertSql(agent);
-            Integer agentId = insert(sql);
-            agent.setAgentId(agentId);
-        }
+        String sql = getInsertSql(agent);
+        Integer agentId = insert(sql);
+        agent.setAgentId(agentId);
 
         Address address = getAddress(affiliate, agent);
         if (address != null)
 		{
-        	String sql = getInsertSql(address);
+        	sql = getInsertSql(address);
 		    insert(sql);
 		}
 	}
     
-	private Integer getBotanistId(Integer affiliateId)
-	{
-	    return affiliates.map(affiliateId);
-	}
-	
-	private Agent lookup(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getById(botanistId);
-	}
-
 	private Affiliate parse(String[] columns) throws LocalException
 	{
 	    Affiliate affiliate = new Affiliate();
@@ -188,6 +147,9 @@ public class AffiliateLoader extends AuditedObjectLoader
 		lastName = truncate(lastName, 200, "last name");
 		agent.setLastName(lastName);
 		
+		// MiddleInitial
+		agent.setMiddleInitial(AgentType.affiliate.name());
+		
         // Remarks
         String remarks = affiliate.getRemarks();
         agent.setRemarks(remarks);
@@ -244,21 +206,21 @@ public class AffiliateLoader extends AuditedObjectLoader
 				            "GUID, JobTitle, LastName, ModifiedByAgentID, Remarks, " +
 				            "TimestampCreated, TimestampModified, Version";
 
-		String[] values = new String[13];
-
-		values[0]  = SqlUtils.sqlString( agent.getAgentType());
-        values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[2]  = SqlUtils.sqlString( agent.getDivision().getId());
-		values[3]  = SqlUtils.sqlString( agent.getEmail());
-		values[4]  = SqlUtils.sqlString( agent.getFirstName());
-		values[5]  = SqlUtils.sqlString( agent.getGuid());
-		values[6]  = SqlUtils.sqlString( agent.getJobTitle());
-		values[7]  = SqlUtils.sqlString( agent.getLastName());
-		values[8]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-		values[9]  = SqlUtils.sqlString( agent.getRemarks());
-        values[10] = SqlUtils.sqlString( agent.getTimestampCreated());
-        values[11] = SqlUtils.sqlString( agent.getTimestampModified());
-        values[12] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agent.getAgentType()),
+				SqlUtils.sqlString( agent.getCreatedByAgent().getId()),
+				SqlUtils.sqlString( agent.getDivision().getId()),
+				SqlUtils.sqlString( agent.getEmail()),
+				SqlUtils.sqlString( agent.getFirstName()),
+				SqlUtils.sqlString( agent.getGuid()),
+				SqlUtils.sqlString( agent.getJobTitle()),
+				SqlUtils.sqlString( agent.getLastName()),
+				SqlUtils.sqlString( agent.getModifiedByAgent().getId()),
+				SqlUtils.sqlString( agent.getRemarks()),
+				SqlUtils.sqlString( agent.getTimestampCreated()),
+				SqlUtils.sqlString( agent.getTimestampModified()),
+				SqlUtils.one()
+		};
         
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
@@ -268,30 +230,18 @@ public class AffiliateLoader extends AuditedObjectLoader
         String fieldNames = "Address, AgentID, IsCurrent, IsPrimary, IsShipping, Ordinal, " +
         		            "Phone1, TimestampCreated, Version";
         
-        String[] values = new String[9];
-        
-        values[0] = SqlUtils.sqlString( address.getAddress());
-        values[1] = SqlUtils.sqlString( address.getAgent().getId());
-        values[2] = SqlUtils.sqlString( address.getIsCurrent());
-        values[3] = SqlUtils.sqlString( address.getIsPrimary());
-        values[4] = SqlUtils.sqlString( address.getIsShipping());
-        values[5] = SqlUtils.addressOrdinal( address.getAgent().getId());
-        values[6] = SqlUtils.sqlString( address.getPhone1());
-        values[7] = SqlUtils.now();
-        values[8] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( address.getAddress()),
+        		SqlUtils.sqlString( address.getAgent().getId()),
+        		SqlUtils.sqlString( address.getIsCurrent()),
+        		SqlUtils.sqlString( address.getIsPrimary()),
+        		SqlUtils.sqlString( address.getIsShipping()),
+        		SqlUtils.addressOrdinal( address.getAgent().getId()),
+        		SqlUtils.sqlString( address.getPhone1()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
-    }
-    
-    private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
-    {
-    	String[] fieldNames = { "Email", "JobTitle" };
-
-        String[] values = new String[2];
-
-        values[0] = SqlUtils.sqlString( agent.getEmail());
-        values[1] = SqlUtils.sqlString( agent.getJobTitle());
-        
-        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", agentId);
     }
 }

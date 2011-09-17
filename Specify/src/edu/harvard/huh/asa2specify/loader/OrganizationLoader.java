@@ -4,10 +4,8 @@ import java.io.File;
 import java.sql.Statement;
 
 import edu.harvard.huh.asa.Organization;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -23,18 +21,9 @@ public class OrganizationLoader extends AuditedObjectLoader
 		return organizationId + " organization";
 	}
 	
-    private AsaIdMapper orgMapper;
-	private BotanistLookup botanistLookup;
-	
-	public OrganizationLoader(File csvFile,
-	                          Statement specifySqlStatement,
-	                          File orgToBotanist,
-	                          BotanistLookup botanistLookup) throws LocalException
+	public OrganizationLoader(File csvFile, Statement specifySqlStatement) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-		
-		this.orgMapper = new AsaIdMapper(orgToBotanist);
-		this.botanistLookup = botanistLookup;
 	}
 
 	public OrganizationLookup getOrganizationLookup()
@@ -46,9 +35,7 @@ public class OrganizationLoader extends AuditedObjectLoader
 				{
 					Agent agent = new Agent();
 					
-					Integer botanistId = getBotanistId(organizationId);
-
-					String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : getGuid(organizationId);
+					String guid = getGuid(organizationId);
 					
 					Integer agentId = getId("agent", "AgentID", "GUID", guid);
 					
@@ -59,11 +46,6 @@ public class OrganizationLoader extends AuditedObjectLoader
 			};
 		}
 		return organizationLookup;
-	}
-	
-	private Agent lookup(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getById(botanistId);
 	}
 
 	@Override
@@ -77,45 +59,18 @@ public class OrganizationLoader extends AuditedObjectLoader
 		
 		Agent agent = getAgent(organization);
         
-        Integer botanistId = getBotanistId(organization.getId());
-        
-        if (botanistId != null) // retain botanist id in guid
-        {
-            Agent botanistAgent = lookup(botanistId);
-            Integer agentId = botanistAgent.getId();
-            agent.setAgentId(agentId);
-            
-        	if (agent.getRemarks() != null)
-            {
-                getLogger().warn(rec() + "Ignoring remarks: " + agent.getRemarks());
-            }
-        	
-        	getLogger().warn(rec() + "Replacing url: " + agent.getUrl());
-        	
-            String sql = getUpdateSql(agent, agentId);
-            update(sql);
-        }
-        else
-        {
-            String sql = getInsertSql(agent);
-            Integer agentId = insert(sql);
-            agent.setAgentId(agentId);
-        }
+		String sql = getInsertSql(agent);
+		Integer agentId = insert(sql);
+		agent.setAgentId(agentId);
         
         // Address
         Address address = getAddress(organization, agent);
         
         if (address != null)
         {
-			String sql = getInsertSql(address);
+			sql = getInsertSql(address);
 			insert(sql);
         }
-
-	}
-	
-	private Integer getBotanistId(Integer organizationId)
-	{
-	    return orgMapper.map(organizationId);
 	}
 	   
 	private Organization parse(String[] columns) throws LocalException
@@ -172,9 +127,12 @@ public class OrganizationLoader extends AuditedObjectLoader
 		// LastName
 		String lastName = organization.getName();
 		checkNull(lastName, "name");
-		lastName = truncate(lastName, 200, "name");
+		lastName = truncate(lastName, 120, "name");
 		agent.setLastName(lastName);
 
+		// MiddleInitial
+		agent.setMiddleInitial(AgentType.organization.name());
+		
 		// Remarks
 		String remarks = organization.getRemarks();
 		agent.setRemarks((remarks));
@@ -241,36 +199,25 @@ public class OrganizationLoader extends AuditedObjectLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "Abbreviation, AgentType, CreatedByAgentID, GUID, " +
-				            "LastName, ModifiedByAgentID, Remarks, TimestampCreated, " +
+				            "LastName, MiddleInitial, ModifiedByAgentID, Remarks, TimestampCreated, " +
 				            "TimestampModified, URL, Version";
 
-		String[] values = new String[11];
-
-		values[0]  = SqlUtils.sqlString( agent.getAbbreviation());
-		values[1]  = SqlUtils.sqlString( agent.getAgentType());
-		values[2]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[3]  = SqlUtils.sqlString( agent.getGuid());
-		values[4]  = SqlUtils.sqlString( agent.getLastName());
-		values[5]  = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-		values[6]  = SqlUtils.sqlString( agent.getRemarks());
-		values[7]  = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[8]  = SqlUtils.sqlString( agent.getTimestampModified());
-		values[9]  = SqlUtils.sqlString( agent.getUrl());
-		values[10] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agent.getAbbreviation()),
+				SqlUtils.sqlString( agent.getAgentType()),
+				SqlUtils.sqlString( agent.getCreatedByAgent().getId()),
+				SqlUtils.sqlString( agent.getGuid()),
+				SqlUtils.sqlString( agent.getLastName()),
+				SqlUtils.sqlString( agent.getMiddleInitial()),
+				SqlUtils.sqlString( agent.getModifiedByAgent().getId()),
+				SqlUtils.sqlString( agent.getRemarks()),
+				SqlUtils.sqlString( agent.getTimestampCreated()),
+				SqlUtils.sqlString( agent.getTimestampModified()),
+				SqlUtils.sqlString( agent.getUrl()),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
-	}
-	
-	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
-	{
-        String[] fieldNames = { "Abbreviation", "URL" };
-
-        String[] values = new String[2];
-
-        values[0] = SqlUtils.sqlString( agent.getAbbreviation());
-        values[1] = SqlUtils.sqlString( agent.getUrl());
-        
-        return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", agentId);
 	}
 
 	private String getInsertSql(Address address) throws LocalException
@@ -278,18 +225,18 @@ public class OrganizationLoader extends AuditedObjectLoader
     	String fieldNames = "AgentID, City, Country, IsCurrent, IsPrimary, IsShipping, " +
     			            "Ordinal, State, TimestampCreated, Version";
     	
-    	String[] values = new String[10];
-    	
-    	values[0] = SqlUtils.sqlString( address.getAgent().getAgentId());
-    	values[1] = SqlUtils.sqlString( address.getCity());
-    	values[2] = SqlUtils.sqlString( address.getCountry());
-    	values[3] = SqlUtils.sqlString( address.getIsCurrent());
-    	values[4] = SqlUtils.sqlString( address.getIsPrimary());
-    	values[5] = SqlUtils.sqlString( address.getIsShipping());
-    	values[6] = SqlUtils.addressOrdinal( address.getAgent().getId());
-    	values[7] = SqlUtils.sqlString( address.getState());
-    	values[8] = SqlUtils.now();
-    	values[9] = SqlUtils.one();
+    	String[] values = {
+    			SqlUtils.sqlString( address.getAgent().getAgentId()),
+    			SqlUtils.sqlString( address.getCity()),
+    			SqlUtils.sqlString( address.getCountry()),
+    			SqlUtils.sqlString( address.getIsCurrent()),
+    			SqlUtils.sqlString( address.getIsPrimary()),
+    			SqlUtils.sqlString( address.getIsShipping()),
+    			SqlUtils.addressOrdinal( address.getAgent().getId()),
+    			SqlUtils.sqlString( address.getState()),
+    			SqlUtils.now(),
+    			SqlUtils.one()
+    	};
     	
     	return SqlUtils.getInsertSql("address", fieldNames, values);
     }

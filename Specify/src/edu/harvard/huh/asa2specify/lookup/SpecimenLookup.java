@@ -15,9 +15,9 @@
 package edu.harvard.huh.asa2specify.lookup;
 
 import edu.harvard.huh.asa2specify.LocalException;
-import edu.ku.brc.specify.datamodel.Fragment;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 
 public interface SpecimenLookup
 {
-    public Fragment getById(Integer specimenId) throws LocalException;
+    public CollectionObject getById(Integer specimenId) throws LocalException;
 }

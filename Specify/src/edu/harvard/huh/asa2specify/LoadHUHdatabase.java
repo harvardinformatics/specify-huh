@@ -217,8 +217,6 @@ public class LoadHUHdatabase
             frame.setDesc("Loading botanists...");
             BotanistLoader botanistLoader = new BotanistLoader(new File(dir, "botanist.csv"),
                                                                statement,
-                                                               new File(dir, "botanist_optr.csv"),
-                                                               new File(dir, "optr_botanist.csv"),
                                                                optrLookup);
             botanistLoader.setFrame(frame);
             int botanistRecords = botanistLoader.loadRecords();
@@ -266,9 +264,7 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading organizations...");
             OrganizationLoader organizationLoader = new OrganizationLoader(new File(dir, "organization.csv"),
-                                                                           statement,
-                                                                           new File(dir, "org_botanist.csv"),
-                                                                           botanistLookup);
+                                                                           statement);
             organizationLoader.setFrame(frame);
             int organizationRecords = organizationLoader.loadRecords();
             log.info("Loaded " + organizationRecords + " organization records");
@@ -278,9 +274,7 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading series...");
             SeriesLoader seriesLoader = new SeriesLoader(new File(dir, "series.csv"),
-                                                         statement,
-                                                         new File(dir, "series_botanist.csv"),
-                                                         botanistLookup);
+                                                         statement);
             seriesLoader.setFrame(frame);
             int seriesRecords = seriesLoader.loadRecords();
             log.info("Loaded " + seriesRecords + " series records");
@@ -290,9 +284,7 @@ public class LoadHUHdatabase
             
             frame.setDesc("Loading affiliates...");
             AffiliateLoader affiliateLoader = new AffiliateLoader(new File(dir, "affiliate.csv"),
-                                                                  statement,
-                                                                  new File(dir, "affiliate_botanist.csv"),
-                                                                  botanistLookup);
+                                                                  statement);
             affiliateLoader.setFrame(frame);
             int affiliateRecords = affiliateLoader.loadRecords();
             log.info("Loaded " + affiliateRecords + " affiliate records");
@@ -303,8 +295,6 @@ public class LoadHUHdatabase
             frame.setDesc("Loading agents...");
             AgentLoader agentLoader = new AgentLoader(new File(dir, "agent.csv"),
                                                       statement,
-                                                      new File(dir, "agent_botanist.csv"),
-                                                      botanistLookup, 
                                                       orgLookup);
             agentLoader.setFrame(frame);
             int agentRecords = agentLoader.loadRecords();

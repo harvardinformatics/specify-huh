@@ -50,38 +50,7 @@ public abstract class TaxonBatchTransactionLoader extends CountableTransactionLo
         
         return i + 6;
     }
-    
-    protected String getDescriptionWithBoxCount(TaxonBatchTransaction tbTx)
-    {
-        String descAndBoxCount = null;
         
-        String description = tbTx.getDescription();
-        String boxCount = tbTx.getBoxCount();
-        
-        if (description != null || boxCount != null)
-        {
-            if (boxCount != null)
-            {
-                try
-                {
-                    int boxes = Integer.parseInt(boxCount);
-                    boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
-                }
-                catch (NumberFormatException nfe)
-                {
-                    ;
-                }
-                boxCount = boxCount + ".";
-            }
-
-            if (boxCount == null) descAndBoxCount = description;
-            else if (description == null) descAndBoxCount = boxCount;
-            else descAndBoxCount = description + "  " + boxCount;
-        }
-        
-        return descAndBoxCount;
-    }
-    
     protected Taxon lookupTaxon(Integer asaTaxonId) throws LocalException
     {
         return taxonLookup.getById(asaTaxonId);

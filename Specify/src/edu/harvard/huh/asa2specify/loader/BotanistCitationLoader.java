@@ -9,7 +9,6 @@ import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.ku.brc.specify.datamodel.Agent;
-import edu.ku.brc.specify.datamodel.AgentCitation;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 
 // Run this class after BotanistLoader and GeoUnitLoader.
@@ -19,8 +18,6 @@ public class BotanistCitationLoader extends CsvToSqlLoader
     // lookups for geography
     private PublicationLookup pubLookup;
     private BotanistLookup  botanistLookup;
-    
-    private static final ReferenceWork NullRefWork = new ReferenceWork();
     
 	public BotanistCitationLoader(File csvFile,
 	                             Statement sqlStatement,
@@ -41,11 +38,15 @@ public class BotanistCitationLoader extends CsvToSqlLoader
 		Integer botanistId = botanistRoleCitation.getBotanistId();
 		setCurrentRecordId(botanistId);
 
+		checkNull(botanistId, "botanist id");
+
+		Agent agent = lookupBotanist(botanistId);
+
 		// convert BotanistRoleCountry into AgentGeography
-		AgentCitation agentCitation = getAgentCitation(botanistRoleCitation);
+		String agentCitation = getAgentCitation(botanistRoleCitation);
 
 		// convert agentgeography to sql and insert
-		String sql = getInsertSql(agentCitation);
+		String sql = getUpdateSql(agent, agentCitation);
 		insert(sql);
 	}
 
@@ -75,48 +76,25 @@ public class BotanistCitationLoader extends CsvToSqlLoader
 		return botanistRoleCitation;
 	}
 
-	private AgentCitation getAgentCitation(BotanistRoleCitation botanistRoleCitation)
+	private String getAgentCitation(BotanistRoleCitation botanistRoleCitation)
 		throws LocalException
 	{
-		AgentCitation agentCitation = new AgentCitation();
-
-		// Agent
-		Integer botanistId = botanistRoleCitation.getBotanistId();
-		checkNull(botanistId, "botanist id");
-
-		Agent agent = lookupBotanist(botanistId);
-		agentCitation.setAgent(agent);
-
 		// ReferenceWork
-		ReferenceWork referenceWork = NullRefWork;
+		String title = "";
 		
 		Integer publicationId = botanistRoleCitation.getPublicationId();
 		if (publicationId != null)
 		{
-		    referenceWork = lookupReferenceWork(publicationId);
+		    ReferenceWork referenceWork = lookupReferenceWork(publicationId);
+		    title = this.getString("referencework", "Title", "ReferenceWorkID", referenceWork.getId());
 		}
-		
-		agentCitation.setReferenceWork(referenceWork);
-		
-		// Role
-		String role = botanistRoleCitation.getRole();
-		checkNull(role, "role");
-		role = truncate(role, 64, "role");
-		agentCitation.setRole(role);
 
-		// Text1 (collation)
 		String collation = botanistRoleCitation.getCollation();
-		agentCitation.setText1(collation);
-		
-		// Text2 (publ date)
 		String publDate = botanistRoleCitation.getPublDate();
-		agentCitation.setText2(publDate);
-		
-		// Remarks (alt source)
 		String altSource = botanistRoleCitation.getAltSource();
-		agentCitation.setRemarks(altSource);
-
-		return agentCitation;
+		String role = "(" + botanistRoleCitation.getRole() + ")";
+		
+		return denormalize("cited in", concatenate(title, collation, publDate, altSource, role));
 	}
 
 	private ReferenceWork lookupReferenceWork(Integer publicationId) throws LocalException
@@ -129,23 +107,9 @@ public class BotanistCitationLoader extends CsvToSqlLoader
         return botanistLookup.getById(botanistId);
     }
   
-	private String getInsertSql(AgentCitation agentCitation)
-	{
-		String fieldNames = "AgentId, ReferenceWorkID, Remarks, Role, Text1, Text2, " +
-				            "TimestampCreated, Version";
-
-		String[] values = new String[8];
-
-		values[0] = SqlUtils.sqlString( agentCitation.getAgent().getId());
-		values[1] = SqlUtils.sqlString( agentCitation.getReferenceWork().getId());
-		values[2] = SqlUtils.sqlString( agentCitation.getRemarks());
-		values[3] = SqlUtils.sqlString( agentCitation.getRole());
-		values[4] = SqlUtils.sqlString( agentCitation.getText1());
-		values[5] = SqlUtils.sqlString( agentCitation.getText2());
-		values[6] = SqlUtils.now();
-		values[7] = SqlUtils.one();
-		
-		return SqlUtils.getInsertSql("agentcitation", fieldNames, values);
-	}
+	private String getUpdateSql(Agent agent, String agentCitation)
+    {        
+    	return SqlUtils.getAppendUpdateSql("agent", "Remarks", agentCitation, "AgentID", agent.getId());
+    }
 
 }

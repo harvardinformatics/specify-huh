@@ -221,8 +221,20 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         }
 
         // Remarks
+        // ... remarks
         String remarks = asaBorrow.getRemarks();
-        borrow.setRemarks(remarks);
+        
+        // ... user type: staff/student/visitor/unknown
+        String userType = null;
+        if (asaBorrow.getUserType().equals(USER_TYPE.Staff) || asaBorrow.getUserType().equals(USER_TYPE.Student))
+        {
+            userType = denormalize("user type", Transaction.toString(asaBorrow.getUserType()));
+        }   
+        
+        // ... visitor?
+        String visitor = denormalize("visitor?", asaBorrow.getUserType().equals(Transaction.USER_TYPE.Visitor) ? "yes" : "no");
+        
+        borrow.setRemarks(concatenate(remarks, userType, visitor));
                 
         // Text1 (purpose)
         String description = Transaction.toString(asaBorrow.getPurpose());
@@ -230,14 +242,7 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         
         // Text2 (local unit)
         String localUnit = asaBorrow.getLocalUnit();
-        borrow.setText2(localUnit);
-        
-        // Text3 (user type: staff/student/visitor/unknown)
-        USER_TYPE userType = asaBorrow.getUserType();
-        if (userType.equals(USER_TYPE.Staff) || userType.equals(USER_TYPE.Student))
-        {
-            borrow.setText3(Transaction.toString(userType));
-        }        
+        borrow.setText2(localUnit);     
 
         // YesNo1 (isAcknowledged)
         Boolean isAcknowledged = asaBorrow.isAcknowledged();
@@ -246,9 +251,6 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         // YesNo2 (requestType = "theirs")
         Boolean isTheirs = isTheirs(asaBorrow.getRequestType());
         borrow.setYesNo2(isTheirs);
-        
-        // YesNo3 (visitor?)
-        if (asaBorrow.getUserType().equals(Transaction.USER_TYPE.Visitor)) borrow.setYesNo3(true);
         
         setAuditFields(asaBorrow, borrow);
         
@@ -290,36 +292,31 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String descWithBoxCount = getDescriptionWithBoxCount(asaBorrow);
         descWithBoxCount = truncate(descWithBoxCount, 255, "description");
         borrowMaterial.setDescription(descWithBoxCount);
-           
+                
         // InComments
+        // ... taxon
+        String taxon = denormalize("taxon", asaBorrow.getTaxon());
         
-        // ItemCount
-        int itemCount = asaBorrow.getItemCount();
-        borrowMaterial.setItemCount((short) itemCount);
+        // ... higher taxon
+        Integer taxonId = asaBorrow.getHigherTaxonId();
+        Taxon higherTaxon = null;
+        if (taxonId != null) higherTaxon = lookupTaxon(taxonId);
+        String higherTaxonName = denormalize("higher taxon", this.getString("taxon", "Name", "TaxonID", higherTaxon.getId()));
         
+        // ... item count
+        String itemCount = denormalize("items", String.valueOf(asaBorrow.getItemCount()));
+        
+        // ... type count
+        String typeCount = denormalize("items", String.valueOf(asaBorrow.getTypeCount()));
+        
+        // ... non-specimen count
+        String nonSpecimenCount = denormalize("items", String.valueOf(asaBorrow.getNonSpecimenCount()));
+        
+        borrowMaterial.setInComments(concatenate(higherTaxonName, taxon, itemCount, typeCount, nonSpecimenCount));
+
         // MaterialNumber (transaction no)
         Integer borrowId = asaBorrow.getId();
         borrowMaterial.setMaterialNumber(getBorrowMaterialNumber(borrowId));
-        
-        // NonSpecimenCount
-        int nonSpecimenCount = asaBorrow.getNonSpecimenCount();
-        borrowMaterial.setNonSpecimenCount((short) nonSpecimenCount);
-
-        // SrcTaxonomy
-        String taxon = asaBorrow.getTaxon();
-        taxon = truncate(taxon, 512, "taxon");
-        borrowMaterial.setSrcTaxonomy(taxon);
-        
-        // Taxon
-        Integer taxonId = asaBorrow.getHigherTaxonId();
-        Taxon higherTaxon = NullTaxon;
-        
-        if (taxonId != null) higherTaxon = lookupTaxon(taxonId);
-        borrowMaterial.setTaxon(higherTaxon);
-        
-        // TypeCount
-        int typeCount = asaBorrow.getTypeCount();
-        borrowMaterial.setTypeCount((short) typeCount);
         
         return borrowMaterial;
     }
@@ -328,31 +325,29 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
     {
         String fieldNames = "CollectionMemberID, CreatedByAgentID, CurrentDueDate, DateClosed, " +
                             "InvoiceNumber, IsClosed, ModifiedByAgentID, Number1, OriginalDueDate, " +
-                            "ReceivedDate, Remarks, Text1, Text2, Text3, TimestampCreated, " +
-                            "TimestampModified, Version, YesNo1, YesNo2, YesNo3";
+                            "ReceivedDate, Remarks, Text1, Text2, TimestampCreated, " +
+                            "TimestampModified, Version, YesNo1, YesNo2";
         
-        String[] values = new String[20];
-        
-        values[0]  = SqlUtils.sqlString( borrow.getCollectionMemberId());
-        values[1]  = SqlUtils.sqlString( borrow.getCreatedByAgent().getId());
-        values[2]  = SqlUtils.sqlString( borrow.getCurrentDueDate());
-        values[3]  = SqlUtils.sqlString( borrow.getDateClosed());
-        values[4]  = SqlUtils.sqlString( borrow.getInvoiceNumber());
-        values[5]  = SqlUtils.sqlString( borrow.getIsClosed());
-        values[6]  = SqlUtils.sqlString( borrow.getModifiedByAgent().getId());
-        values[7]  = SqlUtils.sqlString( borrow.getNumber1());
-        values[8]  = SqlUtils.sqlString( borrow.getOriginalDueDate());
-        values[9]  = SqlUtils.sqlString( borrow.getReceivedDate());
-        values[10] = SqlUtils.sqlString( borrow.getRemarks());
-        values[11] = SqlUtils.sqlString( borrow.getText1());
-        values[12] = SqlUtils.sqlString( borrow.getText2());
-        values[13] = SqlUtils.sqlString( borrow.getText3());
-        values[14] = SqlUtils.sqlString( borrow.getTimestampCreated());
-        values[15] = SqlUtils.sqlString( borrow.getTimestampModified());
-        values[16] = SqlUtils.one();
-        values[17] = SqlUtils.sqlString( borrow.getYesNo1());
-        values[18] = SqlUtils.sqlString( borrow.getYesNo2());
-        values[19] = SqlUtils.sqlString( borrow.getYesNo3());
+        String[] values = {
+        		SqlUtils.sqlString( borrow.getCollectionMemberId()),
+        		SqlUtils.sqlString( borrow.getCreatedByAgent().getId()),
+        		SqlUtils.sqlString( borrow.getCurrentDueDate()),
+        		SqlUtils.sqlString( borrow.getDateClosed()),
+        		SqlUtils.sqlString( borrow.getInvoiceNumber()),
+        		SqlUtils.sqlString( borrow.getIsClosed()),
+        		SqlUtils.sqlString( borrow.getModifiedByAgent().getId()),
+        		SqlUtils.sqlString( borrow.getNumber1()),
+        		SqlUtils.sqlString( borrow.getOriginalDueDate()),
+        		SqlUtils.sqlString( borrow.getReceivedDate()),
+        		SqlUtils.sqlString( borrow.getRemarks()),
+        		SqlUtils.sqlString( borrow.getText1()),
+        		SqlUtils.sqlString( borrow.getText2()),
+        		SqlUtils.sqlString( borrow.getTimestampCreated()),
+        		SqlUtils.sqlString( borrow.getTimestampModified()),
+        		SqlUtils.one(),
+        		SqlUtils.sqlString( borrow.getYesNo1()),
+        		SqlUtils.sqlString( borrow.getYesNo2())
+        };
         
         return SqlUtils.getInsertSql("borrow", fieldNames, values);
     }
@@ -362,36 +357,32 @@ public class BorrowLoader extends TaxonBatchTransactionLoader
         String fieldNames = "AgentID, BorrowID, CollectionMemberID, Role, " +
         		            "TimestampCreated, Version";
 
-        String[] values = new String[6];
-
-        values[0] = SqlUtils.sqlString( borrowAgent.getAgent().getId());
-        values[1] = SqlUtils.sqlString( borrowAgent.getBorrow().getId());
-        values[2] = SqlUtils.sqlString( borrowAgent.getCollectionMemberId());
-        values[3] = SqlUtils.sqlString( borrowAgent.getRole());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( borrowAgent.getAgent().getId()),
+        		SqlUtils.sqlString( borrowAgent.getBorrow().getId()),
+        		SqlUtils.sqlString( borrowAgent.getCollectionMemberId()),
+        		SqlUtils.sqlString( borrowAgent.getRole()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("borrowagent", fieldNames, values);
     }
     
     private String getInsertSql(BorrowMaterial borrowMaterial)
     {
-        String fields = "BorrowID, CollectionMemberID, Description, ItemCount, MaterialNumber, " +
-        		        "NonSpecimenCount, SrcTaxonomy, TaxonID, TimestampCreated, TypeCount, Version";
+        String fields = "BorrowID, CollectionMemberID, Description, InComments, MaterialNumber, " +
+        		        "TimestampCreated, Version";
             
-        String[] values = new String[11];
-        
-        values[0]  = SqlUtils.sqlString( borrowMaterial.getBorrow().getId());
-        values[1]  = SqlUtils.sqlString( borrowMaterial.getCollectionMemberId());
-        values[2]  = SqlUtils.sqlString( borrowMaterial.getDescription());
-        values[3]  = SqlUtils.sqlString( borrowMaterial.getItemCount());
-        values[4]  = SqlUtils.sqlString( borrowMaterial.getMaterialNumber());
-        values[5]  = SqlUtils.sqlString( borrowMaterial.getNonSpecimenCount());
-        values[6]  = SqlUtils.sqlString( borrowMaterial.getSrcTaxonomy());
-        values[7]  = SqlUtils.sqlString( borrowMaterial.getTaxon().getId());
-        values[8]  = SqlUtils.now();
-        values[9]  = SqlUtils.sqlString( borrowMaterial.getTypeCount());
-        values[10] = SqlUtils.one();
+        String[] values = {        
+        		SqlUtils.sqlString( borrowMaterial.getBorrow().getId()),
+        		SqlUtils.sqlString( borrowMaterial.getCollectionMemberId()),
+        		SqlUtils.sqlString( borrowMaterial.getDescription()),
+        		SqlUtils.sqlString( borrowMaterial.getInComments()),
+        		SqlUtils.sqlString( borrowMaterial.getMaterialNumber()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("borrowmaterial", fields, values);
     }

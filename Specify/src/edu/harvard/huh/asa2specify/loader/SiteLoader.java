@@ -26,6 +26,8 @@ public class SiteLoader extends CsvToSqlLoader
 
 	private SiteLookup siteLookup;
 	
+	protected static final String UNNAMED = "unnamed"; // no name for locality
+	
 	public SiteLoader(File asaCsvFile,
 	                      Statement specifySqlStatement,
 	                      GeoUnitLookup geoLookup) throws LocalException
@@ -35,12 +37,20 @@ public class SiteLoader extends CsvToSqlLoader
 		this.geoLookup = geoLookup;
 	}
 
+	@Override
+	protected void preLoad() throws LocalException
+    {
+        lockTables("locality", "geography", "discipline");
+    }
+	
 	public void loadRecord(String[] columns) throws LocalException
 	{
 		Site site = parse(columns);
 
 		Integer siteId = site.getId();
 		setCurrentRecordId(siteId);
+		
+		//if (lookupLocality(siteId) != null) return;
 		
 		// skip this record if it only has SRE initial values set
 		if (! site.hasData())
@@ -65,6 +75,11 @@ public class SiteLoader extends CsvToSqlLoader
         execute(sql);
     }
     
+	Locality lookupLocality(Integer siteId) throws LocalException
+	{
+		return getSiteLookup().queryById(siteId);
+	}
+
 	public SiteLookup getSiteLookup()
 	{
 		if (siteLookup == null)
@@ -183,6 +198,7 @@ public class SiteLoader extends CsvToSqlLoader
 		// LocalityName is a required field
 		String localityName = site.getLocality();
 		if (localityName != null) localityName = truncate(localityName, 255, "locality name");
+		else localityName = UNNAMED;
 		locality.setLocalityName(localityName);
 
 		// Long1Text, Longitude1
@@ -262,28 +278,28 @@ public class SiteLoader extends CsvToSqlLoader
 			"Latitude1, Latitude2, Long1Text, Long2Text, Longitude1, Longitude2, LocalityName, " +
 			"MaxElevation, MinElevation, Remarks, SrcLatLongUnit, TimestampCreated, Version";
 
-		String[] values = new String[20];
-
-		values[0]  = SqlUtils.sqlString( locality.getDiscipline().getId());
-		values[1]  = SqlUtils.sqlString( locality.getElevationMethod());
-		values[2]  = SqlUtils.sqlString( locality.getGeography().getId());
-		values[3]  = SqlUtils.sqlString( locality.getGuid());
-		values[4]  = SqlUtils.sqlString( locality.getLatLongMethod());
-		values[5]  = SqlUtils.sqlString( locality.getLat1text());
-		values[6]  = SqlUtils.sqlString( locality.getLat2text());
-		values[7]  = SqlUtils.sqlString( locality.getLat1());
-		values[8]  = SqlUtils.sqlString( locality.getLat2());
-		values[9]  = SqlUtils.sqlString( locality.getLong1text());
-		values[10] = SqlUtils.sqlString( locality.getLong2text());
-		values[11] = SqlUtils.sqlString( locality.getLong1());
-		values[12] = SqlUtils.sqlString( locality.getLong2());
-		values[13] = SqlUtils.sqlString( locality.getLocalityName());
-		values[14] = SqlUtils.sqlString( locality.getMaxElevation());
-		values[15] = SqlUtils.sqlString( locality.getMinElevation());
-		values[16] = SqlUtils.sqlString( locality.getRemarks());
-		values[17] = SqlUtils.sqlString( locality.getSrcLatLongUnit());
-		values[18] = SqlUtils.now();
-		values[19] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( locality.getDiscipline().getId()),
+				SqlUtils.sqlString( locality.getElevationMethod()),
+				SqlUtils.sqlString( locality.getGeography().getId()),
+				SqlUtils.sqlString( locality.getGuid()),
+				SqlUtils.sqlString( locality.getLatLongMethod()),
+				SqlUtils.sqlString( locality.getLat1text()),
+				SqlUtils.sqlString( locality.getLat2text()),
+				SqlUtils.sqlString( locality.getLat1()),
+				SqlUtils.sqlString( locality.getLat2()),
+				SqlUtils.sqlString( locality.getLong1text()),
+				SqlUtils.sqlString( locality.getLong2text()),
+				SqlUtils.sqlString( locality.getLong1()),
+				SqlUtils.sqlString( locality.getLong2()),
+				SqlUtils.sqlString( locality.getLocalityName()),
+				SqlUtils.sqlString( locality.getMaxElevation()),
+				SqlUtils.sqlString( locality.getMinElevation()),
+				SqlUtils.sqlString( locality.getRemarks()),
+				SqlUtils.sqlString( locality.getSrcLatLongUnit()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("locality", fieldNames, values);
 	}

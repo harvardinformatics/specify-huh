@@ -5,7 +5,6 @@ import java.sql.Statement;
 import java.util.Calendar;
 
 import edu.harvard.huh.asa.Botanist;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.DateUtils;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -18,20 +17,19 @@ import edu.ku.brc.specify.datamodel.Agent;
 
 public class BotanistLoader extends AuditedObjectLoader
 {	
-    private BotanistLookup botanistLookup;
-    private AsaIdMapper optrs;
+	public static final byte BIRTH              = 0;
+	public static final byte FLOURISHED         = 1;
+	public static final byte COLLECTED          = 2;
+	public static final byte RECEIVED_SPECIMENS = 3;
+	
+	private BotanistLookup botanistLookup;
     
     public BotanistLoader(File csvFile,
                           Statement sqlStatement,
-                          File botanistOptrs,
-                          File optrBotanists,
                           OptrLookup optrLookup) throws LocalException
 	{
 		super(csvFile, sqlStatement);
 		
-		this.optrs = new AsaIdMapper(botanistOptrs);
-		
-		setOptrBotanistMapper(new AsaIdMapper(optrBotanists));
 		setOptrLookup(optrLookup);
         setBotanistLookup(getBotanistLookup());
 	}
@@ -69,33 +67,15 @@ public class BotanistLoader extends AuditedObjectLoader
         // convert botanist into agent ...
         Agent botanistAgent = getAgent(botanist);
         
-        // convert agent to sql and insert or update (if there was an optr record for this botanist)
-        Integer optrId = getOptrId(botanistId);
-        
-        if (optrId == null)
-        {
-            String sql = getInsertSql(botanistAgent);
-            insert(sql);
-        }
-        else
-        {
-        	// merge the botanist and optr records; new guid as a botanist.
-            Agent optrAgent = getAgentByOptrId(optrId);
-            
-            String sql = getUpdateSql(botanistAgent, optrAgent.getId());
-            update(sql);
-        }
+        // convert agent to sql and insert      
+        String sql = getInsertSql(botanistAgent);
+        insert(sql);
 	}
 
     protected static String getGuid(Integer botanistId)
     {
     	return botanistId + " botanist";
     }
-
-	private Integer getOptrId(Integer botanistId)
-	{
-		return optrs.map(botanistId);
-	}
 
     // id, isTeam, isCorporate, name, datesType, startYear, startPrecision, endYear, endPrecision, remarks
     private Botanist parse(String[] columns) throws LocalException
@@ -153,10 +133,6 @@ public class BotanistLoader extends AuditedObjectLoader
 			agent.setDateOfBirth(dateOfBirth);
 		}
 		
-		// DateOfBirthConfidence
-		String startConfidence = botanist.getStartPrecision();
-		agent.setDateOfBirthConfidence(startConfidence);
-		
 		// DateOfBirthPrecision
 		byte preciseToYear = (byte) PartialDateEnum.Year.ordinal();
 		if (startYear != null) agent.setDateOfBirthPrecision(preciseToYear);
@@ -168,20 +144,16 @@ public class BotanistLoader extends AuditedObjectLoader
             Calendar dateOfDeath = DateUtils.toCalendar(endYear);
             agent.setDateOfDeath(dateOfDeath);
         }
-                
-        // DateOfDeathConfidence
-        String endConfidence = botanist.getEndPrecision();
-        agent.setDateOfDeathConfidence(endConfidence);
         
         // DateOfDeathPrecision
         if (endYear != null) agent.setDateOfDeathPrecision(preciseToYear);
         
         // DatesType
         String datesType = botanist.getDatesType();
-        if (datesType.equals("birth/death"))             agent.setDatesType(Agent.BIRTH);
-        else if (datesType.equals("flourished"))         agent.setDatesType(Agent.FLOURISHED);
-        else if (datesType.equals("collected"))          agent.setDatesType(Agent.COLLECTED);
-        else if (datesType.equals("received specimens")) agent.setDatesType(Agent.RECEIVED_SPECIMENS);
+        if (datesType.equals("birth/death"))             agent.setDateType(BIRTH);
+        else if (datesType.equals("flourished"))         agent.setDateType(FLOURISHED);
+        else if (datesType.equals("collected"))          agent.setDateType(COLLECTED);
+        else if (datesType.equals("received specimens")) agent.setDateType(RECEIVED_SPECIMENS);
         
 		// GUID: temporarily hold asa botanist.id TODO: don't forget to unset this after migration
 		Integer botanistId = botanist.getId();
@@ -190,10 +162,15 @@ public class BotanistLoader extends AuditedObjectLoader
         String guid = getGuid(botanistId);
         agent.setGuid(guid);
         
+        // MiddleInitial
+        agent.setMiddleInitial(AgentType.botanist.name());
+        
 		// Remarks
         String remarks = botanist.getRemarks();
         String authorNote = botanist.getAuthorNote();
         String collectorNote = botanist.getCollectorNote();
+        String datesNote = botanist.getDatesConfidenceRemark();
+        
         //String datesType = "[dates type: " + botanist.getDatesType() + "]";
         
         if (remarks == null) remarks = "";
@@ -202,6 +179,8 @@ public class BotanistLoader extends AuditedObjectLoader
         
         if (collectorNote != null) remarks = remarks + " [collector note: " + collectorNote + "]";
         
+        if (datesNote != null) remarks = remarks + " [dates: " + datesNote + "]";
+
         agent.setRemarks(remarks);
         
         // URL
@@ -215,58 +194,30 @@ public class BotanistLoader extends AuditedObjectLoader
 	
 	private String getInsertSql(Agent agent) throws LocalException
 	{
-		String fieldNames = "AgentType, CreatedByAgentID, DateOfBirth, DateOfBirthConfidence, " +
-				            "DateOfBirthPrecision, DateOfDeath, DateOfDeathConfidence, DateOfDeathPrecision, " +
-				            "DatesType, GUID, ModifiedByAgentID, Remarks, TimestampCreated, " +
-				            "TimestampModified, URL, Version";
+		String fieldNames = "AgentType, CreatedByAgentID, DateOfBirth, " +
+				            "DateOfBirthPrecision, DateOfDeath, DateOfDeathPrecision, " +
+				            "DateType, GUID, MiddleInitial, ModifiedByAgentID, Remarks, " +
+				            "TimestampCreated, TimestampModified, URL, Version";
 
-		String[] values = new String[16];
-
-		values[0]  = SqlUtils.sqlString( agent.getAgentType());
-		values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-		values[2]  = SqlUtils.sqlString( agent.getDateOfBirth());
-		values[3]  = SqlUtils.sqlString( agent.getDateOfBirthConfidence());
-		values[4]  = SqlUtils.sqlString( agent.getDateOfBirthPrecision());
-		values[5]  = SqlUtils.sqlString( agent.getDateOfDeath());
-		values[6]  = SqlUtils.sqlString( agent.getDateOfDeathConfidence());
-		values[7]  = SqlUtils.sqlString( agent.getDateOfDeathPrecision());
-		values[8]  = SqlUtils.sqlString( agent.getDatesType());
-		values[9]  = SqlUtils.sqlString( agent.getGuid());
-	    values[10] = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-	    values[11] = SqlUtils.sqlString( agent.getRemarks());
-		values[12] = SqlUtils.sqlString( agent.getTimestampCreated());
-		values[13] = SqlUtils.sqlString( agent.getTimestampModified());
-		values[14] = SqlUtils.sqlString( agent.getUrl());
-		values[15] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agent.getAgentType()),
+				SqlUtils.sqlString( agent.getCreatedByAgent().getId()),
+				SqlUtils.sqlString( agent.getDateOfBirth()),
+				SqlUtils.sqlString( agent.getDateOfBirthPrecision()),
+				SqlUtils.sqlString( agent.getDateOfDeath()),
+				SqlUtils.sqlString( agent.getDateOfDeathPrecision()),
+				SqlUtils.sqlString( agent.getDateType()),
+				SqlUtils.sqlString( agent.getGuid()),
+				SqlUtils.sqlString( agent.getMiddleInitial()),
+				SqlUtils.sqlString( agent.getModifiedByAgent().getId()),
+				SqlUtils.sqlString( agent.getRemarks()),
+				SqlUtils.sqlString( agent.getTimestampCreated()),
+				SqlUtils.sqlString( agent.getTimestampModified()),
+				SqlUtils.sqlString( agent.getUrl()),
+				SqlUtils.one()
+		};
 
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}
 
-	private String getUpdateSql(Agent agent, Integer agentId) throws LocalException
-	{
-	    String[] fieldNames = { "AgentType", "CreatedByAgentID", "DateOfBirth", "DateOfBirthConfidence",
-	                            "DateOfBirthPrecision", "DateOfDeath", "DateOfDeathConfidence",
-	                            "DateOfDeathPrecision", "DatesType", "GUID", "ModifiedByAgentID",
-	                            "Remarks", "TimestampCreated", "TimestampModified", "URL" };
-
-	    String[] values = new String[15];
-
-	    values[0]  = SqlUtils.sqlString( agent.getAgentType());
-	    values[1]  = SqlUtils.sqlString( agent.getCreatedByAgent().getId());
-	    values[2]  = SqlUtils.sqlString( agent.getDateOfBirth());
-	    values[3]  = SqlUtils.sqlString( agent.getDateOfBirthConfidence());
-	    values[4]  = SqlUtils.sqlString( agent.getDateOfBirthPrecision());
-	    values[5]  = SqlUtils.sqlString( agent.getDateOfDeath());
-	    values[6]  = SqlUtils.sqlString( agent.getDateOfDeathConfidence());
-	    values[7]  = SqlUtils.sqlString( agent.getDateOfDeathPrecision());
-	    values[8]  = SqlUtils.sqlString( agent.getDatesType());
-	    values[9]  = SqlUtils.sqlString( agent.getGuid());
-	    values[10] = SqlUtils.sqlString( agent.getModifiedByAgent().getId());
-	    values[11] = SqlUtils.sqlString( agent.getRemarks());
-	    values[12] = SqlUtils.sqlString( agent.getTimestampCreated());
-	    values[13] = SqlUtils.sqlString( agent.getTimestampModified());
-	    values[14] = SqlUtils.sqlString( agent.getUrl());
-
-	    return SqlUtils.getUpdateSql("agent", fieldNames, values, "AgentID", SqlUtils.sqlString(agentId));
-	}
 }

@@ -26,8 +26,8 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
-import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.Taxon;
 
 // Run this class after TaxonLoader and SpecimenItemLoader.
@@ -108,10 +108,10 @@ public class DeterminationLoader extends CsvToSqlLoader
         Determination determination = new Determination();
         
         // CollectionMemberID
-        String collectionCode = asaDet.getCollectionCode();
-        checkNull(collectionCode, "collection code");
+        /*String collectionCode = asaDet.getCollectionCode();
+        checkNull(collectionCode, "collection code");*/
         
-        Integer collectionMemberId = getCollectionId(collectionCode);
+        Integer collectionMemberId = getCollectionId(null);
         determination.setCollectionMemberId(collectionMemberId);
 
         // Taxon
@@ -150,8 +150,8 @@ public class DeterminationLoader extends CsvToSqlLoader
         Integer specimenId = asaDet.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        Fragment fragment = lookupSpecimen(specimenId);
-        determination.setFragment(fragment);
+        CollectionObject collObj = lookupSpecimen(specimenId);
+        determination.setCollectionObject(collObj);
         
         // IsCurrent
         Boolean isCurrent = asaDet.isCurrent();
@@ -164,10 +164,12 @@ public class DeterminationLoader extends CsvToSqlLoader
         // Text1 (determinedBy) TODO: assign DeterminerID to collector if isLabel == true? determined_by often does not match collector in these cases
         // Determiner TODO: Ugh.  We have a string.  They have a relation.  Putting it in Text1 for now.
         String determinedBy = asaDet.getDeterminedBy();
+        determinedBy = truncate(determinedBy, 300, "determined by");
         determination.setText1(determinedBy);
         
         // Text2 (labelText)
         String labelText = asaDet.getLabelText();
+        labelText = truncate(labelText, 300, "label text");
         determination.setText2(labelText);
         
         // Number1 (ordinal)
@@ -188,7 +190,7 @@ public class DeterminationLoader extends CsvToSqlLoader
         return determination;
     }
     
-    private Fragment lookupSpecimen(Integer specimenId) throws LocalException
+    private CollectionObject lookupSpecimen(Integer specimenId) throws LocalException
     {
         return specimenLookup.getById(specimenId);
     }
@@ -200,26 +202,26 @@ public class DeterminationLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "FragmentID, CollectionMemberID, TaxonID, DeterminedDate, " +
+        String fieldNames = "CollectionObjectID, CollectionMemberID, TaxonID, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, YesNo1, Text1, Text2, Number1, Qualifier, " +
         		            "Remarks, TimestampCreated, Version";
 
-        String[] values = new String[14];
-        
-        values[0]  = SqlUtils.sqlString( determination.getFragment().getId());
-        values[1]  = SqlUtils.sqlString( determination.getCollectionMemberId());
-        values[2]  = SqlUtils.sqlString( determination.getTaxon().getId());
-        values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[5]  = SqlUtils.sqlString( determination.getIsCurrent());
-        values[6]  = SqlUtils.sqlString( determination.getYesNo1());
-        values[7]  = SqlUtils.sqlString( determination.getText1());
-        values[8]  = SqlUtils.sqlString( determination.getText2());
-        values[9]  = SqlUtils.sqlString( determination.getNumber1());
-        values[10] = SqlUtils.sqlString( determination.getQualifier());
-        values[11] = SqlUtils.sqlString( determination.getRemarks());
-        values[12] = SqlUtils.now();
-        values[13] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( determination.getCollectionObject().getId()),
+        		SqlUtils.sqlString( determination.getCollectionMemberId()),
+        		SqlUtils.sqlString( determination.getTaxon().getId()),
+        		SqlUtils.sqlString( determination.getDeterminedDate()),
+        		SqlUtils.sqlString( determination.getDeterminedDatePrecision()),
+        		SqlUtils.sqlString( determination.getIsCurrent()),
+        		SqlUtils.sqlString( determination.getYesNo1()),
+        		SqlUtils.sqlString( determination.getText1()),
+        		SqlUtils.sqlString( determination.getText2()),
+        		SqlUtils.sqlString( determination.getNumber1()),
+        		SqlUtils.sqlString( determination.getQualifier()),
+        		SqlUtils.sqlString( determination.getRemarks()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }

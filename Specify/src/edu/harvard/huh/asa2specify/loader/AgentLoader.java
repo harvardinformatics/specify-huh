@@ -7,11 +7,9 @@ import java.util.regex.Pattern;
 
 import edu.harvard.huh.asa.AsaAgent;
 import edu.harvard.huh.asa.Organization;
-import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.AgentLookup;
-import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.OrganizationLookup;
 import edu.ku.brc.specify.datamodel.Address;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -23,8 +21,6 @@ public class AgentLoader extends CsvToSqlLoader
 	private AgentLookup        agentLookup;
 	
 	private OrganizationLookup organizationLookup;
-	private AsaIdMapper        agents;
-	private BotanistLookup     botanistLookup;
 	
 	private final static Pattern wholeName = Pattern.compile(".*([\\(&]|Curador|Curator|Default|Director|Keeper|Responsable).*");
 	private final static Pattern lastInitial = Pattern.compile(".* [A-Z]\\.$");
@@ -52,15 +48,10 @@ public class AgentLoader extends CsvToSqlLoader
 
     public AgentLoader(File csvFile,
 	                   Statement specifySqlStatement,
-	                   File agentBotanists,
-	                   BotanistLookup botanistLookup,
 	                   OrganizationLookup organizationLookup) throws LocalException
 	{
 		super(csvFile, specifySqlStatement);
-		
-		this.agents = new AsaIdMapper(agentBotanists);
 
-		this.botanistLookup = botanistLookup;
 		this.organizationLookup = organizationLookup;
 	}
 
@@ -73,9 +64,7 @@ public class AgentLoader extends CsvToSqlLoader
 				{
 					Agent agent = new Agent();
 					
-					Integer botanistId = getBotanistId(asaAgentId);
-					
-                    String guid = botanistId != null ? BotanistLoader.getGuid(botanistId) : getGuid(asaAgentId);
+                    String guid = getGuid(asaAgentId);
 
 					Integer agentId = getId("agent", "AgentID", "GUID", guid);
 
@@ -111,35 +100,9 @@ public class AgentLoader extends CsvToSqlLoader
 			
 		Agent agent = getAgent(asaAgent, isSelfOrganized ? NullAgent() : organization);
 		
-		/*Integer botanistId = getBotanistId(asaAgentId);
-        
-        if (botanistId != null) // retain botanist id in guid
-        {
-            Agent botanistAgent = lookupBotanist(botanistId);
-            
-        	if (agent.getRemarks() != null)
-            {
-                getLogger().warn(rec() + "Ignoring remarks: " + asaAgent.getRemarks());
-            }
-        	
-            String sql = getUpdateBotanistSql(agent,  botanistAgent.getId());
-            update(sql);
-        }
-        else*/
-        {
-            if (isSelfOrganized)
-            {
-                getLogger().warn(rec() + "Merging organization and agent.");
-                
-                String sql = getUpdateOrganizationSql(agent, organization.getId());
-                update(sql);
-            }
-            else
-            {
-                String sql = getInsertSql(agent);
-                insert(sql);
-            }
-        }
+		String sql = getInsertSql(agent);
+		insert(sql);
+
 
         Agent addressAgent = isSelfOrganized ? agent : agent.getOrganization();
         
@@ -147,7 +110,7 @@ public class AgentLoader extends CsvToSqlLoader
         Address correspAddress = getCorrespAddress(asaAgent, addressAgent);
         if (correspAddress != null)
         {
-		    String sql = getInsertSql(correspAddress);
+		    sql = getInsertSql(correspAddress);
 		    insert(sql);
         }
 		
@@ -155,7 +118,7 @@ public class AgentLoader extends CsvToSqlLoader
         Address shippingAddress = getShippingAddress(asaAgent, addressAgent);
         if (shippingAddress != null)
         {
-        	String sql = getInsertSql(shippingAddress);
+        	sql = getInsertSql(shippingAddress);
         	insert(sql);
         }
 	}
@@ -165,21 +128,11 @@ public class AgentLoader extends CsvToSqlLoader
 		return agentId + " agent";
 	}
 
-	private Agent lookupBotanist(Integer botanistId) throws LocalException
-	{
-	    return botanistLookup.getById(botanistId);
-	}
-
-    private Agent lookupOrganization(Integer organizationId) throws LocalException
+	private Agent lookupOrganization(Integer organizationId) throws LocalException
     {
         return organizationLookup.getById(organizationId);
     }
     
-	private Integer getBotanistId(Integer agentId)
-	{
-	    return agents.map(agentId);
-	}
-	
 	private AsaAgent parse(String[] columns) throws LocalException
 	{
 		if (columns.length < 14)
@@ -348,6 +301,9 @@ public class AgentLoader extends CsvToSqlLoader
 		lastName = truncate(lastName.trim(), 200, "last name");
 		agent.setLastName(lastName);
   
+		// MiddleInitial
+		agent.setMiddleInitial(AgentType.agent.name());
+		
 		// ParentOrganziation
 		agent.setOrganization(organization);
 		
@@ -445,65 +401,26 @@ public class AgentLoader extends CsvToSqlLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = "AgentType, Email, FirstName, GUID, Interests, JobTitle, " +
-				            "LastName, ParentOrganizationID, Remarks, TimestampCreated, " +
+				            "LastName, MiddleInitial, ParentOrganizationID, Remarks, TimestampCreated, " +
 				            "Title, URL, Version";
 
-		String[] values = new String[13];
-
-		values[0]  = SqlUtils.sqlString( agent.getAgentType());
-		values[1]  = SqlUtils.sqlString( agent.getEmail());
-		values[2]  = SqlUtils.sqlString( agent.getFirstName());
-		values[3]  = SqlUtils.sqlString( agent.getGuid());
-		values[4]  = SqlUtils.sqlString( agent.getInterests());
-		values[5]  = SqlUtils.sqlString( agent.getJobTitle());
-		values[6]  = SqlUtils.sqlString( agent.getLastName());
-		values[7]  = SqlUtils.sqlString( agent.getOrganization().getId());
-		values[8]  = SqlUtils.sqlString( agent.getRemarks());
-		values[9]  = SqlUtils.now();
-		values[10] = SqlUtils.sqlString( agent.getTitle());
-		values[11] = SqlUtils.sqlString( agent.getUrl());
-		values[12] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agent.getAgentType()),
+				SqlUtils.sqlString( agent.getEmail()),
+				SqlUtils.sqlString( agent.getFirstName()),
+				SqlUtils.sqlString( agent.getGuid()),
+				SqlUtils.sqlString( agent.getInterests()),
+				SqlUtils.sqlString( agent.getJobTitle()),
+				SqlUtils.sqlString( agent.getLastName()),
+				SqlUtils.sqlString( agent.getOrganization().getId()),
+				SqlUtils.sqlString( agent.getRemarks()),
+				SqlUtils.now(),
+				SqlUtils.sqlString( agent.getTitle()),
+				SqlUtils.sqlString( agent.getUrl()),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
-	}
-	
-	private String getUpdateBotanistSql(Agent agent, Integer agentId)
-	{
-		String[] fields = { "Email", "FirstName", "Interests", "JobTitle", "LastName", "ParentOrganizationID",
-				            "Title", "URL" };
-		
-		String[] values = new String[8];
-		
-		values[0] = SqlUtils.sqlString( agent.getEmail());
-		values[1] = SqlUtils.sqlString( agent.getFirstName());
-		values[2] = SqlUtils.sqlString( agent.getInterests());
-		values[3] = SqlUtils.sqlString( agent.getJobTitle());
-		values[4] = SqlUtils.sqlString( agent.getLastName());
-		values[5] = SqlUtils.sqlString( agent.getOrganization().getId());
-		values[6] = SqlUtils.sqlString( agent.getTitle());
-		values[7] = SqlUtils.sqlString( agent.getUrl());
-		
-		return SqlUtils.getUpdateSql("agent", fields, values, "AgentID", agentId);
-	}
-	
-	private String getUpdateOrganizationSql(Agent agent, Integer agentId)
-	{
-	    String[] fields = { "AgentType", "Email", "FirstName", "GUID", "Interests", "JobTitle", "LastName",
-	            "Title", "URL" };
-
-	    String[] values = new String[9];
-
-	    values[0] = SqlUtils.sqlString( agent.getAgentType());
-        values[1] = SqlUtils.sqlString( agent.getEmail());
-        values[2] = SqlUtils.sqlString( agent.getFirstName());
-	    values[3] = SqlUtils.sqlString( agent.getGuid());
-	    values[4] = SqlUtils.sqlString( agent.getInterests());
-	    values[5] = SqlUtils.sqlString( agent.getJobTitle());
-	    values[6] = SqlUtils.sqlString( agent.getLastName());
-	    values[7] = SqlUtils.sqlString( agent.getTitle());
-	    values[8] = SqlUtils.sqlString( agent.getUrl());
-
-	    return SqlUtils.getUpdateSql("agent", fields, values, "AgentID", agentId);
 	}
 	   
     private String getInsertSql(Address address) throws LocalException
@@ -512,24 +429,24 @@ public class AgentLoader extends CsvToSqlLoader
         		            "IsPrimary, IsShipping, Ordinal, Phone1, PostalCode, Remarks, " +
         		            "State, TimestampCreated, Version";
         
-        String[] values = new String[16];
-        
-        values[0]  = SqlUtils.sqlString( address.getAddress());
-        values[1]  = SqlUtils.sqlString( address.getAddress2());
-        values[2]  = SqlUtils.sqlString( address.getAgent().getAgentId());
-        values[3]  = SqlUtils.sqlString( address.getCity());
-        values[4]  = SqlUtils.sqlString( address.getCountry());
-        values[5]  = SqlUtils.sqlString( address.getFax());
-        values[6]  = SqlUtils.sqlString( address.getIsCurrent());
-        values[7]  = SqlUtils.sqlString( address.getIsPrimary());
-        values[8]  = SqlUtils.sqlString( address.getIsShipping());
-        values[9]  = SqlUtils.addressOrdinal( address.getAgent().getId());
-        values[10] = SqlUtils.sqlString( address.getPhone1());
-        values[11] = SqlUtils.sqlString( address.getPostalCode());
-        values[12] = SqlUtils.sqlString( address.getRemarks());
-        values[13] = SqlUtils.sqlString( address.getState());
-        values[14] = SqlUtils.now();
-        values[15] = SqlUtils.one();
+        String[] values = {        
+        		SqlUtils.sqlString( address.getAddress()),
+        		SqlUtils.sqlString( address.getAddress2()),
+        		SqlUtils.sqlString( address.getAgent().getAgentId()),
+        		SqlUtils.sqlString( address.getCity()),
+        		SqlUtils.sqlString( address.getCountry()),
+        		SqlUtils.sqlString( address.getFax()),
+        		SqlUtils.sqlString( address.getIsCurrent()),
+        		SqlUtils.sqlString( address.getIsPrimary()),
+        		SqlUtils.sqlString( address.getIsShipping()),
+        		SqlUtils.addressOrdinal( address.getAgent().getId()),
+        		SqlUtils.sqlString( address.getPhone1()),
+        		SqlUtils.sqlString( address.getPostalCode()),
+        		SqlUtils.sqlString( address.getRemarks()),
+        		SqlUtils.sqlString( address.getState()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("address", fieldNames, values);
     }

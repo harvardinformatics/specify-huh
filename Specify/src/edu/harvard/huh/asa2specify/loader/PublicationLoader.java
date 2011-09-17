@@ -99,7 +99,7 @@ public class PublicationLoader extends AuditedObjectLoader
 		String pubPlace = publication.getPubPlace();
 		if (pubPlace != null)
 		{
-			pubPlace = truncate(pubPlace, 64, "place of publication");
+			pubPlace = truncate(pubPlace, 50, "place of publication");
 			referenceWork.setPlaceOfPublication(pubPlace);
 		}
 
@@ -107,7 +107,7 @@ public class PublicationLoader extends AuditedObjectLoader
 		String publisher = publication.getPublisher();
 		if (publisher != null)
 		{
-			publisher = truncate(publisher, 64, "publisher");
+			publisher = truncate(publisher, 50, "publisher");
 			referenceWork.setPublisher(publisher);
 		}
 
@@ -159,23 +159,23 @@ public class PublicationLoader extends AuditedObjectLoader
 				            "Publisher, ReferenceWorkType, Remarks, Text1, Text2, TimestampCreated, " +
 				            "TimestampModified, Title, URL, Version, WorkDate";
 
-		String[] values = new String[15];
-
-		values[0]  = SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId());
-		values[1]  = SqlUtils.sqlString( referenceWork.getGuid());
-		values[2]  = SqlUtils.sqlString( referenceWork.getModifiedByAgent().getId());
-		values[3]  = SqlUtils.sqlString( referenceWork.getPlaceOfPublication());
-		values[4]  = SqlUtils.sqlString( referenceWork.getPublisher());
-		values[5]  = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[6]  = SqlUtils.sqlString( referenceWork.getRemarks());
-		values[7]  = SqlUtils.sqlString( referenceWork.getText1());
-		values[8]  = SqlUtils.sqlString( referenceWork.getText2());
-        values[9]  = SqlUtils.sqlString( referenceWork.getTimestampCreated());
-        values[10] = SqlUtils.sqlString( referenceWork.getTimestampModified());
-        values[11] = SqlUtils.sqlString( referenceWork.getTitle());
-		values[12] = SqlUtils.sqlString( referenceWork.getUrl());
-		values[13] = SqlUtils.one();
-		values[14] = SqlUtils.sqlString( referenceWork.getWorkDate());
+		String[] values = {
+				SqlUtils.sqlString( referenceWork.getCreatedByAgent().getId()),
+				SqlUtils.sqlString( referenceWork.getGuid()),
+				SqlUtils.sqlString( referenceWork.getModifiedByAgent().getId()),
+				SqlUtils.sqlString( referenceWork.getPlaceOfPublication()),
+				SqlUtils.sqlString( referenceWork.getPublisher()),
+				SqlUtils.sqlString( referenceWork.getReferenceWorkType()),
+				SqlUtils.sqlString( referenceWork.getRemarks()),
+				SqlUtils.sqlString( referenceWork.getText1()),
+				SqlUtils.sqlString( referenceWork.getText2()),
+				SqlUtils.sqlString( referenceWork.getTimestampCreated()),
+				SqlUtils.sqlString( referenceWork.getTimestampModified()),
+				SqlUtils.sqlString( referenceWork.getTitle()),
+				SqlUtils.sqlString( referenceWork.getUrl()),
+				SqlUtils.one(),
+				SqlUtils.sqlString( referenceWork.getWorkDate())
+		};
 
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}

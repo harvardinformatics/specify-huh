@@ -70,10 +70,6 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         // Discipline
         loanReturnPreparation.setDiscipline(getBotanyDiscipline());
         
-        // ItemCount
-        int itemCount = inReturnBatch.getItemCount();
-        loanReturnPreparation.setItemCount(itemCount);
-        
         // LoanPreparation
         Integer transactionId = inReturnBatch.getTransactionId();
         checkNull(transactionId, "transaction id");
@@ -81,14 +77,30 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         LoanPreparation loanPreparation = lookupLoanPrep(transactionId);
         loanReturnPreparation.setLoanPreparation(loanPreparation);
         
-        // NonSpecimenCount
-        int nonSpecimenCount = inReturnBatch.getNonSpecimenCount();
-        loanReturnPreparation.setNonSpecimenCount(nonSpecimenCount);
+        // Remarks
         
-        // Remarks (boxCount)
+        // ... boxCount
         String boxCount = inReturnBatch.getBoxCount();
-        loanReturnPreparation.setRemarks(boxCount);
         
+        // ... item count
+        int itemCount = inReturnBatch.getItemCount();
+        String items = denormalize("items", String.valueOf(itemCount));
+        
+        // ... type count
+        int typeCount = inReturnBatch.getTypeCount();
+        String types = denormalize("types", String.valueOf(typeCount));
+        
+        // ... non-specimen count
+        int nonSpecimenCount = inReturnBatch.getNonSpecimenCount();
+        String nonSpecimens = denormalize("non-specimens", String.valueOf(nonSpecimenCount));
+        
+        // ... acknowledged?
+        String isAcknowledged = denormalize("acknowledged?", inReturnBatch.isAcknowledged() ? "yes" : "no");
+        loanReturnPreparation.setRemarks(concatenate(boxCount, items, types, nonSpecimens, isAcknowledged));
+        
+        // QuantityReturned
+        loanReturnPreparation.setQuantityReturned(itemCount + typeCount + nonSpecimenCount);
+
         // ReturnedDate
         Date actionDate = inReturnBatch.getActionDate();
         if (actionDate != null)
@@ -96,14 +108,6 @@ public class InReturnBatchLoader extends ReturnBatchLoader
         	Calendar returnedDate = DateUtils.toCalendar(actionDate);
         	loanReturnPreparation.setReturnedDate(returnedDate);
         }
-        
-        // TypeCount
-        int typeCount = inReturnBatch.getTypeCount();
-        loanReturnPreparation.setTypeCount(typeCount);
-        
-        // YesNo1 (isAcknowledged)
-        Boolean isAcknowledged = inReturnBatch.isAcknowledged();
-        loanReturnPreparation.setYesNo1(isAcknowledged);
         
         return loanReturnPreparation;
     }
@@ -115,20 +119,18 @@ public class InReturnBatchLoader extends ReturnBatchLoader
 
     private String getInsertSql(LoanReturnPreparation loanReturnPreparation)
     {
-        String fieldNames = "DisciplineID, ItemCount, LoanPreparationID, NonSpecimenCount, " +
-        		            "ReturnedDate, TimestampCreated, TypeCount, Version, YesNo1";
+        String fieldNames = "DisciplineID, LoanPreparationID, QuantityReturned, " +
+        		            "Remarks, ReturnedDate, TimestampCreated, Version";
         
-        String[] values = new String[9];
-        
-        values[0] = SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId());
-        values[1] = SqlUtils.sqlString( loanReturnPreparation.getItemCount());
-        values[2] = SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId());
-        values[3] = SqlUtils.sqlString( loanReturnPreparation.getNonSpecimenCount());
-        values[4] = SqlUtils.sqlString( loanReturnPreparation.getReturnedDate());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.sqlString( loanReturnPreparation.getTypeCount());
-        values[7] = SqlUtils.one();
-        values[8] = SqlUtils.sqlString( loanReturnPreparation.getYesNo1());
+        String[] values = {
+        		SqlUtils.sqlString( loanReturnPreparation.getDiscipline().getId()),
+        		SqlUtils.sqlString( loanReturnPreparation.getLoanPreparation().getId()),
+        		SqlUtils.sqlString( loanReturnPreparation.getQuantityReturned()),
+        		SqlUtils.sqlString( loanReturnPreparation.getRemarks()),
+        		SqlUtils.sqlString( loanReturnPreparation.getReturnedDate()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("loanreturnpreparation", fieldNames, values);
     }
@@ -137,9 +139,7 @@ public class InReturnBatchLoader extends ReturnBatchLoader
     {
         String[] fieldNames = { "InComments" };
 
-        String[] values = new String[1];
-
-        values[0] = SqlUtils.sqlString( transferredTo);
+        String[] values = { SqlUtils.sqlString( transferredTo) };
         
         return SqlUtils.getUpdateSql("loanpreparation", fieldNames, values, "LoanPreparationID", SqlUtils.sqlString(loanPrep.getId()));
     }

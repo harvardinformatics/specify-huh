@@ -8,7 +8,6 @@ import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
-import edu.ku.brc.specify.datamodel.ReferenceWorkVariant;
 
 // Run this class after PublicationLoader.
 
@@ -30,14 +29,17 @@ public class PublicationTitleLoader extends CsvToSqlLoader
 		PublicationTitle publTitle = parse(columns);
 
 		Integer publicationId = publTitle.getPublicationId();
+		checkNull(publicationId, "id");
 		setCurrentRecordId(publicationId);
-		
+
+		ReferenceWork referenceWork = lookup(publicationId);
+        
         // convert PublicationTitle into ReferenceWorkVariant
-        ReferenceWorkVariant refWorkVariant = getRefWorkVariant(publTitle);
+        String refWorkVariant = getRefWorkVariant(publTitle);
 
         // convert ReferenceWorkVariant to sql and insert
-        String sql = getInsertSql(refWorkVariant);
-        insert(sql);
+        String sql = getUpdateSql(referenceWork, refWorkVariant);
+        update(sql);
 	}
 	
     // botanistId, nameType, name
@@ -63,30 +65,12 @@ public class PublicationTitleLoader extends CsvToSqlLoader
         return publTitle;
     }
 
-    private ReferenceWorkVariant getRefWorkVariant(PublicationTitle publTitle) throws LocalException
+    private String getRefWorkVariant(PublicationTitle publTitle) throws LocalException
     {
-        ReferenceWorkVariant refWorkVariant = new ReferenceWorkVariant();
-
-        // Name
-        String title = publTitle.getTitle();
+    	String title = publTitle.getTitle();
         checkNull(title, "title");
-
-        title = truncate(title, 255, "title");
-        refWorkVariant.setName(title);
         
-        // ReferenceWork
-        Integer publicationId = publTitle.getPublicationId();
-        checkNull(publicationId, "id");
-
-        ReferenceWork referenceWork = lookup(publicationId);
-        refWorkVariant.setReferenceWork(referenceWork);
-        
-        // Type
-        Byte varType = ReferenceWorkVariant.VARIANT;
-        
-        refWorkVariant.setVarType(varType);
-        
-        return refWorkVariant;
+        return denormalize("alt. title", title);
     }
 	
     private ReferenceWork lookup(Integer publicationId) throws LocalException
@@ -94,19 +78,9 @@ public class PublicationTitleLoader extends CsvToSqlLoader
         return publicationLookup.getById(publicationId);
     }
 
-    private String getInsertSql(ReferenceWorkVariant refWorkVariant)
+    private String getUpdateSql(ReferenceWork refWork, String refWorkTitle)
     {
-        String fieldNames = "Name, ReferenceWorkID, TimestampCreated, VarType, Version";
-        
-        String[] values = new String[5];
-        
-        values[0] = SqlUtils.sqlString( refWorkVariant.getName());
-        values[1] = SqlUtils.sqlString( refWorkVariant.getReferenceWork().getId());
-        values[2] = SqlUtils.now();
-        values[3] = SqlUtils.sqlString( refWorkVariant.getVarType());
-        values[4] = SqlUtils.one();
-        
-        return SqlUtils.getInsertSql("referenceworkvariant", fieldNames, values);
+    	return SqlUtils.getAppendUpdateSql("referencework", "Remarks", refWorkTitle, "ReferenceWorkID", refWork.getId());
     }
  
 }

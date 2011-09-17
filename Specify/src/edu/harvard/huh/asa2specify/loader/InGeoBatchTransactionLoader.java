@@ -82,9 +82,6 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
         String transactionNo = transaction.getTransactionNo();
         String accessionNumber = getAccessionNumber(transactionNo);
         accession.setAccessionNumber(accessionNumber);
-        
-        // AltAccessionNumber
-        accession.setAltAccessionNumber(transactionNo);
 
         // DateAccessioned
         Date openDate = transaction.getOpenDate();
@@ -113,6 +110,9 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
         // Text2 (purpose)
         String purpose = Transaction.toString(transaction.getPurpose());
         accession.setText2(purpose);
+        
+        // Text3 (transaction no)
+        accession.setText3(transactionNo);
         
         // Type
         accession.setType(Transaction.toString(type));
@@ -170,29 +170,29 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
     
     protected String getInsertSql(Accession accession)
     {
-        String fieldNames = "AccessionCondition, AccessionNumber, AltAccessionNumber, CreatedByAgentID, " +
-                            "DateAccessioned, DivisionID, ModifiedByAgentID, Number1, Remarks, Text1, " +
-                            "Text2, Type, TimestampCreated, TimestampModified, Version, YesNo1, YesNo2";
+        String fieldNames = "AccessionCondition, AccessionNumber, CreatedByAgentID, DateAccessioned, " +
+                            "DivisionID, ModifiedByAgentID, Number1, Remarks, Text1, Text2, Text3, " +
+                            "Type, TimestampCreated, TimestampModified, Version, YesNo1, YesNo2";
 
-        String[] values = new String[17];
-
-        values[0]  = SqlUtils.sqlString( accession.getAccessionCondition());
-        values[1]  = SqlUtils.sqlString( accession.getAccessionNumber());
-        values[2]  = SqlUtils.sqlString( accession.getAltAccessionNumber());
-        values[3]  = SqlUtils.sqlString( accession.getCreatedByAgent().getId());
-        values[4]  = SqlUtils.sqlString( accession.getDateAccessioned());
-        values[5]  = SqlUtils.sqlString( accession.getDivision().getId());
-        values[6]  = SqlUtils.sqlString( accession.getModifiedByAgent().getId());
-        values[7]  = SqlUtils.sqlString( accession.getNumber1());
-        values[8]  = SqlUtils.sqlString( accession.getRemarks());
-        values[9]  = SqlUtils.sqlString( accession.getText1());
-        values[10] = SqlUtils.sqlString( accession.getText2());
-        values[11] = SqlUtils.sqlString( accession.getType());
-        values[12] = SqlUtils.sqlString( accession.getTimestampCreated());
-        values[13] = SqlUtils.sqlString( accession.getTimestampModified());
-        values[14] = SqlUtils.one();
-        values[15] = SqlUtils.sqlString( accession.getYesNo1());
-        values[16] = SqlUtils.sqlString( accession.getYesNo1());
+        String[] values = {
+        		SqlUtils.sqlString( accession.getAccessionCondition()),
+        		SqlUtils.sqlString( accession.getAccessionNumber()),
+        		SqlUtils.sqlString( accession.getCreatedByAgent().getId()),
+        		SqlUtils.sqlString( accession.getDateAccessioned()),
+        		SqlUtils.sqlString( accession.getDivision().getId()),
+        		SqlUtils.sqlString( accession.getModifiedByAgent().getId()),
+        		SqlUtils.sqlString( accession.getNumber1()),
+        		SqlUtils.sqlString( accession.getRemarks()),
+        		SqlUtils.sqlString( accession.getText1()),
+        		SqlUtils.sqlString( accession.getText2()),
+        		SqlUtils.sqlString( accession.getText3()),
+        		SqlUtils.sqlString( accession.getType()),
+        		SqlUtils.sqlString( accession.getTimestampCreated()),
+        		SqlUtils.sqlString( accession.getTimestampModified()),
+        		SqlUtils.one(),
+        		SqlUtils.sqlString( accession.getYesNo1()),
+        		SqlUtils.sqlString( accession.getYesNo1())
+        };
         
         return SqlUtils.getInsertSql("accession", fieldNames, values);
     }
@@ -201,13 +201,13 @@ public abstract class InGeoBatchTransactionLoader extends TransactionLoader
     {
         String fieldNames = "AccessionID, AgentID, Role, TimestampCreated, Version";
 
-        String[] values = new String[5];
-
-        values[0] = SqlUtils.sqlString( accessionAgent.getAccession().getId());
-        values[1] = SqlUtils.sqlString( accessionAgent.getAgent().getId());
-        values[2] = SqlUtils.sqlString( accessionAgent.getRole());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( accessionAgent.getAccession().getId()),
+        		SqlUtils.sqlString( accessionAgent.getAgent().getId()),
+        		SqlUtils.sqlString( accessionAgent.getRole()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("accessionagent", fieldNames, values);
     }

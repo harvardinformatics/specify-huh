@@ -119,17 +119,26 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 		Integer collectionMemberId = getCollectionId(collectionCode);
 		borrowReturnMaterial.setCollectionMemberId(collectionMemberId);
         
-        // ItemCount
-        int itemCount = outReturnBatch.getItemCount();
-        borrowReturnMaterial.setItemCount((short) itemCount);
-		
-		// NonSpecimenCount
-		int nonSpecimenCount = outReturnBatch.getNonSpecimenCount();
-		borrowReturnMaterial.setNonSpecimenCount((short) nonSpecimenCount);
-		
 		// Remarks
+		// ... note
 		String note = outReturnBatch.getNote();
-		borrowReturnMaterial.setRemarks(note);
+		
+		// ... item count
+        int itemCount = outReturnBatch.getItemCount();
+        String items = denormalize("items", String.valueOf(itemCount));
+        
+        // ... type count
+        int typeCount = outReturnBatch.getTypeCount();
+        String types = denormalize("types", String.valueOf(typeCount));
+        
+        // ... non-specimen count
+        int nonSpecimenCount = outReturnBatch.getNonSpecimenCount();
+        String nonSpecimens = denormalize("non-specimens", String.valueOf(nonSpecimenCount));
+		
+		borrowReturnMaterial.setRemarks(concatenate(note, items, types, nonSpecimens));
+		
+		// Quantity
+		borrowReturnMaterial.setQuantity((short) (itemCount + typeCount + nonSpecimenCount));
 		
 		// ReturnedDate (actionDate)
 		Date actionDate = outReturnBatch.getActionDate();
@@ -138,10 +147,6 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 			Calendar returnedDate = DateUtils.toCalendar(actionDate);
 			borrowReturnMaterial.setReturnedDate(returnedDate);
 		}
-		
-		// TypeCount
-		int typeCount = outReturnBatch.getTypeCount();
-		borrowReturnMaterial.setTypeCount((short) typeCount);
 		
 		return borrowReturnMaterial;
 	}
@@ -273,20 +278,18 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 
 	private String getInsertSql(BorrowReturnMaterial borrowReturnMaterial)
 	{
-		String fields = "BorrowMaterialID, CollectionMemberID, ItemCount, NonSpecimenCount, " +
-				        "Remarks, ReturnedDate, TimestampCreated, TypeCount, Version";
+		String fields = "BorrowMaterialID, CollectionMemberID, Quantity, " +
+				        "Remarks, ReturnedDate, TimestampCreated, Version";
 		
-		String[] values = new String[9];
-		
-		values[0] = SqlUtils.sqlString( borrowReturnMaterial.getBorrowMaterial().getId());
-		values[1] = SqlUtils.sqlString( borrowReturnMaterial.getCollectionMemberId());
-		values[2] = SqlUtils.sqlString( borrowReturnMaterial.getItemCount());
-		values[3] = SqlUtils.sqlString( borrowReturnMaterial.getNonSpecimenCount());
-		values[4] = SqlUtils.sqlString( borrowReturnMaterial.getRemarks());
-		values[5] = SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate());
-		values[6] = SqlUtils.now();
-		values[7] = SqlUtils.sqlString( borrowReturnMaterial.getTypeCount());
-		values[8] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( borrowReturnMaterial.getBorrowMaterial().getId()),
+				SqlUtils.sqlString( borrowReturnMaterial.getCollectionMemberId()),
+				SqlUtils.sqlString( borrowReturnMaterial.getQuantity()),
+				SqlUtils.sqlString( borrowReturnMaterial.getRemarks()),
+				SqlUtils.sqlString( borrowReturnMaterial.getReturnedDate()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("borrowreturnmaterial", fields, values);
 	}
@@ -297,22 +300,22 @@ public class OutReturnBatchLoader extends ReturnBatchLoader
 				        "Remarks, ShippedToID, ShipperID, ShipmentDate, ShipmentMethod, " +
 				        "ShipmentNumber, TimestampCreated, Version, YesNo1, YesNo2";
 		
-		String[] values = new String[14];
-		
-		values[0]  = SqlUtils.sqlString( shipment.getBorrow().getId());
-		values[1]  = SqlUtils.sqlString( shipment.getDiscipline().getId());
-		values[2]  = SqlUtils.sqlString( shipment.getNumberOfPackages());
-		values[3]  = SqlUtils.sqlString( shipment.getNumber1());
-		values[4]  = SqlUtils.sqlString( shipment.getRemarks());
-		values[5]  = SqlUtils.sqlString( shipment.getShippedTo().getId());
-		values[6]  = SqlUtils.sqlString( shipment.getShipper().getId());
-		values[7]  = SqlUtils.sqlString( shipment.getShipmentDate());
-		values[8]  = SqlUtils.sqlString( shipment.getShipmentMethod());
-		values[9]  = SqlUtils.sqlString( shipment.getShipmentNumber());
-		values[10] = SqlUtils.now();
-		values[11] = SqlUtils.one();
-		values[12] = SqlUtils.sqlString( shipment.getYesNo1());
-		values[13] = SqlUtils.sqlString( shipment.getYesNo2());
+		String[] values = {
+				SqlUtils.sqlString( shipment.getBorrow().getId()),
+				SqlUtils.sqlString( shipment.getDiscipline().getId()),
+				SqlUtils.sqlString( shipment.getNumberOfPackages()),
+				SqlUtils.sqlString( shipment.getNumber1()),
+				SqlUtils.sqlString( shipment.getRemarks()),
+				SqlUtils.sqlString( shipment.getShippedTo().getId()),
+				SqlUtils.sqlString( shipment.getShipper().getId()),
+				SqlUtils.sqlString( shipment.getShipmentDate()),
+				SqlUtils.sqlString( shipment.getShipmentMethod()),
+				SqlUtils.sqlString( shipment.getShipmentNumber()),
+				SqlUtils.now(),
+				SqlUtils.one(),
+				SqlUtils.sqlString( shipment.getYesNo1()),
+				SqlUtils.sqlString( shipment.getYesNo2())
+		};
 		
 		return SqlUtils.getInsertSql("shipment", fields, values);
 	}

@@ -49,8 +49,8 @@ public class BasionymLoader extends CsvToSqlLoader
         Taxon specifyTaxon = lookupTaxon(asaTaxonId);
         Taxon basionymTaxon = lookupTaxon(asaTaxon.getBasionymId());
         
-        specifyTaxon.setBasionymTaxon(basionymTaxon);
-        String sql = getUpdateSql(specifyTaxon);
+        String basionym = this.getString("taxon", "FullName", "TaxonID", basionymTaxon.getId());
+        String sql = getUpdateSql(specifyTaxon, denormalize("basionym",basionym));
 
         update(sql);
     }
@@ -80,14 +80,8 @@ public class BasionymLoader extends CsvToSqlLoader
         return taxonLookup.getById(asaTaxonId);
     }
 
-    private String getUpdateSql(Taxon taxon) throws LocalException
+    private String getUpdateSql(Taxon taxon, String basionym)
     {
-        String[] fieldNames = { "BasionymID" };
-
-        String[] values = new String[1];
-
-        values[0]  = SqlUtils.sqlString(taxon.getBasionymTaxon().getId());
-
-        return SqlUtils.getUpdateSql("taxon", fieldNames, values, "TaxonID", SqlUtils.sqlString(taxon.getId()));
+    	return SqlUtils.getAppendUpdateSql("taxon", "Remarks", basionym, "TaxonID", taxon.getId());
     }
 }

@@ -129,6 +129,7 @@ public class TaxonLoader extends TreeLoader
 		}
 		
 		String sql = getInsertSql(taxon);
+
 		Integer taxonId = insert(sql);
 		taxon.setTaxonId(taxonId);
 		
@@ -137,18 +138,6 @@ public class TaxonLoader extends TreeLoader
 		if (citPublId != null)
 		{
 		    ReferenceWork referenceWork = lookupPublication(citPublId);
-		    
-            // CitInAuthor or StdExAuthor or StdAuthor
-            Agent authorAgent = asaTaxon.getCitInAuthorId() != null ? taxon.getCitInAuthor() : 
-                asaTaxon.getStdExAuthor() != null ? taxon.getStdExAuthor() : taxon.getStdAuthor();
-
-            if (authorAgent != null)
-            {
-                if (authorAgent.getId() == null)
-                {
-                    getLogger().warn(rec() + taxon.getFullName() + " Publication but no author");
-                }
-            }
 
             TaxonCitation taxonCitation = getTaxonCitation(asaTaxon, taxon, referenceWork);
 
@@ -245,13 +234,7 @@ public class TaxonLoader extends TreeLoader
 		// CITES Status TODO: cites status = none: insert none or leave null?
 		ENDANGERMENT endangerment = asaTaxon.getEndangerment();
 		specifyTaxon.setCitesStatus(AsaTaxon.toString(endangerment));
-        
-		// CitInAuthor
-        Agent citInAuthor = NullAgent();
-        Integer citInAuthorId = asaTaxon.getCitInAuthorId();
-        if (citInAuthorId != null) citInAuthor = lookupBotanist(citInAuthorId);
-        specifyTaxon.setCitInAuthor(citInAuthor);
-        
+                
 		// FullName
         String name = asaTaxon.getName();
         checkNull(name, "name");
@@ -276,18 +259,6 @@ public class TaxonLoader extends TreeLoader
         // Name
 		name = truncate(name, 64, "name");
 		specifyTaxon.setName(name);
-
-		// ParAuthor
-		Agent parAuthor = NullAgent();
-		Integer parAuthorId = asaTaxon.getParAuthorId();
-		if (parAuthorId != null) parAuthor = lookupBotanist(parAuthorId);
-		specifyTaxon.setParAuthor(parAuthor);
-		    
-		// ParExAuthor
-        Agent parExAuthor = NullAgent();
-        Integer parExAuthorId = asaTaxon.getParExAuthorId();
-        if (parExAuthorId != null) parExAuthor = lookupBotanist(parExAuthorId);
-        specifyTaxon.setParExAuthor(parExAuthor);
         
 		// Parent
 		Taxon parent = null;
@@ -323,24 +294,26 @@ public class TaxonLoader extends TreeLoader
 		specifyTaxon.setRankId(rankId);
 		
 		// Remarks
+		Integer citInAuthorId = asaTaxon.getCitInAuthorId();
+        String citInAuthorNote = null;
+        if (citInAuthorId != null)
+        {
+        	Agent citInAuthorAgent = lookupBotanist(citInAuthorId);
+        	citInAuthorNote = "[cit. in author: " + this.getString("agentvariant", "Name", "VarType=4 and AgentID", citInAuthorAgent.getId()) + "]";
+        }
+        
         String remarks = asaTaxon.getRemarks();
+        if (citInAuthorNote != null)
+        {
+        	if (remarks != null) remarks = remarks + " " + citInAuthorNote;
+        	else remarks = citInAuthorNote;
+        }
+
         specifyTaxon.setRemarks(remarks);
         
         // Source
         String dataSource = asaTaxon.getDataSource();
         specifyTaxon.setSource(dataSource);
-        
-        // StdAuthor
-        Agent stdAuthor = NullAgent();
-        Integer stdAuthorId = asaTaxon.getStdAuthorId();
-        if (stdAuthorId != null) stdAuthor = lookupBotanist(stdAuthorId);
-        specifyTaxon.setStdAuthor(stdAuthor);
-        
-        // StdExAuthor
-        Agent stdExAuthor = NullAgent();
-        Integer stdExAuthorId = asaTaxon.getStdExAuthorId(); 
-        if (stdExAuthorId != null) stdExAuthor = lookupBotanist(stdExAuthorId);
-        specifyTaxon.setStdExAuthor(stdExAuthor);
         
 		// TaxonomicSerialNumber
 		Integer asaTaxonId = asaTaxon.getId();
@@ -361,9 +334,6 @@ public class TaxonLoader extends TreeLoader
 		// Text1 (status)
 		STATUS status = asaTaxon.getStatus();
         specifyTaxon.setText1(AsaTaxon.toString(status));
-        
-        // Version
-        specifyTaxon.setVersion(1);
 
         setAuditFields(asaTaxon, specifyTaxon);
 
@@ -409,39 +379,34 @@ public class TaxonLoader extends TreeLoader
 	
 	private String getInsertSql(Taxon taxon)
 	{
-		String fieldNames = "Author, CitesStatus, CitInAuthorID, CreatedByAgentID, FullName, " +
-				            "GroupNumber, IsAccepted, IsHybrid, ModifiedByAgentID, Name, ParAuthorID, " +
-				            "ParExAuthorID, ParentID, RankID, Remarks, Source, StdAuthorID, " +
-				            "StdExAuthorID, TaxonomicSerialNumber, TaxonTreeDefID, TaxonTreeDefItemID, " +
+		String fieldNames = "Author, CitesStatus, CreatedByAgentID, FullName, " +
+				            "GroupNumber, IsAccepted, IsHybrid, ModifiedByAgentID, Name, " +
+				            "ParentID, RankID, Remarks, Source, " +
+				            "TaxonomicSerialNumber, TaxonTreeDefID, TaxonTreeDefItemID, " +
 				            "Text1, TimestampCreated, TimestampModified, Version";
 
-		String[] values = new String[25];
-
-		values[0]  = SqlUtils.sqlString( taxon.getAuthor());
-		values[1]  = SqlUtils.sqlString( taxon.getCitesStatus());
-		values[2]  = SqlUtils.sqlString( taxon.getCitInAuthor().getId());
-		values[3]  = SqlUtils.sqlString( taxon.getCreatedByAgent().getId());
-		values[4]  = SqlUtils.sqlString( taxon.getFullName());
-		values[5]  = SqlUtils.sqlString( taxon.getGroupNumber());
-		values[6]  = SqlUtils.sqlString( taxon.getIsAccepted());
-		values[7]  = SqlUtils.sqlString( taxon.getIsHybrid());
-		values[8]  = SqlUtils.sqlString( taxon.getModifiedByAgent().getId());
-		values[9]  = SqlUtils.sqlString( taxon.getName());
-		values[10] = SqlUtils.sqlString( taxon.getParAuthor().getId());
-		values[11] = SqlUtils.sqlString( taxon.getParExAuthor().getId());
-		values[12] = SqlUtils.sqlString( taxon.getParent().getId());
-		values[13] = SqlUtils.sqlString( taxon.getRankId());
-		values[14] = SqlUtils.sqlString( taxon.getRemarks());
-		values[15] = SqlUtils.sqlString( taxon.getSource());
-		values[16] = SqlUtils.sqlString( taxon.getStdAuthor().getId());
-		values[17] = SqlUtils.sqlString( taxon.getStdExAuthor().getId());
-		values[18] = SqlUtils.sqlString( taxon.getTaxonomicSerialNumber());
-		values[19] = SqlUtils.sqlString( taxon.getDefinition().getId());
-		values[20] = SqlUtils.sqlString( taxon.getDefinitionItem().getId());
-		values[21] = SqlUtils.sqlString( taxon.getText1());
-		values[22] = SqlUtils.sqlString( taxon.getTimestampCreated());
-		values[23] = SqlUtils.sqlString( taxon.getTimestampModified());
-		values[24] = SqlUtils.sqlString( taxon.getVersion());
+		String[] values = {
+				SqlUtils.sqlString( taxon.getAuthor()),
+				SqlUtils.sqlString( taxon.getCitesStatus()),
+				SqlUtils.sqlString( taxon.getCreatedByAgent().getId()),
+				SqlUtils.sqlString( taxon.getFullName()),
+				SqlUtils.sqlString( taxon.getGroupNumber()),
+				SqlUtils.sqlString( taxon.getIsAccepted()),
+				SqlUtils.sqlString( taxon.getIsHybrid()),
+				SqlUtils.sqlString( taxon.getModifiedByAgent().getId()),
+				SqlUtils.sqlString( taxon.getName()),
+				SqlUtils.sqlString( taxon.getParent().getId()),
+				SqlUtils.sqlString( taxon.getRankId()),
+				SqlUtils.sqlString( taxon.getRemarks()),
+				SqlUtils.sqlString( taxon.getSource()),
+				SqlUtils.sqlString( taxon.getTaxonomicSerialNumber()),
+				SqlUtils.sqlString( taxon.getDefinition().getId()),
+				SqlUtils.sqlString( taxon.getDefinitionItem().getId()),
+				SqlUtils.sqlString( taxon.getText1()),
+				SqlUtils.sqlString( taxon.getTimestampCreated()),
+				SqlUtils.sqlString( taxon.getTimestampModified()),
+				SqlUtils.one()
+		};
 
 		return SqlUtils.getInsertSql("taxon", fieldNames, values);
 	}
@@ -450,14 +415,14 @@ public class TaxonLoader extends TreeLoader
     {
         String fieldNames = "ReferenceWorkID, TaxonID, Text1, Text2, TimestampCreated, Version";
         
-        String[] values = new String[6];
-        
-        values[0] = SqlUtils.sqlString( taxonCitation.getReferenceWork().getId());
-        values[1] = SqlUtils.sqlString( taxonCitation.getTaxon().getId());
-        values[2] = SqlUtils.sqlString( taxonCitation.getText1());
-        values[3] = SqlUtils.sqlString( taxonCitation.getText2());
-        values[4] = SqlUtils.now();
-        values[5] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( taxonCitation.getReferenceWork().getId()),
+        		SqlUtils.sqlString( taxonCitation.getTaxon().getId()),
+        		SqlUtils.sqlString( taxonCitation.getText1()),
+        		SqlUtils.sqlString( taxonCitation.getText2()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("taxoncitation", fieldNames, values);
     }

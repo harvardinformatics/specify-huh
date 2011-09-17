@@ -15,10 +15,7 @@ import edu.ku.brc.specify.datamodel.Geography;
 // Run this class after BotanistLoader and GeoUnitLoader.
 
 public class BotanistCountryLoader extends CsvToSqlLoader
-{
-    private int lastAgentId;
-    private int orderNumber;
-    
+{   
     // lookups for geography
     private GeoUnitLookup geoLookup;
     private BotanistLookup  botanistLookup;
@@ -32,9 +29,6 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 		
 		this.geoLookup = geoLookup;
 		this.botanistLookup = botanistLookup;
-		
-		lastAgentId = 0;
-		orderNumber = 1;
 	}
   
 	@Override
@@ -94,35 +88,39 @@ public class BotanistCountryLoader extends CsvToSqlLoader
 
 		Geography geography = lookupGeography(geoUnitId);
 		agentGeography.setGeography(geography);
+
+		// Remarks
+		Integer ordinal = botanistRoleCountry.getOrdinal();
+		if (ordinal != null)
+		{
+			String remarks = getOrdinalNote(ordinal);
+			agentGeography.setRemarks(remarks);
+		}
 		
-	      // OrderNumber
-        if (agent.getId() != lastAgentId)
-        {
-            orderNumber = 1;
-            lastAgentId = agent.getId();
-        }
-        else
-        {
-            orderNumber++;
-        }
-        agentGeography.setOrderNumber(orderNumber);
-        
 		// Role
 		String role = botanistRoleCountry.getRole();
 		checkNull(role, "role");
 		role = truncate(role, 64, "role");
 		agentGeography.setRole(role);
 
-		Integer ordinal = botanistRoleCountry.getOrdinal();
-		if (ordinal != null)
-		{
-			String remarks = String.valueOf(ordinal);
-			agentGeography.setRemarks(remarks);
-		}
-
 		return agentGeography;
 	}
 
+	private String getOrdinalNote(int i)
+	{
+		if (i == 1) return "primary";
+		if (i == 2) return "secondary";
+		if (i == 3) return "tertiary";
+		if (i == 4) return "quaternary";
+		if (i == 5) return "quinary";
+		if (i == 6) return "senary";
+		if (i == 7) return "septenary";
+		if (i == 8) return "octonary";
+		if (i == 9) return "nonary";
+		if (i == 10) return "denary";
+		
+		return String.valueOf(i) + "th";
+	}
 	private Geography lookupGeography(Integer geoUnitId) throws LocalException
 	{
 	    return geoLookup.getById(geoUnitId);
@@ -135,17 +133,16 @@ public class BotanistCountryLoader extends CsvToSqlLoader
   
 	private String getInsertSql(AgentGeography agentGeography)
 	{
-		String fieldNames = "AgentId, GeographyID, OrderNumber, Remarks, Role, TimestampCreated, Version";
+		String fieldNames = "AgentId, GeographyID, Remarks, Role, TimestampCreated, Version";
 
-		String[] values = new String[7];
-
-		values[0] = SqlUtils.sqlString( agentGeography.getAgent().getId());
-		values[1] = SqlUtils.sqlString( agentGeography.getGeography().getId());
-		values[2] = SqlUtils.sqlString( agentGeography.getOrderNumber());
-		values[3] = SqlUtils.sqlString( agentGeography.getRemarks()); 
-		values[4] = SqlUtils.sqlString( agentGeography.getRole());
-		values[5] = SqlUtils.now();
-		values[6] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agentGeography.getAgent().getId()),
+				SqlUtils.sqlString( agentGeography.getGeography().getId()),
+				SqlUtils.sqlString( agentGeography.getRemarks()), 
+				SqlUtils.sqlString( agentGeography.getRole()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("agentgeography", fieldNames, values);
 	}

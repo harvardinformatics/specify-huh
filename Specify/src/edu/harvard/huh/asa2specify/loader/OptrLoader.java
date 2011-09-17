@@ -111,6 +111,9 @@ public class OptrLoader extends CsvToSqlLoader
 		lastName = truncate(lastName, 50, "last name");
 		agent.setLastName(lastName);
 	        
+		// MiddleInitial (asa record type)
+		agent.setMiddleInitial(AgentType.user.name());
+		
 		// Remarks
 		String remarks = optr.getNote();
 		agent.setRemarks(remarks);
@@ -126,18 +129,19 @@ public class OptrLoader extends CsvToSqlLoader
 	private String getInsertSql(Agent agent) throws LocalException
 	{
 		String fieldNames = 
-			"AgentType, DivisionID, FirstName, GUID, LastName, Remarks, TimestampCreated, Version";
+			"AgentType, DivisionID, FirstName, GUID, LastName, MiddleInitial, Remarks, TimestampCreated, Version";
 
-		String[] values = new String[8];
-
-		values[0] = SqlUtils.sqlString( agent.getAgentType());
-		values[1] = SqlUtils.sqlString( agent.getDivision().getId());
-		values[2] = SqlUtils.sqlString( agent.getFirstName());
-		values[3] = SqlUtils.sqlString( agent.getGuid());
-		values[4] = SqlUtils.sqlString( agent.getLastName());
-		values[5] = SqlUtils.sqlString( agent.getRemarks());
-		values[6] = SqlUtils.now();
-		values[7] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( agent.getAgentType()),
+				SqlUtils.sqlString( agent.getDivision().getId()),
+				SqlUtils.sqlString( agent.getFirstName()),
+				SqlUtils.sqlString( agent.getGuid()),
+				SqlUtils.sqlString( agent.getLastName()),
+				SqlUtils.sqlString( agent.getMiddleInitial()),
+				SqlUtils.sqlString( agent.getRemarks()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("agent", fieldNames, values);
 	}

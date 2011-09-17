@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import edu.harvard.huh.asa.SpecimenItem;
+import edu.harvard.huh.asa.TaxonBatchTransaction;
 import edu.harvard.huh.asa2specify.IdNotFoundException;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
@@ -24,7 +25,6 @@ import edu.ku.brc.specify.datamodel.Discipline;
 import edu.ku.brc.specify.datamodel.Division;
 import edu.ku.brc.specify.datamodel.Geography;
 import edu.ku.brc.specify.datamodel.PrepType;
-import edu.ku.brc.specify.datamodel.Preparation;
 import edu.ku.brc.specify.datamodel.Taxon;
 import edu.ku.brc.ui.ProgressFrame;
 
@@ -53,6 +53,8 @@ public abstract class CsvToSqlLoader
     
     private static int updates;
     private static int inserts;
+    
+    protected enum AgentType { user, botanist, organization, series, affiliate, agent }
     
     public CsvToSqlLoader(File csvFile, Statement sqlStatement) throws LocalException
     {
@@ -338,7 +340,7 @@ public abstract class CsvToSqlLoader
 
 
     /**
-     * Compose and execute a query to return an String.  Throws exception if not found.
+     * Compose and execute a query to return a String.  Throws exception if not found.
      * @throws LocalException
      */
     protected String getString(String table, String returnField, String matchField, Integer value)
@@ -580,27 +582,124 @@ public abstract class CsvToSqlLoader
         {
             throw new LocalException("CsvToSqlLoader: Couldn't execute query", e);
         }
-
+        
         return string;
     }
-    
-    protected String getInsertSql(Preparation preparation) throws LocalException
+
+    protected String getDescriptionWithBoxCount(TaxonBatchTransaction tbTx)
     {
-        String fieldNames = "CollectionMemberID, CountAmt, GeographyID, PrepTypeID, TaxonID, TimestampCreated, Version";
-
-        if (preparation.getGeography() == null) preparation.setGeography(NullGeography);
-        if (preparation.getTaxon() == null) preparation.setTaxon(NullTaxon);
-
-        String[] values = new String[7];
+        String descAndBoxCount = null;
         
-        values[0] = SqlUtils.sqlString( preparation.getCollectionMemberId());
-        values[1] = SqlUtils.sqlString( preparation.getCountAmt());
-        values[2] = SqlUtils.sqlString( preparation.getGeography().getId());
-        values[3] = SqlUtils.sqlString( preparation.getPrepType().getId());
-        values[4] = SqlUtils.sqlString( preparation.getTaxon().getId());
-        values[5] = SqlUtils.now();
-        values[6] = SqlUtils.one();
+        String description = tbTx.getDescription();
+        String boxCount = tbTx.getBoxCount();
         
-        return SqlUtils.getInsertSql("preparation", fieldNames, values);
+        if (description != null || boxCount != null)
+        {
+            if (boxCount != null)
+            {
+                try
+                {
+                    int boxes = Integer.parseInt(boxCount);
+                    boxCount = boxCount + " box" + (boxes == 1 ? "" : "es");
+                }
+                catch (NumberFormatException nfe)
+                {
+                    ;
+                }
+                boxCount = boxCount + ".";
+            }
+
+            if (boxCount == null) descAndBoxCount = description;
+            else if (description == null) descAndBoxCount = boxCount;
+            else descAndBoxCount = description + "  " + boxCount;
+        }
+        
+        return descAndBoxCount;
+    }
+    
+    protected String denormalize(String name, String value)
+    {
+    	if (value == null) return null;
+    	
+    	return "[" + name + ": " + value + "]";
+    }
+    
+    protected String concatenate(String... args)
+    {
+    	StringBuffer sb = new StringBuffer();
+    	
+    	if (args.length > 0)
+    	{
+    		for (String s : args)
+    		{
+    			if (s == null) continue;
+    			if (sb.length() > 0) sb.append(" ");
+    			sb.append(s);
+    		}
+    	}
+    	return sb.length() == 0 ? null : sb.toString();
+    }
+    
+    protected String concatenateWith(String c, String... args)
+    {
+    	StringBuffer sb = new StringBuffer();
+    	
+    	if (args.length > 0)
+    	{    		
+    		for (String s : args)
+    		{    			
+    			if (s == null) continue;
+    			if (sb.length() > 0) sb.append(c);
+    			sb.append(s);
+    		}
+    	}
+    	return sb.length() == 0 ? null : sb.toString();
+    }
+    
+    protected void lockTables(String...tableNames) throws LocalException
+    {   
+        if (tableNames.length > 0)
+        {
+        	String[] tableLocks = new String[tableNames.length];
+        	
+        	for (int i=0; i<tableNames.length; i++)
+        	{
+        		tableLocks[i] = tableNames[i] + " write";
+        	}
+        	String tables = concatenateWith(", ", tableLocks);
+        	getLogger().info("Locking tables " + tables);
+        	
+        	String sql = "lock tables " + tables;
+        	execute(sql);
+        }
+        
+        //String autocommitOffSql = "set autocommit = 0";
+        //execute(autocommitOffSql);
+        
+        String uniqueChecksOffSql = "set unique_checks = 0";
+        execute(uniqueChecksOffSql);
+        
+        String foreignKeyChecksOffSql = "set foreign_key_checks = 0";
+        execute(foreignKeyChecksOffSql);
+    }
+    
+    protected void unlockTables(String...tableNames) throws LocalException
+    {
+        if (tableNames.length > 0)
+        {
+        	getLogger().info("Unlocking tables");
+        	
+        	String sql = "unlock tables";
+        	execute(sql);
+        	
+        	//String autocommitOnSql = "set autocommit = 1";
+            //execute(autocommitOnSql);
+            
+            String uniqueChecksOnSql = "set unique_checks = 1";
+            execute(uniqueChecksOnSql);
+            
+            String foreignKeyChecksOnSql = "set foreign_key_checks = 1";
+            execute(foreignKeyChecksOnSql);
+        }
     }
 }

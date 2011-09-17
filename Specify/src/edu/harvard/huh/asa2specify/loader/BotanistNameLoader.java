@@ -8,6 +8,7 @@ import edu.harvard.huh.asa.BotanistName;
 import edu.harvard.huh.asa.BotanistName.TYPE;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.datamodel.HUHAgentVariant;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.ku.brc.specify.datamodel.Agent;
 import edu.ku.brc.specify.datamodel.AgentVariant;
@@ -94,11 +95,11 @@ public class BotanistNameLoader extends CsvToSqlLoader
         TYPE nameType = botanistName.getType();
         checkNull(nameType, "type");
         
-        if      (nameType == TYPE.AuthorName  ) varType = AgentVariant.AUTHOR;
-        else if (nameType == TYPE.AuthorAbbrev) varType = AgentVariant.AUTHOR_ABBREV;
-        else if (nameType == TYPE.Collector   ) varType = AgentVariant.LABLELNAME;
-        else if (nameType == TYPE.Variant     ) varType = AgentVariant.VARIANT;
-        else if (nameType == TYPE.FullName    ) varType = AgentVariant.FULLNAME;
+        if      (nameType == TYPE.AuthorName  ) varType = HUHAgentVariant.AUTHOR;
+        else if (nameType == TYPE.AuthorAbbrev) varType = HUHAgentVariant.AUTHOR_ABBREV;
+        else if (nameType == TYPE.Collector   ) varType = HUHAgentVariant.LABLELNAME;
+        else if (nameType == TYPE.Variant     ) varType = HUHAgentVariant.VARIANT;
+        else if (nameType == TYPE.FullName    ) varType = HUHAgentVariant.FULLNAME;
         
         else throw new IllegalArgumentException("Invalid BotanistName type");
 
@@ -116,13 +117,13 @@ public class BotanistNameLoader extends CsvToSqlLoader
     {
         String fieldNames = "AgentID, Name, VarType, TimestampCreated, Version";
         
-        String[] values = new String[5];
-        
-        values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
-        values[1] = SqlUtils.sqlString( agentVariant.getName());
-        values[2] = SqlUtils.sqlString( agentVariant.getVarType());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( agentVariant.getAgent().getId()),
+        		SqlUtils.sqlString( agentVariant.getName()),
+        		SqlUtils.sqlString( agentVariant.getVarType()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }

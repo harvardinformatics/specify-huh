@@ -15,8 +15,6 @@ public class RelatedPublicationLoader extends CsvToSqlLoader
 {
     private PublicationLookup publicationLookup;
     
-    private ReferenceWork nullRefWork = new ReferenceWork();
-    
 	public RelatedPublicationLoader(File csvFile, Statement sqlStatement, PublicationLookup publicationLookup)
 	    throws LocalException
 	{
@@ -35,19 +33,23 @@ public class RelatedPublicationLoader extends CsvToSqlLoader
 		
 		ReferenceWork referenceWork = lookup(publicationId);
 		
-		ReferenceWork precedingWork = nullRefWork;
 		Integer precedingId = relatedPub.getPrecedingId();
-		if (precedingId != null) precedingWork = lookup(precedingId);
-		referenceWork.setPrecedingWork(precedingWork);
-		
-		ReferenceWork succeedingWork = nullRefWork;
+		if (precedingId != null)
+		{
+			ReferenceWork precedingWork = lookup(precedingId);
+			String precedingTitle = this.getString("referencework", "Title", "ReferenceWorkID", precedingWork.getId());
+			String sql = getUpdateSql(referenceWork, denormalize("preceded by", precedingTitle));
+			update(sql);
+		}
+
 		Integer succeedingId = relatedPub.getSucceedingId();
-		if (succeedingId != null) succeedingWork = lookup(succeedingId);
-		referenceWork.setSucceedingWork(succeedingWork);
-		
-        // convert agentvariant to sql and insert
-        String sql = getUpdateSql(referenceWork);
-        update(sql);
+		if (succeedingId != null)
+		{
+			ReferenceWork succeedingWork = lookup(succeedingId);
+			String succeedingTitle = this.getString("referencework", "Text1", "ReferenceWorkID", succeedingWork.getId());
+			String sql = getUpdateSql(referenceWork, denormalize("succeeded by", succeedingTitle));
+			update(sql);
+		}
 	}
 	
     // botanistId, nameType, name
@@ -78,16 +80,9 @@ public class RelatedPublicationLoader extends CsvToSqlLoader
         return publicationLookup.getById(publicationId);
     }
 
-    private String getUpdateSql(ReferenceWork referenceWork)
+    private String getUpdateSql(ReferenceWork refWork, String relatedTitle)
     {
-        String[] fieldNames = { "PrecedingWorkID", "SucceedingWorkID" };
-
-        String[] values = new String[2];
-
-        values[0]  = SqlUtils.sqlString(referenceWork.getPrecedingWork().getId());
-        values[1]  = SqlUtils.sqlString(referenceWork.getSucceedingWork().getId());
-
-        return SqlUtils.getUpdateSql("referencework", fieldNames, values, "ReferenceWorkID", SqlUtils.sqlString(referenceWork.getId()));
+    	return SqlUtils.getAppendUpdateSql("referencework", "Remarks", relatedTitle, "ReferenceWorkID", refWork.getId());
     }
  
 }

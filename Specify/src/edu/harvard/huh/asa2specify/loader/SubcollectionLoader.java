@@ -9,6 +9,7 @@ import edu.harvard.huh.asa.Subcollection;
 import edu.harvard.huh.asa2specify.AsaIdMapper;
 import edu.harvard.huh.asa2specify.LocalException;
 import edu.harvard.huh.asa2specify.SqlUtils;
+import edu.harvard.huh.asa2specify.datamodel.HUHReferenceWork;
 import edu.harvard.huh.asa2specify.lookup.BotanistLookup;
 import edu.harvard.huh.asa2specify.lookup.SubcollectionLookup;
 import edu.ku.brc.specify.datamodel.Agent;
@@ -23,7 +24,7 @@ import edu.ku.brc.specify.datamodel.StorageTreeDefItem;
 
 public class SubcollectionLoader extends TreeLoader
 {
-    public static Integer FRUIT_SUBCOLL    = 1001;
+	public static Integer FRUIT_SUBCOLL    = 1001;
     public static Integer BURT_SUBCOLL     = 3101;
     public static Integer CURTIS_SUBCOLL   = 3142;
     public static Integer DIATOM_SUBCOLL   = 3156;
@@ -92,7 +93,7 @@ public class SubcollectionLoader extends TreeLoader
             }   
 		};
 		
-		mSubcollection = getNextMichaelaRecord();
+		//mSubcollection = getNextMichaelaRecord();
 	}
 
     @Override
@@ -174,7 +175,7 @@ public class SubcollectionLoader extends TreeLoader
         storage.setIsAccepted(true);
 
         // Name
-        storage.setName(name);
+        storage.setName(truncate(name, 64, "name"));
         
         // Number1
         storage.setNumber1(number1);
@@ -209,12 +210,14 @@ public class SubcollectionLoader extends TreeLoader
 		Integer subcollectionId = subcollection.getId();
 		setCurrentRecordId(subcollectionId);
 		
-		Integer mSubcollectionId = mSubcollection.getId();
+		// TODO
+		
+		/*Integer mSubcollectionId = mSubcollection.getId();
 		if (subcollectionId.equals(mSubcollectionId))
 		{
 		    merge(subcollection, mSubcollection);
 		    mSubcollection = getNextMichaelaRecord();
-		}
+		}*/
 		
         // if this subcollection represents an exsiccata...
         if (subcollection.isExsiccata())
@@ -491,7 +494,7 @@ public class SubcollectionLoader extends TreeLoader
         referenceWork.setGuid(guid);
         
         // ReferenceWorkType
-        referenceWork.setReferenceWorkType(ReferenceWork.EXSICCATA);
+        referenceWork.setReferenceWorkType(HUHReferenceWork.EXSICCATA);
      
         // Remarks
         String remarks = getExsiccataDescription(subcollection);
@@ -646,26 +649,26 @@ public class SubcollectionLoader extends TreeLoader
         		            "Number1, Number2, ParentID, RankID, Remarks, StorageTreeDefID, " +
         		            "StorageTreeDefItemID, Text1, Text2, TimestampCreated, TimestampModified, Version";
         
-        String[] values = new String[18];
-        
-        values[0]  = SqlUtils.sqlString( storage.getAbbrev());
-        values[1]  = SqlUtils.sqlString( storage.getCreatedByAgent().getId());
-        values[2]  = SqlUtils.sqlString( storage.getFullName());
-        values[3]  = SqlUtils.sqlString( storage.getIsAccepted());
-        values[4]  = SqlUtils.sqlString( storage.getModifiedByAgent().getId());
-        values[5]  = SqlUtils.sqlString( storage.getName());
-        values[6]  = SqlUtils.sqlString( storage.getNumber1());
-        values[7]  = SqlUtils.sqlString( storage.getNumber2());
-        values[8]  = SqlUtils.sqlString( storage.getParent().getId());
-        values[9]  = SqlUtils.sqlString( storage.getRankId());
-        values[10] = SqlUtils.sqlString( storage.getRemarks());
-        values[11] = SqlUtils.sqlString( storage.getDefinition().getId());
-        values[12] = SqlUtils.sqlString( storage.getDefinitionItem().getId());
-        values[13] = SqlUtils.sqlString( storage.getText1());
-        values[14] = SqlUtils.sqlString( storage.getText2());
-        values[15] = SqlUtils.sqlString( storage.getTimestampCreated());
-        values[16] = SqlUtils.sqlString( storage.getTimestampModified());
-        values[17] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( storage.getAbbrev()),
+        		SqlUtils.sqlString( storage.getCreatedByAgent().getId()),
+        		SqlUtils.sqlString( storage.getFullName()),
+        		SqlUtils.sqlString( storage.getIsAccepted()),
+        		SqlUtils.sqlString( storage.getModifiedByAgent().getId()),
+        		SqlUtils.sqlString( storage.getName()),
+        		SqlUtils.sqlString( storage.getNumber1()),
+        		SqlUtils.sqlString( storage.getNumber2()),
+        		SqlUtils.sqlString( storage.getParent().getId()),
+        		SqlUtils.sqlString( storage.getRankId()),
+        		SqlUtils.sqlString( storage.getRemarks()),
+        		SqlUtils.sqlString( storage.getDefinition().getId()),
+        		SqlUtils.sqlString( storage.getDefinitionItem().getId()),
+        		SqlUtils.sqlString( storage.getText1()),
+        		SqlUtils.sqlString( storage.getText2()),
+        		SqlUtils.sqlString( storage.getTimestampCreated()),
+        		SqlUtils.sqlString( storage.getTimestampModified()),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("storage", fieldNames, values);
     }
@@ -674,14 +677,14 @@ public class SubcollectionLoader extends TreeLoader
 	{
 		String fieldNames = "GUID, ReferenceWorkType, Remarks, Text1, TimestampCreated, Version";
 
-		String[] values = new String[6];
-
-		values[0] = SqlUtils.sqlString( referenceWork.getGuid());
-		values[1] = SqlUtils.sqlString( referenceWork.getReferenceWorkType());
-		values[2] = SqlUtils.sqlString( referenceWork.getRemarks());
-        values[3] = SqlUtils.sqlString( referenceWork.getText1());
-		values[4] = SqlUtils.now();
-		values[5] = SqlUtils.one();
+		String[] values = {
+				SqlUtils.sqlString( referenceWork.getGuid()),
+				SqlUtils.sqlString( referenceWork.getReferenceWorkType()),
+				SqlUtils.sqlString( referenceWork.getRemarks()),
+				SqlUtils.sqlString( referenceWork.getText1()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("referencework", fieldNames, values);    
 	}
@@ -690,12 +693,12 @@ public class SubcollectionLoader extends TreeLoader
     {
         String fieldNames = "AgentType, GUID, TimestampCreated, Version";
 
-        String[] values = new String[4];
-
-        values[0] = SqlUtils.sqlString( agent.getAgentType());
-        values[1] = SqlUtils.sqlString( agent.getGuid());
-        values[2] = SqlUtils.now();
-        values[3] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( agent.getAgentType()),
+        		SqlUtils.sqlString( agent.getGuid()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("agent", fieldNames, values);
     }
@@ -704,13 +707,13 @@ public class SubcollectionLoader extends TreeLoader
     {
         String fieldNames = "AgentID, Name, VarType, TimestampCreated, Version";
         
-        String[] values = new String[5];
-        
-        values[0] = SqlUtils.sqlString( agentVariant.getAgent().getId());
-        values[1] = SqlUtils.sqlString( agentVariant.getName());
-        values[2] = SqlUtils.sqlString( agentVariant.getVarType());
-        values[3] = SqlUtils.now();
-        values[4] = SqlUtils.one();
+        String[] values = {        
+        		SqlUtils.sqlString( agentVariant.getAgent().getId()),
+        		SqlUtils.sqlString( agentVariant.getName()),
+        		SqlUtils.sqlString( agentVariant.getVarType()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("agentvariant", fieldNames, values);
     }
@@ -719,13 +722,13 @@ public class SubcollectionLoader extends TreeLoader
 	{
 		String fieldNames = "AgentId, ReferenceWorkId, OrderNumber, TimestampCreated, Version";
 
-		String[] values = new String[5];
-
-		values[0] = String.valueOf( author.getAgent().getId());
-		values[1] = String.valueOf( author.getReferenceWork().getId());
-		values[2] = String.valueOf( author.getOrderNumber());
-		values[3] = SqlUtils.now();
-		values[4] = SqlUtils.one();
+		String[] values = {
+				String.valueOf( author.getAgent().getId()),
+				String.valueOf( author.getReferenceWork().getId()),
+				String.valueOf( author.getOrderNumber()),
+				SqlUtils.now(),
+				SqlUtils.one()
+		};
 		
 		return SqlUtils.getInsertSql("author", fieldNames, values);
 	}

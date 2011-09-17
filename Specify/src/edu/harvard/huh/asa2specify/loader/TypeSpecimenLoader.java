@@ -29,9 +29,9 @@ import edu.harvard.huh.asa2specify.lookup.SpecimenLookup;
 import edu.harvard.huh.asa2specify.lookup.PublicationLookup;
 import edu.harvard.huh.asa2specify.lookup.TaxonLookup;
 import edu.ku.brc.specify.datamodel.Agent;
+import edu.ku.brc.specify.datamodel.CollectionObject;
 import edu.ku.brc.specify.datamodel.Determination;
 import edu.ku.brc.specify.datamodel.DeterminationCitation;
-import edu.ku.brc.specify.datamodel.Fragment;
 import edu.ku.brc.specify.datamodel.ReferenceWork;
 import edu.ku.brc.specify.datamodel.Taxon;
 
@@ -88,16 +88,18 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             
             Agent nle1DesignatorAgent = NullAgent();
             Integer nle1DesignatorId = typeSpecimen.getNle1DesignatorId();
+            String nle1Designator = null;
             if (nle1DesignatorId != null)
             {
                 nle1DesignatorAgent = getBotanistLookup().getById(nle1DesignatorId);
+                nle1Designator = this.getString("agentvariant", "Name", "VarType=4 and AgentID", nle1DesignatorAgent.getId());
             }
             else
             {
                 getLogger().warn(rec() + "No nle1 designator for publication");
             }
             DeterminationCitation determinationCitation1 =
-                getDeterminationCitation(determination, collectionMemberId, referenceWork, nle1DesignatorAgent, collation, date, remarks);
+                getDeterminationCitation(determination, collectionMemberId, referenceWork, nle1Designator, collation, date, remarks);
 
             if (determinationCitation1 != null)
             {
@@ -117,9 +119,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             
             Agent nle2DesignatorAgent = NullAgent();
             Integer nle2DesignatorId = typeSpecimen.getNle2DesignatorId();
+            String nle2Designator = null;
             if (nle2DesignatorId != null)
             {
                 nle2DesignatorAgent = getBotanistLookup().getById(nle2DesignatorId);
+                nle2Designator = this.getString("agentvariant", "Name", "VarType=4 and AgentID", nle2DesignatorAgent.getId());
             }
             else
             {
@@ -127,7 +131,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
             }
             
             DeterminationCitation determinationCitation2 =
-                getDeterminationCitation(determination, collectionMemberId, referenceWork, nle2DesignatorAgent, collation, date, remarks);
+                getDeterminationCitation(determination, collectionMemberId, referenceWork, nle2Designator, collation, date, remarks);
             
             if (determinationCitation2 != null)
             {
@@ -194,7 +198,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         
         // CollectionMemberID
         String collectionCode = typeSpecimen.getCollectionCode();
-        checkNull(collectionCode, "collection code");
+        //checkNull(collectionCode, "collection code");
         
         Integer collectionMemberId = getCollectionId(collectionCode);
         determination.setCollectionMemberId(collectionMemberId);
@@ -203,8 +207,8 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         Integer specimenId = typeSpecimen.getSpecimenId();
         checkNull(specimenId, "specimen id");
         
-        Fragment fragment = getSpecimenLookup().getById(specimenId);
-        determination.setFragment(fragment);
+        CollectionObject collObj = getSpecimenLookup().getById(specimenId);
+        determination.setCollectionObject(collObj);
         
         // Confidence
         CONDITIONALITY conditionality = typeSpecimen.getConditionality();
@@ -277,7 +281,7 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
     private DeterminationCitation getDeterminationCitation(Determination determination,
     		                                               Integer       collectionMemberId,
     		                                               ReferenceWork referenceWork,
-    		                                               Agent         designator,
+    		                                               String        designator,
     		                                               String        collation,
     		                                               String        date,
     		                                               String        remarks)
@@ -288,9 +292,6 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         // CollectionMemberId
         determinationCitation.setCollectionMemberId(collectionMemberId);
         
-        // Designator
-        determinationCitation.setDesignator(designator);
-        
         // Determination
         determinationCitation.setDetermination(determination);
 
@@ -298,13 +299,11 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
         determinationCitation.setReferenceWork(referenceWork);
         
         // Remarks
-        determinationCitation.setRemarks(remarks);
-
-        // Text1 (collation)
-        determinationCitation.setText1(collation);
+        designator = denormalize("designator", designator);
+        collation = denormalize("collation", collation);
+        date = denormalize("date", date);
         
-        // Text2 (date)
-        determinationCitation.setText2(date);
+        determinationCitation.setRemarks(concatenate(remarks, designator, collation, date));
         
         return determinationCitation;
     }
@@ -331,46 +330,43 @@ public class TypeSpecimenLoader extends CsvToSqlLoader
 
     private String getInsertSql(Determination determination)
     {
-        String fieldNames = "CollectionMemberID, FragmentID, Confidence, DeterminedDate, " +
+        String fieldNames = "CollectionMemberID, CollectionObjectID, Confidence, DeterminedDate, " +
         		            "DeterminedDatePrecision, IsCurrent, Remarks, TaxonID, Text1, Text2, " +
         		            "TimestampCreated, TypeStatusName, Version, YesNo2";
 
-        String[] values = new String[14];
-        
-        values[0]  = SqlUtils.sqlString( determination.getCollectionMemberId());
-        values[1]  = SqlUtils.sqlString( determination.getFragment().getId());
-        values[2]  = SqlUtils.sqlString( determination.getConfidence());
-        values[3]  = SqlUtils.sqlString( determination.getDeterminedDate());
-        values[4]  = SqlUtils.sqlString( determination.getDeterminedDatePrecision());
-        values[5]  = SqlUtils.sqlString( determination.getIsCurrent());
-        values[6]  = SqlUtils.sqlString( determination.getRemarks());
-        values[7]  = SqlUtils.sqlString( determination.getTaxon().getId());
-        values[8]  = SqlUtils.sqlString( determination.getText1());
-        values[9]  = SqlUtils.sqlString( determination.getText2());
-        values[10] = SqlUtils.now();
-        values[11] = SqlUtils.sqlString( determination.getTypeStatusName());
-        values[12] = SqlUtils.one();
-        values[13] = SqlUtils.sqlString( determination.getYesNo2());
+        String[] values = {
+        		SqlUtils.sqlString( determination.getCollectionMemberId()),
+        		SqlUtils.sqlString( determination.getCollectionObject().getId()),
+        		SqlUtils.sqlString( determination.getConfidence()),
+        		SqlUtils.sqlString( determination.getDeterminedDate()),
+        		SqlUtils.sqlString( determination.getDeterminedDatePrecision()),
+        		SqlUtils.sqlString( determination.getIsCurrent()),
+        		SqlUtils.sqlString( determination.getRemarks()),
+        		SqlUtils.sqlString( determination.getTaxon().getId()),
+        		SqlUtils.sqlString( determination.getText1()),
+        		SqlUtils.sqlString( determination.getText2()),
+        		SqlUtils.now(),
+        		SqlUtils.sqlString( determination.getTypeStatusName()),
+        		SqlUtils.one(),
+        		SqlUtils.sqlString( determination.getYesNo2())
+        };
 
         return SqlUtils.getInsertSql("determination", fieldNames, values);
     }
     
     private String getInsertSql(DeterminationCitation determinationCitation)
     {
-        String fieldNames = "CollectionMemberID, DesignatorID, DeterminationID, ReferenceWorkID, Remarks, " +
-        		            "Text1, Text2, TimestampCreated, Version";
+        String fieldNames = "CollectionMemberID, DeterminationID, ReferenceWorkID, Remarks, " +
+        		            "TimestampCreated, Version";
         
-        String[] values = new String[9];
-        
-        values[0] = SqlUtils.sqlString( determinationCitation.getCollectionMemberId());
-        values[1] = SqlUtils.sqlString( determinationCitation.getDesignator().getId());
-        values[2] = SqlUtils.sqlString( determinationCitation.getDetermination().getId());
-        values[3] = SqlUtils.sqlString( determinationCitation.getReferenceWork().getId());
-        values[4] = SqlUtils.sqlString( determinationCitation.getRemarks());
-        values[5] = SqlUtils.sqlString( determinationCitation.getText1());
-        values[6] = SqlUtils.sqlString( determinationCitation.getText2());
-        values[7] = SqlUtils.now();
-        values[8] = SqlUtils.one();
+        String[] values = {
+        		SqlUtils.sqlString( determinationCitation.getCollectionMemberId()),
+        		SqlUtils.sqlString( determinationCitation.getDetermination().getId()),
+        		SqlUtils.sqlString( determinationCitation.getReferenceWork().getId()),
+        		SqlUtils.sqlString( determinationCitation.getRemarks()),
+        		SqlUtils.now(),
+        		SqlUtils.one()
+        };
         
         return SqlUtils.getInsertSql("determinationcitation", fieldNames, values);
     }
