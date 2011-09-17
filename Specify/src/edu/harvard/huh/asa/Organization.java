@@ -10,7 +10,7 @@ public class Organization extends AuditedObject
         1773,1774,1804,1811,1819,1865,1878,1918,1977,2041,2046,2077,2097,2112,2130,2134,2138,2142 };
         
     /**
-     * Does the organization with this id represent an indiviual rather than a true organization?
+     * Does the organization with this id represent an individual rather than a true organization?
      * All Asa transaction records had to have an associated organization, whether the transactor
      * was a true organization or not.
      * 
