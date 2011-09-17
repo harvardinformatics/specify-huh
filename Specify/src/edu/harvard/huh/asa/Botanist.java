@@ -112,6 +112,43 @@ public class Botanist extends AuditedObject
         }
 	}
     
+	public String getDatesConfidenceRemark()
+	{
+		if (startPrecision != null || endPrecision != null) {
+			StringBuilder sb = new StringBuilder();
+
+			if (startYear != null)
+			{
+				if (startPrecision != null)
+				{
+					if (startPrecision.equals("?")) sb.append(String.valueOf(startYear) + "?");
+					else sb.append("circa " + String.valueOf(startYear));
+				}
+				else
+				{
+					sb.append(String.valueOf(startYear));
+				}
+			}
+			
+			sb.append(" - ");
+			
+			if (endYear != null)
+			{
+				if (endPrecision != null)
+				{
+					if (endPrecision.equals("?")) sb.append(String.valueOf(endYear) + "?");
+					else sb.append("circa " + String.valueOf(endYear));
+				}
+				else
+				{
+					sb.append(String.valueOf(endYear));
+				}
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+
 	public boolean isOrganization()
 	{
 	    if (name == null) return isCorporate;
