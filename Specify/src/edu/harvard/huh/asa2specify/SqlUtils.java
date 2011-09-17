@@ -14,7 +14,6 @@
  */
 package edu.harvard.huh.asa2specify;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -48,6 +47,42 @@ public class SqlUtils
         return sb.toString();
     }
     
+    public static String getAppendUpdateSql(String tableName, String setField, String setValue, String whereField, Integer whereValue)
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("update ");
+        sb.append(tableName);
+        sb.append(" set ");
+        sb.append(setField);
+        sb.append("=");
+        sb.append("if(" + setField + " is null, ");
+        sb.append(SqlUtils.sqlString(setValue) + ", ");
+        sb.append("concat(" + setField + ", " + SqlUtils.sqlString(setValue) + ")");
+        sb.append(" where ");
+        sb.append(whereField);
+        sb.append("=");
+        sb.append(SqlUtils.sqlString(whereValue));
+
+        return sb.toString();
+    }
+
+    public static String getSelectSql(String tableName, String idFieldName, String fieldName, Integer id)
+    {
+    	StringBuilder sb = new StringBuilder();
+    	
+    	sb.append("select ");
+    	sb.append(fieldName);
+    	sb.append(" from ");
+    	sb.append(tableName);
+    	sb.append(" where ");
+    	sb.append(idFieldName);
+    	sb.append("=");
+    	sb.append(SqlUtils.sqlString(id));
+    	
+    	return sb.toString();
+    }
+
     public static String getQueryIdByFieldSql(String tableName, String idFieldName, String fieldName, String value)
     {
         StringBuilder sb = new StringBuilder();
