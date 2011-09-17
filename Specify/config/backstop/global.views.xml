@@ -527,6 +527,303 @@
             </altviews>
         </view>
         
+        <!-- added by HUH -->
+        <view name="HUHAddress"
+            class="edu.ku.brc.specify.datamodel.Address"
+            busrules="edu.ku.brc.specify.datamodel.busrules.AddressBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Address subform within the Accession form.]]></desc>
+            <altviews>
+                <altview name="HUHAddress View" viewdef="HUHAddress" mode="view" validated="false" default="true"/>
+                <altview name="HUHAddress Edit" viewdef="HUHAddress" mode="edit" validated="true"/>
+                <altview name="HUHAddress Table View" viewdef="HUHAddress Table" mode="view" />
+                <altview name="HUHAddress Table Edit" viewdef="HUHAddress Table" mode="edit"/>
+            </altviews>
+        </view>
+        
+	    <view name="HUHAffiliateAgent"
+            objtitle="Affiliate"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Form for agent data entry related to curators.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHAffiliateAgent View" title="HUHAffiliateAgent" viewdef="HUHAffiliateAgent" mode="view" validated="false"/>
+                <altview name="HUHAffiliateAgent Edit" title="HUHAffiliateAgent" viewdef="HUHAffiliateAgent" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHAgentCitation"
+            objtitle="Botanist Citation"
+            class="edu.ku.brc.specify.datamodel.AgentCitation"
+            resourcelabels="false">
+            <desc><![CDATA[AgentCitation subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHAgentCitation View" title="HUHAgentCitation" viewdef="HUHAgentCitation" mode="view" validated="false"/>
+                <altview name="HUHAgentCitation Edit" title="HUHAgentCitation" viewdef="HUHAgentCitation" mode="edit" validated="true" default="true"/>
+                <altview name="HUHAgentCitation Table View" viewdef="HUHAgentCitation Table"    label="Table View" mode="view" />
+                <altview name="HUHAgentCitation Table Edit" viewdef="HUHAgentCitation Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHAgentGeography"
+            objtitle="Botanist Country"
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            resourcelabels="false">
+            <desc><![CDATA[AgentGeography subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHAgentGeography View" title="HUHAgentGeography" viewdef="HUHAgentGeography" mode="view" validated="false"/>
+                <altview name="HUHAgentGeography Edit" title="HUHAgentGeography" viewdef="HUHAgentGeography" mode="edit" validated="true" default="true"/>
+                <altview name="HUHAgentGeography Table View" viewdef="HUHAgentGeography Table"    label="Table View" mode="view" default="true"/>
+                <altview name="HUHAgentGeography Table Edit" viewdef="HUHAgentGeography Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHAgentSpecialty"
+            objtitle="Botanist Specialty"
+            class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+            resourcelabels="false">
+            <desc><![CDATA[AgentSpecialty subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHAgentSpecialty View" title="HUHAgentSpecialty" viewdef="HUHAgentSpecialty" mode="view" validated="false"/>
+                <altview name="HUHAgentSpecialty Edit" title="HUHAgentSpecialty" viewdef="HUHAgentSpecialty" mode="edit" validated="true" default="true"/>
+                <altview name="HUHAgentSpecialty Table View" viewdef="HUHAgentSpecialty Table"    label="Table View" mode="view" />
+                <altview name="HUHAgentSpecialty Table Edit" viewdef="HUHAgentSpecialty Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHAgentVariant"
+            objtitle="Botanist Name"
+            class="edu.ku.brc.specify.datamodel.AgentVariant"
+            resourcelabels="false">
+            <desc><![CDATA[AgentVariant subform within the Agent form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHAgentVariant View" title="HUHAgentVariant" viewdef="HUHAgentVariant" mode="view" validated="false"/>
+                <altview name="HUHAgentVariant Edit" title="HUHAgentVariant" viewdef="HUHAgentVariant" mode="edit" validated="true" default="true"/>
+                <altview name="HUHAgentVariant Table View" viewdef="HUHAgentVariant Table"    label="Table View" mode="view" />
+                <altview name="HUHAgentVariant Table Edit" viewdef="HUHAgentVariant Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+
+        <view name="HUHAuthors"
+            class="edu.ku.brc.specify.datamodel.Author"
+            busrules="edu.ku.brc.specify.datamodel.busrules.AuthorBusRules"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Author subform for Reference Work form.]]></desc>
+            <altviews>
+                <!--  <altview name="Author View" viewdef="Author" mode="view"/>
+                <altview name="Author Edit" viewdef="Author" mode="edit" default="true"/>  -->
+                <altview name="HUHAuthors Table View" viewdef="HUHAuthors Table" mode="view"/>
+                <altview name="HUHAuthors Table Edit" viewdef="HUHAuthors Table" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHAuthor"
+            class="edu.ku.brc.specify.datamodel.Author"
+            resourcelabels="false">
+            <desc><![CDATA[The Author subform for Reference Work form.]]></desc>
+            <altviews>
+                <altview name="HUHAuthor View" viewdef="HUHAuthor" mode="view" default="true"/>
+                <altview name="HUHAuthor Edit" viewdef="HUHAuthor" mode="edit"/> 
+            </altviews>
+        </view>
+
+	    <view name="HUHBotanist"
+            objtitle="Botanist"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Agent form for botanist (collector/author) data entry.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHBotanist View" title="HUHBotanist" viewdef="HUHBotanist" mode="view" validated="false"/>
+                <altview name="HUHBotanist Edit" title="HUHBotanist" viewdef="HUHBotanist" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHGeography"
+            objtitle="Geography"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            busrules="edu.ku.brc.specify.datamodel.busrules.GeographyBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Geography data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHGeography View" viewdef="HUHGeography" mode="view"/>
+                <altview name="HUHGeography Edit" viewdef="HUHGeography" mode="edit" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHGeographySubform"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            busrules="edu.ku.brc.specify.datamodel.busrules.GeographyBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Geography data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHGeography Children View" viewdef="HUHGeographySubform" mode="view"/>
+            </altviews>
+        </view>
+
+        <view name="HUHGroupPerson"
+            objtitle="Botanist Team Member"
+            class="edu.ku.brc.specify.datamodel.GroupPerson"
+            busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[GroupPerson subform for Agent.]]></desc>
+            <altviews>
+                <altview name="HUHGroupPerson View" viewdef="HUHGroupPerson" mode="view"/>
+                <altview name="HUHGroupPerson Edit" viewdef="HUHGroupPerson" mode="edit" default="true"/> 
+            </altviews> 
+        </view>
+
+       <view name="HUHGroupPersons"
+            objtitle="Botanist Team"
+            class="edu.ku.brc.specify.datamodel.GroupPerson"
+            busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[GroupPerson form.]]></desc>
+            <altviews>
+                <altview name="HUHGroupPersons Table View" viewdef="HUHGroupPersons Table"   mode="view"/>
+                <altview name="HUHGroupPersons Table Edit" viewdef="HUHGroupPersons Table"   mode="edit"/>
+            </altviews>
+       </view>
+
+        <view name="HUHInAuthor"
+            objtitle="'In' Author(s)"
+            class="edu.ku.brc.specify.datamodel.Author"
+            busrules="edu.ku.brc.specify.datamodel.busrules.AuthorBusRules"
+            usedefbusrule="false"
+            resourcelabels="false">
+            <desc><![CDATA[The Author subform for Reference Work form.]]></desc>
+            <altviews>
+                <!--  <altview name="Author View" viewdef="Author" mode="view"/>
+                <altview name="Author Edit" viewdef="Author" mode="edit" default="true"/>  -->
+                <altview name="HUHInAuthor Table View" viewdef="HUHInAuthor Table" mode="view"/>
+                <altview name="HUHInAuthor Table Edit" viewdef="HUHInAuthor Table" mode="edit"/>
+            </altviews>
+        </view>
+
+        <view name="HUHOrganization"
+            objtitle="Organization"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Organization form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHOrganization View" title="HUHOrganization" viewdef="HUHOrganization" mode="view" validated="false"/>
+                <altview name="HUHOrganization Edit" title="HUHOrganization" viewdef="HUHOrganization" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHReferenceWork"
+            objtitle="Publication"
+            class="edu.ku.brc.specify.datamodel.ReferenceWork"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[The ReferenceWork Form.]]></desc>
+            <altviews>
+                <altview name="HUHReferenceWork View" viewdef="HUHReferenceWork" mode="view" validated="false" default="true"/>                
+                <altview name="HUHReferenceWork Edit" viewdef="HUHReferenceWork" mode="edit" validated="true"/>                
+            </altviews>
+        </view>
+        
+        <view name="HUHReferenceWorkIdentifier"
+            objtitle="Reference Numbers"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            resourcelabels="false">
+            <desc><![CDATA[Reference Numbers subform within the Publication form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHReferenceWorkIdentifier View" title="HUHReferenceWorkIdentifier" viewdef="HUHReferenceWorkIdentifier" mode="view" validated="false"/>
+                <altview name="HUHReferenceWorkIdentifier Edit" title="HUHReferenceWorkIdentifier" viewdef="HUHReferenceWorkIdentifier" mode="edit" validated="true" default="true"/>
+                <altview name="HUHReferenceWorkIdentifier Table View" viewdef="HUHReferenceWorkIdentifier Table"    label="Table View" mode="view" />
+                <altview name="HUHReferenceWorkIdentifier Table Edit" viewdef="HUHReferenceWorkIdentifier Table"    label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHReferenceWorkVariant"
+            objtitle="Publication Title"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            resourcelabels="false">
+            <desc><![CDATA[Publication Variant Title subform within the Publication form.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHReferenceWorkVariant View" title="HUHReferenceWorkVariant" viewdef="HUHReferenceWorkVariant" mode="view" validated="false"/>
+                <altview name="HUHReferenceWorkVariant Edit" title="HUHReferenceWorkVariant" viewdef="HUHReferenceWorkVariant" mode="edit" validated="true" default="true"/>
+                <altview name="HUHReferenceWorkVariant Table View" viewdef="HUHReferenceWorkVariant Table" label="Table View" mode="view" />
+                <altview name="HUHReferenceWorkVariant Title Table Edit" viewdef="HUHReferenceWorkVariant Table" label="Table Edit" mode="edit"/>
+            </altviews>
+        </view>
+
+        <view name="HUHStorage"
+            objtitle="Subcollection"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            busrules="edu.ku.brc.specify.datamodel.busrules.StorageBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Storage data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHStorage View" viewdef="HUHStorage" mode="view"/>
+                <altview name="HUHStorage Edit" viewdef="HUHStorage" mode="edit" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHStorageSubform"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            busrules="edu.ku.brc.specify.datamodel.busrules.StorageBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Storage data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHStorage Children View" viewdef="HUHStorageSubform" mode="view"/>
+            </altviews>
+        </view>
+
+        <view name="HUHTaxon"
+            objtitle="Taxon"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHTaxonBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Taxon data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHTaxon View" viewdef="HUHTaxon" mode="view"/>
+                <altview name="HUHTaxon Edit" viewdef="HUHTaxon" mode="edit" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHTaxonSubform"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            busrules="edu.ku.brc.specify.datamodel.busrules.TaxonBusRules"
+            resourcelabels="false">
+            <desc><![CDATA[Taxon data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHTaxon Children View" viewdef="HUHTaxonSubform" mode="view"/>
+            </altviews>
+        </view>
+        
+        <view name="HUHTaxonCitation"
+            class="edu.ku.brc.specify.datamodel.TaxonCitation"
+            resourcelabels="false">
+            <desc><![CDATA[Taxon data entry form.]]></desc>
+            <altviews>
+                <altview name="HUHTaxonCitation View" viewdef="HUHTaxonCitation" mode="view"/>
+                <altview name="HUHTaxonCitation Edit" viewdef="HUHTaxonCitation" mode="edit" default="true"/>
+            </altviews>
+        </view>
+
+        <view name="HUHTransactionAgent"
+            objtitle="Transaction Agent"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
+            isinternal="false"
+            resourcelabels="false">
+            <desc><![CDATA[Form for agent data entry related to transactions.]]></desc>
+            <altviews defaultmode="view">
+                <altview name="HUHTransactionAgent View" title="HUHTransactionAgent" viewdef="HUHTransactionAgent" mode="view" validated="false"/>
+                <altview name="HUHTransactionAgent Edit" title="HUHTransactionAgent" viewdef="HUHTransactionAgent" mode="edit" validated="true" default="true"/>
+            </altviews>
+        </view>
+        <!-- end HUH additions -->
 
     </views>
 
@@ -2788,6 +3085,1221 @@
                 </row>
             </rows>
         </viewdef>
+
+        <!-- added by HUH -->
+        <viewdef
+            name="HUHAddress Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Address"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Address grid view.]]></desc>
+            <definition>HUHAddress</definition>
+         </viewdef>
+        
+         <viewdef
+            name="HUHAddress"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Address"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Address subform for Acessions.]]></desc>
+            
+            <columnDef>         100px, 2px, 113px, 5px,  80px, 2px, 113px, 5px,    90px, 2px, 113px, 5px,    80px, 2px, 113px, 0px, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 125px, 5px,  88px, 2px, 125px, 5px,    98px, 2px, 125px, 5px,    88px, 2px, 125px, 0px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 130px, 5px, 115px, 2px, 130px, 5px,   127px, 2px, 130px, 5px,   115px, 2px, 130px, 0px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 113px, 5px:g,   p, 2px, 113px, 5px:g,     p, 2px, 113px, 5px:g,     p, 2px, 113px, 0px, p:g</columnDef>
+            <rowDef>p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p,2dlu,p</rowDef>
+            
+            <rows>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="isCurrent" name="isCurrent" uitype="checkbox" default="false"/>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="1" name="isPrimary" uitype="checkbox" default="false"/>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="isShipping" name="isShipping" uitype="checkbox" default="false"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="positionHeld"/>
+                    <cell type="field" id="positionHeld" name="positionHeld" uitype="text" colspan="6" />
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="address" uitype="text" cols="50" colspan="14" />
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="address2" uitype="text" cols="50" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4" />
+                    <cell type="field" id="4" name="city" uitype="text" cols="20"/>
+                    <cell type="label" labelfor="5" />
+                    <cell type="field" id="5" name="state" uitype="text" cols="15"/>
+                    <cell type="label" labelfor="6"/>
+                    <cell type="field" id="6" name="postalCode" uitype="text" cols="11" />
+                    <cell type="label" labelfor="7"/>
+                    <cell type="field" id="7" name="country" uitype="text" cols="20" />
+                </row>
+                <row>
+                    <cell type="label" labelfor="11"/>
+                    <cell type="field" id="11" name="roomOrBuilding" uitype="text" cols="30"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="phone1" uitype="text" cols="15"/>
+                    <cell type="label" labelfor="9"/>
+                    <cell type="field" id="9" name="phone2" uitype="text" cols="15"/>
+                    <cell type="label" labelfor="10"/>
+                    <cell type="field" id="10" name="fax" uitype="text" cols="15"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="4" cols="50" colspan="14"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHAgentCitation"
+            type="form"          
+            class="edu.ku.brc.specify.datamodel.AgentCitation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentCitation form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">    p, 2px, 190px, 5px, 100px, 2px,     p, p:g</columnDef>
+            <columnDef>          80px, 2px, 190px, 5px, 100px, 2px, 320px, p:g</columnDef>
+            <columnDef os="lnx"> 80px, 2px, 150px, 5px, 120px, 2px, 400px, p:g</columnDef>
+            <columnDef os="mac">120px, 2px, 150px, 5px, 120px, 2px, 400px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="role"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="HUHAgentRole" isrequired="true"/>
+                    <cell type="label" labelfor="referenceWork"/>
+                    <cell type="field" id="referenceWork" uitype="querycbx" initialize="name=HUHReferenceWork;title=Citation" name="referenceWork"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="collation"/>
+                    <cell type="field" id="collation" name="text1" uitype="text"/>
+                    <cell type="label" labelfor="publDate"/>
+                    <cell type="field" id="publDate" name="text2" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="altSource"/>
+                    <cell type="field" id="altSource" name="remarks" uitype="text" colspan="5"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAgentCitation Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.AgentCitation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentCitation grid view.]]></desc>
+            <definition>HUHAgentCitation</definition>
+        </viewdef>
+        
+        <viewdef
+        name="HUHAgentGeography"
+            type="form"          
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentGeography form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px,     p, p:g</columnDef>
+            <columnDef>          80px, 2px, 150px, 5px,  80px, 2px, 320px, p:g</columnDef>
+            <columnDef os="lnx"> 80px, 2px, 150px, 5px, 100px, 2px, 400px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px,  80px, 2px, 400px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="role"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="HUH Botanist Role"/>
+                    <cell type="label" labelfor="geography"/>
+                    <cell type="field" id="geography" uitype="querycbx" initialize="name=HUHGeography" name="geography"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAgentGeography Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.AgentGeography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentGeography grid view.]]></desc>
+            <definition>HUHAgentGeography</definition>
+        </viewdef>
+        
+        <viewdef
+        name="HUHAgentSpecialty"
+            type="form"          
+            class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentSpecialty form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">p,     2px, 190px, 5px, 100px, 2px,     p, p:g</columnDef>
+            <columnDef>          80px, 2px, 150px, 5px, 100px, 2px, 320px, p:g</columnDef>
+            <columnDef os="lnx"> 80px, 2px, 150px, 5px, 120px, 2px, 200px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 150px, 5px, 120px, 2px, 400px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="role"/>
+                    <cell type="field" id="role" name="role" uitype="combobox" picklist="HUH Botanist Role"/>
+                    <cell type="label" labelfor="specialtyName"/>
+                    <cell type="field" id="specialtyName" uitype="combobox" name="specialtyName" picklist="HUH Specialty Name"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAgentSpecialty Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.AgentSpecialty"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentSpecialty grid view.]]></desc>
+            <definition>HUHAgentSpecialty</definition>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAgentVariant"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.AgentVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The AgentVariant form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>          80px, 2px,        150px, 5px,  80px, 2px, 320px, p, p:g</columnDef>
+            <columnDef os="lnx">100px, 2px,        150px, 5px,  70px, 2px, 300px, p, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        150px, 5px,  80px, 2px, 400px, p, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;190px), 5px, 100px, 2px,        p, p:g</columnDef>
+            
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="varType" uitype="combobox" picklist="HUH Agent Variant"/>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="name" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                <cell type="field" id="4" name="this" uitype="plugin" initialize="name=HUHGroupFullNameVariant;title=Generate Full Name for Group;Agent=agent" colspan="3"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAgentVariant Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.AgentVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[AgentVariant grid view.]]></desc>
+            <definition>HUHAgentVariant</definition>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAffiliateAgent"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Form for data entry of curators.]]></desc>
+
+            <columnDef>         80px, 2px,        150px, 5px,   80px, 5px,  80px, p:g</columnDef>
+            <columnDef os="lnx">80px, 2px,        160px, 5px,   80px, 5px,  95px, p:g</columnDef>
+            <columnDef os="mac">80px, 2px,        190px, 5px,   80px, 5px, 100px, p:g</columnDef>
+            <columnDef os="exp">   p, 2px, max(p;160px), 5px:g, 80px, 5px,     p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="title" uitype="combobox" picklist="HUH Agent Titles"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="firstName" uitype="text"/>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="lastName" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="14" />
+                    <cell type="field" id="14" name="jobTitle" uitype="text" colspan="5" />
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef 
+            name="HUHAuthor"
+            type="form"         
+            class="edu.ku.brc.specify.datamodel.Author"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Author subform for Reference Work]]></desc>
+            
+            <columnDef>         100px, 2px, 300px, 200px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 350px, 250px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 350px, 250px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p,     p, p:g</columnDef>
+            <rowDef auto="true" sep="2px" cell="p"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="agent" uitype="querycbx" initialize="name=HUHAuthorAgentByAgentVar;title=Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="remarks" uitype="textareabrief" rows="2" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAuthor Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.Author"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Author grid view.]]></desc>
+            <definition>HUHAuthor</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHAuthors"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Author"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+
+            <desc><![CDATA[The Authors form.]]></desc>
+            <enableRules/>
+
+            <columnDef>p,5dlu,p:g,5dlu,p</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="authorLastName"/>
+                    <cell type="field" id="authorLastName" name="agent.lastName" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="authorFirstName"/>
+                    <cell type="field" id="authorFirstName" name="agent.firstName" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="datesType"/>
+                    <cell type="field" id="datesType" name="agent.initials" uitype="combobox" picklist="HUH Agent Dates Type"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="startDate"/>
+                    <cell type="field" id="startDate" name="agent.dateOfBirth" uitype="text" uifieldformatter="PartialDateYear"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="endDate"/>
+                    <cell type="field" id="endDate" name="agent.dateOfDeath" uitype="text" uifieldformatter="PartialDateYear"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHAuthors Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Author"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Author subform for Reference Work.]]></desc>
+            <definition>HUHAuthors</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHBotanist"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Agent form for botanist (collector/author) data entry.]]></desc>
+
+            <columnDef>         98px, 2px,        150px,   5px, 40px, 5px,  80px, 2px,        150px,   5px, 40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="lnx">98px, 2px,        155px,   5px, 45px, 5px,  95px, 2px,        155px,   5px, 45px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="mac">98px, 2px,        130px,   5px, 80px, 5px, 120px, 2px,        140px,   5px, 80px, 5px,  99px, 2px, 130px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="exp">   p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3"/>
+                    <cell type="label" labelfor="organization"/>
+                    <cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=HUHParentOrganization;title=Organization;displaydlg=HUHOrganizationDisplay;searchdlg=HUHOrganizationSearch" colspan="9"/>
+                </row>
+                <!-- "Dates of Birth/Death: -->
+                <row>
+                    <cell type="label" labelfor="19" />
+                    <cell type="field" id="19" name="this" uitype="plugin" initialize="name=HUHFixedPartialDateUI;df=dateOfBirth;pd=Year" />
+                    <cell type="field" id="startPrec" name="dateOfBirthConfidence" uitype="combobox" picklist="HUH Date Confidence"/>
+                    <cell type="label" labelfor="20" />
+                    <cell type="field" id="20" name="this" uitype="plugin" initialize="name=HUHFixedPartialDateUI;df=dateOfDeath;pd=Year"/>
+                    <cell type="field" id="endPrec" name="dateOfDeathConfidence" uitype="combobox" picklist="HUH Date Confidence"/>
+                    <cell type="label" labelfor="datesType"/>
+                    <cell type="field" id="datesType" name="datesType" uitype="combobox" picklist="HUH Agent Dates Type" colspan="3"/>
+                </row>
+
+                <!-- "Remarks:" -->
+                <row>
+                    <cell type="label" labelfor="16" />
+                    <cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHGroupPersons" id="31" name="groups" defaulttype="table" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHAgentVariant" defaulttype="HUHAgentVariant Table View" id="agentVariants" name="variants" colspan="16" isrequired="true"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHAgentGeography" defaulttype="HUHAgentGeography Table View" id="agentGeographies" name="agentGeographies" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentSpecialty" defaulttype="AgentSpecialty Table View" id="agentSpecialties" name="agentSpecialties" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="AgentCitation" defaulttype="AgentCitation Table View" id="agentCitations" name="agentCitations" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="18"/>
+                </row>
+                <row>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHGeography"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="true">
+            
+            <desc><![CDATA[New Geography Node Form]]></desc>
+           <enableRules>
+                <rule id="definitionItem"><![CDATA[parent.getValue() != null]]></rule>
+            </enableRules>
+
+            <columnDef>         112px, 2px, 301px,   5px, 135px, 2px, 150px, 25px,  85px, 0px, 15px, p, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 370px,   5px, 135px, 2px, 168px, 25px,  95px, 0px, 15px, p, p:g</columnDef>
+            <columnDef os="mac">142px, 2px, 476px,   5px, 140px, 2px, 150px, 10px, 105px, 0px, 15px, p, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 301px, 5px:g,     p, 2px, 150px, 25px,     p, 0px,    p, p, p:g</columnDef>
+            
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="name"/>
+                    <cell type="field" id="name" uitype="text" cols="6" name="name" colspan="7"/> 
+                </row>
+                <row>
+                    <cell type="label" labelfor="parent"/>
+                    <cell type="field" id="parent" uitype="querycbx" initialize="name=HUHGeography;title=Geography;editbtn=false;newbtn=false;editoncreate=true" name="parent"/>
+                    <cell type="label" labelfor="definitionItem"/>
+                    <cell type="field" id="definitionItem" uitype="combobox" name="definitionItem"/>
+                    <cell type="field" id="isAccepted" uitype="checkbox" name="isAccepted" default="true" isrequired="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="acceptedParent"/>
+                    <cell type="field" id="acceptedParent" uitype="querycbx" initialize="name=HUHGeography;title=Geography;editbtn=false;newbtn=false" name="acceptedParent" colspan="8"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" uitype="textareabrief" rows="2" name="remarks" colspan="8"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="geographyCode" cols="2"/>
+                    <cell type="field" id="geographyCode" uitype="text" cols="2" name="geographyCode" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="source" cols="2"/>
+                    <cell type="field" id="source" uitype="text" cols="2" name="text1" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="description" cols="2"/>
+                    <cell type="field" id="description" uitype="textareabrief" rows="2" name="text2" colspan="8"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="centroidLat"/>
+                    <cell type="field" id="centroidLat" uitype="text" name="centroidLat" uifieldformatter="NumericFloat"/>
+                    <cell type="label" labelfor="centroidLon"/>
+                    <cell type="field" id="centroidLon" uitype="text" name="centroidLon" uifieldformatter="NumericFloat" colspan="3"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="HUHGeographySubform" id="children" defaulttype="table" name="children" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="HUHGeographySubform" id="acceptedChildren" defaulttype="table" name="acceptedChildren" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHGeographySubform"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[New Geography Node Form]]></desc>
+            <enableRules>
+            </enableRules>
+            
+            <columnDef>         100px, 2px, 425px, 5px, 100px, 2px, 100px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 400px, 5px, 115px, 2px, 120px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 400px, 5px, 130px, 2px, 130px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px,     p, 2px,     p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="fullName"/>
+                    <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/>
+                    <cell type="label" labelfor="definitionItem"/>
+                    <cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHGeographySubformTable"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Geography"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Geography grid view.]]></desc>
+            <definition>HUHGeographySubform</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHGroupPerson"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.GroupPerson"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Group Person form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>100px,2px,max(300px;p),2px</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=HUHCollectorAgentByAgentVar;title=Agent;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" />
+                </row>              
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="remarks" uitype="textareabrief" rows="2" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHGroupPersons"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.GroupPerson"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Group Person form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>100px,2px,max(300px;p),2px</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="member" uitype="querycbx" initialize="name=HUHCollectorAgentByAgentVar;title=Agent;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch"/>
+                </row>              
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="remarks" uitype="textareabrief" rows="2" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHGroupPersons Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.GroupPerson"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[GroupPerson subform table for Agent form.]]></desc>
+            <definition>HUHGroupPersons</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHOrganization"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+
+            <desc><![CDATA[Organization subform.]]></desc>
+            <columnDef>          98px, 2px,        144px, 5px,   40px, 5px,  80px, 2px,        150px, 5px,   40px, 5px,  99px, 2px,  85px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="lnx">113px, 2px,        160px, 5px,   40px, 5px,  95px, 2px,        160px, 5px,   40px, 5px, 113px, 2px, 110px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px,        190px, 5px,   40px, 5px, 100px, 2px,        190px, 5px,   40px, 5px, 133px, 2px, 120px, 2px, 50px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p, 2px,  85px, 2px,    p,    p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <enableRules>
+                <rule id="mailto"><![CDATA[email.isNotEmpty()]]></rule>
+            </enableRules>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true" colspan="3" default="0"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text" colspan="3"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" cols="20" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="17" />
+                    <cell type="field" id="17" name="url" uitype="text" colspan="9" />
+                </row>
+                <row>
+                    <cell type="label" labelfor="email"/>
+                    <cell type="field" id="email" name="email" uitype="text" colspan="9" cols="32"/>
+                    <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=email"/>
+                </row>
+                <!-- Parent Organization -->
+                <row>
+                    <cell type="label" labelfor="organization"/>
+                    <cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=HUHOrgByAcronym;title=Organization;displaydlg=HUHOrganizationDisplay;searchdlg=HUHOrganizationSearch" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="interests"/>
+                    <cell type="field" id="interests" name="interests" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="16" />
+                    <cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="HUHAddress" id="9" name="addresses" colspan="18"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="18"/>
+                </row>
+                <row>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="18" initialize="btn=true;icon=AgentAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHReferenceWork"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.ReferenceWork"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The ReferenceWork form]]></desc>
+
+            <columnDef os="exp">    p, 2px, 160px, 5px:g,     p, 2px, 150px, 5px:g, p,     2px, 151px, p,    p:g</columnDef>
+            <columnDef os="lnx">100px, 2px, 160px,   5px, 100px, 2px, 150px,   5px, 150px, 2px, 151px, 15px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 203px,   5px, 100px, 2px, 203px,   5px, 185px, 2px, 195px, 15px, p:g</columnDef>
+            <columnDef>          90px, 2px, 165px,   5px,  75px, 2px, 160px,   5px, 135px, 2px, 135px, 15px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="3dlu"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="referenceWorkType" uitype="combobox" picklist="HUH Reference Work Type"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="title"/>
+                    <cell type="field" id="title" name="text1" uitype="textareabrief" rows="3" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="abbrev"/>
+                    <cell type="field" id="abbrev" name="title" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHReferenceWorkVariant" id="variants" name="variants" defaulttype="table" rows="3" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHAuthor" id="authors" name="authors" initialize="name=HUHAuthor;noaltview=true" defaulttype="table" rows="3" colspan="5"/>
+                    <cell type="subview" viewname="HUHReferenceWorkIdentifier" id="identifiers" name="identifiers" initialize="name=HUHReferenceWorkIdentifier;noaltview=true" defaulttype="table" rows="3" colspan="4"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="separator" label="" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="placeOfPublication" uitype="text" cols="50"/>
+                    <cell type="label" labelfor="2"/>
+                    <cell type="field" id="2" name="publisher" uitype="text" cols="50" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="text2" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="url"/>
+                    <cell type="field" id="url" uitype="text" name="url" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="precedingWork"/>
+                    <cell type="field" id="precedingWork" name="precedingWork" uitype="querycbx" initialize="name=HUHReferenceWork;title=Preceded By" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="succeedingWork"/>
+                    <cell type="field" id="succeedingWork" name="succeedingWork" uitype="querycbx" initialize="name=HUHReferenceWork;title=Succeeded By" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="4" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef> 
+        
+        <viewdef
+            name="HUHReferenceWorkIdentifier"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Reference Numbers form.]]></desc>
+            <enableRules/>
+            
+            <columnDef os="exp">    p, 2px, 200px, 5px:g,     p, 2px, 255px, 5px:g,     p, 2px, p:g</columnDef>
+            <columnDef>         100px, 2px, 200px,   5px, 100px, 2px, 210px,   5px, 100px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 215px,   5px, 138px, 2px, 255px,   5px, 138px, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="type"/>
+                    <cell type="field" id="type" name="type" uitype="combobox" picklist="HUH Publication Number Type"/>
+                    <cell type="label" labelfor="identifier"/>
+                    <cell type="field" id="identifier" name="identifier" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHReferenceWorkIdentifier Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkIdentifier"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Reference Numbers grid view.]]></desc>
+            <definition>HUHReferenceWorkIdentifier</definition>
+        </viewdef>
+        
+        <viewdef
+            name="HUHReferenceWorkVariant"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The Publication Variant Title form.]]></desc>
+            <enableRules/>
+            
+            <columnDef>         100px, 2px,        478px, 2px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px,        523px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px,        663px, 2px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;190px), 2px, p:g</columnDef>
+            
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="3"/>
+                    <cell type="field" id="3" name="name" uitype="text" isrequired="true"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHReferenceWorkVariant Table"
+            type="formtable"            
+            class="edu.ku.brc.specify.datamodel.ReferenceWorkVariant"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Publication Variant Title grid view.]]></desc>
+            <definition>HUHReferenceWorkVariant</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHStorage"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="true">
+            
+            <desc><![CDATA[New Storage Node Form]]></desc>
+            <enableRules>
+                <rule id="definitionItem"><![CDATA[parent.getValue() != null]]></rule>
+            </enableRules>
+
+            <columnDef>         100px, 2px, 445px,   5px, 60px, 2px, 213px, 0px, 15px, p:g</columnDef>
+            <columnDef os="lnx">115px, 2px, 300px,   5px, 80px, 2px, 250px, 0px, 15px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 568px,   5px, 75px, 2px, 250px, 0px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 445px, 5px:g,    p, 2px,     p, 0px,    p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+
+            <rows>
+                <row>
+                    <cell type="label" labelfor="name"/>
+                    <cell type="field" id="name" uitype="text" cols="10" name="name" isrequired="true"/> 
+                    <cell type="label" labelfor="parent"/>
+                    <cell type="field" id="parent" uitype="querycbx" isrequired="true" initialize="name=HUHStorage;title=Storage;editbtn=false;newbtn=false;editoncreate=true" name="parent"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="author"/>
+                    <cell type="field" id="author" uitype="text" cols="10" name="text1"/>
+                    <cell type="label" labelfor="group"/>
+                    <cell type="field" id="group" uitype="combobox" picklist="HUH Taxon Group" name="text2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" uitype="textareabrief" rows="2" name="remarks" colspan="6"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="definitionItem"/>
+                        <cell type="field" id="definitionItem" uitype="combobox" name="definitionItem"/>
+                </row>
+                                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHStorageSubform"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Storage"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[New Storage Node Form]]></desc>
+            <enableRules>
+            </enableRules>
+            
+            <columnDef>         100px, 2px, 725px, 15px, p:g</columnDef>
+            <columnDef os="lnx">100px, 2px, 600px, 15px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 900px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 725px, 15px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="fullName"/>
+                    <cell type="field" id="fullName" uitype="text" name="fullName"/> 
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHTaxon"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj"
+            useresourcelabels="false">
+            <desc><![CDATA[New Taxon Node Form]]></desc>
+           <enableRules>
+                <rule id="hybridParent1"><![CDATA[isHybrid.isSelected()]]></rule>
+                <rule id="hybridParent2"><![CDATA[isHybrid.isSelected()]]></rule>
+                <rule id="definitionItem"><![CDATA[parent.getValue() != null]]></rule>
+            </enableRules> 
+            
+            <!--                label  buf  text1  buf  'ex'    buf  text2  buf  lbl    buf  chkbx buf  label  buf  lbl   buf   margin -->
+            <columnDef os="exp">    p, 2px, 285px, 5px, 20px:g, 5px, 105px, 2px,    p,  2px,   p,  2px,     p, 2px, 10px, 10px, 10px:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 270px, 5px,   20px, 5px, 100px, 2px, 150px, 2px, 15px, 2px, 108px, 2px, 10px, 10px, 10px:g</columnDef>
+            <columnDef os="mac">130px, 2px, 287px, 5px,   20px, 5px, 125px, 2px, 155px, 2px, 15px, 2px, 110px, 2px, 40px, 15px, 10px:g</columnDef>
+            <columnDef>          90px, 2px, 270px, 5px,   20px, 5px, 100px, 2px, 140px, 2px, 15px, 2px, 100px, 2px, 10px, 10px, 10px:g</columnDef>
+            <rowDef auto="true" cell="p" sep="3dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="taxonomicSerialNumber"/>
+                    <cell type="field" id="taxonomicSerialNumber" uitype="text" name="taxonomicSerialNumber" readonly="true"/>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="isHybrid" uitype="checkbox" name="isHybrid" default="false" />
+                    <cell type="label" labelfor="definitionItem"/>
+                    <cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" label="Higher Taxon:" initialize="align=right"/>
+                    <cell type="field" id="higherTaxon" uitype="dsptextfield" name="parent.parent.fullName" colspan="5"/>
+                    <cell type="label" labelfor="group"/>
+                   <cell type="field" id="group" uitype="combobox" name="groupNumber" isrequired="true" picklist="HUH Taxon Group" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="parent"/>
+                    <cell type="field" id="parent"  uitype="querycbx" isrequired="true" initialize="name=HUHTaxon;title=Taxon;editbtn=false;newbtn=false;editoncreate=true" name="parent"  colspan="5"/>
+                    <cell type="label" labelfor="status"/>
+                    <cell type="field" id="status" uitype="combobox" name="text1" picklist="HUH Taxon Status" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="name"/>
+                    <cell type="field" id="name" uitype="text" cols="16" name="name"  colspan="5"/>
+                    <cell type="label" labelfor="citesStatus"/>
+                    <cell type="field" id="citesStatus" uitype="combobox" name="citesStatus" picklist="HUH CITES Status" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="hybridParent1"/>
+                    <cell type="field" id="hybridParent1"  uitype="querycbx" initialize="name=HUHTaxon;title=Taxon;editbtn=false;newbtn=false" name="hybridParent1" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="hybridParent2"/>
+                    <cell type="field" id="hybridParent2"  uitype="querycbx" initialize="name=HUHTaxon;title=Taxon;editbtn=false;newbtn=false" name="hybridParent2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="fullName"/>
+                    <cell type="field" id="fullName" name="fullName" uitype="dsptextfield"/>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="author" name="author" uitype="dsptextfield" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="separator" label="Author(s)" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" label="                    ("/>
+                    <cell type="field" id="parAuthor" uitype="querycbx" name="parAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Par Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" formatname="HUHAuthorVarAgent"/>
+                    <cell type="label" label="ex"/>
+                    <cell type="field" id="parExAuthor" uitype="querycbx" name="parExAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Par Ex Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" colspan="8" formatname="HUHAuthorVarAgent"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="parSanctAuthor"/>
+                    <cell type="field" id="parSanctAuthor" uitype="querycbx" name="parSanctAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Par Sanctioning Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" formatname="HUHAuthorVarAgent"/>
+                    <cell type="label" label=")"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="field" id="stdAuthor" uitype="querycbx" name="stdAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Std Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" formatname="HUHAuthorVarAgent"/>
+                    <cell type="label" label="ex"/>
+                    <cell type="field" id="stdExAuthor" uitype="querycbx" name="stdExAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Std Ex Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" colspan="8" formatname="HUHAuthorVarAgent"/>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="sanctAuthor"/>
+                    <cell type="field" id="sanctAuthor" uitype="querycbx" name="sanctAuthor" initialize="name=HUHAuthorAgentByAgentVar;title=Sanctioning Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" formatname="HUHAuthorVarAgent"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                    <row>
+                    <cell type="subview" viewname="HUHTaxonCitation" id="taxonCitations" name="taxonCitations" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="separator" label=" " colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="basionym" colspan="3"/>
+                    <cell type="field" id="basionym" name="basionymTaxon" uitype="querycbx" initialize="name=HUHTaxon;title=Basionym" colspan="10"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" uitype="textareabrief" rows="4" name="remarks" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="HUHTaxonSubform" id="children" name="children" defaulttype="table" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="separator" label="ATTACHMENTS" colspan="16"/>
+                </row>
+                <row>
+                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="taxonAttachments" colspan="16" initialize="btn=true;icon=TaxonAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+
+       <viewdef
+            name="HUHTaxonSubform"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[New Taxon Node Form]]></desc>
+            <enableRules>
+            </enableRules>
+            
+            <columnDef>         110px, 2px, 270px,   5px, 108px, 2px, 270px, p:g</columnDef>
+            <columnDef os="lnx">110px, 2px, 270px,   5px, 100px, 2px, 310px, p:g</columnDef>
+            <columnDef os="mac">140px, 2px, 268px,   5px, 130px, 2px, 268px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 270px, 5px:g,     p, 2px, 270px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2dlu"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="fullName"/>
+                    <cell type="field" id="fullName" uitype="text" cols="16" name="fullName"/> 
+                    <cell type="label" labelfor="author"/>
+                    <cell type="field" id="author" name="author" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="definitionItem"/>
+                    <cell type="field" id="definitionItem"  uitype="combobox" name="definitionItem"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHTaxonSubformTable"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.Taxon"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[Taxon grid view.]]></desc>
+            <definition>HUHTaxonSubform</definition>
+        </viewdef>
+
+        <viewdef
+            name="HUHTaxonCitation"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.TaxonCitation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[The ReferenceWork form]]></desc>
+
+            <columnDef>          70px, 2px, 145px, 5px, 100px, 2px, 65px, 5px, 140px, 5px, p:g</columnDef>
+            <columnDef os="lnx"> 85px, 2px, 190px, 5px, 115px, 2px, 65px, 5px, 210px, 5px, p:g</columnDef>
+            <columnDef os="mac">100px, 2px, 200px, 5px, 130px, 2px, 65px, 5px, 246px, 5px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px,     p, 5px,     p, 2px,    p, 5px, 140px, 5px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="3dlu"/>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="citInAuthor"/>
+                    <cell type="field" id="citInAuthor" name="taxon.citInAuthor" uitype="querycbx" initialize="name=HUHAuthorAgentByAgentVar;title=Cit In Author;displaydlg=HUHBotanist;searchdlg=HUHBotanistSearch" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="publication"/>
+                    <cell type="field" id="publication" name="referenceWork" uitype="querycbx" initialize="name=HUHReferenceWork" colspan="7"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="collation"/>
+                    <cell type="field" id="collation" name="text1" uitype="text" colspan="3"/>
+                    <cell type="label" labelfor="date"/>
+                    <cell type="field" id="date" name="text2" uitype="text"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="7"/>
+                </row>
+            </rows>
+        </viewdef>
+
+        <viewdef
+            name="HUHTransaction Agent"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.Agent"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Form for data entry of agents related to transactions.]]></desc>
+
+            <columnDef>          98px, 2px,        147px,   5px,  80px, 2px,        147px,   5px,  99px, 2px,  85px, 2px, 15px, p:g</columnDef>
+            <columnDef os="lnx">113px, 2px,        160px,   5px, 120px, 2px,        160px,   5px, 120px, 2px, 110px, 2px, 100px, p:g</columnDef>
+            <columnDef os="mac">128px, 2px,        190px,   5px, 100px, 2px,        190px,   5px, 133px, 2px, 140px, 2px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, max(p;160px),   5px,     p, 2px, max(p;160px), 5px:g, 40px, 5px,     p,  2px,    p, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <enableRules>
+                <rule id="mailto"><![CDATA[email.isNotEmpty()]]></rule>
+            </enableRules>
+            <rows>
+                <row>
+                    <cell type="label" labelfor="1"/>
+                    <cell type="field" id="1" name="title" uitype="combobox" picklist="HUH Agent Titles"/>
+                    <cell type="label" labelfor="8"/>
+                    <cell type="field" id="8" name="abbreviation" uitype="text"/>
+                    <cell type="label" labelfor="0"/>
+                    <cell type="field" id="0" name="agentType" uitype="combobox" ignore="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" name="firstName" uitype="text" cols="20"/>
+                    <cell type="label" label="Last Name:" initialize="align=right"/>
+                    <cell type="field" id="3" name="lastName" uitype="text" colspan="6"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="14" />
+                    <cell type="field" id="14" name="jobTitle" uitype="text"/>
+                    <cell type="label" labelfor="organization"/>
+                    <cell type="field" id="organization" name="organization" uitype="querycbx" initialize="name=HUHOrgByAcronym;title=HUHOrganization;displaydlg=HUHOrganizationDisplay;searchdlg=HUHOrganizationSearch" colspan="6"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="17" />
+                    <cell type="field" id="17" name="url" uitype="text" colspan="11" />
+                </row>
+                <row>
+                    <cell type="label" labelfor="email"/>
+                    <cell type="field" id="email" name="email" uitype="text" colspan="5" cols="32"/>
+                    <cell type="field" id="mailto" name="this" uitype="plugin" initialize="name=WebLinkButton;weblink=MailTo;icon=EMail;watch=email"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="interests"/>
+                    <cell type="field" id="interests" name="interests" uitype="text" colspan="11"/>
+                </row>
+                
+                <!-- "Remarks:" -->
+                <row>
+                    <cell type="label" labelfor="16" />
+                    <cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="11"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="Address" id="9" name="addresses" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Attachments" colspan="14"/>
+                </row>
+                <row>
+                    <cell type="subview" id="agentAttachments" viewname="ObjectAttachment" name="agentAttachments" colspan="14" initialize="btn=true;icon=AgentAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="createdByAgent"/>
+                    <cell type="field" id="createdByAgent" name="createdByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampCreated"/>
+                    <cell type="field" id="timestampCreated" name="timestampCreated" uitype="label" readonly="true" cols="20"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20"/>
+                </row>
+            </rows>
+        </viewdef>
+
+
+        
+        <!--  end HUH additions -->
 
     </viewdefs>
 </viewset>
