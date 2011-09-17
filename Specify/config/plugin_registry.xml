@@ -77,6 +77,12 @@
         <plugin name="WebLinkButton"        class="edu.ku.brc.af.ui.weblink.WebLinkButton"/>
         <plugin name="PasswordStrengthUI"   class="edu.ku.brc.af.ui.PasswordStrengthUI"/>
         <plugin name="IllustrativeBarCodeUI" class="edu.ku.brc.af.ui.IllustrativeBarCodeUI"/>
+        
+        <!--  added by HUH -->
+        <plugin name="HUHFeetToMeters"         class="edu.harvard.huh.specify.plugins.FeetToMeters"/>
+        <plugin name="HUHFixedPartialDateUI"   class="edu.ku.brc.specify.plugins.FixedPartialDateUI"/>
+        <plugin name="HUHGroupFullNameVariant" class="edu.harvard.huh.specify.plugins.GroupFullNameVariant"/>
+        <!--  end HUH additions -->
 	</uiplugins>
 	
 	<external>
