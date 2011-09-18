@@ -988,7 +988,7 @@
             </altviews>
         </view>
 
-         <view name="HUHAccessionPreparation"
+        <view name="HUHAccessionPreparation"
             objtitle="Accession Batch"
             class="edu.ku.brc.specify.datamodel.AccessionPreparation"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules"
@@ -1138,7 +1138,7 @@
             </altviews>
         </view>
 
-        <view name="ExchangeOut"
+        <view name="HUHExchangeOut"
             objtitle="Outgoing Exchange"
             class="edu.ku.brc.specify.datamodel.ExchangeOut"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules"
@@ -7252,7 +7252,6 @@
 					<cell type="field" id="preparation" name="preparation" uitype="querycbx" initialize="name=HUHPreparation;displaydlg=HUHBatchPreparation;editoncreate=true" formatname="HUHBatchPrepDetail" colspan="5" isrequired="true"/>
 					<cell type="label" label=" "/>
 					<cell type="field" id="8" name="isResolved" uitype="checkbox"/>
-					<!-- <cell type="subview" id="loanReturnPreparations" viewname="LoanReturnPreparation" name="loanReturnPreparations" initialize="btn=true;icon=LoanReturnPreparation" class="edu.ku.brc.specify.datamodel.LoanReturnPreparation" colspan="3"/> -->	
                 </row>
                 <row>
                 	<cell type="label" labelfor="3" />
@@ -7547,8 +7546,8 @@
                     <cell type="field" id="7" name="prepType" uitype="combobox" picklist="PrepType" isrequired="true"/>
                     <cell type="label" labelfor="1"/>
                     <cell type="field" id="1" uitype="plugin" name="this" initialize="name=PartialDateUI;df=preparedDate;tp=preparedDateDatePrecision" uifieldformatter="Date"/>
-                   <cell type="label" label="  "/>
-                   <cell type="field" id="isOnLoan" name="isOnLoan" uitype="checkbox" label="ISONLOAN" readonly="true"/>
+                    <cell type="label" label="  "/>
+                    <cell type="field" id="isOnLoan" name="isOnLoan" uitype="checkbox" label="ISONLOAN" readonly="true"/>
                     <cell type="subview" id="attachments" viewname="ObjectAttachment" name="preparationAttachments" initialize="align=right;btn=true;icon=PreparationAttachment"/>
                 </row>
                 <row>
