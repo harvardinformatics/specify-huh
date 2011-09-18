@@ -541,7 +541,7 @@
             </altviews>
         </view>
         
-	    <view name="HUHAffiliateAgent"
+        <view name="HUHAffiliateAgent"
             objtitle="Affiliate"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
@@ -629,7 +629,7 @@
             </altviews>
         </view>
 
-	    <view name="HUHBotanist"
+        <view name="HUHBotanist"
             objtitle="Botanist"
             class="edu.ku.brc.specify.datamodel.Agent"
             busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAgentBusRules"
@@ -677,7 +677,7 @@
             </altviews> 
         </view>
 
-       <view name="HUHGroupPersons"
+        <view name="HUHGroupPersons"
             objtitle="Botanist Team"
             class="edu.ku.brc.specify.datamodel.GroupPerson"
             busrules="edu.ku.brc.specify.datamodel.busrules.GroupPersonBusRules"
@@ -4015,7 +4015,7 @@
                 <rule id="definitionItem"><![CDATA[parent.getValue() != null]]></rule>
             </enableRules> 
             
-            <!--                label  buf  text1  buf  'ex'    buf  text2  buf  lbl    buf  chkbx buf  label  buf  lbl   buf   margin -->
+            <!--                label  buf  text1  buf  'ex'    buf  text2  buf  lbl    buf  chkbx buf  label  buf  lbl   buf   margin         -->
             <columnDef os="exp">    p, 2px, 285px, 5px, 20px:g, 5px, 105px, 2px,    p,  2px,   p,  2px,     p, 2px, 10px, 10px, 10px:g</columnDef>
             <columnDef os="lnx">110px, 2px, 270px, 5px,   20px, 5px, 100px, 2px, 150px, 2px, 15px, 2px, 108px, 2px, 10px, 10px, 10px:g</columnDef>
             <columnDef os="mac">130px, 2px, 287px, 5px,   20px, 5px, 125px, 2px, 155px, 2px, 15px, 2px, 110px, 2px, 40px, 15px, 10px:g</columnDef>
@@ -4265,8 +4265,6 @@
                     <cell type="label" labelfor="interests"/>
                     <cell type="field" id="interests" name="interests" uitype="text" colspan="11"/>
                 </row>
-                
-                <!-- "Remarks:" -->
                 <row>
                     <cell type="label" labelfor="16" />
                     <cell type="field" id="16" name="remarks" uitype="textareabrief" rows="5" colspan="11"/>
@@ -4296,8 +4294,6 @@
                 </row>
             </rows>
         </viewdef>
-
-
         
         <!--  end HUH additions -->
 
