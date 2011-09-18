@@ -62,12 +62,18 @@
     <typesearch tableid="5" name="HUHAuthorAgentByAgentVar" searchfield="av.name" displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)" dataobjformatter="HUHAuthorVarAgent">
         SELECT DISTINCT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
     </typesearch>
+    <typesearch tableid="1"   name="HUHCollectionObject"    searchfield="av.name"         displaycols="av.name,co.fieldNumber" format="%s %s" dataobjformatter="CollectionObject">
+        SELECT %s1 FROM CollectionObject co, Collector ctr, AgentVariant av WHERE av.varType=4 AND av.agent=ctr.agent and ctr in elements(co.collectingEvent.collectors) AND %s2 ORDER BY av.name, co.fieldNumber
+	</typesearch>
     <typesearch tableid="5"   name="HUHCollectorAgentByAgentVar" searchfield="av.name"       displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)" dataobjformatter="HUHCollectorVarAgent">
            SELECT DISTINCT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
     </typesearch>
     <!-- Added by lchan to show a designator's HUH Name in the determination citations table -->
     <typesearch tableid="5"   name="HUHDeterminationCitationsDesignator" searchfield="av.name"       displaycols="av.name,ag.dateOfBirth,ag.dateOfDeath" format="%s (%s-%s)" dataobjformatter="HUHDeterminationCitationsDesignator">
            SELECT DISTINCT %s1 FROM Agent ag LEFT JOIN ag.variants av WHERE %s2 ORDER BY av.name, ag.dateOfBirth
+    </typesearch>
+    <typesearch tableid="69"  name="HUHExsiccata"             searchfield="title,text1"     displaycols="text1,av.name"      format="%s %s" dataobjformatter="ReferenceWork">
+        SELECT %s1 FROM ReferenceWork rw LEFT JOIN rw.authors as au with au.orderNumber=1 LEFT JOIN au.agent as ag LEFT JOIN ag.variants as av with av.varType=2 WHERE rw.referenceWorkType=6 AND %s2 ORDER BY ifnull(rw.title, rw.text1), av.name
     </typesearch>
     <typesearch tableid="3"   name="HUHGeography"              searchfield="fullName"        displaycols="fullName"           format="%s"     dataobjformatter="Geography"/>
     <typesearch tableid="5"   name="HUHOrgByAcronym"           searchfield="ag.abbreviation,ag.lastName" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="HUHAgent">
@@ -76,11 +82,15 @@
     <typesearch tableid="5"   name="HUHParentOrganization"     searchfield="ag.abbreviation,ag.lastName" displaycols="ag.abbreviation,ag.lastName" format="%s - %s"     dataobjformatter="HUHAgent">
            SELECT distinct %s1 FROM Agent ag WHERE ag.agentType=0 AND %s2 ORDER BY ifnull(ag.abbreviation, 'z'), ag.lastName
     </typesearch>
+    <typesearch tableid="63"  name="HUHPreparation"            searchfield="pbc.barcode" displaycols="pbc.barcode" format="%s"     dataobjformatter="Preparation">
+        SELECT %s1 FROM Preparation pp JOIN PrepBarcode pbc as pbc WHERE %s2 ORDER BY pbc.barcode
+    </typesearch>
     <typesearch tableid="69"  name="HUHReferenceWork"          searchfield="title,text1"     displaycols="text1,av.name"      format="%s %s" dataobjformatter="HUHReferenceWork">
 		SELECT %s1 FROM ReferenceWork rw LEFT JOIN rw.authors as au with au.orderNumber=1 LEFT JOIN au.agent as ag LEFT JOIN ag.variants as av with av.varType=2 WHERE %s2 ORDER BY ifnull(rw.title, rw.text1), av.name
     </typesearch>
     <typesearch tableid="69"  name="HUHRefWorkTaxCitSub"       searchfield="ref.containedRFParent.title" displaycols="ref.containedRFParent.title"  format="%s"     dataobjformatter="HUHReferenceWork"/>
     <typesearch tableid="58"  name="HUHStorage"                searchfield="name,text1"      displaycols="fullName,text1"  format="%s.  %s"   dataobjformatter=""/>
+    <typesearch tableid="4"   name="HUHTaxon"                  searchfield="fullName"        displaycols="fullName,author,groupNumber"    format="%s %s %s"   dataobjformatter="Taxon"/>
     <typesearch tableid="107" name="HUHTaxonAuthor"            searchfield="name"            displaycols="name"               format="%s"     dataobjformatter="HUHAgentVariant">
 	    SELECT DISTINCT %s1 FROM AgentVariant av WHERE av.varType = 3 AND %s2 ORDER BY name
     </typesearch>
