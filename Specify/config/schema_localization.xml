@@ -3432,7 +3432,7 @@
           </str>
         </descs>
       </desc>
-      <desc name="role" isHidden="false" isUIFormatter="false" isRequired="false "pickListName="HUH Botanist Role">
+      <desc name="role" isHidden="false" isUIFormatter="false" isRequired="false" pickListName="HUH Botanist Role">
         <version>0</version>
         <names>
           <str language="en">
@@ -15554,7 +15554,7 @@
   <container name="determination" isHidden="false" format="Determination">
     <version>2</version>
     <items>
-      <desc name="addendum" isHidden="true" isUIFormatter="false" isRequired="false">
+      <desc name="addendum" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
           <str language="pt">
@@ -15831,7 +15831,7 @@
           </str>
         </descs>
       </desc>
-      <desc name="nameUsage" isHidden="true" isUIFormatter="false" pickListName="NameUsages" isRequired="false">
+      <desc name="nameUsage" isHidden="false" isUIFormatter="false" pickListName="NameUsages" isRequired="false">
         <version>0</version>
         <names>
           <str language="pt">
