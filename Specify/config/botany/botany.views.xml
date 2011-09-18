@@ -83,8 +83,8 @@
             >
             <desc><![CDATA[The Collection Object form.]]></desc>
             <altviews>
-                <altview name="HUHCollectionObject Object View" viewdef="HUHCollectionObject Object" mode="view"/>
-                <altview name="HUHCollectionObject Object Edit" viewdef="HUHCollectionObject Object" mode="edit" default="true"/>
+                <altview name="HUHCollectionObject Object View" viewdef="HUHCollectionObject View" mode="view"/>
+                <altview name="HUHCollectionObject Object Edit" viewdef="HUHCollectionObject Edit" mode="edit" default="true"/>
             </altviews>
         </view>
         
@@ -411,6 +411,9 @@
 
             <rowDef auto="true" cell="p" sep="2px"/>
             <rows>
+                <row>
+                    <cell type="subview" id="barcodes" name="barcodes" viewdef="CollObjBarcode" colspan="9"/>
+                </row>
                 <!-- from Fragment -->
                 <row>
                     <cell type="label" labelfor="catalogNumber"/>
@@ -475,7 +478,7 @@
                 <!-- end of Fragment -->
                 <row>
                     <cell type="label" labelfor="container"/>
-                    <cell type="field" id="container" name="container" uitype="querycbx" initialize="name=HUHContainer" colspan="5"/>
+                    <cell type="field" id="container" name="container" uitype="querycbx" initialize="name=Container" colspan="5"/>
                     <cell type="label" label=" "/>
                     <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
                 </row>
@@ -537,7 +540,7 @@
                 </row>
                 <row>
                     <cell type="label" labelfor="4"/>
-                    <cell type="field" id="4" name="cataloger" uitype="querycbx" initialize="name=HUHAgent;title=Catalog Agent;displaydlg=HUHAffiliateAgent" isrequired="true"/>
+                    <cell type="field" id="4" name="cataloger" uitype="querycbx" initialize="name=Agent;title=Catalog Agent;displaydlg=HUHAffiliateAgent" isrequired="true"/>
                     <cell type="label" labelfor="5"/>
                     <cell type="field" id="5" uitype="plugin" name="this" initialize="name=PartialDateUI;df=catalogedDate;tp=catalogedDatePrecision" uifieldformatter="Date"/>
                 </row>
