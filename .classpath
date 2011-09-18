@@ -140,9 +140,17 @@
 	<classpathentry kind="lib" path="Specify/libs/xpp3_minO.jar"/>
 	<classpathentry kind="lib" path="Specify/libs/xstream.jar"/>
 	<classpathentry kind="lib" path="Specify/system_dep_libs/non-mac-application-adapter.jar"/>
-	<classpathentry kind="lib" path="Specify/wwlib/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="Specify/wwlib/gluegen-rt.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="asa-specify-6.3/Specify/wwlib_64"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="Specify/wwlib/jogl.jar"/>
-	<classpathentry kind="lib" path="Specify/wwlib/worldwind.jar"/>
+	<classpathentry kind="lib" path="Specify/wwlib/worldwind.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="asa-specify-6.3/Specify/wwlib_64"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="Specify/libs/guava-r09.jar"/>
 	<classpathentry kind="lib" path="Specify/libs/scala-library.jar"/>
 	<classpathentry kind="lib" path="Specify/libs/sgr_datamodel.jar"/>
