@@ -6728,7 +6728,7 @@
           </str>
         </names>
         <descs/>
-      </desc
+      </desc>
       <desc name="itemCount" type="java.lang.Short" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
@@ -21578,7 +21578,7 @@
         </names>
         <descs/>
       </desc>
-      <desc name="fullName" type="java.lang.String" isHidden="true" isUIFormatter="false" isRequired="false">
+      <desc name="fullName" type="java.lang.String" isHidden="false" isUIFormatter="false" isRequired="false">
         <version>0</version>
         <names>
           <str language="en">
@@ -23497,7 +23497,7 @@
           </str>
         </descs>
       </desc>
-      <desc name="text2" isHidden="false" isUIFormatter="false" isRequired="false"pickListName="HUH Collection Code" >
+      <desc name="text2" isHidden="false" isUIFormatter="false" isRequired="false" pickListName="HUH Collection Code">
         <version>0</version>
         <names>
           <str language="en">
@@ -28231,7 +28231,7 @@
           </str>
         </descs>
       </desc>
-      <desc name="latLongMethod" type="java.lang.String" isHidden="false" isUIFormatter="false" isRequired="false"pickListName="HUH Lat-Long Method" >
+      <desc name="latLongMethod" type="java.lang.String" isHidden="false" isUIFormatter="false" isRequired="false" pickListName="HUH Lat-Long Method">
         <version>0</version>
         <names>
           <str language="pt">
