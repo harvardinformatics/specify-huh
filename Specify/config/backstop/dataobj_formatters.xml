@@ -57,11 +57,12 @@
         </switch>
     </format>
 
+    <!-- modified by HUH: changed default to "false" -->
     <format
         name="Agent"
         title="Agent"
         class="edu.ku.brc.specify.datamodel.Agent"
-        default="true"
+        default="false"
         >
         <switch single="false" field="agentType">
             <fields value="0">
@@ -584,11 +585,12 @@
         </switch>
     </format>
 
+    <!--  modified by HUH: changed default to "false" -->
     <format
         name="Storage"
         title="Storage"
         class="edu.ku.brc.specify.datamodel.Storage"
-        default="true"
+        default="false"
         >
         <switch single="true">
             <fields>
@@ -623,11 +625,12 @@
         </switch>
     </format>
 
+    <!--  modified by HUH: changed default to "false" -->
     <format
         name="Taxon"
         title="Taxon"
         class="edu.ku.brc.specify.datamodel.Taxon"
-        default="true"
+        default="false"
         >
         <switch single="true">
             <fields>
