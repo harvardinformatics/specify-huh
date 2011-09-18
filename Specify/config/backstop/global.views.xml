@@ -699,8 +699,8 @@
             <altviews>
                 <!--  <altview name="Author View" viewdef="Author" mode="view"/>
                 <altview name="Author Edit" viewdef="Author" mode="edit" default="true"/>  -->
-                <altview name="HUHInAuthor Table View" viewdef="HUHInAuthor Table" mode="view"/>
-                <altview name="HUHInAuthor Table Edit" viewdef="HUHInAuthor Table" mode="edit"/>
+                <altview name="Authors Table View" viewdef="Authors Table" mode="view"/>
+                <altview name="Authors Table Edit" viewdef="Authors Table" mode="edit"/>
             </altviews>
         </view>
 
