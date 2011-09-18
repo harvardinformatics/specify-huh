@@ -102,6 +102,20 @@
             </altviews>
         </view>
         
+        <!-- added by HUH -->
+        <view name="HUHExsiccatae"
+            class="edu.ku.brc.specify.datamodel.CollectionObjectCitation"
+            resourcelabels="false">
+            <desc><![CDATA[The Exsiccata Item subform for Collection Object form.]]></desc>
+            <altviews>
+                <altview name="HUHExsiccataItem View" viewdef="HUHExsiccataItem" mode="view"/>
+                <altview name="HUHExsiccataItem Edit" viewdef="HUHExsiccataItem" mode="edit"/>
+                <altview name="HUHExsiccataItem Table View" viewdef="HUHExsiccataItem Table" mode="view"/>
+                <altview name="HUHExsiccataItem Table Edit" viewdef="HUHExsiccataItem Table" mode="edit"/>
+            </altviews>
+        </view>
+        <!-- end HUH additions -->
+        
     </views>
     
     
@@ -703,6 +717,206 @@
                 </row>
              </rows>
         </viewdef>
+        
+        <!-- added by HUH -->
+        <viewdef
+            name="HUHCollectionObject"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.CollectionObject"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            
+            <desc><![CDATA[The Collection Object subform with Exsiccata Item.]]></desc>
+            <enableRules/>
+            
+            <columnDef>         100px, 2px, 195px,   5px,  96px, 2px, 210px, 5px,   94px, 2px, 101px,  5px, p:g</columnDef>
+            <columnDef os="lnx">130px, 2px, 200px,   5px, 120px, 2px, 255px, 5px,  130px, 2px,  81px, 45px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 220px,   5px, 138px, 2px, 220px, 5px,  130px, 2px, 140px, 15px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 220px, 5px:g,     p, 2px, 255px, 5px:g,    p, 2px, 200px,    p, p:g</columnDef>
+
+            <rowDef auto="true" cell="p" sep="2px"/>
+            <rows>
+                <!-- from Fragment -->
+                <row>
+                    <cell type="label" labelfor="catalogNumber"/>
+                    <cell type="field" id="catalogNumber" name="catalogNumber" uitype="formattedtext" isrequired="true"/>
+                    <cell type="label" labelfor="herbarium"/>
+                    <cell type="field" id="herbarium" name="text1" uitype="combobox" picklist="HUH Collection Code" isrequired="true"/>
+                    <cell type="field" id="isMinimal" name="yesNo2" uitype="checkbox"/>
+                    <cell type="field" id="isOnLoan" name="preparation.isOnLoan" uitype="checkbox" label="ISONLOAN" colspan="2" readonly="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="prepMethod"/>
+                    <cell type="field" id="prepMethod" uitype="combobox" name="prepMethod" picklist="HUH Preparation Method" isrequired="true"/>
+                    <cell type="label" labelfor="phenology"/>
+                    <cell type="field" id="phenology" name="phenology" uitype="combobox" picklist="HUH Phenology"/>
+                    <cell type="label" labelfor="sex"/>
+                    <cell type="field" id="sex" name="sex" uitype="combobox" picklist="HUH Plant Sexuality"/>
+                </row>
+                <row>
+                <cell type="label" labelfor="accessionNumber"/>
+                    <cell type="field" id="accessionNumber" name="accessionNumber" uitype="formattedtext"/>
+                    <cell type="label" labelfor="replicates"/>
+                    <cell type="field" id="replicates" name="number1" uitype="text"/>
+                    <cell type="subview" id="attachments" viewname="ObjectAttachment" name="fragmentAttachments" initialize="btn=true;icon=FragmentAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="distribution"/>
+                    <cell type="field" id="distribution" name="distribution" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="provenance"/>
+                    <cell type="field" id="provenance" name="provenance" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="reference"/>
+                    <cell type="field" id="reference" name="reference" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="voucher"/>
+                    <cell type="field" id="voucher" name="voucher" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="description"/>
+                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="internalRemarks"/>
+                    <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                </row>
+                <row>
+                    <cell type="subview" id="determinations" name="determinations" viewname="DeterminationSub" colspan="12"/>
+                </row>
+                <row>
+                    <cell type="subview" id="exsiccatae" name="collectionObjectCitations" viewname="HUHExsiccatae" colspan="12"/>
+                </row>
+                <!-- end of Fragment -->
+                <row>
+                    <cell type="label" labelfor="container"/>
+                    <cell type="field" id="container" name="container" uitype="querycbx" initialize="name=HUHContainer" colspan="5"/>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" id="collattachments" viewname="ObjectAttachment" name="collectionObjectAttachments" initialize="btn=true;icon=CollectionObjectAttachment"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="Projects" id="projects" name="projects" rows="2" colspan="9" initialize="name=Project;addsearch=true"/>
+                </row>
+                <row>
+                    <cell type="label" label=" "/>
+                    <cell type="subview" viewname="HUHOtherIdentifiers" id="otherIdentifier" name="otherIdentifiers" defaulttype="table" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="separator" label=""/>
+                    <cell type="separator" label="Collecting Information" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="subview" viewname="HUHCollectingEvent" id="21" label="Collection Information" name="collectingEvent" initialize="nosep=true" colspan="11"/>
+                </row>
+                <row>
+                    <cell type="separator" label=""/>
+                    <cell type="separator" label="Collection Attributes" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="frequency"/>
+                    <cell type="field" id="frequency" name="text4" uitype="text" colspan="5"/>
+
+                    <cell type="field" id="isCultivated" name="yesNo1" uitype="checkbox"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="vernacularName"/>
+                    <cell type="field" id="vernacularName" name="text3" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="host"/>
+                    <cell type="field" id="host" name="text1" uitype="text" cols="2"  colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="substrate"/>
+                    <cell type="field" id="substrate" name="text2" uitype="text" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="description"/>
+                    <cell type="field" id="description" name="description" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="remarks"/>
+                    <cell type="field" id="remarks" name="remarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="internalRemarks"/>
+                    <cell type="field" id="internalRemarks" name="internalRemarks" uitype="textareabrief" rows="2" colspan="9"/>
+                </row>
+                <row>
+                    <cell type="separator" label="Cataloger" colspan="11"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="14"/>
+                    <cell type="field" id="14" name="altCatalogNumber" uitype="text" readonly="true"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="4"/>
+                    <cell type="field" id="4" name="cataloger" uitype="querycbx" initialize="name=HUHAgent;title=Catalog Agent;displaydlg=HUHAffiliateAgent" isrequired="true"/>
+                    <cell type="label" labelfor="5"/>
+                    <cell type="field" id="5" uitype="plugin" name="this" initialize="name=PartialDateUI;df=catalogedDate;tp=catalogedDatePrecision" uifieldformatter="Date"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="modifiedByAgent"/>
+                    <cell type="field" id="modifiedByAgent" name="modifiedByAgent" uitype="label" readonly="true"  uifieldformatter="Agent"/>
+                    <cell type="label" label=""/>
+                    <cell type="label" labelfor="timestampModified"/>
+                    <cell type="field" id="timestampModified" name="timestampModified" uitype="label" readonly="true" cols="20" colspan="2"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHExsiccataItem"
+            type="form"
+            class="edu.ku.brc.specify.datamodel.CollectionObjectCitation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Exsiccata Item]]></desc>
+            
+            <columnDef>         100px, 2px, 225px,   5px, 100px, 2px, 225px, 2px, p:g</columnDef>
+            <columnDef os="lnx">100px, 2px, 225px,   5px,  80px, 2px, 275px, 2px, p:g</columnDef>
+            <columnDef os="mac">130px, 2px, 225px,   5px, 138px, 2px, 225px, 2px, p:g</columnDef>
+            <columnDef os="exp">    p, 2px, 225px, 5px:g,     p, 2px, 225px, 2px, p:g</columnDef>
+            <rowDef auto="true" cell="p" sep="2px"/>
+            
+            <rows>
+                <row>
+                    <cell type="label" labelfor="exsiccata"/>
+                    <cell type="field" id="exsiccata" name="referenceWork" uitype="querycbx" initialize="name=HUHExsiccata;title=Exsiccata;searchdlg=HUHExsiccataSearch" colspan="5"/>
+                </row>
+                <row>
+                    <cell type="label" labelfor="fascicle"/>
+                    <cell type="field" id="fascicle" name="text1" uitype="text"/>
+                    <cell type="label" labelfor="number"/>
+                    <cell type="field" id="number" name="text2" uitype="text"/>
+                </row>
+            </rows>
+        </viewdef>
+        
+        <viewdef
+            name="HUHExsiccataItem Table"
+            type="formtable"
+            class="edu.ku.brc.specify.datamodel.FragmentCitation"
+            gettable="edu.ku.brc.af.ui.forms.DataGetterForObj"
+            settable="edu.ku.brc.af.ui.forms.DataSetterForObj">
+            <desc><![CDATA[Exsiccata Item]]></desc>
+            <definition>HUHExsiccataItem</definition>
+        </viewdef>
+        <!-- end HUH additions -->
         
     </viewdefs>
 </viewset>
