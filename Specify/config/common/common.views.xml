@@ -991,7 +991,6 @@
         <view name="HUHAccessionPreparation"
             objtitle="Accession Batch"
             class="edu.ku.brc.specify.datamodel.AccessionPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules"
             isinternal="false"
             resourcelabels="false">
             <desc><![CDATA[Accession Preparation form for Lots]]></desc>
@@ -1003,7 +1002,6 @@
         
         <view name="HUHAccessionPreparations"
             class="edu.ku.brc.specify.datamodel.AccessionPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHAccessionPreparationBusRules"
             resourcelabels="false">
             <desc><![CDATA[Accession Preparation table display form]]></desc>
             <altviews>
@@ -1042,7 +1040,6 @@
         <view name="HUHBorrowMaterial"
             objtitle="Borrow Material"
             class="edu.ku.brc.specify.datamodel.BorrowMaterial"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHBorrowMaterialBusRules"
             >
             <desc><![CDATA[Borrow material display form]]></desc>
             <altviews>
@@ -1054,7 +1051,6 @@
         <view name="HUHBorrowReturnMaterial"
             objtitle="Borrow Return Material"
             class="edu.ku.brc.specify.datamodel.BorrowReturnMaterial"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHBorrowReturnMaterialBusRules"
             >
             <desc><![CDATA[Borrow return material display form]]></desc>
             <altviews>
@@ -1154,7 +1150,6 @@
         <view name="HUHExchangeOut"
             objtitle="Outgoing Exchange"
             class="edu.ku.brc.specify.datamodel.ExchangeOut"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules"
             >
             <desc><![CDATA[Exchange Out display form]]></desc>
             <altviews>
@@ -1165,7 +1160,6 @@
         
         <view name="HUHExchangeOutPrep"
             class="edu.ku.brc.specify.datamodel.ExchangeOutPrep"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutBusRules"
             >
             <desc><![CDATA[Exchange Out display form]]></desc>
             <altviews>
@@ -1179,7 +1173,6 @@
         <view name="HUHExchangeOutItem"
             objtitle="Exchange Out Batch"
             class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutPreparationBusRules"
             >
             <desc><![CDATA[Exchange out display form]]></desc>
             <altviews>
@@ -1191,7 +1184,6 @@
         <view name="HUHExchangeOutItems"
             objtitle="Exchange Out Items"
             class="edu.ku.brc.specify.datamodel.ExchangeOutPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHExchangeOutPreparationBusRules"
             >
             <desc><![CDATA[Exchange out display form]]></desc>
             <altviews>
@@ -1230,7 +1222,6 @@
         <view name="HUHGiftItem"
             objtitle="Gift Batch"
             class="edu.ku.brc.specify.datamodel.GiftPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHGiftPreparationBusRules"
             >
             <desc><![CDATA[Gift display form]]></desc>
             <altviews>
@@ -1242,7 +1233,6 @@
         <view name="HUHLoan"
             objtitle="Loan"
             class="edu.ku.brc.specify.datamodel.Loan"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHLoanBusRules"
             >
             <desc><![CDATA[Loan display form]]></desc>
             <altviews>
@@ -1267,7 +1257,6 @@
         <view name="HUHLoanItems"
             objtitle="Loan Items"
             class="edu.ku.brc.specify.datamodel.LoanPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHLoanPreparationBusRules"
             >
             <desc><![CDATA[Loan display form]]></desc>
             <altviews>
@@ -1281,7 +1270,6 @@
         <view name="HUHLoanReturnPreparation"
             objtitle="Loan Return Prep"
             class="edu.ku.brc.specify.datamodel.LoanReturnPreparation"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHLoanReturnPreparationBusRules"
             >
             <desc><![CDATA[LoanReturnPreparation display form]]></desc>
             <altviews>
@@ -1358,7 +1346,6 @@
         <view name="HUHShipment"
             objtitle="Shipment"
             class="edu.ku.brc.specify.datamodel.Shipment"
-            busrules="edu.harvard.huh.specify.datamodel.busrules.HUHShipmentBusRules"
             >
             <desc><![CDATA[Shipment Subform within the Loan Object form.]]></desc>
             <altviews>
