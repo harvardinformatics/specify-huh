@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
@@ -55,6 +56,7 @@ public class PDFReader extends javax.swing.JFrame
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenuItem openMenuItem;
+    private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JMenuItem printMenuItem;
     private javax.swing.JMenu viewMenu;
     private javax.swing.JMenuItem nextPageItem;
@@ -88,6 +90,7 @@ public class PDFReader extends javax.swing.JFrame
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         openMenuItem = new javax.swing.JMenuItem();
+        saveMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         contentsMenuItem = new javax.swing.JMenuItem();
@@ -127,6 +130,18 @@ public class PDFReader extends javax.swing.JFrame
         });
 
         fileMenu.add(openMenuItem);
+        
+        saveMenuItem.setText("Save");
+        saveMenuItem.setToolTipText("Save PDF file");
+        saveMenuItem.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                saveMenuItemActionPerformed(evt);
+            }
+        });
+
+        fileMenu.add(saveMenuItem);
 
         printMenuItem.setText( "Print" );
         printMenuItem.addActionListener(new java.awt.event.ActionListener()
@@ -249,6 +264,52 @@ public class PDFReader extends javax.swing.JFrame
             }
         }
     }
+    
+    private void saveMenuItemActionPerformed(java.awt.event.ActionEvent evt)
+    {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(currentDir);
+
+        ExtensionFileFilter pdfFilter = new ExtensionFileFilter(new String[] {"PDF"}, "PDF Files");
+        chooser.setFileFilter(pdfFilter);
+        int result = chooser.showSaveDialog(PDFReader.this);
+        if (result == JFileChooser.APPROVE_OPTION)
+        {
+            String name = chooser.getSelectedFile().getPath();
+            String filename = chooser.getSelectedFile().getName();
+            String ext = null;
+            
+            int i = name.lastIndexOf('.');
+            
+            // get the file extension
+            if (i > 0 &&  i < name.length() - 1) {
+                ext = name.substring(i+1).toLowerCase();
+            }
+            
+            // if the file extension is null, append .pdf to the filename before saving.
+            if (ext == null) {
+            	ext = "pdf";
+            	name += '.' + ext;
+            }
+            
+            //currentDir = new File(name).getParentFile();
+            try
+            {
+            	if (ext.toLowerCase().equals("pdf")) {
+            		savePDFFile(name);
+                	JOptionPane.showMessageDialog(null, "Successfully saved " + filename + "!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            	} else {
+            		JOptionPane.showMessageDialog(null, "Incorrect file extension " + ext + "! Please use pdf", "Erorr", JOptionPane.ERROR_MESSAGE);
+            
+            	}
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occured while trying to save!", "Erorr", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
     private void exitApplication()
     {
@@ -298,6 +359,15 @@ public class PDFReader extends javax.swing.JFrame
         currentPage = 0;
         updateTitle();
         showPage(0);
+    }
+    
+
+    private void savePDFFile(String file) throws Exception
+    {
+        if( document != null )
+        {
+            document.save(file);
+        }
     }
     
     private void showPage(int pageNumber)
