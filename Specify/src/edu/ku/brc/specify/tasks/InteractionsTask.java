@@ -1299,10 +1299,13 @@ public class InteractionsTask extends BaseTask
 	
 	                //delete later
 	    			File reportxml = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.xml");
+	    			File fo = new File(ReportXslFiles.REPORTS_DIR + "LoanReport.fo");
+	    			marshaller.transform(new StreamSource(ReportXslFiles.LOAN_REPORT), new FileOutputStream(fo));
 	                marshaller.marshal(new FileOutputStream(reportxml));
 	                
 				} catch (Exception e) {
 					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
             }
 			

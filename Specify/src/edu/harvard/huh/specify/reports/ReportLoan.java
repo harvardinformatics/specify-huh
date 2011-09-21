@@ -120,11 +120,15 @@ public class ReportLoan {
 				} else {
 					preparationCount++;
 					BarcodedSpecimen barcoded = new BarcodedSpecimen();
+					Boolean firstPrepBarcode = false;
 					for (Fragment f : lp.getPreparation().getFragments()) {
 						BarcodedItem item = new BarcodedItem();
 						if (f.getIdentifier() != null)
 							item.identifier = f.getIdentifier();
-						
+						else if (lp.getPreparation().getIdentifier() != null && !firstPrepBarcode) {
+							item.identifier = lp.getPreparation().getIdentifier();
+							firstPrepBarcode = true;
+						}
 						if (f.getDeterminations() != null) {
 							for (Determination d : f.getDeterminations()) {
 								if (d.isCurrentDet()) {
@@ -238,7 +242,7 @@ public class ReportLoan {
 		
 		public int compareTo(BarcodedSpecimen specimen) {
 			
-			if (getSortItem().identifier != "No Barcode" && Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
+			if (!getSortItem().identifier.equals("") && specimen.getSortItem().identifier.equals("") && Double.parseDouble(getSortItem().identifier) > Double.parseDouble(specimen.getSortItem().identifier)) return 1;
 			else return -1;
 		}
 	}
@@ -248,7 +252,7 @@ public class ReportLoan {
 	 *
 	 */
 	private class BarcodedItem implements Comparable<BarcodedItem> {
-		private String identifier = "No Barcode";
+		private String identifier = "";
 		private String taxon;
 		private String type;
 		private String collectorName;
@@ -256,7 +260,7 @@ public class ReportLoan {
 		private String region;
 		
 		public int compareTo(BarcodedItem item) {
-			if (identifier != "No Barcode" && Double.parseDouble(identifier) > Double.parseDouble(item.identifier)) return 1;
+			if (!identifier.equals("") && !item.identifier.equals("") && Double.parseDouble(identifier) > Double.parseDouble(item.identifier)) return 1;
 			else return -1;
 		}
 	}

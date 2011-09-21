@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.swing.JOptionPane;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -78,6 +79,7 @@ public class DataModelObjectReport {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			displayErrorDlg();
 		}
 
 		if (out != null) {
@@ -85,6 +87,7 @@ public class DataModelObjectReport {
 				out.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				displayErrorDlg();
 			}
 		}
 
@@ -93,13 +96,18 @@ public class DataModelObjectReport {
 			PDFReader.display(ReportXslFiles.REPORTS_DIR + "out.pdf");
 		} catch (Exception e) {
 			e.printStackTrace();
+			displayErrorDlg();
 		}
 
-		// set on close operation to delete file
+		//set on close operation to delete file
 		try {
 			new File(ReportXslFiles.REPORTS_DIR + "out.pdf").delete();
 		} catch (Exception e) {
 			e.printStackTrace();
+			displayErrorDlg();
 		}
+	}
+	void displayErrorDlg() {
+		JOptionPane.showMessageDialog(null, "Failed to generate invoice pdf!", "Error", JOptionPane.ERROR_MESSAGE);
 	}
 }
