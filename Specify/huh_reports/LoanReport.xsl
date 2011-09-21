@@ -11,21 +11,13 @@
 	<xsl:variable name="institution">
 		<xsl:value-of select="reportLoan/institution" />
 		<xsl:if test="reportLoan/acronym != ''">
-		- (
-		<xsl:value-of select="reportLoan/acronym" />
-		)</xsl:if>
+		- (<xsl:value-of select="reportLoan/acronym" />)</xsl:if>
 	</xsl:variable>
 
 	<xsl:variable name="address1" select="reportLoan/address1" />
 	<xsl:variable name="address2" select="reportLoan/address2" />
 	<xsl:variable name="cityStateZip">
-	    <xsl:if test="reportLoan/city != ''">
-		<xsl:value-of select="reportLoan/city" />
-		,</xsl:if>
-		<xsl:if test="reportLoan/state != ''">
-		<xsl:value-of select="reportLoan/state" />
-		,</xsl:if>
-		<xsl:value-of select="reportLoan/zip" />
+	    <xsl:if test="reportLoan/city != ''"><xsl:value-of select="reportLoan/city" />, </xsl:if><xsl:if test="reportLoan/state != ''"><xsl:value-of select="reportLoan/state" />, </xsl:if><xsl:value-of select="reportLoan/zip" />
 	</xsl:variable>
 
 	<xsl:variable name="country" select="reportLoan/country" />
@@ -118,25 +110,27 @@
 						space-after="12pt" font-weight="bold" text-decoration="underline">LOAN
 						SHIPPING
 						NOTICE</fo:block>
-					<fo:block space-before="12pt">
-						<xsl:value-of select="$nameOfContact" />
+					<fo:block-container space-before="12pt" height="29mm">	
+					<fo:block>
+						<xsl:value-of select="$nameOfContact" />&#x20;
 					</fo:block>
 					<fo:block>
-						<xsl:value-of select="$institution" />
+						<xsl:value-of select="$institution" />&#x20;
 					</fo:block>
 					<fo:block>
-						<xsl:value-of select="$address1" />
+						<xsl:value-of select="$address1" />&#x20;
 					</fo:block>
 					<fo:block>
-						<xsl:value-of select="$address2" />
+						<xsl:value-of select="$address2" />&#x20;
 					</fo:block>
 					<fo:block>
-						<xsl:value-of select="$cityStateZip" />
+						<xsl:value-of select="$cityStateZip" />&#x20;
 					</fo:block>
 					<fo:block space-after="12pt">
-						<xsl:value-of select="$country" />
+						<xsl:value-of select="$country" />&#x20;
 					</fo:block>
-					<fo:block space-before="12pt" space-after="36pt">We are sending
+					</fo:block-container>
+					<fo:block space-before="12pt" space-after="24pt">We are sending
 						you
 						a loan of herbarium specimens as indicated below. Upon arrival
 						of
@@ -163,31 +157,55 @@
 								<fo:table-row>
 									<fo:table-cell>
 										<fo:block>HUH loan number:</fo:block>
-										<fo:block>Date sent:</fo:block>
-										<fo:block>Date due:</fo:block>
-										<fo:block>For use by:</fo:block>
-										<fo:block>Number of packages:</fo:block>
-									</fo:table-cell>
-									<fo:table-cell>
+								    </fo:table-cell>
+								    <fo:table-cell>
 										<fo:block>
 											<xsl:value-of select="$loanNumber" />
 											(Please use this number in
 											all communications)
 										</fo:block>
+									</fo:table-cell>
+								</fo:table-row>
+								<fo:table-row>
+								    <fo:table-cell>
+										<fo:block>Date sent:</fo:block>
+									</fo:table-cell>
+									<fo:table-cell>
 										<fo:block>
 											<xsl:value-of select="$dateSent" />
 										</fo:block>
+									</fo:table-cell>
+								</fo:table-row>
+								<fo:table-row>
+									<fo:table-cell>
+										<fo:block>Date due:</fo:block>
+								   </fo:table-cell>
+								   <fo:table-cell>
 										<fo:block>
 											<xsl:value-of select="$dateDue" />
 										</fo:block>
+									</fo:table-cell>
+								</fo:table-row>
+								<fo:table-row>
+									<fo:table-cell>
+										<fo:block>For use by:</fo:block>
+									</fo:table-cell>
+									<fo:table-cell>	
 										<fo:block>
 											<xsl:value-of select="$forUseBy" />
 										</fo:block>
+									</fo:table-cell>
+								</fo:table-row>
+								<fo:table-row>								
+									<fo:table-cell>
+										<fo:block>Number of packages:</fo:block>
+									</fo:table-cell>
+									<fo:table-cell>	
 										<fo:block>
 											<xsl:value-of select="$numberOfPackages" />
 										</fo:block>
 									</fo:table-cell>
-								</fo:table-row>
+								</fo:table-row>	
 							</fo:table-body>
 						</fo:table>
 					</fo:block>
@@ -269,10 +287,10 @@
 						<fo:block linefeed-treatment="preserve" white-space-collapse="false" white-space-treatment="preserve"><xsl:value-of select="$description" /></fo:block>
 						</fo:block-container>
 					</fo:block>
-					<fo:block-container space-before="12pt"
+					<fo:block-container
 						space-after="10mm">
 						<fo:block>Received the above in good order</fo:block>
-						<fo:block space-before="24pt">
+						<fo:block space-before="18pt">
 							<fo:leader leader-length="80mm" leader-pattern="rule" />
 							<fo:leader leader-length="50mm" leader-pattern="rule"
 								padding-left="5mm" />
@@ -361,7 +379,7 @@
 										<fo:table-row>
 											<fo:table-cell padding-left="5mm"
 												padding-right="5mm" padding-top="5mm" padding-bottom="5mm"
-												number-columns-spanned="5">
+												number-columns-spanned="4">
 												<fo:table border-style="solid">
 													<fo:table-body>
 														<xsl:for-each select="barcodedItem">
@@ -383,9 +401,7 @@
 																</fo:table-cell>
 																<fo:table-cell padding-right="5mm">
 																	<fo:block>
-																		<xsl:value-of select="collectorName" />
-																		<xsl:if test="collectorNumber != ''">
-																		,
+																		<xsl:value-of select="collectorName" /><xsl:if test="collectorNumber != '' and collectorNumber != null">,
 																		<xsl:value-of select="collectorNumber" />
 																		</xsl:if>
 																	</fo:block>
