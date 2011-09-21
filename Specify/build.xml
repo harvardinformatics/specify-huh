@@ -7,6 +7,8 @@
 
 	<property name="compile.src.root" value="compile-src"/>
 	<property name="compile.dst.root" value="compile-dst"/>
+	<property name="jibx.dir" value="jibx_libs" />
+	<property name="binding.dir" value="." />
 
 	<property name="asa.dir" value="edu/harvard/huh/asa"/>
 	<property name="asa2specify.dir" value="edu/harvard/huh/asa2specify"/>
@@ -156,7 +158,7 @@
 		<javac srcdir="${compile.src.root}" destdir="${compile.dst.root}" debug="on" optimize="off" deprecation="on" fork="true" memoryInitialSize="256m" memoryMaximumSize="512m">
 			<classpath refid="project.class.path" />
 		</javac>
-
+		<antcall target="bind" />
 	</target>
 
 	<!-- Jar up compiled classes-->
@@ -1151,7 +1153,21 @@
 		</copy>
 
 	</target>
-
+	
+	<!--*************************************************************
+	     Compile bindings for datamodel objects
+	    ************************************************************* -->
+		<target name="bind">
+			<echo message="Running JiBX binding compiler" />
+			<taskdef name="bind" classname="org.jibx.binding.ant.CompileTask">
+				<classpath>
+					<fileset dir="${jibx.dir}" includes="*.jar" />
+				</classpath>
+			</taskdef>
+			<bind verbose="true" binding="${binding.dir}/report_binding.xml">
+				<classpathset dir="${compile.dst.root}" />
+			</bind>
+		</target>
 
 
 	<!--*************************************************************
